@@ -112,8 +112,6 @@ function TMXData() {
 		var byteView = new Uint8Array(atob(layerNode.textContent.trim()).split("").map(function(c) { return c.charCodeAt(0); }));
 		this.tileData = new Uint32Array(byteView.buffer);
 
-		console.info("LAYER", this);
-
 		seq(layerNode.attributes).forEach(function(attr, ix) {
 			if (attr.nodeName == "width")
 				self.width = parseInt(attr.textContent);
@@ -150,12 +148,12 @@ function TMXData() {
 		};
 	}
 
-	this.load = function(name) {
+	this.load = function(fileName) {
 		var self = this;
 
 		return new Promise(function(resolve, reject) {
 			var xhr = new XMLHttpRequest();
-			xhr.open("GET", name + ".tmx?k=" + Date.now());
+			xhr.open("GET", filePath + "?k=" + Date.now());
 			xhr.overrideMimeType("application/xml");
 			xhr.onload = function() {
 				var tileDoc = xhr.responseXML.childNodes[0];
@@ -174,6 +172,10 @@ function TMXData() {
 				}
 
 				resolve(self);
+			};
+
+			xhr.onerror = function() {
+				assert(false, filePath + " doesn't exist");
 			};
 
 			xhr.send(null);
