@@ -148,7 +148,7 @@ function TMXData() {
 		};
 	}
 
-	this.load = function(fileName) {
+	this.load = function(filePath) {
 		var self = this;
 
 		return new Promise(function(resolve, reject) {
