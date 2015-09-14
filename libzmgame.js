@@ -16,6 +16,16 @@ function intRandomRange(minimum, maximum) {
 }
 
 
+function deg2rad(deg) {
+	return deg * Math.PI / 180.0;
+}
+
+
+function rad2deg(rad) {
+	return rad * 180.0 / Math.PI;
+}
+
+
 // -- Images
 
 function loadImage(src) {
@@ -124,13 +134,13 @@ function TMXData() {
 			return this.tileData.slice(offset, offset + tileCount);
 		};
 
-		this.tileAt = function(row, col) {
+		this.tileAt = function(col, row) {
 			if (row < 0 || col < 0 || row >= this.height || col >= this.width)
-				return 999;
+				return -1;
 			return this.tileData[(row * this.width) + col];
 		};
 
-		this.setTileAt = function(row, col, tile) {
+		this.setTileAt = function(col, row, tile) {
 			if (row < 0 || col < 0 || row >= this.height || col >= this.width)
 				return;
 			this.tileData[(row * this.width) + col] = tile;
