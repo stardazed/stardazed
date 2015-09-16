@@ -160,13 +160,14 @@ function TMXData() {
 
 	this.load = function(filePath) {
 		var self = this;
-
-		return new Promise(function(resolve, reject) {
-			var xhr = new XMLHttpRequest();
-			xhr.open("GET", filePath + "?k=" + Date.now());
-			xhr.overrideMimeType("application/xml");
-			xhr.onload = function() {
-				var tileDoc = xhr.responseXML.childNodes[0];
+		
+		return loadFile(filePath, {
+			tryBreakCache: true,
+			xml: true,
+			mimeType: "application/xml"
+		}).then(
+			function(dataXML) {
+				var tileDoc = dataXML.childNodes[0];
 
 				seq(tileDoc.attributes).forEach(function(attr, ix) {
 					if (attr.nodeName == "width")
@@ -181,14 +182,8 @@ function TMXData() {
 						self.layers.push(new LayerData(node));
 				}
 
-				resolve(self);
-			};
-
-			xhr.onerror = function() {
-				assert(false, filePath + " doesn't exist");
-			};
-
-			xhr.send(null);
-		});
+				return self;
+			}
+		);
 	};
 }

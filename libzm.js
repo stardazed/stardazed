@@ -90,3 +90,37 @@ function off(target, evt, handler) {
 
 	$(target).forEach(function(tgt) { tgt.removeEventListener(evt, handler); });
 }
+
+
+// -- Resources
+
+function loadFile(filePath, opts) {
+	return new Promise(function(resolve, reject) {
+		opts = opts || {};
+
+		var xhr = new XMLHttpRequest();
+		if (opts.tryBreakCache) {
+			filePath += "?__ts=" + Date.now();
+		}
+		xhr.open("GET", filePath);
+		if (opts.mimeType) {
+			xhr.overrideMimeType(opts.mimeType);
+		}
+
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState != 4) return;
+			assert(xhr.status == 200 || xhr.status == 0);
+
+			if (opts.xml)
+				resolve(xhr.responseXML);
+			else
+				resolve(xhr.responseText);
+		};
+
+		xhr.onerror = function() {
+			assert(false, filePath + " doesn't exist");
+		};
+
+		xhr.send();
+	});
+}
