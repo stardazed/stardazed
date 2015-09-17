@@ -1,4 +1,4 @@
-// libzm.js - all I need to be street
+// libzm - all I need to be street
 // (c) 2015 by Arthur Langereis - @zenmumbler
 function assert(cond, msg) {
     if (!cond) {

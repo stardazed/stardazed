@@ -1,4 +1,4 @@
-// libzm.js - all I need to be street
+// libzm - all I need to be street
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 function assert(cond: any, msg?: string) {
@@ -29,7 +29,7 @@ function seq(t: any): any {
 
 // -- Data
 
-function encodeAsQueryString(obj) {
+function encodeAsQueryString(obj: Object): string {
 	var items = [];
 
 	for (var k in obj) {

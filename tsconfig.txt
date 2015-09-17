@@ -1,5 +1,7 @@
---noEmitOnError
+--declaration
+--rootDir src
 --outDir js
+--noEmitOnError
 --removeComments
 --sourceMap
---target ES6
+--target ES5
