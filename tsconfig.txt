@@ -1,0 +1,5 @@
+--noEmitOnError
+--outDir js
+--removeComments
+--sourceMap
+--target ES6
