@@ -30,7 +30,7 @@ function seq(t: any): any {
 // -- Data
 
 function encodeAsQueryString(obj: Object): string {
-	var items = [];
+	var items: string[] = [];
 
 	for (var k in obj) {
 		if (obj.hasOwnProperty(k)) {
@@ -45,7 +45,7 @@ function encodeAsQueryString(obj: Object): string {
 // -- DOM Elements
 
 interface HTMLElement {
-	matches: (string) => boolean;
+	matches: (selector: string) => boolean;
 }
 
 type ElemSelector = string | Object;

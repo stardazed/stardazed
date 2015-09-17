@@ -4,7 +4,7 @@ declare function seq<T>(t: Array<T>): Array<T>;
 declare function seq(t: any): Array<any>;
 declare function encodeAsQueryString(obj: Object): string;
 interface HTMLElement {
-    matches: (string) => boolean;
+    matches: (selector: string) => boolean;
 }
 declare type ElemSelector = string | Object;
 declare function $n(sel: string, base?: HTMLElement): HTMLElement[];

@@ -30,8 +30,11 @@ declare class TMXLayer {
     setTileAt(col: number, row: number, tile: number): void;
     eachTile(callback: (row: number, col: number, tile: number) => void): void;
 }
+declare type TMXLayerSet = {
+    [name: string]: TMXLayer;
+};
 declare class TMXData {
-    layers: TMXLayer[];
+    layers: TMXLayerSet;
     width: number;
     height: number;
     load(filePath: string): Promise<TMXData>;

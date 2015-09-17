@@ -118,7 +118,7 @@ var TMXLayer = (function () {
 })();
 var TMXData = (function () {
     function TMXData() {
-        this.layers = [];
+        this.layers = {};
     }
     TMXData.prototype.load = function (filePath) {
         var _this = this;
@@ -137,7 +137,7 @@ var TMXData = (function () {
             for (var ix = 0; ix < tileDoc.childNodes.length; ++ix) {
                 var node = tileDoc.childNodes[ix];
                 if (node.nodeName == "layer")
-                    _this.layers.push(new TMXLayer(node));
+                    _this.layers["layer" + ix] = new TMXLayer(node);
             }
             return _this;
         });

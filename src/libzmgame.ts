@@ -151,8 +151,11 @@ class TMXLayer {
 }
 
 
+type TMXLayerSet = { [name: string]: TMXLayer; };
+
+
 class TMXData {
-	layers: TMXLayer[] = [];
+	layers: TMXLayerSet = {};
 	width: number;
 	height: number;
 
@@ -175,7 +178,7 @@ class TMXData {
 				for (var ix=0; ix < tileDoc.childNodes.length; ++ix) {
 					var node = tileDoc.childNodes[ix];
 					if (node.nodeName == "layer")
-						this.layers.push(new TMXLayer(node));
+						this.layers["layer" + ix] = new TMXLayer(node); // fixme: use name attrib of layer node
 				}
 
 				return this;
