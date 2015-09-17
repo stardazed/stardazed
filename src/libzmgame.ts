@@ -2,6 +2,7 @@
 // requires libzm
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
+/// <reference path="libzm.ts" />
 
 // -- Numbers
 

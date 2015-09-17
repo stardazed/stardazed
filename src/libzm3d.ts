@@ -2,6 +2,12 @@
 // requires libzm
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
+/// <reference path="../defs/gl-matrix.d.ts" />
+/// <reference path="../defs/webgl-ext.d.ts" />
+
+/// <reference path="libzm.ts" />
+/// <reference path="libzmgame.ts" />
+
 declare var gl: WebGLRenderingContext;
 
 

@@ -1,6 +1,8 @@
 // libzm - all I need to be street
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
+/// <reference path="../defs/es6-promise.d.ts" />
+
 function assert(cond: any, msg?: string) {
 	if (! cond) {
 		throw new Error(msg || "assertion failed");
