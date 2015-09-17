@@ -15,6 +15,6 @@
         "declaration": true
     },
     "exclude": [
-        "js"
+        "build"
     ]
 }
