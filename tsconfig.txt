@@ -1,9 +1,0 @@
---declaration
---rootDir src
---outDir js
---noImplicitAny
---suppressImplicitAnyIndexErrors
---noEmitOnError
---removeComments
---sourceMap
---target ES5

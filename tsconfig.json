@@ -3,14 +3,18 @@
         "module": "commonjs",
         "target": "es5",
         "rootDir": "src",
-        "outDir": "js",
+        "outDir": "build",
         "noEmitOnError": true,
+        "listFiles": true,
+
         "noImplicitAny": true,
+        "suppressImplicitAnyIndexErrors": true,
+
         "removeComments": true,
         "sourceMap": true,
-        "declaration": true,
+        "declaration": true
     },
-    "files": [
-        
+    "exclude": [
+        "js"
     ]
 }
