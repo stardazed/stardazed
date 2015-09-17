@@ -16,6 +16,7 @@ declare var glMatrix: glMatrix;
 
 interface ArrayOfNumber {
   [index: number]: number;
+  length: number;
 }
 
 

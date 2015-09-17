@@ -152,7 +152,7 @@ class TMXLayer {
 
 
 class TMXData {
-	layers: TMXLayer[];
+	layers: TMXLayer[] = [];
 	width: number;
 	height: number;
 

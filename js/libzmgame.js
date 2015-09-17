@@ -118,6 +118,7 @@ var TMXLayer = (function () {
 })();
 var TMXData = (function () {
     function TMXData() {
+        this.layers = [];
     }
     TMXData.prototype.load = function (filePath) {
         var _this = this;
