@@ -1,6 +1,6 @@
 // Extended type definitions for WebGL (beyond TS 1.6.2 standard definitions)
 // Definitions by: Arthur Langereis <https://github.com/zenmumbler/>
-// Definitions: https://github.com/zenmumbler/libzm/webgl-ext.d.ts
+// Definitions: https://github.com/zenmumbler/libzm/blob/master/defs/webgl-ext.d.ts
 
 interface HTMLCanvasElement {
 	getContext(contextId: "webgl"): WebGLRenderingContext;
