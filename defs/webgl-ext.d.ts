@@ -12,7 +12,7 @@ interface WebGLRenderingContext {
 	getExtension(name: "EXT_blend_minmax"): EXTBlendMinMax;
 	getExtension(name: "EXT_color_buffer_half_float"): EXTColorBufferHalfFloat;
 	getExtension(name: "EXT_frag_depth"): EXTFragDepth;
-	getExtension(name: "EXT_rRGB"): EXTsRGB;
+	getExtension(name: "EXT_sRGB"): EXTsRGB;
 	getExtension(name: "EXT_shader_texture_lod"): EXTShaderTextureLOD;
 	getExtension(name: "EXT_texture_filter_anisotropic"): EXTTextureFilterAnisotropic;
 
@@ -39,9 +39,9 @@ interface WebGLRenderingContext {
 	getExtension(name: "WEBKIT_WEBGL_depth_texture"): WebGLDepthTexture;
 	getExtension(name: "WEBKIT_WEBGL_lose_context"): WebGLLoseContext;
 
-	getExtension(name: "MOZ_WEBGL_lose_context"): WebGLLoseContext;
 	getExtension(name: "MOZ_WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
 	getExtension(name: "MOZ_WEBGL_depth_texture"): WebGLDepthTexture;
+	getExtension(name: "MOZ_WEBGL_lose_context"): WebGLLoseContext;
 }
 
 interface ANGLEInstancedArrays {
