@@ -35,6 +35,7 @@ interface WebGLRenderingContext {
 	// Prefixed versions appearing in the wild as per September 2015
 
 	getExtension(name: "WEBKIT_EXT_texture_filter_anisotropic"): EXTTextureFilterAnisotropic;
+	getExtension(name: "WEBKIT_WEBGL_compressed_texture_pvrtc"): WebGLCompressedTexturePVRTC; // iOS
 	getExtension(name: "WEBKIT_WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
 	getExtension(name: "WEBKIT_WEBGL_depth_texture"): WebGLDepthTexture;
 	getExtension(name: "WEBKIT_WEBGL_lose_context"): WebGLLoseContext;
@@ -125,6 +126,13 @@ interface WebGLCompressedTextureS3TC {
 	COMPRESSED_RGBA_S3TC_DXT1_EXT: number;
 	COMPRESSED_RGBA_S3TC_DXT3_EXT: number;
 	COMPRESSED_RGBA_S3TC_DXT5_EXT: number;
+}
+
+interface WebGLCompressedTexturePVRTC {
+	COMPRESSED_RGB_PVRTC_4BPPV1_IMG: number;
+	COMPRESSED_RGB_PVRTC_2BPPV1_IMG: number;
+	COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: number;
+	COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: number;
 }
 
 interface WebGLDebugRendererInfo {
