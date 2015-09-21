@@ -25,6 +25,9 @@ interface WebGLRenderingContext {
 	getExtension(name: "OES_vertex_array_object"): OESVertexArrayObject;
 
 	getExtension(name: "WEBGL_color_buffer_float"): WebGLColorBufferFloat;
+	getExtension(name: "WEBGL_compressed_texture_atc"): WebGLCompressedTextureATC;
+	getExtension(name: "WEBGL_compressed_texture_etc1"): WebGLCompressedTextureETC1;
+	getExtension(name: "WEBGL_compressed_texture_pvrtc"): WebGLCompressedTexturePVRTC;
 	getExtension(name: "WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
 	getExtension(name: "WEBGL_debug_renderer_info"): WebGLDebugRendererInfo;
 	getExtension(name: "WEBGL_debug_shaders"): WebGLDebugShaders;
@@ -35,7 +38,8 @@ interface WebGLRenderingContext {
 	// Prefixed versions appearing in the wild as per September 2015
 
 	getExtension(name: "WEBKIT_EXT_texture_filter_anisotropic"): EXTTextureFilterAnisotropic;
-	getExtension(name: "WEBKIT_WEBGL_compressed_texture_pvrtc"): WebGLCompressedTexturePVRTC; // iOS
+	getExtension(name: "WEBKIT_WEBGL_compressed_texture_atc"): WebGLCompressedTextureATC;
+	getExtension(name: "WEBKIT_WEBGL_compressed_texture_pvrtc"): WebGLCompressedTexturePVRTC;
 	getExtension(name: "WEBKIT_WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
 	getExtension(name: "WEBKIT_WEBGL_depth_texture"): WebGLDepthTexture;
 	getExtension(name: "WEBKIT_WEBGL_lose_context"): WebGLLoseContext;
@@ -119,6 +123,16 @@ interface WebGLColorBufferFloat {
 	RGBA32F_EXT: number;
 	FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT: number;
 	UNSIGNED_NORMALIZED_EXT: number;
+}
+
+interface WebGLCompressedTextureATC {
+	COMPRESSED_RGB_ATC_WEBGL: number;
+	COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL: number;
+	COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL: number;
+}
+
+interface WebGLCompressedTextureETC1 {
+	COMPRESSED_RGB_ETC1_WEBGL: number;
 }
 
 interface WebGLCompressedTextureS3TC {
