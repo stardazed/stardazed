@@ -1,7 +1,11 @@
-// Type definitions for WebGL (beyond TS 1.6.2 standard definitions)
+// Type definitions for WebGL Extensions
 // Project: http://webgl.org/
 // Definitions by: Arthur Langereis <https://github.com/zenmumbler/>
-// Definitions: https://github.com/zenmumbler/libzm/blob/master/defs/webgl-ext.d.ts
+// Definitions: https://github.com/borisyankov/DefinitelyTyped/webgl-ext
+
+// These definitions go beyond those already defined in TS 1.6.2 stdlib
+// All non-draft WebGL 1.0 extensions and prefixed extension names are
+// covered.
 
 interface HTMLCanvasElement {
 	getContext(contextId: "webgl"): WebGLRenderingContext;
@@ -136,18 +140,18 @@ interface WebGLCompressedTextureETC1 {
 	COMPRESSED_RGB_ETC1_WEBGL: number;
 }
 
-interface WebGLCompressedTextureS3TC {
-	COMPRESSED_RGB_S3TC_DXT1_EXT: number;
-	COMPRESSED_RGBA_S3TC_DXT1_EXT: number;
-	COMPRESSED_RGBA_S3TC_DXT3_EXT: number;
-	COMPRESSED_RGBA_S3TC_DXT5_EXT: number;
-}
-
 interface WebGLCompressedTexturePVRTC {
 	COMPRESSED_RGB_PVRTC_4BPPV1_IMG: number;
 	COMPRESSED_RGB_PVRTC_2BPPV1_IMG: number;
 	COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: number;
 	COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: number;
+}
+
+interface WebGLCompressedTextureS3TC {
+	COMPRESSED_RGB_S3TC_DXT1_EXT: number;
+	COMPRESSED_RGBA_S3TC_DXT1_EXT: number;
+	COMPRESSED_RGBA_S3TC_DXT3_EXT: number;
+	COMPRESSED_RGBA_S3TC_DXT5_EXT: number;
 }
 
 interface WebGLDebugRendererInfo {
