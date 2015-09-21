@@ -1,4 +1,5 @@
-// Extended type definitions for WebGL (beyond TS 1.6.2 standard definitions)
+// Type definitions for WebGL (beyond TS 1.6.2 standard definitions)
+// Project: http://webgl.org/
 // Definitions by: Arthur Langereis <https://github.com/zenmumbler/>
 // Definitions: https://github.com/zenmumbler/libzm/blob/master/defs/webgl-ext.d.ts
 
