@@ -5,7 +5,8 @@
         "rootDir": "src",
         "outDir": "build",
         "noEmitOnError": true,
-        "listFiles": true,
+        "diagnostics": false,
+        "listFiles": false,
 
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": true,

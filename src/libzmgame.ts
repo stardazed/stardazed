@@ -116,7 +116,7 @@ class TMXLayer {
 	tileData: Uint32Array;
 
 	constructor(layerNode: Node) {
-		var byteView = new Uint8Array(atob(layerNode.textContent.trim()).split("").map(function(c) { return c.charCodeAt(0); }));
+		var byteView = new Uint8Array(atob(layerNode.textContent.trim()).split("").map(c => { return c.charCodeAt(0); }));
 		this.tileData = new Uint32Array(byteView.buffer);
 
 		seq(layerNode.attributes).forEach((attr, ix) => {
