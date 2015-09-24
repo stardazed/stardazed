@@ -31,7 +31,7 @@ class TriMesh {
 	normalBuffer: WebGLBuffer;
 	colorBuffer: WebGLBuffer;
 	uvBuffer: WebGLBuffer;
-	elementCount: number;
+	indexCount: number;
 
 	constructor(vertexArray: ArrayOfNumber, normalArray?: ArrayOfNumber, colorArray?: ArrayOfNumber, uvArray?: ArrayOfNumber) {
 		assert(vertexArray.length % 9 == 0, "vertex array must be a triangle soup"); // 3 vtx * 3 floats
@@ -65,7 +65,7 @@ class TriMesh {
 			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvArray), gl.STATIC_DRAW);
 		}
 
-		this.elementCount = vertexArray.length / 3;
+		this.indexCount = vertexArray.length / 3;
 	}
 
 	draw(program: ZMBasicGLProgram, texture?: WebGLTexture) {
@@ -112,7 +112,7 @@ class TriMesh {
 			gl.uniform1i(program.textureUniform, 0);
 		}
 
-		gl.drawArrays(gl.TRIANGLES, 0, this.elementCount);
+		gl.drawArrays(gl.TRIANGLES, 0, this.indexCount);
 
 		if (texture && program.textureUniform) {
 			gl.bindTexture(gl.TEXTURE_2D, null);
@@ -166,8 +166,15 @@ function parseLWMaterialSource(text: string): MaterialSet {
 }
 
 
+interface LWDrawGroup {
+	materialName: string;
+	fromIndex: number;
+	indexCount: number;
+}
+
 interface LWObjectData extends TriangleSoup {
 	mtlFileName: string;
+	materialGroups: LWDrawGroup[];
 }
 
 
@@ -177,6 +184,7 @@ function parseLWObjectSource(text: string): LWObjectData {
 	var vv: number[][] = [], nn: number[][] = [], tt: number[][] = [];
 	var vertexes: number[] = [], normals: number[] = [], uvs: number[] = [];
 	var mtlFileName = "";
+	var materialGroups: LWDrawGroup[];
 	
 	function vtx(vx: number, tx: number, nx: number) {
 		assert(vx < vv.length, "vx out of bounds " + vx);
@@ -231,7 +239,8 @@ function parseLWObjectSource(text: string): LWObjectData {
 		elementCount: vertexes.length / 3,
 		vertexes: vertexes,
 		normals: normals,
-		uvs: uvs.length ? uvs : null
+		uvs: uvs.length ? uvs : null,
+		materialGroups: materialGroups
 	};
 }
 
