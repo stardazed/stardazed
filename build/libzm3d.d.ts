@@ -45,8 +45,10 @@ interface LWDrawGroup {
 }
 interface LWObjectData extends TriangleSoup {
     mtlFileName: string;
-    materialGroups: LWDrawGroup[];
+    drawGroups: LWDrawGroup[];
+    colors?: ArrayOfNumber;
 }
+declare function genColorArrayFromDrawGroups(drawGroups: LWDrawGroup[], materials: MaterialSet): Float32Array;
 declare function parseLWObjectSource(text: string): LWObjectData;
 declare function loadLWMaterialFile(filePath: string): Promise<MaterialSet>;
-declare function loadLWObjectFile(filePath: string): Promise<TriangleSoup>;
+declare function loadLWObjectFile(filePath: string): Promise<LWObjectData>;

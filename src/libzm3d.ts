@@ -174,7 +174,31 @@ interface LWDrawGroup {
 
 interface LWObjectData extends TriangleSoup {
 	mtlFileName: string;
-	materialGroups: LWDrawGroup[];
+	drawGroups: LWDrawGroup[];
+	colors?: ArrayOfNumber;
+}
+
+
+function genColorArrayFromDrawGroups(drawGroups: LWDrawGroup[], materials: MaterialSet): Float32Array {
+	var lastGroup = drawGroups[drawGroups.length - 1];
+	var totalIndexes = lastGroup.indexCount + lastGroup.fromIndex;
+	var colors = new Float32Array(totalIndexes);
+
+	drawGroups.forEach((group: LWDrawGroup) => {
+		var curIndex = group.fromIndex;
+		var maxIndex = group.fromIndex + group.indexCount;
+		var mat = materials[group.materialName];
+		assert(mat, "material " + group.materialName + " not found");
+
+		while (curIndex < maxIndex) {
+			colors[curIndex] = mat.diffuseColor[0];
+			colors[curIndex + 1] = mat.diffuseColor[1];
+			colors[curIndex + 2] = mat.diffuseColor[2];
+			curIndex += 3;
+		}
+	});
+
+	return colors;
 }
 
 
@@ -184,7 +208,8 @@ function parseLWObjectSource(text: string): LWObjectData {
 	var vv: number[][] = [], nn: number[][] = [], tt: number[][] = [];
 	var vertexes: number[] = [], normals: number[] = [], uvs: number[] = [];
 	var mtlFileName = "";
-	var materialGroups: LWDrawGroup[];
+	var materialGroups: LWDrawGroup[] = [];
+	var curMaterialGroup: LWDrawGroup = null;
 	
 	function vtx(vx: number, tx: number, nx: number) {
 		assert(vx < vv.length, "vx out of bounds " + vx);
@@ -226,13 +251,30 @@ function parseLWObjectSource(text: string): LWObjectData {
 				vtx.apply(null, tokens[2].split("/").map(fxtoi));
 				vtx.apply(null, tokens[3].split("/").map(fxtoi));
 				break;
+			case "usemtl":
+				if (curMaterialGroup) {
+					curMaterialGroup.indexCount = vertexes.length - curMaterialGroup.fromIndex;
+				}
+				curMaterialGroup = {
+					materialName: tokens[1],
+					fromIndex: vertexes.length,
+					indexCount: 0
+				};
+				materialGroups.push(curMaterialGroup);
+				break;
 
 			default: break;
 		}
 	});
 
+	// finalise last draw group
+	if (curMaterialGroup) {
+		curMaterialGroup.indexCount = vertexes.length - curMaterialGroup.fromIndex;
+	}
+
 	var t1 = performance.now();
-	console.info("obj v:", vertexes.length / 3, "n:", normals.length / 3, "t:", uvs.length / 2, "took:", (t1-t0).toFixed(2), "ms");
+	console.info("obj v:", vertexes.length / 3, "t:", uvs.length / 2, "took:", (t1-t0).toFixed(2), "ms");
+	console.info("mats:", materialGroups);
 	
 	return {
 		mtlFileName: mtlFileName,
@@ -240,7 +282,7 @@ function parseLWObjectSource(text: string): LWObjectData {
 		vertexes: vertexes,
 		normals: normals,
 		uvs: uvs.length ? uvs : null,
-		materialGroups: materialGroups
+		drawGroups: materialGroups
 	};
 }
 
@@ -254,7 +296,7 @@ function loadLWMaterialFile(filePath: string): Promise<MaterialSet> {
 }
 
 
-function loadLWObjectFile(filePath: string) : Promise<TriangleSoup> {
+function loadLWObjectFile(filePath: string) : Promise<LWObjectData> {
 	var mtlResolve: any = null;
 	var mtlProm = new Promise<MaterialSet>(function(resolve) {
 		mtlResolve = resolve;
@@ -282,7 +324,9 @@ function loadLWObjectFile(filePath: string) : Promise<TriangleSoup> {
 			var materials = values[0];
 			var obj = values[1];
 			obj.materials = materials;
+			obj.colors = genColorArrayFromDrawGroups(obj.drawGroups, materials);
 			return obj;
 		}
 	);
 }
+
