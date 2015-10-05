@@ -3,6 +3,8 @@ declare function intRandom(maximum: number): number;
 declare function intRandomRange(minimum: number, maximum: number): number;
 declare function deg2rad(deg: number): number;
 declare function rad2deg(rad: number): number;
+declare function clamp(n: number, min: number, max: number): number;
+declare function clamp01(n: number): number;
 declare function loadImage(src: string): Promise<HTMLImageElement>;
 declare function imageData(image: HTMLImageElement): ImageData;
 declare function loadImageData(src: string): Promise<ImageData>;
@@ -14,6 +16,32 @@ declare enum Key {
     SPACE = 32,
     RETURN = 13,
     ESC = 27,
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+    I,
+    J,
+    K,
+    L,
+    M,
+    N,
+    O,
+    P,
+    Q,
+    R,
+    S,
+    T,
+    U,
+    V,
+    W,
+    X,
+    Y,
+    Z,
 }
 declare class Keyboard {
     keys: {

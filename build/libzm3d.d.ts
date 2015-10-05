@@ -19,7 +19,7 @@ declare class TriMesh {
     normalBuffer: WebGLBuffer;
     colorBuffer: WebGLBuffer;
     uvBuffer: WebGLBuffer;
-    elementCount: number;
+    indexCount: number;
     constructor(vertexArray: ArrayOfNumber, normalArray?: ArrayOfNumber, colorArray?: ArrayOfNumber, uvArray?: ArrayOfNumber);
     draw(program: ZMBasicGLProgram, texture?: WebGLTexture): void;
 }
@@ -38,8 +38,14 @@ interface TriangleSoup {
     uvs?: ArrayOfNumber;
 }
 declare function parseLWMaterialSource(text: string): MaterialSet;
+interface LWDrawGroup {
+    materialName: string;
+    fromIndex: number;
+    indexCount: number;
+}
 interface LWObjectData extends TriangleSoup {
     mtlFileName: string;
+    materialGroups: LWDrawGroup[];
 }
 declare function parseLWObjectSource(text: string): LWObjectData;
 declare function loadLWMaterialFile(filePath: string): Promise<MaterialSet>;

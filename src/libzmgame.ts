@@ -27,6 +27,16 @@ function rad2deg(rad: number): number {
 }
 
 
+function clamp(n: number, min: number, max: number): number {
+	return Math.max(min, Math.min(max, n));
+}
+
+
+function clamp01(n: number): number {
+	return Math.max(0.0, Math.min(1.0, n));
+}
+
+
 // -- Images
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -64,18 +74,20 @@ enum Key {
 	DOWN = 40,
 	LEFT = 37,
 	RIGHT = 39,
+
 	SPACE = 32,
 	RETURN = 13,
-	ESC = 27
+	ESC = 27,
+
+	// charCode equals keyCode for A-Z
+	A = 'A'.charCodeAt(0), B = 'B'.charCodeAt(0), C = 'C'.charCodeAt(0), D = 'D'.charCodeAt(0), 
+	E = 'E'.charCodeAt(0), F = 'F'.charCodeAt(0), G = 'G'.charCodeAt(0), H = 'H'.charCodeAt(0),
+	I = 'I'.charCodeAt(0), J = 'J'.charCodeAt(0), K = 'K'.charCodeAt(0), L = 'L'.charCodeAt(0),
+	M = 'M'.charCodeAt(0), N = 'N'.charCodeAt(0), O = 'O'.charCodeAt(0), P = 'P'.charCodeAt(0), 
+	Q = 'Q'.charCodeAt(0), R = 'R'.charCodeAt(0), S = 'S'.charCodeAt(0), T = 'T'.charCodeAt(0), 
+	U = 'U'.charCodeAt(0), V = 'V'.charCodeAt(0), W = 'W'.charCodeAt(0), X = 'X'.charCodeAt(0), 
+	Y = 'Y'.charCodeAt(0), Z = 'Z'.charCodeAt(0)
 };
-
-(function(){
-	var A = 'A'.charCodeAt(0), Z = 'Z'.charCodeAt(0);
-	for (var cc = A; cc <= Z; ++cc) { Key[String.fromCharCode(cc)] = cc; }
-
-	var zero = '0'.charCodeAt(0), nine = '9'.charCodeAt(0);
-	for (var cc = zero; cc <= nine; ++cc) { Key[String.fromCharCode(cc)] = cc; }
-}());
 
 
 class Keyboard {
