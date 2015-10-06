@@ -175,8 +175,8 @@ class TMXData {
 	load(filePath: string) {
 		return loadFile(filePath, {
 			tryBreakCache: true,
-			xml: true,
-			mimeType: "application/xml"
+			mimeType: "application/xml",
+			responseType: FileLoadType.Document
 		}).then(
 			(dataXML: XMLDocument) => {
 				var tileDoc = dataXML.childNodes[0];

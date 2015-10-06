@@ -20,9 +20,16 @@ declare function closest(sourceSel: ElemSelector, sel: string): HTMLElement;
 declare function nextElementSibling(elem: HTMLElement): HTMLElement;
 declare function on(target: ElemSelector, evt: string, handler: (ev: Event) => any): void;
 declare function off(target: ElemSelector, evt: string, handler: (ev: Event) => any): void;
+declare enum FileLoadType {
+    ArrayBuffer = 0,
+    Blob = 1,
+    Document = 2,
+    JSON = 3,
+    Text = 4,
+}
 interface FileLoadOptions {
-    xml?: boolean;
     tryBreakCache?: boolean;
     mimeType?: string;
+    responseType?: FileLoadType;
 }
 declare function loadFile(filePath: string, opts?: FileLoadOptions): Promise<{}>;

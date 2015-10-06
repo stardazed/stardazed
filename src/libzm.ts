@@ -101,20 +101,41 @@ function off(target: ElemSelector, evt: string, handler: (ev: Event) => any) {
 
 // -- Resources
 
-interface FileLoadOptions {
-	xml?: boolean;
-	tryBreakCache?: boolean;
-	mimeType?: string;
+enum FileLoadType {
+	ArrayBuffer,
+	Blob,
+	Document,
+	JSON,
+	Text
 }
 
+interface FileLoadOptions {
+	tryBreakCache?: boolean;
+	mimeType?: string;
+	responseType?: FileLoadType;
+}
 
 function loadFile(filePath: string, opts?: FileLoadOptions) {
+	function responseTypeForFileLoadType(flt: FileLoadType) {
+		switch (flt) {
+			case FileLoadType.ArrayBuffer: return "arraybuffer";
+			case FileLoadType.Blob: return "blob";
+			case FileLoadType.Document: return "document";
+			case FileLoadType.JSON: return "json";
+			case FileLoadType.Text: return "text";
+			default: return "";
+		}
+	}
+
 	return new Promise(function(resolve, reject) {
 		opts = opts || {};
 
 		var xhr = new XMLHttpRequest();
 		if (opts.tryBreakCache) {
 			filePath += "?__ts=" + Date.now();
+		}
+		if (opts.responseType) {
+			xhr.responseType = responseTypeForFileLoadType(opts.responseType);
 		}
 		xhr.open("GET", filePath);
 		if (opts.mimeType) {
@@ -124,11 +145,7 @@ function loadFile(filePath: string, opts?: FileLoadOptions) {
 		xhr.onreadystatechange = function() {
 			if (xhr.readyState != 4) return;
 			assert(xhr.status == 200 || xhr.status == 0);
-
-			if (opts.xml)
-				resolve(xhr.responseXML);
-			else
-				resolve(xhr.responseText);
+			resolve(xhr.response);
 		};
 
 		xhr.onerror = function() {
