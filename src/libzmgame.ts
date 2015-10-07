@@ -37,6 +37,11 @@ function clamp01(n: number): number {
 }
 
 
+interface Math {
+	sign(n: number): number;
+}
+
+
 // -- Images
 
 function loadImage(src: string): Promise<HTMLImageElement> {

@@ -5,6 +5,9 @@ declare function deg2rad(deg: number): number;
 declare function rad2deg(rad: number): number;
 declare function clamp(n: number, min: number, max: number): number;
 declare function clamp01(n: number): number;
+interface Math {
+    sign(n: number): number;
+}
 declare function loadImage(src: string): Promise<HTMLImageElement>;
 declare function imageData(image: HTMLImageElement): ImageData;
 declare function loadImageData(src: string): Promise<ImageData>;

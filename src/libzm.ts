@@ -102,7 +102,7 @@ function off(target: ElemSelector, evt: string, handler: (ev: Event) => any) {
 // -- Resources
 
 enum FileLoadType {
-	ArrayBuffer,
+	ArrayBuffer = 1,
 	Blob,
 	Document,
 	JSON,

@@ -22,21 +22,21 @@ interface ArrayOfNumber {
 
 interface vec2 {
   create(): Float32Array;
-  clone(a: Float32Array): Float32Array;
+  clone(a: ArrayOfNumber): Float32Array;
   fromValues(x: number, y: number): Float32Array;
   copy(out: Float32Array, a: Float32Array): Float32Array;
-  set(out: Float32Array, x: number, y: number): Float32Array;
-  add(out: Float32Array, a: Float32Array, b: Float32Array): Float32Array;
-  subtract(out: Float32Array, a: Float32Array, b: Float32Array): Float32Array;
-  sub(out: Float32Array, a: Float32Array, b: Float32Array): Float32Array;
-  multiply(out: Float32Array, a: Float32Array, b: Float32Array): Float32Array;
-  mul(out: Float32Array, a: Float32Array, b: Float32Array): Float32Array;
-  divide(out: Float32Array, a: Float32Array, b: Float32Array): Float32Array;
-  div(out: Float32Array, a: Float32Array, b: Float32Array): Float32Array;
-  min(out: Float32Array, a: Float32Array, b: Float32Array): Float32Array;
-  max(out: Float32Array, a: Float32Array, b: Float32Array): Float32Array;
-  scale(out: Float32Array, a: Float32Array, b: number): Float32Array;
-  scaleAndAdd(out: Float32Array, a: Float32Array, b: Float32Array, scale: number): Float32Array;
+  set(out: ArrayOfNumber, x: number, y: number): ArrayOfNumber;
+  add(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber): ArrayOfNumber;
+  subtract(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber): ArrayOfNumber;
+  sub(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber): ArrayOfNumber;
+  multiply(out: Float32Array, a: Float32Array, b: Float32Array): ArrayOfNumber;
+  mul(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber): ArrayOfNumber;
+  divide(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber): ArrayOfNumber;
+  div(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber): ArrayOfNumber;
+  min(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber): ArrayOfNumber;
+  max(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber): ArrayOfNumber;
+  scale(out: ArrayOfNumber, a: ArrayOfNumber, b: number): ArrayOfNumber;
+  scaleAndAdd(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, scale: number): ArrayOfNumber;
   distance(a: Float32Array, b: Float32Array): number;
   dist(a: Float32Array, b: Float32Array): number;
   squaredDistance(a: Float32Array, b: Float32Array): number;

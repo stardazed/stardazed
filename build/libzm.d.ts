@@ -21,11 +21,11 @@ declare function nextElementSibling(elem: HTMLElement): HTMLElement;
 declare function on(target: ElemSelector, evt: string, handler: (ev: Event) => any): void;
 declare function off(target: ElemSelector, evt: string, handler: (ev: Event) => any): void;
 declare enum FileLoadType {
-    ArrayBuffer = 0,
-    Blob = 1,
-    Document = 2,
-    JSON = 3,
-    Text = 4,
+    ArrayBuffer = 1,
+    Blob = 2,
+    Document = 3,
+    JSON = 4,
+    Text = 5,
 }
 interface FileLoadOptions {
     tryBreakCache?: boolean;
