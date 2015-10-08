@@ -273,8 +273,8 @@ function parseLWObjectSource(text: string): LWObjectData {
 	}
 
 	var t1 = performance.now();
-	console.info("obj v:", vertexes.length / 3, "t:", uvs.length / 2, "took:", (t1-t0).toFixed(2), "ms");
-	console.info("mats:", materialGroups);
+	// console.info("obj v:", vertexes.length / 3, "t:", uvs.length / 2, "took:", (t1-t0).toFixed(2), "ms");
+	// console.info("mats:", materialGroups);
 	
 	return {
 		mtlFileName: mtlFileName,
