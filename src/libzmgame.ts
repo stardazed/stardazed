@@ -133,6 +133,7 @@ class Keyboard {
 
 
 // -- Tiled (mapeditor.org) TMX file
+// Minimal support for orthogonal right-down order, base64 encoded tile data
 class TMXLayer {
 	width: number;
 	height: number;
@@ -175,11 +176,20 @@ class TMXLayer {
 }
 
 
+class TMXObjectGroup {
+	constructor(groupNode: Node) {
+		// TBD
+	}
+}
+
+
 type TMXLayerSet = { [name: string]: TMXLayer; };
+type TMXObjectGroupSet = { [name: string]: TMXObjectGroup; };
 
 
 class TMXData {
 	layers: TMXLayerSet = {};
+	objectGroups: TMXObjectGroupSet = {};
 	width: number;
 	height: number;
 
@@ -201,8 +211,12 @@ class TMXData {
 
 				for (var ix=0; ix < tileDoc.childNodes.length; ++ix) {
 					var node = tileDoc.childNodes[ix];
-					if (node.nodeName == "layer")
-						this.layers["layer" + ix] = new TMXLayer(node); // fixme: use name attrib of layer node
+					if (node.nodeName == "layer") {
+						this.layers[node.attributes["name"].textContent] = new TMXLayer(node); // fixme: use name attrib of layer node
+					}
+					else if (node.nodeName == "objectgroup") {
+						this.objectGroups[node.attributes["name"].textContent] = new TMXObjectGroup(node);
+					}
 				}
 
 				return this;

@@ -67,11 +67,18 @@ declare class TMXLayer {
     setTileAt(col: number, row: number, tile: number): void;
     eachTile(callback: (row: number, col: number, tile: number) => void): void;
 }
+declare class TMXObjectGroup {
+    constructor(groupNode: Node);
+}
 declare type TMXLayerSet = {
     [name: string]: TMXLayer;
 };
+declare type TMXObjectGroupSet = {
+    [name: string]: TMXObjectGroup;
+};
 declare class TMXData {
     layers: TMXLayerSet;
+    objectGroups: TMXObjectGroupSet;
     width: number;
     height: number;
     load(filePath: string): Promise<TMXData>;
