@@ -84,6 +84,12 @@ enum Key {
 	RETURN = 13,
 	ESC = 27,
 
+	PAGEUP = 33,
+	PAGEDOWN = 34,
+	HOME = 36,
+	END = 35,
+	DELETE = 46,
+
 	// charCode equals keyCode for A-Z
 	A = 'A'.charCodeAt(0), B = 'B'.charCodeAt(0), C = 'C'.charCodeAt(0), D = 'D'.charCodeAt(0), 
 	E = 'E'.charCodeAt(0), F = 'F'.charCodeAt(0), G = 'G'.charCodeAt(0), H = 'H'.charCodeAt(0),
