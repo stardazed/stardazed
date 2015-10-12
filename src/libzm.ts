@@ -134,10 +134,10 @@ function loadFile(filePath: string, opts?: FileLoadOptions) {
 		if (opts.tryBreakCache) {
 			filePath += "?__ts=" + Date.now();
 		}
+		xhr.open("GET", filePath);
 		if (opts.responseType) {
 			xhr.responseType = responseTypeForFileLoadType(opts.responseType);
 		}
-		xhr.open("GET", filePath);
 		if (opts.mimeType) {
 			xhr.overrideMimeType(opts.mimeType);
 		}
