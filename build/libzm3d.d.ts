@@ -52,3 +52,25 @@ declare function genColorArrayFromDrawGroups(drawGroups: LWDrawGroup[], material
 declare function parseLWObjectSource(text: string): LWObjectData;
 declare function loadLWMaterialFile(filePath: string): Promise<MaterialSet>;
 declare function loadLWObjectFile(filePath: string): Promise<LWObjectData>;
+declare type PositionAddFn = (x: number, y: number, z: number) => void;
+declare type FaceAddFn = (a: number, b: number, c: number) => void;
+declare type UVAddFn = (u: number, v: number) => void;
+declare abstract class MeshGenerator {
+    abstract vertexCount(): number;
+    abstract faceCount(): number;
+    abstract generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
+    generate(positions: ArrayOfNumber, faces: ArrayOfNumber, uvs?: ArrayOfNumber): void;
+}
+declare class Sphere extends MeshGenerator {
+    private radius_;
+    private rows_;
+    private segs_;
+    private sliceFrom_;
+    private sliceTo_;
+    hasTopDisc(): boolean;
+    hasBottomDisc(): boolean;
+    constructor(radius_?: number, rows_?: number, segs_?: number, sliceFrom_?: number, sliceTo_?: number);
+    vertexCount(): number;
+    faceCount(): number;
+    generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
+}
