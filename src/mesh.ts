@@ -10,7 +10,11 @@
 
 namespace sd.mesh {
 
-	// ---- Vertex Layout
+	// __   __       _           _                       _   
+	// \ \ / /__ _ _| |_ _____ _| |   __ _ _  _ ___ _  _| |_ 
+	//  \ V / -_) '_|  _/ -_) \ / |__/ _` | || / _ \ || |  _|
+	//   \_/\___|_|  \__\___/_\_\____\__,_|\_, \___/\_,_|\__|
+	//                                     |__/              
 
 	// -- A single field in a vertex buffer
 	// -- 3 properties: element type, count and normalization
@@ -195,7 +199,7 @@ namespace sd.mesh {
 		Index
 	};
 
-	// -- An VertexAttribute is a Field with a certain Role inside a VertexBuffer
+	// -- A VertexAttribute is a Field with a certain Role inside a VertexBuffer
 
 	export class VertexAttribute {
 		field: VertexField = VertexField.Undefined;
@@ -317,7 +321,11 @@ namespace sd.mesh {
 	}
 
 
-	// ---- VertexBuffer
+	// __   __       _           ___       __  __         
+	// \ \ / /__ _ _| |_ _____ _| _ )_  _ / _|/ _|___ _ _ 
+	//  \ V / -_) '_|  _/ -_) \ / _ \ || |  _|  _/ -_) '_|
+	//   \_/\___|_|  \__\___/_\_\___/\_,_|_| |_| \___|_|  
+	//	
 
 	class VertexBuffer {
 		private layout_: VertexLayout;
@@ -366,7 +374,22 @@ namespace sd.mesh {
 	}
 
 
-	// ---- Generation
+	//  ___         _         ___       __  __         
+	// |_ _|_ _  __| |_____ _| _ )_  _ / _|/ _|___ _ _ 
+	//  | || ' \/ _` / -_) \ / _ \ || |  _|  _/ -_) '_|
+	// |___|_||_\__,_\___/_\_\___/\_,_|_| |_| \___|_|  
+	//                                                
+
+	class IndexBuffer {
+		
+	}
+
+
+	//  __  __        _    ___                       _           
+	// |  \/  |___ __| |_ / __|___ _ _  ___ _ _ __ _| |_ ___ _ _ 
+	// | |\/| / -_|_-< ' \ (_ / -_) ' \/ -_) '_/ _` |  _/ _ \ '_|
+	// |_|  |_\___/__/_||_\___\___|_||_\___|_| \__,_|\__\___/_|  
+	//                                                          
 
 	export type PositionAddFn = (x: number, y: number, z: number) => void;
 	export type FaceAddFn = (a: number, b: number, c: number) => void;
