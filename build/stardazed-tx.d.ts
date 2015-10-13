@@ -236,7 +236,6 @@ declare namespace sd.mesh {
     function attrColour3(): VertexAttribute;
     function attrUV2(): VertexAttribute;
     function attrTangent4(): VertexAttribute;
-    type VertexAttributeList = Array<VertexAttribute>;
     class PositionedAttribute extends VertexAttribute {
         offset: number;
         constructor(vf: VertexField, ar: VertexAttributeRole, offset: number);
@@ -246,11 +245,10 @@ declare namespace sd.mesh {
         private attributeCount_;
         private vertexSizeBytes_;
         private attrs_;
-        constructor(attrList: VertexAttributeList);
+        constructor(attrList: VertexAttribute[]);
         attributeCount(): number;
         vertexSizeBytes(): number;
         bytesRequiredForVertexCount(vertexCount: number): number;
-        private attrByPredicate(pred);
         attrByRole(role: VertexAttributeRole): PositionedAttribute;
         attrByIndex(index: number): PositionedAttribute;
         hasAttributeWithRole(role: VertexAttributeRole): boolean;

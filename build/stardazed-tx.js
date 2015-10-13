@@ -713,9 +713,6 @@ var sd;
             VertexLayout.prototype.bytesRequiredForVertexCount = function (vertexCount) {
                 return vertexCount * this.vertexSizeBytes();
             };
-            VertexLayout.prototype.attrByPredicate = function (pred) {
-                return this.attrs_.find(pred);
-            };
             VertexLayout.prototype.attrByRole = function (role) {
                 return this.attrs_.find(function (pa) { return pa.role == role; });
             };
@@ -728,6 +725,36 @@ var sd;
             return VertexLayout;
         })();
         mesh.VertexLayout = VertexLayout;
+        var VertexBuffer = (function () {
+            function VertexBuffer(attrs) {
+                this.itemCount_ = 0;
+                this.storage_ = null;
+                if (attrs instanceof VertexLayout)
+                    this.layout_ = attrs;
+                else
+                    this.layout_ = new VertexLayout(attrs);
+            }
+            VertexBuffer.prototype.layout = function () { return this.layout_; };
+            VertexBuffer.prototype.strideBytes = function () { return this.layout_.vertexSizeBytes(); };
+            VertexBuffer.prototype.attributeCount = function () { return this.layout_.attributeCount(); };
+            VertexBuffer.prototype.itemCount = function () { return this.itemCount_; };
+            VertexBuffer.prototype.bufferSizeBytes = function () { return this.strideBytes() * this.itemCount_; };
+            VertexBuffer.prototype.allocate = function (itemCount) {
+                this.itemCount_ = itemCount;
+                this.storage_ = new ArrayBuffer(this.layout_.bytesRequiredForVertexCount(itemCount));
+            };
+            VertexBuffer.prototype.buffer = function () { return this.storage_; };
+            VertexBuffer.prototype.hasAttributeWithRole = function (role) {
+                return this.layout_.hasAttributeWithRole(role);
+            };
+            VertexBuffer.prototype.attrByRole = function (role) {
+                return this.layout_.attrByRole(role);
+            };
+            VertexBuffer.prototype.attrByIndex = function (index) {
+                return this.layout_.attrByIndex(index);
+            };
+            return VertexBuffer;
+        })();
         var MeshGenerator = (function () {
             function MeshGenerator() {
             }

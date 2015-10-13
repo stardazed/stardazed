@@ -220,21 +220,16 @@ namespace sd.mesh {
 	export function attrTangent4(): VertexAttribute { return { field: VertexField.Floatx4, role: VertexAttributeRole.Tangent }; }
 
 
-	// -- A VertexAttributeList defines the structure of a VertexBuffer
-
-	export type VertexAttributeList = Array<VertexAttribute>;
-
-
 	// -- Common AttributeList shortcuts
 
 	namespace AttrList {
-		export function Pos3Norm3(): VertexAttributeList {
+		export function Pos3Norm3(): VertexAttribute[] {
 			return [ attrPosition3(), attrNormal3() ];
 		}
-		export function Pos3Norm3UV2(): VertexAttributeList {
+		export function Pos3Norm3UV2(): VertexAttribute[] {
 			return [ attrPosition3(), attrNormal3(), attrUV2() ];
 		}
-		export function Pos3Norm3UV2Tan4(): VertexAttributeList {
+		export function Pos3Norm3UV2Tan4(): VertexAttribute[] {
 			return [ attrPosition3(), attrNormal3(), attrUV2(), attrTangent4() ];
 		}
 	}
@@ -280,7 +275,7 @@ namespace sd.mesh {
 		private vertexSizeBytes_ = 0;
 		private attrs_: PositionedAttribute[];
 
-		constructor(attrList: VertexAttributeList) {
+		constructor(attrList: VertexAttribute[]) {
 			this.attributeCount_ = attrList.length;
 			assert(this.attributeCount_ <= maxVertexAttributes());
 
@@ -308,10 +303,6 @@ namespace sd.mesh {
 			return vertexCount * this.vertexSizeBytes();
 		}
 	
-		private attrByPredicate(pred: (pa: PositionedAttribute) => boolean): PositionedAttribute {
-			return this.attrs_.find(pred);
-		}
-
 		attrByRole(role: VertexAttributeRole): PositionedAttribute {
 			return this.attrs_.find((pa) => pa.role == role);
 		}
@@ -323,6 +314,55 @@ namespace sd.mesh {
 		hasAttributeWithRole(role: VertexAttributeRole): boolean {
 			return this.attrByRole(role) != null;
 		}
+	}
+
+
+	// ---- VertexBuffer
+
+	class VertexBuffer {
+		private layout_: VertexLayout;
+		private itemCount_ = 0;
+		private storage_: ArrayBuffer = null;
+
+		constructor(attrs: VertexAttribute[] | VertexLayout) {
+			if (attrs instanceof VertexLayout)
+				this.layout_ = attrs;
+			else
+				this.layout_ = new VertexLayout(<VertexAttribute[]>attrs);
+		}
+
+		// -- buffer data management
+
+		layout() { return this.layout_; }
+		strideBytes() { return this.layout_.vertexSizeBytes(); }
+		attributeCount() { return this.layout_.attributeCount(); }
+		itemCount() { return this.itemCount_; }
+		bufferSizeBytes() { return this.strideBytes() * this.itemCount_; }
+
+		allocate(itemCount: number) {
+			this.itemCount_ = itemCount;
+			this.storage_ = new ArrayBuffer(this.layout_.bytesRequiredForVertexCount(itemCount));
+		}
+	
+		// -- raw data pointers
+
+		buffer() { return this.storage_; }	
+
+		// -- attribute access pass-through
+	
+		hasAttributeWithRole(role: VertexAttributeRole) {
+			return this.layout_.hasAttributeWithRole(role);
+		}
+		attrByRole(role: VertexAttributeRole) {
+			return this.layout_.attrByRole(role);
+		}
+		attrByIndex(index: number) {
+			return this.layout_.attrByIndex(index);
+		}
+
+		// -- iteration over attribute data
+
+		// TODO: implement (needs analog of STLBasicBufferIterator)
 	}
 
 

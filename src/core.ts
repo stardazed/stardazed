@@ -11,7 +11,7 @@ function assert(cond: any, msg?: string) {
 }
 
 
-// -- Types
+// -- Sequences
 
 function isArrayLike(t: any) {
 	return (typeof t == "object") && ("length" in t) && !(t instanceof String || t instanceof Window);
@@ -27,7 +27,6 @@ function seq(t: any): any {
 		return [].slice.call(t, 0);
 	return [t]; 
 }
-
 
 interface Array<T> {
 	find(callback: (element: T, index: number, array: Array<T>) => boolean, thisArg?: any): T;
