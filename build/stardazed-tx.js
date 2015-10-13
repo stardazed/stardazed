@@ -755,6 +755,11 @@ var sd;
             };
             return VertexBuffer;
         })();
+        var IndexBuffer = (function () {
+            function IndexBuffer() {
+            }
+            return IndexBuffer;
+        })();
         var MeshGenerator = (function () {
             function MeshGenerator() {
             }
