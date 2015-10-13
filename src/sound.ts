@@ -1,8 +1,8 @@
-// libzmsound - general purpose game-related stuff
-// requires libzm, libzmgame
+// sound - Web SoundManager
+// Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
-/// <reference path="libzmgame.ts" />
+/// <reference path="game.ts" />
 
 declare var webkitAudioContext: {
     prototype: AudioContext;

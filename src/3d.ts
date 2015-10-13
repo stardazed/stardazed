@@ -1,12 +1,12 @@
-// libzm3d - 3d structures, files, generators
-// requires libzm
+// 3d - 3d structures, files, generators
+// Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 /// <reference path="../defs/gl-matrix.d.ts" />
 /// <reference path="../defs/webgl-ext.d.ts" />
 
-/// <reference path="libzm.ts" />
-/// <reference path="libzmgame.ts" />
+/// <reference path="core.ts" />
+/// <reference path="game.ts" />
 
 declare var gl: WebGLRenderingContext;
 

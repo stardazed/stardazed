@@ -1,8 +1,8 @@
-// libzmgame - general purpose game-related stuff
-// requires libzm
+// game - general purpose game-related stuff
+// Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
-/// <reference path="libzm.ts" />
+/// <reference path="core.ts" />
 
 // -- Numbers
 

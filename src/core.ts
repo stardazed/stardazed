@@ -1,4 +1,5 @@
-// libzm - all I need to be street
+// core.ts - Basic type and DOM helpers
+// Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 /// <reference path="../defs/es6-promise.d.ts" />
@@ -10,7 +11,7 @@ function assert(cond: any, msg?: string) {
 }
 
 
-// -- Sequences
+// -- Types
 
 function isArrayLike(t: any) {
 	return (typeof t == "object") && ("length" in t) && !(t instanceof String || t instanceof Window);
@@ -27,21 +28,6 @@ function seq(t: any): any {
 	return [t]; 
 } 
 
-
-
-// -- Data
-
-function encodeAsQueryString(obj: Object): string {
-	var items: string[] = [];
-
-	for (var k in obj) {
-		if (obj.hasOwnProperty(k)) {
-			items.push(encodeURIComponent(k) + "=" + encodeURIComponent(obj[k]));
-		}
-	}
-	
-	return items.join("&");
-}
 
 
 // -- DOM Elements
@@ -100,6 +86,19 @@ function off(target: ElemSelector, evt: string, handler: (ev: Event) => any) {
 
 
 // -- Resources
+
+function encodeAsQueryString(obj: Object): string {
+	var items: string[] = [];
+
+	for (var k in obj) {
+		if (obj.hasOwnProperty(k)) {
+			items.push(encodeURIComponent(k) + "=" + encodeURIComponent(obj[k]));
+		}
+	}
+
+	return items.join("&");
+}
+
 
 enum FileLoadType {
 	ArrayBuffer = 1,

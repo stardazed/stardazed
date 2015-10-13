@@ -3,7 +3,7 @@
         "module": "commonjs",
         "target": "es5",
         "rootDir": "src",
-        "outDir": "build",
+        "out": "../build/stardazed-tx.js",
         "noEmitOnError": true,
         "diagnostics": false,
         "listFiles": false,

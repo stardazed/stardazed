@@ -1,12 +1,12 @@
-// mesh.ts - mesh data (converted from stardazed code)
-// part of libzm
+// mesh.ts - mesh data
+// Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 /// <reference path="../defs/gl-matrix.d.ts" />
 /// <reference path="../defs/webgl-ext.d.ts" />
 
-/// <reference path="libzm.ts" />
-/// <reference path="libzmgame.ts" />
+/// <reference path="core.ts" />
+/// <reference path="game.ts" />
 
 
 
@@ -22,17 +22,17 @@ abstract class MeshGenerator {
 
 	abstract generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
 
-	generate(): TriMesh {
-		var vtxCount = this.vertexCount();
+	// generate(): TriMesh {
+	// 	var vtxCount = this.vertexCount();
 
-		var vertexBuf = new Float32Array(vtxCount * 3);
-		var normalBuf = new Float32Array(vtxCount * 3);
-		var uvBuf = new Float32Array(vtxCount * 2);
+	// 	var vertexBuf = new Float32Array(vtxCount * 3);
+	// 	var normalBuf = new Float32Array(vtxCount * 3);
+	// 	var uvBuf = new Float32Array(vtxCount * 2);
 
-		var faceBuf = new Uint32Array(vtxCount * 3);
+	// 	var faceBuf = new Uint32Array(vtxCount * 3);
 
-		this.generateInto(vertexBuf, faceBuf, uvBuf);
-	}
+	// 	this.generateInto(vertexBuf, faceBuf, uvBuf);
+	// }
 
 	generateInto(positions: ArrayOfNumber, faces: ArrayOfNumber, uvs: ArrayOfNumber = null): void {
 		var posIx = 0, faceIx = 0, uvIx = 0;
