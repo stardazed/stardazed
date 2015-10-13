@@ -5,6 +5,9 @@ declare function assert(cond: any, msg?: string): void;
 declare function isArrayLike(t: any): boolean;
 declare function seq<T>(t: Array<T>): Array<T>;
 declare function seq(t: any): Array<any>;
+interface Array<T> {
+    find(callback: (element: T, index: number, array: Array<T>) => boolean, thisArg?: any): T;
+}
 interface HTMLElement {
     matches: (selector: string) => boolean;
 }
@@ -169,27 +172,111 @@ declare function genColorArrayFromDrawGroups(drawGroups: LWDrawGroup[], material
 declare function parseLWObjectSource(text: string): LWObjectData;
 declare function loadLWMaterialFile(filePath: string): Promise<MaterialSet>;
 declare function loadLWObjectFile(filePath: string): Promise<LWObjectData>;
-declare type PositionAddFn = (x: number, y: number, z: number) => void;
-declare type FaceAddFn = (a: number, b: number, c: number) => void;
-declare type UVAddFn = (u: number, v: number) => void;
-declare abstract class MeshGenerator {
-    abstract vertexCount(): number;
-    abstract faceCount(): number;
-    abstract generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
-    generateInto(positions: ArrayOfNumber, faces: ArrayOfNumber, uvs?: ArrayOfNumber): void;
-}
-declare class Sphere extends MeshGenerator {
-    private radius_;
-    private rows_;
-    private segs_;
-    private sliceFrom_;
-    private sliceTo_;
-    hasTopDisc(): boolean;
-    hasBottomDisc(): boolean;
-    constructor(radius_?: number, rows_?: number, segs_?: number, sliceFrom_?: number, sliceTo_?: number);
-    vertexCount(): number;
-    faceCount(): number;
-    generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
+declare namespace sd.mesh {
+    const enum VertexField {
+        Undefined = 0,
+        UInt8x2 = 1,
+        UInt8x3 = 2,
+        UInt8x4 = 3,
+        SInt8x2 = 4,
+        SInt8x3 = 5,
+        SInt8x4 = 6,
+        UInt16x2 = 7,
+        UInt16x3 = 8,
+        UInt16x4 = 9,
+        SInt16x2 = 10,
+        SInt16x3 = 11,
+        SInt16x4 = 12,
+        UInt32 = 13,
+        UInt32x2 = 14,
+        UInt32x3 = 15,
+        UInt32x4 = 16,
+        SInt32 = 17,
+        SInt32x2 = 18,
+        SInt32x3 = 19,
+        SInt32x4 = 20,
+        Float = 21,
+        Floatx2 = 22,
+        Floatx3 = 23,
+        Floatx4 = 24,
+        Norm_UInt8x2 = 129,
+        Norm_UInt8x3 = 130,
+        Norm_UInt8x4 = 131,
+        Norm_SInt8x2 = 132,
+        Norm_SInt8x3 = 133,
+        Norm_SInt8x4 = 134,
+        Norm_UInt16x2 = 135,
+        Norm_UInt16x3 = 136,
+        Norm_UInt16x4 = 137,
+        Norm_SInt16x2 = 138,
+        Norm_SInt16x3 = 139,
+        Norm_SInt16x4 = 140,
+    }
+    function vertexFieldElementCount(vf: VertexField): number;
+    function vertexFieldElementSizeBytes(vf: VertexField): number;
+    function vertexFieldSizeBytes(vf: VertexField): number;
+    function vertexFieldIsNormalized(vf: VertexField): boolean;
+    const enum VertexAttributeRole {
+        Generic = 0,
+        Position = 1,
+        Normal = 2,
+        Tangent = 3,
+        Colour = 4,
+        UV = 5,
+        UVW = 6,
+        Index = 7,
+    }
+    class VertexAttribute {
+        field: VertexField;
+        role: VertexAttributeRole;
+    }
+    function maxVertexAttributes(): number;
+    function attrPosition3(): VertexAttribute;
+    function attrNormal3(): VertexAttribute;
+    function attrColour3(): VertexAttribute;
+    function attrUV2(): VertexAttribute;
+    function attrTangent4(): VertexAttribute;
+    type VertexAttributeList = Array<VertexAttribute>;
+    class PositionedAttribute extends VertexAttribute {
+        offset: number;
+        constructor(vf: VertexField, ar: VertexAttributeRole, offset: number);
+        constructor(attr: VertexAttribute, offset: number);
+    }
+    class VertexLayout {
+        private attributeCount_;
+        private vertexSizeBytes_;
+        private attrs_;
+        constructor(attrList: VertexAttributeList);
+        attributeCount(): number;
+        vertexSizeBytes(): number;
+        bytesRequiredForVertexCount(vertexCount: number): number;
+        private attrByPredicate(pred);
+        attrByRole(role: VertexAttributeRole): PositionedAttribute;
+        attrByIndex(index: number): PositionedAttribute;
+        hasAttributeWithRole(role: VertexAttributeRole): boolean;
+    }
+    type PositionAddFn = (x: number, y: number, z: number) => void;
+    type FaceAddFn = (a: number, b: number, c: number) => void;
+    type UVAddFn = (u: number, v: number) => void;
+    abstract class MeshGenerator {
+        abstract vertexCount(): number;
+        abstract faceCount(): number;
+        abstract generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
+        generateInto(positions: ArrayOfNumber, faces: ArrayOfNumber, uvs?: ArrayOfNumber): void;
+    }
+    class Sphere extends MeshGenerator {
+        private radius_;
+        private rows_;
+        private segs_;
+        private sliceFrom_;
+        private sliceTo_;
+        hasTopDisc(): boolean;
+        hasBottomDisc(): boolean;
+        constructor(radius_?: number, rows_?: number, segs_?: number, sliceFrom_?: number, sliceTo_?: number);
+        vertexCount(): number;
+        faceCount(): number;
+        generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
+    }
 }
 declare var webkitAudioContext: {
     prototype: AudioContext;

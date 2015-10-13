@@ -518,133 +518,347 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var MeshGenerator = (function () {
-    function MeshGenerator() {
-    }
-    MeshGenerator.prototype.generateInto = function (positions, faces, uvs) {
-        if (uvs === void 0) { uvs = null; }
-        var posIx = 0, faceIx = 0, uvIx = 0;
-        var pos = function (x, y, z) {
-            positions[posIx] = x;
-            positions[posIx + 1] = y;
-            positions[posIx + 2] = z;
-            posIx += 3;
-        };
-        var face = function (a, b, c) {
-            faces[faceIx] = a;
-            faces[faceIx + 1] = b;
-            faces[faceIx + 2] = c;
-            faceIx += 3;
-        };
-        var uv = uvs ?
-            function (u, v) {
-                uvs[uvIx] = u;
-                uvs[uvIx + 1] = v;
-                uvIx += 2;
-            }
-            : function (u, v) { };
-        this.generateImpl(pos, face, uv);
-    };
-    return MeshGenerator;
-})();
-var Sphere = (function (_super) {
-    __extends(Sphere, _super);
-    function Sphere(radius_, rows_, segs_, sliceFrom_, sliceTo_) {
-        if (radius_ === void 0) { radius_ = 1.0; }
-        if (rows_ === void 0) { rows_ = 20; }
-        if (segs_ === void 0) { segs_ = 30; }
-        if (sliceFrom_ === void 0) { sliceFrom_ = 0.0; }
-        if (sliceTo_ === void 0) { sliceTo_ = 1.0; }
-        _super.call(this);
-        this.radius_ = radius_;
-        this.rows_ = rows_;
-        this.segs_ = segs_;
-        this.sliceFrom_ = sliceFrom_;
-        this.sliceTo_ = sliceTo_;
-        assert(this.rows_ >= 2);
-        assert(this.segs_ >= 4);
-        assert(this.sliceTo_ > this.sliceFrom_);
-    }
-    Sphere.prototype.hasTopDisc = function () { return this.sliceFrom_ == 0; };
-    Sphere.prototype.hasBottomDisc = function () { return this.sliceTo_ == 1; };
-    Sphere.prototype.vertexCount = function () {
-        var vc = this.segs_ * (this.rows_ - 1);
-        if (this.hasTopDisc())
-            ++vc;
-        if (this.hasBottomDisc())
-            ++vc;
-        return vc;
-    };
-    Sphere.prototype.faceCount = function () {
-        var fc = 2 * this.segs_ * this.rows_;
-        if (this.hasTopDisc())
-            fc -= this.segs_;
-        if (this.hasBottomDisc())
-            fc -= this.segs_;
-        return fc;
-    };
-    Sphere.prototype.generateImpl = function (position, face, uv) {
-        var Pi = Math.PI;
-        var Tau = Math.PI * 2;
-        var slice = this.sliceTo_ - this.sliceFrom_;
-        var piFrom = this.sliceFrom_ * Pi;
-        var piSlice = slice * Pi;
-        var halfPiSlice = slice / 2;
-        var vix = 0;
-        for (var row = 0; row <= this.rows_; ++row) {
-            var y = Math.cos(piFrom + (piSlice / this.rows_) * row) * this.radius_;
-            var segRad = Math.sin(piFrom + (piSlice / this.rows_) * row) * this.radius_;
-            var texV = Math.sin(piFrom + (halfPiSlice / this.rows_) * row);
-            if ((this.hasTopDisc() && row == 0) ||
-                (this.hasBottomDisc() && row == this.rows_)) {
-                position(0, y, 0);
-                uv(0.5, texV);
-                ++vix;
-            }
-            else {
-                for (var seg = 0; seg < this.segs_; ++seg) {
-                    var x = Math.sin((Tau / this.segs_) * seg) * segRad;
-                    var z = Math.cos((Tau / this.segs_) * seg) * segRad;
-                    var texU = Math.sin(((Pi / 2) / this.rows_) * row);
-                    position(x, y, z);
-                    uv(texU, texV);
-                    ++vix;
-                }
-            }
-            if (row > 0) {
-                var raix = vix;
-                var rbix = vix;
-                var ramul, rbmul;
-                if (this.hasTopDisc() && row == 1) {
-                    raix -= this.segs_ + 1;
-                    rbix -= this.segs_;
-                    ramul = 0;
-                    rbmul = 1;
-                }
-                else if (this.hasBottomDisc() && row == this.rows_) {
-                    raix -= this.segs_ + 1;
-                    rbix -= 1;
-                    ramul = 1;
-                    rbmul = 0;
-                }
-                else {
-                    raix -= this.segs_ * 2;
-                    rbix -= this.segs_;
-                    ramul = 1;
-                    rbmul = 1;
-                }
-                for (var seg = 0; seg < this.segs_; ++seg) {
-                    var ral = ramul * seg, rar = ramul * ((seg + 1) % this.segs_), rbl = rbmul * seg, rbr = rbmul * ((seg + 1) % this.segs_);
-                    if (ral != rar)
-                        face(raix + ral, rbix + rbl, raix + rar);
-                    if (rbl != rbr)
-                        face(raix + rar, rbix + rbl, rbix + rbr);
-                }
+/// <reference path="../defs/gl-matrix.d.ts" />
+/// <reference path="../defs/webgl-ext.d.ts" />
+/// <reference path="core.ts" />
+/// <reference path="game.ts" />
+var sd;
+(function (sd) {
+    var mesh;
+    (function (mesh) {
+        ;
+        function vertexFieldElementCount(vf) {
+            switch (vf) {
+                case 0:
+                    return 0;
+                case 13:
+                case 17:
+                case 21:
+                    return 1;
+                case 1:
+                case 129:
+                case 4:
+                case 132:
+                case 7:
+                case 135:
+                case 10:
+                case 138:
+                case 14:
+                case 18:
+                case 22:
+                    return 2;
+                case 2:
+                case 130:
+                case 5:
+                case 133:
+                case 8:
+                case 136:
+                case 11:
+                case 139:
+                case 15:
+                case 19:
+                case 23:
+                    return 3;
+                case 3:
+                case 131:
+                case 6:
+                case 134:
+                case 9:
+                case 137:
+                case 12:
+                case 140:
+                case 16:
+                case 20:
+                case 24:
+                    return 4;
             }
         }
-    };
-    return Sphere;
-})(MeshGenerator);
+        mesh.vertexFieldElementCount = vertexFieldElementCount;
+        function vertexFieldElementSizeBytes(vf) {
+            switch (vf) {
+                case 0:
+                    return 0;
+                case 21:
+                case 22:
+                case 23:
+                case 24:
+                case 13:
+                case 17:
+                case 14:
+                case 18:
+                case 15:
+                case 19:
+                case 16:
+                case 20:
+                    return 4;
+                case 7:
+                case 135:
+                case 10:
+                case 138:
+                case 8:
+                case 136:
+                case 11:
+                case 139:
+                case 9:
+                case 137:
+                case 12:
+                case 140:
+                    return 2;
+                case 1:
+                case 129:
+                case 4:
+                case 132:
+                case 2:
+                case 130:
+                case 5:
+                case 133:
+                case 3:
+                case 131:
+                case 6:
+                case 134:
+                    return 1;
+            }
+        }
+        mesh.vertexFieldElementSizeBytes = vertexFieldElementSizeBytes;
+        function vertexFieldSizeBytes(vf) {
+            return vertexFieldElementSizeBytes(vf) * vertexFieldElementCount(vf);
+        }
+        mesh.vertexFieldSizeBytes = vertexFieldSizeBytes;
+        function vertexFieldIsNormalized(vf) {
+            return (vf & 0x80) != 0;
+        }
+        mesh.vertexFieldIsNormalized = vertexFieldIsNormalized;
+        ;
+        var VertexAttribute = (function () {
+            function VertexAttribute() {
+                this.field = 0;
+                this.role = 0;
+            }
+            return VertexAttribute;
+        })();
+        mesh.VertexAttribute = VertexAttribute;
+        function maxVertexAttributes() {
+            return 16;
+        }
+        mesh.maxVertexAttributes = maxVertexAttributes;
+        function attrPosition3() { return { field: 23, role: 1 }; }
+        mesh.attrPosition3 = attrPosition3;
+        function attrNormal3() { return { field: 23, role: 2 }; }
+        mesh.attrNormal3 = attrNormal3;
+        function attrColour3() { return { field: 23, role: 4 }; }
+        mesh.attrColour3 = attrColour3;
+        function attrUV2() { return { field: 22, role: 5 }; }
+        mesh.attrUV2 = attrUV2;
+        function attrTangent4() { return { field: 24, role: 3 }; }
+        mesh.attrTangent4 = attrTangent4;
+        var AttrList;
+        (function (AttrList) {
+            function Pos3Norm3() {
+                return [attrPosition3(), attrNormal3()];
+            }
+            AttrList.Pos3Norm3 = Pos3Norm3;
+            function Pos3Norm3UV2() {
+                return [attrPosition3(), attrNormal3(), attrUV2()];
+            }
+            AttrList.Pos3Norm3UV2 = Pos3Norm3UV2;
+            function Pos3Norm3UV2Tan4() {
+                return [attrPosition3(), attrNormal3(), attrUV2(), attrTangent4()];
+            }
+            AttrList.Pos3Norm3UV2Tan4 = Pos3Norm3UV2Tan4;
+        })(AttrList || (AttrList = {}));
+        var PositionedAttribute = (function (_super) {
+            __extends(PositionedAttribute, _super);
+            function PositionedAttribute(fieldOrAttr, roleOrOffset, offset) {
+                _super.call(this);
+                if (fieldOrAttr instanceof VertexAttribute) {
+                    this.field = fieldOrAttr.field;
+                    this.role = fieldOrAttr.role;
+                    this.offset = roleOrOffset;
+                }
+                else {
+                    this.field = fieldOrAttr;
+                    this.role = roleOrOffset;
+                    this.offset = offset;
+                }
+            }
+            return PositionedAttribute;
+        })(VertexAttribute);
+        mesh.PositionedAttribute = PositionedAttribute;
+        function alignFieldOnSize(size, offset) {
+            var mask = size - 1;
+            return (offset + mask) & ~mask;
+        }
+        function alignVertexField(field, offset) {
+            return alignFieldOnSize(vertexFieldElementSizeBytes(field), offset);
+        }
+        var VertexLayout = (function () {
+            function VertexLayout(attrList) {
+                this.attributeCount_ = 0;
+                this.vertexSizeBytes_ = 0;
+                this.attributeCount_ = attrList.length;
+                assert(this.attributeCount_ <= maxVertexAttributes());
+                var offset = 0, maxElemSize = 0;
+                this.attrs_ = attrList.map(function (attr) {
+                    var size = vertexFieldSizeBytes(attr.field);
+                    maxElemSize = Math.max(maxElemSize, vertexFieldElementSizeBytes(attr.field));
+                    var alignedOffset = alignVertexField(attr.field, offset);
+                    offset = alignedOffset + size;
+                    return new PositionedAttribute(attr, alignedOffset);
+                });
+                maxElemSize = Math.max(Float32Array.BYTES_PER_ELEMENT, maxElemSize);
+                this.vertexSizeBytes_ = alignFieldOnSize(maxElemSize, offset);
+            }
+            VertexLayout.prototype.attributeCount = function () { return this.attributeCount_; };
+            VertexLayout.prototype.vertexSizeBytes = function () { return this.vertexSizeBytes_; };
+            VertexLayout.prototype.bytesRequiredForVertexCount = function (vertexCount) {
+                return vertexCount * this.vertexSizeBytes();
+            };
+            VertexLayout.prototype.attrByPredicate = function (pred) {
+                return this.attrs_.find(pred);
+            };
+            VertexLayout.prototype.attrByRole = function (role) {
+                return this.attrs_.find(function (pa) { return pa.role == role; });
+            };
+            VertexLayout.prototype.attrByIndex = function (index) {
+                return this.attrs_[index];
+            };
+            VertexLayout.prototype.hasAttributeWithRole = function (role) {
+                return this.attrByRole(role) != null;
+            };
+            return VertexLayout;
+        })();
+        mesh.VertexLayout = VertexLayout;
+        var MeshGenerator = (function () {
+            function MeshGenerator() {
+            }
+            MeshGenerator.prototype.generateInto = function (positions, faces, uvs) {
+                if (uvs === void 0) { uvs = null; }
+                var posIx = 0, faceIx = 0, uvIx = 0;
+                var pos = function (x, y, z) {
+                    positions[posIx] = x;
+                    positions[posIx + 1] = y;
+                    positions[posIx + 2] = z;
+                    posIx += 3;
+                };
+                var face = function (a, b, c) {
+                    faces[faceIx] = a;
+                    faces[faceIx + 1] = b;
+                    faces[faceIx + 2] = c;
+                    faceIx += 3;
+                };
+                var uv = uvs ?
+                    function (u, v) {
+                        uvs[uvIx] = u;
+                        uvs[uvIx + 1] = v;
+                        uvIx += 2;
+                    }
+                    : function (u, v) { };
+                this.generateImpl(pos, face, uv);
+            };
+            return MeshGenerator;
+        })();
+        mesh.MeshGenerator = MeshGenerator;
+        var Sphere = (function (_super) {
+            __extends(Sphere, _super);
+            function Sphere(radius_, rows_, segs_, sliceFrom_, sliceTo_) {
+                if (radius_ === void 0) { radius_ = 1.0; }
+                if (rows_ === void 0) { rows_ = 20; }
+                if (segs_ === void 0) { segs_ = 30; }
+                if (sliceFrom_ === void 0) { sliceFrom_ = 0.0; }
+                if (sliceTo_ === void 0) { sliceTo_ = 1.0; }
+                _super.call(this);
+                this.radius_ = radius_;
+                this.rows_ = rows_;
+                this.segs_ = segs_;
+                this.sliceFrom_ = sliceFrom_;
+                this.sliceTo_ = sliceTo_;
+                assert(this.rows_ >= 2);
+                assert(this.segs_ >= 4);
+                assert(this.sliceTo_ > this.sliceFrom_);
+            }
+            Sphere.prototype.hasTopDisc = function () { return this.sliceFrom_ == 0; };
+            Sphere.prototype.hasBottomDisc = function () { return this.sliceTo_ == 1; };
+            Sphere.prototype.vertexCount = function () {
+                var vc = this.segs_ * (this.rows_ - 1);
+                if (this.hasTopDisc())
+                    ++vc;
+                if (this.hasBottomDisc())
+                    ++vc;
+                return vc;
+            };
+            Sphere.prototype.faceCount = function () {
+                var fc = 2 * this.segs_ * this.rows_;
+                if (this.hasTopDisc())
+                    fc -= this.segs_;
+                if (this.hasBottomDisc())
+                    fc -= this.segs_;
+                return fc;
+            };
+            Sphere.prototype.generateImpl = function (position, face, uv) {
+                var Pi = Math.PI;
+                var Tau = Math.PI * 2;
+                var slice = this.sliceTo_ - this.sliceFrom_;
+                var piFrom = this.sliceFrom_ * Pi;
+                var piSlice = slice * Pi;
+                var halfPiSlice = slice / 2;
+                var vix = 0;
+                for (var row = 0; row <= this.rows_; ++row) {
+                    var y = Math.cos(piFrom + (piSlice / this.rows_) * row) * this.radius_;
+                    var segRad = Math.sin(piFrom + (piSlice / this.rows_) * row) * this.radius_;
+                    var texV = Math.sin(piFrom + (halfPiSlice / this.rows_) * row);
+                    if ((this.hasTopDisc() && row == 0) ||
+                        (this.hasBottomDisc() && row == this.rows_)) {
+                        position(0, y, 0);
+                        uv(0.5, texV);
+                        ++vix;
+                    }
+                    else {
+                        for (var seg = 0; seg < this.segs_; ++seg) {
+                            var x = Math.sin((Tau / this.segs_) * seg) * segRad;
+                            var z = Math.cos((Tau / this.segs_) * seg) * segRad;
+                            var texU = Math.sin(((Pi / 2) / this.rows_) * row);
+                            position(x, y, z);
+                            uv(texU, texV);
+                            ++vix;
+                        }
+                    }
+                    if (row > 0) {
+                        var raix = vix;
+                        var rbix = vix;
+                        var ramul, rbmul;
+                        if (this.hasTopDisc() && row == 1) {
+                            raix -= this.segs_ + 1;
+                            rbix -= this.segs_;
+                            ramul = 0;
+                            rbmul = 1;
+                        }
+                        else if (this.hasBottomDisc() && row == this.rows_) {
+                            raix -= this.segs_ + 1;
+                            rbix -= 1;
+                            ramul = 1;
+                            rbmul = 0;
+                        }
+                        else {
+                            raix -= this.segs_ * 2;
+                            rbix -= this.segs_;
+                            ramul = 1;
+                            rbmul = 1;
+                        }
+                        for (var seg = 0; seg < this.segs_; ++seg) {
+                            var ral = ramul * seg, rar = ramul * ((seg + 1) % this.segs_), rbl = rbmul * seg, rbr = rbmul * ((seg + 1) % this.segs_);
+                            if (ral != rar)
+                                face(raix + ral, rbix + rbl, raix + rar);
+                            if (rbl != rbr)
+                                face(raix + rar, rbix + rbl, rbix + rbr);
+                        }
+                    }
+                }
+            };
+            return Sphere;
+        })(MeshGenerator);
+        mesh.Sphere = Sphere;
+    })(mesh = sd.mesh || (sd.mesh = {}));
+})(sd || (sd = {}));
 // sound - Web SoundManager
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler

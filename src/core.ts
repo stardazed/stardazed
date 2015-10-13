@@ -26,7 +26,12 @@ function seq(t: any): any {
 	if (isArrayLike(t))
 		return [].slice.call(t, 0);
 	return [t]; 
-} 
+}
+
+
+interface Array<T> {
+	find(callback: (element: T, index: number, array: Array<T>) => boolean, thisArg?: any): T;
+}
 
 
 
