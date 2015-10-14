@@ -363,6 +363,19 @@ declare namespace sd.mesh {
         count(): number;
     }
     function calcVertexNormals(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer): void;
+    interface PrimitiveGroup {
+        fromPrimIx: number;
+        primCount: number;
+        materialIx: number;
+    }
+    class MeshData {
+        vertexBuffers: Array<VertexBuffer>;
+        indexBuffer: IndexBuffer;
+        primitiveGroups: Array<PrimitiveGroup>;
+        constructor(attrs?: VertexAttribute[]);
+        primaryVertexBuffer(): VertexBuffer;
+        genVertexNormals(): void;
+    }
 }
 declare namespace sd.mesh.gen {
     type PositionAddFn = (x: number, y: number, z: number) => void;
@@ -372,7 +385,8 @@ declare namespace sd.mesh.gen {
         abstract vertexCount(): number;
         abstract faceCount(): number;
         abstract generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
-        generateInto(positions: ArrayOfNumber, faces: ArrayOfNumber, uvs?: ArrayOfNumber): void;
+        generate(attrList?: VertexAttribute[]): MeshData;
+        generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, uvs?: VertexBufferAttributeView): void;
     }
     class Sphere extends MeshGenerator {
         private radius_;

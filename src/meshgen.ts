@@ -22,19 +22,31 @@ namespace sd.mesh.gen {
 
 		abstract generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
 
-		// generate(): TriMesh {
-		// 	var vtxCount = this.vertexCount();
+		generate(attrList?: VertexAttribute[]): MeshData {
+			if (!attrList)
+				attrList = AttrList.Pos3Norm3UV2();
 
-		// 	var vertexBuf = new Float32Array(vtxCount * 3);
-		// 	var normalBuf = new Float32Array(vtxCount * 3);
-		// 	var uvBuf = new Float32Array(vtxCount * 2);
+			var vtxCount = this.vertexCount();
+			var mesh = new MeshData(attrList);
+			var vertexBuffer = mesh.primaryVertexBuffer();
 
-		// 	var faceBuf = new Uint32Array(vtxCount * 3);
+			vertexBuffer.allocate(vtxCount);
+			var indexElementType = minimumIndexElementTypeForVertexCount(vtxCount);
+			mesh.indexBuffer.allocate(PrimitiveType.Triangle, indexElementType, this.faceCount());
 
-		// 	this.generateInto(vertexBuf, faceBuf, uvBuf);
-		// }
+			var posView = new VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(VertexAttributeRole.Position));
+			var texAttr = vertexBuffer.attrByRole(VertexAttributeRole.UV);
+			var texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
 
-		generateInto(positions: ArrayOfNumber, faces: ArrayOfNumber, uvs: ArrayOfNumber = null): void {
+			var triView = new IndexBufferTriangleView(mesh.indexBuffer);
+			this.generateInto(posView, triView, texView);
+
+			mesh.genVertexNormals();
+
+			return mesh;
+		}
+
+		generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, uvs?: VertexBufferAttributeView): void {
 			var posIx = 0, faceIx = 0, uvIx = 0;
 
 			var pos: PositionAddFn = (x: number, y: number, z: number) => {

@@ -1037,6 +1037,29 @@ var sd;
                 vec3.normalize(norm, norm);
             });
         }
+        var MeshData = (function () {
+            function MeshData(attrs) {
+                if (attrs) {
+                    this.vertexBuffers.push(new VertexBuffer(attrs));
+                }
+            }
+            MeshData.prototype.primaryVertexBuffer = function () {
+                assert(this.vertexBuffers.length > 0);
+                return this.vertexBuffers[0];
+            };
+            MeshData.prototype.genVertexNormals = function () {
+                var _this = this;
+                this.vertexBuffers.forEach(function (vertexBuffer) {
+                    var posAttr = vertexBuffer.attrByRole(1), normAttr = vertexBuffer.attrByRole(2);
+                    if (posAttr && normAttr) {
+                        calcVertexNormals(vertexBuffer, _this.indexBuffer);
+                    }
+                });
+            };
+            return MeshData;
+        })();
+        mesh.MeshData = MeshData;
+        ;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
 // meshgen.ts - mesh generators
@@ -1046,14 +1069,30 @@ var sd;
 var sd;
 (function (sd) {
     var mesh;
-    (function (mesh) {
+    (function (mesh_1) {
         var gen;
         (function (gen) {
             var MeshGenerator = (function () {
                 function MeshGenerator() {
                 }
+                MeshGenerator.prototype.generate = function (attrList) {
+                    if (!attrList)
+                        attrList = mesh_1.AttrList.Pos3Norm3UV2();
+                    var vtxCount = this.vertexCount();
+                    var mesh = new mesh_1.MeshData(attrList);
+                    var vertexBuffer = mesh.primaryVertexBuffer();
+                    vertexBuffer.allocate(vtxCount);
+                    var indexElementType = mesh_1.minimumIndexElementTypeForVertexCount(vtxCount);
+                    mesh.indexBuffer.allocate(3, indexElementType, this.faceCount());
+                    var posView = new mesh_1.VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(1));
+                    var texAttr = vertexBuffer.attrByRole(5);
+                    var texView = texAttr ? new mesh_1.VertexBufferAttributeView(vertexBuffer, texAttr) : null;
+                    var triView = new mesh_1.IndexBufferTriangleView(mesh.indexBuffer);
+                    this.generateInto(posView, triView, texView);
+                    mesh.genVertexNormals();
+                    return mesh;
+                };
                 MeshGenerator.prototype.generateInto = function (positions, faces, uvs) {
-                    if (uvs === void 0) { uvs = null; }
                     var posIx = 0, faceIx = 0, uvIx = 0;
                     var pos = function (x, y, z) {
                         positions[posIx] = x;
@@ -1178,7 +1217,7 @@ var sd;
                 return Sphere;
             })(MeshGenerator);
             gen.Sphere = Sphere;
-        })(gen = mesh.gen || (mesh.gen = {}));
+        })(gen = mesh_1.gen || (mesh_1.gen = {}));
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
 // sound - Web SoundManager
