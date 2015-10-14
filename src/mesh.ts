@@ -720,4 +720,49 @@ namespace sd.mesh {
 		});
 	}
 
+
+	//  __  __        _    ___       _        
+	// |  \/  |___ __| |_ |   \ __ _| |_ __ _ 
+	// | |\/| / -_|_-< ' \| |) / _` |  _/ _` |
+	// |_|  |_\___/__/_||_|___/\__,_|\__\__,_|
+	//                                        
+
+	export interface PrimitiveGroup {
+		fromPrimIx: number;
+		primCount: number;
+		materialIx: number; // mesh-local index (starting at 0); representation of Materials is external to MeshData
+	}
+
+
+	export class MeshData {
+		vertexBuffers: Array<VertexBuffer>;
+		indexBuffer: IndexBuffer;
+		primitiveGroups: Array<PrimitiveGroup>;
+
+		constructor(attrs?: VertexAttribute[]) {
+			if (attrs) {
+				this.vertexBuffers.push(new VertexBuffer(attrs));
+			}
+		}
+
+		primaryVertexBuffer() {
+			assert(this.vertexBuffers.length > 0);
+			return this.vertexBuffers[0];
+		}
+
+		// derived vertex data generation
+		genVertexNormals() {
+			this.vertexBuffers.forEach((vertexBuffer) => {
+				var posAttr = vertexBuffer.attrByRole(VertexAttributeRole.Position),
+					normAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
+
+				if (posAttr && normAttr) {
+					calcVertexNormals(vertexBuffer, this.indexBuffer);
+				}
+			});
+		}
+
+		// void genVertexTangents();
+	};
+
 } // ns sd.mesh
