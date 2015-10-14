@@ -380,8 +380,135 @@ namespace sd.mesh {
 	// |___|_||_\__,_\___/_\_\___/\_,_|_| |_| \___|_|  
 	//                                                
 
+	export const enum IndexElementType {
+		UInt8,
+		UInt16,
+		UInt32
+	}
+
+
+	export const enum PrimitiveType {
+		Point,
+		Line,
+		LineStrip,
+		Triangle,
+		TriangleStrip
+	}
+
+
+	export function indexElementTypeSizeBytes(iet: IndexElementType): number {
+		switch (iet) {
+			case IndexElementType.UInt8: return Uint8Array.BYTES_PER_ELEMENT;
+			case IndexElementType.UInt16: return Uint16Array.BYTES_PER_ELEMENT;
+			case IndexElementType.UInt32: return Uint32Array.BYTES_PER_ELEMENT;
+		}
+	}
+
+
+	export function minimumIndexElementTypeForVertexCount(vertexCount: number): IndexElementType {
+		if (vertexCount <= sd.NumericLimits.UInt8.max)
+			return IndexElementType.UInt8;
+		if (vertexCount <= sd.NumericLimits.UInt16.max)
+			return IndexElementType.UInt16;
+
+		return IndexElementType.UInt32;
+	}
+
+
 	class IndexBuffer {
-		
+		private primitiveType_ = PrimitiveType.Point;
+		private indexElementType_ = IndexElementType.UInt8;
+		private indexCount_ = 0;
+		private primitiveCount_ = 0;
+		private indexElementSizeBytes_ = 0;
+		private storage_: ArrayBuffer = null;
+
+		allocate(primitiveType: PrimitiveType, elementType: IndexElementType, primitiveCount: number) {
+			this.primitiveType_ = primitiveType;
+			this.indexElementType_ = elementType;
+			this.indexElementSizeBytes_ = indexElementTypeSizeBytes(this.indexElementType_);
+			this.primitiveCount_ = primitiveCount;
+
+			switch (primitiveType) {
+				case PrimitiveType.Point:
+					this.indexCount_ = primitiveCount;
+					break;
+				case PrimitiveType.Line:
+					this.indexCount_ = primitiveCount * 2;
+					break;
+				case PrimitiveType.LineStrip:
+					this.indexCount_ = primitiveCount + 1;
+					break;
+				case PrimitiveType.Triangle:
+					this.indexCount_ = primitiveCount * 3;
+					break;
+				case PrimitiveType.TriangleStrip:
+					this.indexCount_ = primitiveCount + 2;
+					break;
+			}
+
+			this.storage_ = new ArrayBuffer(this.bufferSizeBytes());
+		}
+
+		// -- observers
+		primitiveType() { return this.primitiveType_; }
+		indexElementType() { return this.indexElementType_; }
+
+		primitiveCount() { return this.primitiveCount_; }
+		indexCount() { return this.indexCount_; }
+		indexElementSizeBytes() { return this.indexElementSizeBytes_; }
+
+		bufferSizeBytes() { return this.indexCount() * this.indexElementSizeBytes(); }
+		buffer() { return this.storage_; }
+
+		// -- read/write indexes
+		private typedBasePtr(baseIndexNr: number): Uint32Array | Uint16Array | Uint8Array {
+			var offsetBytes = this.indexElementSizeBytes() * baseIndexNr;
+
+			if (this.indexElementType() == IndexElementType.UInt32) {
+				return new Uint32Array(this.storage_, offsetBytes);
+			}
+			else if (this.indexElementType() == IndexElementType.UInt16) {
+				return new Uint16Array(this.storage_, offsetBytes);
+			}
+			else {
+				return new Uint8Array(this.storage_, offsetBytes);
+			}
+		}
+
+		indexes(baseIndexNr: number, outputCount: number, outputPtr: Uint32Array) {
+			assert(baseIndexNr < this.indexCount());
+			assert(baseIndexNr + outputCount < this.indexCount());
+			assert(outputPtr.length >= outputCount);
+
+			var typedBasePtr = this.typedBasePtr(baseIndexNr);
+
+			for (let ix = 0; ix < outputCount; ++ix) {
+				outputPtr[ix] = typedBasePtr[ix];
+			}
+		}
+
+		index(indexNr: number): number {
+			var typedBasePtr = this.typedBasePtr(indexNr);
+			return typedBasePtr[0];
+		}
+
+		setIndexes(baseIndexNr: number, sourceCount: number, sourcePtr: Uint32Array) {
+			assert(baseIndexNr < this.indexCount());
+			assert(baseIndexNr + sourceCount < this.indexCount());
+			assert(sourcePtr.length >= sourceCount);
+
+			var typedBasePtr = this.typedBasePtr(baseIndexNr);
+
+			for (let ix = 0; ix < sourceCount; ++ix) {
+				typedBasePtr[ix] = sourcePtr[ix];
+			}
+		}
+
+		setIndex(indexNr: number, newValue: number) {
+			var typedBasePtr = this.typedBasePtr(indexNr);
+			typedBasePtr[0] = newValue;
+		}
 	}
 
 

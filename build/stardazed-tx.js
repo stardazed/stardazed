@@ -7,6 +7,28 @@ function assert(cond, msg) {
         throw new Error(msg || "assertion failed");
     }
 }
+var sd;
+(function (sd) {
+    var NumericLimitsConstructor = (function () {
+        function NumericLimitsConstructor() {
+            this.UInt8 = { min: 0, max: 255 };
+            this.UInt16 = { min: 0, max: 65535 };
+            this.UInt32 = { min: 0, max: 4294967295 };
+            this.SInt8 = { min: -128, max: 127 };
+            this.SInt16 = { min: -32768, max: 32767 };
+            this.SInt32 = { min: -2147483648, max: 2147483647 };
+            this.Float = { min: -340282346638528859811704183484516925440.0, max: 340282346638528859811704183484516925440.0 };
+            this.Double = {
+                min: -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
+                max: 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0
+            };
+        }
+        return NumericLimitsConstructor;
+    })();
+    sd.NumericLimitsConstructor = NumericLimitsConstructor;
+    sd.NumericLimits = new NumericLimitsConstructor();
+    Object.freeze(sd.NumericLimits);
+})(sd || (sd = {}));
 function isArrayLike(t) {
     return (typeof t == "object") && ("length" in t) && !(t instanceof String || t instanceof Window);
 }
@@ -755,9 +777,100 @@ var sd;
             };
             return VertexBuffer;
         })();
+        function indexElementTypeSizeBytes(iet) {
+            switch (iet) {
+                case 0: return Uint8Array.BYTES_PER_ELEMENT;
+                case 1: return Uint16Array.BYTES_PER_ELEMENT;
+                case 2: return Uint32Array.BYTES_PER_ELEMENT;
+            }
+        }
+        mesh.indexElementTypeSizeBytes = indexElementTypeSizeBytes;
+        function minimumIndexElementTypeForVertexCount(vertexCount) {
+            if (vertexCount <= sd.NumericLimits.UInt8.max)
+                return 0;
+            if (vertexCount <= sd.NumericLimits.UInt16.max)
+                return 1;
+            return 2;
+        }
+        mesh.minimumIndexElementTypeForVertexCount = minimumIndexElementTypeForVertexCount;
         var IndexBuffer = (function () {
             function IndexBuffer() {
+                this.primitiveType_ = 0;
+                this.indexElementType_ = 0;
+                this.indexCount_ = 0;
+                this.primitiveCount_ = 0;
+                this.indexElementSizeBytes_ = 0;
+                this.storage_ = null;
             }
+            IndexBuffer.prototype.allocate = function (primitiveType, elementType, primitiveCount) {
+                this.primitiveType_ = primitiveType;
+                this.indexElementType_ = elementType;
+                this.indexElementSizeBytes_ = indexElementTypeSizeBytes(this.indexElementType_);
+                this.primitiveCount_ = primitiveCount;
+                switch (primitiveType) {
+                    case 0:
+                        this.indexCount_ = primitiveCount;
+                        break;
+                    case 1:
+                        this.indexCount_ = primitiveCount * 2;
+                        break;
+                    case 2:
+                        this.indexCount_ = primitiveCount + 1;
+                        break;
+                    case 3:
+                        this.indexCount_ = primitiveCount * 3;
+                        break;
+                    case 4:
+                        this.indexCount_ = primitiveCount + 2;
+                        break;
+                }
+                this.storage_ = new ArrayBuffer(this.bufferSizeBytes());
+            };
+            IndexBuffer.prototype.primitiveType = function () { return this.primitiveType_; };
+            IndexBuffer.prototype.indexElementType = function () { return this.indexElementType_; };
+            IndexBuffer.prototype.primitiveCount = function () { return this.primitiveCount_; };
+            IndexBuffer.prototype.indexCount = function () { return this.indexCount_; };
+            IndexBuffer.prototype.indexElementSizeBytes = function () { return this.indexElementSizeBytes_; };
+            IndexBuffer.prototype.bufferSizeBytes = function () { return this.indexCount() * this.indexElementSizeBytes(); };
+            IndexBuffer.prototype.buffer = function () { return this.storage_; };
+            IndexBuffer.prototype.typedBasePtr = function (baseIndexNr) {
+                var offsetBytes = this.indexElementSizeBytes() * baseIndexNr;
+                if (this.indexElementType() == 2) {
+                    return new Uint32Array(this.storage_, offsetBytes);
+                }
+                else if (this.indexElementType() == 1) {
+                    return new Uint16Array(this.storage_, offsetBytes);
+                }
+                else {
+                    return new Uint8Array(this.storage_, offsetBytes);
+                }
+            };
+            IndexBuffer.prototype.indexes = function (baseIndexNr, outputCount, outputPtr) {
+                assert(baseIndexNr < this.indexCount());
+                assert(baseIndexNr + outputCount < this.indexCount());
+                assert(outputPtr.length >= outputCount);
+                var typedBasePtr = this.typedBasePtr(baseIndexNr);
+                for (var ix = 0; ix < outputCount; ++ix) {
+                    outputPtr[ix] = typedBasePtr[ix];
+                }
+            };
+            IndexBuffer.prototype.index = function (indexNr) {
+                var typedBasePtr = this.typedBasePtr(indexNr);
+                return typedBasePtr[0];
+            };
+            IndexBuffer.prototype.setIndexes = function (baseIndexNr, sourceCount, sourcePtr) {
+                assert(baseIndexNr < this.indexCount());
+                assert(baseIndexNr + sourceCount < this.indexCount());
+                assert(sourcePtr.length >= sourceCount);
+                var typedBasePtr = this.typedBasePtr(baseIndexNr);
+                for (var ix = 0; ix < sourceCount; ++ix) {
+                    typedBasePtr[ix] = sourcePtr[ix];
+                }
+            };
+            IndexBuffer.prototype.setIndex = function (indexNr, newValue) {
+                var typedBasePtr = this.typedBasePtr(indexNr);
+                typedBasePtr[0] = newValue;
+            };
             return IndexBuffer;
         })();
         var MeshGenerator = (function () {

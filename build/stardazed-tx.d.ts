@@ -2,6 +2,23 @@
 /// <reference path="../defs/gl-matrix.d.ts" />
 /// <reference path="../defs/webgl-ext.d.ts" />
 declare function assert(cond: any, msg?: string): void;
+declare namespace sd {
+    interface NumericTypeLimits {
+        min: number;
+        max: number;
+    }
+    class NumericLimitsConstructor {
+        UInt8: NumericTypeLimits;
+        UInt16: NumericTypeLimits;
+        UInt32: NumericTypeLimits;
+        SInt8: NumericTypeLimits;
+        SInt16: NumericTypeLimits;
+        SInt32: NumericTypeLimits;
+        Float: NumericTypeLimits;
+        Double: NumericTypeLimits;
+    }
+    const NumericLimits: NumericLimitsConstructor;
+}
 declare function isArrayLike(t: any): boolean;
 declare function seq<T>(t: Array<T>): Array<T>;
 declare function seq(t: any): Array<any>;
@@ -253,6 +270,20 @@ declare namespace sd.mesh {
         attrByIndex(index: number): PositionedAttribute;
         hasAttributeWithRole(role: VertexAttributeRole): boolean;
     }
+    const enum IndexElementType {
+        UInt8 = 0,
+        UInt16 = 1,
+        UInt32 = 2,
+    }
+    const enum PrimitiveType {
+        Point = 0,
+        Line = 1,
+        LineStrip = 2,
+        Triangle = 3,
+        TriangleStrip = 4,
+    }
+    function indexElementTypeSizeBytes(iet: IndexElementType): number;
+    function minimumIndexElementTypeForVertexCount(vertexCount: number): IndexElementType;
     type PositionAddFn = (x: number, y: number, z: number) => void;
     type FaceAddFn = (a: number, b: number, c: number) => void;
     type UVAddFn = (u: number, v: number) => void;
