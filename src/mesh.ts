@@ -257,9 +257,9 @@ namespace sd.mesh {
 
 	// -- A VertexAttribute is a Field with a certain Role inside a VertexBuffer
 
-	export class VertexAttribute {
-		field: VertexField = VertexField.Undefined;
-		role: VertexAttributeRole = VertexAttributeRole.Generic;
+	export interface VertexAttribute {
+		field: VertexField;
+		role: VertexAttributeRole;
 	}
 
 
@@ -286,8 +286,14 @@ namespace sd.mesh {
 		export function Pos3Norm3(): VertexAttribute[] {
 			return [ attrPosition3(), attrNormal3() ];
 		}
+		export function Pos3Norm3Colour3() {
+			return [attrPosition3(), attrNormal3(), attrColour3()];	
+		}
 		export function Pos3Norm3UV2(): VertexAttribute[] {
 			return [ attrPosition3(), attrNormal3(), attrUV2() ];
+		}
+		export function Pos3Norm3Colour3UV2() {
+			return [attrPosition3(), attrNormal3(), attrColour3(), attrUV2()];
 		}
 		export function Pos3Norm3UV2Tan4(): VertexAttribute[] {
 			return [ attrPosition3(), attrNormal3(), attrUV2(), attrTangent4() ];
@@ -295,26 +301,31 @@ namespace sd.mesh {
 	}
 
 
-	export class PositionedAttribute extends VertexAttribute {
+	export interface PositionedAttribute extends VertexAttribute {
 		offset: number;
+	}
 
-		constructor(vf: VertexField, ar: VertexAttributeRole, offset: number);
-		constructor(attr: VertexAttribute, offset: number);
-		constructor(fieldOrAttr: VertexField | VertexAttribute, roleOrOffset: VertexAttribute | number, offset?: number) {
-			super();
 
-			if (fieldOrAttr instanceof VertexAttribute) {
-				this.field = fieldOrAttr.field;
-				this.role = fieldOrAttr.role;
-				this.offset = <number>roleOrOffset;
-			}
-			else {
-				this.field = <VertexField>fieldOrAttr;
-				this.role = <VertexAttributeRole>roleOrOffset;
-				this.offset = offset;
-			}
+	export function makePositionedAttr(vf: VertexField, ar: VertexAttributeRole, offset: number): PositionedAttribute;
+	export function makePositionedAttr(attr: VertexAttribute, offset: number): PositionedAttribute;
+	export function makePositionedAttr(fieldOrAttr: VertexField | VertexAttribute, roleOrOffset: VertexAttribute | number, offset?: number): PositionedAttribute {
+		if ("field" in <any>fieldOrAttr) {
+			var attr = <VertexAttribute>fieldOrAttr;
+			return {
+				field: attr.field,
+				role: attr.role,
+				offset: <number>roleOrOffset
+			};
+		}
+		else {
+			return {
+				field: <VertexField>fieldOrAttr,
+				role: <VertexAttributeRole>roleOrOffset,
+				offset: offset
+			};
 		}
 	}
+
 
 
 	function alignFieldOnSize(size: number, offset: number) {
@@ -354,7 +365,7 @@ namespace sd.mesh {
 
 				var alignedOffset = alignVertexField(attr.field, offset);
 				offset = alignedOffset + size;
-				return new PositionedAttribute(attr, alignedOffset);
+				return makePositionedAttr(attr, alignedOffset);
 			});
 
 			// align full item size on boundary of biggest element in attribute list, with min of float boundary
@@ -609,7 +620,7 @@ namespace sd.mesh {
 		private data_: TypedIndexArray;
 
 		constructor(data: TypedIndexArray, triangleIndex: number) {
-			this.data_ = new (<any>data.constructor)(triangleIndex * 3, 3);
+			this.data_ = new (<any>data.constructor)(data.buffer, triangleIndex * 3 * data.BYTES_PER_ELEMENT, 3);
 		}
 
 		index(index: number) { return this.data_[index]; }
@@ -712,7 +723,7 @@ namespace sd.mesh {
 
 				// normBegin[fvi] = (normBegin[fvi] * usages[fvi] + faceNormal) / (usages[fvi] + 1.0f);
 				vec3.scaleAndAdd(temp, faceNormal, norm, usages[fvi]);
-				vec3.scale(temp, temp, 1 / (usages[fvi] + 1));
+				vec3.scale(norm, temp, 1 / (usages[fvi] + 1));
 
 				usages[fvi] += 1;
 			}
@@ -739,14 +750,15 @@ namespace sd.mesh {
 
 
 	export class MeshData {
-		vertexBuffers: Array<VertexBuffer>;
+		vertexBuffers: Array<VertexBuffer> = [];
 		indexBuffer: IndexBuffer;
-		primitiveGroups: Array<PrimitiveGroup>;
+		primitiveGroups: Array<PrimitiveGroup> = [];
 
 		constructor(attrs?: VertexAttribute[]) {
 			if (attrs) {
 				this.vertexBuffers.push(new VertexBuffer(attrs));
 			}
+			this.indexBuffer = new IndexBuffer();
 		}
 
 		primaryVertexBuffer() {

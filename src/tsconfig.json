@@ -12,7 +12,7 @@
         "suppressImplicitAnyIndexErrors": true,
 
         "removeComments": true,
-        "sourceMap": true,
+        "sourceMap": false,
         "declaration": true
     },
     "exclude": [

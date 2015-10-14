@@ -246,7 +246,7 @@ declare namespace sd.mesh {
         UVW = 6,
         Index = 7,
     }
-    class VertexAttribute {
+    interface VertexAttribute {
         field: VertexField;
         role: VertexAttributeRole;
     }
@@ -258,14 +258,16 @@ declare namespace sd.mesh {
     function attrTangent4(): VertexAttribute;
     namespace AttrList {
         function Pos3Norm3(): VertexAttribute[];
+        function Pos3Norm3Colour3(): VertexAttribute[];
         function Pos3Norm3UV2(): VertexAttribute[];
+        function Pos3Norm3Colour3UV2(): VertexAttribute[];
         function Pos3Norm3UV2Tan4(): VertexAttribute[];
     }
-    class PositionedAttribute extends VertexAttribute {
+    interface PositionedAttribute extends VertexAttribute {
         offset: number;
-        constructor(vf: VertexField, ar: VertexAttributeRole, offset: number);
-        constructor(attr: VertexAttribute, offset: number);
     }
+    function makePositionedAttr(vf: VertexField, ar: VertexAttributeRole, offset: number): PositionedAttribute;
+    function makePositionedAttr(attr: VertexAttribute, offset: number): PositionedAttribute;
     class VertexLayout {
         private attributeCount_;
         private vertexSizeBytes_;

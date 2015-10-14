@@ -535,11 +535,6 @@ function loadLWObjectFile(filePath) {
 // mesh.ts - mesh data
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 /// <reference path="../defs/gl-matrix.d.ts" />
 /// <reference path="../defs/webgl-ext.d.ts" />
 /// <reference path="core.ts" />
@@ -701,14 +696,6 @@ var sd;
         }
         mesh.vertexFieldIsNormalized = vertexFieldIsNormalized;
         ;
-        var VertexAttribute = (function () {
-            function VertexAttribute() {
-                this.field = 0;
-                this.role = 0;
-            }
-            return VertexAttribute;
-        })();
-        mesh.VertexAttribute = VertexAttribute;
         function maxVertexAttributes() {
             return 16;
         }
@@ -729,33 +716,41 @@ var sd;
                 return [attrPosition3(), attrNormal3()];
             }
             AttrList.Pos3Norm3 = Pos3Norm3;
+            function Pos3Norm3Colour3() {
+                return [attrPosition3(), attrNormal3(), attrColour3()];
+            }
+            AttrList.Pos3Norm3Colour3 = Pos3Norm3Colour3;
             function Pos3Norm3UV2() {
                 return [attrPosition3(), attrNormal3(), attrUV2()];
             }
             AttrList.Pos3Norm3UV2 = Pos3Norm3UV2;
+            function Pos3Norm3Colour3UV2() {
+                return [attrPosition3(), attrNormal3(), attrColour3(), attrUV2()];
+            }
+            AttrList.Pos3Norm3Colour3UV2 = Pos3Norm3Colour3UV2;
             function Pos3Norm3UV2Tan4() {
                 return [attrPosition3(), attrNormal3(), attrUV2(), attrTangent4()];
             }
             AttrList.Pos3Norm3UV2Tan4 = Pos3Norm3UV2Tan4;
         })(AttrList = mesh.AttrList || (mesh.AttrList = {}));
-        var PositionedAttribute = (function (_super) {
-            __extends(PositionedAttribute, _super);
-            function PositionedAttribute(fieldOrAttr, roleOrOffset, offset) {
-                _super.call(this);
-                if (fieldOrAttr instanceof VertexAttribute) {
-                    this.field = fieldOrAttr.field;
-                    this.role = fieldOrAttr.role;
-                    this.offset = roleOrOffset;
-                }
-                else {
-                    this.field = fieldOrAttr;
-                    this.role = roleOrOffset;
-                    this.offset = offset;
-                }
+        function makePositionedAttr(fieldOrAttr, roleOrOffset, offset) {
+            if ("field" in fieldOrAttr) {
+                var attr = fieldOrAttr;
+                return {
+                    field: attr.field,
+                    role: attr.role,
+                    offset: roleOrOffset
+                };
             }
-            return PositionedAttribute;
-        })(VertexAttribute);
-        mesh.PositionedAttribute = PositionedAttribute;
+            else {
+                return {
+                    field: fieldOrAttr,
+                    role: roleOrOffset,
+                    offset: offset
+                };
+            }
+        }
+        mesh.makePositionedAttr = makePositionedAttr;
         function alignFieldOnSize(size, offset) {
             var mask = size - 1;
             return (offset + mask) & ~mask;
@@ -775,7 +770,7 @@ var sd;
                     maxElemSize = Math.max(maxElemSize, vertexFieldElementSizeBytes(attr.field));
                     var alignedOffset = alignVertexField(attr.field, offset);
                     offset = alignedOffset + size;
-                    return new PositionedAttribute(attr, alignedOffset);
+                    return makePositionedAttr(attr, alignedOffset);
                 });
                 maxElemSize = Math.max(Float32Array.BYTES_PER_ELEMENT, maxElemSize);
                 this.vertexSizeBytes_ = alignFieldOnSize(maxElemSize, offset);
@@ -952,7 +947,7 @@ var sd;
         mesh.IndexBuffer = IndexBuffer;
         var TriangleProxy = (function () {
             function TriangleProxy(data, triangleIndex) {
-                this.data_ = new data.constructor(triangleIndex * 3, 3);
+                this.data_ = new data.constructor(data.buffer, triangleIndex * 3 * data.BYTES_PER_ELEMENT, 3);
             }
             TriangleProxy.prototype.index = function (index) { return this.data_[index]; };
             TriangleProxy.prototype.a = function () { return this.data_[0]; };
@@ -1032,7 +1027,7 @@ var sd;
                     var fvi = face.index(fi);
                     var norm = normView.item(fvi);
                     vec3.scaleAndAdd(temp, faceNormal, norm, usages[fvi]);
-                    vec3.scale(temp, temp, 1 / (usages[fvi] + 1));
+                    vec3.scale(norm, temp, 1 / (usages[fvi] + 1));
                     usages[fvi] += 1;
                 }
             });
@@ -1042,9 +1037,12 @@ var sd;
         }
         var MeshData = (function () {
             function MeshData(attrs) {
+                this.vertexBuffers = [];
+                this.primitiveGroups = [];
                 if (attrs) {
                     this.vertexBuffers.push(new VertexBuffer(attrs));
                 }
+                this.indexBuffer = new IndexBuffer();
             }
             MeshData.prototype.primaryVertexBuffer = function () {
                 assert(this.vertexBuffers.length > 0);
@@ -1068,6 +1066,11 @@ var sd;
 // meshgen.ts - mesh generators
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 /// <reference path="mesh.ts" />
 var sd;
 (function (sd) {
@@ -1252,4 +1255,3 @@ var SoundManager = (function () {
     };
     return SoundManager;
 })();
-//# sourceMappingURL=stardazed-tx.js.map
