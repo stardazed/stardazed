@@ -777,6 +777,7 @@ var sd;
             };
             return VertexBuffer;
         })();
+        mesh.VertexBuffer = VertexBuffer;
         function indexElementTypeSizeBytes(iet) {
             switch (iet) {
                 case 0: return Uint8Array.BYTES_PER_ELEMENT;
@@ -874,6 +875,58 @@ var sd;
             return IndexBuffer;
         })();
         mesh.IndexBuffer = IndexBuffer;
+        var TriangleProxy = (function () {
+            function TriangleProxy(data, triangleIndex) {
+                this.data_ = new data.constructor(triangleIndex * 3, 3);
+            }
+            TriangleProxy.prototype.index = function (index) { return this.data_[index]; };
+            TriangleProxy.prototype.a = function () { return this.data_[0]; };
+            TriangleProxy.prototype.b = function () { return this.data_[1]; };
+            TriangleProxy.prototype.c = function () { return this.data_[2]; };
+            TriangleProxy.prototype.setIndex = function (index, newValue) {
+                this.data_[index] = newValue;
+            };
+            TriangleProxy.prototype.setA = function (newValue) { this.data_[0] = newValue; };
+            TriangleProxy.prototype.setB = function (newValue) { this.data_[1] = newValue; };
+            TriangleProxy.prototype.setC = function (newValue) { this.data_[2] = newValue; };
+            return TriangleProxy;
+        })();
+        mesh.TriangleProxy = TriangleProxy;
+        var IndexBufferTriangleView = (function () {
+            function IndexBufferTriangleView(indexBuffer_, fromTriangle_, toTriangle_) {
+                if (fromTriangle_ === void 0) { fromTriangle_ = -1; }
+                if (toTriangle_ === void 0) { toTriangle_ = -1; }
+                this.indexBuffer_ = indexBuffer_;
+                this.fromTriangle_ = fromTriangle_;
+                this.toTriangle_ = toTriangle_;
+                assert(this.indexBuffer_.primitiveType() == 3);
+                if (this.fromTriangle_ < 0)
+                    this.fromTriangle_ = 0;
+                if (this.fromTriangle_ >= this.indexBuffer_.primitiveCount())
+                    this.fromTriangle_ = this.indexBuffer_.primitiveCount() - 1;
+                if ((this.toTriangle_ < 0) || (this.toTriangle_ >= this.indexBuffer_.primitiveCount()))
+                    this.toTriangle_ = this.indexBuffer_.primitiveCount() - 1;
+            }
+            IndexBufferTriangleView.prototype.forEach = function (callback) {
+                var basePtr = this.indexBuffer_.typedBasePtr(this.fromTriangle_ * 3);
+                var primCount = this.toTriangle_ - this.fromTriangle_;
+                for (var tix = 0; tix < primCount; ++tix) {
+                    callback(new TriangleProxy(basePtr, tix));
+                }
+            };
+            return IndexBufferTriangleView;
+        })();
+        mesh.IndexBufferTriangleView = IndexBufferTriangleView;
+        function calcVertexNormals(vertexBuffer, indexBuffer) {
+            var posAttr = vertexBuffer.attrByRole(1);
+            var normAttr = vertexBuffer.attrByRole(2);
+            assert(posAttr && normAttr);
+            var triView = new IndexBufferTriangleView(indexBuffer);
+            calcVertexNormalsImpl();
+        }
+        mesh.calcVertexNormals = calcVertexNormals;
+        function calcVertexNormalsImpl() {
+        }
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
 // meshgen.ts - mesh generators

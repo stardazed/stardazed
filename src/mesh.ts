@@ -327,7 +327,7 @@ namespace sd.mesh {
 	//   \_/\___|_|  \__\___/_\_\___/\_,_|_| |_| \___|_|  
 	//	
 
-	class VertexBuffer {
+	export class VertexBuffer {
 		private layout_: VertexLayout;
 		private itemCount_ = 0;
 		private storage_: ArrayBuffer = null;
@@ -396,6 +396,9 @@ namespace sd.mesh {
 	}
 
 
+	export type TypedIndexArray = Uint32Array | Uint16Array | Uint8Array;
+
+
 	export function indexElementTypeSizeBytes(iet: IndexElementType): number {
 		switch (iet) {
 			case IndexElementType.UInt8: return Uint8Array.BYTES_PER_ELEMENT;
@@ -462,7 +465,7 @@ namespace sd.mesh {
 		buffer() { return this.storage_; }
 
 		// -- read/write indexes
-		private typedBasePtr(baseIndexNr: number): Uint32Array | Uint16Array | Uint8Array {
+		typedBasePtr(baseIndexNr: number): TypedIndexArray {
 			var offsetBytes = this.indexElementSizeBytes() * baseIndexNr;
 
 			if (this.indexElementType() == IndexElementType.UInt32) {
@@ -509,6 +512,74 @@ namespace sd.mesh {
 			var typedBasePtr = this.typedBasePtr(indexNr);
 			typedBasePtr[0] = newValue;
 		}
+	}
+
+	export class TriangleProxy {
+		private data_: TypedIndexArray;
+
+		constructor(data: TypedIndexArray, triangleIndex: number) {
+			this.data_ = new (<any>data.constructor)(triangleIndex * 3, 3);
+		}
+
+		index(index: number) { return this.data_[index]; }
+		a() { return this.data_[0]; }
+		b() { return this.data_[1]; }
+		c() { return this.data_[2]; }
+
+		setIndex(index: number, newValue: number) {
+			this.data_[index] = newValue;
+		}
+		setA(newValue: number) { this.data_[0] = newValue; }
+		setB(newValue: number) { this.data_[1] = newValue; }
+		setC(newValue: number) { this.data_[2] = newValue; }
+	}
+
+
+	export class IndexBufferTriangleView {
+		constructor(private indexBuffer_: IndexBuffer, private fromTriangle_ = -1, private toTriangle_ = -1) {
+			assert(this.indexBuffer_.primitiveType() == PrimitiveType.Triangle);
+
+			// clamp range to available primitives, default to all triangles
+			if (this.fromTriangle_ < 0)
+				this.fromTriangle_ = 0;
+			if (this.fromTriangle_ >= this.indexBuffer_.primitiveCount())
+				this.fromTriangle_ = this.indexBuffer_.primitiveCount() - 1;
+
+			if ((this.toTriangle_ < 0) || (this.toTriangle_ >= this.indexBuffer_.primitiveCount()))
+				this.toTriangle_ = this.indexBuffer_.primitiveCount() - 1;
+		}
+
+		forEach(callback: (proxy: TriangleProxy) => void) {
+			var basePtr = this.indexBuffer_.typedBasePtr(this.fromTriangle_ * 3);
+			var primCount = this.toTriangle_ - this.fromTriangle_;
+
+			for (let tix = 0; tix < primCount; ++tix) {
+				callback(new TriangleProxy(basePtr, tix));
+			}
+		}
+	}
+
+
+	//  ___          _            _   ___       _        
+	// |   \ ___ _ _(_)_ _____ __| | |   \ __ _| |_ __ _ 
+	// | |) / -_) '_| \ V / -_) _` | | |) / _` |  _/ _` |
+	// |___/\___|_| |_|\_/\___\__,_| |___/\__,_|\__\__,_|
+	//                                                   
+
+	export function calcVertexNormals(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer) {
+		var posAttr = vertexBuffer.attrByRole(VertexAttributeRole.Position);
+		var normAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
+
+		assert(posAttr && normAttr);
+
+		var triView = new IndexBufferTriangleView(indexBuffer);
+
+		calcVertexNormalsImpl();
+	}
+
+
+	function calcVertexNormalsImpl() {
+
 	}
 
 } // ns sd.mesh

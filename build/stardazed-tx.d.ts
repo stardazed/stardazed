@@ -275,6 +275,22 @@ declare namespace sd.mesh {
         attrByIndex(index: number): PositionedAttribute;
         hasAttributeWithRole(role: VertexAttributeRole): boolean;
     }
+    class VertexBuffer {
+        private layout_;
+        private itemCount_;
+        private storage_;
+        constructor(attrs: VertexAttribute[] | VertexLayout);
+        layout(): VertexLayout;
+        strideBytes(): number;
+        attributeCount(): number;
+        itemCount(): number;
+        bufferSizeBytes(): number;
+        allocate(itemCount: number): void;
+        buffer(): ArrayBuffer;
+        hasAttributeWithRole(role: VertexAttributeRole): boolean;
+        attrByRole(role: VertexAttributeRole): PositionedAttribute;
+        attrByIndex(index: number): PositionedAttribute;
+    }
     const enum IndexElementType {
         UInt8 = 0,
         UInt16 = 1,
@@ -287,6 +303,7 @@ declare namespace sd.mesh {
         Triangle = 3,
         TriangleStrip = 4,
     }
+    type TypedIndexArray = Uint32Array | Uint16Array | Uint8Array;
     function indexElementTypeSizeBytes(iet: IndexElementType): number;
     function minimumIndexElementTypeForVertexCount(vertexCount: number): IndexElementType;
     class IndexBuffer {
@@ -304,12 +321,32 @@ declare namespace sd.mesh {
         indexElementSizeBytes(): number;
         bufferSizeBytes(): number;
         buffer(): ArrayBuffer;
-        private typedBasePtr(baseIndexNr);
+        typedBasePtr(baseIndexNr: number): TypedIndexArray;
         indexes(baseIndexNr: number, outputCount: number, outputPtr: Uint32Array): void;
         index(indexNr: number): number;
         setIndexes(baseIndexNr: number, sourceCount: number, sourcePtr: Uint32Array): void;
         setIndex(indexNr: number, newValue: number): void;
     }
+    class TriangleProxy {
+        private data_;
+        constructor(data: TypedIndexArray, triangleIndex: number);
+        index(index: number): number;
+        a(): number;
+        b(): number;
+        c(): number;
+        setIndex(index: number, newValue: number): void;
+        setA(newValue: number): void;
+        setB(newValue: number): void;
+        setC(newValue: number): void;
+    }
+    class IndexBufferTriangleView {
+        private indexBuffer_;
+        private fromTriangle_;
+        private toTriangle_;
+        constructor(indexBuffer_: IndexBuffer, fromTriangle_?: number, toTriangle_?: number);
+        forEach(callback: (proxy: TriangleProxy) => void): void;
+    }
+    function calcVertexNormals(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer): void;
 }
 declare namespace sd.mesh.gen {
     type PositionAddFn = (x: number, y: number, z: number) => void;
