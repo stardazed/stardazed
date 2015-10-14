@@ -231,6 +231,9 @@ declare namespace sd.mesh {
     }
     function vertexFieldElementCount(vf: VertexField): number;
     function vertexFieldElementSizeBytes(vf: VertexField): number;
+    type TypedFieldArray = Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | Float32Array;
+    type TypedFieldArrayConstructor = Uint8ArrayConstructor | Int8ArrayConstructor | Uint16ArrayConstructor | Int16ArrayConstructor | Uint32ArrayConstructor | Int32ArrayConstructor | Float32ArrayConstructor;
+    function vertexFieldArrayConstructor(vf: VertexField): TypedFieldArrayConstructor;
     function vertexFieldSizeBytes(vf: VertexField): number;
     function vertexFieldIsNormalized(vf: VertexField): boolean;
     const enum VertexAttributeRole {
@@ -291,6 +294,18 @@ declare namespace sd.mesh {
         attrByRole(role: VertexAttributeRole): PositionedAttribute;
         attrByIndex(index: number): PositionedAttribute;
     }
+    class VertexBufferAttributeView {
+        private vertexBuffer_;
+        private stride_;
+        private attrOffset_;
+        private attrSizeBytes_;
+        private typedViewCtor_;
+        private buffer_;
+        constructor(vertexBuffer_: VertexBuffer, attr: PositionedAttribute);
+        forEach(callback: (item: TypedFieldArray) => void): void;
+        item(index: number): TypedFieldArray;
+        count(): number;
+    }
     const enum IndexElementType {
         UInt8 = 0,
         UInt16 = 1,
@@ -345,6 +360,7 @@ declare namespace sd.mesh {
         private toTriangle_;
         constructor(indexBuffer_: IndexBuffer, fromTriangle_?: number, toTriangle_?: number);
         forEach(callback: (proxy: TriangleProxy) => void): void;
+        count(): number;
     }
     function calcVertexNormals(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer): void;
 }

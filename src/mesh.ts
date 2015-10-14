@@ -172,6 +172,68 @@ namespace sd.mesh {
 	}
 
 
+	export type TypedFieldArray = Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | Float32Array;
+	export type TypedFieldArrayConstructor = Uint8ArrayConstructor | Int8ArrayConstructor | Uint16ArrayConstructor | Int16ArrayConstructor | Uint32ArrayConstructor | Int32ArrayConstructor | Float32ArrayConstructor;
+
+
+	export function vertexFieldArrayConstructor(vf: VertexField): TypedFieldArrayConstructor {
+		switch (vf) {
+			case VertexField.Undefined:
+				return null;
+
+			case VertexField.Float:
+			case VertexField.Floatx2:
+			case VertexField.Floatx3:
+			case VertexField.Floatx4:
+				return Float32Array;
+
+			case VertexField.UInt32:
+			case VertexField.UInt32x2:
+			case VertexField.UInt32x3:
+			case VertexField.UInt32x4:
+				return Uint32Array;
+
+			case VertexField.SInt32:
+			case VertexField.SInt32x2:
+			case VertexField.SInt32x3:
+			case VertexField.SInt32x4:
+				return Int32Array;
+
+			case VertexField.UInt16x2:
+			case VertexField.Norm_UInt16x2:
+			case VertexField.UInt16x3:
+			case VertexField.Norm_UInt16x3:
+			case VertexField.UInt16x4:
+			case VertexField.Norm_UInt16x4:
+				return Uint16Array;
+
+			case VertexField.SInt16x2:
+			case VertexField.Norm_SInt16x2:
+			case VertexField.SInt16x3:
+			case VertexField.Norm_SInt16x3:
+			case VertexField.SInt16x4:
+			case VertexField.Norm_SInt16x4:
+				return Int16Array;
+
+			case VertexField.UInt8x2:
+			case VertexField.Norm_UInt8x2:
+			case VertexField.UInt8x3:
+			case VertexField.Norm_UInt8x3:
+			case VertexField.UInt8x4:
+			case VertexField.Norm_UInt8x4:
+				return Uint8Array;
+
+			case VertexField.SInt8x2:
+			case VertexField.Norm_SInt8x2:
+			case VertexField.SInt8x3:
+			case VertexField.Norm_SInt8x3:
+			case VertexField.SInt8x4:
+			case VertexField.Norm_SInt8x4:
+				return Int8Array;
+		}
+	}
+
+
 	export function vertexFieldSizeBytes(vf: VertexField) {
 		return vertexFieldElementSizeBytes(vf) * vertexFieldElementCount(vf);
 	}
@@ -367,10 +429,39 @@ namespace sd.mesh {
 		attrByIndex(index: number) {
 			return this.layout_.attrByIndex(index);
 		}
+	}
 
-		// -- iteration over attribute data
 
-		// TODO: implement (needs analog of STLBasicBufferIterator)
+	export class VertexBufferAttributeView {
+		private stride_: number;
+		private attrOffset_: number;
+		private attrSizeBytes_: number;
+		private typedViewCtor_: TypedFieldArrayConstructor;
+		private buffer_: ArrayBuffer;
+
+		constructor(private vertexBuffer_: VertexBuffer, attr: PositionedAttribute) {
+			this.stride_ = this.vertexBuffer_.layout().vertexSizeBytes();
+			this.attrOffset_ = attr.offset;
+			this.attrSizeBytes_ = vertexFieldSizeBytes(attr.field);
+			this.typedViewCtor_ = vertexFieldArrayConstructor(attr.field);
+			this.buffer_ = this.vertexBuffer_.buffer();
+		}
+
+		forEach(callback: (item: TypedFieldArray) => void) {
+			var max = this.count();
+			for (let ix = 0; ix < max; ++ix) {
+				callback(this.item(ix));
+			}
+		}
+
+		item(index: number): TypedFieldArray {
+			var offset = (this.stride_ * index) + this.attrOffset_;
+			return new (this.typedViewCtor_)(this.buffer_, offset, this.attrSizeBytes_);
+		}
+
+		count() {
+			return this.vertexBuffer_.itemCount();
+		}
 	}
 
 
@@ -557,6 +648,10 @@ namespace sd.mesh {
 				callback(new TriangleProxy(basePtr, tix));
 			}
 		}
+
+		count() {
+			return this.toTriangle_ - this.fromTriangle_;
+		}
 	}
 
 
@@ -572,14 +667,57 @@ namespace sd.mesh {
 
 		assert(posAttr && normAttr);
 
+		var posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
+		var normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
 		var triView = new IndexBufferTriangleView(indexBuffer);
 
-		calcVertexNormalsImpl();
+		calcVertexNormalsImpl(posView, normView, triView);
 	}
 
 
-	function calcVertexNormalsImpl() {
+	function calcVertexNormalsImpl(posView: VertexBufferAttributeView, normView: VertexBufferAttributeView, triView: IndexBufferTriangleView) {
+		var vertexCount = posView.count();
+		var normalCount = normView.count();
+		assert(vertexCount <= normalCount);
 
+		normView.forEach((norm) => {
+			vec3.set(norm, 0, 0, 1);
+		});
+		var usages = new Float32Array(vertexCount);
+
+		var lineA = vec3.create(), lineB = vec3.create();
+		var faceNormal = vec3.create(), temp = vec3.create();
+
+		triView.forEach((face: TriangleProxy) => {
+			var posA = posView.item(face.a());
+			var posB = posView.item(face.b());
+			var posC = posView.item(face.c());
+
+			vec3.subtract(lineA, posB, posA);
+			vec3.subtract(lineB, posC, posB);
+
+			if (vec3.length(lineA) < 0.00001 || vec3.length(lineB) < 0.00001)
+				return;
+
+			vec3.cross(faceNormal, lineA, lineB);
+			vec3.normalize(faceNormal, faceNormal);
+
+			for (let fi = 0; fi < 3; ++fi) {
+				let fvi = face.index(fi);
+				let norm = normView.item(fvi);
+
+				// normBegin[fvi] = (normBegin[fvi] * usages[fvi] + faceNormal) / (usages[fvi] + 1.0f);
+				vec3.scaleAndAdd(temp, faceNormal, norm, usages[fvi]);
+				vec3.scale(temp, temp, 1 / (usages[fvi] + 1));
+
+				usages[fvi] += 1;
+			}
+
+		});
+
+		normView.forEach((norm) => {
+			vec3.normalize(norm, norm);
+		});
 	}
 
 } // ns sd.mesh

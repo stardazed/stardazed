@@ -642,6 +642,56 @@ var sd;
             }
         }
         mesh.vertexFieldElementSizeBytes = vertexFieldElementSizeBytes;
+        function vertexFieldArrayConstructor(vf) {
+            switch (vf) {
+                case 0:
+                    return null;
+                case 21:
+                case 22:
+                case 23:
+                case 24:
+                    return Float32Array;
+                case 13:
+                case 14:
+                case 15:
+                case 16:
+                    return Uint32Array;
+                case 17:
+                case 18:
+                case 19:
+                case 20:
+                    return Int32Array;
+                case 7:
+                case 135:
+                case 8:
+                case 136:
+                case 9:
+                case 137:
+                    return Uint16Array;
+                case 10:
+                case 138:
+                case 11:
+                case 139:
+                case 12:
+                case 140:
+                    return Int16Array;
+                case 1:
+                case 129:
+                case 2:
+                case 130:
+                case 3:
+                case 131:
+                    return Uint8Array;
+                case 4:
+                case 132:
+                case 5:
+                case 133:
+                case 6:
+                case 134:
+                    return Int8Array;
+            }
+        }
+        mesh.vertexFieldArrayConstructor = vertexFieldArrayConstructor;
         function vertexFieldSizeBytes(vf) {
             return vertexFieldElementSizeBytes(vf) * vertexFieldElementCount(vf);
         }
@@ -778,6 +828,31 @@ var sd;
             return VertexBuffer;
         })();
         mesh.VertexBuffer = VertexBuffer;
+        var VertexBufferAttributeView = (function () {
+            function VertexBufferAttributeView(vertexBuffer_, attr) {
+                this.vertexBuffer_ = vertexBuffer_;
+                this.stride_ = this.vertexBuffer_.layout().vertexSizeBytes();
+                this.attrOffset_ = attr.offset;
+                this.attrSizeBytes_ = vertexFieldSizeBytes(attr.field);
+                this.typedViewCtor_ = vertexFieldArrayConstructor(attr.field);
+                this.buffer_ = this.vertexBuffer_.buffer();
+            }
+            VertexBufferAttributeView.prototype.forEach = function (callback) {
+                var max = this.count();
+                for (var ix = 0; ix < max; ++ix) {
+                    callback(this.item(ix));
+                }
+            };
+            VertexBufferAttributeView.prototype.item = function (index) {
+                var offset = (this.stride_ * index) + this.attrOffset_;
+                return new (this.typedViewCtor_)(this.buffer_, offset, this.attrSizeBytes_);
+            };
+            VertexBufferAttributeView.prototype.count = function () {
+                return this.vertexBuffer_.itemCount();
+            };
+            return VertexBufferAttributeView;
+        })();
+        mesh.VertexBufferAttributeView = VertexBufferAttributeView;
         function indexElementTypeSizeBytes(iet) {
             switch (iet) {
                 case 0: return Uint8Array.BYTES_PER_ELEMENT;
@@ -914,6 +989,9 @@ var sd;
                     callback(new TriangleProxy(basePtr, tix));
                 }
             };
+            IndexBufferTriangleView.prototype.count = function () {
+                return this.toTriangle_ - this.fromTriangle_;
+            };
             return IndexBufferTriangleView;
         })();
         mesh.IndexBufferTriangleView = IndexBufferTriangleView;
@@ -921,11 +999,43 @@ var sd;
             var posAttr = vertexBuffer.attrByRole(1);
             var normAttr = vertexBuffer.attrByRole(2);
             assert(posAttr && normAttr);
+            var posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
+            var normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
             var triView = new IndexBufferTriangleView(indexBuffer);
-            calcVertexNormalsImpl();
+            calcVertexNormalsImpl(posView, normView, triView);
         }
         mesh.calcVertexNormals = calcVertexNormals;
-        function calcVertexNormalsImpl() {
+        function calcVertexNormalsImpl(posView, normView, triView) {
+            var vertexCount = posView.count();
+            var normalCount = normView.count();
+            assert(vertexCount <= normalCount);
+            normView.forEach(function (norm) {
+                vec3.set(norm, 0, 0, 1);
+            });
+            var usages = new Float32Array(vertexCount);
+            var lineA = vec3.create(), lineB = vec3.create();
+            var faceNormal = vec3.create(), temp = vec3.create();
+            triView.forEach(function (face) {
+                var posA = posView.item(face.a());
+                var posB = posView.item(face.b());
+                var posC = posView.item(face.c());
+                vec3.subtract(lineA, posB, posA);
+                vec3.subtract(lineB, posC, posB);
+                if (vec3.length(lineA) < 0.00001 || vec3.length(lineB) < 0.00001)
+                    return;
+                vec3.cross(faceNormal, lineA, lineB);
+                vec3.normalize(faceNormal, faceNormal);
+                for (var fi = 0; fi < 3; ++fi) {
+                    var fvi = face.index(fi);
+                    var norm = normView.item(fvi);
+                    vec3.scaleAndAdd(temp, faceNormal, norm, usages[fvi]);
+                    vec3.scale(temp, temp, 1 / (usages[fvi] + 1));
+                    usages[fvi] += 1;
+                }
+            });
+            normView.forEach(function (norm) {
+                vec3.normalize(norm, norm);
+            });
         }
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
