@@ -120,7 +120,7 @@ function off(target: ElemSelector, evt: string, handler: (ev: Event) => any) {
 }
 
 
-// -- Resources
+// -- Resources (to be moved out)
 
 function encodeAsQueryString(obj: Object): string {
 	var items: string[] = [];

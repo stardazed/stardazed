@@ -43,6 +43,9 @@ namespace sd.mesh.gen {
 
 			mesh.genVertexNormals();
 
+			// add a default primitive group that covers the complete generated mesh
+			mesh.primitiveGroups.push({ fromPrimIx: 0, primCount: this.faceCount(), materialIx: 0 });
+
 			return mesh;
 		}
 
