@@ -50,24 +50,27 @@ namespace sd.mesh.gen {
 			var posIx = 0, faceIx = 0, uvIx = 0;
 
 			var pos: PositionAddFn = (x: number, y: number, z: number) => {
-				positions[posIx] = x;
-				positions[posIx + 1] = y;
-				positions[posIx + 2] = z;
-				posIx += 3;
+				var v3 = positions.item(posIx);
+				v3[0] = x;
+				v3[1] = y;
+				v3[2] = z;
+				posIx++;
 			};
 
 			var face: FaceAddFn = (a: number, b: number, c: number) => {
-				faces[faceIx] = a;
-				faces[faceIx + 1] = b;
-				faces[faceIx + 2] = c;
-				faceIx += 3;
+				var v3 = faces.item(faceIx);
+				v3[0] = a;
+				v3[1] = b;
+				v3[2] = c;
+				faceIx++;
 			};
 
 			var uv: UVAddFn = uvs ?
 				(u: number, v: number) => {
-					uvs[uvIx] = u;
-					uvs[uvIx + 1] = v;
-					uvIx += 2;
+					var v2 = uvs.item(uvIx);
+					v2[0] = u;
+					v2[1] = v;
+					uvIx++;
 				}
 				: (u: number, v: number) => { };
 

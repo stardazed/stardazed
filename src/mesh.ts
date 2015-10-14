@@ -435,14 +435,14 @@ namespace sd.mesh {
 	export class VertexBufferAttributeView {
 		private stride_: number;
 		private attrOffset_: number;
-		private attrSizeBytes_: number;
+		private attrElementCount_: number;
 		private typedViewCtor_: TypedFieldArrayConstructor;
 		private buffer_: ArrayBuffer;
 
 		constructor(private vertexBuffer_: VertexBuffer, attr: PositionedAttribute) {
 			this.stride_ = this.vertexBuffer_.layout().vertexSizeBytes();
 			this.attrOffset_ = attr.offset;
-			this.attrSizeBytes_ = vertexFieldSizeBytes(attr.field);
+			this.attrElementCount_ = vertexFieldElementCount(attr.field);
 			this.typedViewCtor_ = vertexFieldArrayConstructor(attr.field);
 			this.buffer_ = this.vertexBuffer_.buffer();
 		}
@@ -456,7 +456,7 @@ namespace sd.mesh {
 
 		item(index: number): TypedFieldArray {
 			var offset = (this.stride_ * index) + this.attrOffset_;
-			return new (this.typedViewCtor_)(this.buffer_, offset, this.attrSizeBytes_);
+			return new (this.typedViewCtor_)(this.buffer_, offset, this.attrElementCount_);
 		}
 
 		count() {
@@ -556,17 +556,17 @@ namespace sd.mesh {
 		buffer() { return this.storage_; }
 
 		// -- read/write indexes
-		typedBasePtr(baseIndexNr: number): TypedIndexArray {
+		typedBasePtr(baseIndexNr: number, elementCount?: number): TypedIndexArray {
 			var offsetBytes = this.indexElementSizeBytes() * baseIndexNr;
 
 			if (this.indexElementType() == IndexElementType.UInt32) {
-				return new Uint32Array(this.storage_, offsetBytes);
+				return new Uint32Array(this.storage_, offsetBytes, elementCount);
 			}
 			else if (this.indexElementType() == IndexElementType.UInt16) {
-				return new Uint16Array(this.storage_, offsetBytes);
+				return new Uint16Array(this.storage_, offsetBytes, elementCount);
 			}
 			else {
-				return new Uint8Array(this.storage_, offsetBytes);
+				return new Uint8Array(this.storage_, offsetBytes, elementCount);
 			}
 		}
 
@@ -583,7 +583,7 @@ namespace sd.mesh {
 		}
 
 		index(indexNr: number): number {
-			var typedBasePtr = this.typedBasePtr(indexNr);
+			var typedBasePtr = this.typedBasePtr(indexNr, 1);
 			return typedBasePtr[0];
 		}
 
@@ -600,7 +600,7 @@ namespace sd.mesh {
 		}
 
 		setIndex(indexNr: number, newValue: number) {
-			var typedBasePtr = this.typedBasePtr(indexNr);
+			var typedBasePtr = this.typedBasePtr(indexNr, 1);
 			typedBasePtr[0] = newValue;
 		}
 	}
@@ -647,6 +647,10 @@ namespace sd.mesh {
 			for (let tix = 0; tix < primCount; ++tix) {
 				callback(new TriangleProxy(basePtr, tix));
 			}
+		}
+
+		item(triangleIndex: number) {
+			return this.indexBuffer_.typedBasePtr(triangleIndex * 3, 3);
 		}
 
 		count() {

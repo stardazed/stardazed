@@ -833,7 +833,7 @@ var sd;
                 this.vertexBuffer_ = vertexBuffer_;
                 this.stride_ = this.vertexBuffer_.layout().vertexSizeBytes();
                 this.attrOffset_ = attr.offset;
-                this.attrSizeBytes_ = vertexFieldSizeBytes(attr.field);
+                this.attrElementCount_ = vertexFieldElementCount(attr.field);
                 this.typedViewCtor_ = vertexFieldArrayConstructor(attr.field);
                 this.buffer_ = this.vertexBuffer_.buffer();
             }
@@ -845,7 +845,7 @@ var sd;
             };
             VertexBufferAttributeView.prototype.item = function (index) {
                 var offset = (this.stride_ * index) + this.attrOffset_;
-                return new (this.typedViewCtor_)(this.buffer_, offset, this.attrSizeBytes_);
+                return new (this.typedViewCtor_)(this.buffer_, offset, this.attrElementCount_);
             };
             VertexBufferAttributeView.prototype.count = function () {
                 return this.vertexBuffer_.itemCount();
@@ -909,16 +909,16 @@ var sd;
             IndexBuffer.prototype.indexElementSizeBytes = function () { return this.indexElementSizeBytes_; };
             IndexBuffer.prototype.bufferSizeBytes = function () { return this.indexCount() * this.indexElementSizeBytes(); };
             IndexBuffer.prototype.buffer = function () { return this.storage_; };
-            IndexBuffer.prototype.typedBasePtr = function (baseIndexNr) {
+            IndexBuffer.prototype.typedBasePtr = function (baseIndexNr, elementCount) {
                 var offsetBytes = this.indexElementSizeBytes() * baseIndexNr;
                 if (this.indexElementType() == 2) {
-                    return new Uint32Array(this.storage_, offsetBytes);
+                    return new Uint32Array(this.storage_, offsetBytes, elementCount);
                 }
                 else if (this.indexElementType() == 1) {
-                    return new Uint16Array(this.storage_, offsetBytes);
+                    return new Uint16Array(this.storage_, offsetBytes, elementCount);
                 }
                 else {
-                    return new Uint8Array(this.storage_, offsetBytes);
+                    return new Uint8Array(this.storage_, offsetBytes, elementCount);
                 }
             };
             IndexBuffer.prototype.indexes = function (baseIndexNr, outputCount, outputPtr) {
@@ -931,7 +931,7 @@ var sd;
                 }
             };
             IndexBuffer.prototype.index = function (indexNr) {
-                var typedBasePtr = this.typedBasePtr(indexNr);
+                var typedBasePtr = this.typedBasePtr(indexNr, 1);
                 return typedBasePtr[0];
             };
             IndexBuffer.prototype.setIndexes = function (baseIndexNr, sourceCount, sourcePtr) {
@@ -944,7 +944,7 @@ var sd;
                 }
             };
             IndexBuffer.prototype.setIndex = function (indexNr, newValue) {
-                var typedBasePtr = this.typedBasePtr(indexNr);
+                var typedBasePtr = this.typedBasePtr(indexNr, 1);
                 typedBasePtr[0] = newValue;
             };
             return IndexBuffer;
@@ -988,6 +988,9 @@ var sd;
                 for (var tix = 0; tix < primCount; ++tix) {
                     callback(new TriangleProxy(basePtr, tix));
                 }
+            };
+            IndexBufferTriangleView.prototype.item = function (triangleIndex) {
+                return this.indexBuffer_.typedBasePtr(triangleIndex * 3, 3);
             };
             IndexBufferTriangleView.prototype.count = function () {
                 return this.toTriangle_ - this.fromTriangle_;
@@ -1095,22 +1098,25 @@ var sd;
                 MeshGenerator.prototype.generateInto = function (positions, faces, uvs) {
                     var posIx = 0, faceIx = 0, uvIx = 0;
                     var pos = function (x, y, z) {
-                        positions[posIx] = x;
-                        positions[posIx + 1] = y;
-                        positions[posIx + 2] = z;
-                        posIx += 3;
+                        var v3 = positions.item(posIx);
+                        v3[0] = x;
+                        v3[1] = y;
+                        v3[2] = z;
+                        posIx++;
                     };
                     var face = function (a, b, c) {
-                        faces[faceIx] = a;
-                        faces[faceIx + 1] = b;
-                        faces[faceIx + 2] = c;
-                        faceIx += 3;
+                        var v3 = faces.item(faceIx);
+                        v3[0] = a;
+                        v3[1] = b;
+                        v3[2] = c;
+                        faceIx++;
                     };
                     var uv = uvs ?
                         function (u, v) {
-                            uvs[uvIx] = u;
-                            uvs[uvIx + 1] = v;
-                            uvIx += 2;
+                            var v2 = uvs.item(uvIx);
+                            v2[0] = u;
+                            v2[1] = v;
+                            uvIx++;
                         }
                         : function (u, v) { };
                     this.generateImpl(pos, face, uv);

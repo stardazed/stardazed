@@ -298,7 +298,7 @@ declare namespace sd.mesh {
         private vertexBuffer_;
         private stride_;
         private attrOffset_;
-        private attrSizeBytes_;
+        private attrElementCount_;
         private typedViewCtor_;
         private buffer_;
         constructor(vertexBuffer_: VertexBuffer, attr: PositionedAttribute);
@@ -336,7 +336,7 @@ declare namespace sd.mesh {
         indexElementSizeBytes(): number;
         bufferSizeBytes(): number;
         buffer(): ArrayBuffer;
-        typedBasePtr(baseIndexNr: number): TypedIndexArray;
+        typedBasePtr(baseIndexNr: number, elementCount?: number): TypedIndexArray;
         indexes(baseIndexNr: number, outputCount: number, outputPtr: Uint32Array): void;
         index(indexNr: number): number;
         setIndexes(baseIndexNr: number, sourceCount: number, sourcePtr: Uint32Array): void;
@@ -360,6 +360,7 @@ declare namespace sd.mesh {
         private toTriangle_;
         constructor(indexBuffer_: IndexBuffer, fromTriangle_?: number, toTriangle_?: number);
         forEach(callback: (proxy: TriangleProxy) => void): void;
+        item(triangleIndex: number): Uint32Array | Uint16Array | Uint8Array;
         count(): number;
     }
     function calcVertexNormals(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer): void;
