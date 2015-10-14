@@ -253,6 +253,11 @@ declare namespace sd.mesh {
     function attrColour3(): VertexAttribute;
     function attrUV2(): VertexAttribute;
     function attrTangent4(): VertexAttribute;
+    namespace AttrList {
+        function Pos3Norm3(): VertexAttribute[];
+        function Pos3Norm3UV2(): VertexAttribute[];
+        function Pos3Norm3UV2Tan4(): VertexAttribute[];
+    }
     class PositionedAttribute extends VertexAttribute {
         offset: number;
         constructor(vf: VertexField, ar: VertexAttributeRole, offset: number);
@@ -284,6 +289,29 @@ declare namespace sd.mesh {
     }
     function indexElementTypeSizeBytes(iet: IndexElementType): number;
     function minimumIndexElementTypeForVertexCount(vertexCount: number): IndexElementType;
+    class IndexBuffer {
+        private primitiveType_;
+        private indexElementType_;
+        private indexCount_;
+        private primitiveCount_;
+        private indexElementSizeBytes_;
+        private storage_;
+        allocate(primitiveType: PrimitiveType, elementType: IndexElementType, primitiveCount: number): void;
+        primitiveType(): PrimitiveType;
+        indexElementType(): IndexElementType;
+        primitiveCount(): number;
+        indexCount(): number;
+        indexElementSizeBytes(): number;
+        bufferSizeBytes(): number;
+        buffer(): ArrayBuffer;
+        private typedBasePtr(baseIndexNr);
+        indexes(baseIndexNr: number, outputCount: number, outputPtr: Uint32Array): void;
+        index(indexNr: number): number;
+        setIndexes(baseIndexNr: number, sourceCount: number, sourcePtr: Uint32Array): void;
+        setIndex(indexNr: number, newValue: number): void;
+    }
+}
+declare namespace sd.mesh.gen {
     type PositionAddFn = (x: number, y: number, z: number) => void;
     type FaceAddFn = (a: number, b: number, c: number) => void;
     type UVAddFn = (u: number, v: number) => void;
