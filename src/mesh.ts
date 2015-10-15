@@ -7,6 +7,7 @@
 
 /// <reference path="core.ts" />
 /// <reference path="game.ts" />
+/// <reference path="numeric.ts" />
 
 namespace sd.mesh {
 
@@ -122,61 +123,7 @@ namespace sd.mesh {
 	}
 
 
-	export function vertexFieldElementSizeBytes(vf: VertexField) {
-		switch (vf) {
-			case VertexField.Undefined:
-				return 0;
-
-			case VertexField.Float:
-			case VertexField.Floatx2:
-			case VertexField.Floatx3:
-			case VertexField.Floatx4:
-			case VertexField.UInt32:
-			case VertexField.SInt32:
-			case VertexField.UInt32x2:
-			case VertexField.SInt32x2:
-			case VertexField.UInt32x3:
-			case VertexField.SInt32x3:
-			case VertexField.UInt32x4:
-			case VertexField.SInt32x4:
-				return 4;
-
-			case VertexField.UInt16x2:
-			case VertexField.Norm_UInt16x2:
-			case VertexField.SInt16x2:
-			case VertexField.Norm_SInt16x2:
-			case VertexField.UInt16x3:
-			case VertexField.Norm_UInt16x3:
-			case VertexField.SInt16x3:
-			case VertexField.Norm_SInt16x3:
-			case VertexField.UInt16x4:
-			case VertexField.Norm_UInt16x4:
-			case VertexField.SInt16x4:
-			case VertexField.Norm_SInt16x4:
-				return 2;
-
-			case VertexField.UInt8x2:
-			case VertexField.Norm_UInt8x2:
-			case VertexField.SInt8x2:
-			case VertexField.Norm_SInt8x2:
-			case VertexField.UInt8x3:
-			case VertexField.Norm_UInt8x3:
-			case VertexField.SInt8x3:
-			case VertexField.Norm_SInt8x3:
-			case VertexField.UInt8x4:
-			case VertexField.Norm_UInt8x4:
-			case VertexField.SInt8x4:
-			case VertexField.Norm_SInt8x4:
-				return 1;
-		}
-	}
-
-
-	export type TypedFieldArray = Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | Float32Array;
-	export type TypedFieldArrayConstructor = Uint8ArrayConstructor | Int8ArrayConstructor | Uint16ArrayConstructor | Int16ArrayConstructor | Uint32ArrayConstructor | Int32ArrayConstructor | Float32ArrayConstructor;
-
-
-	export function vertexFieldArrayConstructor(vf: VertexField): TypedFieldArrayConstructor {
+	export function vertexFieldNumericType(vf: VertexField): NumericType {
 		switch (vf) {
 			case VertexField.Undefined:
 				return null;
@@ -185,19 +132,19 @@ namespace sd.mesh {
 			case VertexField.Floatx2:
 			case VertexField.Floatx3:
 			case VertexField.Floatx4:
-				return Float32Array;
+				return Float;
 
 			case VertexField.UInt32:
 			case VertexField.UInt32x2:
 			case VertexField.UInt32x3:
 			case VertexField.UInt32x4:
-				return Uint32Array;
+				return UInt32;
 
 			case VertexField.SInt32:
 			case VertexField.SInt32x2:
 			case VertexField.SInt32x3:
 			case VertexField.SInt32x4:
-				return Int32Array;
+				return SInt32;
 
 			case VertexField.UInt16x2:
 			case VertexField.Norm_UInt16x2:
@@ -205,7 +152,7 @@ namespace sd.mesh {
 			case VertexField.Norm_UInt16x3:
 			case VertexField.UInt16x4:
 			case VertexField.Norm_UInt16x4:
-				return Uint16Array;
+				return UInt16;
 
 			case VertexField.SInt16x2:
 			case VertexField.Norm_SInt16x2:
@@ -213,7 +160,7 @@ namespace sd.mesh {
 			case VertexField.Norm_SInt16x3:
 			case VertexField.SInt16x4:
 			case VertexField.Norm_SInt16x4:
-				return Int16Array;
+				return SInt16;
 
 			case VertexField.UInt8x2:
 			case VertexField.Norm_UInt8x2:
@@ -221,7 +168,7 @@ namespace sd.mesh {
 			case VertexField.Norm_UInt8x3:
 			case VertexField.UInt8x4:
 			case VertexField.Norm_UInt8x4:
-				return Uint8Array;
+				return UInt8;
 
 			case VertexField.SInt8x2:
 			case VertexField.Norm_SInt8x2:
@@ -229,11 +176,17 @@ namespace sd.mesh {
 			case VertexField.Norm_SInt8x3:
 			case VertexField.SInt8x4:
 			case VertexField.Norm_SInt8x4:
-				return Int8Array;
+				return SInt8;
 		}
 	}
 
 
+	export function vertexFieldElementSizeBytes(vf: VertexField) {
+		var nt = vertexFieldNumericType(vf);
+		return nt ? nt.byteSize : 0;
+	}
+
+	
 	export function vertexFieldSizeBytes(vf: VertexField) {
 		return vertexFieldElementSizeBytes(vf) * vertexFieldElementCount(vf);
 	}
@@ -427,7 +380,7 @@ namespace sd.mesh {
 	
 		// -- raw data pointers
 
-		buffer() { return this.storage_; }	
+		buffer() { return this.storage_; }
 
 		// -- attribute access pass-through
 	
@@ -447,27 +400,27 @@ namespace sd.mesh {
 		private stride_: number;
 		private attrOffset_: number;
 		private attrElementCount_: number;
-		private typedViewCtor_: TypedFieldArrayConstructor;
+		private typedViewCtor_: TypedArrayConstructor;
 		private buffer_: ArrayBuffer;
 
 		constructor(private vertexBuffer_: VertexBuffer, attr: PositionedAttribute) {
 			this.stride_ = this.vertexBuffer_.layout().vertexSizeBytes();
 			this.attrOffset_ = attr.offset;
 			this.attrElementCount_ = vertexFieldElementCount(attr.field);
-			this.typedViewCtor_ = vertexFieldArrayConstructor(attr.field);
+			this.typedViewCtor_ = vertexFieldNumericType(attr.field).arrayType;
 			this.buffer_ = this.vertexBuffer_.buffer();
 		}
 
-		forEach(callback: (item: TypedFieldArray) => void) {
+		forEach(callback: (item: TypedArray) => void) {
 			var max = this.count();
 			for (let ix = 0; ix < max; ++ix) {
 				callback(this.item(ix));
 			}
 		}
 
-		item(index: number): TypedFieldArray {
-			var offset = (this.stride_ * index) + this.attrOffset_;
-			return new (this.typedViewCtor_)(this.buffer_, offset, this.attrElementCount_);
+		item(index: number): TypedArray {
+			var offsetBytes = (this.stride_ * index) + this.attrOffset_;
+			return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.attrElementCount_);
 		}
 
 		count() {
@@ -511,9 +464,9 @@ namespace sd.mesh {
 
 
 	export function minimumIndexElementTypeForVertexCount(vertexCount: number): IndexElementType {
-		if (vertexCount <= sd.NumericLimits.UInt8.max)
+		if (vertexCount <= UInt8.max)
 			return IndexElementType.UInt8;
-		if (vertexCount <= sd.NumericLimits.UInt16.max)
+		if (vertexCount <= UInt16.max)
 			return IndexElementType.UInt16;
 
 		return IndexElementType.UInt32;

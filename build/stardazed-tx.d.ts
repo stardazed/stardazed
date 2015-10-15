@@ -2,23 +2,7 @@
 /// <reference path="../defs/gl-matrix.d.ts" />
 /// <reference path="../defs/webgl-ext.d.ts" />
 declare function assert(cond: any, msg?: string): void;
-declare namespace sd {
-    interface NumericTypeLimits {
-        min: number;
-        max: number;
-    }
-    class NumericLimitsConstructor {
-        UInt8: NumericTypeLimits;
-        UInt16: NumericTypeLimits;
-        UInt32: NumericTypeLimits;
-        SInt8: NumericTypeLimits;
-        SInt16: NumericTypeLimits;
-        SInt32: NumericTypeLimits;
-        Float: NumericTypeLimits;
-        Double: NumericTypeLimits;
-    }
-    const NumericLimits: NumericLimitsConstructor;
-}
+declare function applyMixins(derivedCtor: any, baseCtors: any[]): void;
 declare function isArrayLike(t: any): boolean;
 declare function seq<T>(t: Array<T>): Array<T>;
 declare function seq(t: any): Array<any>;
@@ -189,6 +173,42 @@ declare function genColorArrayFromDrawGroups(drawGroups: LWDrawGroup[], material
 declare function parseLWObjectSource(text: string): LWObjectData;
 declare function loadLWMaterialFile(filePath: string): Promise<MaterialSet>;
 declare function loadLWObjectFile(filePath: string): Promise<LWObjectData>;
+declare namespace sd {
+    interface TypedArray {
+        BYTES_PER_ELEMENT: number;
+        buffer: ArrayBuffer;
+        byteLength: number;
+        byteOffset: number;
+        length: number;
+        [index: number]: number;
+    }
+    interface TypedArrayConstructor {
+        new (length: number): TypedArray;
+        new (array: ArrayLike<number>): TypedArray;
+        new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
+    }
+    interface NumericType {
+        min: number;
+        max: number;
+        signed: boolean;
+        byteSize: number;
+        arrayType: TypedArrayConstructor;
+    }
+    const UInt8: NumericType;
+    const UInt8Clamped: NumericType;
+    const SInt8: NumericType;
+    const UInt16: NumericType;
+    const SInt16: NumericType;
+    const UInt32: NumericType;
+    const SInt32: NumericType;
+    const Float: NumericType;
+    const Double: NumericType;
+    function makeTypedArray(nt: NumericType): {
+        (length: number): TypedArray;
+        (array: ArrayLike<number>): TypedArray;
+        (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
+    };
+}
 declare namespace sd.mesh {
     const enum VertexField {
         Undefined = 0,
@@ -230,10 +250,8 @@ declare namespace sd.mesh {
         Norm_SInt16x4 = 140,
     }
     function vertexFieldElementCount(vf: VertexField): number;
+    function vertexFieldNumericType(vf: VertexField): NumericType;
     function vertexFieldElementSizeBytes(vf: VertexField): number;
-    type TypedFieldArray = Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | Float32Array;
-    type TypedFieldArrayConstructor = Uint8ArrayConstructor | Int8ArrayConstructor | Uint16ArrayConstructor | Int16ArrayConstructor | Uint32ArrayConstructor | Int32ArrayConstructor | Float32ArrayConstructor;
-    function vertexFieldArrayConstructor(vf: VertexField): TypedFieldArrayConstructor;
     function vertexFieldSizeBytes(vf: VertexField): number;
     function vertexFieldIsNormalized(vf: VertexField): boolean;
     const enum VertexAttributeRole {
@@ -304,8 +322,8 @@ declare namespace sd.mesh {
         private typedViewCtor_;
         private buffer_;
         constructor(vertexBuffer_: VertexBuffer, attr: PositionedAttribute);
-        forEach(callback: (item: TypedFieldArray) => void): void;
-        item(index: number): TypedFieldArray;
+        forEach(callback: (item: TypedArray) => void): void;
+        item(index: number): TypedArray;
         count(): number;
     }
     const enum IndexElementType {

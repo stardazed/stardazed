@@ -7,28 +7,13 @@ function assert(cond, msg) {
         throw new Error(msg || "assertion failed");
     }
 }
-var sd;
-(function (sd) {
-    var NumericLimitsConstructor = (function () {
-        function NumericLimitsConstructor() {
-            this.UInt8 = { min: 0, max: 255 };
-            this.UInt16 = { min: 0, max: 65535 };
-            this.UInt32 = { min: 0, max: 4294967295 };
-            this.SInt8 = { min: -128, max: 127 };
-            this.SInt16 = { min: -32768, max: 32767 };
-            this.SInt32 = { min: -2147483648, max: 2147483647 };
-            this.Float = { min: -340282346638528859811704183484516925440.0, max: 340282346638528859811704183484516925440.0 };
-            this.Double = {
-                min: -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
-                max: 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0
-            };
-        }
-        return NumericLimitsConstructor;
-    })();
-    sd.NumericLimitsConstructor = NumericLimitsConstructor;
-    sd.NumericLimits = new NumericLimitsConstructor();
-    Object.freeze(sd.NumericLimits);
-})(sd || (sd = {}));
+function applyMixins(derivedCtor, baseCtors) {
+    baseCtors.forEach(function (baseCtor) {
+        Object.getOwnPropertyNames(baseCtor.prototype).forEach(function (name) {
+            derivedCtor.prototype[name] = baseCtor.prototype[name];
+        });
+    });
+}
 function isArrayLike(t) {
     return (typeof t == "object") && ("length" in t) && !(t instanceof String || t instanceof Window);
 }
@@ -532,6 +517,86 @@ function loadLWObjectFile(filePath) {
         return obj;
     });
 }
+// numeric.ts - numeric types, traits and array helpers
+// Part of Stardazed TX
+// (c) 2015 by Arthur Langereis - @zenmumbler
+var sd;
+(function (sd) {
+    sd.UInt8 = Object.freeze({
+        min: 0,
+        max: 255,
+        signed: false,
+        byteSize: 1,
+        arrayType: Uint8Array
+    });
+    sd.UInt8Clamped = Object.freeze({
+        min: 0,
+        max: 255,
+        signed: false,
+        byteSize: 1,
+        arrayType: Uint8ClampedArray
+    });
+    sd.SInt8 = Object.freeze({
+        min: -128,
+        max: 127,
+        signed: true,
+        byteSize: 1,
+        arrayType: Int8Array
+    });
+    sd.UInt16 = Object.freeze({
+        min: 0,
+        max: 65535,
+        signed: false,
+        byteSize: 2,
+        arrayType: Uint16Array
+    });
+    sd.SInt16 = Object.freeze({
+        min: -32768,
+        max: 32767,
+        signed: true,
+        byteSize: 2,
+        arrayType: Int16Array
+    });
+    sd.UInt32 = Object.freeze({
+        min: 0,
+        max: 4294967295,
+        signed: false,
+        byteSize: 4,
+        arrayType: Uint32Array
+    });
+    sd.SInt32 = Object.freeze({
+        min: -2147483648,
+        max: 2147483647,
+        signed: true,
+        byteSize: 4,
+        arrayType: Int32Array
+    });
+    sd.Float = Object.freeze({
+        min: -340282346638528859811704183484516925440.0,
+        max: 340282346638528859811704183484516925440.0,
+        signed: true,
+        byteSize: 4,
+        arrayType: Float32Array
+    });
+    sd.Double = Object.freeze({
+        min: -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
+        max: 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
+        signed: true,
+        byteSize: 8,
+        arrayType: Float64Array
+    });
+    function makeTypedArray(nt) {
+        // this function returns an overloaded function that mimics the TypedArrayConstructor new interface
+        // so you use it like:     makeTypedArray(UInt16)(...);
+        // which is equivalent to: new (UInt16.arrayType)(...);
+        // use whichever feels better
+        var makeFn = function newArray(src, byteOffset, length) {
+            return new (nt.arrayType)(src, byteOffset, length);
+        };
+        return makeFn;
+    }
+    sd.makeTypedArray = makeTypedArray;
+})(sd || (sd = {}));
 // mesh.ts - mesh data
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
@@ -539,6 +604,7 @@ function loadLWObjectFile(filePath) {
 /// <reference path="../defs/webgl-ext.d.ts" />
 /// <reference path="core.ts" />
 /// <reference path="game.ts" />
+/// <reference path="numeric.ts" />
 var sd;
 (function (sd) {
     var mesh;
@@ -591,53 +657,7 @@ var sd;
             }
         }
         mesh.vertexFieldElementCount = vertexFieldElementCount;
-        function vertexFieldElementSizeBytes(vf) {
-            switch (vf) {
-                case 0:
-                    return 0;
-                case 21:
-                case 22:
-                case 23:
-                case 24:
-                case 13:
-                case 17:
-                case 14:
-                case 18:
-                case 15:
-                case 19:
-                case 16:
-                case 20:
-                    return 4;
-                case 7:
-                case 135:
-                case 10:
-                case 138:
-                case 8:
-                case 136:
-                case 11:
-                case 139:
-                case 9:
-                case 137:
-                case 12:
-                case 140:
-                    return 2;
-                case 1:
-                case 129:
-                case 4:
-                case 132:
-                case 2:
-                case 130:
-                case 5:
-                case 133:
-                case 3:
-                case 131:
-                case 6:
-                case 134:
-                    return 1;
-            }
-        }
-        mesh.vertexFieldElementSizeBytes = vertexFieldElementSizeBytes;
-        function vertexFieldArrayConstructor(vf) {
+        function vertexFieldNumericType(vf) {
             switch (vf) {
                 case 0:
                     return null;
@@ -645,48 +665,53 @@ var sd;
                 case 22:
                 case 23:
                 case 24:
-                    return Float32Array;
+                    return sd.Float;
                 case 13:
                 case 14:
                 case 15:
                 case 16:
-                    return Uint32Array;
+                    return sd.UInt32;
                 case 17:
                 case 18:
                 case 19:
                 case 20:
-                    return Int32Array;
+                    return sd.SInt32;
                 case 7:
                 case 135:
                 case 8:
                 case 136:
                 case 9:
                 case 137:
-                    return Uint16Array;
+                    return sd.UInt16;
                 case 10:
                 case 138:
                 case 11:
                 case 139:
                 case 12:
                 case 140:
-                    return Int16Array;
+                    return sd.SInt16;
                 case 1:
                 case 129:
                 case 2:
                 case 130:
                 case 3:
                 case 131:
-                    return Uint8Array;
+                    return sd.UInt8;
                 case 4:
                 case 132:
                 case 5:
                 case 133:
                 case 6:
                 case 134:
-                    return Int8Array;
+                    return sd.SInt8;
             }
         }
-        mesh.vertexFieldArrayConstructor = vertexFieldArrayConstructor;
+        mesh.vertexFieldNumericType = vertexFieldNumericType;
+        function vertexFieldElementSizeBytes(vf) {
+            var nt = vertexFieldNumericType(vf);
+            return nt ? nt.byteSize : 0;
+        }
+        mesh.vertexFieldElementSizeBytes = vertexFieldElementSizeBytes;
         function vertexFieldSizeBytes(vf) {
             return vertexFieldElementSizeBytes(vf) * vertexFieldElementCount(vf);
         }
@@ -829,7 +854,7 @@ var sd;
                 this.stride_ = this.vertexBuffer_.layout().vertexSizeBytes();
                 this.attrOffset_ = attr.offset;
                 this.attrElementCount_ = vertexFieldElementCount(attr.field);
-                this.typedViewCtor_ = vertexFieldArrayConstructor(attr.field);
+                this.typedViewCtor_ = vertexFieldNumericType(attr.field).arrayType;
                 this.buffer_ = this.vertexBuffer_.buffer();
             }
             VertexBufferAttributeView.prototype.forEach = function (callback) {
@@ -839,8 +864,8 @@ var sd;
                 }
             };
             VertexBufferAttributeView.prototype.item = function (index) {
-                var offset = (this.stride_ * index) + this.attrOffset_;
-                return new (this.typedViewCtor_)(this.buffer_, offset, this.attrElementCount_);
+                var offsetBytes = (this.stride_ * index) + this.attrOffset_;
+                return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.attrElementCount_);
             };
             VertexBufferAttributeView.prototype.count = function () {
                 return this.vertexBuffer_.itemCount();
@@ -857,9 +882,9 @@ var sd;
         }
         mesh.indexElementTypeSizeBytes = indexElementTypeSizeBytes;
         function minimumIndexElementTypeForVertexCount(vertexCount) {
-            if (vertexCount <= sd.NumericLimits.UInt8.max)
+            if (vertexCount <= sd.UInt8.max)
                 return 0;
-            if (vertexCount <= sd.NumericLimits.UInt16.max)
+            if (vertexCount <= sd.UInt16.max)
                 return 1;
             return 2;
         }
@@ -1096,6 +1121,7 @@ var sd;
                     var triView = new mesh_1.IndexBufferTriangleView(mesh.indexBuffer);
                     this.generateInto(posView, triView, texView);
                     mesh.genVertexNormals();
+                    mesh.primitiveGroups.push({ fromPrimIx: 0, primCount: this.faceCount(), materialIx: 0 });
                     return mesh;
                 };
                 MeshGenerator.prototype.generateInto = function (positions, faces, uvs) {
