@@ -14,10 +14,7 @@ interface glMatrix {
 declare var glMatrix: glMatrix;
 
 
-interface ArrayOfNumber {
-  [index: number]: number;
-  length: number;
-}
+declare type ArrayOfNumber = ArrayLike<number>;
 
 
 interface vec2 {
