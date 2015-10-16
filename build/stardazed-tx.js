@@ -1207,23 +1207,11 @@ var sd;
                     assert(this.segs_ >= 4);
                     assert(this.sliceTo_ > this.sliceFrom_);
                 }
-                Sphere.prototype.hasTopDisc = function () { return this.sliceFrom_ == 0; };
-                Sphere.prototype.hasBottomDisc = function () { return this.sliceTo_ == 1; };
                 Sphere.prototype.vertexCount = function () {
-                    var vc = this.segs_ * (this.rows_ - 1);
-                    if (this.hasTopDisc())
-                        ++vc;
-                    if (this.hasBottomDisc())
-                        ++vc;
-                    return vc;
+                    return (this.segs_ + 1) * (this.rows_ + 1);
                 };
                 Sphere.prototype.faceCount = function () {
-                    var fc = 2 * this.segs_ * this.rows_;
-                    if (this.hasTopDisc())
-                        fc -= this.segs_;
-                    if (this.hasBottomDisc())
-                        fc -= this.segs_;
-                    return fc;
+                    return 2 * (this.segs_ + 1) * (this.rows_ + 1);
                 };
                 Sphere.prototype.generateImpl = function (position, face, uv) {
                     var Pi = Math.PI;
@@ -1231,52 +1219,24 @@ var sd;
                     var slice = this.sliceTo_ - this.sliceFrom_;
                     var piFrom = this.sliceFrom_ * Pi;
                     var piSlice = slice * Pi;
-                    var halfPiSlice = slice / 2;
                     var vix = 0;
                     for (var row = 0; row <= this.rows_; ++row) {
                         var y = Math.cos(piFrom + (piSlice / this.rows_) * row) * this.radius_;
                         var segRad = Math.sin(piFrom + (piSlice / this.rows_) * row) * this.radius_;
-                        var texV = Math.sin(piFrom + (halfPiSlice / this.rows_) * row);
-                        if ((this.hasTopDisc() && row == 0) ||
-                            (this.hasBottomDisc() && row == this.rows_)) {
-                            position(0, y, 0);
-                            uv(0.5, texV);
+                        var texV = this.sliceFrom_ + ((row / this.rows_) * slice);
+                        for (var seg = 0; seg <= this.segs_; ++seg) {
+                            var x = Math.sin((Tau / this.segs_) * seg) * segRad;
+                            var z = Math.cos((Tau / this.segs_) * seg) * segRad;
+                            var texU = seg / this.segs_;
+                            position(x, y, z);
+                            uv(texU, texV);
                             ++vix;
                         }
-                        else {
-                            for (var seg = 0; seg < this.segs_; ++seg) {
-                                var x = Math.sin((Tau / this.segs_) * seg) * segRad;
-                                var z = Math.cos((Tau / this.segs_) * seg) * segRad;
-                                var texU = Math.sin(((Pi / 2) / this.rows_) * row);
-                                position(x, y, z);
-                                uv(texU, texV);
-                                ++vix;
-                            }
-                        }
                         if (row > 0) {
-                            var raix = vix;
-                            var rbix = vix;
-                            var ramul, rbmul;
-                            if (this.hasTopDisc() && row == 1) {
-                                raix -= this.segs_ + 1;
-                                rbix -= this.segs_;
-                                ramul = 0;
-                                rbmul = 1;
-                            }
-                            else if (this.hasBottomDisc() && row == this.rows_) {
-                                raix -= this.segs_ + 1;
-                                rbix -= 1;
-                                ramul = 1;
-                                rbmul = 0;
-                            }
-                            else {
-                                raix -= this.segs_ * 2;
-                                rbix -= this.segs_;
-                                ramul = 1;
-                                rbmul = 1;
-                            }
-                            for (var seg = 0; seg < this.segs_; ++seg) {
-                                var ral = ramul * seg, rar = ramul * ((seg + 1) % this.segs_), rbl = rbmul * seg, rbr = rbmul * ((seg + 1) % this.segs_);
+                            var raix = vix - ((this.segs_ + 1) * 2);
+                            var rbix = vix - (this.segs_ + 1);
+                            for (var seg = 0; seg <= this.segs_; ++seg) {
+                                var ral = seg, rar = ((seg + 1) % (this.segs_ + 1)), rbl = seg, rbr = ((seg + 1) % (this.segs_ + 1));
                                 if (ral != rar)
                                     face(raix + ral, rbix + rbl, raix + rar);
                                 if (rbl != rbr)

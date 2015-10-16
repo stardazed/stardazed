@@ -423,8 +423,6 @@ declare namespace sd.mesh.gen {
         private segs_;
         private sliceFrom_;
         private sliceTo_;
-        hasTopDisc(): boolean;
-        hasBottomDisc(): boolean;
         constructor(radius_?: number, rows_?: number, segs_?: number, sliceFrom_?: number, sliceTo_?: number);
         vertexCount(): number;
         faceCount(): number;
