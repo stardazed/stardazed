@@ -202,12 +202,30 @@ var Keyboard = (function () {
         var _this = this;
         this.keys = {};
         on(window, "keydown", function (evt) {
-            _this.keys[evt.keyCode] = true;
+            var key = _this.keys[evt.keyCode];
+            if (!key) {
+                _this.keys[evt.keyCode] = { down: true, when: evt.timeStamp };
+            }
+            else {
+                if (key.when < evt.timeStamp) {
+                    key.down = true;
+                    key.when = evt.timeStamp;
+                }
+            }
             if (!evt.metaKey)
                 evt.preventDefault();
         });
         on(window, "keyup", function (evt) {
-            _this.keys[evt.keyCode] = false;
+            var key = _this.keys[evt.keyCode];
+            if (!key) {
+                _this.keys[evt.keyCode] = { down: false, when: evt.timeStamp };
+            }
+            else {
+                if (key.when < evt.timeStamp) {
+                    key.down = false;
+                    key.when = evt.timeStamp;
+                }
+            }
             if (!evt.metaKey)
                 evt.preventDefault();
         });
@@ -219,7 +237,7 @@ var Keyboard = (function () {
         });
     }
     Keyboard.prototype.down = function (kc) {
-        return this.keys[kc] === true;
+        return this.keys[kc] && this.keys[kc].down;
     };
     return Keyboard;
 })();
@@ -1281,3 +1299,41 @@ var SoundManager = (function () {
     };
     return SoundManager;
 })();
+// transform.ts - entities transform state
+// Part of Stardazed TX
+// (c) 2015 by Arthur Langereis - @zenmumbler
+/// <reference path="mesh.ts" />
+var sd;
+(function (sd) {
+    var scene;
+    (function (scene) {
+        var TransformManager = (function () {
+            function TransformManager() {
+                this.scaleMat = mat4.create();
+                this.rotMat = mat4.create();
+                this.transMat = mat4.create();
+                this.modelMatrix = mat4.create();
+                this.modelViewMatrix = mat4.create();
+                this.normalMatrix = mat3.create();
+            }
+            TransformManager.prototype.setUniformScale = function (s) {
+                mat4.fromScaling(this.scaleMat, [s, s, s]);
+            };
+            TransformManager.prototype.setScale = function (sx, sy, sz) {
+                mat4.fromScaling(this.scaleMat, [sx, sy, sz]);
+            };
+            TransformManager.prototype.setPosition = function (v3OrX, y, z) {
+                var v3;
+                if (typeof v3OrX === "number")
+                    v3 = [v3OrX, y, z];
+                else
+                    v3 = v3OrX;
+                mat4.fromTranslation(this.transMat, v3);
+            };
+            TransformManager.prototype.setRotation = function (axis, angle) {
+                mat4.fromRotation(this.rotMat, angle, axis);
+            };
+            return TransformManager;
+        })();
+    })(scene = sd.scene || (sd.scene = {}));
+})(sd || (sd = {}));

@@ -102,17 +102,45 @@ enum Key {
 
 
 class Keyboard {
-	keys: { [key:number]: boolean; } = {};
+	keys: { [key: number]: { down: boolean; when: number; }; } = {};
+
+	// The extra check in the key handlers for the timeStamp was added
+	// after I encountered a rare, but frequently enough occuring bug
+	// where, when a key is pressed for a longer time so that repeat 
+	// keydown events are fired, _very_ occasionally the last keydown
+	// would be fired with the same timeStamp as the keyup event but
+	// the event handler for that last down event was fired AFTER the
+	// keyup event handler, causing the key to appear to be "stuck".
 
 	constructor() {
 		on(window, "keydown", (evt: KeyboardEvent) => {
-			this.keys[evt.keyCode] = true;
+			var key = this.keys[evt.keyCode];
+			if (! key) {
+				this.keys[evt.keyCode] = { down: true, when: evt.timeStamp };
+			}
+			else {
+				if (key.when < evt.timeStamp) {
+					key.down = true;
+					key.when = evt.timeStamp;
+				}
+			}
+
 			if (! evt.metaKey)
 				evt.preventDefault();
 		});
 		
 		on(window, "keyup", (evt: KeyboardEvent) => {
-			this.keys[evt.keyCode] = false;
+			var key = this.keys[evt.keyCode];
+			if (! key) {
+				this.keys[evt.keyCode] = { down: false, when: evt.timeStamp };
+			}
+			else {
+				if (key.when < evt.timeStamp) {
+					key.down = false;
+					key.when = evt.timeStamp;
+				}
+			}
+			
 			if (! evt.metaKey)
 				evt.preventDefault();
 		});
@@ -126,8 +154,8 @@ class Keyboard {
 		});
 	}
 
-	down(kc: Key) {
-		return this.keys[kc] === true;
+	down(kc: Key): boolean {
+		return this.keys[kc] && this.keys[kc].down;
 	}
 }
 

@@ -93,7 +93,10 @@ declare enum Key {
 }
 declare class Keyboard {
     keys: {
-        [key: number]: boolean;
+        [key: number]: {
+            down: boolean;
+            when: number;
+        };
     };
     constructor();
     down(kc: Key): boolean;
@@ -435,4 +438,6 @@ declare class SoundManager {
     context: AudioContext;
     constructor();
     loadSoundFile(filePath: string): Promise<AudioBuffer>;
+}
+declare namespace sd.scene {
 }
