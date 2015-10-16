@@ -888,6 +888,9 @@ var sd;
             VertexBufferAttributeView.prototype.count = function () {
                 return this.vertexBuffer_.itemCount();
             };
+            VertexBufferAttributeView.prototype.vertexBuffer = function () {
+                return this.vertexBuffer_;
+            };
             return VertexBufferAttributeView;
         })();
         mesh.VertexBufferAttributeView = VertexBufferAttributeView;
@@ -1087,6 +1090,21 @@ var sd;
                 }
                 this.indexBuffer = new IndexBuffer();
             }
+            MeshData.prototype.findFirstAttributeWithRole = function (role) {
+                var pa = null;
+                var avb = null;
+                this.vertexBuffers.forEach(function (vb) {
+                    if (!pa) {
+                        pa = vb.attrByRole(role);
+                        if (pa)
+                            avb = vb;
+                    }
+                });
+                if (pa)
+                    return { vertexBuffer: avb, attr: pa };
+                else
+                    return null;
+            };
             MeshData.prototype.primaryVertexBuffer = function () {
                 assert(this.vertexBuffers.length > 0);
                 return this.vertexBuffers[0];

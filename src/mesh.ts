@@ -426,6 +426,10 @@ namespace sd.mesh {
 		count() {
 			return this.vertexBuffer_.itemCount();
 		}
+
+		vertexBuffer() {
+			return this.vertexBuffer_;
+		}
 	}
 
 
@@ -712,6 +716,24 @@ namespace sd.mesh {
 				this.vertexBuffers.push(new VertexBuffer(attrs));
 			}
 			this.indexBuffer = new IndexBuffer();
+		}
+
+		findFirstAttributeWithRole(role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } {
+			var pa: PositionedAttribute = null;
+			var avb: VertexBuffer = null;
+
+			this.vertexBuffers.forEach((vb) => {
+				if (! pa) {
+					pa = vb.attrByRole(role);
+					if (pa)
+						avb = vb;
+				}
+			});
+
+			if (pa)
+				return { vertexBuffer: avb, attr: pa };
+			else
+				return null;
 		}
 
 		primaryVertexBuffer() {

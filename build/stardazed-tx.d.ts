@@ -328,6 +328,7 @@ declare namespace sd.mesh {
         forEach(callback: (item: TypedArray) => void): void;
         item(index: number): TypedArray;
         count(): number;
+        vertexBuffer(): VertexBuffer;
     }
     const enum IndexElementType {
         UInt8 = 0,
@@ -397,6 +398,10 @@ declare namespace sd.mesh {
         indexBuffer: IndexBuffer;
         primitiveGroups: Array<PrimitiveGroup>;
         constructor(attrs?: VertexAttribute[]);
+        findFirstAttributeWithRole(role: VertexAttributeRole): {
+            vertexBuffer: VertexBuffer;
+            attr: PositionedAttribute;
+        };
         primaryVertexBuffer(): VertexBuffer;
         genVertexNormals(): void;
     }
