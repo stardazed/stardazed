@@ -1,4 +1,4 @@
-// mesh-lwo - Lightwave OBJ mesh file import
+// mesh-lwo.ts - Lightwave OBJ mesh file import
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 

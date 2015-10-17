@@ -1,4 +1,4 @@
-// meshgen.ts - mesh generators
+// mesh-gen.ts - mesh generators
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
