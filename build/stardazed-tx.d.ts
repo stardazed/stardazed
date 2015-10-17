@@ -356,51 +356,28 @@ declare namespace sd.mesh {
         genVertexNormals(): void;
     }
 }
-declare var gl: WebGLRenderingContext;
-interface ZMBasicGLProgram extends WebGLProgram {
-    vertexPositionAttribute: number;
-    vertexNormalAttribute: number;
-    vertexColorAttribute: number;
-    vertexUVAttribute: number;
-    projMatrixUniform?: WebGLUniformLocation;
-    mvMatrixUniform?: WebGLUniformLocation;
-    normalMatrixUniform?: WebGLUniformLocation;
-    textureUniform?: WebGLUniformLocation;
-    timeUniform?: WebGLUniformLocation;
+declare namespace sd.mesh.lwo {
+    interface Material {
+        ambientColor?: ArrayOfNumber;
+        diffuseColor?: ArrayOfNumber;
+        specularColor?: ArrayOfNumber;
+    }
+    type MaterialSet = {
+        [matName: string]: Material;
+    };
+    interface LWDrawGroup {
+        materialName: string;
+        fromIndex: number;
+        indexCount: number;
+    }
+    interface LWMeshData {
+        mtlFileName: string;
+        mesh: MeshData;
+        materials: MaterialSet;
+        drawGroups: LWDrawGroup[];
+    }
+    function loadLWObjectFile(filePath: string): Promise<LWMeshData>;
 }
-declare class TriMesh {
-    vertexBuffer: WebGLBuffer;
-    normalBuffer: WebGLBuffer;
-    colorBuffer: WebGLBuffer;
-    uvBuffer: WebGLBuffer;
-    indexCount: number;
-    constructor(vertexArray: ArrayOfNumber, normalArray?: ArrayOfNumber, colorArray?: ArrayOfNumber, uvArray?: ArrayOfNumber);
-    draw(program: ZMBasicGLProgram, texture?: WebGLTexture): void;
-}
-interface Material {
-    ambientColor?: ArrayOfNumber;
-    diffuseColor?: ArrayOfNumber;
-    specularColor?: ArrayOfNumber;
-}
-declare type MaterialSet = {
-    [matName: string]: Material;
-};
-declare function parseLWMaterialSource(text: string): MaterialSet;
-interface LWDrawGroup {
-    materialName: string;
-    fromIndex: number;
-    indexCount: number;
-}
-interface LWMeshData {
-    mtlFileName: string;
-    mesh: sd.mesh.MeshData;
-    materials: MaterialSet;
-    drawGroups: LWDrawGroup[];
-}
-declare function genColorEntriesFromDrawGroups(drawGroups: LWDrawGroup[], materials: MaterialSet, colourView: sd.mesh.VertexBufferAttributeView): void;
-declare function parseLWObjectSource(text: string): LWMeshData;
-declare function loadLWMaterialFile(filePath: string): Promise<MaterialSet>;
-declare function loadLWObjectFile(filePath: string): Promise<LWMeshData>;
 declare namespace sd.mesh.gen {
     type PositionAddFn = (x: number, y: number, z: number) => void;
     type FaceAddFn = (a: number, b: number, c: number) => void;

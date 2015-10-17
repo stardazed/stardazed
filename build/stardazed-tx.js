@@ -901,240 +901,173 @@ var sd;
         ;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
-// 3d - 3d structures, files, generators
+// mesh.lwo - Mesh file import
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 /// <reference path="core.ts" />
-/// <reference path="game.ts" />
 /// <reference path="mesh.ts" />
-var TriMesh = (function () {
-    function TriMesh(vertexArray, normalArray, colorArray, uvArray) {
-        assert(vertexArray.length % 9 == 0, "vertex array must be a triangle soup");
-        if (normalArray)
-            assert(normalArray.length == vertexArray.length, "normal array must be same size as vertex array");
-        if (colorArray)
-            assert(colorArray.length == vertexArray.length, "color array must be same size as vertex array");
-        if (uvArray)
-            assert((uvArray.length / 2) == (vertexArray.length / 3), "each vertex needs a uv");
-        this.vertexBuffer = gl.createBuffer();
-        this.normalBuffer = normalArray ? gl.createBuffer() : null;
-        this.colorBuffer = colorArray ? gl.createBuffer() : null;
-        this.uvBuffer = uvArray ? gl.createBuffer() : null;
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexArray), gl.STATIC_DRAW);
-        if (this.normalBuffer) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normalArray), gl.STATIC_DRAW);
-        }
-        if (this.colorBuffer) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorArray), gl.STATIC_DRAW);
-        }
-        if (this.uvBuffer) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.uvBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvArray), gl.STATIC_DRAW);
-        }
-        this.indexCount = vertexArray.length / 3;
-    }
-    TriMesh.prototype.draw = function (program, texture) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-        gl.enableVertexAttribArray(program.vertexPositionAttribute);
-        gl.vertexAttribPointer(program.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-        if (program.vertexColorAttribute > -1) {
-            if (this.colorBuffer) {
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-                gl.enableVertexAttribArray(program.vertexColorAttribute);
-                gl.vertexAttribPointer(program.vertexColorAttribute, 3, gl.FLOAT, false, 0, 0);
+var sd;
+(function (sd) {
+    var mesh;
+    (function (mesh_1) {
+        var lwo;
+        (function (lwo) {
+            function parseLWMaterialSource(text) {
+                var lines = text.split("\n");
+                var materials = {};
+                var curMat = null;
+                lines.forEach(function (line) {
+                    var tokens = line.split(" ");
+                    switch (tokens[0]) {
+                        case "newmtl":
+                            curMat = materials[tokens[1]] = {};
+                            break;
+                        case "Ka":
+                            curMat.ambientColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+                            break;
+                        case "Kd":
+                            curMat.diffuseColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+                            break;
+                        case "Ks":
+                            curMat.specularColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+                            break;
+                        default:
+                            break;
+                    }
+                });
+                return materials;
             }
-            else {
-                gl.disableVertexAttribArray(program.vertexColorAttribute);
+            function genColorEntriesFromDrawGroups(drawGroups, materials, colourView) {
+                var lastGroup = drawGroups[drawGroups.length - 1];
+                var totalIndexes = lastGroup.indexCount + lastGroup.fromIndex;
+                drawGroups.forEach(function (group) {
+                    var curIndex = group.fromIndex;
+                    var maxIndex = group.fromIndex + group.indexCount;
+                    var mat = materials[group.materialName];
+                    assert(mat, "material " + group.materialName + " not found");
+                    while (curIndex < maxIndex) {
+                        vec3.copy(colourView.item(curIndex), mat.diffuseColor);
+                        curIndex++;
+                    }
+                });
             }
-        }
-        if (program.vertexNormalAttribute > -1) {
-            if (this.normalBuffer) {
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-                gl.enableVertexAttribArray(program.vertexNormalAttribute);
-                gl.vertexAttribPointer(program.vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
-            }
-            else {
-                gl.disableVertexAttribArray(program.vertexNormalAttribute);
-            }
-        }
-        if (program.vertexUVAttribute > -1) {
-            if (this.uvBuffer) {
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.uvBuffer);
-                gl.enableVertexAttribArray(program.vertexUVAttribute);
-                gl.vertexAttribPointer(program.vertexUVAttribute, 2, gl.FLOAT, false, 0, 0);
-            }
-            else {
-                gl.disableVertexAttribArray(program.vertexUVAttribute);
-            }
-        }
-        if (texture && program.textureUniform) {
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.uniform1i(program.textureUniform, 0);
-        }
-        gl.drawArrays(gl.TRIANGLES, 0, this.indexCount);
-        if (texture && program.textureUniform) {
-            gl.bindTexture(gl.TEXTURE_2D, null);
-        }
-    };
-    ;
-    return TriMesh;
-})();
-function parseLWMaterialSource(text) {
-    var lines = text.split("\n");
-    var materials = {};
-    var curMat = null;
-    lines.forEach(function (line) {
-        var tokens = line.split(" ");
-        switch (tokens[0]) {
-            case "newmtl":
-                curMat = materials[tokens[1]] = {};
-                break;
-            case "Ka":
-                curMat.ambientColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
-                break;
-            case "Kd":
-                curMat.diffuseColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
-                break;
-            case "Ks":
-                curMat.specularColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
-                break;
-            default:
-                break;
-        }
-    });
-    return materials;
-}
-function genColorEntriesFromDrawGroups(drawGroups, materials, colourView) {
-    var lastGroup = drawGroups[drawGroups.length - 1];
-    var totalIndexes = lastGroup.indexCount + lastGroup.fromIndex;
-    drawGroups.forEach(function (group) {
-        var curIndex = group.fromIndex;
-        var maxIndex = group.fromIndex + group.indexCount;
-        var mat = materials[group.materialName];
-        assert(mat, "material " + group.materialName + " not found");
-        while (curIndex < maxIndex) {
-            vec3.copy(colourView.item(curIndex), mat.diffuseColor);
-            curIndex++;
-        }
-    });
-}
-function parseLWObjectSource(text) {
-    var t0 = performance.now();
-    var lines = text.split("\n");
-    var vv = [], nn = [], tt = [];
-    var mtlFileName = "";
-    var materialGroups = [];
-    var curMaterialGroup = null;
-    var mesh = new sd.mesh.MeshData(sd.mesh.AttrList.Pos3Norm3Colour3UV2());
-    var vb = mesh.primaryVertexBuffer();
-    var posView;
-    var normView;
-    var uvView;
-    var vertexIx = 0;
-    function vtx(vx, tx, nx) {
-        assert(vx < vv.length, "vx out of bounds " + vx);
-        var v = vv[vx], n = nx > -1 ? nn[nx] : null, t = tx > -1 ? tt[tx] : null;
-        vec3.set(posView.item(vertexIx), v[0], v[1], v[2]);
-        if (n) {
-            assert(nx < nn.length, "nx out of bounds " + nx);
-            vec3.set(normView.item(vertexIx), n[0], n[1], n[2]);
-        }
-        if (t) {
-            assert(tx < tt.length, "tx out of bounds " + tx);
-            vec2.set(uvView.item(vertexIx), t[0], t[1]);
-        }
-        ++vertexIx;
-    }
-    var triCount = 0;
-    lines.forEach(function (line) {
-        if (line.slice(0, 2) == "f ")
-            triCount++;
-    });
-    vb.allocate(triCount * 3);
-    posView = new sd.mesh.VertexBufferAttributeView(vb, vb.attrByRole(1));
-    normView = new sd.mesh.VertexBufferAttributeView(vb, vb.attrByRole(2));
-    uvView = new sd.mesh.VertexBufferAttributeView(vb, vb.attrByRole(5));
-    mesh.indexBuffer = null;
-    function fxtoi(fx) { return (+fx) - 1; }
-    lines.forEach(function (line) {
-        var tokens = line.split(" ");
-        switch (tokens[0]) {
-            case "mtllib":
-                mtlFileName = tokens[1];
-                break;
-            case "v":
-                vv.push([parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
-                break;
-            case "vn":
-                nn.push([parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
-                break;
-            case "vt":
-                tt.push([parseFloat(tokens[1]), parseFloat(tokens[2])]);
-                break;
-            case "f":
-                vtx.apply(null, tokens[1].split("/").map(fxtoi));
-                vtx.apply(null, tokens[2].split("/").map(fxtoi));
-                vtx.apply(null, tokens[3].split("/").map(fxtoi));
-                break;
-            case "usemtl":
+            function parseLWObjectSource(text) {
+                var t0 = performance.now();
+                var lines = text.split("\n");
+                var vv = [], nn = [], tt = [];
+                var mtlFileName = "";
+                var materialGroups = [];
+                var curMaterialGroup = null;
+                var mesh = new mesh_1.MeshData(mesh_1.AttrList.Pos3Norm3Colour3UV2());
+                var vb = mesh.primaryVertexBuffer();
+                var posView;
+                var normView;
+                var uvView;
+                var vertexIx = 0;
+                function vtx(vx, tx, nx) {
+                    assert(vx < vv.length, "vx out of bounds " + vx);
+                    var v = vv[vx], n = nx > -1 ? nn[nx] : null, t = tx > -1 ? tt[tx] : null;
+                    vec3.set(posView.item(vertexIx), v[0], v[1], v[2]);
+                    if (n) {
+                        assert(nx < nn.length, "nx out of bounds " + nx);
+                        vec3.set(normView.item(vertexIx), n[0], n[1], n[2]);
+                    }
+                    if (t) {
+                        assert(tx < tt.length, "tx out of bounds " + tx);
+                        vec2.set(uvView.item(vertexIx), t[0], t[1]);
+                    }
+                    ++vertexIx;
+                }
+                var triCount = 0;
+                lines.forEach(function (line) {
+                    if (line.slice(0, 2) == "f ")
+                        triCount++;
+                });
+                vb.allocate(triCount * 3);
+                posView = new mesh_1.VertexBufferAttributeView(vb, vb.attrByRole(1));
+                normView = new mesh_1.VertexBufferAttributeView(vb, vb.attrByRole(2));
+                uvView = new mesh_1.VertexBufferAttributeView(vb, vb.attrByRole(5));
+                mesh.indexBuffer = null;
+                function fxtoi(fx) { return (+fx) - 1; }
+                lines.forEach(function (line) {
+                    var tokens = line.split(" ");
+                    switch (tokens[0]) {
+                        case "mtllib":
+                            mtlFileName = tokens[1];
+                            break;
+                        case "v":
+                            vv.push([parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
+                            break;
+                        case "vn":
+                            nn.push([parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
+                            break;
+                        case "vt":
+                            tt.push([parseFloat(tokens[1]), parseFloat(tokens[2])]);
+                            break;
+                        case "f":
+                            vtx.apply(null, tokens[1].split("/").map(fxtoi));
+                            vtx.apply(null, tokens[2].split("/").map(fxtoi));
+                            vtx.apply(null, tokens[3].split("/").map(fxtoi));
+                            break;
+                        case "usemtl":
+                            if (curMaterialGroup) {
+                                curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
+                            }
+                            curMaterialGroup = {
+                                materialName: tokens[1],
+                                fromIndex: vertexIx,
+                                indexCount: 0
+                            };
+                            materialGroups.push(curMaterialGroup);
+                            break;
+                        default: break;
+                    }
+                });
                 if (curMaterialGroup) {
                     curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
                 }
-                curMaterialGroup = {
-                    materialName: tokens[1],
-                    fromIndex: vertexIx,
-                    indexCount: 0
+                var t1 = performance.now();
+                return {
+                    mtlFileName: mtlFileName,
+                    mesh: mesh,
+                    drawGroups: materialGroups,
+                    materials: null
                 };
-                materialGroups.push(curMaterialGroup);
-                break;
-            default: break;
-        }
-    });
-    if (curMaterialGroup) {
-        curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
-    }
-    var t1 = performance.now();
-    return {
-        mtlFileName: mtlFileName,
-        mesh: mesh,
-        drawGroups: materialGroups,
-        materials: null
-    };
-}
-function loadLWMaterialFile(filePath) {
-    return loadFile(filePath).then(function (text) {
-        return parseLWMaterialSource(text);
-    });
-}
-function loadLWObjectFile(filePath) {
-    var mtlResolve = null;
-    var mtlProm = new Promise(function (resolve) {
-        mtlResolve = resolve;
-    });
-    var objProm = loadFile(filePath).then(function (text) {
-        return parseLWObjectSource(text);
-    }).then(function (objData) {
-        assert(objData.mtlFileName.length > 0, "no MTL file?");
-        var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
-        loadLWMaterialFile(mtlFilePath).then(function (materials) {
-            mtlResolve(materials);
-        });
-        return objData;
-    });
-    return Promise.all([mtlProm, objProm]).then(function (values) {
-        var materials = values[0];
-        var obj = values[1];
-        obj.materials = materials;
-        var colourAttr = obj.mesh.primaryVertexBuffer().attrByRole(4);
-        var colourView = new sd.mesh.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer(), colourAttr);
-        genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
-        return obj;
-    });
-}
+            }
+            function loadLWMaterialFile(filePath) {
+                return loadFile(filePath).then(function (text) {
+                    return parseLWMaterialSource(text);
+                });
+            }
+            function loadLWObjectFile(filePath) {
+                var mtlResolve = null;
+                var mtlProm = new Promise(function (resolve) {
+                    mtlResolve = resolve;
+                });
+                var objProm = loadFile(filePath).then(function (text) {
+                    return parseLWObjectSource(text);
+                }).then(function (objData) {
+                    assert(objData.mtlFileName.length > 0, "no MTL file?");
+                    var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
+                    loadLWMaterialFile(mtlFilePath).then(function (materials) {
+                        mtlResolve(materials);
+                    });
+                    return objData;
+                });
+                return Promise.all([mtlProm, objProm]).then(function (values) {
+                    var materials = values[0];
+                    var obj = values[1];
+                    obj.materials = materials;
+                    var colourAttr = obj.mesh.primaryVertexBuffer().attrByRole(4);
+                    var colourView = new mesh_1.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer(), colourAttr);
+                    genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
+                    return obj;
+                });
+            }
+            lwo.loadLWObjectFile = loadLWObjectFile;
+        })(lwo = mesh_1.lwo || (mesh_1.lwo = {}));
+    })(mesh = sd.mesh || (sd.mesh = {}));
+})(sd || (sd = {}));
 // meshgen.ts - mesh generators
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
@@ -1147,7 +1080,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var sd;
 (function (sd) {
     var mesh;
-    (function (mesh_1) {
+    (function (mesh_2) {
         var gen;
         (function (gen) {
             var MeshGenerator = (function () {
@@ -1155,17 +1088,17 @@ var sd;
                 }
                 MeshGenerator.prototype.generate = function (attrList) {
                     if (!attrList)
-                        attrList = mesh_1.AttrList.Pos3Norm3UV2();
+                        attrList = mesh_2.AttrList.Pos3Norm3UV2();
                     var vtxCount = this.vertexCount();
-                    var mesh = new mesh_1.MeshData(attrList);
+                    var mesh = new mesh_2.MeshData(attrList);
                     var vertexBuffer = mesh.primaryVertexBuffer();
                     vertexBuffer.allocate(vtxCount);
-                    var indexElementType = mesh_1.minimumIndexElementTypeForVertexCount(vtxCount);
+                    var indexElementType = mesh_2.minimumIndexElementTypeForVertexCount(vtxCount);
                     mesh.indexBuffer.allocate(3, indexElementType, this.faceCount());
-                    var posView = new mesh_1.VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(1));
+                    var posView = new mesh_2.VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(1));
                     var texAttr = vertexBuffer.attrByRole(5);
-                    var texView = texAttr ? new mesh_1.VertexBufferAttributeView(vertexBuffer, texAttr) : null;
-                    var triView = new mesh_1.IndexBufferTriangleView(mesh.indexBuffer);
+                    var texView = texAttr ? new mesh_2.VertexBufferAttributeView(vertexBuffer, texAttr) : null;
+                    var triView = new mesh_2.IndexBufferTriangleView(mesh.indexBuffer);
                     this.generateInto(posView, triView, texView);
                     mesh.genVertexNormals();
                     mesh.primitiveGroups.push({ fromPrimIx: 0, primCount: this.faceCount(), materialIx: 0 });
@@ -1259,7 +1192,7 @@ var sd;
                 return Sphere;
             })(MeshGenerator);
             gen.Sphere = Sphere;
-        })(gen = mesh_1.gen || (mesh_1.gen = {}));
+        })(gen = mesh_2.gen || (mesh_2.gen = {}));
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
 // sound - Web SoundManager
