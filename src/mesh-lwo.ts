@@ -5,7 +5,7 @@
 /// <reference path="core.ts" />
 /// <reference path="mesh.ts" />
 
-namespace sd.mesh.lwo {
+namespace sd.mesh {
 
 	export interface Material {
 		ambientColor?: ArrayOfNumber;
@@ -231,4 +231,4 @@ namespace sd.mesh.lwo {
 		);
 	}
 
-} // ns sd.mesh.lwo
+} // ns sd.mesh

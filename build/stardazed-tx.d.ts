@@ -356,28 +356,6 @@ declare namespace sd.mesh {
         genVertexNormals(): void;
     }
 }
-declare namespace sd.mesh.lwo {
-    interface Material {
-        ambientColor?: ArrayOfNumber;
-        diffuseColor?: ArrayOfNumber;
-        specularColor?: ArrayOfNumber;
-    }
-    type MaterialSet = {
-        [matName: string]: Material;
-    };
-    interface LWDrawGroup {
-        materialName: string;
-        fromIndex: number;
-        indexCount: number;
-    }
-    interface LWMeshData {
-        mtlFileName: string;
-        mesh: MeshData;
-        materials: MaterialSet;
-        drawGroups: LWDrawGroup[];
-    }
-    function loadLWObjectFile(filePath: string): Promise<LWMeshData>;
-}
 declare namespace sd.mesh.gen {
     type PositionAddFn = (x: number, y: number, z: number) => void;
     type FaceAddFn = (a: number, b: number, c: number) => void;
@@ -400,6 +378,28 @@ declare namespace sd.mesh.gen {
         faceCount(): number;
         generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
     }
+}
+declare namespace sd.mesh {
+    interface Material {
+        ambientColor?: ArrayOfNumber;
+        diffuseColor?: ArrayOfNumber;
+        specularColor?: ArrayOfNumber;
+    }
+    type MaterialSet = {
+        [matName: string]: Material;
+    };
+    interface LWDrawGroup {
+        materialName: string;
+        fromIndex: number;
+        indexCount: number;
+    }
+    interface LWMeshData {
+        mtlFileName: string;
+        mesh: MeshData;
+        materials: MaterialSet;
+        drawGroups: LWDrawGroup[];
+    }
+    function loadLWObjectFile(filePath: string): Promise<LWMeshData>;
 }
 declare var webkitAudioContext: {
     prototype: AudioContext;

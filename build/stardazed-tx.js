@@ -901,173 +901,6 @@ var sd;
         ;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
-// mesh.lwo - Mesh file import
-// Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
-/// <reference path="core.ts" />
-/// <reference path="mesh.ts" />
-var sd;
-(function (sd) {
-    var mesh;
-    (function (mesh_1) {
-        var lwo;
-        (function (lwo) {
-            function parseLWMaterialSource(text) {
-                var lines = text.split("\n");
-                var materials = {};
-                var curMat = null;
-                lines.forEach(function (line) {
-                    var tokens = line.split(" ");
-                    switch (tokens[0]) {
-                        case "newmtl":
-                            curMat = materials[tokens[1]] = {};
-                            break;
-                        case "Ka":
-                            curMat.ambientColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
-                            break;
-                        case "Kd":
-                            curMat.diffuseColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
-                            break;
-                        case "Ks":
-                            curMat.specularColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
-                            break;
-                        default:
-                            break;
-                    }
-                });
-                return materials;
-            }
-            function genColorEntriesFromDrawGroups(drawGroups, materials, colourView) {
-                var lastGroup = drawGroups[drawGroups.length - 1];
-                var totalIndexes = lastGroup.indexCount + lastGroup.fromIndex;
-                drawGroups.forEach(function (group) {
-                    var curIndex = group.fromIndex;
-                    var maxIndex = group.fromIndex + group.indexCount;
-                    var mat = materials[group.materialName];
-                    assert(mat, "material " + group.materialName + " not found");
-                    while (curIndex < maxIndex) {
-                        vec3.copy(colourView.item(curIndex), mat.diffuseColor);
-                        curIndex++;
-                    }
-                });
-            }
-            function parseLWObjectSource(text) {
-                var t0 = performance.now();
-                var lines = text.split("\n");
-                var vv = [], nn = [], tt = [];
-                var mtlFileName = "";
-                var materialGroups = [];
-                var curMaterialGroup = null;
-                var mesh = new mesh_1.MeshData(mesh_1.AttrList.Pos3Norm3Colour3UV2());
-                var vb = mesh.primaryVertexBuffer();
-                var posView;
-                var normView;
-                var uvView;
-                var vertexIx = 0;
-                function vtx(vx, tx, nx) {
-                    assert(vx < vv.length, "vx out of bounds " + vx);
-                    var v = vv[vx], n = nx > -1 ? nn[nx] : null, t = tx > -1 ? tt[tx] : null;
-                    vec3.set(posView.item(vertexIx), v[0], v[1], v[2]);
-                    if (n) {
-                        assert(nx < nn.length, "nx out of bounds " + nx);
-                        vec3.set(normView.item(vertexIx), n[0], n[1], n[2]);
-                    }
-                    if (t) {
-                        assert(tx < tt.length, "tx out of bounds " + tx);
-                        vec2.set(uvView.item(vertexIx), t[0], t[1]);
-                    }
-                    ++vertexIx;
-                }
-                var triCount = 0;
-                lines.forEach(function (line) {
-                    if (line.slice(0, 2) == "f ")
-                        triCount++;
-                });
-                vb.allocate(triCount * 3);
-                posView = new mesh_1.VertexBufferAttributeView(vb, vb.attrByRole(1));
-                normView = new mesh_1.VertexBufferAttributeView(vb, vb.attrByRole(2));
-                uvView = new mesh_1.VertexBufferAttributeView(vb, vb.attrByRole(5));
-                mesh.indexBuffer = null;
-                function fxtoi(fx) { return (+fx) - 1; }
-                lines.forEach(function (line) {
-                    var tokens = line.split(" ");
-                    switch (tokens[0]) {
-                        case "mtllib":
-                            mtlFileName = tokens[1];
-                            break;
-                        case "v":
-                            vv.push([parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
-                            break;
-                        case "vn":
-                            nn.push([parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
-                            break;
-                        case "vt":
-                            tt.push([parseFloat(tokens[1]), parseFloat(tokens[2])]);
-                            break;
-                        case "f":
-                            vtx.apply(null, tokens[1].split("/").map(fxtoi));
-                            vtx.apply(null, tokens[2].split("/").map(fxtoi));
-                            vtx.apply(null, tokens[3].split("/").map(fxtoi));
-                            break;
-                        case "usemtl":
-                            if (curMaterialGroup) {
-                                curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
-                            }
-                            curMaterialGroup = {
-                                materialName: tokens[1],
-                                fromIndex: vertexIx,
-                                indexCount: 0
-                            };
-                            materialGroups.push(curMaterialGroup);
-                            break;
-                        default: break;
-                    }
-                });
-                if (curMaterialGroup) {
-                    curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
-                }
-                var t1 = performance.now();
-                return {
-                    mtlFileName: mtlFileName,
-                    mesh: mesh,
-                    drawGroups: materialGroups,
-                    materials: null
-                };
-            }
-            function loadLWMaterialFile(filePath) {
-                return loadFile(filePath).then(function (text) {
-                    return parseLWMaterialSource(text);
-                });
-            }
-            function loadLWObjectFile(filePath) {
-                var mtlResolve = null;
-                var mtlProm = new Promise(function (resolve) {
-                    mtlResolve = resolve;
-                });
-                var objProm = loadFile(filePath).then(function (text) {
-                    return parseLWObjectSource(text);
-                }).then(function (objData) {
-                    assert(objData.mtlFileName.length > 0, "no MTL file?");
-                    var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
-                    loadLWMaterialFile(mtlFilePath).then(function (materials) {
-                        mtlResolve(materials);
-                    });
-                    return objData;
-                });
-                return Promise.all([mtlProm, objProm]).then(function (values) {
-                    var materials = values[0];
-                    var obj = values[1];
-                    obj.materials = materials;
-                    var colourAttr = obj.mesh.primaryVertexBuffer().attrByRole(4);
-                    var colourView = new mesh_1.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer(), colourAttr);
-                    genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
-                    return obj;
-                });
-            }
-            lwo.loadLWObjectFile = loadLWObjectFile;
-        })(lwo = mesh_1.lwo || (mesh_1.lwo = {}));
-    })(mesh = sd.mesh || (sd.mesh = {}));
-})(sd || (sd = {}));
 // meshgen.ts - mesh generators
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
@@ -1080,7 +913,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var sd;
 (function (sd) {
     var mesh;
-    (function (mesh_2) {
+    (function (mesh_1) {
         var gen;
         (function (gen) {
             var MeshGenerator = (function () {
@@ -1088,17 +921,17 @@ var sd;
                 }
                 MeshGenerator.prototype.generate = function (attrList) {
                     if (!attrList)
-                        attrList = mesh_2.AttrList.Pos3Norm3UV2();
+                        attrList = mesh_1.AttrList.Pos3Norm3UV2();
                     var vtxCount = this.vertexCount();
-                    var mesh = new mesh_2.MeshData(attrList);
+                    var mesh = new mesh_1.MeshData(attrList);
                     var vertexBuffer = mesh.primaryVertexBuffer();
                     vertexBuffer.allocate(vtxCount);
-                    var indexElementType = mesh_2.minimumIndexElementTypeForVertexCount(vtxCount);
+                    var indexElementType = mesh_1.minimumIndexElementTypeForVertexCount(vtxCount);
                     mesh.indexBuffer.allocate(3, indexElementType, this.faceCount());
-                    var posView = new mesh_2.VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(1));
+                    var posView = new mesh_1.VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(1));
                     var texAttr = vertexBuffer.attrByRole(5);
-                    var texView = texAttr ? new mesh_2.VertexBufferAttributeView(vertexBuffer, texAttr) : null;
-                    var triView = new mesh_2.IndexBufferTriangleView(mesh.indexBuffer);
+                    var texView = texAttr ? new mesh_1.VertexBufferAttributeView(vertexBuffer, texAttr) : null;
+                    var triView = new mesh_1.IndexBufferTriangleView(mesh.indexBuffer);
                     this.generateInto(posView, triView, texView);
                     mesh.genVertexNormals();
                     mesh.primitiveGroups.push({ fromPrimIx: 0, primCount: this.faceCount(), materialIx: 0 });
@@ -1192,7 +1025,171 @@ var sd;
                 return Sphere;
             })(MeshGenerator);
             gen.Sphere = Sphere;
-        })(gen = mesh_2.gen || (mesh_2.gen = {}));
+        })(gen = mesh_1.gen || (mesh_1.gen = {}));
+    })(mesh = sd.mesh || (sd.mesh = {}));
+})(sd || (sd = {}));
+// mesh-lwo - Lightwave OBJ mesh file import
+// Part of Stardazed TX
+// (c) 2015 by Arthur Langereis - @zenmumbler
+/// <reference path="core.ts" />
+/// <reference path="mesh.ts" />
+var sd;
+(function (sd) {
+    var mesh;
+    (function (mesh_2) {
+        function parseLWMaterialSource(text) {
+            var lines = text.split("\n");
+            var materials = {};
+            var curMat = null;
+            lines.forEach(function (line) {
+                var tokens = line.split(" ");
+                switch (tokens[0]) {
+                    case "newmtl":
+                        curMat = materials[tokens[1]] = {};
+                        break;
+                    case "Ka":
+                        curMat.ambientColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+                        break;
+                    case "Kd":
+                        curMat.diffuseColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+                        break;
+                    case "Ks":
+                        curMat.specularColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+                        break;
+                    default:
+                        break;
+                }
+            });
+            return materials;
+        }
+        function genColorEntriesFromDrawGroups(drawGroups, materials, colourView) {
+            var lastGroup = drawGroups[drawGroups.length - 1];
+            var totalIndexes = lastGroup.indexCount + lastGroup.fromIndex;
+            drawGroups.forEach(function (group) {
+                var curIndex = group.fromIndex;
+                var maxIndex = group.fromIndex + group.indexCount;
+                var mat = materials[group.materialName];
+                assert(mat, "material " + group.materialName + " not found");
+                while (curIndex < maxIndex) {
+                    vec3.copy(colourView.item(curIndex), mat.diffuseColor);
+                    curIndex++;
+                }
+            });
+        }
+        function parseLWObjectSource(text) {
+            var t0 = performance.now();
+            var lines = text.split("\n");
+            var vv = [], nn = [], tt = [];
+            var mtlFileName = "";
+            var materialGroups = [];
+            var curMaterialGroup = null;
+            var mesh = new mesh_2.MeshData(mesh_2.AttrList.Pos3Norm3Colour3UV2());
+            var vb = mesh.primaryVertexBuffer();
+            var posView;
+            var normView;
+            var uvView;
+            var vertexIx = 0;
+            function vtx(vx, tx, nx) {
+                assert(vx < vv.length, "vx out of bounds " + vx);
+                var v = vv[vx], n = nx > -1 ? nn[nx] : null, t = tx > -1 ? tt[tx] : null;
+                vec3.set(posView.item(vertexIx), v[0], v[1], v[2]);
+                if (n) {
+                    assert(nx < nn.length, "nx out of bounds " + nx);
+                    vec3.set(normView.item(vertexIx), n[0], n[1], n[2]);
+                }
+                if (t) {
+                    assert(tx < tt.length, "tx out of bounds " + tx);
+                    vec2.set(uvView.item(vertexIx), t[0], t[1]);
+                }
+                ++vertexIx;
+            }
+            var triCount = 0;
+            lines.forEach(function (line) {
+                if (line.slice(0, 2) == "f ")
+                    triCount++;
+            });
+            vb.allocate(triCount * 3);
+            posView = new mesh_2.VertexBufferAttributeView(vb, vb.attrByRole(1));
+            normView = new mesh_2.VertexBufferAttributeView(vb, vb.attrByRole(2));
+            uvView = new mesh_2.VertexBufferAttributeView(vb, vb.attrByRole(5));
+            mesh.indexBuffer = null;
+            function fxtoi(fx) { return (+fx) - 1; }
+            lines.forEach(function (line) {
+                var tokens = line.split(" ");
+                switch (tokens[0]) {
+                    case "mtllib":
+                        mtlFileName = tokens[1];
+                        break;
+                    case "v":
+                        vv.push([parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
+                        break;
+                    case "vn":
+                        nn.push([parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
+                        break;
+                    case "vt":
+                        tt.push([parseFloat(tokens[1]), parseFloat(tokens[2])]);
+                        break;
+                    case "f":
+                        vtx.apply(null, tokens[1].split("/").map(fxtoi));
+                        vtx.apply(null, tokens[2].split("/").map(fxtoi));
+                        vtx.apply(null, tokens[3].split("/").map(fxtoi));
+                        break;
+                    case "usemtl":
+                        if (curMaterialGroup) {
+                            curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
+                        }
+                        curMaterialGroup = {
+                            materialName: tokens[1],
+                            fromIndex: vertexIx,
+                            indexCount: 0
+                        };
+                        materialGroups.push(curMaterialGroup);
+                        break;
+                    default: break;
+                }
+            });
+            if (curMaterialGroup) {
+                curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
+            }
+            var t1 = performance.now();
+            return {
+                mtlFileName: mtlFileName,
+                mesh: mesh,
+                drawGroups: materialGroups,
+                materials: null
+            };
+        }
+        function loadLWMaterialFile(filePath) {
+            return loadFile(filePath).then(function (text) {
+                return parseLWMaterialSource(text);
+            });
+        }
+        function loadLWObjectFile(filePath) {
+            var mtlResolve = null;
+            var mtlProm = new Promise(function (resolve) {
+                mtlResolve = resolve;
+            });
+            var objProm = loadFile(filePath).then(function (text) {
+                return parseLWObjectSource(text);
+            }).then(function (objData) {
+                assert(objData.mtlFileName.length > 0, "no MTL file?");
+                var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
+                loadLWMaterialFile(mtlFilePath).then(function (materials) {
+                    mtlResolve(materials);
+                });
+                return objData;
+            });
+            return Promise.all([mtlProm, objProm]).then(function (values) {
+                var materials = values[0];
+                var obj = values[1];
+                obj.materials = materials;
+                var colourAttr = obj.mesh.primaryVertexBuffer().attrByRole(4);
+                var colourView = new mesh_2.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer(), colourAttr);
+                genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
+                return obj;
+            });
+        }
+        mesh_2.loadLWObjectFile = loadLWObjectFile;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
 // sound - Web SoundManager
