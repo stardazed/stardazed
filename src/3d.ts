@@ -2,11 +2,9 @@
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
-/// <reference path="../defs/gl-matrix.d.ts" />
-/// <reference path="../defs/webgl-ext.d.ts" />
-
 /// <reference path="core.ts" />
 /// <reference path="game.ts" />
+/// <reference path="mesh.ts" />
 
 declare var gl: WebGLRenderingContext;
 
@@ -129,13 +127,6 @@ interface Material {
 
 type MaterialSet = { [matName: string]: Material };
 
-interface TriangleSoup {
-	elementCount: number;
-	vertexes: ArrayOfNumber;
-	normals?: ArrayOfNumber;
-	uvs?: ArrayOfNumber;
-}
-
 
 function parseLWMaterialSource(text: string): MaterialSet {
 	var lines = text.split("\n");
@@ -172,17 +163,17 @@ interface LWDrawGroup {
 	indexCount: number;
 }
 
-interface LWObjectData extends TriangleSoup {
+interface LWMeshData {
 	mtlFileName: string;
+	mesh: sd.mesh.MeshData;
+	materials: MaterialSet;
 	drawGroups: LWDrawGroup[];
-	colors?: ArrayOfNumber;
 }
 
 
-function genColorArrayFromDrawGroups(drawGroups: LWDrawGroup[], materials: MaterialSet): Float32Array {
+function genColorEntriesFromDrawGroups(drawGroups: LWDrawGroup[], materials: MaterialSet, colourView: sd.mesh.VertexBufferAttributeView) {
 	var lastGroup = drawGroups[drawGroups.length - 1];
 	var totalIndexes = lastGroup.indexCount + lastGroup.fromIndex;
-	var colors = new Float32Array(totalIndexes);
 
 	drawGroups.forEach((group: LWDrawGroup) => {
 		var curIndex = group.fromIndex;
@@ -191,42 +182,64 @@ function genColorArrayFromDrawGroups(drawGroups: LWDrawGroup[], materials: Mater
 		assert(mat, "material " + group.materialName + " not found");
 
 		while (curIndex < maxIndex) {
-			colors[curIndex] = mat.diffuseColor[0];
-			colors[curIndex + 1] = mat.diffuseColor[1];
-			colors[curIndex + 2] = mat.diffuseColor[2];
-			curIndex += 3;
+			vec3.copy(colourView.item(curIndex), mat.diffuseColor);
+			curIndex++;
 		}
 	});
-
-	return colors;
 }
 
 
-function parseLWObjectSource(text: string): LWObjectData {
+function parseLWObjectSource(text: string): LWMeshData {
 	var t0 = performance.now();
 	var lines = text.split("\n");
 	var vv: number[][] = [], nn: number[][] = [], tt: number[][] = [];
-	var vertexes: number[] = [], normals: number[] = [], uvs: number[] = [];
+
 	var mtlFileName = "";
 	var materialGroups: LWDrawGroup[] = [];
 	var curMaterialGroup: LWDrawGroup = null;
+
+	var mesh = new sd.mesh.MeshData(sd.mesh.AttrList.Pos3Norm3Colour3UV2());
+	var vb = mesh.primaryVertexBuffer();
+
+	var posView: sd.mesh.VertexBufferAttributeView;
+	var normView: sd.mesh.VertexBufferAttributeView;
+	var uvView: sd.mesh.VertexBufferAttributeView;
+	var vertexIx = 0;
 	
 	function vtx(vx: number, tx: number, nx: number) {
 		assert(vx < vv.length, "vx out of bounds " + vx);
-		assert(nx < nn.length, "nx out of bounds " + nx);
 
 		var v = vv[vx],
-			n = nn[nx],
+			n = nx > -1 ? nn[nx] : null,
 			t = tx > -1 ? tt[tx] : null;
 
-		vertexes.push(v[0], v[1], v[2]);
-		normals.push(n[0], n[1], n[2]);
+		vec3.set(posView.item(vertexIx), v[0], v[1], v[2]);
+
+		if (n) {
+			assert(nx < nn.length, "nx out of bounds " + nx);
+			vec3.set(normView.item(vertexIx), n[0], n[1], n[2]);
+		}
 
 		if (t) {
 			assert(tx < tt.length, "tx out of bounds " + tx);
-			uvs.push(t[0], t[1]);
+			vec2.set(uvView.item(vertexIx), t[0], t[1]);
 		}
+
+		++vertexIx;
 	}
+
+	// preflight
+	var triCount = 0;
+	lines.forEach((line) => {
+		if (line.slice(0, 2) == "f ")
+			triCount++;
+	});
+
+	vb.allocate(triCount * 3);
+	posView = new sd.mesh.VertexBufferAttributeView(vb, vb.attrByRole(sd.mesh.VertexAttributeRole.Position));
+	normView = new sd.mesh.VertexBufferAttributeView(vb, vb.attrByRole(sd.mesh.VertexAttributeRole.Normal));
+	uvView = new sd.mesh.VertexBufferAttributeView(vb, vb.attrByRole(sd.mesh.VertexAttributeRole.UV));
+	mesh.indexBuffer = null;
 
 	// convert a face index to zero-based int or -1 for empty index	
 	function fxtoi(fx: string) {return (+fx) - 1;}
@@ -253,11 +266,11 @@ function parseLWObjectSource(text: string): LWObjectData {
 				break;
 			case "usemtl":
 				if (curMaterialGroup) {
-					curMaterialGroup.indexCount = vertexes.length - curMaterialGroup.fromIndex;
+					curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
 				}
 				curMaterialGroup = {
 					materialName: tokens[1],
-					fromIndex: vertexes.length,
+					fromIndex: vertexIx,
 					indexCount: 0
 				};
 				materialGroups.push(curMaterialGroup);
@@ -269,7 +282,7 @@ function parseLWObjectSource(text: string): LWObjectData {
 
 	// finalise last draw group
 	if (curMaterialGroup) {
-		curMaterialGroup.indexCount = vertexes.length - curMaterialGroup.fromIndex;
+		curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
 	}
 
 	var t1 = performance.now();
@@ -278,11 +291,9 @@ function parseLWObjectSource(text: string): LWObjectData {
 	
 	return {
 		mtlFileName: mtlFileName,
-		elementCount: vertexes.length / 3,
-		vertexes: vertexes,
-		normals: normals,
-		uvs: uvs.length ? uvs : null,
-		drawGroups: materialGroups
+		mesh: mesh,
+		drawGroups: materialGroups,
+		materials: null
 	};
 }
 
@@ -296,7 +307,7 @@ function loadLWMaterialFile(filePath: string): Promise<MaterialSet> {
 }
 
 
-function loadLWObjectFile(filePath: string) : Promise<LWObjectData> {
+function loadLWObjectFile(filePath: string) : Promise<LWMeshData> {
 	var mtlResolve: any = null;
 	var mtlProm = new Promise<MaterialSet>(function(resolve) {
 		mtlResolve = resolve;
@@ -307,7 +318,7 @@ function loadLWObjectFile(filePath: string) : Promise<LWObjectData> {
 			return parseLWObjectSource(text);
 		}
 	).then(
-		function(objData: LWObjectData) {
+		function(objData: LWMeshData) {
 			assert(objData.mtlFileName.length > 0, "no MTL file?");
 			var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
 			loadLWMaterialFile(mtlFilePath).then(
@@ -321,10 +332,12 @@ function loadLWObjectFile(filePath: string) : Promise<LWObjectData> {
 	
 	return Promise.all<any>([mtlProm, objProm]).then(
 		function(values) {
-			var materials = values[0];
-			var obj = values[1];
+			var materials: MaterialSet = values[0];
+			var obj: LWMeshData = values[1];
 			obj.materials = materials;
-			obj.colors = genColorArrayFromDrawGroups(obj.drawGroups, materials);
+			var colourAttr = obj.mesh.primaryVertexBuffer().attrByRole(sd.mesh.VertexAttributeRole.Colour);
+			var colourView = new sd.mesh.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer(), colourAttr);
+			genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
 			return obj;
 		}
 	);
