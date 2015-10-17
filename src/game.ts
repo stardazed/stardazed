@@ -115,6 +115,7 @@ class Keyboard {
 	constructor() {
 		on(window, "keydown", (evt: KeyboardEvent) => {
 			var key = this.keys[evt.keyCode];
+
 			if (! key) {
 				this.keys[evt.keyCode] = { down: true, when: evt.timeStamp };
 			}
@@ -135,10 +136,8 @@ class Keyboard {
 				this.keys[evt.keyCode] = { down: false, when: evt.timeStamp };
 			}
 			else {
-				if (key.when < evt.timeStamp) {
-					key.down = false;
-					key.when = evt.timeStamp;
-				}
+				key.down = false;
+				key.when = evt.timeStamp;
 			}
 			
 			if (! evt.metaKey)

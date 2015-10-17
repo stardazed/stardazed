@@ -221,10 +221,8 @@ var Keyboard = (function () {
                 _this.keys[evt.keyCode] = { down: false, when: evt.timeStamp };
             }
             else {
-                if (key.when < evt.timeStamp) {
-                    key.down = false;
-                    key.when = evt.timeStamp;
-                }
+                key.down = false;
+                key.when = evt.timeStamp;
             }
             if (!evt.metaKey)
                 evt.preventDefault();
