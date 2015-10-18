@@ -901,7 +901,7 @@ var sd;
         ;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
-// meshgen.ts - mesh generators
+// mesh-gen.ts - mesh generators
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 var __extends = (this && this.__extends) || function (d, b) {
@@ -962,6 +962,7 @@ var sd;
                         }
                         : function (u, v) { };
                     this.generateImpl(pos, face, uv);
+                    console.info(faceIx);
                 };
                 return MeshGenerator;
             })();
@@ -1012,12 +1013,12 @@ var sd;
                         if (row > 0) {
                             var raix = vix - ((this.segs_ + 1) * 2);
                             var rbix = vix - (this.segs_ + 1);
-                            for (var seg = 0; seg <= this.segs_; ++seg) {
-                                var ral = seg, rar = ((seg + 1) % (this.segs_ + 1)), rbl = seg, rbr = ((seg + 1) % (this.segs_ + 1));
-                                if (ral != rar)
-                                    face(raix + ral, rbix + rbl, raix + rar);
-                                if (rbl != rbr)
-                                    face(raix + rar, rbix + rbl, rbix + rbr);
+                            for (var seg = 1; seg <= this.segs_; ++seg) {
+                                var rl = seg, rr = rl == this.segs_ ? 1 : seg + 1;
+                                if (row > 1)
+                                    face(raix + rl, rbix + rl, raix + rr);
+                                if (row < this.rows_)
+                                    face(raix + rr, rbix + rl, rbix + rr);
                             }
                         }
                     }
@@ -1028,7 +1029,7 @@ var sd;
         })(gen = mesh_1.gen || (mesh_1.gen = {}));
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
-// mesh-lwo - Lightwave OBJ mesh file import
+// mesh-lwo.ts - Lightwave OBJ mesh file import
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 /// <reference path="core.ts" />

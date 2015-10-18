@@ -135,16 +135,14 @@ namespace sd.mesh.gen {
 					var raix = vix - ((this.segs_ + 1) * 2);
 					var rbix = vix - (this.segs_ + 1);
 
-					for (var seg = 0; seg <= this.segs_; ++seg) {
-						var ral = seg,
-							rar = ((seg + 1) % (this.segs_ + 1)),
-							rbl = seg,
-							rbr = ((seg + 1) % (this.segs_ + 1));
-
-						if (ral != rar)
-							face(raix + ral, rbix + rbl, raix + rar);
-						if (rbl != rbr)
-							face(raix + rar, rbix + rbl, rbix + rbr);
+					for (var seg=1; seg <= this.segs_; ++seg) {
+						var rl = seg,
+							rr = rl == this.segs_ ? 1 : seg + 1;
+						
+						if (row > 1)
+							face(raix + rl, rbix + rl, raix + rr);
+						if (row < this.rows_)
+							face(raix + rr, rbix + rl, rbix + rr);
 					}
 				}
 			}
