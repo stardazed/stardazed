@@ -82,6 +82,150 @@ namespace sd.mesh.gen {
 	}
 
 
+	//  ___          
+	// | _ ) _____ __
+	// | _ \/ _ \ \ /
+	// |___/\___/_\_\
+	//               
+
+	export interface BoxDescriptor {
+		width: number;  // float, dimension in X
+		height: number; // float, dimension in Y
+		depth: number;  // float, dimension in Z
+
+		// subdivU, subdivV: number
+	}
+
+	export function cubeDescriptor(diam: number): BoxDescriptor {
+		return { width: diam, height: diam, depth: diam };
+	}
+
+
+	export class Box extends MeshGenerator {
+		private xDiam_: number;
+		private yDiam_: number;
+		private zDiam_: number;
+
+		constructor(desc: BoxDescriptor) {
+			super();
+
+			this.xDiam_ = desc.width;
+			this.yDiam_ = desc.height;
+			this.zDiam_ = desc.depth;
+
+			assert(this.xDiam_ > 0);
+			assert(this.yDiam_ > 0);
+			assert(this.zDiam_ > 0);
+		}
+
+		vertexCount(): number {
+			return 24;
+		}
+
+		faceCount(): number {
+			return 12;
+		}
+
+		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
+			var xh = this.xDiam_ / 2;
+			var yh = this.yDiam_ / 2;
+			var zh = this.zDiam_ / 2;
+			var curVtx = 0;
+
+			// unique positions
+			var p: number[][] = [
+				[ -xh, -yh, -zh ],
+				[ xh, -yh, -zh ],
+				[ xh, yh, -zh ],
+				[ -xh, yh, -zh ],
+
+				[ -xh, -yh, zh ],
+				[ xh, -yh, zh ],
+				[ xh, yh, zh ],
+				[ -xh, yh, zh ]
+			];
+
+			// topleft, topright, botright, botleft
+			var quad = function(a: number, b: number, c: number, d: number) {
+				position(p[a][0], p[a][1], p[a][2]);
+				position(p[b][0], p[b][1], p[b][2]);
+				position(p[c][0], p[c][1], p[c][2]);
+				position(p[d][0], p[d][1], p[d][2]);
+
+				// each cube quad shows texture fully
+				uv(1, 0);
+				uv(0, 0);
+				uv(0, 1);
+				uv(1, 1);
+
+				// ccw faces
+				face(curVtx, curVtx + 1, curVtx + 2);
+				face(curVtx + 2, curVtx + 3, curVtx);
+
+				curVtx += 4;
+			};
+
+			quad(3, 2, 1, 0); // front
+			quad(7, 3, 0, 4); // left
+			quad(6, 7, 4, 5); // back
+			quad(2, 6, 5, 1); // right
+			quad(7, 6, 2, 3); // top
+			quad(5, 4, 0, 1); // bottom
+		}
+	}
+
+
+	//   ___              
+	//  / __|___ _ _  ___ 
+	// | (__/ _ \ ' \/ -_)
+	//  \___\___/_||_\___|
+	//                    
+
+	export interface ConeDescriptor {
+		radiusA: number; // float, 0..
+		radiusB: number; // float, 0..
+		height: number;  // float, 0..
+
+		rows: number;    // int, 1..
+		segs: number;    // int, 3..
+	}
+
+	export class Cone extends MeshGenerator {
+		private radiusA_: number;
+		private radiusB_: number;
+		private height_: number;
+		private rows_: number;
+		private segs_: number;
+
+		constructor(desc: ConeDescriptor) {
+			super();
+
+			this.radiusA_ = desc.radiusA;
+			this.radiusB_ = desc.radiusB;
+			this.height_ = desc.height;
+			this.rows_ = desc.rows | 0;
+			this.segs_ = desc.segs | 0;
+
+			assert(this.radiusA_ >= 0);
+			assert(this.radiusB_ >= 0);
+			assert(! ((this.radiusA_ == 0) && (this.radiusB_ == 0)));
+			assert(this.rows_ > 1);
+			assert(this.segs_ > 3);
+		}
+
+		vertexCount(): number {
+			return (this.segs_ + 1) * (this.rows_ + 1);
+		}
+
+		faceCount(): number {
+			return (2 * this.segs_ * this.rows_) - this.segs_;
+		}
+
+		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
+		}
+	}
+
+
 	//  ___      _                
 	// / __|_ __| |_  ___ _ _ ___ 
 	// \__ \ '_ \ ' \/ -_) '_/ -_)
@@ -90,12 +234,14 @@ namespace sd.mesh.gen {
 
 	export interface SphereDescriptor {
 		radius: number;     // float
+
 		rows: number;       // int: 2.., number of row subdivisions
-		segs: number;       // int: 4.., number of quad facets per row
+		segs: number;       // int: 3.., number of quad facets per row
 
 		sliceFrom?: number; // float: 0.0..1.0, vertical start of sphere section (def: 0.0)
 		sliceTo?: number;   // float: 0.0..1.0, vertical end of sphere section (def: 1.0)
 	}
+
 
 	export class Sphere extends MeshGenerator {
 		private radius_: number;
@@ -108,14 +254,14 @@ namespace sd.mesh.gen {
 			super();
 
 			this.radius_ = desc.radius;
-			this.rows_ = desc.rows;
-			this.segs_ = desc.segs;
+			this.rows_ = desc.rows | 0;
+			this.segs_ = desc.segs | 0;
 			this.sliceFrom_ = clamp01(desc.sliceFrom || 0.0);
 			this.sliceTo_ = clamp01(desc.sliceTo || 1.0);
 
 			assert(this.radius_ > 0);
 			assert(this.rows_ >= 2);
-			assert(this.segs_ >= 4);
+			assert(this.segs_ >= 3);
 			assert(this.sliceTo_ > this.sliceFrom_);
 		}
 

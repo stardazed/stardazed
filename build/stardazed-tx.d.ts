@@ -367,6 +367,39 @@ declare namespace sd.mesh.gen {
         generate(attrList?: VertexAttribute[]): MeshData;
         generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, uvs?: VertexBufferAttributeView): void;
     }
+    interface BoxDescriptor {
+        width: number;
+        height: number;
+        depth: number;
+    }
+    function cubeDescriptor(diam: number): BoxDescriptor;
+    class Box extends MeshGenerator {
+        private xDiam_;
+        private yDiam_;
+        private zDiam_;
+        constructor(desc: BoxDescriptor);
+        vertexCount(): number;
+        faceCount(): number;
+        generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
+    }
+    interface ConeDescriptor {
+        radiusA: number;
+        radiusB: number;
+        height: number;
+        rows: number;
+        segs: number;
+    }
+    class Cone extends MeshGenerator {
+        private radiusA_;
+        private radiusB_;
+        private height_;
+        private rows_;
+        private segs_;
+        constructor(desc: ConeDescriptor);
+        vertexCount(): number;
+        faceCount(): number;
+        generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
+    }
     interface SphereDescriptor {
         radius: number;
         rows: number;

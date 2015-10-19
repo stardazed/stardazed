@@ -966,18 +966,103 @@ var sd;
                 return MeshGenerator;
             })();
             gen.MeshGenerator = MeshGenerator;
+            function cubeDescriptor(diam) {
+                return { width: diam, height: diam, depth: diam };
+            }
+            gen.cubeDescriptor = cubeDescriptor;
+            var Box = (function (_super) {
+                __extends(Box, _super);
+                function Box(desc) {
+                    _super.call(this);
+                    this.xDiam_ = desc.width;
+                    this.yDiam_ = desc.height;
+                    this.zDiam_ = desc.depth;
+                    assert(this.xDiam_ > 0);
+                    assert(this.yDiam_ > 0);
+                    assert(this.zDiam_ > 0);
+                }
+                Box.prototype.vertexCount = function () {
+                    return 24;
+                };
+                Box.prototype.faceCount = function () {
+                    return 12;
+                };
+                Box.prototype.generateImpl = function (position, face, uv) {
+                    var xh = this.xDiam_ / 2;
+                    var yh = this.yDiam_ / 2;
+                    var zh = this.zDiam_ / 2;
+                    var curVtx = 0;
+                    var p = [
+                        [-xh, -yh, -zh],
+                        [xh, -yh, -zh],
+                        [xh, yh, -zh],
+                        [-xh, yh, -zh],
+                        [-xh, -yh, zh],
+                        [xh, -yh, zh],
+                        [xh, yh, zh],
+                        [-xh, yh, zh]
+                    ];
+                    var quad = function (a, b, c, d) {
+                        position(p[a][0], p[a][1], p[a][2]);
+                        position(p[b][0], p[b][1], p[b][2]);
+                        position(p[c][0], p[c][1], p[c][2]);
+                        position(p[d][0], p[d][1], p[d][2]);
+                        uv(1, 0);
+                        uv(0, 0);
+                        uv(0, 1);
+                        uv(1, 1);
+                        face(curVtx, curVtx + 1, curVtx + 2);
+                        face(curVtx + 2, curVtx + 3, curVtx);
+                        curVtx += 4;
+                    };
+                    quad(3, 2, 1, 0);
+                    quad(7, 3, 0, 4);
+                    quad(6, 7, 4, 5);
+                    quad(2, 6, 5, 1);
+                    quad(7, 6, 2, 3);
+                    quad(5, 4, 0, 1);
+                };
+                return Box;
+            })(MeshGenerator);
+            gen.Box = Box;
+            var Cone = (function (_super) {
+                __extends(Cone, _super);
+                function Cone(desc) {
+                    _super.call(this);
+                    this.radiusA_ = desc.radiusA;
+                    this.radiusB_ = desc.radiusB;
+                    this.height_ = desc.height;
+                    this.rows_ = desc.rows | 0;
+                    this.segs_ = desc.segs | 0;
+                    assert(this.radiusA_ >= 0);
+                    assert(this.radiusB_ >= 0);
+                    assert(!((this.radiusA_ == 0) && (this.radiusB_ == 0)));
+                    assert(this.rows_ > 1);
+                    assert(this.segs_ > 3);
+                }
+                Cone.prototype.vertexCount = function () {
+                    return (this.segs_ + 1) * (this.rows_ + 1);
+                };
+                Cone.prototype.faceCount = function () {
+                    return (2 * this.segs_ * this.rows_) - this.segs_;
+                };
+                Cone.prototype.generateImpl = function (position, face, uv) {
+                };
+                return Cone;
+            })(MeshGenerator);
+            gen.Cone = Cone;
             var Sphere = (function (_super) {
                 __extends(Sphere, _super);
                 function Sphere(desc) {
                     _super.call(this);
                     this.radius_ = desc.radius;
-                    this.rows_ = desc.rows;
-                    this.segs_ = desc.segs;
+                    this.rows_ = desc.rows | 0;
+                    this.segs_ = desc.segs | 0;
                     this.sliceFrom_ = clamp01(desc.sliceFrom || 0.0);
                     this.sliceTo_ = clamp01(desc.sliceTo || 1.0);
                     assert(this.radius_ > 0);
                     assert(this.rows_ >= 2);
-                    assert(this.segs_ >= 4);
+                    assert(this.segs_ >= 3);
                     assert(this.sliceTo_ > this.sliceFrom_);
                 }
                 Sphere.prototype.vertexCount = function () {
