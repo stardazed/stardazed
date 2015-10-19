@@ -962,7 +962,6 @@ var sd;
                         }
                         : function (u, v) { };
                     this.generateImpl(pos, face, uv);
-                    console.info(faceIx);
                 };
                 return MeshGenerator;
             })();
@@ -981,6 +980,8 @@ var sd;
                     this.segs_ = segs_;
                     this.sliceFrom_ = sliceFrom_;
                     this.sliceTo_ = sliceTo_;
+                    this.sliceFrom_ = clamp01(this.sliceFrom_);
+                    this.sliceTo_ = clamp01(this.sliceTo_);
                     assert(this.rows_ >= 2);
                     assert(this.segs_ >= 4);
                     assert(this.sliceTo_ > this.sliceFrom_);
@@ -1010,14 +1011,16 @@ var sd;
                             uv(texU, texV);
                             ++vix;
                         }
+                        var openTop = this.sliceFrom_ > 0.0;
+                        var openBottom = this.sliceTo_ < 1.0;
                         if (row > 0) {
                             var raix = vix - ((this.segs_ + 1) * 2);
                             var rbix = vix - (this.segs_ + 1);
-                            for (var seg = 1; seg <= this.segs_; ++seg) {
-                                var rl = seg, rr = rl == this.segs_ ? 1 : seg + 1;
-                                if (row > 1)
+                            for (var seg = 0; seg < this.segs_; ++seg) {
+                                var rl = seg, rr = seg + 1;
+                                if (row > 1 || openTop)
                                     face(raix + rl, rbix + rl, raix + rr);
-                                if (row < this.rows_)
+                                if (row < this.rows_ || openBottom)
                                     face(raix + rr, rbix + rl, rbix + rr);
                             }
                         }

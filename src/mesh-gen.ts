@@ -92,6 +92,9 @@ namespace sd.mesh.gen {
 		constructor(private radius_ = 1.0, private rows_ = 20, private segs_ = 30, private sliceFrom_ = 0.0, private sliceTo_ = 1.0) {
 			super();
 
+			this.sliceFrom_ = clamp01(this.sliceFrom_);
+			this.sliceTo_ = clamp01(this.sliceTo_);
+
 			assert(this.rows_ >= 2);
 			assert(this.segs_ >= 4);
 			assert(this.sliceTo_ > this.sliceFrom_);
@@ -131,17 +134,20 @@ namespace sd.mesh.gen {
 				}
 				
 				// construct row of faces
+				var openTop = this.sliceFrom_ > 0.0;
+				var openBottom = this.sliceTo_ < 1.0;
+
 				if (row > 0) {
 					var raix = vix - ((this.segs_ + 1) * 2);
 					var rbix = vix - (this.segs_ + 1);
 
-					for (var seg=1; seg <= this.segs_; ++seg) {
+					for (var seg = 0; seg < this.segs_; ++seg) {
 						var rl = seg,
-							rr = rl == this.segs_ ? 1 : seg + 1;
+							rr = seg + 1;
 						
-						if (row > 1)
+						if (row > 1 || openTop)
 							face(raix + rl, rbix + rl, raix + rr);
-						if (row < this.rows_)
+						if (row < this.rows_ || openBottom)
 							face(raix + rr, rbix + rl, rbix + rr);
 					}
 				}
