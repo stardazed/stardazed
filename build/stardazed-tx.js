@@ -968,20 +968,14 @@ var sd;
             gen.MeshGenerator = MeshGenerator;
             var Sphere = (function (_super) {
                 __extends(Sphere, _super);
-                function Sphere(radius_, rows_, segs_, sliceFrom_, sliceTo_) {
-                    if (radius_ === void 0) { radius_ = 1.0; }
-                    if (rows_ === void 0) { rows_ = 20; }
-                    if (segs_ === void 0) { segs_ = 30; }
-                    if (sliceFrom_ === void 0) { sliceFrom_ = 0.0; }
-                    if (sliceTo_ === void 0) { sliceTo_ = 1.0; }
+                function Sphere(desc) {
                     _super.call(this);
-                    this.radius_ = radius_;
-                    this.rows_ = rows_;
-                    this.segs_ = segs_;
-                    this.sliceFrom_ = sliceFrom_;
-                    this.sliceTo_ = sliceTo_;
-                    this.sliceFrom_ = clamp01(this.sliceFrom_);
-                    this.sliceTo_ = clamp01(this.sliceTo_);
+                    this.radius_ = desc.radius;
+                    this.rows_ = desc.rows;
+                    this.segs_ = desc.segs;
+                    this.sliceFrom_ = clamp01(desc.sliceFrom || 0.0);
+                    this.sliceTo_ = clamp01(desc.sliceTo || 1.0);
+                    assert(this.radius_ > 0);
                     assert(this.rows_ >= 2);
                     assert(this.segs_ >= 4);
                     assert(this.sliceTo_ > this.sliceFrom_);
@@ -990,7 +984,12 @@ var sd;
                     return (this.segs_ + 1) * (this.rows_ + 1);
                 };
                 Sphere.prototype.faceCount = function () {
-                    return 2 * (this.segs_ + 1) * (this.rows_ + 1);
+                    var fc = 2 * this.segs_ * this.rows_;
+                    if (this.sliceFrom_ == 0.0)
+                        fc -= this.segs_;
+                    if (this.sliceTo_ == 1.0)
+                        fc -= this.segs_;
+                    return fc;
                 };
                 Sphere.prototype.generateImpl = function (position, face, uv) {
                     var Pi = Math.PI;
@@ -999,6 +998,8 @@ var sd;
                     var piFrom = this.sliceFrom_ * Pi;
                     var piSlice = slice * Pi;
                     var vix = 0;
+                    var openTop = this.sliceFrom_ > 0.0;
+                    var openBottom = this.sliceTo_ < 1.0;
                     for (var row = 0; row <= this.rows_; ++row) {
                         var y = Math.cos(piFrom + (piSlice / this.rows_) * row) * this.radius_;
                         var segRad = Math.sin(piFrom + (piSlice / this.rows_) * row) * this.radius_;
@@ -1011,8 +1012,6 @@ var sd;
                             uv(texU, texV);
                             ++vix;
                         }
-                        var openTop = this.sliceFrom_ > 0.0;
-                        var openBottom = this.sliceTo_ < 1.0;
                         if (row > 0) {
                             var raix = vix - ((this.segs_ + 1) * 2);
                             var rbix = vix - (this.segs_ + 1);

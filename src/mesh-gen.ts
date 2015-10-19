@@ -88,13 +88,32 @@ namespace sd.mesh.gen {
 	// |___/ .__/_||_\___|_| \___|
 	//     |_|                    
 
+	export interface SphereDescriptor {
+		radius: number;     // float
+		rows: number;       // int: 2.., number of row subdivisions
+		segs: number;       // int: 4.., number of quad facets per row
+
+		sliceFrom?: number; // float: 0.0..1.0, vertical start of sphere section (def: 0.0)
+		sliceTo?: number;   // float: 0.0..1.0, vertical end of sphere section (def: 1.0)
+	}
+
 	export class Sphere extends MeshGenerator {
-		constructor(private radius_ = 1.0, private rows_ = 20, private segs_ = 30, private sliceFrom_ = 0.0, private sliceTo_ = 1.0) {
+		private radius_: number;
+		private rows_: number;
+		private segs_: number;
+		private sliceFrom_: number;
+		private sliceTo_: number;
+
+		constructor(desc: SphereDescriptor) {
 			super();
 
-			this.sliceFrom_ = clamp01(this.sliceFrom_);
-			this.sliceTo_ = clamp01(this.sliceTo_);
+			this.radius_ = desc.radius;
+			this.rows_ = desc.rows;
+			this.segs_ = desc.segs;
+			this.sliceFrom_ = clamp01(desc.sliceFrom || 0.0);
+			this.sliceTo_ = clamp01(desc.sliceTo || 1.0);
 
+			assert(this.radius_ > 0);
 			assert(this.rows_ >= 2);
 			assert(this.segs_ >= 4);
 			assert(this.sliceTo_ > this.sliceFrom_);
@@ -105,7 +124,12 @@ namespace sd.mesh.gen {
 		}
 
 		faceCount(): number {
-			return 2 * (this.segs_ + 1) * (this.rows_ + 1);
+			var fc = 2 * this.segs_ * this.rows_;
+			if (this.sliceFrom_ == 0.0)
+				fc -= this.segs_;
+			if (this.sliceTo_ == 1.0)
+				fc -= this.segs_;
+			return fc; 
 		}
 
 		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
@@ -117,6 +141,8 @@ namespace sd.mesh.gen {
 			var piSlice = slice * Pi;
 
 			var vix = 0;
+			var openTop = this.sliceFrom_ > 0.0;
+			var openBottom = this.sliceTo_ < 1.0;
 
 			for (var row = 0; row <= this.rows_; ++row) {
 				var y = Math.cos(piFrom + (piSlice / this.rows_) * row) * this.radius_;
@@ -134,9 +160,6 @@ namespace sd.mesh.gen {
 				}
 				
 				// construct row of faces
-				var openTop = this.sliceFrom_ > 0.0;
-				var openBottom = this.sliceTo_ < 1.0;
-
 				if (row > 0) {
 					var raix = vix - ((this.segs_ + 1) * 2);
 					var rbix = vix - (this.segs_ + 1);

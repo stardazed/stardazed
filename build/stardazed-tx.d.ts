@@ -367,13 +367,20 @@ declare namespace sd.mesh.gen {
         generate(attrList?: VertexAttribute[]): MeshData;
         generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, uvs?: VertexBufferAttributeView): void;
     }
+    interface SphereDescriptor {
+        radius: number;
+        rows: number;
+        segs: number;
+        sliceFrom?: number;
+        sliceTo?: number;
+    }
     class Sphere extends MeshGenerator {
         private radius_;
         private rows_;
         private segs_;
         private sliceFrom_;
         private sliceTo_;
-        constructor(radius_?: number, rows_?: number, segs_?: number, sliceFrom_?: number, sliceTo_?: number);
+        constructor(desc: SphereDescriptor);
         vertexCount(): number;
         faceCount(): number;
         generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;

@@ -174,7 +174,7 @@ namespace sd.mesh {
 		}
 
 		var t1 = performance.now();
-		// console.info("obj v:", vertexes.length / 3, "t:", uvs.length / 2, "took:", (t1-t0).toFixed(2), "ms");
+		// console.info("obj v:", vv.length / 3, "t:", tt.length / 2, "took:", (t1-t0).toFixed(2), "ms");
 		// console.info("mats:", materialGroups);
 	
 		return {
