@@ -10,6 +10,7 @@
 // WebGLContextAttributes are added as well, copied over from
 // Shane S. Anderson's definitions file.
 
+/// <reference path="webgl-branding.d.ts" />
 
 interface WebGLContextAttributes {
 	// The following attributes are missing from TypeScript 1.6.2's lib.d.ts
