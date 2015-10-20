@@ -1044,7 +1044,10 @@ var sd;
                     return (this.segs_ + 1) * (this.rows_ + 1);
                 };
                 Cone.prototype.faceCount = function () {
-                    return (2 * this.segs_ * this.rows_) - this.segs_;
+                    var fc = (2 * this.segs_ * this.rows_);
+                    if ((this.radiusA_ == 0) || (this.radiusB_ == 0))
+                        fc -= this.segs_;
+                    return fc;
                 };
                 Cone.prototype.generateImpl = function (position, face, uv) {
                     var vix = 0;
@@ -1068,9 +1071,10 @@ var sd;
                             var rbix = vix - (this.segs_ + 1);
                             for (var seg = 0; seg < this.segs_; ++seg) {
                                 var rl = seg, rr = seg + 1;
-                                if (row > 1)
+                                if (row > 1 || this.radiusA_ > 0)
                                     face(raix + rl, rbix + rl, raix + rr);
-                                face(raix + rr, rbix + rl, rbix + rr);
+                                if (row < this.rows_ || this.radiusB_ > 0)
+                                    face(raix + rr, rbix + rl, rbix + rr);
                             }
                         }
                     }

@@ -218,7 +218,10 @@ namespace sd.mesh.gen {
 		}
 
 		faceCount(): number {
-			return (2 * this.segs_ * this.rows_) - this.segs_;
+			var fc = (2 * this.segs_ * this.rows_);
+			if ((this.radiusA_ == 0) || (this.radiusB_ == 0))
+				fc -= this.segs_;
+			return fc;
 		}
 
 		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
@@ -252,9 +255,10 @@ namespace sd.mesh.gen {
 						var rl = seg,
 							rr = seg + 1;
 
-						if (row > 1)
+						if (row > 1 || this.radiusA_ > 0)
 							face(raix + rl, rbix + rl, raix + rr);
-						face(raix + rr, rbix + rl, rbix + rr);
+						if (row < this.rows_ || this.radiusB_ > 0)
+							face(raix + rr, rbix + rl, rbix + rr);
 					}
 				}
 			}
