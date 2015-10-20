@@ -1037,8 +1037,8 @@ var sd;
                     assert(this.radiusA_ >= 0);
                     assert(this.radiusB_ >= 0);
                     assert(!((this.radiusA_ == 0) && (this.radiusB_ == 0)));
-                    assert(this.rows_ > 1);
-                    assert(this.segs_ > 3);
+                    assert(this.rows_ >= 1);
+                    assert(this.segs_ >= 3);
                 }
                 Cone.prototype.vertexCount = function () {
                     return (this.segs_ + 1) * (this.rows_ + 1);
@@ -1047,6 +1047,34 @@ var sd;
                     return (2 * this.segs_ * this.rows_) - this.segs_;
                 };
                 Cone.prototype.generateImpl = function (position, face, uv) {
+                    var vix = 0;
+                    var radiusDiff = this.radiusB_ - this.radiusA_;
+                    var Tau = Math.PI * 2;
+                    for (var row = 0; row <= this.rows_; ++row) {
+                        var relPos = row / this.rows_;
+                        var y = (relPos * -this.height_) + (this.height_ / 2);
+                        var segRad = this.radiusA_ + (relPos * radiusDiff);
+                        var texV = relPos;
+                        for (var seg = 0; seg <= this.segs_; ++seg) {
+                            var x = Math.sin((Tau / this.segs_) * seg) * segRad;
+                            var z = Math.cos((Tau / this.segs_) * seg) * segRad;
+                            var texU = seg / this.segs_;
+                            position(x, y, z);
+                            uv(texU, texV);
+                            ++vix;
+                        }
+                        if (row > 0) {
+                            var raix = vix - ((this.segs_ + 1) * 2);
+                            var rbix = vix - (this.segs_ + 1);
+                            for (var seg = 0; seg < this.segs_; ++seg) {
+                                var rl = seg, rr = seg + 1;
+                                if (row > 1)
+                                    face(raix + rl, rbix + rl, raix + rr);
+                                face(raix + rr, rbix + rl, rbix + rr);
+                            }
+                        }
+                    }
+                    console.info("vix " + vix);
                 };
                 return Cone;
             })(MeshGenerator);
