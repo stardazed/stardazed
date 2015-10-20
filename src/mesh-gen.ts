@@ -350,8 +350,6 @@ namespace sd.mesh.gen {
 					}
 				}
 			}
-
-			console.info("vix " + vix);
 		}
 	}
 
