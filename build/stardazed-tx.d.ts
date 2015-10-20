@@ -367,6 +367,25 @@ declare namespace sd.mesh.gen {
         generate(attrList?: VertexAttribute[]): MeshData;
         generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, uvs?: VertexBufferAttributeView): void;
     }
+    type PlaneYGenerator = (x: number, z: number) => number;
+    interface PlaneDescriptor {
+        width: number;
+        depth: number;
+        yGen?: PlaneYGenerator;
+        rows: number;
+        segs: number;
+    }
+    class Plane extends MeshGenerator {
+        private width_;
+        private depth_;
+        private rows_;
+        private segs_;
+        private yGen_;
+        constructor(desc: PlaneDescriptor);
+        vertexCount(): number;
+        faceCount(): number;
+        generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
+    }
     interface BoxDescriptor {
         width: number;
         height: number;

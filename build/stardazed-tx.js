@@ -966,6 +966,52 @@ var sd;
                 return MeshGenerator;
             })();
             gen.MeshGenerator = MeshGenerator;
+            var Plane = (function (_super) {
+                __extends(Plane, _super);
+                function Plane(desc) {
+                    _super.call(this);
+                    this.width_ = desc.width;
+                    this.depth_ = desc.depth;
+                    this.rows_ = desc.rows | 0;
+                    this.segs_ = desc.segs | 0;
+                    this.yGen_ = desc.yGen || (function (x, z) { return 0; });
+                    assert(this.width_ > 0);
+                    assert(this.depth_ > 0);
+                    assert(this.rows_ > 0);
+                    assert(this.segs_ > 0);
+                }
+                Plane.prototype.vertexCount = function () {
+                    return (this.rows_ + 1) * (this.segs_ + 1);
+                };
+                Plane.prototype.faceCount = function () {
+                    return 2 * this.rows_ * this.segs_;
+                };
+                Plane.prototype.generateImpl = function (position, face, uv) {
+                    var halfWidth = this.width_ / 2;
+                    var halfDepth = this.depth_ / 2;
+                    var tileDimX = this.width_ / this.segs_;
+                    var tileDimZ = this.depth_ / this.rows_;
+                    for (var z = 0; z <= this.rows_; ++z) {
+                        var posZ = -halfDepth + (z * tileDimZ);
+                        for (var x = 0; x <= this.segs_; ++x) {
+                            var posX = -halfWidth + (x * tileDimX);
+                            position(posX, this.yGen_(posX, posZ), posZ);
+                            uv(x / this.segs_, z / this.rows_);
+                        }
+                    }
+                    var baseIndex = 0;
+                    var vertexRowCount = this.segs_ + 1;
+                    for (var z = 0; z < this.rows_; ++z) {
+                        for (var x = 0; x < this.segs_; ++x) {
+                            face(baseIndex + x + 1, baseIndex + x + vertexRowCount, baseIndex + x + vertexRowCount + 1);
+                            face(baseIndex + x, baseIndex + x + vertexRowCount, baseIndex + x + 1);
+                        }
+                        baseIndex += vertexRowCount;
+                    }
+                };
+                return Plane;
+            })(MeshGenerator);
+            gen.Plane = Plane;
             function cubeDescriptor(diam) {
                 return { width: diam, height: diam, depth: diam };
             }

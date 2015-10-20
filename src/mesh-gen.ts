@@ -82,6 +82,95 @@ namespace sd.mesh.gen {
 	}
 
 
+	//  ___ _               
+	// | _ \ |__ _ _ _  ___ 
+	// |  _/ / _` | ' \/ -_)
+	// |_| |_\__,_|_||_\___|
+	//                      
+
+	export type PlaneYGenerator = (x: number, z: number) => number;
+
+	export interface PlaneDescriptor {
+		width: number;
+		depth: number;
+		yGen?: PlaneYGenerator;
+
+		rows: number;
+		segs: number;
+	}
+
+	export class Plane extends MeshGenerator {
+		private width_: number;
+		private depth_: number;
+		private rows_: number;
+		private segs_: number;
+		private yGen_: PlaneYGenerator;
+
+		constructor(desc: PlaneDescriptor) {
+			super();
+
+			this.width_ = desc.width;
+			this.depth_ = desc.depth;
+			this.rows_ = desc.rows | 0;
+			this.segs_ = desc.segs | 0;
+			this.yGen_ = desc.yGen || ((x, z) => 0);
+
+			assert(this.width_ > 0);
+			assert(this.depth_ > 0);
+			assert(this.rows_ > 0);
+			assert(this.segs_ > 0);
+		}
+
+		vertexCount(): number {
+			return (this.rows_ + 1) * (this.segs_ + 1);
+		}
+
+		faceCount(): number {
+			return 2 * this.rows_ * this.segs_;
+		}
+
+		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
+			var halfWidth = this.width_ / 2;
+			var halfDepth = this.depth_ / 2;
+			var tileDimX = this.width_ / this.segs_;
+			var tileDimZ = this.depth_ / this.rows_;
+
+			// -- positions
+			for (var z = 0; z <= this.rows_; ++z) {
+				var posZ = -halfDepth + (z * tileDimZ);
+
+				for (var x = 0; x <= this.segs_; ++x) {
+					var posX = -halfWidth + (x * tileDimX);
+
+					position(posX, this.yGen_(posX, posZ), posZ);
+					uv(x / this.segs_, z / this.rows_);
+				}
+			}
+
+			// -- faces
+			var baseIndex = 0;
+			var vertexRowCount = this.segs_ + 1;
+
+			for (var z = 0; z < this.rows_; ++z) {
+				for (var x = 0; x < this.segs_; ++x) {
+					face(
+						baseIndex + x + 1,
+						baseIndex + x + vertexRowCount,
+						baseIndex + x + vertexRowCount + 1
+					);
+					face(
+						baseIndex + x,
+						baseIndex + x + vertexRowCount,
+						baseIndex + x + 1
+					);
+				}
+
+				baseIndex += vertexRowCount;
+			}
+		}
+	}
+
+
 	//  ___          
 	// | _ ) _____ __
 	// | _ \/ _ \ \ /
@@ -99,7 +188,6 @@ namespace sd.mesh.gen {
 	export function cubeDescriptor(diam: number): BoxDescriptor {
 		return { width: diam, height: diam, depth: diam };
 	}
-
 
 	export class Box extends MeshGenerator {
 		private xDiam_: number;
@@ -183,7 +271,7 @@ namespace sd.mesh.gen {
 
 	export interface ConeDescriptor {
 		radiusA: number; // float, 0..
-		radiusB: number; // float, 0..
+		radiusB: number; // float, 0.., radiusA == radiusB -> cylinder
 		height: number;  // float, 0..
 
 		rows: number;    // int, 1..
@@ -283,7 +371,6 @@ namespace sd.mesh.gen {
 		sliceFrom?: number; // float: 0.0..1.0, vertical start of sphere section (def: 0.0)
 		sliceTo?: number;   // float: 0.0..1.0, vertical end of sphere section (def: 1.0)
 	}
-
 
 	export class Sphere extends MeshGenerator {
 		private radius_: number;
