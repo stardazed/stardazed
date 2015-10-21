@@ -1124,7 +1124,6 @@ var sd;
                             }
                         }
                     }
-                    console.info("vix " + vix);
                 };
                 return Cone;
             })(MeshGenerator);
