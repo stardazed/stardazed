@@ -1421,7 +1421,7 @@ var sd;
                 mat3.fromMat4(normalMatrix, posMatrix);
                 mat3.invert(normalMatrix, normalMatrix);
                 mat3.transpose(normalMatrix, normalMatrix);
-                normView.forEach(function (norm) { vec3.transformMat4(norm, norm, normalMatrix); });
+                normView.forEach(function (norm) { vec3.transformMat3(norm, norm, normalMatrix); });
             }
         }
         mesh_3.transform = transform;
