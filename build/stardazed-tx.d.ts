@@ -269,16 +269,20 @@ declare namespace sd.mesh {
     }
     class VertexBufferAttributeView {
         private vertexBuffer_;
+        private attr_;
+        private firstItem_;
         private stride_;
         private attrOffset_;
         private attrElementCount_;
         private typedViewCtor_;
         private buffer_;
-        constructor(vertexBuffer_: VertexBuffer, attr: PositionedAttribute);
+        private viewItemCount_;
+        constructor(vertexBuffer_: VertexBuffer, attr_: PositionedAttribute, firstItem_?: number, itemCount?: number);
         forEach(callback: (item: TypedArray) => void): void;
         item(index: number): TypedArray;
         count(): number;
         vertexBuffer(): VertexBuffer;
+        subView(fromItem: number, subItemCount: number): VertexBufferAttributeView;
     }
     const enum IndexElementType {
         UInt8 = 0,
@@ -356,6 +360,12 @@ declare namespace sd.mesh {
         genVertexNormals(): void;
     }
 }
+declare namespace sd.mesh {
+    function scale(mesh: MeshData, scale: ArrayOfNumber): void;
+    function translate(mesh: MeshData, globalDelta: ArrayOfNumber): void;
+    function rotate(mesh: MeshData, rotation: ArrayOfNumber): void;
+    function transform(mesh: MeshData, rotate?: ArrayOfNumber, translate?: ArrayOfNumber, scale?: ArrayOfNumber): void;
+}
 declare namespace sd.mesh.gen {
     type PositionAddFn = (x: number, y: number, z: number) => void;
     type FaceAddFn = (a: number, b: number, c: number) => void;
@@ -366,6 +376,22 @@ declare namespace sd.mesh.gen {
         abstract generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
         generate(attrList?: VertexAttribute[]): MeshData;
         generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, uvs?: VertexBufferAttributeView): void;
+    }
+    interface TransformedMeshDescriptor {
+        generator: MeshGenerator;
+        rotation?: ArrayOfNumber;
+        translation?: ArrayOfNumber;
+        scale?: ArrayOfNumber;
+    }
+    class Composite extends MeshGenerator {
+        private parts_;
+        private totalVertexes_;
+        private totalFaces_;
+        constructor(parts_: TransformedMeshDescriptor[]);
+        vertexCount(): number;
+        faceCount(): number;
+        generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, uvs?: VertexBufferAttributeView): void;
+        generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
     }
     type PlaneYGenerator = (x: number, z: number) => number;
     interface PlaneDescriptor {
@@ -459,12 +485,6 @@ declare namespace sd.mesh {
         drawGroups: LWDrawGroup[];
     }
     function loadLWObjectFile(filePath: string): Promise<LWMeshData>;
-}
-declare namespace sd.mesh {
-    function scale(mesh: MeshData, scale: ArrayOfNumber): void;
-    function translate(mesh: MeshData, globalDelta: ArrayOfNumber): void;
-    function rotate(mesh: MeshData, rotation: ArrayOfNumber): void;
-    function transform(mesh: MeshData, rotate?: ArrayOfNumber, translate?: ArrayOfNumber, scale?: ArrayOfNumber): void;
 }
 declare var webkitAudioContext: {
     prototype: AudioContext;

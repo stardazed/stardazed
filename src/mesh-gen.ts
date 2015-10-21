@@ -3,6 +3,8 @@
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 /// <reference path="mesh.ts" />
+/// <reference path="mesh-manip.ts" />
+
 
 namespace sd.mesh.gen {
 
@@ -44,6 +46,7 @@ namespace sd.mesh.gen {
 			mesh.genVertexNormals();
 
 			// add a default primitive group that covers the complete generated mesh
+			// TODO: let generator impls build 1 or more drawgroups instead
 			mesh.primitiveGroups.push({ fromPrimIx: 0, primCount: this.faceCount(), materialIx: 0 });
 
 			return mesh;
@@ -78,6 +81,93 @@ namespace sd.mesh.gen {
 				: (u: number, v: number) => { };
 
 			this.generateImpl(pos, face, uv);
+		}
+	}
+
+
+	//   ___                        _ _       
+	//  / __|___ _ __  _ __  ___ __(_) |_ ___ 
+	// | (__/ _ \ '  \| '_ \/ _ (_-< |  _/ -_)
+	//  \___\___/_|_|_| .__/\___/__/_|\__\___|
+	//                |_|                     
+
+	export interface TransformedMeshDescriptor {
+		generator: MeshGenerator;
+		rotation?: ArrayOfNumber; // quat
+		translation?: ArrayOfNumber; // vec3
+		scale?: ArrayOfNumber; // vec3
+	}
+
+	export class Composite extends MeshGenerator {
+		private totalVertexes_ = 0;
+		private totalFaces_ = 0;
+
+		constructor(private parts_: TransformedMeshDescriptor[]) {
+			super();
+
+			parts_.forEach((tmd) => {
+				this.totalVertexes_ += tmd.generator.vertexCount();
+				this.totalFaces_ += tmd.generator.faceCount();
+			});
+		}
+
+		vertexCount(): number {
+			return this.totalVertexes_;
+		}
+
+		faceCount(): number {
+			return this.totalFaces_;
+		}
+
+		generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, uvs?: VertexBufferAttributeView): void {
+			var posIx = 0, faceIx = 0, uvIx = 0;
+			var baseVertex = 0;
+
+			var pos: PositionAddFn = (x: number, y: number, z: number) => {
+				var v3 = positions.item(posIx);
+				v3[0] = x;
+				v3[1] = y;
+				v3[2] = z;
+				posIx++;
+			};
+
+			var face: FaceAddFn = (a: number, b: number, c: number) => {
+				var v3 = faces.item(faceIx);
+				v3[0] = a + baseVertex;
+				v3[1] = b + baseVertex;
+				v3[2] = c + baseVertex;
+				faceIx++;
+			};
+
+			var uv: UVAddFn = uvs ?
+				(u: number, v: number) => {
+					var v2 = uvs.item(uvIx);
+					v2[0] = u;
+					v2[1] = v;
+					uvIx++;
+				}
+				: (u: number, v: number) => { };
+
+			// generate and transform each submesh
+			this.parts_.forEach((part) => {
+				part.generator.generateImpl(pos, face, uv);
+
+				var transMatrix = mat4.create();
+				var rotation = part.rotation || quat.create();
+				var translation = part.translation || vec3.create();
+				var scale = part.scale || vec3.fromValues(1, 1, 1);
+				mat4.fromRotationTranslationScale(transMatrix, rotation, translation, scale);
+
+				var partVertexCount = part.generator.vertexCount();
+				var subPosView = positions.subView(baseVertex, partVertexCount);
+				subPosView.forEach((pos) => { vec3.transformMat4(pos, pos, transMatrix); });
+
+				baseVertex += partVertexCount;
+			});
+		}
+
+		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
+			// stub, unused
 		}
 	}
 

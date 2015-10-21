@@ -644,13 +644,19 @@ var sd;
         })();
         mesh.VertexBuffer = VertexBuffer;
         var VertexBufferAttributeView = (function () {
-            function VertexBufferAttributeView(vertexBuffer_, attr) {
+            function VertexBufferAttributeView(vertexBuffer_, attr_, firstItem_, itemCount) {
+                if (firstItem_ === void 0) { firstItem_ = 0; }
+                if (itemCount === void 0) { itemCount = -1; }
                 this.vertexBuffer_ = vertexBuffer_;
+                this.attr_ = attr_;
+                this.firstItem_ = firstItem_;
                 this.stride_ = this.vertexBuffer_.layout().vertexSizeBytes();
-                this.attrOffset_ = attr.offset;
-                this.attrElementCount_ = vertexFieldElementCount(attr.field);
-                this.typedViewCtor_ = vertexFieldNumericType(attr.field).arrayType;
+                this.attrOffset_ = attr_.offset;
+                this.attrElementCount_ = vertexFieldElementCount(attr_.field);
+                this.typedViewCtor_ = vertexFieldNumericType(attr_.field).arrayType;
                 this.buffer_ = this.vertexBuffer_.buffer();
+                this.viewItemCount_ = itemCount < 0 ? (this.vertexBuffer_.itemCount() - this.firstItem_) : itemCount;
+                assert(this.firstItem_ + this.viewItemCount_ <= this.vertexBuffer_.itemCount(), "view item range is bigger than buffer");
             }
             VertexBufferAttributeView.prototype.forEach = function (callback) {
                 var max = this.count();
@@ -659,14 +665,18 @@ var sd;
                 }
             };
             VertexBufferAttributeView.prototype.item = function (index) {
+                index += this.firstItem_;
                 var offsetBytes = (this.stride_ * index) + this.attrOffset_;
                 return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.attrElementCount_);
             };
             VertexBufferAttributeView.prototype.count = function () {
-                return this.vertexBuffer_.itemCount();
+                return this.viewItemCount_;
             };
             VertexBufferAttributeView.prototype.vertexBuffer = function () {
                 return this.vertexBuffer_;
+            };
+            VertexBufferAttributeView.prototype.subView = function (fromItem, subItemCount) {
+                return new VertexBufferAttributeView(this.vertexBuffer_, this.attr_, this.firstItem_ + fromItem, subItemCount);
             };
             return VertexBufferAttributeView;
         })();
@@ -901,6 +911,76 @@ var sd;
         ;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
+// mesh-manip.ts - mesh manipulators
+// Part of Stardazed TX
+// (c) 2015 by Arthur Langereis - @zenmumbler
+/// <reference path="mesh.ts" />
+var sd;
+(function (sd) {
+    var mesh;
+    (function (mesh_1) {
+        function scale(mesh, scale) {
+            assert(scale.length == 3);
+            var posAttr = mesh.findFirstAttributeWithRole(1);
+            if (posAttr) {
+                var posView = new mesh_1.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
+                posView.forEach(function (pos) { vec3.multiply(pos, pos, scale); });
+            }
+        }
+        mesh_1.scale = scale;
+        function translate(mesh, globalDelta) {
+            assert(globalDelta.length == 3);
+            var posAttr = mesh.findFirstAttributeWithRole(1);
+            if (posAttr) {
+                var posView = new mesh_1.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
+                posView.forEach(function (pos) { vec3.add(pos, pos, globalDelta); });
+            }
+        }
+        mesh_1.translate = translate;
+        function rotate(mesh, rotation) {
+            assert(rotation.length == 4);
+            var posAttr = mesh.findFirstAttributeWithRole(1);
+            if (posAttr) {
+                var posView = new mesh_1.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
+                posView.forEach(function (pos) { vec3.transformQuat(pos, pos, rotation); });
+            }
+            var normAttr = mesh.findFirstAttributeWithRole(2);
+            if (normAttr) {
+                var normView = new mesh_1.VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
+                normView.forEach(function (norm) { vec3.transformQuat(norm, norm, rotation); });
+            }
+        }
+        mesh_1.rotate = rotate;
+        function transform(mesh, rotate, translate, scale) {
+            if (!rotate)
+                rotate = quat.create();
+            if (!translate)
+                translate = vec3.create();
+            if (!scale)
+                scale = vec3.fromValues(1, 1, 1);
+            assert(rotate.length == 4, "rotate must be a quad");
+            assert(translate.length == 3, "translate must be a vec3");
+            assert(scale.length == 3, "scale must be a vec3");
+            var posMatrix = mat4.create();
+            mat4.fromRotationTranslationScale(posMatrix, rotate, translate, scale);
+            var posAttr = mesh.findFirstAttributeWithRole(1);
+            if (posAttr) {
+                var posView = new mesh_1.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
+                posView.forEach(function (pos) { vec3.transformMat4(pos, pos, posMatrix); });
+            }
+            var normAttr = mesh.findFirstAttributeWithRole(2);
+            if (normAttr) {
+                var normView = new mesh_1.VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
+                var normalMatrix = mat3.create();
+                mat3.fromMat4(normalMatrix, posMatrix);
+                mat3.invert(normalMatrix, normalMatrix);
+                mat3.transpose(normalMatrix, normalMatrix);
+                normView.forEach(function (norm) { vec3.transformMat3(norm, norm, normalMatrix); });
+            }
+        }
+        mesh_1.transform = transform;
+    })(mesh = sd.mesh || (sd.mesh = {}));
+})(sd || (sd = {}));
 // mesh-gen.ts - mesh generators
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
@@ -910,10 +990,11 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 /// <reference path="mesh.ts" />
+/// <reference path="mesh-manip.ts" />
 var sd;
 (function (sd) {
     var mesh;
-    (function (mesh_1) {
+    (function (mesh_2) {
         var gen;
         (function (gen) {
             var MeshGenerator = (function () {
@@ -921,17 +1002,17 @@ var sd;
                 }
                 MeshGenerator.prototype.generate = function (attrList) {
                     if (!attrList)
-                        attrList = mesh_1.AttrList.Pos3Norm3UV2();
+                        attrList = mesh_2.AttrList.Pos3Norm3UV2();
                     var vtxCount = this.vertexCount();
-                    var mesh = new mesh_1.MeshData(attrList);
+                    var mesh = new mesh_2.MeshData(attrList);
                     var vertexBuffer = mesh.primaryVertexBuffer();
                     vertexBuffer.allocate(vtxCount);
-                    var indexElementType = mesh_1.minimumIndexElementTypeForVertexCount(vtxCount);
+                    var indexElementType = mesh_2.minimumIndexElementTypeForVertexCount(vtxCount);
                     mesh.indexBuffer.allocate(3, indexElementType, this.faceCount());
-                    var posView = new mesh_1.VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(1));
+                    var posView = new mesh_2.VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(1));
                     var texAttr = vertexBuffer.attrByRole(5);
-                    var texView = texAttr ? new mesh_1.VertexBufferAttributeView(vertexBuffer, texAttr) : null;
-                    var triView = new mesh_1.IndexBufferTriangleView(mesh.indexBuffer);
+                    var texView = texAttr ? new mesh_2.VertexBufferAttributeView(vertexBuffer, texAttr) : null;
+                    var triView = new mesh_2.IndexBufferTriangleView(mesh.indexBuffer);
                     this.generateInto(posView, triView, texView);
                     mesh.genVertexNormals();
                     mesh.primitiveGroups.push({ fromPrimIx: 0, primCount: this.faceCount(), materialIx: 0 });
@@ -966,6 +1047,68 @@ var sd;
                 return MeshGenerator;
             })();
             gen.MeshGenerator = MeshGenerator;
+            var Composite = (function (_super) {
+                __extends(Composite, _super);
+                function Composite(parts_) {
+                    var _this = this;
+                    _super.call(this);
+                    this.parts_ = parts_;
+                    this.totalVertexes_ = 0;
+                    this.totalFaces_ = 0;
+                    parts_.forEach(function (tmd) {
+                        _this.totalVertexes_ += tmd.generator.vertexCount();
+                        _this.totalFaces_ += tmd.generator.faceCount();
+                    });
+                }
+                Composite.prototype.vertexCount = function () {
+                    return this.totalVertexes_;
+                };
+                Composite.prototype.faceCount = function () {
+                    return this.totalFaces_;
+                };
+                Composite.prototype.generateInto = function (positions, faces, uvs) {
+                    var posIx = 0, faceIx = 0, uvIx = 0;
+                    var baseVertex = 0;
+                    var pos = function (x, y, z) {
+                        var v3 = positions.item(posIx);
+                        v3[0] = x;
+                        v3[1] = y;
+                        v3[2] = z;
+                        posIx++;
+                    };
+                    var face = function (a, b, c) {
+                        var v3 = faces.item(faceIx);
+                        v3[0] = a + baseVertex;
+                        v3[1] = b + baseVertex;
+                        v3[2] = c + baseVertex;
+                        faceIx++;
+                    };
+                    var uv = uvs ?
+                        function (u, v) {
+                            var v2 = uvs.item(uvIx);
+                            v2[0] = u;
+                            v2[1] = v;
+                            uvIx++;
+                        }
+                        : function (u, v) { };
+                    this.parts_.forEach(function (part) {
+                        part.generator.generateImpl(pos, face, uv);
+                        var transMatrix = mat4.create();
+                        var rotation = part.rotation || quat.create();
+                        var translation = part.translation || vec3.create();
+                        var scale = part.scale || vec3.fromValues(1, 1, 1);
+                        mat4.fromRotationTranslationScale(transMatrix, rotation, translation, scale);
+                        var partVertexCount = part.generator.vertexCount();
+                        var subPosView = positions.subView(baseVertex, partVertexCount);
+                        subPosView.forEach(function (pos) { vec3.transformMat4(pos, pos, transMatrix); });
+                        baseVertex += partVertexCount;
+                    });
+                };
+                Composite.prototype.generateImpl = function (position, face, uv) {
+                };
+                return Composite;
+            })(MeshGenerator);
+            gen.Composite = Composite;
             var Plane = (function (_super) {
                 __extends(Plane, _super);
                 function Plane(desc) {
@@ -1190,7 +1333,7 @@ var sd;
                 return Sphere;
             })(MeshGenerator);
             gen.Sphere = Sphere;
-        })(gen = mesh_1.gen || (mesh_1.gen = {}));
+        })(gen = mesh_2.gen || (mesh_2.gen = {}));
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
 // mesh-lwo.ts - Lightwave OBJ mesh file import
@@ -1201,7 +1344,7 @@ var sd;
 var sd;
 (function (sd) {
     var mesh;
-    (function (mesh_2) {
+    (function (mesh_3) {
         function parseLWMaterialSource(text) {
             var lines = text.split("\n");
             var materials = {};
@@ -1248,7 +1391,7 @@ var sd;
             var mtlFileName = "";
             var materialGroups = [];
             var curMaterialGroup = null;
-            var mesh = new mesh_2.MeshData(mesh_2.AttrList.Pos3Norm3Colour3UV2());
+            var mesh = new mesh_3.MeshData(mesh_3.AttrList.Pos3Norm3Colour3UV2());
             var vb = mesh.primaryVertexBuffer();
             var posView;
             var normView;
@@ -1274,9 +1417,9 @@ var sd;
                     triCount++;
             });
             vb.allocate(triCount * 3);
-            posView = new mesh_2.VertexBufferAttributeView(vb, vb.attrByRole(1));
-            normView = new mesh_2.VertexBufferAttributeView(vb, vb.attrByRole(2));
-            uvView = new mesh_2.VertexBufferAttributeView(vb, vb.attrByRole(5));
+            posView = new mesh_3.VertexBufferAttributeView(vb, vb.attrByRole(1));
+            normView = new mesh_3.VertexBufferAttributeView(vb, vb.attrByRole(2));
+            uvView = new mesh_3.VertexBufferAttributeView(vb, vb.attrByRole(5));
             mesh.indexBuffer = null;
             function fxtoi(fx) { return (+fx) - 1; }
             lines.forEach(function (line) {
@@ -1349,82 +1492,12 @@ var sd;
                 var obj = values[1];
                 obj.materials = materials;
                 var colourAttr = obj.mesh.primaryVertexBuffer().attrByRole(4);
-                var colourView = new mesh_2.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer(), colourAttr);
+                var colourView = new mesh_3.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer(), colourAttr);
                 genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
                 return obj;
             });
         }
-        mesh_2.loadLWObjectFile = loadLWObjectFile;
-    })(mesh = sd.mesh || (sd.mesh = {}));
-})(sd || (sd = {}));
-// mesh-manip.ts - mesh manipulators
-// Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
-/// <reference path="mesh.ts" />
-var sd;
-(function (sd) {
-    var mesh;
-    (function (mesh_3) {
-        function scale(mesh, scale) {
-            assert(scale.length == 3);
-            var posAttr = mesh.findFirstAttributeWithRole(1);
-            if (posAttr) {
-                var posView = new mesh_3.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
-                posView.forEach(function (pos) { vec3.multiply(pos, pos, scale); });
-            }
-        }
-        mesh_3.scale = scale;
-        function translate(mesh, globalDelta) {
-            assert(globalDelta.length == 3);
-            var posAttr = mesh.findFirstAttributeWithRole(1);
-            if (posAttr) {
-                var posView = new mesh_3.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
-                posView.forEach(function (pos) { vec3.add(pos, pos, globalDelta); });
-            }
-        }
-        mesh_3.translate = translate;
-        function rotate(mesh, rotation) {
-            assert(rotation.length == 4);
-            var posAttr = mesh.findFirstAttributeWithRole(1);
-            if (posAttr) {
-                var posView = new mesh_3.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
-                posView.forEach(function (pos) { vec3.transformQuat(pos, pos, rotation); });
-            }
-            var normAttr = mesh.findFirstAttributeWithRole(2);
-            if (normAttr) {
-                var normView = new mesh_3.VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
-                normView.forEach(function (norm) { vec3.transformQuat(norm, norm, rotation); });
-            }
-        }
-        mesh_3.rotate = rotate;
-        function transform(mesh, rotate, translate, scale) {
-            if (!rotate)
-                rotate = quat.create();
-            if (!translate)
-                translate = vec3.create();
-            if (!scale)
-                scale = vec3.fromValues(1, 1, 1);
-            assert(rotate.length == 4, "rotate must be a quad");
-            assert(translate.length == 3, "translate must be a vec3");
-            assert(scale.length == 3, "scale must be a vec3");
-            var posMatrix = mat4.create();
-            mat4.fromRotationTranslationScale(posMatrix, rotate, translate, scale);
-            var posAttr = mesh.findFirstAttributeWithRole(1);
-            if (posAttr) {
-                var posView = new mesh_3.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
-                posView.forEach(function (pos) { vec3.transformMat4(pos, pos, posMatrix); });
-            }
-            var normAttr = mesh.findFirstAttributeWithRole(2);
-            if (normAttr) {
-                var normView = new mesh_3.VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
-                var normalMatrix = mat3.create();
-                mat3.fromMat4(normalMatrix, posMatrix);
-                mat3.invert(normalMatrix, normalMatrix);
-                mat3.transpose(normalMatrix, normalMatrix);
-                normView.forEach(function (norm) { vec3.transformMat3(norm, norm, normalMatrix); });
-            }
-        }
-        mesh_3.transform = transform;
+        mesh_3.loadLWObjectFile = loadLWObjectFile;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
 // sound - Web SoundManager
