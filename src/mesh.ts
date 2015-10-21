@@ -402,13 +402,17 @@ namespace sd.mesh {
 		private attrElementCount_: number;
 		private typedViewCtor_: TypedArrayConstructor;
 		private buffer_: ArrayBuffer;
+		private viewItemCount_: number;
 
-		constructor(private vertexBuffer_: VertexBuffer, attr: PositionedAttribute) {
+		constructor(private vertexBuffer_: VertexBuffer, private attr_: PositionedAttribute, private firstItem_ = 0, itemCount = -1) {
 			this.stride_ = this.vertexBuffer_.layout().vertexSizeBytes();
-			this.attrOffset_ = attr.offset;
-			this.attrElementCount_ = vertexFieldElementCount(attr.field);
-			this.typedViewCtor_ = vertexFieldNumericType(attr.field).arrayType;
+			this.attrOffset_ = attr_.offset;
+			this.attrElementCount_ = vertexFieldElementCount(attr_.field);
+			this.typedViewCtor_ = vertexFieldNumericType(attr_.field).arrayType;
 			this.buffer_ = this.vertexBuffer_.buffer();
+			this.viewItemCount_ = itemCount < 0 ? (this.vertexBuffer_.itemCount() - this.firstItem_) : itemCount;
+
+			assert(this.firstItem_ + this.viewItemCount_ <= this.vertexBuffer_.itemCount(), "view item range is bigger than buffer");
 		}
 
 		forEach(callback: (item: TypedArray) => void) {
@@ -419,16 +423,21 @@ namespace sd.mesh {
 		}
 
 		item(index: number): TypedArray {
+			index += this.firstItem_;
 			var offsetBytes = (this.stride_ * index) + this.attrOffset_;
 			return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.attrElementCount_);
 		}
 
 		count() {
-			return this.vertexBuffer_.itemCount();
+			return this.viewItemCount_;
 		}
 
 		vertexBuffer() {
 			return this.vertexBuffer_;
+		}
+
+		subView(fromItem: number, subItemCount: number) {
+			return new VertexBufferAttributeView(this.vertexBuffer_, this.attr_, this.firstItem_ + fromItem, subItemCount);
 		}
 	}
 
