@@ -1357,6 +1357,76 @@ var sd;
         mesh_2.loadLWObjectFile = loadLWObjectFile;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
+// mesh-manip.ts - mesh manipulators
+// Part of Stardazed TX
+// (c) 2015 by Arthur Langereis - @zenmumbler
+/// <reference path="mesh.ts" />
+var sd;
+(function (sd) {
+    var mesh;
+    (function (mesh_3) {
+        function scale(mesh, scale) {
+            assert(scale.length == 3);
+            var posAttr = mesh.findFirstAttributeWithRole(1);
+            if (posAttr) {
+                var posView = new mesh_3.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
+                posView.forEach(function (pos) { vec3.multiply(pos, pos, scale); });
+            }
+        }
+        mesh_3.scale = scale;
+        function translate(mesh, globalDelta) {
+            assert(globalDelta.length == 3);
+            var posAttr = mesh.findFirstAttributeWithRole(1);
+            if (posAttr) {
+                var posView = new mesh_3.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
+                posView.forEach(function (pos) { vec3.add(pos, pos, globalDelta); });
+            }
+        }
+        mesh_3.translate = translate;
+        function rotate(mesh, rotation) {
+            assert(rotation.length == 4);
+            var posAttr = mesh.findFirstAttributeWithRole(1);
+            if (posAttr) {
+                var posView = new mesh_3.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
+                posView.forEach(function (pos) { vec3.transformQuat(pos, pos, rotation); });
+            }
+            var normAttr = mesh.findFirstAttributeWithRole(2);
+            if (normAttr) {
+                var normView = new mesh_3.VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
+                normView.forEach(function (norm) { vec3.transformQuat(norm, norm, rotation); });
+            }
+        }
+        mesh_3.rotate = rotate;
+        function transform(mesh, rotate, translate, scale) {
+            if (!rotate)
+                rotate = quat.create();
+            if (!translate)
+                translate = vec3.create();
+            if (!scale)
+                scale = vec3.fromValues(1, 1, 1);
+            assert(rotate.length == 4, "rotate must be a quad");
+            assert(translate.length == 3, "translate must be a vec3");
+            assert(scale.length == 3, "scale must be a vec3");
+            var posMatrix = mat4.create();
+            mat4.fromRotationTranslationScale(posMatrix, rotate, translate, scale);
+            var posAttr = mesh.findFirstAttributeWithRole(1);
+            if (posAttr) {
+                var posView = new mesh_3.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
+                posView.forEach(function (pos) { vec3.transformMat4(pos, pos, posMatrix); });
+            }
+            var normAttr = mesh.findFirstAttributeWithRole(2);
+            if (normAttr) {
+                var normView = new mesh_3.VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
+                var normalMatrix = mat3.create();
+                mat3.fromMat4(normalMatrix, posMatrix);
+                mat3.invert(normalMatrix, normalMatrix);
+                mat3.transpose(normalMatrix, normalMatrix);
+                normView.forEach(function (norm) { vec3.transformMat4(norm, norm, normalMatrix); });
+            }
+        }
+        mesh_3.transform = transform;
+    })(mesh = sd.mesh || (sd.mesh = {}));
+})(sd || (sd = {}));
 // sound - Web SoundManager
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler

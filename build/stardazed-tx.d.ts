@@ -460,6 +460,12 @@ declare namespace sd.mesh {
     }
     function loadLWObjectFile(filePath: string): Promise<LWMeshData>;
 }
+declare namespace sd.mesh {
+    function scale(mesh: MeshData, scale: ArrayOfNumber): void;
+    function translate(mesh: MeshData, globalDelta: ArrayOfNumber): void;
+    function rotate(mesh: MeshData, rotation: ArrayOfNumber): void;
+    function transform(mesh: MeshData, rotate?: ArrayOfNumber, translate?: ArrayOfNumber, scale?: ArrayOfNumber): void;
+}
 declare var webkitAudioContext: {
     prototype: AudioContext;
     new (): AudioContext;
