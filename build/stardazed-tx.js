@@ -1,7 +1,3 @@
-// core.ts - Basic type and DOM helpers
-// Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
-/// <reference path="../defs/es6-promise.d.ts" />
 function assert(cond, msg) {
     if (!cond) {
         throw new Error(msg || "assertion failed");
@@ -111,10 +107,6 @@ function loadFile(filePath, opts) {
         xhr.send();
     });
 }
-// game - general purpose game-related stuff
-// Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
-/// <reference path="core.ts" />
 function intRandom(maximum) {
     return (Math.random() * (maximum + 1)) << 0;
 }
@@ -312,9 +304,6 @@ var TMXData = (function () {
     ;
     return TMXData;
 })();
-// numeric.ts - numeric types, traits and array helpers
-// Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
 var sd;
 (function (sd) {
     sd.UInt8 = Object.freeze({
@@ -381,10 +370,6 @@ var sd;
         arrayType: Float64Array
     });
     function makeTypedArray(nt) {
-        // this function returns an overloaded function that mimics the TypedArrayConstructor new interface
-        // so you use it like:     makeTypedArray(UInt16)(...);
-        // which is equivalent to: new (UInt16.arrayType)(...);
-        // use whichever feels better
         var makeFn = function newArray(src, byteOffset, length) {
             return new (nt.arrayType)(src, byteOffset, length);
         };
@@ -392,14 +377,6 @@ var sd;
     }
     sd.makeTypedArray = makeTypedArray;
 })(sd || (sd = {}));
-// mesh.ts - mesh data
-// Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
-/// <reference path="../defs/gl-matrix.d.ts" />
-/// <reference path="../defs/webgl-ext.d.ts" />
-/// <reference path="core.ts" />
-/// <reference path="game.ts" />
-/// <reference path="numeric.ts" />
 var sd;
 (function (sd) {
     var mesh;
@@ -911,10 +888,6 @@ var sd;
         ;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
-// mesh-manip.ts - mesh manipulators
-// Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
-/// <reference path="mesh.ts" />
 var sd;
 (function (sd) {
     var mesh;
@@ -981,16 +954,11 @@ var sd;
         mesh_1.transform = transform;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
-// mesh-gen.ts - mesh generators
-// Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-/// <reference path="mesh.ts" />
-/// <reference path="mesh-manip.ts" />
 var sd;
 (function (sd) {
     var mesh;
@@ -1333,14 +1301,67 @@ var sd;
                 return Sphere;
             })(MeshGenerator);
             gen.Sphere = Sphere;
+            var Torus = (function (_super) {
+                __extends(Torus, _super);
+                function Torus(desc) {
+                    _super.call(this);
+                    this.minorRadius_ = desc.minorRadius;
+                    this.majorRadius_ = desc.majorRadius;
+                    this.rows_ = desc.rows | 0;
+                    this.segs_ = desc.segs | 0;
+                    this.sliceFrom_ = clamp01(desc.sliceFrom || 0.0);
+                    this.sliceTo_ = clamp01(desc.sliceTo || 1.0);
+                    assert(this.minorRadius_ >= 0);
+                    assert(this.majorRadius_ >= this.minorRadius_);
+                    assert(this.minorRadius_ > 0 || this.majorRadius_ > 0);
+                    assert(this.rows_ >= 4);
+                    assert(this.segs_ >= 3);
+                    assert(this.sliceTo_ > this.sliceFrom_);
+                }
+                Torus.prototype.vertexCount = function () {
+                    return (this.segs_ + 1) * (this.rows_ + 1);
+                };
+                Torus.prototype.faceCount = function () {
+                    return 2 * this.segs_ * this.rows_;
+                };
+                Torus.prototype.generateImpl = function (position, face, uv) {
+                    var Pi = Math.PI;
+                    var Tau = Math.PI * 2;
+                    var slice = this.sliceTo_ - this.sliceFrom_;
+                    var piFrom = this.sliceFrom_ * Tau;
+                    var piSlice = slice * Tau;
+                    var vix = 0;
+                    var innerRadius = this.majorRadius_ - this.minorRadius_;
+                    for (var row = 0; row <= this.rows_; ++row) {
+                        var majorAngle = piFrom + ((piSlice * row) / this.rows_);
+                        var texV = this.sliceFrom_ + ((row / this.rows_) * slice);
+                        for (var seg = 0; seg <= this.segs_; ++seg) {
+                            var innerAngle = (Tau * seg) / this.segs_;
+                            var x = Math.cos(majorAngle) * (this.majorRadius_ + Math.cos(innerAngle) * innerRadius);
+                            var y = Math.sin(majorAngle) * (this.majorRadius_ + Math.cos(innerAngle) * innerRadius);
+                            var z = Math.sin(innerAngle) * innerRadius;
+                            var texU = seg / this.segs_;
+                            position(x, y, z);
+                            uv(texU, texV);
+                            ++vix;
+                        }
+                        if (row > 0) {
+                            var raix = vix - ((this.segs_ + 1) * 2);
+                            var rbix = vix - (this.segs_ + 1);
+                            for (var seg = 0; seg < this.segs_; ++seg) {
+                                var rl = seg, rr = seg + 1;
+                                face(raix + rl, rbix + rl, raix + rr);
+                                face(raix + rr, rbix + rl, rbix + rr);
+                            }
+                        }
+                    }
+                };
+                return Torus;
+            })(MeshGenerator);
+            gen.Torus = Torus;
         })(gen = mesh_2.gen || (mesh_2.gen = {}));
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
-// mesh-lwo.ts - Lightwave OBJ mesh file import
-// Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
-/// <reference path="core.ts" />
-/// <reference path="mesh.ts" />
 var sd;
 (function (sd) {
     var mesh;
@@ -1500,10 +1521,6 @@ var sd;
         mesh_3.loadLWObjectFile = loadLWObjectFile;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
-// sound - Web SoundManager
-// Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
-/// <reference path="game.ts" />
 var SoundManager = (function () {
     function SoundManager() {
         this.context = window.AudioContext ? new AudioContext() : (window.webkitAudioContext ? new webkitAudioContext() : null);
@@ -1526,10 +1543,6 @@ var SoundManager = (function () {
     };
     return SoundManager;
 })();
-// transform.ts - entities transform state
-// Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
-/// <reference path="mesh.ts" />
 var sd;
 (function (sd) {
     var scene;

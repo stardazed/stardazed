@@ -463,6 +463,26 @@ declare namespace sd.mesh.gen {
         faceCount(): number;
         generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
     }
+    interface TorusDescriptor {
+        minorRadius: number;
+        majorRadius: number;
+        rows: number;
+        segs: number;
+        sliceFrom?: number;
+        sliceTo?: number;
+    }
+    class Torus extends MeshGenerator {
+        private minorRadius_;
+        private majorRadius_;
+        private rows_;
+        private segs_;
+        private sliceFrom_;
+        private sliceTo_;
+        constructor(desc: TorusDescriptor);
+        vertexCount(): number;
+        faceCount(): number;
+        generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
+    }
 }
 declare namespace sd.mesh {
     interface Material {

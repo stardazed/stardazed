@@ -220,7 +220,7 @@ class TMXData {
 	width: number;
 	height: number;
 
-	load(filePath: string) {
+	load(filePath: string): Promise<TMXData> {
 		return loadFile(filePath, {
 			tryBreakCache: true,
 			mimeType: "application/xml",

@@ -541,4 +541,103 @@ namespace sd.mesh.gen {
 		}
 	}
 
+
+	//  _____                
+	// |_   _|__ _ _ _  _ ___
+	//   | |/ _ \ '_| || (_-<
+	//   |_|\___/_|  \_,_/__/
+	//                       
+
+	export interface TorusDescriptor {
+		minorRadius: number; // float, >= 0
+		majorRadius: number; // float, >= minorRadius
+
+		rows: number;       // int: 4.., number of row subdivisions
+		segs: number;       // int: 3.., number of quad facets per row
+
+		sliceFrom?: number; // float: 0.0..1.0, start point of torus center axis
+		sliceTo?: number;   // float: 0.0..1.0, end point of torus center axis
+	}
+
+	export class Torus extends MeshGenerator {
+		private minorRadius_: number;
+		private majorRadius_: number;
+		private rows_: number;
+		private segs_: number;
+		private sliceFrom_: number;
+		private sliceTo_: number;
+		
+		constructor(desc: TorusDescriptor) {
+			super();
+
+			this.minorRadius_ = desc.minorRadius;
+			this.majorRadius_ = desc.majorRadius;
+			this.rows_ = desc.rows | 0;
+			this.segs_ = desc.segs | 0;
+			this.sliceFrom_ = clamp01(desc.sliceFrom || 0.0);
+			this.sliceTo_ = clamp01(desc.sliceTo || 1.0);
+
+			assert(this.minorRadius_ >= 0);
+			assert(this.majorRadius_ >= this.minorRadius_);
+			assert(this.minorRadius_ > 0 || this.majorRadius_ > 0);
+			assert(this.rows_ >= 4);
+			assert(this.segs_ >= 3);
+			assert(this.sliceTo_ > this.sliceFrom_);
+		}
+
+		vertexCount(): number {
+			return (this.segs_ + 1) * (this.rows_ + 1);
+		}
+
+		faceCount(): number {
+			return 2 * this.segs_ * this.rows_;
+		}
+
+		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
+			var Pi = Math.PI;
+			var Tau = Math.PI * 2;
+
+			var slice = this.sliceTo_ - this.sliceFrom_;
+			var piFrom = this.sliceFrom_ * Tau;
+			var piSlice = slice * Tau;
+
+			var vix = 0;
+			var innerRadius = this.majorRadius_ - this.minorRadius_;
+
+			for (var row = 0; row <= this.rows_; ++row) {
+				var majorAngle = piFrom + ((piSlice * row) / this.rows_); // angle on the x-y plane
+				var texV = this.sliceFrom_ + ((row / this.rows_) * slice);
+
+				for (var seg = 0; seg <= this.segs_; ++seg) {
+					var innerAngle = (Tau * seg) / this.segs_;
+
+					var x = Math.cos(majorAngle) * (this.majorRadius_ + Math.cos(innerAngle) * innerRadius);
+					var y = Math.sin(majorAngle) * (this.majorRadius_ + Math.cos(innerAngle) * innerRadius);
+
+					var z = Math.sin(innerAngle) * innerRadius;
+
+					var texU = seg / this.segs_;
+
+					position(x, y, z);
+					uv(texU, texV);
+					++vix;
+				}
+				
+				// construct row of faces
+				if (row > 0) {
+					var raix = vix - ((this.segs_ + 1) * 2);
+					var rbix = vix - (this.segs_ + 1);
+
+					for (var seg = 0; seg < this.segs_; ++seg) {
+						var rl = seg,
+							rr = seg + 1;
+
+						face(raix + rl, rbix + rl, raix + rr);
+						face(raix + rr, rbix + rl, rbix + rr);
+					}
+				}
+			}
+		}
+	}
+
 } // ns sd.mesh.gen
