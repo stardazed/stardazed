@@ -107,25 +107,6 @@ function loadFile(filePath, opts) {
         xhr.send();
     });
 }
-function intRandom(maximum) {
-    return (Math.random() * (maximum + 1)) << 0;
-}
-function intRandomRange(minimum, maximum) {
-    var diff = (maximum - minimum) << 0;
-    return minimum + intRandom(diff);
-}
-function deg2rad(deg) {
-    return deg * Math.PI / 180.0;
-}
-function rad2deg(rad) {
-    return rad * 180.0 / Math.PI;
-}
-function clamp(n, min, max) {
-    return Math.max(min, Math.min(max, n));
-}
-function clamp01(n) {
-    return Math.max(0.0, Math.min(1.0, n));
-}
 function loadImage(src) {
     return new Promise(function (resolve, reject) {
         var image = new Image();
@@ -147,90 +128,6 @@ function loadImageData(src) {
         return imageData(image);
     });
 }
-var Key;
-(function (Key) {
-    Key[Key["UP"] = 38] = "UP";
-    Key[Key["DOWN"] = 40] = "DOWN";
-    Key[Key["LEFT"] = 37] = "LEFT";
-    Key[Key["RIGHT"] = 39] = "RIGHT";
-    Key[Key["SPACE"] = 32] = "SPACE";
-    Key[Key["RETURN"] = 13] = "RETURN";
-    Key[Key["ESC"] = 27] = "ESC";
-    Key[Key["PAGEUP"] = 33] = "PAGEUP";
-    Key[Key["PAGEDOWN"] = 34] = "PAGEDOWN";
-    Key[Key["HOME"] = 36] = "HOME";
-    Key[Key["END"] = 35] = "END";
-    Key[Key["DELETE"] = 46] = "DELETE";
-    Key[Key["A"] = 'A'.charCodeAt(0)] = "A";
-    Key[Key["B"] = 'B'.charCodeAt(0)] = "B";
-    Key[Key["C"] = 'C'.charCodeAt(0)] = "C";
-    Key[Key["D"] = 'D'.charCodeAt(0)] = "D";
-    Key[Key["E"] = 'E'.charCodeAt(0)] = "E";
-    Key[Key["F"] = 'F'.charCodeAt(0)] = "F";
-    Key[Key["G"] = 'G'.charCodeAt(0)] = "G";
-    Key[Key["H"] = 'H'.charCodeAt(0)] = "H";
-    Key[Key["I"] = 'I'.charCodeAt(0)] = "I";
-    Key[Key["J"] = 'J'.charCodeAt(0)] = "J";
-    Key[Key["K"] = 'K'.charCodeAt(0)] = "K";
-    Key[Key["L"] = 'L'.charCodeAt(0)] = "L";
-    Key[Key["M"] = 'M'.charCodeAt(0)] = "M";
-    Key[Key["N"] = 'N'.charCodeAt(0)] = "N";
-    Key[Key["O"] = 'O'.charCodeAt(0)] = "O";
-    Key[Key["P"] = 'P'.charCodeAt(0)] = "P";
-    Key[Key["Q"] = 'Q'.charCodeAt(0)] = "Q";
-    Key[Key["R"] = 'R'.charCodeAt(0)] = "R";
-    Key[Key["S"] = 'S'.charCodeAt(0)] = "S";
-    Key[Key["T"] = 'T'.charCodeAt(0)] = "T";
-    Key[Key["U"] = 'U'.charCodeAt(0)] = "U";
-    Key[Key["V"] = 'V'.charCodeAt(0)] = "V";
-    Key[Key["W"] = 'W'.charCodeAt(0)] = "W";
-    Key[Key["X"] = 'X'.charCodeAt(0)] = "X";
-    Key[Key["Y"] = 'Y'.charCodeAt(0)] = "Y";
-    Key[Key["Z"] = 'Z'.charCodeAt(0)] = "Z";
-})(Key || (Key = {}));
-;
-var Keyboard = (function () {
-    function Keyboard() {
-        var _this = this;
-        this.keys = {};
-        on(window, "keydown", function (evt) {
-            var key = _this.keys[evt.keyCode];
-            if (!key) {
-                _this.keys[evt.keyCode] = { down: true, when: evt.timeStamp };
-            }
-            else {
-                if (key.when < evt.timeStamp) {
-                    key.down = true;
-                    key.when = evt.timeStamp;
-                }
-            }
-            if (!evt.metaKey)
-                evt.preventDefault();
-        });
-        on(window, "keyup", function (evt) {
-            var key = _this.keys[evt.keyCode];
-            if (!key) {
-                _this.keys[evt.keyCode] = { down: false, when: evt.timeStamp };
-            }
-            else {
-                key.down = false;
-                key.when = evt.timeStamp;
-            }
-            if (!evt.metaKey)
-                evt.preventDefault();
-        });
-        on(window, "blur", function (evt) {
-            _this.keys = {};
-        });
-        on(window, "focus", function (evt) {
-            _this.keys = {};
-        });
-    }
-    Keyboard.prototype.down = function (kc) {
-        return this.keys[kc] && this.keys[kc].down;
-    };
-    return Keyboard;
-})();
 var TMXLayer = (function () {
     function TMXLayer(layerNode) {
         var _this = this;
@@ -304,6 +201,116 @@ var TMXData = (function () {
     ;
     return TMXData;
 })();
+var sd;
+(function (sd) {
+    var io;
+    (function (io) {
+        (function (Key) {
+            Key[Key["UP"] = 38] = "UP";
+            Key[Key["DOWN"] = 40] = "DOWN";
+            Key[Key["LEFT"] = 37] = "LEFT";
+            Key[Key["RIGHT"] = 39] = "RIGHT";
+            Key[Key["SPACE"] = 32] = "SPACE";
+            Key[Key["RETURN"] = 13] = "RETURN";
+            Key[Key["ESC"] = 27] = "ESC";
+            Key[Key["PAGEUP"] = 33] = "PAGEUP";
+            Key[Key["PAGEDOWN"] = 34] = "PAGEDOWN";
+            Key[Key["HOME"] = 36] = "HOME";
+            Key[Key["END"] = 35] = "END";
+            Key[Key["DELETE"] = 46] = "DELETE";
+            Key[Key["A"] = 'A'.charCodeAt(0)] = "A";
+            Key[Key["B"] = 'B'.charCodeAt(0)] = "B";
+            Key[Key["C"] = 'C'.charCodeAt(0)] = "C";
+            Key[Key["D"] = 'D'.charCodeAt(0)] = "D";
+            Key[Key["E"] = 'E'.charCodeAt(0)] = "E";
+            Key[Key["F"] = 'F'.charCodeAt(0)] = "F";
+            Key[Key["G"] = 'G'.charCodeAt(0)] = "G";
+            Key[Key["H"] = 'H'.charCodeAt(0)] = "H";
+            Key[Key["I"] = 'I'.charCodeAt(0)] = "I";
+            Key[Key["J"] = 'J'.charCodeAt(0)] = "J";
+            Key[Key["K"] = 'K'.charCodeAt(0)] = "K";
+            Key[Key["L"] = 'L'.charCodeAt(0)] = "L";
+            Key[Key["M"] = 'M'.charCodeAt(0)] = "M";
+            Key[Key["N"] = 'N'.charCodeAt(0)] = "N";
+            Key[Key["O"] = 'O'.charCodeAt(0)] = "O";
+            Key[Key["P"] = 'P'.charCodeAt(0)] = "P";
+            Key[Key["Q"] = 'Q'.charCodeAt(0)] = "Q";
+            Key[Key["R"] = 'R'.charCodeAt(0)] = "R";
+            Key[Key["S"] = 'S'.charCodeAt(0)] = "S";
+            Key[Key["T"] = 'T'.charCodeAt(0)] = "T";
+            Key[Key["U"] = 'U'.charCodeAt(0)] = "U";
+            Key[Key["V"] = 'V'.charCodeAt(0)] = "V";
+            Key[Key["W"] = 'W'.charCodeAt(0)] = "W";
+            Key[Key["X"] = 'X'.charCodeAt(0)] = "X";
+            Key[Key["Y"] = 'Y'.charCodeAt(0)] = "Y";
+            Key[Key["Z"] = 'Z'.charCodeAt(0)] = "Z";
+        })(io.Key || (io.Key = {}));
+        var Key = io.Key;
+        ;
+        var Keyboard = (function () {
+            function Keyboard() {
+                var _this = this;
+                this.keys = {};
+                on(window, "keydown", function (evt) {
+                    var key = _this.keys[evt.keyCode];
+                    if (!key) {
+                        _this.keys[evt.keyCode] = { down: true, when: evt.timeStamp };
+                    }
+                    else {
+                        if (key.when < evt.timeStamp) {
+                            key.down = true;
+                            key.when = evt.timeStamp;
+                        }
+                    }
+                    if (!evt.metaKey)
+                        evt.preventDefault();
+                });
+                on(window, "keyup", function (evt) {
+                    var key = _this.keys[evt.keyCode];
+                    if (!key) {
+                        _this.keys[evt.keyCode] = { down: false, when: evt.timeStamp };
+                    }
+                    else {
+                        key.down = false;
+                        key.when = evt.timeStamp;
+                    }
+                    if (!evt.metaKey)
+                        evt.preventDefault();
+                });
+                on(window, "blur", function (evt) {
+                    _this.keys = {};
+                });
+                on(window, "focus", function (evt) {
+                    _this.keys = {};
+                });
+            }
+            Keyboard.prototype.down = function (kc) {
+                return this.keys[kc] && this.keys[kc].down;
+            };
+            return Keyboard;
+        })();
+        io.Keyboard = Keyboard;
+    })(io = sd.io || (sd.io = {}));
+})(sd || (sd = {}));
+function intRandom(maximum) {
+    return (Math.random() * (maximum + 1)) << 0;
+}
+function intRandomRange(minimum, maximum) {
+    var diff = (maximum - minimum) << 0;
+    return minimum + intRandom(diff);
+}
+function deg2rad(deg) {
+    return deg * Math.PI / 180.0;
+}
+function rad2deg(rad) {
+    return rad * 180.0 / Math.PI;
+}
+function clamp(n, min, max) {
+    return Math.max(min, Math.min(max, n));
+}
+function clamp01(n) {
+    return Math.max(0.0, Math.min(1.0, n));
+}
 var sd;
 (function (sd) {
     sd.UInt8 = Object.freeze({

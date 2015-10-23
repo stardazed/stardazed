@@ -6,7 +6,7 @@
 /// <reference path="../defs/webgl-ext.d.ts" />
 
 /// <reference path="core.ts" />
-/// <reference path="game.ts" />
+/// <reference path="math.ts" />
 /// <reference path="numeric.ts" />
 
 namespace sd.mesh {
