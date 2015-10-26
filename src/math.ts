@@ -2,6 +2,8 @@
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
+/// <reference path="../defs/gl-matrix.d.ts" />
+
 function intRandom(maximum: number): number {
 	return (Math.random() * (maximum + 1)) << 0;
 }
@@ -36,3 +38,15 @@ function clamp01(n: number): number {
 interface Math {
 	sign(n: number): number;
 }
+
+
+interface vec3 {
+	add3(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, c: ArrayOfNumber): ArrayOfNumber;
+}
+
+vec3.add3 = function(out, a, b, c) {
+	out[0] = a[0] + b[0] + c[0];
+	out[1] = a[1] + b[1] + c[0];
+	out[2] = a[2] + b[2] + c[0];
+	return out;
+};

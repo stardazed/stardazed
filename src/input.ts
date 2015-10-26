@@ -84,7 +84,7 @@ namespace sd.io {
 		}
 
 		down(kc: Key): boolean {
-			return this.keys[kc] && this.keys[kc].down;
+			return !!(this.keys[kc] && this.keys[kc].down);
 		}
 	}
 

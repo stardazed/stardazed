@@ -128,6 +128,9 @@ declare function clamp01(n: number): number;
 interface Math {
     sign(n: number): number;
 }
+interface vec3 {
+    add3(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, c: ArrayOfNumber): ArrayOfNumber;
+}
 declare namespace sd {
     interface TypedArray {
         BYTES_PER_ELEMENT: number;
