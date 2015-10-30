@@ -50,3 +50,62 @@ vec3.add3 = function(out, a, b, c) {
 	out[2] = a[2] + b[2] + c[2];
 	return out;
 };
+
+
+//  ___        _   
+// | _ \___ __| |_ 
+// |   / -_) _|  _|
+// |_|_\___\__|\__|
+//                 
+
+class Rect {
+	topLeft: Float32Array;
+	topRight: Float32Array;
+	bottomLeft: Float32Array;
+	bottomRight: Float32Array;
+
+	constructor(public left: number, public top: number, public right: number, public bottom: number) {
+		this.topLeft = vec2.fromValues(left, top);
+		this.topRight = vec2.fromValues(right, top);
+		this.bottomLeft = vec2.fromValues(left, bottom);
+		this.bottomRight = vec2.fromValues(right, bottom);
+
+		// console.info("FRAME", this.topLeft, this.topRight, this.bottomLeft, this.bottomRight);
+	}
+
+	intersectsLineSegment(ptA: ArrayOfNumber, ptB: ArrayOfNumber): boolean {
+		var d = vec2.create();
+		vec2.subtract(d, ptB, ptA);
+
+		var tmin = 0;
+		var tmax = 9999;
+
+		for (var i = 0; i < 2; ++i) {
+			if (Math.abs(d[i]) < 0.00001) {
+				if (ptA[i] < this.topLeft[i] || ptA[i] > this.bottomRight[i])
+					return false;
+			}
+			else {
+				var ood = 1 / d[i];
+				var t1 = (this.topLeft[i] - ptA[i]) * ood;
+				var t2 = (this.bottomRight[i] - ptA[i]) * ood;
+
+				if (t1 > t2) {
+					var tt = t2;
+					t2 = t1;
+					t1 = tt;
+				}
+
+				tmin = Math.max(tmin, t1);
+				tmax = Math.min(tmax, t2);
+
+				if (tmin > tmax)
+					return false;
+			}
+		}
+
+		return tmin < 1.0;
+	}
+}
+
+
