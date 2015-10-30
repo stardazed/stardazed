@@ -107,6 +107,186 @@ function loadFile(filePath, opts) {
         xhr.send();
     });
 }
+var sd;
+(function (sd) {
+    sd.UInt8 = Object.freeze({
+        min: 0,
+        max: 255,
+        signed: false,
+        byteSize: 1,
+        arrayType: Uint8Array
+    });
+    sd.UInt8Clamped = Object.freeze({
+        min: 0,
+        max: 255,
+        signed: false,
+        byteSize: 1,
+        arrayType: Uint8ClampedArray
+    });
+    sd.SInt8 = Object.freeze({
+        min: -128,
+        max: 127,
+        signed: true,
+        byteSize: 1,
+        arrayType: Int8Array
+    });
+    sd.UInt16 = Object.freeze({
+        min: 0,
+        max: 65535,
+        signed: false,
+        byteSize: 2,
+        arrayType: Uint16Array
+    });
+    sd.SInt16 = Object.freeze({
+        min: -32768,
+        max: 32767,
+        signed: true,
+        byteSize: 2,
+        arrayType: Int16Array
+    });
+    sd.UInt32 = Object.freeze({
+        min: 0,
+        max: 4294967295,
+        signed: false,
+        byteSize: 4,
+        arrayType: Uint32Array
+    });
+    sd.SInt32 = Object.freeze({
+        min: -2147483648,
+        max: 2147483647,
+        signed: true,
+        byteSize: 4,
+        arrayType: Int32Array
+    });
+    sd.Float = Object.freeze({
+        min: -340282346638528859811704183484516925440.0,
+        max: 340282346638528859811704183484516925440.0,
+        signed: true,
+        byteSize: 4,
+        arrayType: Float32Array
+    });
+    sd.Double = Object.freeze({
+        min: -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
+        max: 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
+        signed: true,
+        byteSize: 8,
+        arrayType: Float64Array
+    });
+    function makeTypedArray(nt) {
+        var makeFn = function newArray(src, byteOffset, length) {
+            return new (nt.arrayType)(src, byteOffset, length);
+        };
+        return makeFn;
+    }
+    sd.makeTypedArray = makeTypedArray;
+})(sd || (sd = {}));
+if (!ArrayBuffer.transfer) {
+    ArrayBuffer.transfer = function (oldBuffer, newByteLength) {
+        var oldByteLength = oldBuffer.byteLength;
+        newByteLength = newByteLength | 0;
+        assert(newByteLength > 0);
+        if (newByteLength < oldByteLength) {
+            return oldBuffer.slice(0, newByteLength);
+        }
+        var oldBufferView = new Uint8Array(oldBuffer);
+        var newBufferView = new Uint8Array(newByteLength);
+        newBufferView.set(oldBufferView);
+        return newBufferView.buffer;
+    };
+}
+var sd;
+(function (sd) {
+    var Deque = (function () {
+        function Deque() {
+            this.blockCapacity = 128;
+            this.blocks_ = [];
+            this.blocks_.push(this.newBlock());
+            this.headBlock_ = this.tailBlock_ = 0;
+            this.headIndex_ = this.tailIndex_ = 0;
+            this.count_ = 0;
+        }
+        Deque.prototype.newBlock = function () {
+            return [];
+        };
+        Deque.prototype.headBlock = function () { return this.blocks_[this.headBlock_]; };
+        Deque.prototype.tailBlock = function () { return this.blocks_[this.tailBlock_]; };
+        Deque.prototype.append = function (t) {
+            if (this.tailIndex_ == this.blockCapacity) {
+                if (this.tailBlock_ == this.blocks_.length - 1) {
+                    this.blocks_.push(this.newBlock());
+                }
+                this.tailBlock_++;
+                this.tailIndex_ = 0;
+            }
+            this.tailBlock()[this.tailIndex_] = t;
+            ++this.tailIndex_;
+            ++this.count_;
+        };
+        Deque.prototype.prepend = function (t) {
+            if (this.headIndex_ == 0) {
+                if (this.headBlock_ == 0) {
+                    this.blocks_.unshift(this.newBlock());
+                    ++this.tailBlock_;
+                }
+                else {
+                    --this.headBlock_;
+                }
+                this.headIndex_ = this.blockCapacity;
+            }
+            --this.headIndex_;
+            this.headBlock()[this.headIndex_] = t;
+            ++this.count_;
+        };
+        Deque.prototype.popFront = function () {
+            assert(this.count_ > 0);
+            delete this.headBlock()[this.headIndex_];
+            ++this.headIndex_;
+            if (this.headIndex_ == this.blockCapacity) {
+                if (this.headBlock_ == 0) {
+                    ++this.headBlock_;
+                }
+                else if (this.headBlock_ == 1) {
+                    this.blocks_.shift();
+                    this.tailBlock_--;
+                }
+                this.headIndex_ = 0;
+            }
+            --this.count_;
+        };
+        Deque.prototype.popBack = function () {
+            assert(this.count_ > 0);
+            if (this.tailIndex_ == 0) {
+                var lastBlockIndex = this.blocks_.length - 1;
+                if (this.tailBlock_ == lastBlockIndex - 1) {
+                    this.blocks_.pop();
+                }
+                --this.tailBlock_;
+                this.tailIndex_ = this.blockCapacity;
+            }
+            --this.tailIndex_;
+            delete this.tailBlock()[this.tailIndex_];
+            --this.count_;
+        };
+        Deque.prototype.clear = function () {
+            this.blocks_ = [];
+            this.headBlock_ = this.tailBlock_ = 0;
+            this.headIndex_ = this.tailIndex_ = 0;
+            this.count_ = 0;
+        };
+        Deque.prototype.count = function () { return this.count_; };
+        Deque.prototype.empty = function () { return this.count_ == 0; };
+        Deque.prototype.front = function () {
+            assert(this.count_ > 0);
+            return this.headBlock()[this.headIndex_];
+        };
+        Deque.prototype.back = function () {
+            assert(this.count_ > 0);
+            return (this.tailIndex_ > 0) ? this.tailBlock()[this.tailIndex_ - 1] : this.blocks_[this.tailBlock_ - 1][this.blockCapacity - 1];
+        };
+        return Deque;
+    })();
+    sd.Deque = Deque;
+})(sd || (sd = {}));
 function loadImage(src) {
     return new Promise(function (resolve, reject) {
         var image = new Image();
@@ -317,79 +497,46 @@ vec3.add3 = function (out, a, b, c) {
     out[2] = a[2] + b[2] + c[2];
     return out;
 };
-var sd;
-(function (sd) {
-    sd.UInt8 = Object.freeze({
-        min: 0,
-        max: 255,
-        signed: false,
-        byteSize: 1,
-        arrayType: Uint8Array
-    });
-    sd.UInt8Clamped = Object.freeze({
-        min: 0,
-        max: 255,
-        signed: false,
-        byteSize: 1,
-        arrayType: Uint8ClampedArray
-    });
-    sd.SInt8 = Object.freeze({
-        min: -128,
-        max: 127,
-        signed: true,
-        byteSize: 1,
-        arrayType: Int8Array
-    });
-    sd.UInt16 = Object.freeze({
-        min: 0,
-        max: 65535,
-        signed: false,
-        byteSize: 2,
-        arrayType: Uint16Array
-    });
-    sd.SInt16 = Object.freeze({
-        min: -32768,
-        max: 32767,
-        signed: true,
-        byteSize: 2,
-        arrayType: Int16Array
-    });
-    sd.UInt32 = Object.freeze({
-        min: 0,
-        max: 4294967295,
-        signed: false,
-        byteSize: 4,
-        arrayType: Uint32Array
-    });
-    sd.SInt32 = Object.freeze({
-        min: -2147483648,
-        max: 2147483647,
-        signed: true,
-        byteSize: 4,
-        arrayType: Int32Array
-    });
-    sd.Float = Object.freeze({
-        min: -340282346638528859811704183484516925440.0,
-        max: 340282346638528859811704183484516925440.0,
-        signed: true,
-        byteSize: 4,
-        arrayType: Float32Array
-    });
-    sd.Double = Object.freeze({
-        min: -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
-        max: 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
-        signed: true,
-        byteSize: 8,
-        arrayType: Float64Array
-    });
-    function makeTypedArray(nt) {
-        var makeFn = function newArray(src, byteOffset, length) {
-            return new (nt.arrayType)(src, byteOffset, length);
-        };
-        return makeFn;
+var Rect = (function () {
+    function Rect(left, top, right, bottom) {
+        this.left = left;
+        this.top = top;
+        this.right = right;
+        this.bottom = bottom;
+        this.topLeft = vec2.fromValues(left, top);
+        this.topRight = vec2.fromValues(right, top);
+        this.bottomLeft = vec2.fromValues(left, bottom);
+        this.bottomRight = vec2.fromValues(right, bottom);
     }
-    sd.makeTypedArray = makeTypedArray;
-})(sd || (sd = {}));
+    Rect.prototype.intersectsLineSegment = function (ptA, ptB) {
+        var d = vec2.create();
+        vec2.subtract(d, ptB, ptA);
+        var tmin = 0;
+        var tmax = 9999;
+        for (var i = 0; i < 2; ++i) {
+            if (Math.abs(d[i]) < 0.00001) {
+                if (ptA[i] < this.topLeft[i] || ptA[i] > this.bottomRight[i])
+                    return false;
+            }
+            else {
+                var ood = 1 / d[i];
+                var t1 = (this.topLeft[i] - ptA[i]) * ood;
+                var t2 = (this.bottomRight[i] - ptA[i]) * ood;
+                if (t1 > t2) {
+                    var tt = t2;
+                    t2 = t1;
+                    t1 = tt;
+                }
+                tmin = Math.max(tmin, t1);
+                tmax = Math.min(tmax, t2);
+                if (tmin > tmax)
+                    return false;
+            }
+        }
+        return tmin < 1.0;
+    };
+    return Rect;
+})();
 var sd;
 (function (sd) {
     var mesh;
@@ -1589,4 +1736,16 @@ var sd;
             return TransformManager;
         })();
     })(scene = sd.scene || (sd.scene = {}));
+})(sd || (sd = {}));
+var sd;
+(function (sd) {
+    var world;
+    (function (world) {
+        var EntityManager = (function () {
+            function EntityManager() {
+            }
+            return EntityManager;
+        })();
+        world.EntityManager = EntityManager;
+    })(world = sd.world || (sd.world = {}));
 })(sd || (sd = {}));

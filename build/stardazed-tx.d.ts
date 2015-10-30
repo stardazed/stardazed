@@ -39,6 +39,71 @@ interface FileLoadOptions {
     responseType?: FileLoadType;
 }
 declare function loadFile(filePath: string, opts?: FileLoadOptions): Promise<{}>;
+declare namespace sd {
+    interface TypedArray {
+        BYTES_PER_ELEMENT: number;
+        buffer: ArrayBuffer;
+        byteLength: number;
+        byteOffset: number;
+        length: number;
+        [index: number]: number;
+        set(array: ArrayLike<number>, offset?: number): void;
+        subarray(begin: number, end?: number): TypedArray;
+    }
+    interface TypedArrayConstructor {
+        new (length: number): TypedArray;
+        new (array: ArrayLike<number>): TypedArray;
+        new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
+    }
+    interface NumericType {
+        min: number;
+        max: number;
+        signed: boolean;
+        byteSize: number;
+        arrayType: TypedArrayConstructor;
+    }
+    const UInt8: NumericType;
+    const UInt8Clamped: NumericType;
+    const SInt8: NumericType;
+    const UInt16: NumericType;
+    const SInt16: NumericType;
+    const UInt32: NumericType;
+    const SInt32: NumericType;
+    const Float: NumericType;
+    const Double: NumericType;
+    function makeTypedArray(nt: NumericType): {
+        (length: number): TypedArray;
+        (array: ArrayLike<number>): TypedArray;
+        (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
+    };
+}
+interface ArrayBufferConstructor {
+    transfer(oldBuffer: ArrayBuffer, newByteLength?: number): ArrayBuffer;
+}
+declare namespace sd {
+    class Deque<T> {
+        private blocks_;
+        private headBlock_;
+        private headIndex_;
+        private tailBlock_;
+        private tailIndex_;
+        private count_;
+        private blockCapacity;
+        private newBlock();
+        private headBlock();
+        private tailBlock();
+        constructor();
+        append(t: T): void;
+        prepend(t: T): void;
+        popFront(): void;
+        popBack(): void;
+        clear(): void;
+        count(): number;
+        empty(): boolean;
+        front(): T;
+        back(): T;
+    }
+}
 declare function loadImage(src: string): Promise<HTMLImageElement>;
 declare function imageData(image: HTMLImageElement): ImageData;
 declare function loadImageData(src: string): Promise<ImageData>;
@@ -131,41 +196,17 @@ interface Math {
 interface vec3 {
     add3(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, c: ArrayOfNumber): ArrayOfNumber;
 }
-declare namespace sd {
-    interface TypedArray {
-        BYTES_PER_ELEMENT: number;
-        buffer: ArrayBuffer;
-        byteLength: number;
-        byteOffset: number;
-        length: number;
-        [index: number]: number;
-    }
-    interface TypedArrayConstructor {
-        new (length: number): TypedArray;
-        new (array: ArrayLike<number>): TypedArray;
-        new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
-    }
-    interface NumericType {
-        min: number;
-        max: number;
-        signed: boolean;
-        byteSize: number;
-        arrayType: TypedArrayConstructor;
-    }
-    const UInt8: NumericType;
-    const UInt8Clamped: NumericType;
-    const SInt8: NumericType;
-    const UInt16: NumericType;
-    const SInt16: NumericType;
-    const UInt32: NumericType;
-    const SInt32: NumericType;
-    const Float: NumericType;
-    const Double: NumericType;
-    function makeTypedArray(nt: NumericType): {
-        (length: number): TypedArray;
-        (array: ArrayLike<number>): TypedArray;
-        (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
-    };
+declare class Rect {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+    topLeft: Float32Array;
+    topRight: Float32Array;
+    bottomLeft: Float32Array;
+    bottomRight: Float32Array;
+    constructor(left: number, top: number, right: number, bottom: number);
+    intersectsLineSegment(ptA: ArrayOfNumber, ptB: ArrayOfNumber): boolean;
 }
 declare namespace sd.mesh {
     const enum VertexField {
@@ -525,4 +566,11 @@ declare class SoundManager {
     loadSoundFile(filePath: string): Promise<AudioBuffer>;
 }
 declare namespace sd.scene {
+}
+declare namespace sd.world {
+    class EntityManager {
+        private generation_;
+        private freedIndices_;
+        constructor();
+    }
 }
