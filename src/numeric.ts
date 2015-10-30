@@ -13,6 +13,9 @@ namespace sd {
 
 		length: number;
 		[index: number]: number;
+
+		set(array: ArrayLike<number>, offset?: number): void;
+		subarray(begin: number, end?: number): TypedArray;
 	}
 
 	export interface TypedArrayConstructor {
