@@ -39,6 +39,44 @@ interface FileLoadOptions {
     responseType?: FileLoadType;
 }
 declare function loadFile(filePath: string, opts?: FileLoadOptions): Promise<{}>;
+declare namespace sd {
+    interface TypedArray {
+        BYTES_PER_ELEMENT: number;
+        buffer: ArrayBuffer;
+        byteLength: number;
+        byteOffset: number;
+        length: number;
+        [index: number]: number;
+        set(array: ArrayLike<number>, offset?: number): void;
+        subarray(begin: number, end?: number): TypedArray;
+    }
+    interface TypedArrayConstructor {
+        new (length: number): TypedArray;
+        new (array: ArrayLike<number>): TypedArray;
+        new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
+    }
+    interface NumericType {
+        min: number;
+        max: number;
+        signed: boolean;
+        byteSize: number;
+        arrayType: TypedArrayConstructor;
+    }
+    const UInt8: NumericType;
+    const UInt8Clamped: NumericType;
+    const SInt8: NumericType;
+    const UInt16: NumericType;
+    const SInt16: NumericType;
+    const UInt32: NumericType;
+    const SInt32: NumericType;
+    const Float: NumericType;
+    const Double: NumericType;
+    function makeTypedArray(nt: NumericType): {
+        (length: number): TypedArray;
+        (array: ArrayLike<number>): TypedArray;
+        (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
+    };
+}
 interface Math {
     sign(n: number): number;
 }
@@ -228,44 +266,6 @@ declare namespace sd.io {
         constructor();
         down(kc: Key): boolean;
     }
-}
-declare namespace sd {
-    interface TypedArray {
-        BYTES_PER_ELEMENT: number;
-        buffer: ArrayBuffer;
-        byteLength: number;
-        byteOffset: number;
-        length: number;
-        [index: number]: number;
-        set(array: ArrayLike<number>, offset?: number): void;
-        subarray(begin: number, end?: number): TypedArray;
-    }
-    interface TypedArrayConstructor {
-        new (length: number): TypedArray;
-        new (array: ArrayLike<number>): TypedArray;
-        new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
-    }
-    interface NumericType {
-        min: number;
-        max: number;
-        signed: boolean;
-        byteSize: number;
-        arrayType: TypedArrayConstructor;
-    }
-    const UInt8: NumericType;
-    const UInt8Clamped: NumericType;
-    const SInt8: NumericType;
-    const UInt16: NumericType;
-    const SInt16: NumericType;
-    const UInt32: NumericType;
-    const SInt32: NumericType;
-    const Float: NumericType;
-    const Double: NumericType;
-    function makeTypedArray(nt: NumericType): {
-        (length: number): TypedArray;
-        (array: ArrayLike<number>): TypedArray;
-        (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
-    };
 }
 declare namespace sd.mesh {
     const enum VertexField {

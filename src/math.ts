@@ -3,6 +3,7 @@
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 /// <reference path="../defs/gl-matrix.d.ts" />
+/// <reference path="numeric.ts" />
 
 interface Math {
 	sign(n: number): number;
