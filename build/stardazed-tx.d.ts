@@ -80,7 +80,7 @@ declare namespace sd {
 interface ArrayBufferConstructor {
     transfer(oldBuffer: ArrayBuffer, newByteLength?: number): ArrayBuffer;
 }
-declare namespace sd {
+declare namespace sd.container {
     class Deque<T> {
         private blocks_;
         private headBlock_;
@@ -102,6 +102,31 @@ declare namespace sd {
         empty(): boolean;
         front(): T;
         back(): T;
+    }
+    interface MABField {
+        type: NumericType;
+        count: number;
+    }
+    const enum InvalidatePointers {
+        No = 0,
+        Yes = 1,
+    }
+    class MultiArrayBuffer {
+        private fields_;
+        private capacity_;
+        private count_;
+        private elementSumSize_;
+        private data_;
+        constructor(initialCapacity: number, fields: MABField[]);
+        capacity(): number;
+        count(): number;
+        backIndex(): number;
+        private fieldArrayView(f, buffer, itemCount);
+        reserve(newCapacity: number): InvalidatePointers;
+        clear(): void;
+        resize(newCount: number): InvalidatePointers;
+        extend(): InvalidatePointers;
+        indexedFieldView(index: number): TypedArray;
     }
 }
 declare function loadImage(src: string): Promise<HTMLImageElement>;
@@ -190,6 +215,9 @@ declare function deg2rad(deg: number): number;
 declare function rad2deg(rad: number): number;
 declare function clamp(n: number, min: number, max: number): number;
 declare function clamp01(n: number): number;
+declare function roundUpPowerOf2(n: number): number;
+declare function alignUp(val: number, alignmentPow2: number): number;
+declare function alignDown(val: number, alignmentPow2: number): number;
 interface Math {
     sign(n: number): number;
 }
@@ -565,12 +593,23 @@ declare class SoundManager {
     constructor();
     loadSoundFile(filePath: string): Promise<AudioBuffer>;
 }
-declare namespace sd.scene {
-}
 declare namespace sd.world {
+    type Entity = number;
     class EntityManager {
         private generation_;
+        private genCount_;
         private freedIndices_;
+        private minFreedBuildup;
+        private indexBits;
+        private generationBits;
+        private indexMask;
+        private generationMask;
         constructor();
+        private appendGeneration();
+        private entityIndex(ent);
+        private entityGeneration(ent);
+        create(): Entity;
+        alive(ent: Entity): boolean;
+        destroy(ent: Entity): void;
     }
 }

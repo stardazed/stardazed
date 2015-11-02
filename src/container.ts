@@ -33,7 +33,7 @@ if (! ArrayBuffer.transfer) {
 }
 
 
-namespace sd {
+namespace sd.container {
 
 	//  ___                    
 	// |   \ ___ __ _ _  _ ___ 
@@ -50,7 +50,7 @@ namespace sd {
 		private count_: number;
 
 		// -- block access
-		private blockCapacity = 128;
+		private blockCapacity = 512;
 
 		private newBlock(): T[] {
 			return [];
@@ -181,4 +181,164 @@ namespace sd {
 		}
 	}
 
-} // ns sd
+
+	//  __  __      _ _   _   _                     ___       __  __         
+	// |  \/  |_  _| | |_(_) /_\  _ _ _ _ __ _ _  _| _ )_  _ / _|/ _|___ _ _ 
+	// | |\/| | || | |  _| |/ _ \| '_| '_/ _` | || | _ \ || |  _|  _/ -_) '_|
+	// |_|  |_|\_,_|_|\__|_/_/ \_\_| |_| \__,_|\_, |___/\_,_|_| |_| \___|_|  
+	//                                         |__/                          
+
+	export interface MABField {
+		type: NumericType;
+		count: number;
+	}
+
+	interface PositionedMABField extends MABField {
+		byteOffset: number;
+		sizeBytes: number;
+	}
+
+	export const enum InvalidatePointers {
+		No,
+		Yes
+	}
+
+	export class MultiArrayBuffer {
+		private fields_: PositionedMABField[];
+		private capacity_ = 0;
+		private count_ = 0;
+		private elementSumSize_ = 0;
+		private data_: ArrayBuffer = null;
+
+
+		constructor(initialCapacity: number, fields: MABField[]) {
+			var totalOffset = 0;
+			this.fields_ = fields.map((field: MABField, ix: number) => {
+				var curOffset = totalOffset;
+				var sizeBytes = field.type.byteSize * field.count;
+				totalOffset += sizeBytes;
+
+				return {
+					type: field.type,
+					count: field.count,
+					byteOffset: curOffset,
+					sizeBytes: sizeBytes
+				};			
+			});
+
+			this.elementSumSize_ = totalOffset;
+
+			this.reserve(initialCapacity);
+		}
+
+
+		capacity() { return this.capacity_; }
+		count() { return this.count_; }
+		backIndex() {
+			assert(this.count_ > 0);
+			return this.count_ - 1;
+		}
+
+
+		private fieldArrayView(f: PositionedMABField, buffer: ArrayBuffer, itemCount: number) {
+			var byteOffset = f.byteOffset * itemCount;
+			return new (f.type.arrayType)(buffer, byteOffset, itemCount * f.count);
+		}
+
+
+		reserve(newCapacity: number): InvalidatePointers {
+			assert(newCapacity > 0);
+
+			// By forcing an allocated multiple of 32 elements, we never have
+			// to worry about padding between consecutive arrays. 32 is chosen
+			// as it is the AVX layout requirement, so e.g. a char field followed
+			// by an m256 field will be aligned regardless of array length.
+			// We could align to 16 or even 8 and likely be fine, but this container
+			// isn't meant for tiny arrays so 32 it is.
+
+			newCapacity = alignUp(newCapacity, 32);
+			if (newCapacity <= this.capacity()) {
+				// TODO: add way to cut capacity?
+				return InvalidatePointers.No;
+			}
+
+			var invalidation = InvalidatePointers.No;
+			var newSizeBytes = newCapacity * this.elementSumSize_;
+
+			var newData = new ArrayBuffer(newSizeBytes);
+			assert(newData);
+		
+			if (this.data_) {
+				// Since a capacity change will change the length of each array individually
+				// we need to re-layout the data in the new buffer.
+				// We iterate over the basePointers and copy count_ elements from the old
+				// data to each new array. With large arrays >100k elements this can take
+				// millisecond-order time, so avoid resizes when possible.
+
+				this.fields_.forEach((f, ix) => {
+					var oldView = this.fieldArrayView(f, this.data_, this.count_);
+					var newView = this.fieldArrayView(f, newData, newCapacity);
+					newView.set(oldView);
+				});
+
+				invalidation = InvalidatePointers.Yes;
+			}
+
+			this.data_ = newData;
+			this.capacity_ = newCapacity;
+
+			return invalidation;
+		}
+
+
+		clear() {
+			// This behaviour differs from the C++ implementation in that this replaces the buffer with
+			// a newly created one. For clients there is no noticeable difference.
+			this.count_ = 0;
+			this.data_ = new ArrayBuffer(this.capacity_ * this.elementSumSize_);
+		}
+
+
+		resize(newCount: number): InvalidatePointers {
+			var invalidation = InvalidatePointers.No;
+
+			if (newCount > this.capacity_) {
+				invalidation = this.reserve(newCount);
+			}
+			else if (newCount < this.count_) {
+				// Reducing the count will clear the now freed up elements so that when
+				// a new allocation is made the element data is guaranteed to be zeroed.
+
+				var elementsToClear = this.count_ - newCount;
+
+				this.fields_.forEach((f, ix) => {
+					var array = this.fieldArrayView(f, this.data_, this.count_);
+					var zeroes = new (f.type.arrayType)(elementsToClear * f.count);
+					array.set(zeroes, newCount * f.count);
+				});
+			}
+
+			this.count_ = newCount;
+			return invalidation;
+		}
+
+
+		extend(): InvalidatePointers {
+			var invalidation = InvalidatePointers.No;
+
+			if (this.count_ == this.capacity_) {
+				invalidation = this.reserve(this.capacity_ * 2);
+			}
+
+			++this.count_;
+			return invalidation;
+		}
+
+
+		indexedFieldView(index: number) {
+			return this.fieldArrayView(this.fields_[index], this.data_, this.capacity_);
+		}
+
+	}
+
+} // ns sd.container

@@ -196,96 +196,188 @@ if (!ArrayBuffer.transfer) {
 }
 var sd;
 (function (sd) {
-    var Deque = (function () {
-        function Deque() {
-            this.blockCapacity = 128;
-            this.blocks_ = [];
-            this.blocks_.push(this.newBlock());
-            this.headBlock_ = this.tailBlock_ = 0;
-            this.headIndex_ = this.tailIndex_ = 0;
-            this.count_ = 0;
-        }
-        Deque.prototype.newBlock = function () {
-            return [];
-        };
-        Deque.prototype.headBlock = function () { return this.blocks_[this.headBlock_]; };
-        Deque.prototype.tailBlock = function () { return this.blocks_[this.tailBlock_]; };
-        Deque.prototype.append = function (t) {
-            if (this.tailIndex_ == this.blockCapacity) {
-                if (this.tailBlock_ == this.blocks_.length - 1) {
-                    this.blocks_.push(this.newBlock());
-                }
-                this.tailBlock_++;
-                this.tailIndex_ = 0;
+    var container;
+    (function (container) {
+        var Deque = (function () {
+            function Deque() {
+                this.blockCapacity = 512;
+                this.blocks_ = [];
+                this.blocks_.push(this.newBlock());
+                this.headBlock_ = this.tailBlock_ = 0;
+                this.headIndex_ = this.tailIndex_ = 0;
+                this.count_ = 0;
             }
-            this.tailBlock()[this.tailIndex_] = t;
-            ++this.tailIndex_;
-            ++this.count_;
-        };
-        Deque.prototype.prepend = function (t) {
-            if (this.headIndex_ == 0) {
-                if (this.headBlock_ == 0) {
-                    this.blocks_.unshift(this.newBlock());
-                    ++this.tailBlock_;
+            Deque.prototype.newBlock = function () {
+                return [];
+            };
+            Deque.prototype.headBlock = function () { return this.blocks_[this.headBlock_]; };
+            Deque.prototype.tailBlock = function () { return this.blocks_[this.tailBlock_]; };
+            Deque.prototype.append = function (t) {
+                if (this.tailIndex_ == this.blockCapacity) {
+                    if (this.tailBlock_ == this.blocks_.length - 1) {
+                        this.blocks_.push(this.newBlock());
+                    }
+                    this.tailBlock_++;
+                    this.tailIndex_ = 0;
                 }
-                else {
-                    --this.headBlock_;
+                this.tailBlock()[this.tailIndex_] = t;
+                ++this.tailIndex_;
+                ++this.count_;
+            };
+            Deque.prototype.prepend = function (t) {
+                if (this.headIndex_ == 0) {
+                    if (this.headBlock_ == 0) {
+                        this.blocks_.unshift(this.newBlock());
+                        ++this.tailBlock_;
+                    }
+                    else {
+                        --this.headBlock_;
+                    }
+                    this.headIndex_ = this.blockCapacity;
                 }
-                this.headIndex_ = this.blockCapacity;
+                --this.headIndex_;
+                this.headBlock()[this.headIndex_] = t;
+                ++this.count_;
+            };
+            Deque.prototype.popFront = function () {
+                assert(this.count_ > 0);
+                delete this.headBlock()[this.headIndex_];
+                ++this.headIndex_;
+                if (this.headIndex_ == this.blockCapacity) {
+                    if (this.headBlock_ == 0) {
+                        ++this.headBlock_;
+                    }
+                    else if (this.headBlock_ == 1) {
+                        this.blocks_.shift();
+                        this.tailBlock_--;
+                    }
+                    this.headIndex_ = 0;
+                }
+                --this.count_;
+            };
+            Deque.prototype.popBack = function () {
+                assert(this.count_ > 0);
+                if (this.tailIndex_ == 0) {
+                    var lastBlockIndex = this.blocks_.length - 1;
+                    if (this.tailBlock_ == lastBlockIndex - 1) {
+                        this.blocks_.pop();
+                    }
+                    --this.tailBlock_;
+                    this.tailIndex_ = this.blockCapacity;
+                }
+                --this.tailIndex_;
+                delete this.tailBlock()[this.tailIndex_];
+                --this.count_;
+            };
+            Deque.prototype.clear = function () {
+                this.blocks_ = [];
+                this.headBlock_ = this.tailBlock_ = 0;
+                this.headIndex_ = this.tailIndex_ = 0;
+                this.count_ = 0;
+            };
+            Deque.prototype.count = function () { return this.count_; };
+            Deque.prototype.empty = function () { return this.count_ == 0; };
+            Deque.prototype.front = function () {
+                assert(this.count_ > 0);
+                return this.headBlock()[this.headIndex_];
+            };
+            Deque.prototype.back = function () {
+                assert(this.count_ > 0);
+                return (this.tailIndex_ > 0) ? this.tailBlock()[this.tailIndex_ - 1] : this.blocks_[this.tailBlock_ - 1][this.blockCapacity - 1];
+            };
+            return Deque;
+        })();
+        container.Deque = Deque;
+        var MultiArrayBuffer = (function () {
+            function MultiArrayBuffer(initialCapacity, fields) {
+                this.capacity_ = 0;
+                this.count_ = 0;
+                this.elementSumSize_ = 0;
+                this.data_ = null;
+                var totalOffset = 0;
+                this.fields_ = fields.map(function (field, ix) {
+                    var curOffset = totalOffset;
+                    var sizeBytes = field.type.byteSize * field.count;
+                    totalOffset += sizeBytes;
+                    return {
+                        type: field.type,
+                        count: field.count,
+                        byteOffset: curOffset,
+                        sizeBytes: sizeBytes
+                    };
+                });
+                this.elementSumSize_ = totalOffset;
+                this.reserve(initialCapacity);
             }
-            --this.headIndex_;
-            this.headBlock()[this.headIndex_] = t;
-            ++this.count_;
-        };
-        Deque.prototype.popFront = function () {
-            assert(this.count_ > 0);
-            delete this.headBlock()[this.headIndex_];
-            ++this.headIndex_;
-            if (this.headIndex_ == this.blockCapacity) {
-                if (this.headBlock_ == 0) {
-                    ++this.headBlock_;
+            MultiArrayBuffer.prototype.capacity = function () { return this.capacity_; };
+            MultiArrayBuffer.prototype.count = function () { return this.count_; };
+            MultiArrayBuffer.prototype.backIndex = function () {
+                assert(this.count_ > 0);
+                return this.count_ - 1;
+            };
+            MultiArrayBuffer.prototype.fieldArrayView = function (f, buffer, itemCount) {
+                var byteOffset = f.byteOffset * itemCount;
+                return new (f.type.arrayType)(buffer, byteOffset, itemCount * f.count);
+            };
+            MultiArrayBuffer.prototype.reserve = function (newCapacity) {
+                var _this = this;
+                assert(newCapacity > 0);
+                newCapacity = alignUp(newCapacity, 32);
+                if (newCapacity <= this.capacity()) {
+                    return 0;
                 }
-                else if (this.headBlock_ == 1) {
-                    this.blocks_.shift();
-                    this.tailBlock_--;
+                var invalidation = 0;
+                var newSizeBytes = newCapacity * this.elementSumSize_;
+                var newData = new ArrayBuffer(newSizeBytes);
+                assert(newData);
+                if (this.data_) {
+                    this.fields_.forEach(function (f, ix) {
+                        var oldView = _this.fieldArrayView(f, _this.data_, _this.count_);
+                        var newView = _this.fieldArrayView(f, newData, newCapacity);
+                        newView.set(oldView);
+                    });
+                    invalidation = 1;
                 }
-                this.headIndex_ = 0;
-            }
-            --this.count_;
-        };
-        Deque.prototype.popBack = function () {
-            assert(this.count_ > 0);
-            if (this.tailIndex_ == 0) {
-                var lastBlockIndex = this.blocks_.length - 1;
-                if (this.tailBlock_ == lastBlockIndex - 1) {
-                    this.blocks_.pop();
+                this.data_ = newData;
+                this.capacity_ = newCapacity;
+                return invalidation;
+            };
+            MultiArrayBuffer.prototype.clear = function () {
+                this.count_ = 0;
+                this.data_ = new ArrayBuffer(this.capacity_ * this.elementSumSize_);
+            };
+            MultiArrayBuffer.prototype.resize = function (newCount) {
+                var _this = this;
+                var invalidation = 0;
+                if (newCount > this.capacity_) {
+                    invalidation = this.reserve(newCount);
                 }
-                --this.tailBlock_;
-                this.tailIndex_ = this.blockCapacity;
-            }
-            --this.tailIndex_;
-            delete this.tailBlock()[this.tailIndex_];
-            --this.count_;
-        };
-        Deque.prototype.clear = function () {
-            this.blocks_ = [];
-            this.headBlock_ = this.tailBlock_ = 0;
-            this.headIndex_ = this.tailIndex_ = 0;
-            this.count_ = 0;
-        };
-        Deque.prototype.count = function () { return this.count_; };
-        Deque.prototype.empty = function () { return this.count_ == 0; };
-        Deque.prototype.front = function () {
-            assert(this.count_ > 0);
-            return this.headBlock()[this.headIndex_];
-        };
-        Deque.prototype.back = function () {
-            assert(this.count_ > 0);
-            return (this.tailIndex_ > 0) ? this.tailBlock()[this.tailIndex_ - 1] : this.blocks_[this.tailBlock_ - 1][this.blockCapacity - 1];
-        };
-        return Deque;
-    })();
-    sd.Deque = Deque;
+                else if (newCount < this.count_) {
+                    var elementsToClear = this.count_ - newCount;
+                    this.fields_.forEach(function (f, ix) {
+                        var array = _this.fieldArrayView(f, _this.data_, _this.count_);
+                        var zeroes = new (f.type.arrayType)(elementsToClear * f.count);
+                        array.set(zeroes, newCount * f.count);
+                    });
+                }
+                this.count_ = newCount;
+                return invalidation;
+            };
+            MultiArrayBuffer.prototype.extend = function () {
+                var invalidation = 0;
+                if (this.count_ == this.capacity_) {
+                    invalidation = this.reserve(this.capacity_ * 2);
+                }
+                ++this.count_;
+                return invalidation;
+            };
+            MultiArrayBuffer.prototype.indexedFieldView = function (index) {
+                return this.fieldArrayView(this.fields_[index], this.data_, this.capacity_);
+            };
+            return MultiArrayBuffer;
+        })();
+        container.MultiArrayBuffer = MultiArrayBuffer;
+    })(container = sd.container || (sd.container = {}));
 })(sd || (sd = {}));
 function loadImage(src) {
     return new Promise(function (resolve, reject) {
@@ -490,6 +582,23 @@ function clamp(n, min, max) {
 }
 function clamp01(n) {
     return Math.max(0.0, Math.min(1.0, n));
+}
+function roundUpPowerOf2(n) {
+    if (n <= 0)
+        return 1;
+    n = (n | 0) - 1;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    return n + 1;
+}
+function alignUp(val, alignmentPow2) {
+    return (val + alignmentPow2 - 1) & (~(alignmentPow2 - 1));
+}
+function alignDown(val, alignmentPow2) {
+    return val & (~(alignmentPow2 - 1));
 }
 vec3.add3 = function (out, a, b, c) {
     out[0] = a[0] + b[0] + c[0];
@@ -1705,47 +1814,62 @@ var SoundManager = (function () {
 })();
 var sd;
 (function (sd) {
-    var scene;
-    (function (scene) {
-        var TransformManager = (function () {
-            function TransformManager() {
-                this.scaleMat = mat4.create();
-                this.rotMat = mat4.create();
-                this.transMat = mat4.create();
-                this.modelMatrix = mat4.create();
-                this.modelViewMatrix = mat4.create();
-                this.normalMatrix = mat3.create();
-            }
-            TransformManager.prototype.setUniformScale = function (s) {
-                mat4.fromScaling(this.scaleMat, [s, s, s]);
-            };
-            TransformManager.prototype.setScale = function (sx, sy, sz) {
-                mat4.fromScaling(this.scaleMat, [sx, sy, sz]);
-            };
-            TransformManager.prototype.setPosition = function (v3OrX, y, z) {
-                var v3;
-                if (typeof v3OrX === "number")
-                    v3 = [v3OrX, y, z];
-                else
-                    v3 = v3OrX;
-                mat4.fromTranslation(this.transMat, v3);
-            };
-            TransformManager.prototype.setRotation = function (axis, angle) {
-                mat4.fromRotation(this.rotMat, angle, axis);
-            };
-            return TransformManager;
-        })();
-    })(scene = sd.scene || (sd.scene = {}));
-})(sd || (sd = {}));
-var sd;
-(function (sd) {
     var world;
     (function (world) {
         var EntityManager = (function () {
             function EntityManager() {
+                this.minFreedBuildup = 1024;
+                this.indexBits = 24;
+                this.generationBits = 7;
+                this.indexMask = (1 << this.indexBits) - 1;
+                this.generationMask = (1 << this.generationBits) - 1;
+                this.generation_ = new Uint8Array(2048);
+                this.freedIndices_ = new sd.container.Deque();
+                this.genCount_ = -1;
+                this.appendGeneration();
             }
+            EntityManager.prototype.appendGeneration = function () {
+                if (this.genCount_ == this.generation_.length) {
+                    var newBuffer = ArrayBuffer.transfer(this.generation_.buffer, this.generation_.length * 2);
+                    this.generation_ = new Uint8Array(newBuffer);
+                }
+                ++this.genCount_;
+                this.generation_[this.genCount_];
+                return this.genCount_;
+            };
+            EntityManager.prototype.entityIndex = function (ent) {
+                return ent & this.indexMask;
+            };
+            EntityManager.prototype.entityGeneration = function (ent) {
+                return (ent >> this.indexBits) & this.generationMask;
+            };
+            EntityManager.prototype.create = function () {
+                var index;
+                if (this.freedIndices_.count() >= this.minFreedBuildup) {
+                    index = this.freedIndices_.front();
+                    this.freedIndices_.popFront();
+                }
+                else {
+                    index = this.appendGeneration();
+                }
+                return (this.generation_[index] << this.indexBits) | index;
+            };
+            EntityManager.prototype.alive = function (ent) {
+                var index = this.entityIndex(ent);
+                return index <= this.genCount_ && (this.entityGeneration(ent) == this.generation_[index]);
+            };
+            EntityManager.prototype.destroy = function (ent) {
+                var index = this.entityIndex(ent);
+                this.generation_[index]++;
+                this.freedIndices_.append(index);
+            };
             return EntityManager;
         })();
         world.EntityManager = EntityManager;
+        var TransformManager = (function () {
+            function TransformManager() {
+            }
+            return TransformManager;
+        })();
     })(world = sd.world || (sd.world = {}));
 })(sd || (sd = {}));
