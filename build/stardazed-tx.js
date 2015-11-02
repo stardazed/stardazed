@@ -1991,9 +1991,10 @@ var sd;
                     }
                 }
                 var h = new Instance(entIndex);
-                if (undefined !== parent) {
+                if (descOrParent && ("position" in descOrParent)) {
                     var desc = descOrParent;
-                    this.parentBase_[h.ref] = parent.ref;
+                    if (parent)
+                        this.parentBase_[h.ref] = parent.ref;
                     this.positionBase_.set(desc.position, h.ref * sd.math.Vec3.elementCount);
                     this.rotationBase_.set(desc.rotation, h.ref * sd.math.Quat.elementCount);
                     this.scaleBase_.set(desc.scale, h.ref * sd.math.Vec3.elementCount);
@@ -2001,7 +2002,9 @@ var sd;
                     mat4.fromRotationTranslationScale(modelMat, desc.rotation, desc.position, desc.scale);
                 }
                 else {
-                    this.parentBase_[h.ref] = parent.ref;
+                    var par = descOrParent;
+                    if (par)
+                        this.parentBase_[h.ref] = par.ref;
                     this.rotationBase_.set(sd.math.Quat.identity, h.ref * sd.math.Quat.elementCount);
                     this.scaleBase_.set(sd.math.Vec3.one, h.ref * sd.math.Vec3.elementCount);
                     this.modelMatrixBase_.set(sd.math.Mat4.identity, h.ref * sd.math.Mat4.elementCount);

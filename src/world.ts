@@ -164,10 +164,11 @@ namespace sd.world {
 
 			var h = new Instance<TransformManager>(entIndex);
 
-			if (undefined !== parent) {
+			if (descOrParent && ("position" in descOrParent)) {
 				let desc = <TransformDescriptor>descOrParent;
 
-				this.parentBase_[h.ref] = parent.ref;
+				if (parent)
+					this.parentBase_[h.ref] = parent.ref;
 				this.positionBase_.set(desc.position, h.ref * math.Vec3.elementCount);
 				this.rotationBase_.set(desc.rotation, h.ref * math.Quat.elementCount);
 				this.scaleBase_.set(desc.scale, h.ref * math.Vec3.elementCount);
@@ -176,7 +177,10 @@ namespace sd.world {
 				mat4.fromRotationTranslationScale(modelMat, desc.rotation, desc.position, desc.scale);
 			}
 			else {
-				this.parentBase_[h.ref] = parent.ref;
+				let par = <TransformInstance>descOrParent;
+				if (par)
+					this.parentBase_[h.ref] = par.ref;
+
 				this.rotationBase_.set(math.Quat.identity, h.ref * math.Quat.elementCount);
 				this.scaleBase_.set(math.Vec3.one, h.ref * math.Vec3.elementCount);
 				this.modelMatrixBase_.set(math.Mat4.identity, h.ref * math.Mat4.elementCount);
