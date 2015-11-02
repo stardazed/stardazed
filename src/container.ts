@@ -3,7 +3,7 @@
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 /// <reference path="core.ts" />
-/// <reference path="numeric.ts" />
+/// <reference path="math.ts" />
 
 interface ArrayBufferConstructor {
 	// proposed for ES7
@@ -34,6 +34,13 @@ if (! ArrayBuffer.transfer) {
 
 
 namespace sd.container {
+
+	function copyElementRange(src: TypedArray, srcOffset: number, srcCount: number, dest: TypedArray, destOffset: number) {
+		for (var ix = 0; ix < srcCount; ++ix) {
+			dest[destOffset++] = src[srcOffset++];
+		}
+	}
+
 
 	//  ___                    
 	// |   \ ___ __ _ _  _ ___ 
@@ -256,7 +263,7 @@ namespace sd.container {
 			// We could align to 16 or even 8 and likely be fine, but this container
 			// isn't meant for tiny arrays so 32 it is.
 
-			newCapacity = alignUp(newCapacity, 32);
+			newCapacity = math.alignUp(newCapacity, 32);
 			if (newCapacity <= this.capacity()) {
 				// TODO: add way to cut capacity?
 				return InvalidatePointers.No;
@@ -338,7 +345,6 @@ namespace sd.container {
 		indexedFieldView(index: number) {
 			return this.fieldArrayView(this.fields_[index], this.data_, this.capacity_);
 		}
-
 	}
 
 } // ns sd.container

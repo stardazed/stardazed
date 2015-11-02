@@ -473,8 +473,8 @@ namespace sd.mesh.gen {
 			this.radius_ = desc.radius;
 			this.rows_ = desc.rows | 0;
 			this.segs_ = desc.segs | 0;
-			this.sliceFrom_ = clamp01(desc.sliceFrom || 0.0);
-			this.sliceTo_ = clamp01(desc.sliceTo || 1.0);
+			this.sliceFrom_ = math.clamp01(desc.sliceFrom || 0.0);
+			this.sliceTo_ = math.clamp01(desc.sliceTo || 1.0);
 
 			assert(this.radius_ > 0);
 			assert(this.rows_ >= 2);
@@ -574,8 +574,8 @@ namespace sd.mesh.gen {
 			this.majorRadius_ = desc.majorRadius;
 			this.rows_ = desc.rows | 0;
 			this.segs_ = desc.segs | 0;
-			this.sliceFrom_ = clamp01(desc.sliceFrom || 0.0);
-			this.sliceTo_ = clamp01(desc.sliceTo || 1.0);
+			this.sliceFrom_ = math.clamp01(desc.sliceFrom || 0.0);
+			this.sliceTo_ = math.clamp01(desc.sliceTo || 1.0);
 
 			assert(this.minorRadius_ >= 0);
 			assert(this.majorRadius_ >= this.minorRadius_);
