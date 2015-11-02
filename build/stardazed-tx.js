@@ -109,76 +109,157 @@ function loadFile(filePath, opts) {
 }
 var sd;
 (function (sd) {
-    sd.UInt8 = Object.freeze({
-        min: 0,
-        max: 255,
-        signed: false,
-        byteSize: 1,
-        arrayType: Uint8Array
-    });
-    sd.UInt8Clamped = Object.freeze({
-        min: 0,
-        max: 255,
-        signed: false,
-        byteSize: 1,
-        arrayType: Uint8ClampedArray
-    });
-    sd.SInt8 = Object.freeze({
-        min: -128,
-        max: 127,
-        signed: true,
-        byteSize: 1,
-        arrayType: Int8Array
-    });
-    sd.UInt16 = Object.freeze({
-        min: 0,
-        max: 65535,
-        signed: false,
-        byteSize: 2,
-        arrayType: Uint16Array
-    });
-    sd.SInt16 = Object.freeze({
-        min: -32768,
-        max: 32767,
-        signed: true,
-        byteSize: 2,
-        arrayType: Int16Array
-    });
-    sd.UInt32 = Object.freeze({
-        min: 0,
-        max: 4294967295,
-        signed: false,
-        byteSize: 4,
-        arrayType: Uint32Array
-    });
-    sd.SInt32 = Object.freeze({
-        min: -2147483648,
-        max: 2147483647,
-        signed: true,
-        byteSize: 4,
-        arrayType: Int32Array
-    });
-    sd.Float = Object.freeze({
-        min: -340282346638528859811704183484516925440.0,
-        max: 340282346638528859811704183484516925440.0,
-        signed: true,
-        byteSize: 4,
-        arrayType: Float32Array
-    });
-    sd.Double = Object.freeze({
-        min: -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
-        max: 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
-        signed: true,
-        byteSize: 8,
-        arrayType: Float64Array
-    });
-    function makeTypedArray(nt) {
-        var makeFn = function newArray(src, byteOffset, length) {
-            return new (nt.arrayType)(src, byteOffset, length);
-        };
-        return makeFn;
-    }
-    sd.makeTypedArray = makeTypedArray;
+    var math;
+    (function (math) {
+        function intRandom(maximum) {
+            return (Math.random() * (maximum + 1)) << 0;
+        }
+        math.intRandom = intRandom;
+        function intRandomRange(minimum, maximum) {
+            var diff = (maximum - minimum) << 0;
+            return minimum + intRandom(diff);
+        }
+        math.intRandomRange = intRandomRange;
+        function deg2rad(deg) {
+            return deg * Math.PI / 180.0;
+        }
+        math.deg2rad = deg2rad;
+        function rad2deg(rad) {
+            return rad * 180.0 / Math.PI;
+        }
+        math.rad2deg = rad2deg;
+        function clamp(n, min, max) {
+            return Math.max(min, Math.min(max, n));
+        }
+        math.clamp = clamp;
+        function clamp01(n) {
+            return Math.max(0.0, Math.min(1.0, n));
+        }
+        math.clamp01 = clamp01;
+        function roundUpPowerOf2(n) {
+            if (n <= 0)
+                return 1;
+            n = (n | 0) - 1;
+            n |= n >> 1;
+            n |= n >> 2;
+            n |= n >> 4;
+            n |= n >> 8;
+            n |= n >> 16;
+            return n + 1;
+        }
+        math.roundUpPowerOf2 = roundUpPowerOf2;
+        function alignUp(val, alignmentPow2) {
+            return (val + alignmentPow2 - 1) & (~(alignmentPow2 - 1));
+        }
+        math.alignUp = alignUp;
+        function alignDown(val, alignmentPow2) {
+            return val & (~(alignmentPow2 - 1));
+        }
+        math.alignDown = alignDown;
+        var Rect = (function () {
+            function Rect(left, top, right, bottom) {
+                this.left = left;
+                this.top = top;
+                this.right = right;
+                this.bottom = bottom;
+                this.topLeft = vec2.fromValues(left, top);
+                this.topRight = vec2.fromValues(right, top);
+                this.bottomLeft = vec2.fromValues(left, bottom);
+                this.bottomRight = vec2.fromValues(right, bottom);
+            }
+            Rect.prototype.intersectsLineSegment = function (ptA, ptB) {
+                var d = vec2.create();
+                vec2.subtract(d, ptB, ptA);
+                var tmin = 0;
+                var tmax = 9999;
+                for (var i = 0; i < 2; ++i) {
+                    if (Math.abs(d[i]) < 0.00001) {
+                        if (ptA[i] < this.topLeft[i] || ptA[i] > this.bottomRight[i])
+                            return false;
+                    }
+                    else {
+                        var ood = 1 / d[i];
+                        var t1 = (this.topLeft[i] - ptA[i]) * ood;
+                        var t2 = (this.bottomRight[i] - ptA[i]) * ood;
+                        if (t1 > t2) {
+                            var tt = t2;
+                            t2 = t1;
+                            t1 = tt;
+                        }
+                        tmin = Math.max(tmin, t1);
+                        tmax = Math.min(tmax, t2);
+                        if (tmin > tmax)
+                            return false;
+                    }
+                }
+                return tmin < 1.0;
+            };
+            return Rect;
+        })();
+        math.Rect = Rect;
+        var Vec3 = (function () {
+            function Vec3() {
+            }
+            Vec3.zero = new Float32Array([0, 0, 0]);
+            Vec3.one = new Float32Array([1, 1, 1]);
+            Vec3.elementCount = 3;
+            Vec3.byteSize = sd.Float.byteSize * Vec3.elementCount;
+            return Vec3;
+        })();
+        math.Vec3 = Vec3;
+        var Vec4 = (function () {
+            function Vec4() {
+            }
+            Vec4.zero = new Float32Array([0, 0, 0, 0]);
+            Vec4.one = new Float32Array([1, 1, 1, 1]);
+            Vec4.elementCount = 4;
+            Vec4.byteSize = sd.Float.byteSize * Vec4.elementCount;
+            return Vec4;
+        })();
+        math.Vec4 = Vec4;
+        var Quat = (function () {
+            function Quat() {
+            }
+            Quat.identity = new Float32Array([0, 0, 0, 1]);
+            Quat.elementCount = 4;
+            Quat.byteSize = sd.Float.byteSize * Quat.elementCount;
+            return Quat;
+        })();
+        math.Quat = Quat;
+        var Mat3 = (function () {
+            function Mat3() {
+            }
+            Mat3.identity = new Float32Array([
+                1, 0, 0,
+                0, 1, 0,
+                0, 0, 1
+            ]);
+            Mat3.elementCount = 9;
+            Mat3.byteSize = sd.Float.byteSize * Mat3.elementCount;
+            return Mat3;
+        })();
+        math.Mat3 = Mat3;
+        var Mat4 = (function () {
+            function Mat4() {
+            }
+            Mat4.identity = new Float32Array([
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1
+            ]);
+            Mat4.elementCount = 16;
+            Mat4.byteSize = sd.Float.byteSize * Mat4.elementCount;
+            return Mat4;
+        })();
+        math.Mat4 = Mat4;
+        function vectorArrayItem(array, type, index) {
+            var fromElement = type.elementCount * index;
+            var toElement = fromElement + type.elementCount;
+            return array.subarray(fromElement, toElement);
+        }
+        math.vectorArrayItem = vectorArrayItem;
+    })(math = sd.math || (sd.math = {}));
 })(sd || (sd = {}));
 if (!ArrayBuffer.transfer) {
     ArrayBuffer.transfer = function (oldBuffer, newByteLength) {
@@ -198,6 +279,11 @@ var sd;
 (function (sd) {
     var container;
     (function (container) {
+        function copyElementRange(src, srcOffset, srcCount, dest, destOffset) {
+            for (var ix = 0; ix < srcCount; ++ix) {
+                dest[destOffset++] = src[srcOffset++];
+            }
+        }
         var Deque = (function () {
             function Deque() {
                 this.blockCapacity = 512;
@@ -322,7 +408,7 @@ var sd;
             MultiArrayBuffer.prototype.reserve = function (newCapacity) {
                 var _this = this;
                 assert(newCapacity > 0);
-                newCapacity = alignUp(newCapacity, 32);
+                newCapacity = sd.math.alignUp(newCapacity, 32);
                 if (newCapacity <= this.capacity()) {
                     return 0;
                 }
@@ -564,88 +650,79 @@ var sd;
         io.Keyboard = Keyboard;
     })(io = sd.io || (sd.io = {}));
 })(sd || (sd = {}));
-function intRandom(maximum) {
-    return (Math.random() * (maximum + 1)) << 0;
-}
-function intRandomRange(minimum, maximum) {
-    var diff = (maximum - minimum) << 0;
-    return minimum + intRandom(diff);
-}
-function deg2rad(deg) {
-    return deg * Math.PI / 180.0;
-}
-function rad2deg(rad) {
-    return rad * 180.0 / Math.PI;
-}
-function clamp(n, min, max) {
-    return Math.max(min, Math.min(max, n));
-}
-function clamp01(n) {
-    return Math.max(0.0, Math.min(1.0, n));
-}
-function roundUpPowerOf2(n) {
-    if (n <= 0)
-        return 1;
-    n = (n | 0) - 1;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-    return n + 1;
-}
-function alignUp(val, alignmentPow2) {
-    return (val + alignmentPow2 - 1) & (~(alignmentPow2 - 1));
-}
-function alignDown(val, alignmentPow2) {
-    return val & (~(alignmentPow2 - 1));
-}
-vec3.add3 = function (out, a, b, c) {
-    out[0] = a[0] + b[0] + c[0];
-    out[1] = a[1] + b[1] + c[1];
-    out[2] = a[2] + b[2] + c[2];
-    return out;
-};
-var Rect = (function () {
-    function Rect(left, top, right, bottom) {
-        this.left = left;
-        this.top = top;
-        this.right = right;
-        this.bottom = bottom;
-        this.topLeft = vec2.fromValues(left, top);
-        this.topRight = vec2.fromValues(right, top);
-        this.bottomLeft = vec2.fromValues(left, bottom);
-        this.bottomRight = vec2.fromValues(right, bottom);
+var sd;
+(function (sd) {
+    sd.UInt8 = Object.freeze({
+        min: 0,
+        max: 255,
+        signed: false,
+        byteSize: 1,
+        arrayType: Uint8Array
+    });
+    sd.UInt8Clamped = Object.freeze({
+        min: 0,
+        max: 255,
+        signed: false,
+        byteSize: 1,
+        arrayType: Uint8ClampedArray
+    });
+    sd.SInt8 = Object.freeze({
+        min: -128,
+        max: 127,
+        signed: true,
+        byteSize: 1,
+        arrayType: Int8Array
+    });
+    sd.UInt16 = Object.freeze({
+        min: 0,
+        max: 65535,
+        signed: false,
+        byteSize: 2,
+        arrayType: Uint16Array
+    });
+    sd.SInt16 = Object.freeze({
+        min: -32768,
+        max: 32767,
+        signed: true,
+        byteSize: 2,
+        arrayType: Int16Array
+    });
+    sd.UInt32 = Object.freeze({
+        min: 0,
+        max: 4294967295,
+        signed: false,
+        byteSize: 4,
+        arrayType: Uint32Array
+    });
+    sd.SInt32 = Object.freeze({
+        min: -2147483648,
+        max: 2147483647,
+        signed: true,
+        byteSize: 4,
+        arrayType: Int32Array
+    });
+    sd.Float = Object.freeze({
+        min: -340282346638528859811704183484516925440.0,
+        max: 340282346638528859811704183484516925440.0,
+        signed: true,
+        byteSize: 4,
+        arrayType: Float32Array
+    });
+    sd.Double = Object.freeze({
+        min: -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
+        max: 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
+        signed: true,
+        byteSize: 8,
+        arrayType: Float64Array
+    });
+    function makeTypedArray(nt) {
+        var makeFn = function newArray(src, byteOffset, length) {
+            return new (nt.arrayType)(src, byteOffset, length);
+        };
+        return makeFn;
     }
-    Rect.prototype.intersectsLineSegment = function (ptA, ptB) {
-        var d = vec2.create();
-        vec2.subtract(d, ptB, ptA);
-        var tmin = 0;
-        var tmax = 9999;
-        for (var i = 0; i < 2; ++i) {
-            if (Math.abs(d[i]) < 0.00001) {
-                if (ptA[i] < this.topLeft[i] || ptA[i] > this.bottomRight[i])
-                    return false;
-            }
-            else {
-                var ood = 1 / d[i];
-                var t1 = (this.topLeft[i] - ptA[i]) * ood;
-                var t2 = (this.bottomRight[i] - ptA[i]) * ood;
-                if (t1 > t2) {
-                    var tt = t2;
-                    t2 = t1;
-                    t1 = tt;
-                }
-                tmin = Math.max(tmin, t1);
-                tmax = Math.min(tmax, t2);
-                if (tmin > tmax)
-                    return false;
-            }
-        }
-        return tmin < 1.0;
-    };
-    return Rect;
-})();
+    sd.makeTypedArray = makeTypedArray;
+})(sd || (sd = {}));
 var sd;
 (function (sd) {
     var mesh;
@@ -1515,8 +1592,8 @@ var sd;
                     this.radius_ = desc.radius;
                     this.rows_ = desc.rows | 0;
                     this.segs_ = desc.segs | 0;
-                    this.sliceFrom_ = clamp01(desc.sliceFrom || 0.0);
-                    this.sliceTo_ = clamp01(desc.sliceTo || 1.0);
+                    this.sliceFrom_ = sd.math.clamp01(desc.sliceFrom || 0.0);
+                    this.sliceTo_ = sd.math.clamp01(desc.sliceTo || 1.0);
                     assert(this.radius_ > 0);
                     assert(this.rows_ >= 2);
                     assert(this.segs_ >= 3);
@@ -1578,8 +1655,8 @@ var sd;
                     this.majorRadius_ = desc.majorRadius;
                     this.rows_ = desc.rows | 0;
                     this.segs_ = desc.segs | 0;
-                    this.sliceFrom_ = clamp01(desc.sliceFrom || 0.0);
-                    this.sliceTo_ = clamp01(desc.sliceTo || 1.0);
+                    this.sliceFrom_ = sd.math.clamp01(desc.sliceFrom || 0.0);
+                    this.sliceTo_ = sd.math.clamp01(desc.sliceTo || 1.0);
                     assert(this.minorRadius_ >= 0);
                     assert(this.majorRadius_ >= this.minorRadius_);
                     assert(this.minorRadius_ > 0 || this.majorRadius_ > 0);
@@ -1816,6 +1893,31 @@ var sd;
 (function (sd) {
     var world;
     (function (world) {
+        var Instance = (function () {
+            function Instance(ref) {
+                this.ref = ref;
+            }
+            Instance.prototype.equals = function (other) { return other.ref == this.ref; };
+            Instance.prototype.valid = function () { return this.ref != 0; };
+            return Instance;
+        })();
+        world.Instance = Instance;
+        var Entity = (function () {
+            function Entity(index, gen) {
+                this.id = (gen << Entity.indexBits) | index;
+            }
+            Entity.prototype.index = function () { return this.id & Entity.indexMask; };
+            Entity.prototype.generation = function () { return (this.id >> Entity.indexBits) & Entity.generationMask; };
+            Entity.prototype.equals = function (other) { return other.id == this.id; };
+            Entity.prototype.valid = function () { return this.id != 0; };
+            Entity.minFreedBuildup = 1024;
+            Entity.indexBits = 24;
+            Entity.generationBits = 7;
+            Entity.indexMask = (1 << Entity.indexBits) - 1;
+            Entity.generationMask = (1 << Entity.generationBits) - 1;
+            return Entity;
+        })();
+        world.Entity = Entity;
         var EntityManager = (function () {
             function EntityManager() {
                 this.minFreedBuildup = 1024;
@@ -1834,14 +1936,8 @@ var sd;
                     this.generation_ = new Uint8Array(newBuffer);
                 }
                 ++this.genCount_;
-                this.generation_[this.genCount_];
+                this.generation_[this.genCount_] = 0;
                 return this.genCount_;
-            };
-            EntityManager.prototype.entityIndex = function (ent) {
-                return ent & this.indexMask;
-            };
-            EntityManager.prototype.entityGeneration = function (ent) {
-                return (ent >> this.indexBits) & this.generationMask;
             };
             EntityManager.prototype.create = function () {
                 var index;
@@ -1852,14 +1948,14 @@ var sd;
                 else {
                     index = this.appendGeneration();
                 }
-                return (this.generation_[index] << this.indexBits) | index;
+                return new Entity(index, this.generation_[index]);
             };
             EntityManager.prototype.alive = function (ent) {
-                var index = this.entityIndex(ent);
-                return index <= this.genCount_ && (this.entityGeneration(ent) == this.generation_[index]);
+                var index = ent.index();
+                return index <= this.genCount_ && (ent.generation() == this.generation_[index]);
             };
             EntityManager.prototype.destroy = function (ent) {
-                var index = this.entityIndex(ent);
+                var index = ent.index();
                 this.generation_[index]++;
                 this.freedIndices_.append(index);
             };
@@ -1868,8 +1964,90 @@ var sd;
         world.EntityManager = EntityManager;
         var TransformManager = (function () {
             function TransformManager() {
+                var instanceFields = [
+                    { type: sd.UInt32, count: 1 },
+                    { type: sd.Float, count: 3 },
+                    { type: sd.Float, count: 4 },
+                    { type: sd.Float, count: 3 },
+                    { type: sd.Float, count: 16 }
+                ];
+                this.instanceData_ = new sd.container.MultiArrayBuffer(512, instanceFields);
+                this.rebase();
             }
+            TransformManager.prototype.rebase = function () {
+                this.parentBase_ = this.instanceData_.indexedFieldView(0);
+                this.positionBase_ = this.instanceData_.indexedFieldView(1);
+                this.rotationBase_ = this.instanceData_.indexedFieldView(2);
+                this.scaleBase_ = this.instanceData_.indexedFieldView(3);
+                this.modelMatrixBase_ = this.instanceData_.indexedFieldView(4);
+            };
+            TransformManager.prototype.count = function () { return this.instanceData_.count(); };
+            TransformManager.prototype.assign = function (linkedEntity, descOrParent, parent) {
+                var entIndex = linkedEntity.index();
+                if (this.instanceData_.count() < entIndex) {
+                    var newCount = sd.math.roundUpPowerOf2(entIndex);
+                    if (this.instanceData_.resize(newCount) == 1) {
+                        this.rebase();
+                    }
+                }
+                var h = new Instance(entIndex);
+                if (undefined !== parent) {
+                    var desc = descOrParent;
+                    this.parentBase_[h.ref] = parent.ref;
+                    this.positionBase_.set(desc.position, h.ref * sd.math.Vec3.elementCount);
+                    this.rotationBase_.set(desc.rotation, h.ref * sd.math.Quat.elementCount);
+                    this.scaleBase_.set(desc.scale, h.ref * sd.math.Vec3.elementCount);
+                    var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
+                    mat4.fromRotationTranslationScale(modelMat, desc.rotation, desc.position, desc.scale);
+                }
+                else {
+                    this.parentBase_[h.ref] = parent.ref;
+                    this.rotationBase_.set(sd.math.Quat.identity, h.ref * sd.math.Quat.elementCount);
+                    this.scaleBase_.set(sd.math.Vec3.one, h.ref * sd.math.Vec3.elementCount);
+                    this.modelMatrixBase_.set(sd.math.Mat4.identity, h.ref * sd.math.Mat4.elementCount);
+                }
+                return h;
+            };
+            TransformManager.prototype.parent = function (h) { return new Instance(this.parentBase_[h.ref]); };
+            TransformManager.prototype.position = function (h) { return sd.math.vectorArrayItem(this.positionBase_, sd.math.Vec3, h.ref); };
+            TransformManager.prototype.rotation = function (h) { return sd.math.vectorArrayItem(this.rotationBase_, sd.math.Quat, h.ref); };
+            TransformManager.prototype.scale = function (h) { return sd.math.vectorArrayItem(this.scaleBase_, sd.math.Vec3, h.ref); };
+            TransformManager.prototype.modelMatrix = function (h) { return sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref); };
+            TransformManager.prototype.setParent = function (h, newParent) {
+                assert(h.ref != 0);
+                this.parentBase_[h.ref] = newParent.ref;
+            };
+            TransformManager.prototype.setPosition = function (h, newPosition) {
+                assert(h.ref != 0);
+                this.positionBase_.set(newPosition, h.ref * sd.math.Vec3.elementCount);
+                var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
+                mat4.fromRotationTranslationScale(modelMat, this.rotation(h), newPosition, this.scale(h));
+            };
+            TransformManager.prototype.setRotation = function (h, newRotation) {
+                assert(h.ref != 0);
+                this.rotationBase_.set(newRotation, h.ref * sd.math.Quat.elementCount);
+                var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
+                mat4.fromRotationTranslationScale(modelMat, newRotation, this.position(h), this.scale(h));
+            };
+            TransformManager.prototype.setPositionAndRotation = function (h, newPosition, newRotation) {
+                assert(h.ref != 0);
+                this.positionBase_.set(newPosition, h.ref * sd.math.Vec3.elementCount);
+                this.rotationBase_.set(newRotation, h.ref * sd.math.Quat.elementCount);
+                var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
+                mat4.fromRotationTranslationScale(modelMat, newRotation, newPosition, this.scale(h));
+            };
+            TransformManager.prototype.setScale = function (h, newScale) {
+                assert(h.ref != 0);
+                this.scaleBase_.set(newScale, h.ref * sd.math.Vec3.elementCount);
+                var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
+                mat4.fromRotationTranslationScale(modelMat, this.rotation(h), this.position(h), newScale);
+            };
+            TransformManager.prototype.forEntity = function (ent) {
+                return new Instance(ent.index());
+            };
+            TransformManager.root = new Instance(0);
             return TransformManager;
         })();
+        world.TransformManager = TransformManager;
     })(world = sd.world || (sd.world = {}));
 })(sd || (sd = {}));

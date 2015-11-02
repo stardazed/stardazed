@@ -39,43 +39,63 @@ interface FileLoadOptions {
     responseType?: FileLoadType;
 }
 declare function loadFile(filePath: string, opts?: FileLoadOptions): Promise<{}>;
-declare namespace sd {
-    interface TypedArray {
-        BYTES_PER_ELEMENT: number;
-        buffer: ArrayBuffer;
-        byteLength: number;
-        byteOffset: number;
-        length: number;
-        [index: number]: number;
-        set(array: ArrayLike<number>, offset?: number): void;
-        subarray(begin: number, end?: number): TypedArray;
+interface Math {
+    sign(n: number): number;
+}
+declare namespace sd.math {
+    function intRandom(maximum: number): number;
+    function intRandomRange(minimum: number, maximum: number): number;
+    function deg2rad(deg: number): number;
+    function rad2deg(rad: number): number;
+    function clamp(n: number, min: number, max: number): number;
+    function clamp01(n: number): number;
+    function roundUpPowerOf2(n: number): number;
+    function alignUp(val: number, alignmentPow2: number): number;
+    function alignDown(val: number, alignmentPow2: number): number;
+    class Rect {
+        left: number;
+        top: number;
+        right: number;
+        bottom: number;
+        topLeft: Float32Array;
+        topRight: Float32Array;
+        bottomLeft: Float32Array;
+        bottomRight: Float32Array;
+        constructor(left: number, top: number, right: number, bottom: number);
+        intersectsLineSegment(ptA: ArrayOfNumber, ptB: ArrayOfNumber): boolean;
     }
-    interface TypedArrayConstructor {
-        new (length: number): TypedArray;
-        new (array: ArrayLike<number>): TypedArray;
-        new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
-    }
-    interface NumericType {
-        min: number;
-        max: number;
-        signed: boolean;
+    interface VectorType {
+        elementCount: number;
         byteSize: number;
-        arrayType: TypedArrayConstructor;
     }
-    const UInt8: NumericType;
-    const UInt8Clamped: NumericType;
-    const SInt8: NumericType;
-    const UInt16: NumericType;
-    const SInt16: NumericType;
-    const UInt32: NumericType;
-    const SInt32: NumericType;
-    const Float: NumericType;
-    const Double: NumericType;
-    function makeTypedArray(nt: NumericType): {
-        (length: number): TypedArray;
-        (array: ArrayLike<number>): TypedArray;
-        (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
-    };
+    class Vec3 {
+        static zero: Float32Array;
+        static one: Float32Array;
+        static elementCount: number;
+        static byteSize: number;
+    }
+    class Vec4 {
+        static zero: Float32Array;
+        static one: Float32Array;
+        static elementCount: number;
+        static byteSize: number;
+    }
+    class Quat {
+        static identity: Float32Array;
+        static elementCount: number;
+        static byteSize: number;
+    }
+    class Mat3 {
+        static identity: Float32Array;
+        static elementCount: number;
+        static byteSize: number;
+    }
+    class Mat4 {
+        static identity: Float32Array;
+        static elementCount: number;
+        static byteSize: number;
+    }
+    function vectorArrayItem(array: TypedArray, type: VectorType, index: number): TypedArray;
 }
 interface ArrayBufferConstructor {
     transfer(oldBuffer: ArrayBuffer, newByteLength?: number): ArrayBuffer;
@@ -209,32 +229,43 @@ declare namespace sd.io {
         down(kc: Key): boolean;
     }
 }
-declare function intRandom(maximum: number): number;
-declare function intRandomRange(minimum: number, maximum: number): number;
-declare function deg2rad(deg: number): number;
-declare function rad2deg(rad: number): number;
-declare function clamp(n: number, min: number, max: number): number;
-declare function clamp01(n: number): number;
-declare function roundUpPowerOf2(n: number): number;
-declare function alignUp(val: number, alignmentPow2: number): number;
-declare function alignDown(val: number, alignmentPow2: number): number;
-interface Math {
-    sign(n: number): number;
-}
-interface vec3 {
-    add3(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, c: ArrayOfNumber): ArrayOfNumber;
-}
-declare class Rect {
-    left: number;
-    top: number;
-    right: number;
-    bottom: number;
-    topLeft: Float32Array;
-    topRight: Float32Array;
-    bottomLeft: Float32Array;
-    bottomRight: Float32Array;
-    constructor(left: number, top: number, right: number, bottom: number);
-    intersectsLineSegment(ptA: ArrayOfNumber, ptB: ArrayOfNumber): boolean;
+declare namespace sd {
+    interface TypedArray {
+        BYTES_PER_ELEMENT: number;
+        buffer: ArrayBuffer;
+        byteLength: number;
+        byteOffset: number;
+        length: number;
+        [index: number]: number;
+        set(array: ArrayLike<number>, offset?: number): void;
+        subarray(begin: number, end?: number): TypedArray;
+    }
+    interface TypedArrayConstructor {
+        new (length: number): TypedArray;
+        new (array: ArrayLike<number>): TypedArray;
+        new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
+    }
+    interface NumericType {
+        min: number;
+        max: number;
+        signed: boolean;
+        byteSize: number;
+        arrayType: TypedArrayConstructor;
+    }
+    const UInt8: NumericType;
+    const UInt8Clamped: NumericType;
+    const SInt8: NumericType;
+    const UInt16: NumericType;
+    const SInt16: NumericType;
+    const UInt32: NumericType;
+    const SInt32: NumericType;
+    const Float: NumericType;
+    const Double: NumericType;
+    function makeTypedArray(nt: NumericType): {
+        (length: number): TypedArray;
+        (array: ArrayLike<number>): TypedArray;
+        (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
+    };
 }
 declare namespace sd.mesh {
     const enum VertexField {
@@ -594,7 +625,26 @@ declare class SoundManager {
     loadSoundFile(filePath: string): Promise<AudioBuffer>;
 }
 declare namespace sd.world {
-    type Entity = number;
+    class Instance<Component> {
+        ref: number;
+        private __C;
+        constructor(ref: number);
+        equals(other: Instance<Component>): boolean;
+        valid(): boolean;
+    }
+    class Entity {
+        private static minFreedBuildup;
+        private static indexBits;
+        private static generationBits;
+        private static indexMask;
+        private static generationMask;
+        id: number;
+        constructor(index: number, gen: number);
+        index(): number;
+        generation(): number;
+        equals(other: Entity): boolean;
+        valid(): boolean;
+    }
     class EntityManager {
         private generation_;
         private genCount_;
@@ -606,10 +656,39 @@ declare namespace sd.world {
         private generationMask;
         constructor();
         private appendGeneration();
-        private entityIndex(ent);
-        private entityGeneration(ent);
         create(): Entity;
         alive(ent: Entity): boolean;
         destroy(ent: Entity): void;
+    }
+    type TransformInstance = Instance<TransformManager>;
+    interface TransformDescriptor {
+        position: ArrayOfNumber;
+        rotation: ArrayOfNumber;
+        scale: ArrayOfNumber;
+    }
+    class TransformManager {
+        private instanceData_;
+        private parentBase_;
+        private positionBase_;
+        private rotationBase_;
+        private scaleBase_;
+        private modelMatrixBase_;
+        static root: Instance<TransformManager>;
+        constructor();
+        rebase(): void;
+        count(): number;
+        assign(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
+        assign(linkedEntity: Entity, desc: TransformDescriptor, parent?: TransformInstance): TransformInstance;
+        parent(h: TransformInstance): TransformInstance;
+        position(h: TransformInstance): TypedArray;
+        rotation(h: TransformInstance): TypedArray;
+        scale(h: TransformInstance): TypedArray;
+        modelMatrix(h: TransformInstance): TypedArray;
+        setParent(h: TransformInstance, newParent: TransformInstance): void;
+        setPosition(h: TransformInstance, newPosition: ArrayOfNumber): void;
+        setRotation(h: TransformInstance, newRotation: ArrayOfNumber): void;
+        setPositionAndRotation(h: TransformInstance, newPosition: ArrayOfNumber, newRotation: ArrayOfNumber): void;
+        setScale(h: TransformInstance, newScale: ArrayOfNumber): void;
+        forEntity(ent: Entity): TransformInstance;
     }
 }
