@@ -35,6 +35,39 @@ function clamp01(n: number): number {
 }
 
 
+// roundUpPowerOf2
+// return closest powerOf2 number that is >= n
+// e.g.: 15 -> 16; 16 -> 16; 17 -> 32
+
+function roundUpPowerOf2(n: number) {
+	if (n <= 0) return 1;
+	n = (n | 0) - 1;
+	n |= n >> 1;
+	n |= n >> 2;
+	n |= n >> 4;
+	n |= n >> 8;
+	n |= n >> 16;
+	return n + 1;
+}
+
+
+// alignUp
+// round val up to closest alignmentPow2
+
+function alignUp(val: number, alignmentPow2: number) {
+	return (val + alignmentPow2 - 1) & (~(alignmentPow2 - 1));
+}
+
+
+// alignDown
+// round val down to closest alignmentPow2
+
+function alignDown(val: number, alignmentPow2: number) {
+	return val & (~(alignmentPow2 - 1));
+}
+
+
+
 interface Math {
 	sign(n: number): number;
 }
