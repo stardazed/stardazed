@@ -1,4 +1,4 @@
-// model - renderable meshes w/ materials
+// material - model material data
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
@@ -14,12 +14,12 @@ namespace sd.model {
 	// |_|  |_\__,_|\__\___|_| |_\__,_|_|_|  |_\__,_|_||_\__,_\__, \___|_|  
 	//                                                        |___/         
 
-	const enum MaterialFlags {
+	export const enum MaterialFlags {
 		albedoAlphaIsTranslucency = 0x00000001,
 		normalAlphaIsHeight       = 0x00000002
 	}
 
-	interface MaterialDescriptor {
+	export interface MaterialDescriptor {
 		// colours
 		mainColour: ArrayOfNumber;      // v3, single colour or tint for albedo
 		specularColour: ArrayOfNumber;  // v3
@@ -35,9 +35,9 @@ namespace sd.model {
 	}
 
 
-	type MaterialIndex = world.Instance<MaterialManager>;
+	export type MaterialIndex = world.Instance<MaterialManager>;
 
-	class MaterialManager {
+	export class MaterialManager {
 		private instanceData_: container.MultiArrayBuffer;
 		private albedoMaps_: WebGLTexture[] = [];
 		private normalMaps_: WebGLTexture[] = [];
@@ -107,6 +107,5 @@ namespace sd.model {
 			};		
 		}
 	}
-
 
 } // ns sd.model
