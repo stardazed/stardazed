@@ -273,6 +273,100 @@ declare namespace sd.io {
         down(kc: Key): boolean;
     }
 }
+declare namespace sd.world {
+    class Instance<Component> {
+        ref: number;
+        private __C;
+        constructor(ref: number);
+        equals(other: Instance<Component>): boolean;
+        valid(): boolean;
+    }
+    class Entity {
+        private static minFreedBuildup;
+        private static indexBits;
+        private static generationBits;
+        private static indexMask;
+        private static generationMask;
+        id: number;
+        constructor(index: number, gen: number);
+        index(): number;
+        generation(): number;
+        equals(other: Entity): boolean;
+        valid(): boolean;
+    }
+    class EntityManager {
+        private generation_;
+        private genCount_;
+        private freedIndices_;
+        private minFreedBuildup;
+        private indexBits;
+        private generationBits;
+        private indexMask;
+        private generationMask;
+        constructor();
+        private appendGeneration();
+        create(): Entity;
+        alive(ent: Entity): boolean;
+        destroy(ent: Entity): void;
+    }
+    type TransformInstance = Instance<TransformManager>;
+    interface TransformDescriptor {
+        position: ArrayOfNumber;
+        rotation: ArrayOfNumber;
+        scale: ArrayOfNumber;
+    }
+    class TransformManager {
+        private instanceData_;
+        private parentBase_;
+        private positionBase_;
+        private rotationBase_;
+        private scaleBase_;
+        private modelMatrixBase_;
+        static root: Instance<TransformManager>;
+        constructor();
+        rebase(): void;
+        count(): number;
+        assign(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
+        assign(linkedEntity: Entity, desc: TransformDescriptor, parent?: TransformInstance): TransformInstance;
+        parent(h: TransformInstance): TransformInstance;
+        position(h: TransformInstance): TypedArray;
+        rotation(h: TransformInstance): TypedArray;
+        scale(h: TransformInstance): TypedArray;
+        modelMatrix(h: TransformInstance): TypedArray;
+        setParent(h: TransformInstance, newParent: TransformInstance): void;
+        setPosition(h: TransformInstance, newPosition: ArrayOfNumber): void;
+        setRotation(h: TransformInstance, newRotation: ArrayOfNumber): void;
+        setPositionAndRotation(h: TransformInstance, newPosition: ArrayOfNumber, newRotation: ArrayOfNumber): void;
+        setScale(h: TransformInstance, newScale: ArrayOfNumber): void;
+        forEntity(ent: Entity): TransformInstance;
+    }
+}
+declare namespace sd.model {
+    const enum MaterialFlags {
+        albedoAlphaIsTranslucency = 1,
+        normalAlphaIsHeight = 2,
+    }
+    interface MaterialDescriptor {
+        mainColour: ArrayOfNumber;
+        specularColour: ArrayOfNumber;
+        specularExponent: number;
+        textureScale: ArrayOfNumber;
+        textureOffset: ArrayOfNumber;
+        flags: MaterialFlags;
+        albedoMap: WebGLTexture;
+        normalMap: WebGLTexture;
+    }
+    type MaterialIndex = world.Instance<MaterialManager>;
+    class MaterialManager {
+        private instanceData_;
+        private albedoMaps_;
+        private normalMaps_;
+        constructor();
+        append(desc: MaterialDescriptor): MaterialIndex;
+        destroy(index: MaterialIndex): void;
+        copyDescriptor(index: MaterialIndex): MaterialDescriptor;
+    }
+}
 declare namespace sd.mesh {
     const enum VertexField {
         Undefined = 0,
@@ -617,76 +711,6 @@ declare namespace sd.mesh {
     }
     function loadLWObjectFile(filePath: string): Promise<LWMeshData>;
 }
-declare namespace sd.world {
-    class Instance<Component> {
-        ref: number;
-        private __C;
-        constructor(ref: number);
-        equals(other: Instance<Component>): boolean;
-        valid(): boolean;
-    }
-    class Entity {
-        private static minFreedBuildup;
-        private static indexBits;
-        private static generationBits;
-        private static indexMask;
-        private static generationMask;
-        id: number;
-        constructor(index: number, gen: number);
-        index(): number;
-        generation(): number;
-        equals(other: Entity): boolean;
-        valid(): boolean;
-    }
-    class EntityManager {
-        private generation_;
-        private genCount_;
-        private freedIndices_;
-        private minFreedBuildup;
-        private indexBits;
-        private generationBits;
-        private indexMask;
-        private generationMask;
-        constructor();
-        private appendGeneration();
-        create(): Entity;
-        alive(ent: Entity): boolean;
-        destroy(ent: Entity): void;
-    }
-    type TransformInstance = Instance<TransformManager>;
-    interface TransformDescriptor {
-        position: ArrayOfNumber;
-        rotation: ArrayOfNumber;
-        scale: ArrayOfNumber;
-    }
-    class TransformManager {
-        private instanceData_;
-        private parentBase_;
-        private positionBase_;
-        private rotationBase_;
-        private scaleBase_;
-        private modelMatrixBase_;
-        static root: Instance<TransformManager>;
-        constructor();
-        rebase(): void;
-        count(): number;
-        assign(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
-        assign(linkedEntity: Entity, desc: TransformDescriptor, parent?: TransformInstance): TransformInstance;
-        parent(h: TransformInstance): TransformInstance;
-        position(h: TransformInstance): TypedArray;
-        rotation(h: TransformInstance): TypedArray;
-        scale(h: TransformInstance): TypedArray;
-        modelMatrix(h: TransformInstance): TypedArray;
-        setParent(h: TransformInstance, newParent: TransformInstance): void;
-        setPosition(h: TransformInstance, newPosition: ArrayOfNumber): void;
-        setRotation(h: TransformInstance, newRotation: ArrayOfNumber): void;
-        setPositionAndRotation(h: TransformInstance, newPosition: ArrayOfNumber, newRotation: ArrayOfNumber): void;
-        setScale(h: TransformInstance, newScale: ArrayOfNumber): void;
-        forEntity(ent: Entity): TransformInstance;
-    }
-}
-declare namespace sd.model {
-}
 declare var webkitAudioContext: {
     prototype: AudioContext;
     new (): AudioContext;
@@ -699,4 +723,14 @@ declare class SoundManager {
     context: AudioContext;
     constructor();
     loadSoundFile(filePath: string): Promise<AudioBuffer>;
+}
+declare namespace sd.model {
+    class StandardShader {
+        private gl_;
+        private materialMgr_;
+        constructor(gl_: WebGLRenderingContext, materialMgr_: MaterialManager);
+        private parameterBlockForDepencies(prefix, params, dependencies);
+        private snippetBlockForDepencies(prefix, snippets, dependencies);
+        vertexShaderSourceForDependencies(dependencies: number): string;
+    }
 }

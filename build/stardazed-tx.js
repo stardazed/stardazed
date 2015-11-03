@@ -735,6 +735,235 @@ var sd;
 })(sd || (sd = {}));
 var sd;
 (function (sd) {
+    var world;
+    (function (world) {
+        var Instance = (function () {
+            function Instance(ref) {
+                this.ref = ref;
+            }
+            Instance.prototype.equals = function (other) { return other.ref == this.ref; };
+            Instance.prototype.valid = function () { return this.ref != 0; };
+            return Instance;
+        })();
+        world.Instance = Instance;
+        var Entity = (function () {
+            function Entity(index, gen) {
+                this.id = (gen << Entity.indexBits) | index;
+            }
+            Entity.prototype.index = function () { return this.id & Entity.indexMask; };
+            Entity.prototype.generation = function () { return (this.id >> Entity.indexBits) & Entity.generationMask; };
+            Entity.prototype.equals = function (other) { return other.id == this.id; };
+            Entity.prototype.valid = function () { return this.id != 0; };
+            Entity.minFreedBuildup = 1024;
+            Entity.indexBits = 24;
+            Entity.generationBits = 7;
+            Entity.indexMask = (1 << Entity.indexBits) - 1;
+            Entity.generationMask = (1 << Entity.generationBits) - 1;
+            return Entity;
+        })();
+        world.Entity = Entity;
+        var EntityManager = (function () {
+            function EntityManager() {
+                this.minFreedBuildup = 1024;
+                this.indexBits = 24;
+                this.generationBits = 7;
+                this.indexMask = (1 << this.indexBits) - 1;
+                this.generationMask = (1 << this.generationBits) - 1;
+                this.generation_ = new Uint8Array(2048);
+                this.freedIndices_ = new sd.container.Deque();
+                this.genCount_ = -1;
+                this.appendGeneration();
+            }
+            EntityManager.prototype.appendGeneration = function () {
+                if (this.genCount_ == this.generation_.length) {
+                    var newBuffer = ArrayBuffer.transfer(this.generation_.buffer, this.generation_.length * 2);
+                    this.generation_ = new Uint8Array(newBuffer);
+                }
+                ++this.genCount_;
+                this.generation_[this.genCount_] = 0;
+                return this.genCount_;
+            };
+            EntityManager.prototype.create = function () {
+                var index;
+                if (this.freedIndices_.count() >= this.minFreedBuildup) {
+                    index = this.freedIndices_.front();
+                    this.freedIndices_.popFront();
+                }
+                else {
+                    index = this.appendGeneration();
+                }
+                return new Entity(index, this.generation_[index]);
+            };
+            EntityManager.prototype.alive = function (ent) {
+                var index = ent.index();
+                return index <= this.genCount_ && (ent.generation() == this.generation_[index]);
+            };
+            EntityManager.prototype.destroy = function (ent) {
+                var index = ent.index();
+                this.generation_[index]++;
+                this.freedIndices_.append(index);
+            };
+            return EntityManager;
+        })();
+        world.EntityManager = EntityManager;
+        var TransformManager = (function () {
+            function TransformManager() {
+                var instanceFields = [
+                    { type: sd.UInt32, count: 1 },
+                    { type: sd.Float, count: 3 },
+                    { type: sd.Float, count: 4 },
+                    { type: sd.Float, count: 3 },
+                    { type: sd.Float, count: 16 }
+                ];
+                this.instanceData_ = new sd.container.MultiArrayBuffer(512, instanceFields);
+                this.rebase();
+            }
+            TransformManager.prototype.rebase = function () {
+                this.parentBase_ = this.instanceData_.indexedFieldView(0);
+                this.positionBase_ = this.instanceData_.indexedFieldView(1);
+                this.rotationBase_ = this.instanceData_.indexedFieldView(2);
+                this.scaleBase_ = this.instanceData_.indexedFieldView(3);
+                this.modelMatrixBase_ = this.instanceData_.indexedFieldView(4);
+            };
+            TransformManager.prototype.count = function () { return this.instanceData_.count(); };
+            TransformManager.prototype.assign = function (linkedEntity, descOrParent, parent) {
+                var entIndex = linkedEntity.index();
+                if (this.instanceData_.count() < entIndex) {
+                    var newCount = sd.math.roundUpPowerOf2(entIndex);
+                    if (this.instanceData_.resize(newCount) == 1) {
+                        this.rebase();
+                    }
+                }
+                var h = new Instance(entIndex);
+                if (descOrParent && ("position" in descOrParent)) {
+                    var desc = descOrParent;
+                    if (parent)
+                        this.parentBase_[h.ref] = parent.ref;
+                    this.positionBase_.set(desc.position, h.ref * sd.math.Vec3.elementCount);
+                    this.rotationBase_.set(desc.rotation, h.ref * sd.math.Quat.elementCount);
+                    this.scaleBase_.set(desc.scale, h.ref * sd.math.Vec3.elementCount);
+                    var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
+                    mat4.fromRotationTranslationScale(modelMat, desc.rotation, desc.position, desc.scale);
+                }
+                else {
+                    var par = descOrParent;
+                    if (par)
+                        this.parentBase_[h.ref] = par.ref;
+                    this.rotationBase_.set(sd.math.Quat.identity, h.ref * sd.math.Quat.elementCount);
+                    this.scaleBase_.set(sd.math.Vec3.one, h.ref * sd.math.Vec3.elementCount);
+                    this.modelMatrixBase_.set(sd.math.Mat4.identity, h.ref * sd.math.Mat4.elementCount);
+                }
+                return h;
+            };
+            TransformManager.prototype.parent = function (h) { return new Instance(this.parentBase_[h.ref]); };
+            TransformManager.prototype.position = function (h) { return sd.math.vectorArrayItem(this.positionBase_, sd.math.Vec3, h.ref); };
+            TransformManager.prototype.rotation = function (h) { return sd.math.vectorArrayItem(this.rotationBase_, sd.math.Quat, h.ref); };
+            TransformManager.prototype.scale = function (h) { return sd.math.vectorArrayItem(this.scaleBase_, sd.math.Vec3, h.ref); };
+            TransformManager.prototype.modelMatrix = function (h) { return sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref); };
+            TransformManager.prototype.setParent = function (h, newParent) {
+                assert(h.ref != 0);
+                this.parentBase_[h.ref] = newParent.ref;
+            };
+            TransformManager.prototype.setPosition = function (h, newPosition) {
+                assert(h.ref != 0);
+                this.positionBase_.set(newPosition, h.ref * sd.math.Vec3.elementCount);
+                var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
+                mat4.fromRotationTranslationScale(modelMat, this.rotation(h), newPosition, this.scale(h));
+            };
+            TransformManager.prototype.setRotation = function (h, newRotation) {
+                assert(h.ref != 0);
+                this.rotationBase_.set(newRotation, h.ref * sd.math.Quat.elementCount);
+                var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
+                mat4.fromRotationTranslationScale(modelMat, newRotation, this.position(h), this.scale(h));
+            };
+            TransformManager.prototype.setPositionAndRotation = function (h, newPosition, newRotation) {
+                assert(h.ref != 0);
+                this.positionBase_.set(newPosition, h.ref * sd.math.Vec3.elementCount);
+                this.rotationBase_.set(newRotation, h.ref * sd.math.Quat.elementCount);
+                var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
+                mat4.fromRotationTranslationScale(modelMat, newRotation, newPosition, this.scale(h));
+            };
+            TransformManager.prototype.setScale = function (h, newScale) {
+                assert(h.ref != 0);
+                this.scaleBase_.set(newScale, h.ref * sd.math.Vec3.elementCount);
+                var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
+                mat4.fromRotationTranslationScale(modelMat, this.rotation(h), this.position(h), newScale);
+            };
+            TransformManager.prototype.forEntity = function (ent) {
+                return new Instance(ent.index());
+            };
+            TransformManager.root = new Instance(0);
+            return TransformManager;
+        })();
+        world.TransformManager = TransformManager;
+    })(world = sd.world || (sd.world = {}));
+})(sd || (sd = {}));
+var sd;
+(function (sd) {
+    var model;
+    (function (model) {
+        var MaterialManager = (function () {
+            function MaterialManager() {
+                this.albedoMaps_ = [];
+                this.normalMaps_ = [];
+                var initialCapacity = 256;
+                var fields = [
+                    { type: sd.Float, count: 3 },
+                    { type: sd.Float, count: 3 },
+                    { type: sd.Float, count: 1 },
+                    { type: sd.Float, count: 2 },
+                    { type: sd.Float, count: 2 },
+                    { type: sd.UInt32, count: 1 },
+                ];
+                this.instanceData_ = new sd.container.MultiArrayBuffer(initialCapacity, fields);
+                this.albedoMaps_.length = initialCapacity;
+                this.normalMaps_.length = initialCapacity;
+            }
+            MaterialManager.prototype.append = function (desc) {
+                this.instanceData_.extend();
+                var matIndex = this.instanceData_.count() - 1;
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(0), sd.math.Vec3, matIndex).set(desc.mainColour);
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(1), sd.math.Vec3, matIndex).set(desc.specularColour);
+                this.instanceData_.indexedFieldView(2)[matIndex] = desc.specularExponent;
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(3), sd.math.Vec2, matIndex).set(desc.textureScale);
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(4), sd.math.Vec2, matIndex).set(desc.textureOffset);
+                this.instanceData_.indexedFieldView(5)[matIndex] = desc.flags;
+                this.albedoMaps_[matIndex] = desc.albedoMap;
+                this.normalMaps_[matIndex] = desc.normalMap;
+                return new sd.world.Instance(matIndex);
+            };
+            MaterialManager.prototype.destroy = function (index) {
+                var matIndex = index.ref;
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(0), sd.math.Vec3, matIndex).set(sd.math.Vec3.zero);
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(1), sd.math.Vec3, matIndex).set(sd.math.Vec3.zero);
+                this.instanceData_.indexedFieldView(2)[matIndex] = 0;
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(3), sd.math.Vec2, matIndex).set(sd.math.Vec2.zero);
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(4), sd.math.Vec2, matIndex).set(sd.math.Vec2.zero);
+                this.instanceData_.indexedFieldView(5)[matIndex] = 0;
+                this.albedoMaps_[matIndex] = null;
+                this.normalMaps_[matIndex] = null;
+            };
+            MaterialManager.prototype.copyDescriptor = function (index) {
+                var matIndex = index.ref;
+                assert(matIndex < this.instanceData_.count());
+                return {
+                    mainColour: sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(0), sd.math.Vec3, matIndex),
+                    specularColour: sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(1), sd.math.Vec3, matIndex),
+                    specularExponent: this.instanceData_.indexedFieldView(2)[matIndex],
+                    textureScale: sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(3), sd.math.Vec2, matIndex),
+                    textureOffset: sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(4), sd.math.Vec2, matIndex),
+                    flags: this.instanceData_.indexedFieldView(5)[matIndex],
+                    albedoMap: this.albedoMaps_[matIndex],
+                    normalMap: this.normalMaps_[matIndex]
+                };
+            };
+            return MaterialManager;
+        })();
+        model.MaterialManager = MaterialManager;
+    })(model = sd.model || (sd.model = {}));
+})(sd || (sd = {}));
+var sd;
+(function (sd) {
     var mesh;
     (function (mesh) {
         ;
@@ -1877,234 +2106,6 @@ var sd;
         mesh_3.loadLWObjectFile = loadLWObjectFile;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
-var sd;
-(function (sd) {
-    var world;
-    (function (world) {
-        var Instance = (function () {
-            function Instance(ref) {
-                this.ref = ref;
-            }
-            Instance.prototype.equals = function (other) { return other.ref == this.ref; };
-            Instance.prototype.valid = function () { return this.ref != 0; };
-            return Instance;
-        })();
-        world.Instance = Instance;
-        var Entity = (function () {
-            function Entity(index, gen) {
-                this.id = (gen << Entity.indexBits) | index;
-            }
-            Entity.prototype.index = function () { return this.id & Entity.indexMask; };
-            Entity.prototype.generation = function () { return (this.id >> Entity.indexBits) & Entity.generationMask; };
-            Entity.prototype.equals = function (other) { return other.id == this.id; };
-            Entity.prototype.valid = function () { return this.id != 0; };
-            Entity.minFreedBuildup = 1024;
-            Entity.indexBits = 24;
-            Entity.generationBits = 7;
-            Entity.indexMask = (1 << Entity.indexBits) - 1;
-            Entity.generationMask = (1 << Entity.generationBits) - 1;
-            return Entity;
-        })();
-        world.Entity = Entity;
-        var EntityManager = (function () {
-            function EntityManager() {
-                this.minFreedBuildup = 1024;
-                this.indexBits = 24;
-                this.generationBits = 7;
-                this.indexMask = (1 << this.indexBits) - 1;
-                this.generationMask = (1 << this.generationBits) - 1;
-                this.generation_ = new Uint8Array(2048);
-                this.freedIndices_ = new sd.container.Deque();
-                this.genCount_ = -1;
-                this.appendGeneration();
-            }
-            EntityManager.prototype.appendGeneration = function () {
-                if (this.genCount_ == this.generation_.length) {
-                    var newBuffer = ArrayBuffer.transfer(this.generation_.buffer, this.generation_.length * 2);
-                    this.generation_ = new Uint8Array(newBuffer);
-                }
-                ++this.genCount_;
-                this.generation_[this.genCount_] = 0;
-                return this.genCount_;
-            };
-            EntityManager.prototype.create = function () {
-                var index;
-                if (this.freedIndices_.count() >= this.minFreedBuildup) {
-                    index = this.freedIndices_.front();
-                    this.freedIndices_.popFront();
-                }
-                else {
-                    index = this.appendGeneration();
-                }
-                return new Entity(index, this.generation_[index]);
-            };
-            EntityManager.prototype.alive = function (ent) {
-                var index = ent.index();
-                return index <= this.genCount_ && (ent.generation() == this.generation_[index]);
-            };
-            EntityManager.prototype.destroy = function (ent) {
-                var index = ent.index();
-                this.generation_[index]++;
-                this.freedIndices_.append(index);
-            };
-            return EntityManager;
-        })();
-        world.EntityManager = EntityManager;
-        var TransformManager = (function () {
-            function TransformManager() {
-                var instanceFields = [
-                    { type: sd.UInt32, count: 1 },
-                    { type: sd.Float, count: 3 },
-                    { type: sd.Float, count: 4 },
-                    { type: sd.Float, count: 3 },
-                    { type: sd.Float, count: 16 }
-                ];
-                this.instanceData_ = new sd.container.MultiArrayBuffer(512, instanceFields);
-                this.rebase();
-            }
-            TransformManager.prototype.rebase = function () {
-                this.parentBase_ = this.instanceData_.indexedFieldView(0);
-                this.positionBase_ = this.instanceData_.indexedFieldView(1);
-                this.rotationBase_ = this.instanceData_.indexedFieldView(2);
-                this.scaleBase_ = this.instanceData_.indexedFieldView(3);
-                this.modelMatrixBase_ = this.instanceData_.indexedFieldView(4);
-            };
-            TransformManager.prototype.count = function () { return this.instanceData_.count(); };
-            TransformManager.prototype.assign = function (linkedEntity, descOrParent, parent) {
-                var entIndex = linkedEntity.index();
-                if (this.instanceData_.count() < entIndex) {
-                    var newCount = sd.math.roundUpPowerOf2(entIndex);
-                    if (this.instanceData_.resize(newCount) == 1) {
-                        this.rebase();
-                    }
-                }
-                var h = new Instance(entIndex);
-                if (descOrParent && ("position" in descOrParent)) {
-                    var desc = descOrParent;
-                    if (parent)
-                        this.parentBase_[h.ref] = parent.ref;
-                    this.positionBase_.set(desc.position, h.ref * sd.math.Vec3.elementCount);
-                    this.rotationBase_.set(desc.rotation, h.ref * sd.math.Quat.elementCount);
-                    this.scaleBase_.set(desc.scale, h.ref * sd.math.Vec3.elementCount);
-                    var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
-                    mat4.fromRotationTranslationScale(modelMat, desc.rotation, desc.position, desc.scale);
-                }
-                else {
-                    var par = descOrParent;
-                    if (par)
-                        this.parentBase_[h.ref] = par.ref;
-                    this.rotationBase_.set(sd.math.Quat.identity, h.ref * sd.math.Quat.elementCount);
-                    this.scaleBase_.set(sd.math.Vec3.one, h.ref * sd.math.Vec3.elementCount);
-                    this.modelMatrixBase_.set(sd.math.Mat4.identity, h.ref * sd.math.Mat4.elementCount);
-                }
-                return h;
-            };
-            TransformManager.prototype.parent = function (h) { return new Instance(this.parentBase_[h.ref]); };
-            TransformManager.prototype.position = function (h) { return sd.math.vectorArrayItem(this.positionBase_, sd.math.Vec3, h.ref); };
-            TransformManager.prototype.rotation = function (h) { return sd.math.vectorArrayItem(this.rotationBase_, sd.math.Quat, h.ref); };
-            TransformManager.prototype.scale = function (h) { return sd.math.vectorArrayItem(this.scaleBase_, sd.math.Vec3, h.ref); };
-            TransformManager.prototype.modelMatrix = function (h) { return sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref); };
-            TransformManager.prototype.setParent = function (h, newParent) {
-                assert(h.ref != 0);
-                this.parentBase_[h.ref] = newParent.ref;
-            };
-            TransformManager.prototype.setPosition = function (h, newPosition) {
-                assert(h.ref != 0);
-                this.positionBase_.set(newPosition, h.ref * sd.math.Vec3.elementCount);
-                var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
-                mat4.fromRotationTranslationScale(modelMat, this.rotation(h), newPosition, this.scale(h));
-            };
-            TransformManager.prototype.setRotation = function (h, newRotation) {
-                assert(h.ref != 0);
-                this.rotationBase_.set(newRotation, h.ref * sd.math.Quat.elementCount);
-                var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
-                mat4.fromRotationTranslationScale(modelMat, newRotation, this.position(h), this.scale(h));
-            };
-            TransformManager.prototype.setPositionAndRotation = function (h, newPosition, newRotation) {
-                assert(h.ref != 0);
-                this.positionBase_.set(newPosition, h.ref * sd.math.Vec3.elementCount);
-                this.rotationBase_.set(newRotation, h.ref * sd.math.Quat.elementCount);
-                var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
-                mat4.fromRotationTranslationScale(modelMat, newRotation, newPosition, this.scale(h));
-            };
-            TransformManager.prototype.setScale = function (h, newScale) {
-                assert(h.ref != 0);
-                this.scaleBase_.set(newScale, h.ref * sd.math.Vec3.elementCount);
-                var modelMat = sd.math.vectorArrayItem(this.modelMatrixBase_, sd.math.Mat4, h.ref);
-                mat4.fromRotationTranslationScale(modelMat, this.rotation(h), this.position(h), newScale);
-            };
-            TransformManager.prototype.forEntity = function (ent) {
-                return new Instance(ent.index());
-            };
-            TransformManager.root = new Instance(0);
-            return TransformManager;
-        })();
-        world.TransformManager = TransformManager;
-    })(world = sd.world || (sd.world = {}));
-})(sd || (sd = {}));
-var sd;
-(function (sd) {
-    var model;
-    (function (model) {
-        var MaterialManager = (function () {
-            function MaterialManager() {
-                this.albedoMaps_ = [];
-                this.normalMaps_ = [];
-                var initialCapacity = 256;
-                var fields = [
-                    { type: sd.Float, count: 3 },
-                    { type: sd.Float, count: 3 },
-                    { type: sd.Float, count: 1 },
-                    { type: sd.Float, count: 2 },
-                    { type: sd.Float, count: 2 },
-                    { type: sd.UInt32, count: 1 },
-                ];
-                this.instanceData_ = new sd.container.MultiArrayBuffer(initialCapacity, fields);
-                this.albedoMaps_.length = initialCapacity;
-                this.normalMaps_.length = initialCapacity;
-            }
-            MaterialManager.prototype.append = function (desc) {
-                this.instanceData_.extend();
-                var matIndex = this.instanceData_.count() - 1;
-                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(0), sd.math.Vec3, matIndex).set(desc.mainColour);
-                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(1), sd.math.Vec3, matIndex).set(desc.specularColour);
-                this.instanceData_.indexedFieldView(2)[matIndex] = desc.specularExponent;
-                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(3), sd.math.Vec2, matIndex).set(desc.textureScale);
-                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(4), sd.math.Vec2, matIndex).set(desc.textureOffset);
-                this.instanceData_.indexedFieldView(5)[matIndex] = desc.flags;
-                this.albedoMaps_[matIndex] = desc.albedoMap;
-                this.normalMaps_[matIndex] = desc.normalMap;
-                return new sd.world.Instance(matIndex);
-            };
-            MaterialManager.prototype.destroy = function (index) {
-                var matIndex = index.ref;
-                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(0), sd.math.Vec3, matIndex).set(sd.math.Vec3.zero);
-                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(1), sd.math.Vec3, matIndex).set(sd.math.Vec3.zero);
-                this.instanceData_.indexedFieldView(2)[matIndex] = 0;
-                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(3), sd.math.Vec2, matIndex).set(sd.math.Vec2.zero);
-                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(4), sd.math.Vec2, matIndex).set(sd.math.Vec2.zero);
-                this.instanceData_.indexedFieldView(5)[matIndex] = 0;
-                this.albedoMaps_[matIndex] = null;
-                this.normalMaps_[matIndex] = null;
-            };
-            MaterialManager.prototype.copyDescriptor = function (index) {
-                var matIndex = index.ref;
-                assert(matIndex < this.instanceData_.count());
-                return {
-                    mainColour: sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(0), sd.math.Vec3, matIndex),
-                    specularColour: sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(1), sd.math.Vec3, matIndex),
-                    specularExponent: this.instanceData_.indexedFieldView(2)[matIndex],
-                    textureScale: sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(3), sd.math.Vec2, matIndex),
-                    textureOffset: sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(4), sd.math.Vec2, matIndex),
-                    flags: this.instanceData_.indexedFieldView(5)[matIndex],
-                    albedoMap: this.albedoMaps_[matIndex],
-                    normalMap: this.normalMaps_[matIndex]
-                };
-            };
-            return MaterialManager;
-        })();
-    })(model = sd.model || (sd.model = {}));
-})(sd || (sd = {}));
 var SoundManager = (function () {
     function SoundManager() {
         this.context = window.AudioContext ? new AudioContext() : (window.webkitAudioContext ? new webkitAudioContext() : null);
@@ -2127,3 +2128,76 @@ var SoundManager = (function () {
     };
     return SoundManager;
 })();
+var sd;
+(function (sd) {
+    var model;
+    (function (model) {
+        var attributes = [
+            { name: "vertexPos_model", type: "vec3", dependencies: 0 },
+            { name: "vertexNormal", type: "vec3", dependencies: 1 },
+            { name: "vertexUV", type: "vec2", dependencies: 2 },
+            { name: "vertexColor", type: "vec3", dependencies: 4 },
+        ];
+        var varyings = [
+            { name: "vertexPos_cam_intp", type: "vec3", dependencies: 8 },
+            { name: "vertexNormal_intp", type: "vec3", dependencies: 1 },
+            { name: "vertexUV_intp", type: "vec2", dependencies: 2 },
+            { name: "vertexColor_intp", type: "vec3", dependencies: 4 },
+        ];
+        var vertexUniforms = [
+            { name: "modelViewProjectionMatrix", type: "mat4", dependencies: 0 },
+            { name: "modelViewMatrix", type: "mat4", dependencies: 8 },
+            { name: "normalMatrix", type: "mat3", dependencies: 1 }
+        ];
+        var vertexMain = [
+            {
+                dependencies: 0,
+                text: ["gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);"]
+            },
+            {
+                dependencies: 8,
+                text: ["vertexPos_cam_intp = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;"]
+            },
+            {
+                dependencies: 1,
+                text: ["vertexNormal_intp = normalize(normalMatrix * vertexNormal);"]
+            },
+            {
+                dependencies: 2,
+                text: ["vertexUV_intp = vertexUV;"]
+            },
+            {
+                dependencies: 4,
+                text: ["vertexColor_intp = vertexColor;"]
+            }
+        ];
+        var StandardShader = (function () {
+            function StandardShader(gl_, materialMgr_) {
+                this.gl_ = gl_;
+                this.materialMgr_ = materialMgr_;
+            }
+            StandardShader.prototype.parameterBlockForDepencies = function (prefix, params, dependencies) {
+                return params
+                    .filter(function (p) { return (p.dependencies & dependencies) == p.dependencies; })
+                    .map(function (p) { return prefix + " " + p.type + " " + p.name + ";"; });
+            };
+            StandardShader.prototype.snippetBlockForDepencies = function (prefix, snippets, dependencies) {
+                return snippets
+                    .filter(function (s) { return (s.dependencies & dependencies) == s.dependencies; })
+                    .map(function (s) { return s.text.map(function (l) { return prefix + l; }).join("\n"); });
+            };
+            StandardShader.prototype.vertexShaderSourceForDependencies = function (dependencies) {
+                var source = [];
+                source = source.concat(this.parameterBlockForDepencies("attribute", attributes, dependencies));
+                source = source.concat(this.parameterBlockForDepencies("uniform", vertexUniforms, dependencies));
+                source = source.concat(this.parameterBlockForDepencies("varying", varyings, dependencies));
+                source.push("void main() {");
+                source = source.concat(this.snippetBlockForDepencies("\t", vertexMain, dependencies));
+                source.push("}", "");
+                return source.join("\n");
+            };
+            return StandardShader;
+        })();
+        model.StandardShader = StandardShader;
+    })(model = sd.model || (sd.model = {}));
+})(sd || (sd = {}));
