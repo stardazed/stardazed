@@ -106,6 +106,12 @@ declare namespace sd.math {
         elementCount: number;
         byteSize: number;
     }
+    class Vec2 {
+        static zero: Float32Array;
+        static one: Float32Array;
+        static elementCount: number;
+        static byteSize: number;
+    }
     class Vec3 {
         static zero: Float32Array;
         static one: Float32Array;
@@ -611,19 +617,6 @@ declare namespace sd.mesh {
     }
     function loadLWObjectFile(filePath: string): Promise<LWMeshData>;
 }
-declare var webkitAudioContext: {
-    prototype: AudioContext;
-    new (): AudioContext;
-};
-interface Window {
-    webkitAudioContext?: AudioContext;
-    AudioContext?: AudioContext;
-}
-declare class SoundManager {
-    context: AudioContext;
-    constructor();
-    loadSoundFile(filePath: string): Promise<AudioBuffer>;
-}
 declare namespace sd.world {
     class Instance<Component> {
         ref: number;
@@ -691,4 +684,19 @@ declare namespace sd.world {
         setScale(h: TransformInstance, newScale: ArrayOfNumber): void;
         forEntity(ent: Entity): TransformInstance;
     }
+}
+declare namespace sd.model {
+}
+declare var webkitAudioContext: {
+    prototype: AudioContext;
+    new (): AudioContext;
+};
+interface Window {
+    webkitAudioContext?: AudioContext;
+    AudioContext?: AudioContext;
+}
+declare class SoundManager {
+    context: AudioContext;
+    constructor();
+    loadSoundFile(filePath: string): Promise<AudioBuffer>;
 }

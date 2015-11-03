@@ -139,6 +139,14 @@ namespace sd.math {
 		byteSize: number;
 	}
 
+	export class Vec2 {
+		static zero = new Float32Array([0, 0]);
+		static one = new Float32Array([1, 1]);
+
+		static elementCount = 2;
+		static byteSize = Float.byteSize * Vec2.elementCount;
+	}
+
 	export class Vec3 {
 		static zero = new Float32Array([0, 0, 0]);
 		static one = new Float32Array([1, 1, 1]);

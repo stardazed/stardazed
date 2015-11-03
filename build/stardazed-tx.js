@@ -270,6 +270,16 @@ var sd;
             return Rect;
         })();
         math.Rect = Rect;
+        var Vec2 = (function () {
+            function Vec2() {
+            }
+            Vec2.zero = new Float32Array([0, 0]);
+            Vec2.one = new Float32Array([1, 1]);
+            Vec2.elementCount = 2;
+            Vec2.byteSize = sd.Float.byteSize * Vec2.elementCount;
+            return Vec2;
+        })();
+        math.Vec2 = Vec2;
         var Vec3 = (function () {
             function Vec3() {
             }
@@ -1867,28 +1877,6 @@ var sd;
         mesh_3.loadLWObjectFile = loadLWObjectFile;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
-var SoundManager = (function () {
-    function SoundManager() {
-        this.context = window.AudioContext ? new AudioContext() : (window.webkitAudioContext ? new webkitAudioContext() : null);
-        assert(this.context, "No sound");
-    }
-    SoundManager.prototype.loadSoundFile = function (filePath) {
-        var _this = this;
-        return loadFile(filePath, {
-            responseType: FileLoadType.ArrayBuffer
-        }).then(function (data) {
-            return new Promise(function (resolve, reject) {
-                _this.context.decodeAudioData(data, function (audioData) {
-                    resolve(audioData);
-                }, function () {
-                    assert(false, "Audio file not found: " + filePath);
-                    reject("file not found");
-                });
-            });
-        });
-    };
-    return SoundManager;
-})();
 var sd;
 (function (sd) {
     var world;
@@ -2054,3 +2042,88 @@ var sd;
         world.TransformManager = TransformManager;
     })(world = sd.world || (sd.world = {}));
 })(sd || (sd = {}));
+var sd;
+(function (sd) {
+    var model;
+    (function (model) {
+        var MaterialManager = (function () {
+            function MaterialManager() {
+                this.albedoMaps_ = [];
+                this.normalMaps_ = [];
+                var initialCapacity = 256;
+                var fields = [
+                    { type: sd.Float, count: 3 },
+                    { type: sd.Float, count: 3 },
+                    { type: sd.Float, count: 1 },
+                    { type: sd.Float, count: 2 },
+                    { type: sd.Float, count: 2 },
+                    { type: sd.UInt32, count: 1 },
+                ];
+                this.instanceData_ = new sd.container.MultiArrayBuffer(initialCapacity, fields);
+                this.albedoMaps_.length = initialCapacity;
+                this.normalMaps_.length = initialCapacity;
+            }
+            MaterialManager.prototype.append = function (desc) {
+                this.instanceData_.extend();
+                var matIndex = this.instanceData_.count() - 1;
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(0), sd.math.Vec3, matIndex).set(desc.mainColour);
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(1), sd.math.Vec3, matIndex).set(desc.specularColour);
+                this.instanceData_.indexedFieldView(2)[matIndex] = desc.specularExponent;
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(3), sd.math.Vec2, matIndex).set(desc.textureScale);
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(4), sd.math.Vec2, matIndex).set(desc.textureOffset);
+                this.instanceData_.indexedFieldView(5)[matIndex] = desc.flags;
+                this.albedoMaps_[matIndex] = desc.albedoMap;
+                this.normalMaps_[matIndex] = desc.normalMap;
+                return new sd.world.Instance(matIndex);
+            };
+            MaterialManager.prototype.destroy = function (index) {
+                var matIndex = index.ref;
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(0), sd.math.Vec3, matIndex).set(sd.math.Vec3.zero);
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(1), sd.math.Vec3, matIndex).set(sd.math.Vec3.zero);
+                this.instanceData_.indexedFieldView(2)[matIndex] = 0;
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(3), sd.math.Vec2, matIndex).set(sd.math.Vec2.zero);
+                sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(4), sd.math.Vec2, matIndex).set(sd.math.Vec2.zero);
+                this.instanceData_.indexedFieldView(5)[matIndex] = 0;
+                this.albedoMaps_[matIndex] = null;
+                this.normalMaps_[matIndex] = null;
+            };
+            MaterialManager.prototype.copyDescriptor = function (index) {
+                var matIndex = index.ref;
+                assert(matIndex < this.instanceData_.count());
+                return {
+                    mainColour: sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(0), sd.math.Vec3, matIndex),
+                    specularColour: sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(1), sd.math.Vec3, matIndex),
+                    specularExponent: this.instanceData_.indexedFieldView(2)[matIndex],
+                    textureScale: sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(3), sd.math.Vec2, matIndex),
+                    textureOffset: sd.math.vectorArrayItem(this.instanceData_.indexedFieldView(4), sd.math.Vec2, matIndex),
+                    flags: this.instanceData_.indexedFieldView(5)[matIndex],
+                    albedoMap: this.albedoMaps_[matIndex],
+                    normalMap: this.normalMaps_[matIndex]
+                };
+            };
+            return MaterialManager;
+        })();
+    })(model = sd.model || (sd.model = {}));
+})(sd || (sd = {}));
+var SoundManager = (function () {
+    function SoundManager() {
+        this.context = window.AudioContext ? new AudioContext() : (window.webkitAudioContext ? new webkitAudioContext() : null);
+        assert(this.context, "No sound");
+    }
+    SoundManager.prototype.loadSoundFile = function (filePath) {
+        var _this = this;
+        return loadFile(filePath, {
+            responseType: FileLoadType.ArrayBuffer
+        }).then(function (data) {
+            return new Promise(function (resolve, reject) {
+                _this.context.decodeAudioData(data, function (audioData) {
+                    resolve(audioData);
+                }, function () {
+                    assert(false, "Audio file not found: " + filePath);
+                    reject("file not found");
+                });
+            });
+        });
+    };
+    return SoundManager;
+})();
