@@ -2132,69 +2132,128 @@ var sd;
 (function (sd) {
     var model;
     (function (model) {
-        var attributes = [
-            { name: "vertexPos_model", type: "vec3", dependencies: 0 },
-            { name: "vertexNormal", type: "vec3", dependencies: 1 },
-            { name: "vertexUV", type: "vec2", dependencies: 2 },
-            { name: "vertexColor", type: "vec3", dependencies: 4 },
-        ];
-        var varyings = [
-            { name: "vertexPos_cam_intp", type: "vec3", dependencies: 8 },
-            { name: "vertexNormal_intp", type: "vec3", dependencies: 1 },
-            { name: "vertexUV_intp", type: "vec2", dependencies: 2 },
-            { name: "vertexColor_intp", type: "vec3", dependencies: 4 },
-        ];
-        var vertexUniforms = [
-            { name: "modelViewProjectionMatrix", type: "mat4", dependencies: 0 },
-            { name: "modelViewMatrix", type: "mat4", dependencies: 8 },
-            { name: "normalMatrix", type: "mat3", dependencies: 1 }
-        ];
-        var vertexMain = [
-            {
-                dependencies: 0,
-                text: ["gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);"]
-            },
-            {
-                dependencies: 8,
-                text: ["vertexPos_cam_intp = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;"]
-            },
-            {
-                dependencies: 1,
-                text: ["vertexNormal_intp = normalize(normalMatrix * vertexNormal);"]
-            },
-            {
-                dependencies: 2,
-                text: ["vertexUV_intp = vertexUV;"]
-            },
-            {
-                dependencies: 4,
-                text: ["vertexColor_intp = vertexColor;"]
-            }
-        ];
         var StandardShader = (function () {
             function StandardShader(gl_, materialMgr_) {
                 this.gl_ = gl_;
                 this.materialMgr_ = materialMgr_;
             }
-            StandardShader.prototype.parameterBlockForDepencies = function (prefix, params, dependencies) {
-                return params
-                    .filter(function (p) { return (p.dependencies & dependencies) == p.dependencies; })
-                    .map(function (p) { return prefix + " " + p.type + " " + p.name + ";"; });
+            StandardShader.prototype.makeShader = function (type, sourceText) {
+                var shader = this.gl_.createShader(type);
+                this.gl_.shaderSource(shader, sourceText);
+                this.gl_.compileShader(shader);
+                if (!this.gl_.getShaderParameter(shader, this.gl_.COMPILE_STATUS)) {
+                    var errorLog = this.gl_.getShaderInfoLog(shader);
+                    alert("COMPILE FAILED\n\n" + errorLog);
+                    console.error("Shader compilation failed:", errorLog);
+                    console.error("Source", sourceText);
+                    assert(false, "bad shader");
+                }
+                return shader;
             };
-            StandardShader.prototype.snippetBlockForDepencies = function (prefix, snippets, dependencies) {
-                return snippets
-                    .filter(function (s) { return (s.dependencies & dependencies) == s.dependencies; })
-                    .map(function (s) { return s.text.map(function (l) { return prefix + l; }).join("\n"); });
+            StandardShader.prototype.programForFeatures = function (feat) {
+                var gl = this.gl_;
+                var vertexSource = this.vertexShaderSource(feat);
+                var fragmentSource = this.fragmentShaderSource(feat);
+                var vertexShader = this.makeShader(gl.VERTEX_SHADER, vertexSource);
+                var fragmentShader = this.makeShader(gl.FRAGMENT_SHADER, fragmentSource);
+                var program = gl.createProgram();
+                gl.attachShader(program, vertexShader);
+                gl.attachShader(program, fragmentShader);
+                gl.linkProgram(program);
+                if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                    var errorLog = gl.getProgramInfoLog(program);
+                    alert("LINK FAILED\n\n" + errorLog);
+                    console.error("Program link failed:", errorLog);
+                    console.error("Vertex Source", vertexSource);
+                    console.error("Fragment Source", fragmentSource);
+                    assert(false, "bad program");
+                }
+                gl.useProgram(program);
+                program.vertexPositionAttribute = gl.getAttribLocation(program, "vertexPos_model");
+                program.vertexNormalAttribute = gl.getAttribLocation(program, "vertexNormal");
+                program.vertexColorAttribute = gl.getAttribLocation(program, "vertexColor");
+                program.vertexUVAttribute = gl.getAttribLocation(program, "vertexUV");
+                program.mvMatrixUniform = gl.getUniformLocation(program, "modelViewMatrix");
+                program.mvpMatrixUniform = gl.getUniformLocation(program, "modelViewProjectionMatrix");
+                program.normalMatrixUniform = gl.getUniformLocation(program, "normalMatrix");
+                program.lightNormalMatrixUniform = gl.getUniformLocation(program, "lightNormalMatrix");
+                program.ambientSunFactorUniform = gl.getUniformLocation(program, "ambientSunFactor");
+                program.textureUniform = gl.getUniformLocation(program, "albedoSampler");
+                gl.useProgram(null);
+                return program;
             };
-            StandardShader.prototype.vertexShaderSourceForDependencies = function (dependencies) {
+            StandardShader.prototype.vertexShaderSource = function (feat) {
                 var source = [];
-                source = source.concat(this.parameterBlockForDepencies("attribute", attributes, dependencies));
-                source = source.concat(this.parameterBlockForDepencies("uniform", vertexUniforms, dependencies));
-                source = source.concat(this.parameterBlockForDepencies("varying", varyings, dependencies));
-                source.push("void main() {");
-                source = source.concat(this.snippetBlockForDepencies("\t", vertexMain, dependencies));
-                source.push("}", "");
-                return source.join("\n");
+                var line = function (s) { return source.push(s); };
+                var if_all = function (s, f) { if ((feat & f) == f)
+                    source.push(s); };
+                var if_any = function (s, f) { if ((feat & f) != 0)
+                    source.push(s); };
+                line("attribute vec3 vertexPos_model;");
+                line("attribute vec3 vertexNormal;");
+                if_all("attribute vec2 vertexUV;", 2);
+                if_all("attribute vec3 vertexColor;", 4);
+                line("varying vec3 vertexNormal_intp;");
+                if_all("varying vec3 vertexPos_cam_intp;", 8);
+                if_all("varying vec2 vertexUV_intp;", 2);
+                if_all("varying vec3 vertexColor_intp;", 4);
+                line("uniform mat4 modelViewProjectionMatrix;");
+                if_all("uniform mat4 modelViewMatrix;", 8);
+                line("uniform mat3 normalMatrix;");
+                line("void main() {");
+                line("	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);");
+                line("	vertexNormal_intp = normalize(normalMatrix * vertexNormal);");
+                if_all("	vertexPos_cam_intp = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;", 8);
+                if_all("	vertexUV_intp = vertexUV;", 2);
+                if_all("	vertexColor_intp = vertexColor;", 4);
+                line("}");
+                return source.join("\n") + "\n";
+            };
+            StandardShader.prototype.fragmentShaderSource = function (feat) {
+                var source = [];
+                var line = function (s) { return source.push(s); };
+                var if_all = function (s, f) { if ((feat & f) == f)
+                    source.push(s); };
+                var if_any = function (s, f) { if ((feat & f) != 0)
+                    source.push(s); };
+                line("precision highp float;");
+                line("varying vec3 vertexNormal_intp;");
+                if_all("varying vec3 vertexPos_cam_intp;", 8);
+                if_all("varying vec2 vertexUV_intp;", 2);
+                if_all("varying vec3 vertexColor_intp;", 4);
+                line("uniform mat3 lightNormalMatrix;");
+                line("uniform float ambientSunFactor;");
+                if_all("uniform sampler2D albedoSampler;", 16);
+                line("const vec3 sunlightColor = vec3(1, 1, 1);");
+                line("void main() {");
+                line("	vec3 lightDirection = normalize(vec3(.8, .7, .4));");
+                line("	vec3 normal = normalize(vertexNormal_intp);");
+                line("	vec3 lightVec = normalize(lightNormalMatrix * lightDirection);");
+                if (feat & 8) {
+                    line("	vec3 viewVec = normalize(-vertexPos_cam_intp);");
+                    line("	vec3 reflectVec = reflect(-lightVec, normal);");
+                    line("	float spec = max(dot(reflectVec, viewVec), 0.0);");
+                    line("	spec = pow(spec, 8.0); // shininess");
+                    line("	vec3 specContrib = sunlightColor * spec;");
+                }
+                if ((feat & (2 | 16)) == (2 | 16)) {
+                    line("	vec3 lightColor = sunlightColor * max(ambientSunFactor, dot(lightVec, normal));");
+                    line("	vec3 texColor = texture2D(albedoSampler, vertexUV_intp).xyz;");
+                    line("	vec3 outColor = lightColor * texColor;");
+                }
+                else if (feat & 4) {
+                    line("	vec3 diffColor = (sunlightColor * 0.1) + (vertexColor_intp * 0.9);");
+                    line("	vec3 outColor = diffColor * (ambientSunFactor + 0.5 * dot(lightVec, normal));");
+                }
+                else {
+                    line("	vec3 outColor = vec3(0.0, 1.0, 0.0);");
+                }
+                if (feat & 8) {
+                    line("	outColor = outColor + specContrib;");
+                }
+                line("	gl_FragColor = vec4(outColor, 1.0);");
+                line("}");
+                return source.join("\n") + "\n";
             };
             return StandardShader;
         })();

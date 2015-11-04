@@ -344,7 +344,8 @@ declare namespace sd.world {
 declare namespace sd.model {
     const enum MaterialFlags {
         albedoAlphaIsTranslucency = 1,
-        normalAlphaIsHeight = 2,
+        albedoAlphaIsGloss = 2,
+        normalAlphaIsHeight = 4,
     }
     interface MaterialDescriptor {
         mainColour: ArrayOfNumber;
@@ -725,12 +726,25 @@ declare class SoundManager {
     loadSoundFile(filePath: string): Promise<AudioBuffer>;
 }
 declare namespace sd.model {
+    interface StandardGLProgram extends WebGLProgram {
+        vertexPositionAttribute: number;
+        vertexNormalAttribute: number;
+        vertexUVAttribute: number;
+        vertexColorAttribute: number;
+        mvMatrixUniform?: WebGLUniformLocation;
+        mvpMatrixUniform?: WebGLUniformLocation;
+        normalMatrixUniform?: WebGLUniformLocation;
+        lightNormalMatrixUniform?: WebGLUniformLocation;
+        ambientSunFactorUniform?: WebGLUniformLocation;
+        textureUniform?: WebGLUniformLocation;
+    }
     class StandardShader {
         private gl_;
         private materialMgr_;
         constructor(gl_: WebGLRenderingContext, materialMgr_: MaterialManager);
-        private parameterBlockForDepencies(prefix, params, dependencies);
-        private snippetBlockForDepencies(prefix, snippets, dependencies);
-        vertexShaderSourceForDependencies(dependencies: number): string;
+        private makeShader(type, sourceText);
+        programForFeatures(feat: number): StandardGLProgram;
+        vertexShaderSource(feat: number): string;
+        fragmentShaderSource(feat: number): string;
     }
 }

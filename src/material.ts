@@ -16,8 +16,10 @@ namespace sd.model {
 
 	export const enum MaterialFlags {
 		albedoAlphaIsTranslucency = 0x00000001,
-		normalAlphaIsHeight       = 0x00000002
+		albedoAlphaIsGloss        = 0x00000002,
+		normalAlphaIsHeight       = 0x00000004
 	}
+
 
 	export interface MaterialDescriptor {
 		// colours
