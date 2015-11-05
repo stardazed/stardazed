@@ -810,6 +810,15 @@ declare namespace sd.render {
     function makePipelineDescriptor(): PipelineDescriptor;
 }
 declare namespace sd.render {
+    interface RenderContext {
+        canvas: HTMLCanvasElement;
+        gl: WebGLRenderingContext;
+        extDepthTexture: WebGLDepthTexture;
+        extS3TC: WebGLCompressedTextureS3TC;
+        extMinMax: EXTBlendMinMax;
+        extTexAnisotropy: EXTTextureFilterAnisotropic;
+    }
+    function makeRenderContext(canvas: HTMLCanvasElement): RenderContext;
 }
 declare var webkitAudioContext: {
     prototype: AudioContext;
@@ -908,4 +917,6 @@ declare namespace sd.render {
     function maxMipLevelsForDimension(dim: number): number;
     function makeTexDesc2D(pixelFormat: PixelFormat, width: number, height: number, mipmapped: UseMipMaps): TextureDescriptor;
     function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped: UseMipMaps): TextureDescriptor;
+}
+declare namespace sd.render {
 }

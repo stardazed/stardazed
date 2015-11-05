@@ -2221,83 +2221,41 @@ var sd;
 (function (sd) {
     var render;
     (function (render) {
-        var RenderContext = (function () {
-            function RenderContext(canvas) {
-                this.canvas = canvas;
-                try {
-                    this.gl = canvas.getContext("webgl");
-                    if (!this.gl)
-                        this.gl = canvas.getContext("experimental-webgl");
-                }
-                catch (e) {
-                    this.gl = null;
-                }
-                if (!this.gl) {
-                    assert(!"Could not initialise WebGL");
-                    return;
-                }
-                var dte = this.gl.getExtension("WEBGL_depth_texture");
-                dte = dte || this.gl.getExtension("WEBKIT_WEBGL_depth_texture");
-                dte = dte || this.gl.getExtension("MOZ_WEBGL_depth_texture");
-                this.extDepthTexture = dte;
-                var s3tc = this.gl.getExtension("WEBGL_compressed_texture_s3tc");
-                s3tc = s3tc || this.gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
-                s3tc = s3tc || this.gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc");
-                this.extS3TC = s3tc;
-                this.extMinMax = this.gl.getExtension("EXT_blend_minmax");
-                this.gl.clearColor(0.0, 0.0, 0.3, 1.0);
-                this.gl.enable(this.gl.DEPTH_TEST);
+        function makeRenderContext(canvas) {
+            var gl;
+            try {
+                gl = canvas.getContext("webgl");
+                if (!gl)
+                    gl = canvas.getContext("experimental-webgl");
             }
-            RenderContext.prototype.glImageFormatForPixelFormat = function (format) {
-                var gl = this.gl;
-                switch (format) {
-                    case 1: return gl.ALPHA;
-                    case 2: return gl.RGB;
-                    case 3: return gl.RGBA;
-                    case 7: return gl.RGB;
-                    case 8: return gl.RGBA;
-                    case 9: return this.extS3TC ? this.extS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT : gl.NONE;
-                    case 10: return this.extS3TC ? this.extS3TC.COMPRESSED_RGBA_S3TC_DXT3_EXT : gl.NONE;
-                    case 11: return this.extS3TC ? this.extS3TC.COMPRESSED_RGBA_S3TC_DXT5_EXT : gl.NONE;
-                    case 12:
-                    case 13:
-                    case 14:
-                        return gl.DEPTH_COMPONENT;
-                    case 15:
-                        return gl.STENCIL_INDEX;
-                    case 16:
-                        return gl.DEPTH_STENCIL;
-                    default:
-                        assert(!"unhandled pixel format");
-                        return gl.NONE;
-                }
+            catch (e) {
+                gl = null;
+            }
+            if (!gl) {
+                assert(!"Could not initialise WebGL");
+                return;
+            }
+            var dte = gl.getExtension("WEBGL_depth_texture");
+            dte = dte || gl.getExtension("WEBKIT_WEBGL_depth_texture");
+            dte = dte || gl.getExtension("MOZ_WEBGL_depth_texture");
+            var s3tc = gl.getExtension("WEBGL_compressed_texture_s3tc");
+            s3tc = s3tc || gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
+            s3tc = s3tc || gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc");
+            var bmm = gl.getExtension("EXT_blend_minmax");
+            var txa = gl.getExtension("EXT_texture_filter_anisotropic");
+            txa = txa || gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
+            gl.clearColor(0.0, 0.0, 0.3, 1.0);
+            gl.enable(gl.DEPTH_TEST);
+            return {
+                canvas: canvas,
+                gl: gl,
+                extDepthTexture: dte,
+                extS3TC: s3tc,
+                extMinMax: bmm,
+                extTexAnisotropy: txa
             };
-            RenderContext.prototype.glPixelDataTypeForPixelFormat = function (format) {
-                assert(!render.pixelFormatIsCompressed(format));
-                var gl = this.gl;
-                switch (format) {
-                    case 1:
-                    case 2:
-                    case 15:
-                    case 3:
-                        return gl.UNSIGNED_BYTE;
-                    case 7:
-                    case 8:
-                    case 14:
-                        return gl.FLOAT;
-                    case 12:
-                        return gl.UNSIGNED_SHORT;
-                    case 13:
-                        return gl.UNSIGNED_INT;
-                    case 16:
-                        return this.extDepthTexture ? this.extDepthTexture.UNSIGNED_INT_24_8_WEBGL : gl.NONE;
-                    default:
-                        assert(!"unhandled pixel format");
-                        return gl.NONE;
-                }
-            };
-            return RenderContext;
-        })();
+        }
+        render.makeRenderContext = makeRenderContext;
     })(render = sd.render || (sd.render = {}));
 })(sd || (sd = {}));
 var SoundManager = (function () {
@@ -2500,5 +2458,64 @@ var sd;
             };
         }
         render.makeTexDescCube = makeTexDescCube;
+    })(render = sd.render || (sd.render = {}));
+})(sd || (sd = {}));
+var sd;
+(function (sd) {
+    var render;
+    (function (render) {
+        function glImageFormatForPixelFormat(rc, format) {
+            var gl = rc.gl;
+            switch (format) {
+                case 1: return gl.ALPHA;
+                case 2: return gl.RGB;
+                case 3: return gl.RGBA;
+                case 7: return gl.RGB;
+                case 8: return gl.RGBA;
+                case 9: return rc.extS3TC ? rc.extS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT : gl.NONE;
+                case 10: return rc.extS3TC ? rc.extS3TC.COMPRESSED_RGBA_S3TC_DXT3_EXT : gl.NONE;
+                case 11: return rc.extS3TC ? rc.extS3TC.COMPRESSED_RGBA_S3TC_DXT5_EXT : gl.NONE;
+                case 12:
+                case 13:
+                case 14:
+                    return gl.DEPTH_COMPONENT;
+                case 15:
+                    return gl.STENCIL_INDEX;
+                case 16:
+                    return gl.DEPTH_STENCIL;
+                default:
+                    assert(!"unhandled pixel format");
+                    return gl.NONE;
+            }
+        }
+        function glPixelDataTypeForPixelFormat(rc, format) {
+            assert(!render.pixelFormatIsCompressed(format));
+            var gl = rc.gl;
+            switch (format) {
+                case 1:
+                case 2:
+                case 15:
+                case 3:
+                    return gl.UNSIGNED_BYTE;
+                case 7:
+                case 8:
+                case 14:
+                    return gl.FLOAT;
+                case 12:
+                    return gl.UNSIGNED_SHORT;
+                case 13:
+                    return gl.UNSIGNED_INT;
+                case 16:
+                    return rc.extDepthTexture ? rc.extDepthTexture.UNSIGNED_INT_24_8_WEBGL : gl.NONE;
+                default:
+                    assert(!"unhandled pixel format");
+                    return gl.NONE;
+            }
+        }
+        var Texture = (function () {
+            function Texture() {
+            }
+            return Texture;
+        })();
     })(render = sd.render || (sd.render = {}));
 })(sd || (sd = {}));

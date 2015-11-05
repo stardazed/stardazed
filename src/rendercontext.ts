@@ -2,117 +2,70 @@
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
-/// <reference path="pixelformat.ts"/>
 /// <reference path="../defs/webgl-ext.d.ts"/>
+/// <reference path="pixelformat.ts"/>
 
 namespace sd.render {
 
-	class RenderContext {
+	export interface RenderContext {
+		canvas: HTMLCanvasElement;
 		gl: WebGLRenderingContext;
+
 		extDepthTexture: WebGLDepthTexture;
 		extS3TC: WebGLCompressedTextureS3TC;
 		extMinMax: EXTBlendMinMax;
+		extTexAnisotropy: EXTTextureFilterAnisotropic;
+	}
+	
 
-		constructor(public canvas: HTMLCanvasElement) {
-			try {
-				this.gl = canvas.getContext("webgl");
-				if (! this.gl)
-					this.gl = canvas.getContext("experimental-webgl");
-			} catch (e) {
-				this.gl = null;
-			}
+	export function makeRenderContext(canvas: HTMLCanvasElement): RenderContext {
+		var gl: WebGLRenderingContext;
 
-			if (! this.gl) {
-				assert(!"Could not initialise WebGL");
-				return;
-			}
-
-			// enable extended depth textures
-			var dte = this.gl.getExtension("WEBGL_depth_texture");
-			dte = dte || this.gl.getExtension("WEBKIT_WEBGL_depth_texture");
-			dte = dte || this.gl.getExtension("MOZ_WEBGL_depth_texture");
-			this.extDepthTexture = dte;
-
-			// enable S3TC (desktop only)
-			var s3tc = this.gl.getExtension("WEBGL_compressed_texture_s3tc");
-			s3tc = s3tc || this.gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
-			s3tc = s3tc || this.gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc");
-			this.extS3TC = s3tc;
-
-			// enable MIN and MAX blend modes
-			this.extMinMax = this.gl.getExtension("EXT_blend_minmax");
-
-			// -- FIXME: Temporary setup
-			this.gl.clearColor(0.0, 0.0, 0.3, 1.0);
-			this.gl.enable(this.gl.DEPTH_TEST);
+		// try and create the 3D context
+		try {
+			gl = canvas.getContext("webgl");
+			if (!gl)
+				gl = canvas.getContext("experimental-webgl");
+		} catch (e) {
+			gl = null;
+		}
+		if (!gl) {
+			assert(!"Could not initialise WebGL");
+			return;
 		}
 
 
-		// -- The functions below may be moved to texture or pixelbuffer or eqv.
+		// enable extended depth textures
+		var dte = gl.getExtension("WEBGL_depth_texture");
+		dte = dte || gl.getExtension("WEBKIT_WEBGL_depth_texture");
+		dte = dte || gl.getExtension("MOZ_WEBGL_depth_texture");
 
-		glImageFormatForPixelFormat(format: PixelFormat) {
-			var gl = this.gl;
+		// enable S3TC (desktop only)
+		var s3tc = gl.getExtension("WEBGL_compressed_texture_s3tc");
+		s3tc = s3tc || gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
+		s3tc = s3tc || gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc");
 
-			switch (format) {
-				case PixelFormat.Alpha: return gl.ALPHA;
+		// enable MIN and MAX blend modes
+		var bmm = gl.getExtension("EXT_blend_minmax");
 
-				case PixelFormat.RGB8: return gl.RGB;
-				case PixelFormat.RGBA8: return gl.RGBA;
-
-				case PixelFormat.RGB32F: return gl.RGB;
-				case PixelFormat.RGBA32F: return gl.RGBA;
-
-				case PixelFormat.DXT1: return this.extS3TC ? this.extS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT : gl.NONE;
-				case PixelFormat.DXT3: return this.extS3TC ? this.extS3TC.COMPRESSED_RGBA_S3TC_DXT3_EXT : gl.NONE;
-				case PixelFormat.DXT5: return this.extS3TC ? this.extS3TC.COMPRESSED_RGBA_S3TC_DXT5_EXT : gl.NONE;
-
-				case PixelFormat.Depth16I:
-				case PixelFormat.Depth32I:
-				case PixelFormat.Depth32F:
-					return gl.DEPTH_COMPONENT;
-
-				case PixelFormat.Stencil8:
-					return gl.STENCIL_INDEX;
-
-				case PixelFormat.Depth24_Stencil8:
-					return gl.DEPTH_STENCIL;
-
-				default:
-					assert(!"unhandled pixel format");
-					return gl.NONE;
-			}
-		}
+		// enable texture anisotropy
+		var txa = gl.getExtension("EXT_texture_filter_anisotropic");
+		txa = txa || gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
 
 
-		glPixelDataTypeForPixelFormat(format: PixelFormat) {
-			assert(!pixelFormatIsCompressed(format));
-			var gl = this.gl;
+		// -- FIXME: Temporary setup
+		gl.clearColor(0.0, 0.0, 0.3, 1.0);
+		gl.enable(gl.DEPTH_TEST);
 
-			switch (format) {
-				case PixelFormat.Alpha:
-				case PixelFormat.RGB8:
-				case PixelFormat.Stencil8:
-				case PixelFormat.RGBA8:
-					return gl.UNSIGNED_BYTE;
+		return {
+			canvas: canvas,
+			gl: gl,
 
-				case PixelFormat.RGB32F:
-				case PixelFormat.RGBA32F:
-				case PixelFormat.Depth32F:
-					return gl.FLOAT;
-
-				case PixelFormat.Depth16I:
-					return gl.UNSIGNED_SHORT;
-				case PixelFormat.Depth32I:
-					return gl.UNSIGNED_INT;
-
-				case PixelFormat.Depth24_Stencil8:
-					return this.extDepthTexture ? this.extDepthTexture.UNSIGNED_INT_24_8_WEBGL : gl.NONE;
-
-				default:
-					assert(!"unhandled pixel format");
-					return gl.NONE;
-			}
-		}
+			extDepthTexture: dte,
+			extS3TC: s3tc,
+			extMinMax: bmm,
+			extTexAnisotropy: txa
+		};
 	}
 
 } // ns sd.render
