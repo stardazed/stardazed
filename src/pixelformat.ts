@@ -38,6 +38,19 @@ namespace sd.render {
 	}
 
 
+	// In SD, PixelCoordinate and PixelDimensions are defined in PixelBuffer, not present yet in SDTX
+	export interface PixelCoordinate {
+		x: number;
+		y: number;
+	}
+
+
+	export interface PixelDimensions {
+		width: number;
+		height: number;
+	}
+
+
 	export function pixelFormatIsCompressed(format: PixelFormat) {
 		return format == PixelFormat.DXT1 ||
 			   format == PixelFormat.DXT3 ||
@@ -101,6 +114,16 @@ namespace sd.render {
 				assert(!"unhandled pixel buffer format");
 				return 0;
 		}
+	}
+
+
+	export function makePixelCoordinate(x: number, y: number): PixelCoordinate {
+		return { x: x, y: y };
+	}
+
+
+	export function makePixelDimensions(width: number, height: number) {
+		return { width: width, height: height };
 	}
 
 } // ns sd.render
