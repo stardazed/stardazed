@@ -2470,6 +2470,11 @@ var sd;
                 case 1: return gl.ALPHA;
                 case 2: return gl.RGB;
                 case 3: return gl.RGBA;
+                case 4:
+                    return gl.RGB;
+                case 5:
+                case 6:
+                    return gl.RGBA;
                 case 7: return gl.RGB;
                 case 8: return gl.RGBA;
                 case 9: return rc.extS3TC ? rc.extS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT : gl.NONE;
@@ -2497,6 +2502,12 @@ var sd;
                 case 15:
                 case 3:
                     return gl.UNSIGNED_BYTE;
+                case 4:
+                    return gl.UNSIGNED_SHORT_5_6_5;
+                case 5:
+                    return gl.UNSIGNED_SHORT_4_4_4_4;
+                case 6:
+                    return gl.UNSIGNED_SHORT_5_5_5_1;
                 case 7:
                 case 8:
                 case 14:
@@ -2512,10 +2523,97 @@ var sd;
                     return gl.NONE;
             }
         }
-        var Texture = (function () {
-            function Texture() {
+        function glRenderBufferInternalFormatForPixelFormat(rc, format) {
+            var gl = rc.gl;
+            switch (format) {
+                case 4:
+                    return gl.RGB565;
+                case 5:
+                    return gl.RGBA4;
+                case 6:
+                    return gl.RGB5_A1;
+                case 12:
+                    return gl.DEPTH_COMPONENT16;
+                case 15:
+                    return gl.STENCIL_INDEX8;
+                default:
+                    assert(!"Unsupported RenderBuffer pixel format");
+                    return gl.NONE;
             }
+        }
+        var textureLimits = {
+            maxDimension: 0,
+            maxDimensionCube: 0
+        };
+        function maxTextureDimension(rc, texClass) {
+            if (textureLimits.maxDimension == 0) {
+                textureLimits.maxDimension = rc.gl.getParameter(rc.gl.MAX_TEXTURE_SIZE);
+                textureLimits.maxDimensionCube = rc.gl.getParameter(rc.gl.MAX_CUBE_MAP_TEXTURE_SIZE);
+            }
+            if (texClass == 1)
+                return textureLimits.maxDimensionCube;
+            return textureLimits.maxDimension;
+        }
+        var Texture = (function () {
+            function Texture(rc, desc) {
+                this.rc = rc;
+                this.textureClass_ = desc.textureClass;
+                this.dim_ = { width: desc.dim.width, height: desc.dim.height };
+                this.mipmaps_ = desc.mipmaps;
+                this.pixelFormat_ = desc.pixelFormat;
+                assert(this.mipmaps_ > 0);
+                assert(this.width() > 0);
+                assert(this.height() > 0);
+                assert(this.width() <= maxTextureDimension(rc, this.textureClass_));
+                assert(this.height() <= maxTextureDimension(rc, this.textureClass_));
+                if (desc.textureClass == 0) {
+                    if (desc.usageHint == 1) {
+                        this.glTarget_ = rc.gl.RENDERBUFFER;
+                        assert(this.mipmaps() == 1);
+                        var sizedFormat = glRenderBufferInternalFormatForPixelFormat(rc, this.pixelFormat_);
+                        var rb = rc.gl.createRenderbuffer();
+                        rc.gl.bindRenderbuffer(this.glTarget_, rb);
+                        rc.gl.renderbufferStorage(this.glTarget_, sizedFormat, this.width(), this.height());
+                        rc.gl.bindRenderbuffer(this.glTarget_, null);
+                        this.resource_ = rb;
+                        return;
+                    }
+                }
+                var glFormat = glImageFormatForPixelFormat(rc, this.pixelFormat_);
+                var tex = rc.gl.createTexture();
+                if (desc.textureClass == 0) {
+                    this.glTarget_ = rc.gl.TEXTURE_2D;
+                    rc.gl.bindTexture(this.glTarget_, tex);
+                    var w = this.width();
+                    var h = this.height();
+                    for (var mip = 0; mip < this.mipmaps_; ++mip) {
+                        w = Math.max(1, (w >> 1));
+                        h = Math.max(1, (h >> 1));
+                    }
+                }
+                else {
+                    this.glTarget_ = rc.gl.TEXTURE_CUBE_MAP;
+                    rc.gl.bindTexture(this.glTarget_, tex);
+                }
+                rc.gl.bindTexture(this.glTarget_, null);
+                this.resource_ = tex;
+            }
+            Texture.prototype.dim = function () { return render.makePixelDimensions(this.dim_.width, this.dim_.height); };
+            Texture.prototype.width = function () { return this.dim_.width; };
+            Texture.prototype.height = function () { return this.dim_.height; };
+            Texture.prototype.mipmaps = function () { return this.mipmaps_; };
+            Texture.prototype.isMipMapped = function () { return this.mipmaps_ > 1; };
+            Texture.prototype.pixelFormat = function () { return this.pixelFormat_; };
+            Texture.prototype.textureClass = function () { return this.textureClass_; };
+            ;
+            Texture.prototype.clientWritable = function () {
+            };
+            Texture.prototype.renderTargetOnly = function () {
+            };
+            Texture.prototype.resource = function () { return this.resource_; };
+            Texture.prototype.target = function () { return this.glTarget_; };
             return Texture;
         })();
+        render.Texture = Texture;
     })(render = sd.render || (sd.render = {}));
 })(sd || (sd = {}));

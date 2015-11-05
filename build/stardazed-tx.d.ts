@@ -919,4 +919,28 @@ declare namespace sd.render {
     function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped: UseMipMaps): TextureDescriptor;
 }
 declare namespace sd.render {
+    class Texture {
+        private rc;
+        private textureClass_;
+        private dim_;
+        private mipmaps_;
+        private pixelFormat_;
+        private resource_;
+        private glTarget_;
+        constructor(rc: RenderContext, desc: TextureDescriptor);
+        dim(): {
+            width: number;
+            height: number;
+        };
+        width(): number;
+        height(): number;
+        mipmaps(): number;
+        isMipMapped(): boolean;
+        pixelFormat(): PixelFormat;
+        textureClass(): TextureClass;
+        clientWritable(): void;
+        renderTargetOnly(): void;
+        resource(): WebGLTexture | WebGLRenderbuffer;
+        target(): number;
+    }
 }
