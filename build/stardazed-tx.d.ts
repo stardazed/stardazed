@@ -712,6 +712,105 @@ declare namespace sd.mesh {
     }
     function loadLWObjectFile(filePath: string): Promise<LWMeshData>;
 }
+declare namespace sd.render {
+    const enum PixelFormat {
+        None = 0,
+        Alpha = 1,
+        RGB8 = 2,
+        RGBA8 = 3,
+        RGB_5_6_5 = 4,
+        RGBA_4_4_4_4 = 5,
+        RGBA_5_5_5_1 = 6,
+        RGB32F = 7,
+        RGBA32F = 8,
+        DXT1 = 9,
+        DXT3 = 10,
+        DXT5 = 11,
+        Depth16I = 12,
+        Depth32I = 13,
+        Depth32F = 14,
+        DepthShadow = 14,
+        Stencil8 = 15,
+        Depth24_Stencil8 = 16,
+    }
+    interface PixelCoordinate {
+        x: number;
+        y: number;
+    }
+    interface PixelDimensions {
+        width: number;
+        height: number;
+    }
+    function pixelFormatIsCompressed(format: PixelFormat): boolean;
+    function pixelFormatIsDepthFormat(format: PixelFormat): boolean;
+    function pixelFormatIsStencilFormat(format: PixelFormat): boolean;
+    function pixelFormatIsDepthStencilFormat(format: PixelFormat): boolean;
+    function pixelFormatBytesPerElement(format: PixelFormat): number;
+    function makePixelCoordinate(x: number, y: number): PixelCoordinate;
+    function makePixelDimensions(width: number, height: number): {
+        width: number;
+        height: number;
+    };
+}
+declare namespace sd.render {
+    const enum BlendOperation {
+        Add = 0,
+        Subtract = 1,
+        ReverseSubtract = 2,
+        Min = 3,
+        Max = 4,
+    }
+    const enum BlendFactor {
+        Zero = 0,
+        One = 1,
+        SourceColour = 2,
+        OneMinusSourceColour = 3,
+        DestColour = 4,
+        OneMinusDestColour = 5,
+        SourceAlpha = 6,
+        OneMinusSourceAlpha = 7,
+        SourceAlphaSaturated = 8,
+        DestAlpha = 9,
+        OneMinusDestAlpha = 10,
+        ConstantColour = 11,
+        OneMinusConstantColour = 12,
+        ConstantAlpha = 13,
+        OneMinusConstantAlpha = 14,
+    }
+    interface ColourBlendingDescriptor {
+        enabled: boolean;
+        rgbBlendOp: BlendOperation;
+        alphaBlendOp: BlendOperation;
+        sourceRGBFactor: BlendFactor;
+        sourceAlphaFactor: BlendFactor;
+        destRGBFactor: BlendFactor;
+        destAlphaFactor: BlendFactor;
+    }
+    interface ColourWriteMask {
+        red: boolean;
+        green: boolean;
+        blue: boolean;
+        alpha: boolean;
+    }
+    interface PipelineColourAttachmentDescriptor {
+        pixelFormat: PixelFormat;
+        writeMask: ColourWriteMask;
+        blending: ColourBlendingDescriptor;
+    }
+    interface PipelineDescriptor {
+        colourAttachments: PipelineColourAttachmentDescriptor[];
+        depthPixelFormat: PixelFormat;
+        stencilPixelFormat: PixelFormat;
+        vertexShader: WebGLShader;
+        fragmentShader: WebGLShader;
+    }
+    function makeColourBlendingDescriptor(): ColourBlendingDescriptor;
+    function makeColourWriteMask(): ColourWriteMask;
+    function makePipelineColourAttachmentDescriptor(): PipelineColourAttachmentDescriptor;
+    function makePipelineDescriptor(): PipelineDescriptor;
+}
+declare namespace sd.render {
+}
 declare var webkitAudioContext: {
     prototype: AudioContext;
     new (): AudioContext;
@@ -747,4 +846,66 @@ declare namespace sd.model {
         vertexShaderSource(feat: number): string;
         fragmentShaderSource(feat: number): string;
     }
+}
+declare namespace sd.render {
+    const enum TextureClass {
+        Tex2D = 0,
+        TexCube = 1,
+    }
+    const enum TextureUsageHint {
+        Normal = 0,
+        RenderTargetOnly = 1,
+    }
+    const enum UseMipMaps {
+        No = 0,
+        Yes = 1,
+    }
+    const enum CubeMapFace {
+        PosX = 0,
+        NegX = 1,
+        PosY = 2,
+        NegY = 3,
+        PosZ = 4,
+        NegZ = 5,
+    }
+    interface MipMapRange {
+        baseLevel: number;
+        numLevels: number;
+    }
+    const enum TextureRepeatMode {
+        Repeat = 0,
+        MirroredRepeat = 1,
+        ClampToEdge = 2,
+        ClampToConstColour = 3,
+    }
+    const enum TextureSizingFilter {
+        Nearest = 0,
+        Linear = 1,
+    }
+    const enum TextureMipFilter {
+        None = 0,
+        Nearest = 1,
+        Linear = 2,
+    }
+    interface SamplerDescriptor {
+        repeatS: TextureRepeatMode;
+        repeatT: TextureRepeatMode;
+        minFilter: TextureSizingFilter;
+        magFilter: TextureSizingFilter;
+        mipFilter: TextureMipFilter;
+        maxAnisotropy: number;
+    }
+    interface TextureDescriptor {
+        textureClass: TextureClass;
+        pixelFormat: PixelFormat;
+        usageHint: TextureUsageHint;
+        sampling: SamplerDescriptor;
+        dim: PixelDimensions;
+        mipmaps: number;
+    }
+    function makeMipMapRange(baseLevel: number, numLevels: number): MipMapRange;
+    function makeSamplerDescriptor(): SamplerDescriptor;
+    function maxMipLevelsForDimension(dim: number): number;
+    function makeTexDesc2D(pixelFormat: PixelFormat, width: number, height: number, mipmapped: UseMipMaps): TextureDescriptor;
+    function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped: UseMipMaps): TextureDescriptor;
 }

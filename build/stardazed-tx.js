@@ -2106,6 +2106,200 @@ var sd;
         mesh_3.loadLWObjectFile = loadLWObjectFile;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
+var sd;
+(function (sd) {
+    var render;
+    (function (render) {
+        function pixelFormatIsCompressed(format) {
+            return format == 9 ||
+                format == 10 ||
+                format == 11;
+        }
+        render.pixelFormatIsCompressed = pixelFormatIsCompressed;
+        function pixelFormatIsDepthFormat(format) {
+            return format == 12 ||
+                format == 13 ||
+                format == 14;
+        }
+        render.pixelFormatIsDepthFormat = pixelFormatIsDepthFormat;
+        function pixelFormatIsStencilFormat(format) {
+            return format == 15;
+        }
+        render.pixelFormatIsStencilFormat = pixelFormatIsStencilFormat;
+        function pixelFormatIsDepthStencilFormat(format) {
+            return format == 16;
+        }
+        render.pixelFormatIsDepthStencilFormat = pixelFormatIsDepthStencilFormat;
+        function pixelFormatBytesPerElement(format) {
+            switch (format) {
+                case 1:
+                case 15:
+                    return 1;
+                case 12:
+                    return 2;
+                case 2:
+                    return 3;
+                case 3:
+                case 13:
+                case 14:
+                case 16:
+                    return 4;
+                case 7:
+                    return 12;
+                case 8:
+                    return 16;
+                case 9:
+                    return 8;
+                case 10:
+                case 11:
+                    return 16;
+                default:
+                    assert(!"unhandled pixel buffer format");
+                    return 0;
+            }
+        }
+        render.pixelFormatBytesPerElement = pixelFormatBytesPerElement;
+        function makePixelCoordinate(x, y) {
+            return { x: x, y: y };
+        }
+        render.makePixelCoordinate = makePixelCoordinate;
+        function makePixelDimensions(width, height) {
+            return { width: width, height: height };
+        }
+        render.makePixelDimensions = makePixelDimensions;
+    })(render = sd.render || (sd.render = {}));
+})(sd || (sd = {}));
+var sd;
+(function (sd) {
+    var render;
+    (function (render) {
+        function makeColourBlendingDescriptor() {
+            return {
+                enabled: false,
+                rgbBlendOp: 0,
+                alphaBlendOp: 0,
+                sourceRGBFactor: 1,
+                sourceAlphaFactor: 1,
+                destRGBFactor: 0,
+                destAlphaFactor: 0
+            };
+        }
+        render.makeColourBlendingDescriptor = makeColourBlendingDescriptor;
+        function makeColourWriteMask() {
+            return {
+                red: true,
+                green: true,
+                blue: true,
+                alpha: true
+            };
+        }
+        render.makeColourWriteMask = makeColourWriteMask;
+        function makePipelineColourAttachmentDescriptor() {
+            return {
+                pixelFormat: 0,
+                writeMask: makeColourWriteMask(),
+                blending: makeColourBlendingDescriptor()
+            };
+        }
+        render.makePipelineColourAttachmentDescriptor = makePipelineColourAttachmentDescriptor;
+        function makePipelineDescriptor() {
+            var ca = [];
+            for (var k = 0; k < 8; ++k)
+                ca.push(makePipelineColourAttachmentDescriptor());
+            return {
+                colourAttachments: ca,
+                depthPixelFormat: 0,
+                stencilPixelFormat: 0,
+                vertexShader: null,
+                fragmentShader: null
+            };
+        }
+        render.makePipelineDescriptor = makePipelineDescriptor;
+    })(render = sd.render || (sd.render = {}));
+})(sd || (sd = {}));
+var sd;
+(function (sd) {
+    var render;
+    (function (render) {
+        var RenderContext = (function () {
+            function RenderContext(canvas) {
+                this.canvas = canvas;
+                try {
+                    this.gl = canvas.getContext("webgl");
+                    if (!this.gl)
+                        this.gl = canvas.getContext("experimental-webgl");
+                }
+                catch (e) {
+                    this.gl = null;
+                }
+                if (!this.gl) {
+                    assert(!"Could not initialise WebGL");
+                    return;
+                }
+                var dte = this.gl.getExtension("WEBGL_depth_texture");
+                dte = dte || this.gl.getExtension("WEBKIT_WEBGL_depth_texture");
+                dte = dte || this.gl.getExtension("MOZ_WEBGL_depth_texture");
+                this.extDepthTexture = dte;
+                var s3tc = this.gl.getExtension("WEBGL_compressed_texture_s3tc");
+                s3tc = s3tc || this.gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
+                s3tc = s3tc || this.gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc");
+                this.extS3TC = s3tc;
+                this.extMinMax = this.gl.getExtension("EXT_blend_minmax");
+                this.gl.clearColor(0.0, 0.0, 0.3, 1.0);
+                this.gl.enable(this.gl.DEPTH_TEST);
+            }
+            RenderContext.prototype.glImageFormatForPixelFormat = function (format) {
+                var gl = this.gl;
+                switch (format) {
+                    case 1: return gl.ALPHA;
+                    case 2: return gl.RGB;
+                    case 3: return gl.RGBA;
+                    case 7: return gl.RGB;
+                    case 8: return gl.RGBA;
+                    case 9: return this.extS3TC ? this.extS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT : gl.NONE;
+                    case 10: return this.extS3TC ? this.extS3TC.COMPRESSED_RGBA_S3TC_DXT3_EXT : gl.NONE;
+                    case 11: return this.extS3TC ? this.extS3TC.COMPRESSED_RGBA_S3TC_DXT5_EXT : gl.NONE;
+                    case 12:
+                    case 13:
+                    case 14:
+                        return gl.DEPTH_COMPONENT;
+                    case 15:
+                        return gl.STENCIL_INDEX;
+                    case 16:
+                        return gl.DEPTH_STENCIL;
+                    default:
+                        assert(!"unhandled pixel format");
+                        return gl.NONE;
+                }
+            };
+            RenderContext.prototype.glPixelDataTypeForPixelFormat = function (format) {
+                assert(!render.pixelFormatIsCompressed(format));
+                var gl = this.gl;
+                switch (format) {
+                    case 1:
+                    case 2:
+                    case 15:
+                    case 3:
+                        return gl.UNSIGNED_BYTE;
+                    case 7:
+                    case 8:
+                    case 14:
+                        return gl.FLOAT;
+                    case 12:
+                        return gl.UNSIGNED_SHORT;
+                    case 13:
+                        return gl.UNSIGNED_INT;
+                    case 16:
+                        return this.extDepthTexture ? this.extDepthTexture.UNSIGNED_INT_24_8_WEBGL : gl.NONE;
+                    default:
+                        assert(!"unhandled pixel format");
+                        return gl.NONE;
+                }
+            };
+            return RenderContext;
+        })();
+    })(render = sd.render || (sd.render = {}));
+})(sd || (sd = {}));
 var SoundManager = (function () {
     function SoundManager() {
         this.context = window.AudioContext ? new AudioContext() : (window.webkitAudioContext ? new webkitAudioContext() : null);
@@ -2259,4 +2453,52 @@ var sd;
         })();
         model.StandardShader = StandardShader;
     })(model = sd.model || (sd.model = {}));
+})(sd || (sd = {}));
+var sd;
+(function (sd) {
+    var render;
+    (function (render) {
+        function makeMipMapRange(baseLevel, numLevels) {
+            return { baseLevel: baseLevel, numLevels: numLevels };
+        }
+        render.makeMipMapRange = makeMipMapRange;
+        function makeSamplerDescriptor() {
+            return {
+                repeatS: 0,
+                repeatT: 0,
+                minFilter: 1,
+                magFilter: 1,
+                mipFilter: 1,
+                maxAnisotropy: 1
+            };
+        }
+        render.makeSamplerDescriptor = makeSamplerDescriptor;
+        function maxMipLevelsForDimension(dim) {
+            return 1 + Math.floor(Math.log(dim | 0) / Math.LOG2E);
+        }
+        render.maxMipLevelsForDimension = maxMipLevelsForDimension;
+        function makeTexDesc2D(pixelFormat, width, height, mipmapped) {
+            var maxDim = Math.max(width, height);
+            return {
+                textureClass: 0,
+                pixelFormat: pixelFormat,
+                usageHint: 0,
+                sampling: makeSamplerDescriptor(),
+                dim: render.makePixelDimensions(width, height),
+                mipmaps: (mipmapped == 1) ? maxMipLevelsForDimension(maxDim) : 1
+            };
+        }
+        render.makeTexDesc2D = makeTexDesc2D;
+        function makeTexDescCube(pixelFormat, dimension, mipmapped) {
+            return {
+                textureClass: 1,
+                pixelFormat: pixelFormat,
+                usageHint: 0,
+                sampling: makeSamplerDescriptor(),
+                dim: render.makePixelDimensions(dimension, dimension),
+                mipmaps: (mipmapped == 1) ? maxMipLevelsForDimension(dimension) : 1
+            };
+        }
+        render.makeTexDescCube = makeTexDescCube;
+    })(render = sd.render || (sd.render = {}));
 })(sd || (sd = {}));
