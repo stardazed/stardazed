@@ -729,8 +729,8 @@ declare namespace sd.model {
     interface StandardGLProgram extends WebGLProgram {
         vertexPositionAttribute: number;
         vertexNormalAttribute: number;
-        vertexUVAttribute: number;
-        vertexColorAttribute: number;
+        vertexUVAttribute?: number;
+        vertexColorAttribute?: number;
         mvMatrixUniform?: WebGLUniformLocation;
         mvpMatrixUniform?: WebGLUniformLocation;
         normalMatrixUniform?: WebGLUniformLocation;
