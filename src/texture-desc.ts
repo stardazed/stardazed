@@ -119,7 +119,7 @@ namespace sd.render {
 	}
 
 
-	export function makeTexDesc2D(pixelFormat: PixelFormat, width: number, height: number, mipmapped: UseMipMaps): TextureDescriptor {
+	export function makeTexDesc2D(pixelFormat: PixelFormat, width: number, height: number, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
 		var maxDim = Math.max(width, height);
 
 		return {
@@ -133,7 +133,7 @@ namespace sd.render {
 	}
 
 
-	export function makeTexDesc2DFromImageSource(source: TextureImageSource, mipmapped: UseMipMaps): TextureDescriptor {
+	export function makeTexDesc2DFromImageSource(source: TextureImageSource, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
 		var maxDim = Math.max(source.width, source.height);
 
 		return {
@@ -148,7 +148,7 @@ namespace sd.render {
 	}
 
 
-	export function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped: UseMipMaps): TextureDescriptor {
+	export function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
 		return {
 			textureClass: TextureClass.TexCube,
 			pixelFormat: pixelFormat,
@@ -156,6 +156,23 @@ namespace sd.render {
 			sampling: makeSamplerDescriptor(),
 			dim: makePixelDimensions(dimension, dimension),
 			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(dimension) : 1
+		};
+	}
+
+
+	export function makeTexDescCubeFromImageSources(sources: TextureImageSource[], mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
+		var sampler = makeSamplerDescriptor();
+		sampler.repeatS = TextureRepeatMode.ClampToEdge;
+		sampler.repeatT = TextureRepeatMode.ClampToEdge;
+
+		return {
+			textureClass: TextureClass.TexCube,
+			pixelFormat: PixelFormat.RGBA8,
+			usageHint: TextureUsageHint.Normal,
+			sampling: sampler,
+			dim: makePixelDimensions(sources[0].width, sources[0].height),
+			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(sources[0].width) : 1,
+			pixelData: sources
 		};
 	}
 
