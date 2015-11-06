@@ -11,6 +11,7 @@ namespace sd.render {
 		canvas: HTMLCanvasElement;
 		gl: WebGLRenderingContext;
 
+		ext32bitIndexes: OESElementIndexUint;
 		extDepthTexture: WebGLDepthTexture;
 		extS3TC: WebGLCompressedTextureS3TC;
 		extMinMax: EXTBlendMinMax;
@@ -34,6 +35,9 @@ namespace sd.render {
 			return;
 		}
 
+
+		// enable large indexed meshes
+		var eiu = gl.getExtension("OES_element_index_uint");
 
 		// enable extended depth textures
 		var dte = gl.getExtension("WEBGL_depth_texture");
@@ -61,6 +65,7 @@ namespace sd.render {
 			canvas: canvas,
 			gl: gl,
 
+			ext32bitIndexes: eiu,
 			extDepthTexture: dte,
 			extS3TC: s3tc,
 			extMinMax: bmm,
