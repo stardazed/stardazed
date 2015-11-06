@@ -917,11 +917,14 @@ declare namespace sd.render {
         mipmaps: number;
         pixelData?: TextureImageData[];
     }
+    function useMipMaps(use: boolean): UseMipMaps;
     function makeMipMapRange(baseLevel: number, numLevels: number): MipMapRange;
     function makeSamplerDescriptor(): SamplerDescriptor;
     function maxMipLevelsForDimension(dim: number): number;
-    function makeTexDesc2D(pixelFormat: PixelFormat, width: number, height: number, mipmapped: UseMipMaps): TextureDescriptor;
-    function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped: UseMipMaps): TextureDescriptor;
+    function makeTexDesc2D(pixelFormat: PixelFormat, width: number, height: number, mipmapped?: UseMipMaps): TextureDescriptor;
+    function makeTexDesc2DFromImageSource(source: TextureImageSource, mipmapped?: UseMipMaps): TextureDescriptor;
+    function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped?: UseMipMaps): TextureDescriptor;
+    function makeTexDescCubeFromImageSources(sources: TextureImageSource[], mipmapped?: UseMipMaps): TextureDescriptor;
 }
 declare namespace sd.render {
     class Texture {

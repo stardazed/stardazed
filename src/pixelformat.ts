@@ -111,7 +111,7 @@ namespace sd.render {
 				return 16;
 
 			default:
-				assert(!"unhandled pixel buffer format");
+				assert(false, "unhandled pixel buffer format");
 				return 0;
 		}
 	}

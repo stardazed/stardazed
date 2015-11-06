@@ -42,7 +42,7 @@ namespace sd.render {
 				return gl.DEPTH_STENCIL;
 
 			default:
-				assert(!"unhandled pixel format");
+				assert(false, "unhandled pixel format");
 				return gl.NONE;
 		}
 	}
@@ -82,7 +82,7 @@ namespace sd.render {
 				return rc.extDepthTexture ? rc.extDepthTexture.UNSIGNED_INT_24_8_WEBGL : gl.NONE;
 
 			default:
-				assert(!"unhandled pixel format");
+				assert(false, "unhandled pixel format");
 				return gl.NONE;
 		}
 	}

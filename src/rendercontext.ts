@@ -31,7 +31,7 @@ namespace sd.render {
 			gl = null;
 		}
 		if (!gl) {
-			assert(!"Could not initialise WebGL");
+			assert(false, "Could not initialise WebGL");
 			return;
 		}
 

@@ -2165,7 +2165,7 @@ var sd;
                 case 11:
                     return 16;
                 default:
-                    assert(!"unhandled pixel buffer format");
+                    assert(false, "unhandled pixel buffer format");
                     return 0;
             }
         }
@@ -2243,7 +2243,7 @@ var sd;
                 gl = null;
             }
             if (!gl) {
-                assert(!"Could not initialise WebGL");
+                assert(false, "Could not initialise WebGL");
                 return;
             }
             var eiu = gl.getExtension("OES_element_index_uint");
@@ -2429,6 +2429,10 @@ var sd;
 (function (sd) {
     var render;
     (function (render) {
+        function useMipMaps(use) {
+            return use ? 1 : 0;
+        }
+        render.useMipMaps = useMipMaps;
         function makeMipMapRange(baseLevel, numLevels) {
             return { baseLevel: baseLevel, numLevels: numLevels };
         }
@@ -2449,6 +2453,7 @@ var sd;
         }
         render.maxMipLevelsForDimension = maxMipLevelsForDimension;
         function makeTexDesc2D(pixelFormat, width, height, mipmapped) {
+            if (mipmapped === void 0) { mipmapped = 0; }
             var maxDim = Math.max(width, height);
             return {
                 textureClass: 0,
@@ -2460,7 +2465,22 @@ var sd;
             };
         }
         render.makeTexDesc2D = makeTexDesc2D;
+        function makeTexDesc2DFromImageSource(source, mipmapped) {
+            if (mipmapped === void 0) { mipmapped = 0; }
+            var maxDim = Math.max(source.width, source.height);
+            return {
+                textureClass: 0,
+                pixelFormat: 3,
+                usageHint: 0,
+                sampling: makeSamplerDescriptor(),
+                dim: render.makePixelDimensions(source.width, source.height),
+                mipmaps: (mipmapped == 1) ? maxMipLevelsForDimension(maxDim) : 1,
+                pixelData: [source]
+            };
+        }
+        render.makeTexDesc2DFromImageSource = makeTexDesc2DFromImageSource;
         function makeTexDescCube(pixelFormat, dimension, mipmapped) {
+            if (mipmapped === void 0) { mipmapped = 0; }
             return {
                 textureClass: 1,
                 pixelFormat: pixelFormat,
@@ -2471,6 +2491,22 @@ var sd;
             };
         }
         render.makeTexDescCube = makeTexDescCube;
+        function makeTexDescCubeFromImageSources(sources, mipmapped) {
+            if (mipmapped === void 0) { mipmapped = 0; }
+            var sampler = makeSamplerDescriptor();
+            sampler.repeatS = 2;
+            sampler.repeatT = 2;
+            return {
+                textureClass: 1,
+                pixelFormat: 3,
+                usageHint: 0,
+                sampling: sampler,
+                dim: render.makePixelDimensions(sources[0].width, sources[0].height),
+                mipmaps: (mipmapped == 1) ? maxMipLevelsForDimension(sources[0].width) : 1,
+                pixelData: sources
+            };
+        }
+        render.makeTexDescCubeFromImageSources = makeTexDescCubeFromImageSources;
     })(render = sd.render || (sd.render = {}));
 })(sd || (sd = {}));
 var sd;
@@ -2502,7 +2538,7 @@ var sd;
                 case 16:
                     return gl.DEPTH_STENCIL;
                 default:
-                    assert(!"unhandled pixel format");
+                    assert(false, "unhandled pixel format");
                     return gl.NONE;
             }
         }
@@ -2533,7 +2569,7 @@ var sd;
                 case 16:
                     return rc.extDepthTexture ? rc.extDepthTexture.UNSIGNED_INT_24_8_WEBGL : gl.NONE;
                 default:
-                    assert(!"unhandled pixel format");
+                    assert(false, "unhandled pixel format");
                     return gl.NONE;
             }
         }
@@ -2658,6 +2694,8 @@ var sd;
                     rc.gl.bindTexture(this.glTarget_, this.resource_);
                     gl.texParameteri(this.glTarget_, gl.TEXTURE_WRAP_S, glTextureRepeatMode(rc, this.sampler_.repeatS));
                     gl.texParameteri(this.glTarget_, gl.TEXTURE_WRAP_T, glTextureRepeatMode(rc, this.sampler_.repeatS));
+                    if (this.mipmaps_ == 1)
+                        this.sampler_.mipFilter = 0;
                     gl.texParameteri(this.glTarget_, rc.gl.TEXTURE_MIN_FILTER, glTextureMinificationFilter(rc, this.sampler_.minFilter, this.sampler_.mipFilter));
                     gl.texParameteri(this.glTarget_, rc.gl.TEXTURE_MAG_FILTER, glTextureMagnificationFilter(rc, this.sampler_.magFilter));
                     if (rc.extTexAnisotropy) {
