@@ -57,14 +57,44 @@ namespace sd.render {
 		// private mesh_: Mesh = null;
 
 		constructor(private rc: RenderContext, private desc_: RenderPassDescriptor/* , private fbo_: FrameBuffer */) {
+			assert(desc_.clearColour.length >= 4);
 		}
 
 
 		setup() {
+			var gl = this.rc.gl;
+
+			// this.fbo_.bindForDrawing();
+
+			// -- clear indicated buffers
+			var glClearMask = 0;
+			if (this.desc_.clearMask & ClearMask.Colour) {
+				gl.clearColor(this.desc_.clearColour[0], this.desc_.clearColour[1], this.desc_.clearColour[2], this.desc_.clearColour[3]);
+				glClearMask |= gl.COLOR_BUFFER_BIT;
+			}
+			if (this.desc_.clearMask & ClearMask.Depth) {
+				gl.clearDepth(this.desc_.clearDepth);
+				glClearMask |= gl.DEPTH_BUFFER_BIT;
+			}
+			if (this.desc_.clearMask & ClearMask.Stencil) {
+				gl.clearStencil(this.desc_.clearStencil);
+				glClearMask |= gl.STENCIL_BUFFER_BIT;
+			}
+			if (glClearMask) {
+				gl.clear(glClearMask);
+			}
 		}
 
 
 		teardown() {
+			// <-- unbind mesh vao
+
+			if (this.pipeline_) {
+				this.pipeline_.unbind();
+				this.pipeline_ = null;
+			}
+
+			// <-- bind default fbo
 		}
 
 
@@ -74,29 +104,61 @@ namespace sd.render {
 
 		// -- render state
 		setPipeline(pipeline: Pipeline) {
+			if (pipeline === this.pipeline_)
+				return;
+
+			if (this.pipeline_)
+				this.pipeline_.unbind();
+
+			this.pipeline_ = pipeline;
+			if (this.pipeline_) {
+				// FIXME: validate Pipeline against FrameBuffer
+				this.pipeline_.bind();
+			}
 		}
 
 		setDepthStencilTest(dst: DepthStencilTest) {
+			dst.apply();
 		}
 
 
-		setFaceCulling(fc: FaceCulling) {
+		setFaceCulling(faceCulling: FaceCulling) {
+			if (faceCulling == FaceCulling.Disabled) {
+				this.rc.gl.disable(this.rc.gl.CULL_FACE);
+			}
+			else {
+				this.rc.gl.enable(this.rc.gl.CULL_FACE);
+				var mode = (faceCulling == FaceCulling.Back) ? this.rc.gl.BACK : this.rc.gl.FRONT;
+				this.rc.gl.cullFace(mode);
+			}
+	
 		}
 
-		setFrontFaceWinding(ffw: FrontFaceWinding) {
+		setFrontFaceWinding(winding: FrontFaceWinding) {
+			var mode = (winding == FrontFaceWinding.Clockwise) ? this.rc.gl.CW : this.rc.gl.CCW;
+			this.rc.gl.frontFace(mode);
 		}
 
-		setTriangleFillMode(tfm: TriangleFillMode) {
+		setViewPort(viewport: Viewport) {
+			// FIXME: treat width, height == 0 as alias for full viewport
+			this.rc.gl.viewport(viewport.originX, viewport.originY, viewport.width, viewport.height);
+			this.rc.gl.depthRange(viewport.nearZ, viewport.farZ);
 		}
 
-		setViewPort(vp: Viewport) {
-		}
+		setScissorRect(rect: ScissorRect) {
+			this.rc.gl.scissor(rect.originX, rect.originY, rect.width, rect.height);
 
-		setScissorRect(sc: ScissorRect) {
+			if (rect.originX > 0 || rect.originY > 0 || rect.width < this.fbo_.width() || rect.height < this.fbo_.height())
+				this.rc.gl.enable(this.rc.gl.SCISSOR_TEST);
+			else
+				this.rc.gl.disable(this.rc.gl.SCISSOR_TEST);
+
 		}
 
 
 		setConstantBlendColour(colour4: ArrayOfNumber) {
+			assert(colour4.length >= 4);
+			this.rc.gl.blendColor(colour4[0], colour4[1], colour4[2], colour4[3]);
 		}
 
 

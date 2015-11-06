@@ -13,12 +13,6 @@ namespace sd.render {
 	}
 
 
-	export const enum TriangleFillMode {
-		Fill,
-		Line
-	}
-
-
 	export const enum FaceCulling {
 		Disabled,
 
