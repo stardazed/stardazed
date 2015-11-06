@@ -40,7 +40,7 @@ namespace sd.render {
 	}
 
 
-	class Pipeline {
+	export class Pipeline {
 		private colourPixelFormats_: PixelFormat[];
 		private depthPixelFormat_: PixelFormat;
 		private stencilPixelFormat_: PixelFormat;
