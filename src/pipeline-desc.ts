@@ -55,15 +55,12 @@ namespace sd.render {
 	}
 
 
-	export interface PipelineColourAttachmentDescriptor {
-		pixelFormat: PixelFormat;
+	export interface PipelineDescriptor {
+		colourPixelFormats: PixelFormat[];
+
 		writeMask: ColourWriteMask;
 		blending: ColourBlendingDescriptor;
-	}
 
-
-	export interface PipelineDescriptor {
-		colourAttachments: PipelineColourAttachmentDescriptor[];
 		depthPixelFormat: PixelFormat;
 		stencilPixelFormat: PixelFormat;
 
@@ -97,24 +94,20 @@ namespace sd.render {
 	}
 
 
-	export function makePipelineColourAttachmentDescriptor(): PipelineColourAttachmentDescriptor {
-		return {
-			pixelFormat: PixelFormat.None,
-			writeMask: makeColourWriteMask(),
-			blending: makeColourBlendingDescriptor()
-		};
-	}
-
-
 	export function makePipelineDescriptor(): PipelineDescriptor {
-		var ca: PipelineColourAttachmentDescriptor[] = [];
-		for (let k = 0; k < 8; ++k)
-			ca.push(makePipelineColourAttachmentDescriptor());
+		var cpf: PixelFormat[] = [];
+		for (let k = 0; k < 8; ++k) {
+			cpf.push(PixelFormat.None);
+		}
+		Object.seal(cpf); // simulate a fixed length array<size_t,T> because why not
 
 		return {
-			colourAttachments: ca,
+			colourPixelFormats: cpf,
 			depthPixelFormat: PixelFormat.None,
 			stencilPixelFormat: PixelFormat.None,
+
+			writeMask: makeColourWriteMask(),
+			blending: makeColourBlendingDescriptor(),
 
 			vertexShader: null,
 			fragmentShader: null
