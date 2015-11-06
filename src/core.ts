@@ -21,6 +21,15 @@ function applyMixins(derivedCtor: any, baseCtors: any[]) {
 	});
 }
 
+// Shallow clone an object. Use only for simple struct types.
+function cloneStruct<T>(object: T): T {
+	var copy = {};
+	Object.getOwnPropertyNames(object).forEach(name => {
+		copy[name] = object[name];
+	})
+	return <T>copy;
+}
+
 
 // -- Sequences
 
