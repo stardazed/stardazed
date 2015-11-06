@@ -44,8 +44,7 @@ namespace sd.render {
 	export const enum TextureRepeatMode {
 		Repeat,
 		MirroredRepeat,
-		ClampToEdge,
-		ClampToConstColour
+		ClampToEdge
 	}
 
 
@@ -74,6 +73,10 @@ namespace sd.render {
 	}
 	
 
+	export type TextureImageSource = ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement;
+	export type TextureImageData = ArrayBufferView | TextureImageSource;
+
+
 	export interface TextureDescriptor {
 		textureClass: TextureClass;
 		pixelFormat: PixelFormat;
@@ -81,6 +84,10 @@ namespace sd.render {
 		sampling: SamplerDescriptor;
 		dim: PixelDimensions;
 		mipmaps: number;
+
+		// If omitted, new textures will be created with zeroed data.
+		// If included, the number of entries MUST equal 1 for Tex2D and 6 for TexCube classes.
+		pixelData?: TextureImageData[];
 	}
 
 

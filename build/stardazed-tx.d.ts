@@ -3,6 +3,7 @@
 /// <reference path="../defs/webgl-ext.d.ts" />
 declare function assert(cond: any, msg?: string): void;
 declare function applyMixins(derivedCtor: any, baseCtors: any[]): void;
+declare function cloneStruct<T>(object: T): T;
 declare function isArrayLike(t: any): boolean;
 declare function seq<T>(t: Array<T>): Array<T>;
 declare function seq(t: any): Array<any>;
@@ -87,6 +88,7 @@ declare namespace sd.math {
     function rad2deg(rad: number): number;
     function clamp(n: number, min: number, max: number): number;
     function clamp01(n: number): number;
+    function isPowerOf2(n: number): boolean;
     function roundUpPowerOf2(n: number): number;
     function alignUp(val: number, alignmentPow2: number): number;
     function alignDown(val: number, alignmentPow2: number): number;
@@ -813,6 +815,7 @@ declare namespace sd.render {
     interface RenderContext {
         canvas: HTMLCanvasElement;
         gl: WebGLRenderingContext;
+        ext32bitIndexes: OESElementIndexUint;
         extDepthTexture: WebGLDepthTexture;
         extS3TC: WebGLCompressedTextureS3TC;
         extMinMax: EXTBlendMinMax;
@@ -885,7 +888,6 @@ declare namespace sd.render {
         Repeat = 0,
         MirroredRepeat = 1,
         ClampToEdge = 2,
-        ClampToConstColour = 3,
     }
     const enum TextureSizingFilter {
         Nearest = 0,
@@ -904,6 +906,8 @@ declare namespace sd.render {
         mipFilter: TextureMipFilter;
         maxAnisotropy: number;
     }
+    type TextureImageSource = ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement;
+    type TextureImageData = ArrayBufferView | TextureImageSource;
     interface TextureDescriptor {
         textureClass: TextureClass;
         pixelFormat: PixelFormat;
@@ -911,6 +915,7 @@ declare namespace sd.render {
         sampling: SamplerDescriptor;
         dim: PixelDimensions;
         mipmaps: number;
+        pixelData?: TextureImageData[];
     }
     function makeMipMapRange(baseLevel: number, numLevels: number): MipMapRange;
     function makeSamplerDescriptor(): SamplerDescriptor;
@@ -925,21 +930,22 @@ declare namespace sd.render {
         private dim_;
         private mipmaps_;
         private pixelFormat_;
+        private sampler_;
         private resource_;
         private glTarget_;
+        private createRenderBuffer();
+        private createTex2D(pixelData?);
+        private createTexCube(pixelData?);
         constructor(rc: RenderContext, desc: TextureDescriptor);
-        dim(): {
-            width: number;
-            height: number;
-        };
+        dim(): PixelDimensions;
         width(): number;
         height(): number;
         mipmaps(): number;
         isMipMapped(): boolean;
         pixelFormat(): PixelFormat;
         textureClass(): TextureClass;
-        clientWritable(): void;
-        renderTargetOnly(): void;
+        clientWritable(): boolean;
+        renderTargetOnly(): boolean;
         resource(): WebGLTexture | WebGLRenderbuffer;
         target(): number;
     }

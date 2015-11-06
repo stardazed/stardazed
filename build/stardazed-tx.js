@@ -10,6 +10,13 @@ function applyMixins(derivedCtor, baseCtors) {
         });
     });
 }
+function cloneStruct(object) {
+    var copy = {};
+    Object.getOwnPropertyNames(object).forEach(function (name) {
+        copy[name] = object[name];
+    });
+    return copy;
+}
 function isArrayLike(t) {
     return (typeof t == "object") && ("length" in t) && !(t instanceof String || t instanceof Window);
 }
@@ -209,6 +216,10 @@ var sd;
             return Math.max(0.0, Math.min(1.0, n));
         }
         math.clamp01 = clamp01;
+        function isPowerOf2(n) {
+            return (n & (n - 1)) == 0;
+        }
+        math.isPowerOf2 = isPowerOf2;
         function roundUpPowerOf2(n) {
             if (n <= 0)
                 return 1;
@@ -2235,6 +2246,7 @@ var sd;
                 assert(!"Could not initialise WebGL");
                 return;
             }
+            var eiu = gl.getExtension("OES_element_index_uint");
             var dte = gl.getExtension("WEBGL_depth_texture");
             dte = dte || gl.getExtension("WEBKIT_WEBGL_depth_texture");
             dte = dte || gl.getExtension("MOZ_WEBGL_depth_texture");
@@ -2249,6 +2261,7 @@ var sd;
             return {
                 canvas: canvas,
                 gl: gl,
+                ext32bitIndexes: eiu,
                 extDepthTexture: dte,
                 extS3TC: s3tc,
                 extMinMax: bmm,
@@ -2494,8 +2507,9 @@ var sd;
             }
         }
         function glPixelDataTypeForPixelFormat(rc, format) {
-            assert(!render.pixelFormatIsCompressed(format));
             var gl = rc.gl;
+            if (render.pixelFormatIsCompressed(format))
+                return gl.NONE;
             switch (format) {
                 case 1:
                 case 2:
@@ -2537,13 +2551,48 @@ var sd;
                 case 15:
                     return gl.STENCIL_INDEX8;
                 default:
-                    assert(!"Unsupported RenderBuffer pixel format");
                     return gl.NONE;
             }
         }
+        function glTextureRepeatMode(rc, repeat) {
+            switch (repeat) {
+                case 0: return rc.gl.REPEAT;
+                case 1: return rc.gl.MIRRORED_REPEAT;
+                case 2: return rc.gl.CLAMP_TO_EDGE;
+            }
+        }
+        function glTextureMinificationFilter(rc, minFilter, mipFilter) {
+            var glSizingFilter;
+            if (mipFilter == 0) {
+                if (minFilter == 0)
+                    glSizingFilter = rc.gl.NEAREST;
+                else
+                    glSizingFilter = rc.gl.LINEAR;
+            }
+            else if (mipFilter == 1) {
+                if (minFilter == 0)
+                    glSizingFilter = rc.gl.NEAREST_MIPMAP_NEAREST;
+                else
+                    glSizingFilter = rc.gl.LINEAR_MIPMAP_NEAREST;
+            }
+            else {
+                if (minFilter == 0)
+                    glSizingFilter = rc.gl.NEAREST_MIPMAP_LINEAR;
+                else
+                    glSizingFilter = rc.gl.LINEAR_MIPMAP_LINEAR;
+            }
+            return glSizingFilter;
+        }
+        function glTextureMagnificationFilter(rc, magFilter) {
+            if (magFilter == 0)
+                return rc.gl.NEAREST;
+            else
+                return rc.gl.LINEAR;
+        }
         var textureLimits = {
             maxDimension: 0,
-            maxDimensionCube: 0
+            maxDimensionCube: 0,
+            maxAnisotropy: 0
         };
         function maxTextureDimension(rc, texClass) {
             if (textureLimits.maxDimension == 0) {
@@ -2554,51 +2603,154 @@ var sd;
                 return textureLimits.maxDimensionCube;
             return textureLimits.maxDimension;
         }
+        function maxAllowedAnisotropy(rc) {
+            if (textureLimits.maxAnisotropy == 0) {
+                textureLimits.maxAnisotropy =
+                    rc.extTexAnisotropy ?
+                        rc.gl.getParameter(rc.extTexAnisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT) :
+                        1;
+            }
+            return textureLimits.maxAnisotropy;
+        }
         var Texture = (function () {
             function Texture(rc, desc) {
                 this.rc = rc;
                 this.textureClass_ = desc.textureClass;
-                this.dim_ = { width: desc.dim.width, height: desc.dim.height };
+                this.dim_ = cloneStruct(desc.dim);
                 this.mipmaps_ = desc.mipmaps;
                 this.pixelFormat_ = desc.pixelFormat;
+                this.sampler_ = cloneStruct(desc.sampling);
                 assert(this.mipmaps_ > 0);
                 assert(this.width() > 0);
                 assert(this.height() > 0);
                 assert(this.width() <= maxTextureDimension(rc, this.textureClass_));
                 assert(this.height() <= maxTextureDimension(rc, this.textureClass_));
-                if (desc.textureClass == 0) {
-                    if (desc.usageHint == 1) {
-                        this.glTarget_ = rc.gl.RENDERBUFFER;
-                        assert(this.mipmaps() == 1);
-                        var sizedFormat = glRenderBufferInternalFormatForPixelFormat(rc, this.pixelFormat_);
-                        var rb = rc.gl.createRenderbuffer();
-                        rc.gl.bindRenderbuffer(this.glTarget_, rb);
-                        rc.gl.renderbufferStorage(this.glTarget_, sizedFormat, this.width(), this.height());
-                        rc.gl.bindRenderbuffer(this.glTarget_, null);
-                        this.resource_ = rb;
-                        return;
+                var npot = !(sd.math.isPowerOf2(this.width()) && sd.math.isPowerOf2(this.height()));
+                if (npot) {
+                    if (this.sampler_.repeatS != 2 || this.sampler_.repeatT != 2) {
+                        console.warn("NPOT textures cannot not repeat, overriding with ClampToEdge", desc);
+                        this.sampler_.repeatS = 2;
+                        this.sampler_.repeatT = 2;
+                    }
+                    if (this.mipmaps_ > 1) {
+                        console.warn("NPOT textures cannot not have mipmaps, setting levels to 1", desc);
+                        this.mipmaps_ = 1;
+                    }
+                    if (this.sampler_.mipFilter != 0) {
+                        console.warn("NPOT textures cannot have mipmaps, overriding with MipFilter.None", desc);
+                        this.sampler_.mipFilter = 0;
                     }
                 }
-                var glFormat = glImageFormatForPixelFormat(rc, this.pixelFormat_);
-                var tex = rc.gl.createTexture();
+                var gl = rc.gl;
                 if (desc.textureClass == 0) {
-                    this.glTarget_ = rc.gl.TEXTURE_2D;
-                    rc.gl.bindTexture(this.glTarget_, tex);
-                    var w = this.width();
-                    var h = this.height();
-                    for (var mip = 0; mip < this.mipmaps_; ++mip) {
-                        w = Math.max(1, (w >> 1));
-                        h = Math.max(1, (h >> 1));
+                    if (desc.usageHint == 1) {
+                        assert(desc.pixelData == null, "RenderBuffers cannot be initialized with pixeldata");
+                        this.createRenderBuffer();
+                    }
+                    else {
+                        this.createTex2D(desc.pixelData);
                     }
                 }
                 else {
-                    this.glTarget_ = rc.gl.TEXTURE_CUBE_MAP;
-                    rc.gl.bindTexture(this.glTarget_, tex);
+                    this.createTexCube(desc.pixelData);
                 }
-                rc.gl.bindTexture(this.glTarget_, null);
-                this.resource_ = tex;
+                if (this.glTarget_ != gl.RENDERBUFFER) {
+                    rc.gl.bindTexture(this.glTarget_, this.resource_);
+                    gl.texParameteri(this.glTarget_, gl.TEXTURE_WRAP_S, glTextureRepeatMode(rc, this.sampler_.repeatS));
+                    gl.texParameteri(this.glTarget_, gl.TEXTURE_WRAP_T, glTextureRepeatMode(rc, this.sampler_.repeatS));
+                    gl.texParameteri(this.glTarget_, rc.gl.TEXTURE_MIN_FILTER, glTextureMinificationFilter(rc, this.sampler_.minFilter, this.sampler_.mipFilter));
+                    gl.texParameteri(this.glTarget_, rc.gl.TEXTURE_MAG_FILTER, glTextureMagnificationFilter(rc, this.sampler_.magFilter));
+                    if (rc.extTexAnisotropy) {
+                        var anisotropy = sd.math.clamp(this.sampler_.maxAnisotropy, 1, maxAllowedAnisotropy(rc));
+                        gl.texParameterf(this.glTarget_, rc.extTexAnisotropy.TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+                    }
+                    rc.gl.bindTexture(this.glTarget_, null);
+                }
             }
-            Texture.prototype.dim = function () { return render.makePixelDimensions(this.dim_.width, this.dim_.height); };
+            Texture.prototype.createRenderBuffer = function () {
+                var gl = this.rc.gl;
+                assert(this.mipmaps() == 1, "Cannot create RenderBuffers with multiple levels");
+                var sizedFormat = glRenderBufferInternalFormatForPixelFormat(this.rc, this.pixelFormat_);
+                if (sizedFormat == gl.NONE) {
+                    console.warn("Incompatible PixelFormat for RenderBuffer: falling back to Tex2D");
+                    this.createTex2D();
+                }
+                else {
+                    this.glTarget_ = gl.RENDERBUFFER;
+                    var rb = gl.createRenderbuffer();
+                    gl.bindRenderbuffer(this.glTarget_, rb);
+                    gl.renderbufferStorage(this.glTarget_, sizedFormat, this.width(), this.height());
+                    gl.bindRenderbuffer(this.glTarget_, null);
+                }
+            };
+            Texture.prototype.createTex2D = function (pixelData) {
+                var gl = this.rc.gl;
+                assert((pixelData == null) || (pixelData.length == 1), "Tex2D pixelData array must contain 1 item or be omitted completely.");
+                var texPixelData = pixelData && pixelData[0];
+                var glPixelFormat = glImageFormatForPixelFormat(this.rc, this.pixelFormat_);
+                var glPixelType = glPixelDataTypeForPixelFormat(this.rc, this.pixelFormat_);
+                if (render.pixelFormatIsCompressed(this.pixelFormat_))
+                    assert(texPixelData && ("byteLength" in texPixelData), "Compressed textures MUST provide pixelData");
+                var tex = this.resource_ = gl.createTexture();
+                this.glTarget_ = gl.TEXTURE_2D;
+                gl.bindTexture(this.glTarget_, tex);
+                var w = this.width();
+                var h = this.height();
+                if (render.pixelFormatIsCompressed(this.pixelFormat_)) {
+                    gl.compressedTexImage2D(this.glTarget_, 0, glPixelFormat, w, h, 0, texPixelData);
+                }
+                else {
+                    if ((texPixelData == null) || ("byteLength" in texPixelData)) {
+                        gl.texImage2D(this.glTarget_, 0, glPixelFormat, w, h, 0, glPixelFormat, glPixelType, texPixelData);
+                    }
+                    else {
+                        var tis = texPixelData;
+                        assert((tis.width == w) && (tis.height == h), "Tex2D imageSource's size does not match descriptor");
+                        gl.texImage2D(this.glTarget_, 0, glPixelFormat, glPixelFormat, glPixelType, tis);
+                    }
+                }
+                if (this.mipmaps_ > 1) {
+                    gl.generateMipmap(this.glTarget_);
+                }
+                gl.bindTexture(this.glTarget_, null);
+            };
+            Texture.prototype.createTexCube = function (pixelData) {
+                var gl = this.rc.gl;
+                assert((pixelData == null) || (pixelData.length == 6), "TexCube pixelData array must contain 6 items or be omitted completely.");
+                var glPixelFormat = glImageFormatForPixelFormat(this.rc, this.pixelFormat_);
+                var glPixelType = glPixelDataTypeForPixelFormat(this.rc, this.pixelFormat_);
+                var tex = this.resource_ = gl.createTexture();
+                this.glTarget_ = gl.TEXTURE_CUBE_MAP;
+                gl.bindTexture(this.glTarget_, tex);
+                var w = this.width();
+                var h = this.height();
+                assert(w == h, "TexCube textures MUST have the same width and height");
+                if (render.pixelFormatIsCompressed(this.pixelFormat_)) {
+                    assert(pixelData && (pixelData.length == 6), "Compressed textures MUST provide pixelData");
+                    for (var layer = 0; layer < 6; ++layer) {
+                        assert(pixelData[layer] && ("byteLength" in pixelData[layer]), "pixelData source " + layer + " for compressed TexCube is not an ArrayBufferView");
+                        gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer, 0, glPixelFormat, w, h, 0, pixelData[layer]);
+                    }
+                }
+                else {
+                    for (var layer = 0; layer < 6; ++layer) {
+                        var texPixelData = pixelData && pixelData[layer];
+                        if ((texPixelData == null) || ("byteLength" in texPixelData)) {
+                            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer, 0, glPixelFormat, w, h, 0, glPixelFormat, glPixelType, texPixelData);
+                        }
+                        else {
+                            var tis = texPixelData;
+                            assert((tis.width == w) && (tis.height == h), "TexCube pixelData " + layer + "'s size does not match descriptor");
+                            gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer, 0, glPixelFormat, glPixelFormat, glPixelType, texPixelData);
+                        }
+                    }
+                }
+                if (this.mipmaps_ > 1) {
+                    gl.generateMipmap(this.glTarget_);
+                }
+                gl.bindTexture(this.glTarget_, null);
+            };
+            Texture.prototype.dim = function () { return cloneStruct(this.dim_); };
             Texture.prototype.width = function () { return this.dim_.width; };
             Texture.prototype.height = function () { return this.dim_.height; };
             Texture.prototype.mipmaps = function () { return this.mipmaps_; };
@@ -2607,8 +2759,10 @@ var sd;
             Texture.prototype.textureClass = function () { return this.textureClass_; };
             ;
             Texture.prototype.clientWritable = function () {
+                return this.glTarget_ != this.rc.gl.RENDERBUFFER;
             };
             Texture.prototype.renderTargetOnly = function () {
+                return this.glTarget_ == this.rc.gl.RENDERBUFFER;
             };
             Texture.prototype.resource = function () { return this.resource_; };
             Texture.prototype.target = function () { return this.glTarget_; };
