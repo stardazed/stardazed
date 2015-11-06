@@ -43,6 +43,11 @@ namespace sd.math {
 	}
 
 
+	export function isPowerOf2(n: number) {
+		return (n & (n - 1)) == 0;
+	}
+
+
 	// roundUpPowerOf2
 	// return closest powerOf2 number that is >= n
 	// e.g.: 15 -> 16; 16 -> 16; 17 -> 32
