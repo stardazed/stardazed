@@ -12,10 +12,35 @@ namespace sd.render {
 		gl: WebGLRenderingContext;
 
 		ext32bitIndexes: OESElementIndexUint;
+		extDrawBuffers: WebGLDrawBuffers;
 		extDepthTexture: WebGLDepthTexture;
 		extS3TC: WebGLCompressedTextureS3TC;
 		extMinMax: EXTBlendMinMax;
 		extTexAnisotropy: EXTTextureFilterAnisotropic;
+	}
+
+
+	var contextLimits = {
+		maxColourAttachments: 0,
+		maxDrawBuffers: 0
+	};
+
+
+	export function maxColourAttachments(rc: RenderContext) {
+		if (contextLimits.maxColourAttachments == 0) {
+			contextLimits.maxColourAttachments = rc.extDrawBuffers ? rc.gl.getParameter(rc.extDrawBuffers.MAX_COLOR_ATTACHMENTS_WEBGL) : 1;
+		}
+
+		return contextLimits.maxColourAttachments;
+	}
+
+
+	export function maxDrawBuffers(rc: RenderContext) {
+		if (contextLimits.maxDrawBuffers == 0) {
+			contextLimits.maxDrawBuffers = rc.extDrawBuffers ? rc.gl.getParameter(rc.extDrawBuffers.MAX_DRAW_BUFFERS_WEBGL) : 1;
+		}
+
+		return contextLimits.maxDrawBuffers;
 	}
 	
 
@@ -31,13 +56,16 @@ namespace sd.render {
 			gl = null;
 		}
 		if (!gl) {
-			assert(false, "Could not initialise WebGL");
-			return;
+			assert(false, "WebGL context is unsupported or disabled.");
+			return null;
 		}
 
 
 		// enable large indexed meshes
 		var eiu = gl.getExtension("OES_element_index_uint");
+
+		// we'd like more colour attachments
+		var mdb = gl.getExtension("WEBGL_draw_buffers");
 
 		// enable extended depth textures
 		var dte = gl.getExtension("WEBGL_depth_texture");
@@ -66,6 +94,7 @@ namespace sd.render {
 			gl: gl,
 
 			ext32bitIndexes: eiu,
+			extDrawBuffers: mdb,
 			extDepthTexture: dte,
 			extS3TC: s3tc,
 			extMinMax: bmm,
