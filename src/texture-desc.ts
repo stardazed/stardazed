@@ -91,6 +91,10 @@ namespace sd.render {
 	}
 
 
+	export function useMipMaps(use: boolean) {
+		return use ? UseMipMaps.Yes : UseMipMaps.No;
+	}
+
 	export function makeMipMapRange(baseLevel: number, numLevels: number): MipMapRange {
 		return { baseLevel: baseLevel, numLevels: numLevels };
 	}
@@ -106,7 +110,7 @@ namespace sd.render {
 			mipFilter: TextureMipFilter.Nearest,
 
 			maxAnisotropy: 1
-		}
+		};
 	}
 
 
@@ -125,7 +129,22 @@ namespace sd.render {
 			sampling: makeSamplerDescriptor(),
 			dim: makePixelDimensions(width, height),
 			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(maxDim) : 1
-		}
+		};
+	}
+
+
+	export function makeTexDesc2DFromImageSource(source: TextureImageSource, mipmapped: UseMipMaps): TextureDescriptor {
+		var maxDim = Math.max(source.width, source.height);
+
+		return {
+			textureClass: TextureClass.Tex2D,
+			pixelFormat: PixelFormat.RGBA8,
+			usageHint: TextureUsageHint.Normal,
+			sampling: makeSamplerDescriptor(),
+			dim: makePixelDimensions(source.width, source.height),
+			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(maxDim) : 1,
+			pixelData: [source]
+		};
 	}
 
 
