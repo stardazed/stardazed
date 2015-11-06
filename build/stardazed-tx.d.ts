@@ -794,13 +794,10 @@ declare namespace sd.render {
         blue: boolean;
         alpha: boolean;
     }
-    interface PipelineColourAttachmentDescriptor {
-        pixelFormat: PixelFormat;
+    interface PipelineDescriptor {
+        colourPixelFormats: PixelFormat[];
         writeMask: ColourWriteMask;
         blending: ColourBlendingDescriptor;
-    }
-    interface PipelineDescriptor {
-        colourAttachments: PipelineColourAttachmentDescriptor[];
         depthPixelFormat: PixelFormat;
         stencilPixelFormat: PixelFormat;
         vertexShader: WebGLShader;
@@ -808,7 +805,6 @@ declare namespace sd.render {
     }
     function makeColourBlendingDescriptor(): ColourBlendingDescriptor;
     function makeColourWriteMask(): ColourWriteMask;
-    function makePipelineColourAttachmentDescriptor(): PipelineColourAttachmentDescriptor;
     function makePipelineDescriptor(): PipelineDescriptor;
 }
 declare namespace sd.render {
@@ -816,12 +812,121 @@ declare namespace sd.render {
         canvas: HTMLCanvasElement;
         gl: WebGLRenderingContext;
         ext32bitIndexes: OESElementIndexUint;
+        extDrawBuffers: WebGLDrawBuffers;
         extDepthTexture: WebGLDepthTexture;
         extS3TC: WebGLCompressedTextureS3TC;
         extMinMax: EXTBlendMinMax;
         extTexAnisotropy: EXTTextureFilterAnisotropic;
     }
+    function maxColourAttachments(rc: RenderContext): number;
+    function maxDrawBuffers(rc: RenderContext): number;
     function makeRenderContext(canvas: HTMLCanvasElement): RenderContext;
+}
+declare namespace sd.render {
+    class Pipeline {
+        private rc;
+        private colourPixelFormats_;
+        private depthPixelFormat_;
+        private stencilPixelFormat_;
+        private writeMask_;
+        private blending_;
+        private program_;
+        constructor(rc: RenderContext, desc: PipelineDescriptor);
+        bind(): void;
+        unbind(): void;
+        colourPixelFormats(): PixelFormat[];
+        depthPixelFormat(): PixelFormat;
+        stencilPixelFormat(): PixelFormat;
+        program(): WebGLProgram;
+    }
+}
+declare namespace sd.render {
+    const enum FrontFaceWinding {
+        Clockwise = 0,
+        CounterClockwise = 1,
+    }
+    const enum TriangleFillMode {
+        Fill = 0,
+        Line = 1,
+    }
+    const enum FaceCulling {
+        Disabled = 0,
+        Front = 1,
+        Back = 2,
+    }
+    const enum DepthTest {
+        Disabled = 0,
+        AllowAll = 1,
+        DenyAll = 2,
+        Less = 3,
+        LessOrEqual = 4,
+        Equal = 5,
+        NotEqual = 6,
+        GreaterOrEqual = 7,
+        Greater = 8,
+    }
+    const enum ClearMask {
+        None = 0,
+        Colour = 1,
+        Depth = 2,
+        Stencil = 4,
+        ColourDepth = 3,
+        DepthStencil = 6,
+        All = 7,
+    }
+    interface ScissorRect {
+        originX: number;
+        originY: number;
+        width: number;
+        height: number;
+    }
+    interface Viewport {
+        originX: number;
+        originY: number;
+        width: number;
+        height: number;
+        nearZ: number;
+        farZ: number;
+    }
+    interface DepthStencilTestDescriptor {
+        depthTest: DepthTest;
+    }
+    interface RenderPassDescriptor {
+        clearMask: ClearMask;
+        clearColour: ArrayOfNumber;
+        clearDepth: number;
+        clearStencil: number;
+    }
+    function makeScissorRect(): ScissorRect;
+    function makeViewport(): Viewport;
+    function makeDepthStencilTestDescriptor(): DepthStencilTestDescriptor;
+    function makeRenderPassDescriptor(): RenderPassDescriptor;
+}
+declare namespace sd.render {
+    class DepthStencilTest {
+        private rc;
+        private depthTestEnabled_;
+        private depthFunc_;
+        constructor(rc: RenderContext, desc: DepthStencilTestDescriptor);
+        apply(): void;
+    }
+    class RenderPass {
+        private rc;
+        private desc_;
+        private pipeline_;
+        constructor(rc: RenderContext, desc_: RenderPassDescriptor);
+        setup(): void;
+        teardown(): void;
+        setPipeline(pipeline: Pipeline): void;
+        setDepthStencilTest(dst: DepthStencilTest): void;
+        setFaceCulling(fc: FaceCulling): void;
+        setFrontFaceWinding(ffw: FrontFaceWinding): void;
+        setTriangleFillMode(tfm: TriangleFillMode): void;
+        setViewPort(vp: Viewport): void;
+        setScissorRect(sc: ScissorRect): void;
+        setConstantBlendColour(colour4: ArrayOfNumber): void;
+        drawIndexedPrimitives(startIndex: number, indexCount: number): void;
+    }
 }
 declare var webkitAudioContext: {
     prototype: AudioContext;

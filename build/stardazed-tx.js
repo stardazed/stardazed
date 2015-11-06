@@ -2205,22 +2205,18 @@ var sd;
             };
         }
         render.makeColourWriteMask = makeColourWriteMask;
-        function makePipelineColourAttachmentDescriptor() {
-            return {
-                pixelFormat: 0,
-                writeMask: makeColourWriteMask(),
-                blending: makeColourBlendingDescriptor()
-            };
-        }
-        render.makePipelineColourAttachmentDescriptor = makePipelineColourAttachmentDescriptor;
         function makePipelineDescriptor() {
-            var ca = [];
-            for (var k = 0; k < 8; ++k)
-                ca.push(makePipelineColourAttachmentDescriptor());
+            var cpf = [];
+            for (var k = 0; k < 8; ++k) {
+                cpf.push(0);
+            }
+            Object.seal(cpf);
             return {
-                colourAttachments: ca,
+                colourPixelFormats: cpf,
                 depthPixelFormat: 0,
                 stencilPixelFormat: 0,
+                writeMask: makeColourWriteMask(),
+                blending: makeColourBlendingDescriptor(),
                 vertexShader: null,
                 fragmentShader: null
             };
@@ -2232,6 +2228,24 @@ var sd;
 (function (sd) {
     var render;
     (function (render) {
+        var contextLimits = {
+            maxColourAttachments: 0,
+            maxDrawBuffers: 0
+        };
+        function maxColourAttachments(rc) {
+            if (contextLimits.maxColourAttachments == 0) {
+                contextLimits.maxColourAttachments = rc.extDrawBuffers ? rc.gl.getParameter(rc.extDrawBuffers.MAX_COLOR_ATTACHMENTS_WEBGL) : 1;
+            }
+            return contextLimits.maxColourAttachments;
+        }
+        render.maxColourAttachments = maxColourAttachments;
+        function maxDrawBuffers(rc) {
+            if (contextLimits.maxDrawBuffers == 0) {
+                contextLimits.maxDrawBuffers = rc.extDrawBuffers ? rc.gl.getParameter(rc.extDrawBuffers.MAX_DRAW_BUFFERS_WEBGL) : 1;
+            }
+            return contextLimits.maxDrawBuffers;
+        }
+        render.maxDrawBuffers = maxDrawBuffers;
         function makeRenderContext(canvas) {
             var gl;
             try {
@@ -2243,10 +2257,11 @@ var sd;
                 gl = null;
             }
             if (!gl) {
-                assert(false, "Could not initialise WebGL");
-                return;
+                assert(false, "WebGL context is unsupported or disabled.");
+                return null;
             }
             var eiu = gl.getExtension("OES_element_index_uint");
+            var mdb = gl.getExtension("WEBGL_draw_buffers");
             var dte = gl.getExtension("WEBGL_depth_texture");
             dte = dte || gl.getExtension("WEBKIT_WEBGL_depth_texture");
             dte = dte || gl.getExtension("MOZ_WEBGL_depth_texture");
@@ -2262,6 +2277,7 @@ var sd;
                 canvas: canvas,
                 gl: gl,
                 ext32bitIndexes: eiu,
+                extDrawBuffers: mdb,
                 extDepthTexture: dte,
                 extS3TC: s3tc,
                 extMinMax: bmm,
@@ -2269,6 +2285,231 @@ var sd;
             };
         }
         render.makeRenderContext = makeRenderContext;
+    })(render = sd.render || (sd.render = {}));
+})(sd || (sd = {}));
+var sd;
+(function (sd) {
+    var render;
+    (function (render) {
+        function glBlendEqForBlendOperation(rc, op) {
+            switch (op) {
+                case 0: return rc.gl.FUNC_ADD;
+                case 1: return rc.gl.FUNC_SUBTRACT;
+                case 2: rc.gl.FUNC_REVERSE_SUBTRACT;
+                case 3: return rc.extMinMax ? rc.extMinMax.MIN_EXT : rc.gl.FUNC_SUBTRACT;
+                case 4: return rc.extMinMax ? rc.extMinMax.MAX_EXT : rc.gl.FUNC_ADD;
+            }
+        }
+        function glBlendFuncForBlendFactor(rc, factor) {
+            switch (factor) {
+                case 0: return rc.gl.ZERO;
+                case 1: return rc.gl.ONE;
+                case 2: return rc.gl.SRC_COLOR;
+                case 3: rc.gl.ONE_MINUS_SRC_COLOR;
+                case 4: return rc.gl.DST_COLOR;
+                case 5: return rc.gl.ONE_MINUS_DST_COLOR;
+                case 6: return rc.gl.SRC_ALPHA;
+                case 7: return rc.gl.ONE_MINUS_SRC_ALPHA;
+                case 8: return rc.gl.SRC_ALPHA_SATURATE;
+                case 9: return rc.gl.DST_ALPHA;
+                case 10: return rc.gl.ONE_MINUS_DST_ALPHA;
+                case 11: return rc.gl.CONSTANT_COLOR;
+                case 12: return rc.gl.ONE_MINUS_CONSTANT_COLOR;
+                case 13: return rc.gl.CONSTANT_ALPHA;
+                case 14: return rc.gl.ONE_MINUS_CONSTANT_ALPHA;
+            }
+        }
+        var Pipeline = (function () {
+            function Pipeline(rc, desc) {
+                this.rc = rc;
+                this.colourPixelFormats_ = desc.colourPixelFormats.slice(0);
+                this.depthPixelFormat_ = desc.depthPixelFormat;
+                this.stencilPixelFormat_ = desc.stencilPixelFormat;
+                this.writeMask_ = cloneStruct(desc.writeMask);
+                this.blending_ = cloneStruct(desc.blending);
+                if (this.writeMask_.red && this.writeMask_.green && this.writeMask_.blue && this.writeMask_.alpha) {
+                    this.writeMask_ = null;
+                }
+                var highestEnabledAttachment = -1;
+                this.colourPixelFormats_.slice(1).forEach(function (pf, ix) {
+                    if (pf != 0)
+                        highestEnabledAttachment = ix;
+                });
+                if (highestEnabledAttachment >= render.maxColourAttachments(rc)) {
+                    assert(rc.extDrawBuffers, "This GL only supports up to " + render.maxColourAttachments(rc) + " attachment(s)");
+                }
+                var gl = rc.gl;
+                this.program_ = gl.createProgram();
+                if (desc.vertexShader)
+                    gl.attachShader(this.program_, desc.vertexShader);
+                if (desc.fragmentShader)
+                    gl.attachShader(this.program_, desc.fragmentShader);
+                gl.linkProgram(this.program_);
+                if (!gl.getProgramParameter(this.program_, gl.LINK_STATUS)) {
+                    var errorLog = gl.getProgramInfoLog(this.program_);
+                    console.error("Program link failed:", errorLog);
+                    assert(false, "bad program");
+                }
+            }
+            Pipeline.prototype.bind = function () {
+                var gl = this.rc.gl;
+                gl.useProgram(this.program_);
+                if (this.writeMask_)
+                    gl.colorMask(this.writeMask_.red, this.writeMask_.green, this.writeMask_.blue, this.writeMask_.alpha);
+                if (this.blending_.enabled) {
+                    gl.enable(gl.BLEND);
+                    var rgbEq = glBlendEqForBlendOperation(this.rc, this.blending_.rgbBlendOp);
+                    var alphaEq = glBlendEqForBlendOperation(this.rc, this.blending_.alphaBlendOp);
+                    gl.blendEquationSeparate(rgbEq, alphaEq);
+                    var rgbSrcFn = glBlendFuncForBlendFactor(this.rc, this.blending_.sourceRGBFactor);
+                    var alphaSrcFn = glBlendFuncForBlendFactor(this.rc, this.blending_.sourceAlphaFactor);
+                    var rgbDestFn = glBlendFuncForBlendFactor(this.rc, this.blending_.destRGBFactor);
+                    var alphaDestFn = glBlendFuncForBlendFactor(this.rc, this.blending_.destAlphaFactor);
+                    gl.blendFuncSeparate(rgbSrcFn, rgbDestFn, alphaSrcFn, alphaDestFn);
+                }
+            };
+            Pipeline.prototype.unbind = function () {
+                var gl = this.rc.gl;
+                gl.useProgram(null);
+                if (this.writeMask_)
+                    gl.colorMask(true, true, true, true);
+                if (this.blending_.enabled) {
+                    gl.disable(gl.BLEND);
+                    gl.blendEquation(gl.FUNC_ADD);
+                    gl.blendFunc(gl.ONE, gl.ZERO);
+                }
+            };
+            Pipeline.prototype.colourPixelFormats = function () { return this.colourPixelFormats_.slice(0); };
+            Pipeline.prototype.depthPixelFormat = function () { return this.depthPixelFormat_; };
+            Pipeline.prototype.stencilPixelFormat = function () { return this.stencilPixelFormat_; };
+            Pipeline.prototype.program = function () { return this.program_; };
+            return Pipeline;
+        })();
+        render.Pipeline = Pipeline;
+    })(render = sd.render || (sd.render = {}));
+})(sd || (sd = {}));
+var sd;
+(function (sd) {
+    var render;
+    (function (render) {
+        function makeScissorRect() {
+            return {
+                originX: 0,
+                originY: 0,
+                width: 32768,
+                height: 32768
+            };
+        }
+        render.makeScissorRect = makeScissorRect;
+        function makeViewport() {
+            return {
+                originX: 0,
+                originY: 0,
+                width: 0,
+                height: 0,
+                nearZ: 0,
+                farZ: 1
+            };
+        }
+        render.makeViewport = makeViewport;
+        function makeDepthStencilTestDescriptor() {
+            return {
+                depthTest: 1
+            };
+        }
+        render.makeDepthStencilTestDescriptor = makeDepthStencilTestDescriptor;
+        function makeRenderPassDescriptor() {
+            return {
+                clearMask: 7,
+                clearColour: [0, 0, 0, 1],
+                clearDepth: 1.0,
+                clearStencil: 0
+            };
+        }
+        render.makeRenderPassDescriptor = makeRenderPassDescriptor;
+    })(render = sd.render || (sd.render = {}));
+})(sd || (sd = {}));
+var sd;
+(function (sd) {
+    var render;
+    (function (render) {
+        var DepthStencilTest = (function () {
+            function DepthStencilTest(rc, desc) {
+                this.rc = rc;
+                this.depthTestEnabled_ = desc.depthTest != 0;
+                switch (desc.depthTest) {
+                    case 1:
+                        this.depthFunc_ = rc.gl.ALWAYS;
+                        break;
+                    case 2:
+                        this.depthFunc_ = rc.gl.NEVER;
+                        break;
+                    case 3:
+                        this.depthFunc_ = rc.gl.LESS;
+                        break;
+                    case 4:
+                        this.depthFunc_ = rc.gl.LEQUAL;
+                        break;
+                    case 5:
+                        this.depthFunc_ = rc.gl.EQUAL;
+                        break;
+                    case 6:
+                        this.depthFunc_ = rc.gl.NOTEQUAL;
+                        break;
+                    case 7:
+                        this.depthFunc_ = rc.gl.GEQUAL;
+                        break;
+                    case 8:
+                        this.depthFunc_ = rc.gl.GREATER;
+                        break;
+                    default:
+                        this.depthFunc_ = rc.gl.NONE;
+                        break;
+                }
+            }
+            DepthStencilTest.prototype.apply = function () {
+                if (this.depthTestEnabled_) {
+                    this.rc.gl.enable(this.rc.gl.DEPTH_TEST);
+                    this.rc.gl.depthFunc(this.depthFunc_);
+                }
+                else {
+                    this.rc.gl.disable(this.rc.gl.DEPTH_TEST);
+                }
+            };
+            return DepthStencilTest;
+        })();
+        render.DepthStencilTest = DepthStencilTest;
+        var RenderPass = (function () {
+            function RenderPass(rc, desc_) {
+                this.rc = rc;
+                this.desc_ = desc_;
+                this.pipeline_ = null;
+            }
+            RenderPass.prototype.setup = function () {
+            };
+            RenderPass.prototype.teardown = function () {
+            };
+            RenderPass.prototype.setPipeline = function (pipeline) {
+            };
+            RenderPass.prototype.setDepthStencilTest = function (dst) {
+            };
+            RenderPass.prototype.setFaceCulling = function (fc) {
+            };
+            RenderPass.prototype.setFrontFaceWinding = function (ffw) {
+            };
+            RenderPass.prototype.setTriangleFillMode = function (tfm) {
+            };
+            RenderPass.prototype.setViewPort = function (vp) {
+            };
+            RenderPass.prototype.setScissorRect = function (sc) {
+            };
+            RenderPass.prototype.setConstantBlendColour = function (colour4) {
+            };
+            RenderPass.prototype.drawIndexedPrimitives = function (startIndex, indexCount) {
+            };
+            return RenderPass;
+        })();
+        render.RenderPass = RenderPass;
     })(render = sd.render || (sd.render = {}));
 })(sd || (sd = {}));
 var SoundManager = (function () {
