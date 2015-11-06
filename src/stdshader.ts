@@ -42,6 +42,7 @@ namespace sd.model {
 		constructor(private gl_: WebGLRenderingContext, private materialMgr_: MaterialManager) {
 		}
 
+
 		private makeShader(type: number, sourceText: string) {
 			var shader = this.gl_.createShader(type);
 			this.gl_.shaderSource(shader, sourceText);
@@ -57,6 +58,7 @@ namespace sd.model {
 
 			return shader;
 		}
+
 
 		programForFeatures(feat: number) {
 			var gl = this.gl_;
@@ -100,6 +102,7 @@ namespace sd.model {
 			return program;
 		}
 
+
 		vertexShaderSource(feat: number) {
 			var source: string[] = [];
 			var line = (s: string) => source.push(s);
@@ -137,6 +140,7 @@ namespace sd.model {
 
 			return source.join("\n") + "\n";
 		}
+
 
 		fragmentShaderSource(feat: number) {
 			var source: string[] = [];

@@ -127,8 +127,12 @@ namespace sd.render {
 		}
 
 
+		// -- observers
+		colourPixelFormats() { return this.colourPixelFormats_.slice(0); }
 		depthPixelFormat() { return this.depthPixelFormat_; }
 		stencilPixelFormat() { return this.stencilPixelFormat_; }
+
+		program() { return this.program_; }
 	}
 
-}
+} // ns sd.render
