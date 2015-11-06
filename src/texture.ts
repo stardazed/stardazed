@@ -375,6 +375,8 @@ namespace sd.render {
 				gl.texParameteri(this.glTarget_, gl.TEXTURE_WRAP_T, glTextureRepeatMode(rc, this.sampler_.repeatS));
 
 				// -- mini-/magnification
+				if (this.mipmaps_ == 1)
+					this.sampler_.mipFilter = TextureMipFilter.None;
 				gl.texParameteri(this.glTarget_, rc.gl.TEXTURE_MIN_FILTER, glTextureMinificationFilter(rc, this.sampler_.minFilter, this.sampler_.mipFilter));
 				gl.texParameteri(this.glTarget_, rc.gl.TEXTURE_MAG_FILTER, glTextureMagnificationFilter(rc, this.sampler_.magFilter));
 
