@@ -1,4 +1,4 @@
-// renderpass-desc - decscriptors and enums relating to RenderPass objects
+// renderpass-desc - descriptors and enums relating to RenderPass objects
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 

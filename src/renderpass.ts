@@ -4,6 +4,7 @@
 
 /// <reference path="renderpass-desc.ts"/>
 /// <reference path="pipeline.ts"/>
+/// <reference path="framebuffer.ts"/>
 /// <reference path="mesh.ts"/>
 /// <reference path="rendercontext.ts"/>
 
@@ -52,11 +53,10 @@ namespace sd.render {
 
 
 	export class RenderPass {
-		// private fbo_: FrameBuffer;
 		private pipeline_: Pipeline = null;
 		// private mesh_: Mesh = null;
 
-		constructor(private rc: RenderContext, private desc_: RenderPassDescriptor/* , private fbo_: FrameBuffer */) {
+		constructor(private rc: RenderContext, private desc_: RenderPassDescriptor, private frameBuffer_: FrameBuffer) {
 			assert(desc_.clearColour.length >= 4);
 		}
 
@@ -64,7 +64,7 @@ namespace sd.render {
 		setup() {
 			var gl = this.rc.gl;
 
-			// this.fbo_.bindForDrawing();
+			this.frameBuffer_.bind();
 
 			// -- clear indicated buffers
 			var glClearMask = 0;
@@ -87,19 +87,19 @@ namespace sd.render {
 
 
 		teardown() {
-			// <-- unbind mesh vao
+			// <-- TODO: unbind mesh vao
 
 			if (this.pipeline_) {
 				this.pipeline_.unbind();
 				this.pipeline_ = null;
 			}
 
-			// <-- bind default fbo
+			this.rc.gl.bindFramebuffer(this.rc.gl.FRAMEBUFFER, null);
 		}
 
 
 		// -- observers
-		// frameBuffer() { return this.fbo_; }
+		frameBuffer() { return this.frameBuffer_; }
 
 
 		// -- render state
@@ -148,7 +148,7 @@ namespace sd.render {
 		setScissorRect(rect: ScissorRect) {
 			this.rc.gl.scissor(rect.originX, rect.originY, rect.width, rect.height);
 
-			if (rect.originX > 0 || rect.originY > 0 || rect.width < this.fbo_.width() || rect.height < this.fbo_.height())
+			if (rect.originX > 0 || rect.originY > 0 || rect.width < this.frameBuffer_.width() || rect.height < this.frameBuffer_.height())
 				this.rc.gl.enable(this.rc.gl.SCISSOR_TEST);
 			else
 				this.rc.gl.disable(this.rc.gl.SCISSOR_TEST);

@@ -99,7 +99,7 @@ namespace sd.render {
 		for (let k = 0; k < 8; ++k) {
 			cpf.push(PixelFormat.None);
 		}
-		Object.seal(cpf); // simulate a fixed length array<size_t,T> because why not
+		Object.seal(cpf); // fixed length array
 
 		return {
 			colourPixelFormats: cpf,
