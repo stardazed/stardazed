@@ -69,11 +69,12 @@ namespace sd.render {
 	}
 
 
-	export function makeFrameBufferAllocationDescriptor(): FrameBufferAllocationDescriptor {
+	export function makeFrameBufferAllocationDescriptor(numColourAttachments: number): FrameBufferAllocationDescriptor {
 		var apf: PixelFormat[] = [];
 		var auh: TextureUsageHint[] = [];
 		for (let k = 0; k < 8; ++k) {
-			apf.push(PixelFormat.None);
+			// set default pixelformat for requested colour attachments to RGBA8
+			apf.push((k < numColourAttachments) ? PixelFormat.RGBA8 : PixelFormat.None);
 			auh.push(TextureUsageHint.Normal);
 		}
 		Object.seal(apf); // fixed length arrays

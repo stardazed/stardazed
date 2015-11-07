@@ -8,8 +8,85 @@
 
 namespace sd.render {
 
-	function glTargetForCubeMapFace(rc: RenderContext, face: CubeMapFace) {
-		return rc.gl.TEXTURE_CUBE_MAP_POSITIVE_X + face;
+	export function allocateTexturesForFrameBuffer(rc: RenderContext, desc: FrameBufferAllocationDescriptor): FrameBufferDescriptor {
+		var fbDesc = makeFrameBufferDescriptor();
+
+		var width = desc.width;
+		var height = desc.height;
+	
+		// -- default to viewport size if not explicitly specified
+		if (width == 0 && height == 0) {
+			width = rc.canvas.width;
+			height = rc.canvas.height;
+		}
+	
+		// -- colour
+		for (var colourAttIndex = 0; colourAttIndex < desc.colourPixelFormats.length; ++colourAttIndex) {
+			if (desc.colourPixelFormats[colourAttIndex] != PixelFormat.None) {
+				var texDesc = makeTextureDescriptor();
+				texDesc.textureClass = TextureClass.Tex2D;
+				texDesc.dim.width = width;
+				texDesc.dim.height = height;
+				texDesc.pixelFormat = desc.colourPixelFormats[colourAttIndex];
+				texDesc.usageHint = desc.colourUsageHints[colourAttIndex];
+
+				var attachment = fbDesc.colourAttachments[colourAttIndex];
+				attachment.texture = new Texture(rc, texDesc);
+			}
+		}
+
+		// -- depth & stencil
+		var combinedFormat = PixelFormat.None;
+
+		assert(desc.depthPixelFormat == PixelFormat.None ||
+			pixelFormatIsDepthFormat(desc.depthPixelFormat) ||
+			pixelFormatIsDepthStencilFormat(desc.depthPixelFormat));
+		assert(desc.stencilPixelFormat == PixelFormat.None ||
+			pixelFormatIsStencilFormat(desc.stencilPixelFormat) ||
+			pixelFormatIsDepthStencilFormat(desc.stencilPixelFormat));
+
+		// -- check if we can use a combined depth/stencil format
+		if (pixelFormatIsDepthStencilFormat(desc.depthPixelFormat)) {
+			// explicit combined format
+			assert(desc.depthPixelFormat == desc.stencilPixelFormat);
+			assert(desc.depthUsageHint == desc.stencilUsageHint);
+			combinedFormat = desc.depthPixelFormat;
+		}
+		else {
+			// if depth is not a DS format, then stencil cannot be a DS format either
+			assert(!pixelFormatIsDepthStencilFormat(desc.stencilPixelFormat));
+
+			// WebGL does not support formats suitable to be combined as a separate pixel type
+		}
+
+		// -- create the texture(s)
+		var dsTex = makeTextureDescriptor();
+		dsTex.textureClass = TextureClass.Tex2D;
+		dsTex.dim.width = width;
+		dsTex.dim.height = height;
+
+		if (combinedFormat != PixelFormat.None) {
+			dsTex.pixelFormat = combinedFormat;
+			dsTex.usageHint = desc.depthUsageHint;
+			var depthStencil = new Texture(rc, dsTex);
+
+			fbDesc.depthAttachment.texture = depthStencil;
+			fbDesc.stencilAttachment.texture = depthStencil;
+		}
+		else {
+			if (desc.depthPixelFormat != PixelFormat.None) {
+				dsTex.pixelFormat = desc.depthPixelFormat;
+				dsTex.usageHint = desc.depthUsageHint;
+				fbDesc.depthAttachment.texture = new Texture(rc, dsTex);
+			}
+			if (desc.stencilPixelFormat != PixelFormat.None) {
+				dsTex.pixelFormat = desc.stencilPixelFormat;
+				dsTex.usageHint = desc.stencilUsageHint;
+				fbDesc.stencilAttachment.texture = new Texture(rc, dsTex);
+			}
+		}
+
+		return fbDesc;
 	}
 
 
@@ -36,7 +113,7 @@ namespace sd.render {
 				var glTarget = gl.TEXTURE_2D;
 				if (attachment.texture.textureClass() == TextureClass.TexCube) {
 					assert(attachment.layer >= 0 && attachment.layer <= 5, "layer is not a valid CubeMapFace index");
-					glTarget = glTargetForCubeMapFace(this.rc, attachment.layer);
+					glTarget = gl.TEXTURE_CUBE_MAP_POSITIVE_X + attachment.layer;
 				}
 
 				gl.framebufferTexture2D(gl.FRAMEBUFFER, glAttachment, glTarget, tex, attachment.level);
@@ -48,6 +125,13 @@ namespace sd.render {
 			var gl = rc.gl;
 			var fbo = this.fbo_ = gl.createFramebuffer();
 			gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+
+			// -- deep copy of descriptor
+			this.attachmentDesc_ = {
+				colourAttachments: desc.colourAttachments.map((att) => cloneStruct(att)),
+				depthAttachment: cloneStruct(desc.depthAttachment),
+				stencilAttachment: cloneStruct(desc.stencilAttachment)
+			};
 
 			var anyTexture: Texture = null;
 
