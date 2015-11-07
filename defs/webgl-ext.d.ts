@@ -100,6 +100,7 @@ interface EXTColorBufferHalfFloat {
 }
 
 interface EXTFragDepth {
+	__EXTFragDepth: void;
 }
 
 interface EXTsRGB {
@@ -110,6 +111,7 @@ interface EXTsRGB {
 }
 
 interface EXTShaderTextureLOD {
+	__EXTShaderTextureLOD: void;
 }
 
 interface EXTTextureFilterAnisotropic {
@@ -118,6 +120,7 @@ interface EXTTextureFilterAnisotropic {
 }
 
 interface OESElementIndexUint {
+	__OESElementIndexUint: void;
 }
 
 interface OESStandardDerivatives {
@@ -125,9 +128,11 @@ interface OESStandardDerivatives {
 }
 
 interface OESTextureFloat {
+	__OESTextureFloat: void;
 }
 
 interface OESTextureFloatLinear {
+	__OESTextureFloatLinear: void;
 }
 
 interface OESTextureHalfFloat {
@@ -135,9 +140,11 @@ interface OESTextureHalfFloat {
 }
 
 interface OESTextureHalfFloatLinear {
+	__OESTextureHalfFloatLinear: void;
 }
 
 interface WebGLVertexArrayObjectOES extends WebGLObject {
+	__WebGLVertexArrayObjectOES: void;
 }
 
 interface OESVertexArrayObject {
