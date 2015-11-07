@@ -1,4 +1,4 @@
-// mesh.ts - mesh data
+// meshdata.ts - mesh data
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 

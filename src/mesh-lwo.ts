@@ -3,7 +3,7 @@
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 /// <reference path="core.ts" />
-/// <reference path="mesh.ts" />
+/// <reference path="meshdata.ts" />
 
 namespace sd.mesh {
 

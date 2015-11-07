@@ -2,7 +2,7 @@
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
-/// <reference path="mesh.ts" />
+/// <reference path="meshdata.ts" />
 
 namespace sd.mesh {
 
