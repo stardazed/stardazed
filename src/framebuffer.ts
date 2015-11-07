@@ -27,6 +27,8 @@ namespace sd.render {
 				texDesc.textureClass = TextureClass.Tex2D;
 				texDesc.dim.width = width;
 				texDesc.dim.height = height;
+				texDesc.sampling.repeatS = texDesc.sampling.repeatT = TextureRepeatMode.ClampToEdge;
+				texDesc.sampling.mipFilter = TextureMipFilter.None;
 				texDesc.pixelFormat = desc.colourPixelFormats[colourAttIndex];
 				texDesc.usageHint = desc.colourUsageHints[colourAttIndex];
 
@@ -56,7 +58,7 @@ namespace sd.render {
 			// if depth is not a DS format, then stencil cannot be a DS format either
 			assert(!pixelFormatIsDepthStencilFormat(desc.stencilPixelFormat));
 
-			// WebGL does not support formats suitable to be combined as a separate pixel type
+			// WebGL does not support formats suitable to be combined as a separate pixelformat
 		}
 
 		// -- create the texture(s)
@@ -64,6 +66,8 @@ namespace sd.render {
 		dsTex.textureClass = TextureClass.Tex2D;
 		dsTex.dim.width = width;
 		dsTex.dim.height = height;
+		dsTex.sampling.repeatS = dsTex.sampling.repeatT = TextureRepeatMode.ClampToEdge;
+		dsTex.sampling.mipFilter = TextureMipFilter.None;
 
 		if (combinedFormat != PixelFormat.None) {
 			dsTex.pixelFormat = combinedFormat;
