@@ -798,7 +798,6 @@ var sd;
                 gl = null;
             }
             if (!gl) {
-                assert(false, "WebGL context is unsupported or disabled.");
                 return null;
             }
             var eiu = gl.getExtension("OES_element_index_uint");
@@ -812,17 +811,18 @@ var sd;
             var bmm = gl.getExtension("EXT_blend_minmax");
             var txa = gl.getExtension("EXT_texture_filter_anisotropic");
             txa = txa || gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
-            gl.clearColor(0.0, 0.0, 0.3, 1.0);
+            var vao = gl.getExtension("OES_vertex_array_object");
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.enable(gl.DEPTH_TEST);
             return {
-                canvas: canvas,
                 gl: gl,
                 ext32bitIndexes: eiu,
                 extDrawBuffers: mdb,
                 extDepthTexture: dte,
                 extS3TC: s3tc,
                 extMinMax: bmm,
-                extTexAnisotropy: txa
+                extTexAnisotropy: txa,
+                extVAO: vao
             };
         }
         render.makeRenderContext = makeRenderContext;
@@ -1137,8 +1137,8 @@ var sd;
             var width = desc.width;
             var height = desc.height;
             if (width == 0 && height == 0) {
-                width = rc.canvas.width;
-                height = rc.canvas.height;
+                width = rc.gl.drawingBufferWidth;
+                height = rc.gl.drawingBufferHeight;
             }
             for (var colourAttIndex = 0; colourAttIndex < desc.colourPixelFormats.length; ++colourAttIndex) {
                 if (desc.colourPixelFormats[colourAttIndex] != 0) {
@@ -1280,6 +1280,9 @@ var sd;
             };
             FrameBuffer.prototype.bind = function () {
                 this.rc.gl.bindFramebuffer(this.rc.gl.FRAMEBUFFER, this.fbo_);
+            };
+            FrameBuffer.prototype.unbind = function () {
+                this.rc.gl.bindFramebuffer(this.rc.gl.FRAMEBUFFER, null);
             };
             FrameBuffer.prototype.width = function () { return this.width_; };
             FrameBuffer.prototype.height = function () { return this.height_; };
@@ -2231,7 +2234,6 @@ var sd;
             return MeshData;
         })();
         mesh.MeshData = MeshData;
-        ;
     })(mesh = sd.mesh || (sd.mesh = {}));
 })(sd || (sd = {}));
 var sd;
@@ -2871,6 +2873,23 @@ var sd;
 (function (sd) {
     var render;
     (function (render) {
+        var Mesh = (function () {
+            function Mesh(rc, data) {
+                this.rc = rc;
+            }
+            Mesh.prototype.bind = function () {
+            };
+            Mesh.prototype.unbind = function () {
+            };
+            return Mesh;
+        })();
+        render.Mesh = Mesh;
+    })(render = sd.render || (sd.render = {}));
+})(sd || (sd = {}));
+var sd;
+(function (sd) {
+    var render;
+    (function (render) {
         function makeColourBlendingDescriptor() {
             return {
                 enabled: false,
@@ -3109,6 +3128,7 @@ var sd;
                 this.desc_ = desc_;
                 this.frameBuffer_ = frameBuffer_;
                 this.pipeline_ = null;
+                this.mesh_ = null;
                 assert(desc_.clearColour.length >= 4);
             }
             RenderPass.prototype.setup = function () {
@@ -3132,11 +3152,14 @@ var sd;
                 }
             };
             RenderPass.prototype.teardown = function () {
+                if (this.mesh_) {
+                    this.mesh_.unbind();
+                }
                 if (this.pipeline_) {
                     this.pipeline_.unbind();
                     this.pipeline_ = null;
                 }
-                this.rc.gl.bindFramebuffer(this.rc.gl.FRAMEBUFFER, null);
+                this.frameBuffer_.unbind();
             };
             RenderPass.prototype.frameBuffer = function () { return this.frameBuffer_; };
             RenderPass.prototype.setPipeline = function (pipeline) {
@@ -3180,6 +3203,10 @@ var sd;
             RenderPass.prototype.setConstantBlendColour = function (colour4) {
                 assert(colour4.length >= 4);
                 this.rc.gl.blendColor(colour4[0], colour4[1], colour4[2], colour4[3]);
+            };
+            RenderPass.prototype.setMesh = function (mesh) {
+                this.mesh_ = mesh;
+                this.mesh_.bind();
             };
             RenderPass.prototype.drawIndexedPrimitives = function (startIndex, indexCount) {
             };

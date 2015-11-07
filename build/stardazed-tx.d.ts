@@ -330,7 +330,6 @@ declare namespace sd.render {
 }
 declare namespace sd.render {
     interface RenderContext {
-        canvas: HTMLCanvasElement;
         gl: WebGLRenderingContext;
         ext32bitIndexes: OESElementIndexUint;
         extDrawBuffers: WebGLDrawBuffers;
@@ -338,6 +337,7 @@ declare namespace sd.render {
         extS3TC: WebGLCompressedTextureS3TC;
         extMinMax: EXTBlendMinMax;
         extTexAnisotropy: EXTTextureFilterAnisotropic;
+        extVAO: OESVertexArrayObject;
     }
     function maxColourAttachments(rc: RenderContext): number;
     function maxDrawBuffers(rc: RenderContext): number;
@@ -381,6 +381,7 @@ declare namespace sd.render {
         private attachTexture(glAttachment, attachment);
         constructor(rc: RenderContext, desc: FrameBufferDescriptor);
         bind(): void;
+        unbind(): void;
         width(): number;
         height(): number;
         resource(): WebGLFramebuffer;
@@ -912,6 +913,14 @@ declare namespace sd.mesh {
     function loadLWObjectFile(filePath: string): Promise<LWMeshData>;
 }
 declare namespace sd.render {
+    class Mesh {
+        private rc;
+        constructor(rc: RenderContext, data: mesh.MeshData);
+        bind(): void;
+        unbind(): void;
+    }
+}
+declare namespace sd.render {
     const enum BlendOperation {
         Add = 0,
         Subtract = 1,
@@ -1053,6 +1062,7 @@ declare namespace sd.render {
         private desc_;
         private frameBuffer_;
         private pipeline_;
+        private mesh_;
         constructor(rc: RenderContext, desc_: RenderPassDescriptor, frameBuffer_: FrameBuffer);
         setup(): void;
         teardown(): void;
@@ -1064,6 +1074,7 @@ declare namespace sd.render {
         setViewPort(viewport: Viewport): void;
         setScissorRect(rect: ScissorRect): void;
         setConstantBlendColour(colour4: ArrayOfNumber): void;
+        setMesh(mesh: Mesh): void;
         drawIndexedPrimitives(startIndex: number, indexCount: number): void;
     }
 }
