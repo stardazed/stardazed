@@ -195,6 +195,203 @@ declare namespace sd.container {
         indexedFieldView(index: number): TypedArray;
     }
 }
+declare namespace sd.render {
+    const enum PixelFormat {
+        None = 0,
+        Alpha = 1,
+        RGB8 = 2,
+        RGBA8 = 3,
+        RGB_5_6_5 = 4,
+        RGBA_4_4_4_4 = 5,
+        RGBA_5_5_5_1 = 6,
+        RGB32F = 7,
+        RGBA32F = 8,
+        DXT1 = 9,
+        DXT3 = 10,
+        DXT5 = 11,
+        Depth16I = 12,
+        Depth32I = 13,
+        Depth32F = 14,
+        DepthShadow = 14,
+        Stencil8 = 15,
+        Depth24_Stencil8 = 16,
+    }
+    interface PixelCoordinate {
+        x: number;
+        y: number;
+    }
+    interface PixelDimensions {
+        width: number;
+        height: number;
+    }
+    function pixelFormatIsCompressed(format: PixelFormat): boolean;
+    function pixelFormatIsDepthFormat(format: PixelFormat): boolean;
+    function pixelFormatIsStencilFormat(format: PixelFormat): boolean;
+    function pixelFormatIsDepthStencilFormat(format: PixelFormat): boolean;
+    function pixelFormatBytesPerElement(format: PixelFormat): number;
+    function makePixelCoordinate(x: number, y: number): PixelCoordinate;
+    function makePixelDimensions(width: number, height: number): {
+        width: number;
+        height: number;
+    };
+}
+declare namespace sd.render {
+    interface AttachmentDescriptor {
+        texture: Texture;
+        level: number;
+        layer: number | CubeMapFace;
+    }
+    interface FrameBufferDescriptor {
+        colourAttachments: AttachmentDescriptor[];
+        depthAttachment: AttachmentDescriptor;
+        stencilAttachment: AttachmentDescriptor;
+    }
+    interface FrameBufferAllocationDescriptor {
+        width: number;
+        height: number;
+        colourPixelFormats: PixelFormat[];
+        colourUsageHints: TextureUsageHint[];
+        depthPixelFormat: PixelFormat;
+        stencilPixelFormat: PixelFormat;
+        depthUsageHint: TextureUsageHint;
+        stencilUsageHint: TextureUsageHint;
+    }
+    function makeAttachmentDescriptor(texture?: Texture, level?: number, layer?: number): AttachmentDescriptor;
+    function makeFrameBufferDescriptor(): FrameBufferDescriptor;
+    function makeFrameBufferAllocationDescriptor(numColourAttachments: number): FrameBufferAllocationDescriptor;
+}
+declare namespace sd.render {
+    const enum TextureClass {
+        Tex2D = 0,
+        TexCube = 1,
+    }
+    const enum TextureUsageHint {
+        Normal = 0,
+        RenderTargetOnly = 1,
+    }
+    const enum UseMipMaps {
+        No = 0,
+        Yes = 1,
+    }
+    const enum CubeMapFace {
+        PosX = 0,
+        NegX = 1,
+        PosY = 2,
+        NegY = 3,
+        PosZ = 4,
+        NegZ = 5,
+    }
+    interface MipMapRange {
+        baseLevel: number;
+        numLevels: number;
+    }
+    const enum TextureRepeatMode {
+        Repeat = 0,
+        MirroredRepeat = 1,
+        ClampToEdge = 2,
+    }
+    const enum TextureSizingFilter {
+        Nearest = 0,
+        Linear = 1,
+    }
+    const enum TextureMipFilter {
+        None = 0,
+        Nearest = 1,
+        Linear = 2,
+    }
+    interface SamplerDescriptor {
+        repeatS: TextureRepeatMode;
+        repeatT: TextureRepeatMode;
+        minFilter: TextureSizingFilter;
+        magFilter: TextureSizingFilter;
+        mipFilter: TextureMipFilter;
+        maxAnisotropy: number;
+    }
+    type TextureImageSource = ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement;
+    type TextureImageData = ArrayBufferView | TextureImageSource;
+    interface TextureDescriptor {
+        textureClass: TextureClass;
+        pixelFormat: PixelFormat;
+        usageHint: TextureUsageHint;
+        sampling: SamplerDescriptor;
+        dim: PixelDimensions;
+        mipmaps: number;
+        pixelData?: TextureImageData[];
+    }
+    function useMipMaps(use: boolean): UseMipMaps;
+    function makeMipMapRange(baseLevel: number, numLevels: number): MipMapRange;
+    function makeSamplerDescriptor(): SamplerDescriptor;
+    function maxMipLevelsForDimension(dim: number): number;
+    function makeTextureDescriptor(): TextureDescriptor;
+    function makeTexDesc2D(pixelFormat: PixelFormat, width: number, height: number, mipmapped?: UseMipMaps): TextureDescriptor;
+    function makeTexDesc2DFromImageSource(source: TextureImageSource, mipmapped?: UseMipMaps): TextureDescriptor;
+    function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped?: UseMipMaps): TextureDescriptor;
+    function makeTexDescCubeFromImageSources(sources: TextureImageSource[], mipmapped?: UseMipMaps): TextureDescriptor;
+}
+declare namespace sd.render {
+    interface RenderContext {
+        canvas: HTMLCanvasElement;
+        gl: WebGLRenderingContext;
+        ext32bitIndexes: OESElementIndexUint;
+        extDrawBuffers: WebGLDrawBuffers;
+        extDepthTexture: WebGLDepthTexture;
+        extS3TC: WebGLCompressedTextureS3TC;
+        extMinMax: EXTBlendMinMax;
+        extTexAnisotropy: EXTTextureFilterAnisotropic;
+    }
+    function maxColourAttachments(rc: RenderContext): number;
+    function maxDrawBuffers(rc: RenderContext): number;
+    function makeRenderContext(canvas: HTMLCanvasElement): RenderContext;
+}
+declare namespace sd.render {
+    class Texture {
+        private rc;
+        private textureClass_;
+        private dim_;
+        private mipmaps_;
+        private pixelFormat_;
+        private sampler_;
+        private resource_;
+        private glTarget_;
+        private createRenderBuffer();
+        private createTex2D(pixelData?);
+        private createTexCube(pixelData?);
+        constructor(rc: RenderContext, desc: TextureDescriptor);
+        dim(): PixelDimensions;
+        width(): number;
+        height(): number;
+        mipmaps(): number;
+        isMipMapped(): boolean;
+        pixelFormat(): PixelFormat;
+        textureClass(): TextureClass;
+        clientWritable(): boolean;
+        renderTargetOnly(): boolean;
+        resource(): WebGLTexture | WebGLRenderbuffer;
+        target(): number;
+    }
+}
+declare namespace sd.render {
+    function allocateTexturesForFrameBuffer(rc: RenderContext, desc: FrameBufferAllocationDescriptor): FrameBufferDescriptor;
+    class FrameBuffer {
+        private rc;
+        private attachmentDesc_;
+        private fbo_;
+        private width_;
+        private height_;
+        private attachTexture(glAttachment, attachment);
+        constructor(rc: RenderContext, desc: FrameBufferDescriptor);
+        bind(): void;
+        width(): number;
+        height(): number;
+        resource(): WebGLFramebuffer;
+        hasColourAttachment(atIndex: number): boolean;
+        hasDepthAttachment(): boolean;
+        hasStencilAttachment(): boolean;
+        colourAttachmentTexture(atIndex: number): Texture;
+        depthAttachmentTexture(): Texture;
+        stencilAttachmentTexture(): Texture;
+    }
+}
 declare function loadImage(src: string): Promise<HTMLImageElement>;
 declare function imageData(image: HTMLImageElement): ImageData;
 declare function loadImageData(src: string): Promise<ImageData>;
@@ -715,46 +912,6 @@ declare namespace sd.mesh {
     function loadLWObjectFile(filePath: string): Promise<LWMeshData>;
 }
 declare namespace sd.render {
-    const enum PixelFormat {
-        None = 0,
-        Alpha = 1,
-        RGB8 = 2,
-        RGBA8 = 3,
-        RGB_5_6_5 = 4,
-        RGBA_4_4_4_4 = 5,
-        RGBA_5_5_5_1 = 6,
-        RGB32F = 7,
-        RGBA32F = 8,
-        DXT1 = 9,
-        DXT3 = 10,
-        DXT5 = 11,
-        Depth16I = 12,
-        Depth32I = 13,
-        Depth32F = 14,
-        DepthShadow = 14,
-        Stencil8 = 15,
-        Depth24_Stencil8 = 16,
-    }
-    interface PixelCoordinate {
-        x: number;
-        y: number;
-    }
-    interface PixelDimensions {
-        width: number;
-        height: number;
-    }
-    function pixelFormatIsCompressed(format: PixelFormat): boolean;
-    function pixelFormatIsDepthFormat(format: PixelFormat): boolean;
-    function pixelFormatIsStencilFormat(format: PixelFormat): boolean;
-    function pixelFormatIsDepthStencilFormat(format: PixelFormat): boolean;
-    function pixelFormatBytesPerElement(format: PixelFormat): number;
-    function makePixelCoordinate(x: number, y: number): PixelCoordinate;
-    function makePixelDimensions(width: number, height: number): {
-        width: number;
-        height: number;
-    };
-}
-declare namespace sd.render {
     const enum BlendOperation {
         Add = 0,
         Subtract = 1,
@@ -808,21 +965,6 @@ declare namespace sd.render {
     function makePipelineDescriptor(): PipelineDescriptor;
 }
 declare namespace sd.render {
-    interface RenderContext {
-        canvas: HTMLCanvasElement;
-        gl: WebGLRenderingContext;
-        ext32bitIndexes: OESElementIndexUint;
-        extDrawBuffers: WebGLDrawBuffers;
-        extDepthTexture: WebGLDepthTexture;
-        extS3TC: WebGLCompressedTextureS3TC;
-        extMinMax: EXTBlendMinMax;
-        extTexAnisotropy: EXTTextureFilterAnisotropic;
-    }
-    function maxColourAttachments(rc: RenderContext): number;
-    function maxDrawBuffers(rc: RenderContext): number;
-    function makeRenderContext(canvas: HTMLCanvasElement): RenderContext;
-}
-declare namespace sd.render {
     class Pipeline {
         private rc;
         private colourPixelFormats_;
@@ -844,10 +986,6 @@ declare namespace sd.render {
     const enum FrontFaceWinding {
         Clockwise = 0,
         CounterClockwise = 1,
-    }
-    const enum TriangleFillMode {
-        Fill = 0,
-        Line = 1,
     }
     const enum FaceCulling {
         Disabled = 0,
@@ -913,17 +1051,18 @@ declare namespace sd.render {
     class RenderPass {
         private rc;
         private desc_;
+        private frameBuffer_;
         private pipeline_;
-        constructor(rc: RenderContext, desc_: RenderPassDescriptor);
+        constructor(rc: RenderContext, desc_: RenderPassDescriptor, frameBuffer_: FrameBuffer);
         setup(): void;
         teardown(): void;
+        frameBuffer(): FrameBuffer;
         setPipeline(pipeline: Pipeline): void;
         setDepthStencilTest(dst: DepthStencilTest): void;
-        setFaceCulling(fc: FaceCulling): void;
-        setFrontFaceWinding(ffw: FrontFaceWinding): void;
-        setTriangleFillMode(tfm: TriangleFillMode): void;
-        setViewPort(vp: Viewport): void;
-        setScissorRect(sc: ScissorRect): void;
+        setFaceCulling(faceCulling: FaceCulling): void;
+        setFrontFaceWinding(winding: FrontFaceWinding): void;
+        setViewPort(viewport: Viewport): void;
+        setScissorRect(rect: ScissorRect): void;
         setConstantBlendColour(colour4: ArrayOfNumber): void;
         drawIndexedPrimitives(startIndex: number, indexCount: number): void;
     }
@@ -962,99 +1101,5 @@ declare namespace sd.model {
         programForFeatures(feat: number): StandardGLProgram;
         vertexShaderSource(feat: number): string;
         fragmentShaderSource(feat: number): string;
-    }
-}
-declare namespace sd.render {
-    const enum TextureClass {
-        Tex2D = 0,
-        TexCube = 1,
-    }
-    const enum TextureUsageHint {
-        Normal = 0,
-        RenderTargetOnly = 1,
-    }
-    const enum UseMipMaps {
-        No = 0,
-        Yes = 1,
-    }
-    const enum CubeMapFace {
-        PosX = 0,
-        NegX = 1,
-        PosY = 2,
-        NegY = 3,
-        PosZ = 4,
-        NegZ = 5,
-    }
-    interface MipMapRange {
-        baseLevel: number;
-        numLevels: number;
-    }
-    const enum TextureRepeatMode {
-        Repeat = 0,
-        MirroredRepeat = 1,
-        ClampToEdge = 2,
-    }
-    const enum TextureSizingFilter {
-        Nearest = 0,
-        Linear = 1,
-    }
-    const enum TextureMipFilter {
-        None = 0,
-        Nearest = 1,
-        Linear = 2,
-    }
-    interface SamplerDescriptor {
-        repeatS: TextureRepeatMode;
-        repeatT: TextureRepeatMode;
-        minFilter: TextureSizingFilter;
-        magFilter: TextureSizingFilter;
-        mipFilter: TextureMipFilter;
-        maxAnisotropy: number;
-    }
-    type TextureImageSource = ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement;
-    type TextureImageData = ArrayBufferView | TextureImageSource;
-    interface TextureDescriptor {
-        textureClass: TextureClass;
-        pixelFormat: PixelFormat;
-        usageHint: TextureUsageHint;
-        sampling: SamplerDescriptor;
-        dim: PixelDimensions;
-        mipmaps: number;
-        pixelData?: TextureImageData[];
-    }
-    function useMipMaps(use: boolean): UseMipMaps;
-    function makeMipMapRange(baseLevel: number, numLevels: number): MipMapRange;
-    function makeSamplerDescriptor(): SamplerDescriptor;
-    function maxMipLevelsForDimension(dim: number): number;
-    function makeTexDesc2D(pixelFormat: PixelFormat, width: number, height: number, mipmapped?: UseMipMaps): TextureDescriptor;
-    function makeTexDesc2DFromImageSource(source: TextureImageSource, mipmapped?: UseMipMaps): TextureDescriptor;
-    function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped?: UseMipMaps): TextureDescriptor;
-    function makeTexDescCubeFromImageSources(sources: TextureImageSource[], mipmapped?: UseMipMaps): TextureDescriptor;
-}
-declare namespace sd.render {
-    class Texture {
-        private rc;
-        private textureClass_;
-        private dim_;
-        private mipmaps_;
-        private pixelFormat_;
-        private sampler_;
-        private resource_;
-        private glTarget_;
-        private createRenderBuffer();
-        private createTex2D(pixelData?);
-        private createTexCube(pixelData?);
-        constructor(rc: RenderContext, desc: TextureDescriptor);
-        dim(): PixelDimensions;
-        width(): number;
-        height(): number;
-        mipmaps(): number;
-        isMipMapped(): boolean;
-        pixelFormat(): PixelFormat;
-        textureClass(): TextureClass;
-        clientWritable(): boolean;
-        renderTargetOnly(): boolean;
-        resource(): WebGLTexture | WebGLRenderbuffer;
-        target(): number;
     }
 }
