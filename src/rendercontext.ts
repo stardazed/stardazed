@@ -16,6 +16,7 @@ namespace sd.render {
 		extS3TC: WebGLCompressedTextureS3TC;
 		extMinMax: EXTBlendMinMax;
 		extTexAnisotropy: EXTTextureFilterAnisotropic;
+		extVAO: OESVertexArrayObject;
 	}
 
 
@@ -55,7 +56,6 @@ namespace sd.render {
 			gl = null;
 		}
 		if (!gl) {
-			assert(false, "WebGL context is unsupported or disabled.");
 			return null;
 		}
 
@@ -83,6 +83,9 @@ namespace sd.render {
 		var txa = gl.getExtension("EXT_texture_filter_anisotropic");
 		txa = txa || gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
 
+		// enable Vertex Array Objects
+		var vao = gl.getExtension("OES_vertex_array_object");
+
 
 		// -- FIXME: Temporary setup
 		gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -96,7 +99,8 @@ namespace sd.render {
 			extDepthTexture: dte,
 			extS3TC: s3tc,
 			extMinMax: bmm,
-			extTexAnisotropy: txa
+			extTexAnisotropy: txa,
+			extVAO: vao
 		};
 	}
 
