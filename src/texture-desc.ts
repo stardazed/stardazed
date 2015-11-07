@@ -119,6 +119,18 @@ namespace sd.render {
 	}
 
 
+	export function makeTextureDescriptor(): TextureDescriptor {
+		return {
+			textureClass: TextureClass.Tex2D,
+			pixelFormat: PixelFormat.None,
+			usageHint: TextureUsageHint.Normal,
+			sampling: makeSamplerDescriptor(),
+			dim: makePixelDimensions(0, 0),
+			mipmaps: 1
+		};
+	}
+
+
 	export function makeTexDesc2D(pixelFormat: PixelFormat, width: number, height: number, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
 		var maxDim = Math.max(width, height);
 
