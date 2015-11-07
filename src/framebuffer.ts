@@ -213,6 +213,10 @@ namespace sd.render {
 			this.rc.gl.bindFramebuffer(this.rc.gl.FRAMEBUFFER, this.fbo_);
 		}
 
+		unbind() {
+			this.rc.gl.bindFramebuffer(this.rc.gl.FRAMEBUFFER, null);	
+		}
+
 
 		// -- observers
 		width() { return this.width_; }

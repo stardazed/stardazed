@@ -54,7 +54,7 @@ namespace sd.render {
 
 	export class RenderPass {
 		private pipeline_: Pipeline = null;
-		// private mesh_: Mesh = null;
+		private mesh_: Mesh = null;
 
 		constructor(private rc: RenderContext, private desc_: RenderPassDescriptor, private frameBuffer_: FrameBuffer) {
 			assert(desc_.clearColour.length >= 4);
@@ -87,14 +87,16 @@ namespace sd.render {
 
 
 		teardown() {
-			// <-- TODO: unbind mesh vao
+			if (this.mesh_) {
+				this.mesh_.unbind();
+			}
 
 			if (this.pipeline_) {
 				this.pipeline_.unbind();
 				this.pipeline_ = null;
 			}
 
-			this.rc.gl.bindFramebuffer(this.rc.gl.FRAMEBUFFER, null);
+			this.frameBuffer_.unbind();
 		}
 
 
@@ -163,8 +165,10 @@ namespace sd.render {
 
 
 		// -- drawing
-		// setMesh(mesh: Mesh) {
-		// }
+		setMesh(mesh: Mesh) {
+			this.mesh_ = mesh;
+			this.mesh_.bind();
+		}
 
 		drawIndexedPrimitives(startIndex: number, indexCount: number) {
 		}
