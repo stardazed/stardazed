@@ -762,6 +762,6 @@ namespace sd.mesh {
 		}
 
 		// void genVertexTangents();
-	};
+	}
 
 } // ns sd.mesh
