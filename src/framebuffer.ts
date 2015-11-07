@@ -16,8 +16,8 @@ namespace sd.render {
 	
 		// -- default to viewport size if not explicitly specified
 		if (width == 0 && height == 0) {
-			width = rc.canvas.width;
-			height = rc.canvas.height;
+			width = rc.gl.drawingBufferWidth;
+			height = rc.gl.drawingBufferHeight;
 		}
 	
 		// -- colour

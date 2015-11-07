@@ -8,7 +8,6 @@
 namespace sd.render {
 
 	export interface RenderContext {
-		canvas: HTMLCanvasElement;
 		gl: WebGLRenderingContext;
 
 		ext32bitIndexes: OESElementIndexUint;
@@ -86,11 +85,10 @@ namespace sd.render {
 
 
 		// -- FIXME: Temporary setup
-		gl.clearColor(0.0, 0.0, 0.3, 1.0);
+		gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		gl.enable(gl.DEPTH_TEST);
 
 		return {
-			canvas: canvas,
 			gl: gl,
 
 			ext32bitIndexes: eiu,
