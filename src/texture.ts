@@ -222,7 +222,7 @@ namespace sd.render {
 
 			// -- input checks
 			assert((pixelData == null) || (pixelData.length == 1), "Tex2D pixelData array must contain 1 item or be omitted completely.");
-			var texPixelData = pixelData && pixelData[0];
+			var texPixelData = (pixelData && pixelData[0]) || null;
 
 			var glPixelFormat = glImageFormatForPixelFormat(this.rc, this.pixelFormat_);
 			var glPixelType = glPixelDataTypeForPixelFormat(this.rc, this.pixelFormat_);
