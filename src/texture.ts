@@ -391,6 +391,23 @@ namespace sd.render {
 		}
 
 
+		// -- binding
+		bind() {
+			if (this.glTarget_ == this.rc.gl.RENDERBUFFER)
+				this.rc.gl.bindRenderbuffer(this.rc.gl.RENDERBUFFER, <WebGLRenderbuffer>this.resource_);
+			else	
+				this.rc.gl.bindTexture(this.glTarget_, <WebGLTexture>this.resource_);
+		}
+
+
+		unbind() {
+			if (this.glTarget_ == this.rc.gl.RENDERBUFFER)
+				this.rc.gl.bindRenderbuffer(this.rc.gl.RENDERBUFFER, null);
+			else
+				this.rc.gl.bindTexture(this.glTarget_, null);
+		}
+
+
 		// -- observers
 		get dim() { return cloneStruct(this.dim_); }
 		get width() { return this.dim_.width; }
