@@ -50,6 +50,20 @@ namespace sd.render {
 	}
 
 
+	function glBindingNameForTarget(rc: RenderContext, target: number) {
+		switch (target) {
+			case rc.gl.ARRAY_BUFFER: return rc.gl.ARRAY_BUFFER_BINDING;
+			case rc.gl.ELEMENT_ARRAY_BUFFER: return rc.gl.ELEMENT_ARRAY_BUFFER_BINDING;
+			default:
+				assert(false, "Unhandled buffer target name");
+				return rc.gl.NONE;
+		}
+	}
+
+
+	export type BufferDataSource = ArrayBuffer | ArrayBufferView;
+
+
 	export class Buffer {
 		private target_: number;
 		resource_: WebGLBuffer = null;
@@ -59,44 +73,68 @@ namespace sd.render {
 			this.target_ = glTargetForBufferRole(rc, this.role_);
 			this.resource_ = rc.gl.createBuffer();
 		}
+
 	
-		// -- initialization
-
-		allocate(bytes: number, data?: ArrayBuffer | ArrayBufferView) {
-			this.byteSize_ = bytes;
-			this.bind();
-			this.rc.gl.bufferData(this.target_, data || bytes, glUsageHint(this.rc, this.updateFrequency_));
-			this.unbind();
+		// -- allocation
+		allocateEmpty(byteSize: number) {
+			var changed = Buffer.bindIfNotBound(this);
+			this.byteSize_ = byteSize;
+			this.rc.gl.bufferData(this.target_, byteSize, glUsageHint(this.rc, this.updateFrequency_));
+			if (changed) this.unbind();
 		}
 
-		allocateFromVertexBuffer(vb: mesh.VertexBuffer) {
-			assert(this.role_ == BufferRole.VertexAttribute);
-			this.allocate(vb.bufferSizeBytes(), vb.buffer());
+		allocateWithContents(data: BufferDataSource) {
+			var changed = Buffer.bindIfNotBound(this);
+
+			this.byteSize_ = data.byteLength;
+			this.rc.gl.bufferData(this.target_, data, glUsageHint(this.rc, this.updateFrequency_));
+
+			if (changed) this.unbind();
 		}
 
-		allocateFromIndexBuffer(ib: mesh.IndexBuffer) {
-			assert(this.role_ == BufferRole.VertexIndex);
-			this.allocate(ib.bufferSizeBytes(), ib.buffer());
-		}
 
 		// -- direct updates
-		write(data: ArrayBuffer | ArrayBufferView, offset: number = 0) {
-			this.bind();
+		write(data: BufferDataSource, offset: number = 0) {
+			var changed = Buffer.bindIfNotBound(this);
 			this.rc.gl.bufferSubData(this.target_, offset, data);
-			this.unbind();
+			if (changed) this.unbind();
 		}
 
-		// -- observers
-		role() { return this.role_; }
-		updateFrequency() { return this.updateFrequency_; }
-		byteSize() { return this.byteSize_; }
 
-		resource() { return this.resource_; }
-		target() { return this.target_; }
+		// -- observers
+		get role() { return this.role_; }
+		get updateFrequency() { return this.updateFrequency_; }
+		get byteSize() { return this.byteSize_; }
+
+		get resource() { return this.resource_; }
+		get target() { return this.target_; }
+
 	
 		// -- binding
-		bind() { this.rc.gl.bindBuffer(this.target_, this.resource_); }
-		unbind() { this.rc.gl.bindBuffer(this.target_, null); }
+		bind() {
+			this.rc.gl.bindBuffer(this.target_, this.resource_);
+			Buffer.boundBuffers_s[this.target_] = this;
+		}
+		unbind() {
+			this.rc.gl.bindBuffer(this.target_, null);
+			Buffer.boundBuffers_s[this.target_] = null;
+		}
+
+
+		// -- GL state cache
+		private static boundBuffers_s: { [role: number]: Buffer; } = {};
+
+		static bindIfNotBound(buffer: Buffer): boolean {
+			var curBound = Buffer.boundBuffers_s[buffer.role_];
+			if (curBound != buffer) {
+				buffer.bind();
+			}
+			return curBound != buffer;
+		}
+
+		static currentlyBoundOfRole(role: BufferRole) {
+			return Buffer.boundBuffers_s[role] || null;
+		}
 	}
 
 } // ns sd.render
