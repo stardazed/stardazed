@@ -62,7 +62,7 @@ namespace sd.model {
 
 		append(desc: MaterialDescriptor): MaterialIndex {
 			this.instanceData_.extend();
-			var matIndex = this.instanceData_.count() - 1;
+			var matIndex = this.instanceData_.count - 1;
 
 			math.vectorArrayItem(this.instanceData_.indexedFieldView(0), math.Vec3, matIndex).set(desc.mainColour);
 			math.vectorArrayItem(this.instanceData_.indexedFieldView(1), math.Vec3, matIndex).set(desc.specularColour);
@@ -95,7 +95,7 @@ namespace sd.model {
 
 		copyDescriptor(index: MaterialIndex): MaterialDescriptor {
 			var matIndex = index.ref;
-			assert(matIndex < this.instanceData_.count());
+			assert(matIndex < this.instanceData_.count);
 
 			return {
 				mainColour: math.vectorArrayItem(this.instanceData_.indexedFieldView(0), math.Vec3, matIndex),

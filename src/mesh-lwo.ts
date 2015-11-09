@@ -87,7 +87,7 @@ namespace sd.mesh {
 		var curMaterialGroup: LWDrawGroup = null;
 
 		var mesh = new MeshData(AttrList.Pos3Norm3Colour3UV2());
-		var vb = mesh.primaryVertexBuffer();
+		var vb = mesh.primaryVertexBuffer;
 
 		var posView: VertexBufferAttributeView;
 		var normView: VertexBufferAttributeView;
@@ -223,8 +223,8 @@ namespace sd.mesh {
 				var materials: MaterialSet = values[0];
 				var obj: LWMeshData = values[1];
 				obj.materials = materials;
-				var colourAttr = obj.mesh.primaryVertexBuffer().attrByRole(VertexAttributeRole.Colour);
-				var colourView = new VertexBufferAttributeView(obj.mesh.primaryVertexBuffer(), colourAttr);
+				var colourAttr = obj.mesh.primaryVertexBuffer.attrByRole(VertexAttributeRole.Colour);
+				var colourView = new VertexBufferAttributeView(obj.mesh.primaryVertexBuffer, colourAttr);
 				genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
 				return obj;
 			}

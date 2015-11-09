@@ -128,11 +128,11 @@ namespace sd.render {
 
 
 		// -- observers
-		colourPixelFormats() { return this.colourPixelFormats_.slice(0); }
-		depthPixelFormat() { return this.depthPixelFormat_; }
-		stencilPixelFormat() { return this.stencilPixelFormat_; }
+		get colourPixelFormats() { return this.colourPixelFormats_.slice(0); }
+		get depthPixelFormat() { return this.depthPixelFormat_; }
+		get stencilPixelFormat() { return this.stencilPixelFormat_; }
 
-		program() { return this.program_; }
+		get program() { return this.program_; }
 	}
 
 } // ns sd.render

@@ -104,18 +104,18 @@ namespace sd.render {
 		private attachTexture(glAttachment: number, attachment: AttachmentDescriptor) {
 			var gl = this.rc.gl;
 
-			if (attachment.texture.target() == gl.RENDERBUFFER) {
+			if (attachment.texture.target == gl.RENDERBUFFER) {
 				assert(attachment.level == 0);
 				assert(attachment.layer == 0);
 
-				gl.framebufferRenderbuffer(gl.FRAMEBUFFER, glAttachment, gl.RENDERBUFFER, <WebGLRenderbuffer>attachment.texture.resource());
+				gl.framebufferRenderbuffer(gl.FRAMEBUFFER, glAttachment, gl.RENDERBUFFER, <WebGLRenderbuffer>attachment.texture.resource);
 			}
 			else {
-				var tex = <WebGLTexture>attachment.texture.resource();
-				assert(attachment.level < attachment.texture.mipmaps());
+				var tex = <WebGLTexture>attachment.texture.resource;
+				assert(attachment.level < attachment.texture.mipmaps);
 
 				var glTarget = gl.TEXTURE_2D;
-				if (attachment.texture.textureClass() == TextureClass.TexCube) {
+				if (attachment.texture.textureClass == TextureClass.TexCube) {
 					assert(attachment.layer >= 0 && attachment.layer <= 5, "layer is not a valid CubeMapFace index");
 					glTarget = gl.TEXTURE_CUBE_MAP_POSITIVE_X + attachment.layer;
 				}
@@ -175,18 +175,18 @@ namespace sd.render {
 
 			if (depthTex && stencilTex && (depthTex == stencilTex)) {
 				// -- combined depth/stencil texture
-				assert(pixelFormatIsDepthStencilFormat(depthTex.pixelFormat()));
+				assert(pixelFormatIsDepthStencilFormat(depthTex.pixelFormat));
 
 				this.attachTexture(gl.DEPTH_STENCIL_ATTACHMENT, desc.depthAttachment);
 			}
 			else {
 				if (depthTex) {
-					assert(pixelFormatIsDepthFormat(depthTex.pixelFormat()));
+					assert(pixelFormatIsDepthFormat(depthTex.pixelFormat));
 					this.attachTexture(gl.DEPTH_ATTACHMENT, desc.depthAttachment);
 				}
 
 				if (stencilTex) {
-					assert(pixelFormatIsStencilFormat(stencilTex.pixelFormat()));
+					assert(pixelFormatIsStencilFormat(stencilTex.pixelFormat));
 					this.attachTexture(gl.STENCIL_ATTACHMENT, desc.stencilAttachment);
 				}
 			}
@@ -201,8 +201,8 @@ namespace sd.render {
 			// -- get width and height from one of the textures
 			// -- they should all be the same
 			if (anyTexture) {
-				this.width_ = anyTexture.width();
-				this.height_ = anyTexture.height();
+				this.width_ = anyTexture.width;
+				this.height_ = anyTexture.height;
 			}
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);

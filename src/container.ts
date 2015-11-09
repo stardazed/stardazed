@@ -63,8 +63,8 @@ namespace sd.container {
 			return [];
 		}
 			
-		private headBlock() { return this.blocks_[this.headBlock_]; }
-		private tailBlock() { return this.blocks_[this.tailBlock_]; }
+		private get headBlock() { return this.blocks_[this.headBlock_]; }
+		private get tailBlock() { return this.blocks_[this.tailBlock_]; }
 
 
 		constructor() {
@@ -88,7 +88,7 @@ namespace sd.container {
 				this.tailIndex_ = 0;
 			}
 
-			this.tailBlock()[this.tailIndex_] = t;
+			this.tailBlock[this.tailIndex_] = t;
 			++this.tailIndex_;
 			++this.count_;
 		}
@@ -107,7 +107,7 @@ namespace sd.container {
 			}
 
 			--this.headIndex_;
-			this.headBlock()[this.headIndex_] = t;
+			this.headBlock[this.headIndex_] = t;
 			++this.count_;
 		}
 
@@ -116,7 +116,7 @@ namespace sd.container {
 		popFront() {
 			assert(this.count_ > 0);
 
-			delete this.headBlock()[this.headIndex_];
+			delete this.headBlock[this.headIndex_];
 
 			++this.headIndex_;
 
@@ -158,7 +158,7 @@ namespace sd.container {
 
 			--this.tailIndex_;
 
-			delete this.tailBlock()[this.tailIndex_];
+			delete this.tailBlock[this.tailIndex_];
 
 			--this.count_;
 		}
@@ -174,17 +174,17 @@ namespace sd.container {
 			
 
 		// -- observers
-		count() { return this.count_; }
-		empty() { return this.count_ == 0; }
+		get count() { return this.count_; }
+		get empty() { return this.count_ == 0; }
 
-		front(): T {
+		get front(): T {
 			assert(this.count_ > 0);
-			return this.headBlock()[this.headIndex_];
+			return this.headBlock[this.headIndex_];
 		}
 
-		back(): T {
+		get back(): T {
 			assert(this.count_ > 0);
-			return (this.tailIndex_ > 0) ? this.tailBlock()[this.tailIndex_ - 1] : this.blocks_[this.tailBlock_ - 1][this.blockCapacity - 1];
+			return (this.tailIndex_ > 0) ? this.tailBlock[this.tailIndex_ - 1] : this.blocks_[this.tailBlock_ - 1][this.blockCapacity - 1];
 		}
 	}
 
@@ -239,9 +239,9 @@ namespace sd.container {
 		}
 
 
-		capacity() { return this.capacity_; }
-		count() { return this.count_; }
-		backIndex() {
+		get capacity() { return this.capacity_; }
+		get count() { return this.count_; }
+		get backIndex() {
 			assert(this.count_ > 0);
 			return this.count_ - 1;
 		}
@@ -264,7 +264,7 @@ namespace sd.container {
 			// isn't meant for tiny arrays so 32 it is.
 
 			newCapacity = math.alignUp(newCapacity, 32);
-			if (newCapacity <= this.capacity()) {
+			if (newCapacity <= this.capacity_) {
 				// TODO: add way to cut capacity?
 				return InvalidatePointers.No;
 			}

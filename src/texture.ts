@@ -198,7 +198,7 @@ namespace sd.render {
 		private createRenderBuffer() {
 			var gl = this.rc.gl;
 
-			assert(this.mipmaps() == 1, "Cannot create RenderBuffers with multiple levels");
+			assert(this.mipmaps == 1, "Cannot create RenderBuffers with multiple levels");
 			
 			// RenderBuffers in WebGL are restricted to 16-bit colour, 16-bit depth or 8-bit stencil formats
 			var sizedFormat = glRenderBufferInternalFormatForPixelFormat(this.rc, this.pixelFormat_);
@@ -211,7 +211,7 @@ namespace sd.render {
 				this.glTarget_ = gl.RENDERBUFFER;
 				var rb = gl.createRenderbuffer();
 				gl.bindRenderbuffer(this.glTarget_, rb);
-				gl.renderbufferStorage(this.glTarget_, sizedFormat, this.width(), this.height());
+				gl.renderbufferStorage(this.glTarget_, sizedFormat, this.width, this.height);
 				gl.bindRenderbuffer(this.glTarget_, null);
 			}
 		}
@@ -236,8 +236,8 @@ namespace sd.render {
 			gl.bindTexture(this.glTarget_, tex);
 
 			// -- allocate and fill pixel storage
-			let w = this.width();
-			let h = this.height();
+			let w = this.width;
+			let h = this.height;
 
 			if (pixelFormatIsCompressed(this.pixelFormat_)) {
 				gl.compressedTexImage2D(this.glTarget_, 0, glPixelFormat, w, h, 0, <ArrayBufferView>texPixelData);
@@ -279,8 +279,8 @@ namespace sd.render {
 			gl.bindTexture(this.glTarget_, tex);
 
 			// -- allocate and fill pixel storage
-			let w = this.width();
-			let h = this.height();
+			let w = this.width;
+			let h = this.height;
 			assert(w == h, "TexCube textures MUST have the same width and height");
 
 			if (pixelFormatIsCompressed(this.pixelFormat_)) {
@@ -326,14 +326,14 @@ namespace sd.render {
 
 			// -- check input
 			assert(this.mipmaps_ > 0);
-			assert(this.width() > 0);
-			assert(this.height() > 0);
+			assert(this.width > 0);
+			assert(this.height > 0);
 
-			assert(this.width() <= maxTextureDimension(rc, this.textureClass_));
-			assert(this.height() <= maxTextureDimension(rc, this.textureClass_));
+			assert(this.width <= maxTextureDimension(rc, this.textureClass_));
+			assert(this.height <= maxTextureDimension(rc, this.textureClass_));
 
 			// -- WebGL imposes several restrictions on Non-Power-of-Two textures
-			var npot = !(math.isPowerOf2(this.width()) && math.isPowerOf2(this.height()));
+			var npot = !(math.isPowerOf2(this.width) && math.isPowerOf2(this.height));
 			if (npot) {
 				if (this.sampler_.repeatS != TextureRepeatMode.ClampToEdge || this.sampler_.repeatT != TextureRepeatMode.ClampToEdge) {
 					console.warn("NPOT textures cannot not repeat, overriding with ClampToEdge", desc);
@@ -392,26 +392,26 @@ namespace sd.render {
 
 
 		// -- observers
-		dim() { return cloneStruct(this.dim_); }
-		width() { return this.dim_.width; }
-		height() { return this.dim_.height; }
+		get dim() { return cloneStruct(this.dim_); }
+		get width() { return this.dim_.width; }
+		get height() { return this.dim_.height; }
 
-		mipmaps() { return this.mipmaps_; }
-		isMipMapped() { return this.mipmaps_ > 1; }
+		get mipmaps() { return this.mipmaps_; }
+		get isMipMapped() { return this.mipmaps_ > 1; }
 
-		pixelFormat() { return this.pixelFormat_; }
+		get pixelFormat() { return this.pixelFormat_; }
 			
-		textureClass() { return this.textureClass_; };
-		clientWritable() {
+		get textureClass() { return this.textureClass_; };
+		get clientWritable() {
 			return this.glTarget_ != this.rc.gl.RENDERBUFFER; // later also != TEXTURE_2D_MULTISAMPLE
 		}
-		renderTargetOnly() {
+		get renderTargetOnly() {
 			return this.glTarget_ == this.rc.gl.RENDERBUFFER;
 		}	
 			
 		// -- gl-specific observers
-		resource() { return this.resource_; }
-		target() { return this.glTarget_; }
+		get resource() { return this.resource_; }
+		get target() { return this.glTarget_; }
 	}
 
 } // ns sd.render

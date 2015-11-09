@@ -30,7 +30,7 @@ namespace sd.mesh.gen {
 
 			var vtxCount = this.vertexCount();
 			var mesh = new MeshData(attrList);
-			var vertexBuffer = mesh.primaryVertexBuffer();
+			var vertexBuffer = mesh.primaryVertexBuffer;
 
 			vertexBuffer.allocate(vtxCount);
 			var indexElementType = minimumIndexElementTypeForVertexCount(vtxCount);

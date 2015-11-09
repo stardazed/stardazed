@@ -35,11 +35,11 @@ namespace sd.world {
 			this.id = (gen << Entity.indexBits) | index;
 		}
 
-		index() { return this.id & Entity.indexMask; }
-		generation() { return (this.id >> Entity.indexBits) & Entity.generationMask; }
+		get index() { return this.id & Entity.indexMask; }
+		get generation() { return (this.id >> Entity.indexBits) & Entity.generationMask; }
 
 		equals(other: Entity) { return other.id == this.id; }
-		valid() { return this.id != 0; }
+		get valid() { return this.id != 0; }
 	}
 
 
@@ -78,8 +78,8 @@ namespace sd.world {
 		create(): Entity {
 			var index: number;
 
-			if (this.freedIndices_.count() >= this.minFreedBuildup) {
-				index = this.freedIndices_.front();
+			if (this.freedIndices_.count >= this.minFreedBuildup) {
+				index = this.freedIndices_.front;
 				this.freedIndices_.popFront();
 			}
 			else {
@@ -90,12 +90,12 @@ namespace sd.world {
 		}
 
 		alive(ent: Entity) {
-			var index = ent.index();
-			return index <= this.genCount_ && (ent.generation() == this.generation_[index]);
+			var index = ent.index;
+			return index <= this.genCount_ && (ent.generation == this.generation_[index]);
 		}
 
 		destroy(ent: Entity) {
-			var index = ent.index();
+			var index = ent.index;
 			this.generation_[index]++;
 			this.freedIndices_.append(index);
 		}
@@ -149,13 +149,14 @@ namespace sd.world {
 		}
 
 		// -- array access
-		count() { return this.instanceData_.count(); }
+		get count() { return this.instanceData_.count; }
+
 		assign(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
 		assign(linkedEntity: Entity, desc: TransformDescriptor, parent?: TransformInstance): TransformInstance;
 		assign(linkedEntity: Entity, descOrParent: TransformDescriptor | TransformInstance, parent?: TransformInstance): TransformInstance {
-			var entIndex = linkedEntity.index();
+			var entIndex = linkedEntity.index;
 
-			if (this.instanceData_.count() < entIndex) {
+			if (this.instanceData_.count < entIndex) {
 				var newCount = math.roundUpPowerOf2(entIndex);
 				if (this.instanceData_.resize(newCount) == container.InvalidatePointers.Yes) {
 					this.rebase();
@@ -241,7 +242,7 @@ namespace sd.world {
 
 		// -- single instance state modifiers
 		forEntity(ent: Entity): TransformInstance {
-			return new Instance<TransformManager>(ent.index());
+			return new Instance<TransformManager>(ent.index);
 		}
 	}
 

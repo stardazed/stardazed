@@ -424,7 +424,7 @@ namespace sd.mesh {
 		}
 
 		forEach(callback: (item: TypedArray) => void) {
-			var max = this.count();
+			var max = this.count;
 			for (let ix = 0; ix < max; ++ix) {
 				callback(this.item(ix));
 			}
@@ -436,11 +436,11 @@ namespace sd.mesh {
 			return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.attrElementCount_);
 		}
 
-		count() {
+		get count() {
 			return this.viewItemCount_;
 		}
 
-		vertexBuffer() {
+		get vertexBuffer() {
 			return this.vertexBuffer_;
 		}
 
@@ -638,7 +638,7 @@ namespace sd.mesh {
 			return this.indexBuffer_.typedBasePtr(triangleIndex * 3, 3);
 		}
 
-		count() {
+		get count() {
 			return this.toTriangle_ - this.fromTriangle_;
 		}
 	}
@@ -665,8 +665,8 @@ namespace sd.mesh {
 
 
 	function calcVertexNormalsImpl(posView: VertexBufferAttributeView, normView: VertexBufferAttributeView, triView: IndexBufferTriangleView) {
-		var vertexCount = posView.count();
-		var normalCount = normView.count();
+		var vertexCount = posView.count;
+		var normalCount = normView.count;
 		assert(vertexCount <= normalCount);
 
 		normView.forEach((norm) => {
@@ -753,7 +753,7 @@ namespace sd.mesh {
 				return null;
 		}
 
-		primaryVertexBuffer() {
+		get primaryVertexBuffer() {
 			assert(this.vertexBuffers.length > 0);
 			return this.vertexBuffers[0];
 		}
