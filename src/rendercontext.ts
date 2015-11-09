@@ -17,6 +17,7 @@ namespace sd.render {
 		extMinMax: EXTBlendMinMax;
 		extTexAnisotropy: EXTTextureFilterAnisotropic;
 		extVAO: OESVertexArrayObject;
+		extInstancedArrays: ANGLEInstancedArrays;
 	}
 
 
@@ -86,6 +87,9 @@ namespace sd.render {
 		// enable Vertex Array Objects
 		var vao = gl.getExtension("OES_vertex_array_object");
 
+		// enable instanced draw calls
+		var aia = gl.getExtension("ANGLE_instanced_arrays");
+
 
 		// -- FIXME: Temporary setup
 		gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -100,7 +104,8 @@ namespace sd.render {
 			extS3TC: s3tc,
 			extMinMax: bmm,
 			extTexAnisotropy: txa,
-			extVAO: vao
+			extVAO: vao,
+			extInstancedArrays: aia
 		};
 	}
 

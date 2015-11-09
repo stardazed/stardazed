@@ -10,6 +10,8 @@ namespace sd.render {
 		vertexBuffer: mesh.VertexBuffer;
 		baseAttributeIndex: number;
 		updateFrequency: BufferUpdateFrequency;
+
+		// TODO: add instancing divisor counts for each attrib
 	}
 
 

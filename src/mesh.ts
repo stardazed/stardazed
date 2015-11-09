@@ -177,6 +177,9 @@ namespace sd.render {
 					indexBuffer.bind();
 			}
 
+			// -- copy primitive groups
+			this.primitiveGroups_ = desc.primitiveGroups.map((pg) => cloneStruct(pg));
+
 			if (this.vao_)
 				rc.extVAO.bindVertexArrayOES(null);
 		}

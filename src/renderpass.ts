@@ -170,7 +170,25 @@ namespace sd.render {
 			this.mesh_.bind();
 		}
 
-		drawIndexedPrimitives(startIndex: number, indexCount: number) {
+
+		drawPrimitives(startVertex: number, vertexCount: number, instanceCount = 1) {
+			if (instanceCount == 1) {
+				this.rc.gl.drawArrays(this.mesh_.glPrimitiveType, startVertex, vertexCount);
+			}
+			else {
+				this.rc.extInstancedArrays.drawArraysInstancedANGLE(this.mesh_.glPrimitiveType, startVertex, vertexCount, instanceCount);
+			}
+		}
+
+
+		drawIndexedPrimitives(startIndex: number, indexCount: number, instanceCount = 1) {
+			var offsetBytes = startIndex * this.mesh_.indexElementSizeBytes;
+			if (instanceCount == 1) {
+				this.rc.gl.drawElements(this.mesh_.glPrimitiveType, indexCount, this.mesh_.glIndexElementType, offsetBytes);
+			}
+			else {
+				this.rc.extInstancedArrays.drawElementsInstancedANGLE(this.mesh_.glPrimitiveType, indexCount, this.mesh_.glIndexElementType, offsetBytes, instanceCount);
+			}
 		}
 
 	}	
