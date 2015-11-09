@@ -2,7 +2,6 @@
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
-/// <reference path="meshdata.ts"/>
 /// <reference path="rendercontext.ts"/>
 
 namespace sd.render {
