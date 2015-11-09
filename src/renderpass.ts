@@ -10,6 +10,14 @@
 
 namespace sd.render {
 
+	export function runRenderPass(rc: RenderContext, rpDesc: RenderPassDescriptor, frameBuffer: FrameBuffer, passFunc: (rp: RenderPass) => void) {
+		var rp = new RenderPass(rc, rpDesc, frameBuffer);
+		rp.setup();
+		passFunc(rp);
+		rp.teardown();
+	}
+
+
 	export class DepthStencilTest {
 		private depthTestEnabled_: boolean;
 		private depthFunc_: number;
@@ -206,6 +214,6 @@ namespace sd.render {
 				this.rc.extInstancedArrays.drawElementsInstancedANGLE(this.mesh_.glPrimitiveType, indexCount, this.mesh_.glIndexElementType, offsetBytes, instanceCount);
 			}
 		}
-	}	
+	}
 
 } // ns sd.render
