@@ -485,6 +485,26 @@ namespace sd.mesh {
 	}
 
 
+	export function indexOffsetForPrimitiveCount(primitiveType: PrimitiveType, primitiveCount: number) {
+		switch (primitiveType) {
+			case PrimitiveType.Point:
+				return primitiveCount;
+			case PrimitiveType.Line:
+				return primitiveCount * 2;
+			case PrimitiveType.LineStrip:
+				return primitiveCount;
+			case PrimitiveType.Triangle:
+				return primitiveCount * 3;
+			case PrimitiveType.TriangleStrip:
+				return primitiveCount;
+
+			default:
+				assert(false, "Unknown primitive type");
+				break;
+		}
+	}
+
+
 	export function indexCountForPrimitiveCount(primitiveType: PrimitiveType, primitiveCount: number) {
 		switch (primitiveType) {
 			case PrimitiveType.Point:
