@@ -106,14 +106,15 @@ namespace sd.render {
 
 
 	export class Mesh {
-		vao_: WebGLVertexArrayObjectOES;		
+		private vao_: WebGLVertexArrayObjectOES;		
 
-		buffers_: Buffer[] = [];
-		primitiveGroups_: mesh.PrimitiveGroup[];
+		private buffers_: Buffer[] = [];
+		private primitiveGroups_: mesh.PrimitiveGroup[];
 
-		glPrimitiveType_: number = 0;
-		glIndexElementType_: number = 0;
-		indexElementSizeBytes_: number = 0;
+		private primitiveType_: mesh.PrimitiveType;
+		private glPrimitiveType_: number = 0;
+		private glIndexElementType_: number = 0;
+		private indexElementSizeBytes_: number = 0;
 
 
 		private bindSingleAttribute(attr: mesh.PositionedAttribute, stride: number, toVAIndex: number) {
@@ -168,7 +169,8 @@ namespace sd.render {
 				indexBuffer.allocateWithContents(desc.indexBinding.indexBuffer.buffer);
 			
 				// -- precompute some info required for draw calls
-				this.glPrimitiveType_ = glTypeForPrimitiveType(rc, desc.indexBinding.indexBuffer.primitiveType);
+				this.primitiveType_ = desc.indexBinding.indexBuffer.primitiveType;
+				this.glPrimitiveType_ = glTypeForPrimitiveType(rc, this.primitiveType_);
 				this.glIndexElementType_ = glTypeForIndexElementType(rc, desc.indexBinding.indexBuffer.indexElementType);
 				this.indexElementSizeBytes_ = desc.indexBinding.indexBuffer.indexElementSizeBytes;
 			
@@ -196,6 +198,7 @@ namespace sd.render {
 
 		// -- observers
 		get hasIndexBuffer() { return this.glIndexElementType_ != 0; }
+		get primitiveType() { return this.primitiveType_; }
 		get glPrimitiveType() { return this.glPrimitiveType_; }
 		get glIndexElementType() { return this.glIndexElementType_; }
 		get indexElementSizeBytes() { return this.indexElementSizeBytes_; }
