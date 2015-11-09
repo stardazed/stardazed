@@ -18,44 +18,27 @@ namespace sd.render {
 	}
 
 
-	export class DepthStencilTest {
-		private depthTestEnabled_: boolean;
-		private depthFunc_: number;
+	function glDepthFuncForDepthTest(rc: RenderContext, depthTest: DepthTest) {
+		switch (depthTest) {
+			case DepthTest.AllowAll:
+				return rc.gl.ALWAYS;
+			case DepthTest.DenyAll:
+				return rc.gl.NEVER;
+			case DepthTest.Less:
+				return rc.gl.LESS;
+			case DepthTest.LessOrEqual:
+				return rc.gl.LEQUAL;
+			case DepthTest.Equal:
+				return rc.gl.EQUAL;
+			case DepthTest.NotEqual:
+				return rc.gl.NOTEQUAL;
+			case DepthTest.GreaterOrEqual:
+				return rc.gl.GEQUAL;
+			case DepthTest.Greater:
+				return rc.gl.GREATER;
 
-		constructor(private rc: RenderContext, desc: DepthStencilTestDescriptor) {
-			this.depthTestEnabled_ = desc.depthTest != DepthTest.Disabled;
-			
-			switch (desc.depthTest) {
-				case DepthTest.AllowAll:
-					this.depthFunc_ = rc.gl.ALWAYS; break;
-				case DepthTest.DenyAll:
-					this.depthFunc_ = rc.gl.NEVER; break;
-				case DepthTest.Less:
-					this.depthFunc_ = rc.gl.LESS; break;
-				case DepthTest.LessOrEqual:
-					this.depthFunc_ = rc.gl.LEQUAL; break;
-				case DepthTest.Equal:
-					this.depthFunc_ = rc.gl.EQUAL; break;
-				case DepthTest.NotEqual:
-					this.depthFunc_ = rc.gl.NOTEQUAL; break;
-				case DepthTest.GreaterOrEqual:
-					this.depthFunc_ = rc.gl.GEQUAL; break;
-				case DepthTest.Greater:
-					this.depthFunc_ = rc.gl.GREATER; break;
-				default:
-					this.depthFunc_ = rc.gl.NONE; break;
-			}
-		}
-
-
-		apply() {
-			if (this.depthTestEnabled_) {
-				this.rc.gl.enable(this.rc.gl.DEPTH_TEST);
-				this.rc.gl.depthFunc(this.depthFunc_);
-			}
-			else {
-				this.rc.gl.disable(this.rc.gl.DEPTH_TEST);
-			}
+			default:
+				return rc.gl.NONE;
 		}
 	}
 
@@ -131,8 +114,14 @@ namespace sd.render {
 			}
 		}
 
-		setDepthStencilTest(dst: DepthStencilTest) {
-			dst.apply();
+		setDepthTest(depthTest: DepthTest) {
+			if (depthTest == DepthTest.Disabled) {
+				this.rc.gl.disable(this.rc.gl.DEPTH_TEST);
+			}
+			else {
+				this.rc.gl.enable(this.rc.gl.DEPTH_TEST);
+				this.rc.gl.depthFunc(glDepthFuncForDepthTest(this.rc, depthTest));
+			}
 		}
 
 
@@ -187,7 +176,7 @@ namespace sd.render {
 		}
 
 
-		setTexture(texture: Texture, bindPoint: number, samplerUniformName: WebGLUniformLocation) {
+		setTexture(texture: Texture, bindPoint: number) {
 			var gl = this.rc.gl;
 
 			gl.activeTexture(gl.TEXTURE0 + bindPoint);
@@ -196,12 +185,9 @@ namespace sd.render {
 				texture.bind();
 			}
 			else {
-				// bind a null texture to an arbitrary texture target
+				// bind a null texture to an arbitrary texture target for the active texture bindpoint
 				gl.bindTexture(gl.TEXTURE_2D, null);
 			}
-
-			// the uniform passed must be part of the currently bound pipeline
-			gl.uniform1i(samplerUniformName, bindPoint);
 		}
 
 
@@ -246,7 +232,7 @@ namespace sd.render {
 		}
 
 
-		drawIndexedPrimitiveGroup(primitiveType: mesh.PrimitiveType, primitiveGroup: mesh.PrimitiveGroup, instanceCount = 1) {
+		drawIndexedPrimitiveGroup(primitiveGroup: mesh.PrimitiveGroup, instanceCount = 1) {
 			this.drawIndexedPrimitives(primitiveGroup.fromPrimIx, primitiveGroup.primCount, instanceCount);
 		}
 	}

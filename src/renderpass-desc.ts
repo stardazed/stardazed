@@ -65,12 +65,6 @@ namespace sd.render {
 	}
 
 
-	export interface DepthStencilTestDescriptor {
-		depthTest: DepthTest;
-		// TODO: add stencil setup
-	}
-
-
 	export interface RenderPassDescriptor {
 		clearMask: ClearMask;
 
@@ -98,13 +92,6 @@ namespace sd.render {
 			height: 0,
 			nearZ: 0,
 			farZ: 1
-		};
-	}
-
-
-	export function makeDepthStencilTestDescriptor(): DepthStencilTestDescriptor {
-		return {
-			depthTest: DepthTest.AllowAll
 		};
 	}
 
