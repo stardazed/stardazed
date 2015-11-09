@@ -56,7 +56,7 @@ namespace sd.render {
 		private pipeline_: Pipeline = null;
 		private mesh_: Mesh = null;
 
-		constructor(private rc: RenderContext, private desc_: RenderPassDescriptor, private frameBuffer_: FrameBuffer) {
+		constructor(private rc: RenderContext, private desc_: RenderPassDescriptor, private frameBuffer_: FrameBuffer = null) {
 			assert(desc_.clearColour.length >= 4);
 		}
 
@@ -64,7 +64,9 @@ namespace sd.render {
 		setup() {
 			var gl = this.rc.gl;
 
-			this.frameBuffer_.bind();
+			if (this.frameBuffer_) {
+				this.frameBuffer_.bind();
+			}
 
 			// -- clear indicated buffers
 			var glClearMask = 0;
@@ -96,7 +98,9 @@ namespace sd.render {
 				this.pipeline_ = null;
 			}
 
-			this.frameBuffer_.unbind();
+			if (this.frameBuffer_) {
+				this.frameBuffer_.unbind();
+			}
 		}
 
 
@@ -150,7 +154,19 @@ namespace sd.render {
 		setScissorRect(rect: ScissorRect) {
 			this.rc.gl.scissor(rect.originX, rect.originY, rect.width, rect.height);
 
-			if (rect.originX > 0 || rect.originY > 0 || rect.width < this.frameBuffer_.width || rect.height < this.frameBuffer_.height)
+			var renderWidth: number;
+			var renderHeight: number;
+
+			if (this.frameBuffer_) {
+				renderWidth = this.frameBuffer_.width;
+				renderHeight = this.frameBuffer_.height;
+			}
+			else {
+				renderWidth = this.rc.gl.drawingBufferWidth;
+				renderWidth = this.rc.gl.drawingBufferHeight;
+			}
+
+			if (rect.originX > 0 || rect.originY > 0 || rect.width < renderWidth || rect.height < renderHeight)
 				this.rc.gl.enable(this.rc.gl.SCISSOR_TEST);
 			else
 				this.rc.gl.disable(this.rc.gl.SCISSOR_TEST);
@@ -190,7 +206,6 @@ namespace sd.render {
 				this.rc.extInstancedArrays.drawElementsInstancedANGLE(this.mesh_.glPrimitiveType, indexCount, this.mesh_.glIndexElementType, offsetBytes, instanceCount);
 			}
 		}
-
 	}	
 
 } // ns sd.render
