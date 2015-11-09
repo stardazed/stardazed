@@ -325,11 +325,11 @@ namespace sd.mesh {
 			this.vertexSizeBytes_ = alignFieldOnSize(maxElemSize, offset);
 		}
 
-		attributeCount() { return this.attributeCount_; }
-		vertexSizeBytes() { return this.vertexSizeBytes_; }
+		get attributeCount() { return this.attributeCount_; }
+		get vertexSizeBytes() { return this.vertexSizeBytes_; }
 	
 		bytesRequiredForVertexCount(vertexCount: number): number {
-			return vertexCount * this.vertexSizeBytes();
+			return vertexCount * this.vertexSizeBytes_;
 		}
 	
 		attrByRole(role: VertexAttributeRole): PositionedAttribute {
@@ -346,13 +346,25 @@ namespace sd.mesh {
 	}
 
 
+	//   ___ _ _         _   ___       __  __            
+	//  / __| (_)___ _ _| |_| _ )_  _ / _|/ _|___ _ _ 
+	// | (__| | / -_) ' \  _| _ \ || |  _|  _/ -_) '_|
+	//  \___|_|_\___|_||_\__|___/\_,_|_| |_| \___|_|  
+	//                                                
+	
+	export interface ClientBuffer {
+		bufferSizeBytes: number;
+		buffer: ArrayBuffer;
+	}
+
+
 	// __   __       _           ___       __  __         
 	// \ \ / /__ _ _| |_ _____ _| _ )_  _ / _|/ _|___ _ _ 
 	//  \ V / -_) '_|  _/ -_) \ / _ \ || |  _|  _/ -_) '_|
 	//   \_/\___|_|  \__\___/_\_\___/\_,_|_| |_| \___|_|  
 	//	
 
-	export class VertexBuffer {
+	export class VertexBuffer implements ClientBuffer {
 		private layout_: VertexLayout;
 		private itemCount_ = 0;
 		private storage_: ArrayBuffer = null;
@@ -366,21 +378,18 @@ namespace sd.mesh {
 
 		// -- buffer data management
 
-		layout() { return this.layout_; }
-		strideBytes() { return this.layout_.vertexSizeBytes(); }
-		attributeCount() { return this.layout_.attributeCount(); }
-		itemCount() { return this.itemCount_; }
-		bufferSizeBytes() { return this.strideBytes() * this.itemCount_; }
+		get layout() { return this.layout_; }
+		get strideBytes() { return this.layout_.vertexSizeBytes; }
+		get attributeCount() { return this.layout_.attributeCount; }
+		get itemCount() { return this.itemCount_; }
+		get bufferSizeBytes() { return this.strideBytes * this.itemCount_; }
+		get buffer() { return this.storage_; }
 
 		allocate(itemCount: number) {
 			this.itemCount_ = itemCount;
 			this.storage_ = new ArrayBuffer(this.layout_.bytesRequiredForVertexCount(itemCount));
 		}
 	
-		// -- raw data pointers
-
-		buffer() { return this.storage_; }
-
 		// -- attribute access pass-through
 	
 		hasAttributeWithRole(role: VertexAttributeRole) {
@@ -404,14 +413,14 @@ namespace sd.mesh {
 		private viewItemCount_: number;
 
 		constructor(private vertexBuffer_: VertexBuffer, private attr_: PositionedAttribute, private firstItem_ = 0, itemCount = -1) {
-			this.stride_ = this.vertexBuffer_.layout().vertexSizeBytes();
+			this.stride_ = this.vertexBuffer_.layout.vertexSizeBytes;
 			this.attrOffset_ = attr_.offset;
 			this.attrElementCount_ = vertexFieldElementCount(attr_.field);
 			this.typedViewCtor_ = vertexFieldNumericType(attr_.field).arrayType;
-			this.buffer_ = this.vertexBuffer_.buffer();
-			this.viewItemCount_ = itemCount < 0 ? (this.vertexBuffer_.itemCount() - this.firstItem_) : itemCount;
+			this.buffer_ = this.vertexBuffer_.buffer;
+			this.viewItemCount_ = itemCount < 0 ? (this.vertexBuffer_.itemCount - this.firstItem_) : itemCount;
 
-			assert(this.firstItem_ + this.viewItemCount_ <= this.vertexBuffer_.itemCount(), "view item range is bigger than buffer");
+			assert(this.firstItem_ + this.viewItemCount_ <= this.vertexBuffer_.itemCount, "view item range is bigger than buffer");
 		}
 
 		forEach(callback: (item: TypedArray) => void) {
@@ -485,7 +494,7 @@ namespace sd.mesh {
 	}
 
 
-	export class IndexBuffer {
+	export class IndexBuffer implements ClientBuffer {
 		private primitiveType_ = PrimitiveType.Point;
 		private indexElementType_ = IndexElementType.UInt8;
 		private indexCount_ = 0;
@@ -517,28 +526,28 @@ namespace sd.mesh {
 					break;
 			}
 
-			this.storage_ = new ArrayBuffer(this.bufferSizeBytes());
+			this.storage_ = new ArrayBuffer(this.bufferSizeBytes);
 		}
 
 		// -- observers
-		primitiveType() { return this.primitiveType_; }
-		indexElementType() { return this.indexElementType_; }
+		get primitiveType() { return this.primitiveType_; }
+		get indexElementType() { return this.indexElementType_; }
 
-		primitiveCount() { return this.primitiveCount_; }
-		indexCount() { return this.indexCount_; }
-		indexElementSizeBytes() { return this.indexElementSizeBytes_; }
+		get primitiveCount() { return this.primitiveCount_; }
+		get indexCount() { return this.indexCount_; }
+		get indexElementSizeBytes() { return this.indexElementSizeBytes_; }
 
-		bufferSizeBytes() { return this.indexCount() * this.indexElementSizeBytes(); }
-		buffer() { return this.storage_; }
+		get bufferSizeBytes() { return this.indexCount_ * this.indexElementSizeBytes_; }
+		get buffer() { return this.storage_; }
 
 		// -- read/write indexes
 		typedBasePtr(baseIndexNr: number, elementCount?: number): TypedIndexArray {
-			var offsetBytes = this.indexElementSizeBytes() * baseIndexNr;
+			var offsetBytes = this.indexElementSizeBytes_ * baseIndexNr;
 
-			if (this.indexElementType() == IndexElementType.UInt32) {
+			if (this.indexElementType_ == IndexElementType.UInt32) {
 				return new Uint32Array(this.storage_, offsetBytes, elementCount);
 			}
-			else if (this.indexElementType() == IndexElementType.UInt16) {
+			else if (this.indexElementType_ == IndexElementType.UInt16) {
 				return new Uint16Array(this.storage_, offsetBytes, elementCount);
 			}
 			else {
@@ -547,8 +556,8 @@ namespace sd.mesh {
 		}
 
 		indexes(baseIndexNr: number, outputCount: number, outputPtr: Uint32Array) {
-			assert(baseIndexNr < this.indexCount());
-			assert(baseIndexNr + outputCount < this.indexCount());
+			assert(baseIndexNr < this.indexCount_);
+			assert(baseIndexNr + outputCount < this.indexCount_);
 			assert(outputPtr.length >= outputCount);
 
 			var typedBasePtr = this.typedBasePtr(baseIndexNr);
@@ -564,8 +573,8 @@ namespace sd.mesh {
 		}
 
 		setIndexes(baseIndexNr: number, sourceCount: number, sourcePtr: Uint32Array) {
-			assert(baseIndexNr < this.indexCount());
-			assert(baseIndexNr + sourceCount < this.indexCount());
+			assert(baseIndexNr < this.indexCount_);
+			assert(baseIndexNr + sourceCount < this.indexCount_);
 			assert(sourcePtr.length >= sourceCount);
 
 			var typedBasePtr = this.typedBasePtr(baseIndexNr);
@@ -604,16 +613,16 @@ namespace sd.mesh {
 
 	export class IndexBufferTriangleView {
 		constructor(private indexBuffer_: IndexBuffer, private fromTriangle_ = -1, private toTriangle_ = -1) {
-			assert(this.indexBuffer_.primitiveType() == PrimitiveType.Triangle);
+			assert(this.indexBuffer_.primitiveType == PrimitiveType.Triangle);
 
 			// clamp range to available primitives, default to all triangles
 			if (this.fromTriangle_ < 0)
 				this.fromTriangle_ = 0;
-			if (this.fromTriangle_ >= this.indexBuffer_.primitiveCount())
-				this.fromTriangle_ = this.indexBuffer_.primitiveCount() - 1;
+			if (this.fromTriangle_ >= this.indexBuffer_.primitiveCount)
+				this.fromTriangle_ = this.indexBuffer_.primitiveCount - 1;
 
-			if ((this.toTriangle_ < 0) || (this.toTriangle_ >= this.indexBuffer_.primitiveCount()))
-				this.toTriangle_ = this.indexBuffer_.primitiveCount() - 1;
+			if ((this.toTriangle_ < 0) || (this.toTriangle_ >= this.indexBuffer_.primitiveCount))
+				this.toTriangle_ = this.indexBuffer_.primitiveCount - 1;
 		}
 
 		forEach(callback: (proxy: TriangleProxy) => void) {

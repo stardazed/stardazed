@@ -32,7 +32,7 @@ namespace sd.render {
 		return {
 			vertexBindings: data.vertexBuffers.map((vb) => {
 				var attrIndex = curAttrIndex;
-				curAttrIndex += vb.attributeCount();
+				curAttrIndex += vb.attributeCount;
 
 				return {
 					vertexBuffer: vb,
