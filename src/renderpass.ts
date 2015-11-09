@@ -212,24 +212,42 @@ namespace sd.render {
 		}
 
 
-		drawPrimitives(startVertex: number, vertexCount: number, instanceCount = 1) {
+		drawPrimitives(primitiveType: mesh.PrimitiveType, startPrimitive: number, primitiveCount: number, instanceCount = 1) {
+			var glPrimitiveType = glTypeForPrimitiveType(this.rc, primitiveType);
+			var startVertex = mesh.indexCountForPrimitiveCount(glPrimitiveType, startPrimitive);
+			var vertexCount = mesh.indexCountForPrimitiveCount(glPrimitiveType, primitiveCount);
+
 			if (instanceCount == 1) {
-				this.rc.gl.drawArrays(this.mesh_.glPrimitiveType, startVertex, vertexCount);
+				this.rc.gl.drawArrays(glPrimitiveType, startVertex, vertexCount);
 			}
 			else {
-				this.rc.extInstancedArrays.drawArraysInstancedANGLE(this.mesh_.glPrimitiveType, startVertex, vertexCount, instanceCount);
+				this.rc.extInstancedArrays.drawArraysInstancedANGLE(glPrimitiveType, startVertex, vertexCount, instanceCount);
 			}
 		}
 
 
-		drawIndexedPrimitives(startIndex: number, indexCount: number, instanceCount = 1) {
+		drawPrimitiveGroup(primitiveType: mesh.PrimitiveType, primitiveGroup: mesh.PrimitiveGroup, instanceCount = 1) {
+			this.drawPrimitives(primitiveType, primitiveGroup.fromPrimIx, primitiveGroup.primCount, instanceCount);
+		}
+
+
+		drawIndexedPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
+			var glPrimitiveType = this.mesh_.glPrimitiveType;
+			var startIndex = mesh.indexCountForPrimitiveCount(glPrimitiveType, startPrimitive);
+			var indexCount = mesh.indexCountForPrimitiveCount(glPrimitiveType, primitiveCount);
 			var offsetBytes = startIndex * this.mesh_.indexElementSizeBytes;
+
 			if (instanceCount == 1) {
-				this.rc.gl.drawElements(this.mesh_.glPrimitiveType, indexCount, this.mesh_.glIndexElementType, offsetBytes);
+				this.rc.gl.drawElements(glPrimitiveType, indexCount, this.mesh_.glIndexElementType, offsetBytes);
 			}
 			else {
-				this.rc.extInstancedArrays.drawElementsInstancedANGLE(this.mesh_.glPrimitiveType, indexCount, this.mesh_.glIndexElementType, offsetBytes, instanceCount);
+				this.rc.extInstancedArrays.drawElementsInstancedANGLE(glPrimitiveType, indexCount, this.mesh_.glIndexElementType, offsetBytes, instanceCount);
 			}
+		}
+
+
+		drawIndexedPrimitiveGroup(primitiveType: mesh.PrimitiveType, primitiveGroup: mesh.PrimitiveGroup, instanceCount = 1) {
+			this.drawIndexedPrimitives(primitiveGroup.fromPrimIx, primitiveGroup.primCount, instanceCount);
 		}
 	}
 
