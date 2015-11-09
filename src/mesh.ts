@@ -4,11 +4,12 @@
 
 /// <reference path="buffer.ts"/>
 /// <reference path="rendercontext.ts"/>
+/// <reference path="mesh-desc.ts"/>
 
 namespace sd.render {
 
 	export class Mesh {
-		constructor(private rc: RenderContext, data: mesh.MeshData) {
+		constructor(private rc: RenderContext, desc: MeshDescriptor) {
 		}
 
 
