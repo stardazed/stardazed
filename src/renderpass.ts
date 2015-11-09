@@ -114,6 +114,7 @@ namespace sd.render {
 			}
 		}
 
+
 		setDepthTest(depthTest: DepthTest) {
 			if (depthTest == DepthTest.Disabled) {
 				this.rc.gl.disable(this.rc.gl.DEPTH_TEST);
@@ -123,7 +124,6 @@ namespace sd.render {
 				this.rc.gl.depthFunc(glDepthFuncForDepthTest(this.rc, depthTest));
 			}
 		}
-
 
 		setFaceCulling(faceCulling: FaceCulling) {
 			if (faceCulling == FaceCulling.Disabled) {
@@ -141,6 +141,7 @@ namespace sd.render {
 			var mode = (winding == FrontFaceWinding.Clockwise) ? this.rc.gl.CW : this.rc.gl.CCW;
 			this.rc.gl.frontFace(mode);
 		}
+
 
 		setViewPort(viewport: Viewport) {
 			// FIXME: treat width, height == 0 as alias for full viewport
@@ -200,8 +201,8 @@ namespace sd.render {
 
 		drawPrimitives(primitiveType: mesh.PrimitiveType, startPrimitive: number, primitiveCount: number, instanceCount = 1) {
 			var glPrimitiveType = glTypeForPrimitiveType(this.rc, primitiveType);
-			var startVertex = mesh.indexCountForPrimitiveCount(glPrimitiveType, startPrimitive);
-			var vertexCount = mesh.indexCountForPrimitiveCount(glPrimitiveType, primitiveCount);
+			var startVertex = mesh.indexOffsetForPrimitiveCount(primitiveType, startPrimitive);
+			var vertexCount = mesh.indexCountForPrimitiveCount(primitiveType, primitiveCount);
 
 			if (instanceCount == 1) {
 				this.rc.gl.drawArrays(glPrimitiveType, startVertex, vertexCount);
@@ -219,8 +220,8 @@ namespace sd.render {
 
 		drawIndexedPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
 			var glPrimitiveType = this.mesh_.glPrimitiveType;
-			var startIndex = mesh.indexCountForPrimitiveCount(glPrimitiveType, startPrimitive);
-			var indexCount = mesh.indexCountForPrimitiveCount(glPrimitiveType, primitiveCount);
+			var startIndex = mesh.indexOffsetForPrimitiveCount(this.mesh_.primitiveType, startPrimitive);
+			var indexCount = mesh.indexCountForPrimitiveCount(this.mesh_.primitiveType, primitiveCount);
 			var offsetBytes = startIndex * this.mesh_.indexElementSizeBytes;
 
 			if (instanceCount == 1) {
