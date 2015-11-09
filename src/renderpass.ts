@@ -178,13 +178,30 @@ namespace sd.render {
 				this.rc.gl.enable(this.rc.gl.SCISSOR_TEST);
 			else
 				this.rc.gl.disable(this.rc.gl.SCISSOR_TEST);
-
 		}
 
 
 		setConstantBlendColour(colour4: ArrayOfNumber) {
 			assert(colour4.length >= 4);
 			this.rc.gl.blendColor(colour4[0], colour4[1], colour4[2], colour4[3]);
+		}
+
+
+		setTexture(texture: Texture, bindPoint: number, samplerUniformName: WebGLUniformLocation) {
+			var gl = this.rc.gl;
+
+			gl.activeTexture(gl.TEXTURE0 + bindPoint);
+			if (texture) {
+				assert(! texture.renderTargetOnly);
+				texture.bind();
+			}
+			else {
+				// bind a null texture to an arbitrary texture target
+				gl.bindTexture(gl.TEXTURE_2D, null);
+			}
+
+			// the uniform passed must be part of the currently bound pipeline
+			gl.uniform1i(samplerUniformName, bindPoint);
 		}
 
 

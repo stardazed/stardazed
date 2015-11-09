@@ -28,7 +28,7 @@ namespace sd.render {
 	}
 
 
-	function makeMeshDescriptor(data: mesh.MeshData): MeshDescriptor {
+	export function makeMeshDescriptor(data: mesh.MeshData): MeshDescriptor {
 		var curAttrIndex = 0;
 
 		return {
