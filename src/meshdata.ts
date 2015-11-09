@@ -215,14 +215,6 @@ namespace sd.mesh {
 	}
 
 
-	export function maxVertexAttributes() {
-		// FIXME - this is the mandated minimum for GL 4.4
-		// may want to up this to 32 and limit actual usage based on
-		// runtime reported maximum (GL_MAX_VERTEX_ATTRIBS)
-		return 16;
-	}
-
-
 	// -- VertexAttribute shortcuts for common types
 
 	export function attrPosition3(): VertexAttribute { return { field: VertexField.Floatx3, role: VertexAttributeRole.Position }; }
@@ -306,7 +298,6 @@ namespace sd.mesh {
 
 		constructor(attrList: VertexAttribute[]) {
 			this.attributeCount_ = attrList.length;
-			assert(this.attributeCount_ <= maxVertexAttributes());
 
 			var offset = 0, maxElemSize = 0;
 
