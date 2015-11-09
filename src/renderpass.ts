@@ -150,7 +150,7 @@ namespace sd.render {
 		setScissorRect(rect: ScissorRect) {
 			this.rc.gl.scissor(rect.originX, rect.originY, rect.width, rect.height);
 
-			if (rect.originX > 0 || rect.originY > 0 || rect.width < this.frameBuffer_.width() || rect.height < this.frameBuffer_.height())
+			if (rect.originX > 0 || rect.originY > 0 || rect.width < this.frameBuffer_.width || rect.height < this.frameBuffer_.height)
 				this.rc.gl.enable(this.rc.gl.SCISSOR_TEST);
 			else
 				this.rc.gl.disable(this.rc.gl.SCISSOR_TEST);

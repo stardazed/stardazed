@@ -219,9 +219,9 @@ namespace sd.render {
 
 
 		// -- observers
-		width() { return this.width_; }
-		height() { return this.height_; }
-		resource() { return this.fbo_; }
+		get width() { return this.width_; }
+		get height() { return this.height_; }
+		get resource() { return this.fbo_; }
 
 
 		hasColourAttachment(atIndex: number) {
