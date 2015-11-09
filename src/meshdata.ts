@@ -485,6 +485,26 @@ namespace sd.mesh {
 	}
 
 
+	export function indexCountForPrimitiveCount(primitiveType: PrimitiveType, primitiveCount: number) {
+		switch (primitiveType) {
+			case PrimitiveType.Point:
+				return primitiveCount;
+			case PrimitiveType.Line:
+				return primitiveCount * 2;
+			case PrimitiveType.LineStrip:
+				return primitiveCount + 1;
+			case PrimitiveType.Triangle:
+				return primitiveCount * 3;
+			case PrimitiveType.TriangleStrip:
+				return primitiveCount + 2;
+
+			default:
+				assert(false, "Unknown primitive type");
+				break;
+		}
+	}
+
+
 	export class IndexBuffer implements ClientBuffer {
 		private primitiveType_ = PrimitiveType.Point;
 		private indexElementType_ = IndexElementType.UInt8;
@@ -498,24 +518,7 @@ namespace sd.mesh {
 			this.indexElementType_ = elementType;
 			this.indexElementSizeBytes_ = indexElementTypeSizeBytes(this.indexElementType_);
 			this.primitiveCount_ = primitiveCount;
-
-			switch (primitiveType) {
-				case PrimitiveType.Point:
-					this.indexCount_ = primitiveCount;
-					break;
-				case PrimitiveType.Line:
-					this.indexCount_ = primitiveCount * 2;
-					break;
-				case PrimitiveType.LineStrip:
-					this.indexCount_ = primitiveCount + 1;
-					break;
-				case PrimitiveType.Triangle:
-					this.indexCount_ = primitiveCount * 3;
-					break;
-				case PrimitiveType.TriangleStrip:
-					this.indexCount_ = primitiveCount + 2;
-					break;
-			}
+			this.indexCount_ = indexCountForPrimitiveCount(primitiveType, primitiveCount);
 
 			this.storage_ = new ArrayBuffer(this.bufferSizeBytes);
 		}
