@@ -80,14 +80,7 @@ namespace sd.render {
 
 
 		teardown() {
-			if (this.mesh_) {
-				this.mesh_.unbind();
-			}
-
-			if (this.pipeline_) {
-				this.pipeline_.unbind();
-				this.pipeline_ = null;
-			}
+			this.setPipeline(null); // will implicitly clear mesh as well
 
 			if (this.frameBuffer_) {
 				this.frameBuffer_.unbind();
@@ -104,13 +97,40 @@ namespace sd.render {
 			if (pipeline === this.pipeline_)
 				return;
 
-			if (this.pipeline_)
+			if (this.pipeline_ && !pipeline) {
+				// only need to explicitly unbind if there is no replacement pipeline
+				if (this.mesh_) {
+					this.mesh_.unbind(this.pipeline_);
+				}
 				this.pipeline_.unbind();
+			}
 
 			this.pipeline_ = pipeline;
 			if (this.pipeline_) {
-				// FIXME: validate Pipeline against FrameBuffer
+				// TODO: validate Pipeline against FrameBuffer
 				this.pipeline_.bind();
+				if (this.mesh_) {
+					this.mesh_.bind(this.pipeline_);
+				}
+			}
+			else {
+				this.mesh_ = null;
+			}
+		}
+
+
+		setMesh(mesh: Mesh) {
+			assert(this.pipeline_, "You must set the Pipeline before setting the Mesh");
+			if (this.mesh_ === mesh)
+				return;
+
+			if (this.mesh_ && !mesh) {
+				// only need to explicitly unbind if there is no replacement mesh
+				this.mesh_.unbind(this.pipeline_);
+			}
+			this.mesh_ = mesh;
+			if (this.mesh_) {
+				this.mesh_.bind(this.pipeline_);
 			}
 		}
 
@@ -193,12 +213,6 @@ namespace sd.render {
 
 
 		// -- drawing
-		setMesh(mesh: Mesh) {
-			this.mesh_ = mesh;
-			this.mesh_.bind();
-		}
-
-
 		drawPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
 			var glPrimitiveType = this.mesh_.primitiveType;
 			var startVertex = mesh.indexOffsetForPrimitiveCount(this.mesh_.primitiveType, startPrimitive);
