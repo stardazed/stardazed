@@ -3,6 +3,7 @@
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 /// <reference path="../defs/es6-promise.d.ts" />
+/// <reference path="../defs/es6-collections.d.ts" />
 
 function assert(cond: any, msg?: string) {
 	if (! cond) {
