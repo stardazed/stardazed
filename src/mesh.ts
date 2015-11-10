@@ -105,16 +105,75 @@ namespace sd.render {
 	}
 
 
+	interface AttributeLocation {
+		attribute: mesh.PositionedAttribute;
+		clientBuffer: mesh.VertexBuffer;
+		buffer: Buffer;
+	}
+
+
 	export class Mesh {
-		private vao_: WebGLVertexArrayObjectOES;
+		private pipelineVAOMap_: WeakMap<Pipeline, WebGLVertexArrayObjectOES> = null;
+		private attributes_ = new Map<mesh.VertexAttributeRole, AttributeLocation>();
+		private clientIndexBuffer_: mesh.IndexBuffer = null;
 
 		private buffers_: Buffer[] = [];
 		private primitiveGroups_: mesh.PrimitiveGroup[];
 
 		private primitiveType_: mesh.PrimitiveType;
-		private glPrimitiveType_: number = 0;
-		private glIndexElementType_: number = 0;
-		private indexElementSizeBytes_: number = 0;
+		private glPrimitiveType_ = 0;
+		private glIndexElementType_ = 0;
+		private indexElementSizeBytes_ = 0;
+
+
+		constructor(private rc: RenderContext, desc: MeshDescriptor) {
+			var gl = rc.gl;
+
+			if (rc.extVAO) {
+				this.pipelineVAOMap_ = new WeakMap<Pipeline, WebGLVertexArrayObjectOES>();
+			}
+
+			for (var vertexBinding of desc.vertexBindings) {
+				assert(vertexBinding.vertexBuffer);
+
+				// -- allocate and fill attribute data buffer
+				let buffer = new Buffer(rc, BufferRole.VertexAttribute, vertexBinding.updateFrequency);
+				buffer.allocateWithContents(vertexBinding.vertexBuffer.buffer);
+				this.buffers_.push(buffer);
+
+				// -- build role/attribute info map
+				for (var aix = 0; aix < vertexBinding.vertexBuffer.attributeCount; ++aix) {
+					var posAttr = vertexBinding.vertexBuffer.attrByIndex(aix);
+					this.attributes_.set(posAttr.role, {
+						attribute: posAttr,
+						clientBuffer: vertexBinding.vertexBuffer,
+						buffer: buffer
+					});
+				}
+			}
+
+			if (desc.indexBinding.indexBuffer) {
+				// -- allocate sized index buffer
+				var indexBuffer = new Buffer(rc, BufferRole.VertexIndex, desc.indexBinding.updateFrequency);
+				indexBuffer.allocateWithContents(desc.indexBinding.indexBuffer.buffer);
+				this.buffers_.push(indexBuffer);
+			
+				// -- precompute some info required for draw calls
+				this.primitiveType_ = desc.indexBinding.indexBuffer.primitiveType;
+				this.glIndexElementType_ = glTypeForIndexElementType(rc, desc.indexBinding.indexBuffer.indexElementType);
+				this.indexElementSizeBytes_ = desc.indexBinding.indexBuffer.indexElementSizeBytes;
+			}
+			else {
+				// -- when no indexBuffer is specified, the explicit primitiveType from the descriptor is used
+				assert(desc.primitiveType, "an explicit primitiveType must be specified if no indexBuffer is present");
+				this.primitiveType_ = desc.primitiveType;
+			}
+			this.glPrimitiveType_ = glTypeForPrimitiveType(rc, this.primitiveType_);
+
+
+			// -- copy primitive groups
+			this.primitiveGroups_ = desc.primitiveGroups.map((pg) => cloneStruct(pg));
+		}
 
 
 		private bindSingleAttribute(attr: mesh.PositionedAttribute, stride: number, toVAIndex: number) {
@@ -127,73 +186,39 @@ namespace sd.render {
 		}
 
 
-		bindVertexBufferAttributes(vb: mesh.VertexBuffer, startBoundIndex: number) {
-			var attrCount = vb.attributeCount,
-				stride = vb.strideBytes;
+		bind(usingPipeline: Pipeline) {
+			var roleIndexes = usingPipeline.attributePairs();
+			var pair: IteratorResult<[mesh.VertexAttributeRole, number]>;
 
-			assert(startBoundIndex + attrCount <= maxVertexAttributes(this.rc));
+			while (pair = roleIndexes.next()) {
+				var attrRole = pair.value[0];
+				var attrIndex = pair.value[1];
 
-			for (var attrIndex = 0; attrIndex < attrCount; ++attrIndex) {
-				var attr = vb.attrByIndex(attrIndex);
-				assert(attr);
-				this.bindSingleAttribute(attr, stride, attrIndex + startBoundIndex);
-			}
-		}
-
-
-		constructor(private rc: RenderContext, desc: MeshDescriptor) {
-			var gl = rc.gl;
-
-			this.vao_ = rc.extVAO ? rc.extVAO.createVertexArrayOES() : null;
-			if (this.vao_)
-				rc.extVAO.bindVertexArrayOES(this.vao_);
-
-			for (var vertexBinding of desc.vertexBindings) {
-				assert(vertexBinding.vertexBuffer);
-
-				// -- allocate sized attribute buffer
-				let buffer = new Buffer(rc, BufferRole.VertexAttribute, vertexBinding.updateFrequency);
-				buffer.allocateWithContents(vertexBinding.vertexBuffer.buffer);
-				this.buffers_.push(buffer);
-
-				// -- configure our VAO attributes with the attrs found in the current vertex buffer
-				if (this.vao_) {
-					buffer.bind();
-					this.bindVertexBufferAttributes(vertexBinding.vertexBuffer, vertexBinding.baseAttributeIndex);
+				var meshAttr = this.attributes_.get(attrRole);
+				if (meshAttr) {
+					meshAttr.buffer.bind();
+					this.bindSingleAttribute(meshAttr.attribute, meshAttr.clientBuffer.strideBytes, attrIndex);
+				}
+				else {
+					console.warn("Mesh does not have Pipeline attr for index " + attrIndex + " of role " + attrRole);
+					this.rc.gl.disableVertexAttribArray(attrIndex);
 				}
 			}
 
-			if (desc.indexBinding.indexBuffer) {
-				// -- allocate sized index buffer
-				var indexBuffer = new Buffer(rc, BufferRole.VertexIndex, desc.indexBinding.updateFrequency);
-				indexBuffer.allocateWithContents(desc.indexBinding.indexBuffer.buffer);
-				this.buffers_.push(indexBuffer);
-			
-				// -- precompute some info required for draw calls
-				this.primitiveType_ = desc.indexBinding.indexBuffer.primitiveType;
-				this.glPrimitiveType_ = glTypeForPrimitiveType(rc, this.primitiveType_);
-				this.glIndexElementType_ = glTypeForIndexElementType(rc, desc.indexBinding.indexBuffer.indexElementType);
-				this.indexElementSizeBytes_ = desc.indexBinding.indexBuffer.indexElementSizeBytes;
-			
-				// -- bind index buffer to VAO
-				if (this.vao_)
-					indexBuffer.bind();
+			if (this.hasIndexBuffer) {
+				this.indexBuffer().bind();
 			}
-
-			// -- copy primitive groups
-			this.primitiveGroups_ = desc.primitiveGroups.map((pg) => cloneStruct(pg));
-
-			if (this.vao_)
-				rc.extVAO.bindVertexArrayOES(null);
 		}
 
 
-		bind() {
-			this.rc.extVAO.bindVertexArrayOES(this.vao_);
-		}
+		unbind(fromPipeline: Pipeline) {
+			var roleIndexes = fromPipeline.attributePairs();
+			var pair: IteratorResult<[mesh.VertexAttributeRole, number]>;
 
-		unbind() {
-			this.rc.extVAO.bindVertexArrayOES(null);
+			while (pair = roleIndexes.next()) {
+				var attrIndex = pair.value[1];
+				this.rc.gl.disableVertexAttribArray(attrIndex);
+			}
 		}
 
 
@@ -203,7 +228,7 @@ namespace sd.render {
 		get glPrimitiveType() { return this.glPrimitiveType_; }
 		get glIndexElementType() { return this.glIndexElementType_; }
 		get indexElementSizeBytes() { return this.indexElementSizeBytes_; }
-		
+
 
 		vertexBufferAtIndex(vertexBufferIndex: number) {
 			var vertexBufferCount = this.buffers_.length;
@@ -217,7 +242,7 @@ namespace sd.render {
 
 
 		indexBuffer() {
-			// the index buffer, when present, is always the last one
+			// the index buffer, if present, is always the last one
 			if (this.hasIndexBuffer)
 				return this.buffers_[this.buffers_.length - 1];
 			return null;
