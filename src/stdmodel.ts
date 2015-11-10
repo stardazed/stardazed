@@ -1,17 +1,18 @@
-// stdshader - standard shader program gen and usage
+// stdmodel - standard model component
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 /// <reference path="numeric.ts" />
 /// <reference path="material.ts" />
+/// <reference path="rendercontext.ts" />
 
-namespace sd.model {
+namespace sd.world {
 
 	const enum Feature {
 		// VtxPosition and VtxNormal are required
 		//VtxTangent      = 0x0001,
 		VtxUV           = 0x0002,
-		VtxColor        = 0x0004,
+		VtxColour       = 0x0004,
 		Specular        = 0x0008, // Implied true if GlossMap
 		AlbedoMap       = 0x0010,
 		//TranslucencyMap = 0x0020, // \__ Mutually Exclusive
@@ -21,73 +22,52 @@ namespace sd.model {
 	}
 
 
-	export interface StandardGLProgram extends WebGLProgram {
-		vertexPositionAttribute: number;
-		vertexNormalAttribute: number;
-		vertexUVAttribute?: number;
-		vertexColorAttribute?: number;
-
+	interface StandardGLProgram extends WebGLProgram {
 		mvMatrixUniform?: WebGLUniformLocation;
 		mvpMatrixUniform?: WebGLUniformLocation;
 		normalMatrixUniform?: WebGLUniformLocation;
 		lightNormalMatrixUniform?: WebGLUniformLocation;
 
 		ambientSunFactorUniform?: WebGLUniformLocation;
-
 		textureUniform?: WebGLUniformLocation;
 	}
 
 
-	export class StandardShader {
-		constructor(private gl_: WebGLRenderingContext, private materialMgr_: MaterialManager) {
+	//  ___ _                _             _ ___ _           _ _          
+	// / __| |_ __ _ _ _  __| |__ _ _ _ __| | _ (_)_ __  ___| (_)_ _  ___ 
+	// \__ \  _/ _` | ' \/ _` / _` | '_/ _` |  _/ | '_ \/ -_) | | ' \/ -_)
+	// |___/\__\__,_|_||_\__,_\__,_|_| \__,_|_| |_| .__/\___|_|_|_||_\___|
+	//                                            |_|                     
+
+	class StandardPipeline {
+		constructor(private rc: render.RenderContext) {
 		}
 
 
-		private makeShader(type: number, sourceText: string) {
-			var shader = this.gl_.createShader(type);
-			this.gl_.shaderSource(shader, sourceText);
-			this.gl_.compileShader(shader);
-
-			if (! this.gl_.getShaderParameter(shader, this.gl_.COMPILE_STATUS)) {
-				var errorLog = this.gl_.getShaderInfoLog(shader);
-				alert("COMPILE FAILED\n\n" + errorLog);
-				console.error("Shader compilation failed:", errorLog);
-				console.error("Source", sourceText);
-				assert(false, "bad shader");
-			}
-
-			return shader;
-		}
-
-
-		programForFeatures(feat: number) {
-			var gl = this.gl_;
+		pipelineForFeatures(feat: number) {
+			var gl = this.rc.gl;
 
 			var vertexSource = this.vertexShaderSource(feat);
 			var fragmentSource = this.fragmentShaderSource(feat);
-			var vertexShader = this.makeShader(gl.VERTEX_SHADER, vertexSource);
-			var fragmentShader = this.makeShader(gl.FRAGMENT_SHADER, fragmentSource);
 
-			var program = <StandardGLProgram>gl.createProgram();
-			gl.attachShader(program, vertexShader);
-			gl.attachShader(program, fragmentShader);
-			gl.linkProgram(program);
+			var pld = render.makePipelineDescriptor();
+			pld.colourPixelFormats[0] = render.PixelFormat.RGBA8;
+			pld.vertexShader = render.makeShader(this.rc, gl.VERTEX_SHADER, vertexSource);
+			pld.fragmentShader = render.makeShader(this.rc, gl.FRAGMENT_SHADER, fragmentSource);
 
-			if (! gl.getProgramParameter(program, gl.LINK_STATUS)) {
-				var errorLog = gl.getProgramInfoLog(program);
-				alert("LINK FAILED\n\n" + errorLog);
-				console.error("Program link failed:", errorLog);
-				console.error("Vertex Source", vertexSource);
-				console.error("Fragment Source", fragmentSource);
-				assert(false, "bad program");
+			pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
+			pld.attributeNames.set(mesh.VertexAttributeRole.Normal, "vertexNormal");
+			if (feat & Feature.VtxColour) {
+				pld.attributeNames.set(mesh.VertexAttributeRole.Colour, "vertexColour");
+			}
+			if (feat & Feature.VtxUV) {
+				pld.attributeNames.set(mesh.VertexAttributeRole.UV, "vertexUV");
 			}
 
+			var pipeline = new render.Pipeline(this.rc, pld);
+			var program = <StandardGLProgram>pipeline.program;
+			
 			gl.useProgram(program);
-
-			program.vertexPositionAttribute = gl.getAttribLocation(program, "vertexPos_model");
-			program.vertexNormalAttribute = gl.getAttribLocation(program, "vertexNormal");
-			program.vertexColorAttribute = gl.getAttribLocation(program, "vertexColor");
-			program.vertexUVAttribute = gl.getAttribLocation(program, "vertexUV");
 
 			program.mvMatrixUniform = gl.getUniformLocation(program, "modelViewMatrix");
 			program.mvpMatrixUniform = gl.getUniformLocation(program, "modelViewProjectionMatrix");
@@ -99,7 +79,7 @@ namespace sd.model {
 
 			gl.useProgram(null);
 
-			return program;
+			return pipeline;
 		}
 
 
@@ -113,13 +93,13 @@ namespace sd.model {
 			line  ("attribute vec3 vertexPos_model;");
 			line  ("attribute vec3 vertexNormal;");
 			if_all("attribute vec2 vertexUV;", Feature.VtxUV);
-			if_all("attribute vec3 vertexColor;", Feature.VtxColor);
+			if_all("attribute vec3 vertexColour;", Feature.VtxColour);
 
 			// Out
 			line  ("varying vec3 vertexNormal_intp;");
 			if_all("varying vec3 vertexPos_cam_intp;", Feature.Specular);
 			if_all("varying vec2 vertexUV_intp;", Feature.VtxUV);
-			if_all("varying vec3 vertexColor_intp;", Feature.VtxColor);
+			if_all("varying vec3 vertexColour_intp;", Feature.VtxColour);
 
 			// Uniforms
 			line  ("uniform mat4 modelViewProjectionMatrix;");
@@ -132,7 +112,7 @@ namespace sd.model {
 			line  ("	vertexNormal_intp = normalize(normalMatrix * vertexNormal);");
 			if_all("	vertexPos_cam_intp = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;", Feature.Specular);
 			if_all("	vertexUV_intp = vertexUV;", Feature.VtxUV);
-			if_all("	vertexColor_intp = vertexColor;", Feature.VtxColor);
+			if_all("	vertexColour_intp = vertexColour;", Feature.VtxColour);
 			line  ("}");
 
 			// console.info("------ VERTEX");
@@ -154,7 +134,7 @@ namespace sd.model {
 			line  ("varying vec3 vertexNormal_intp;");
 			if_all("varying vec3 vertexPos_cam_intp;", Feature.Specular);
 			if_all("varying vec2 vertexUV_intp;", Feature.VtxUV);
-			if_all("varying vec3 vertexColor_intp;", Feature.VtxColor);
+			if_all("varying vec3 vertexColour_intp;", Feature.VtxColour);
 
 			// Uniforms
 			line  ("uniform mat3 lightNormalMatrix;");
@@ -162,7 +142,7 @@ namespace sd.model {
 			if_all("uniform sampler2D albedoSampler;", Feature.AlbedoMap);
 
 			// Constants
-			line  ("const vec3 sunlightColor = vec3(1, 1, 1);");
+			line  ("const vec3 sunlightColour = vec3(1, 1, 1);");
 
 			// main()
 			line  ("void main() {");
@@ -176,26 +156,26 @@ namespace sd.model {
 				line("	vec3 reflectVec = reflect(-lightVec, normal);");
 				line("	float spec = max(dot(reflectVec, viewVec), 0.0);");
 				line("	spec = pow(spec, 8.0); // shininess");
-				line("	vec3 specContrib = sunlightColor * spec;");
+				line("	vec3 specContrib = sunlightColour * spec;");
 			}
 
 			// final color
 			if ((feat & (Feature.VtxUV | Feature.AlbedoMap)) == (Feature.VtxUV | Feature.AlbedoMap)) {
-				line("	vec3 lightColor = sunlightColor * max(ambientSunFactor, dot(lightVec, normal));");
-				line("	vec3 texColor = texture2D(albedoSampler, vertexUV_intp).xyz;");
-				line("	vec3 outColor = lightColor * texColor;");
+				line("	vec3 lightColour = sunlightColour * max(ambientSunFactor, dot(lightVec, normal));");
+				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
+				line("	vec3 outColour = lightColour * texColour;");
 			}
-			else if (feat & Feature.VtxColor) {
-				line("	vec3 diffColor = (sunlightColor * 0.1) + (vertexColor_intp * 0.9);");
-				line("	vec3 outColor = diffColor * (ambientSunFactor + 0.5 * dot(lightVec, normal));");
+			else if (feat & Feature.VtxColour) {
+				line("	vec3 diffColour = (sunlightColour * 0.1) + (vertexColour_intp * 0.9);");
+				line("	vec3 outColour = diffColour * (ambientSunFactor + 0.5 * dot(lightVec, normal));");
 			}
 			else {
-				line("	vec3 outColor = vec3(0.0, 1.0, 0.0);");	
+				line("	vec3 outColour = vec3(0.0, 1.0, 0.0);");	
 			}
 			if (feat & Feature.Specular) {
-				line("	outColor = outColor + specContrib;");
+				line("	outColour = outColour + specContrib;");
 			}
-			line  ("	gl_FragColor = vec4(outColor, 1.0);");
+			line  ("	gl_FragColour = vec4(outColour, 1.0);");
 
 			line  ("}");
 
@@ -203,6 +183,22 @@ namespace sd.model {
 			// source.forEach((s) => console.info(s));
 
 			return source.join("\n") + "\n";
+		}
+	}
+
+
+	//  ___ _                _             _ __  __         _     _ __  __                             
+	// / __| |_ __ _ _ _  __| |__ _ _ _ __| |  \/  |___  __| |___| |  \/  |__ _ _ _  __ _ __ _ ___ _ _ 
+	// \__ \  _/ _` | ' \/ _` / _` | '_/ _` | |\/| / _ \/ _` / -_) | |\/| / _` | ' \/ _` / _` / -_) '_|
+	// |___/\__\__,_|_||_\__,_\__,_|_| \__,_|_|  |_\___/\__,_\___|_|_|  |_\__,_|_||_\__,_\__, \___|_|  
+	//                                                                                   |___/         
+
+	export class StandardModelManager {
+		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager) {
+		}
+
+
+		create() {
 		}
 	}
 
