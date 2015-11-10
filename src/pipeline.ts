@@ -47,6 +47,7 @@ namespace sd.render {
 		private writeMask_: ColourWriteMask;
 		private blending_: ColourBlendingDescriptor;
 		private program_: WebGLProgram;
+		private attrRoleIndexMap_: Map<mesh.VertexAttributeRole, number>;
 
 		constructor(private rc: RenderContext, desc: PipelineDescriptor) {
 			this.colourPixelFormats_ = desc.colourPixelFormats.slice(0);
@@ -70,22 +71,15 @@ namespace sd.render {
 				assert(rc.extDrawBuffers, "This GL only supports up to " + maxColourAttachments(rc) + " attachment(s)");
 			}
 
-			var gl = rc.gl;
+			// -- create program and find attribute locations
+			this.program_ = makeProgram(rc, desc.vertexShader, desc.fragmentShader);
+			this.attrRoleIndexMap_ = new Map<mesh.VertexAttributeRole, number>();
 
-			// -- create pipeline program
-			this.program_ = gl.createProgram();
-			if (desc.vertexShader)
-				gl.attachShader(this.program_, desc.vertexShader);
-			if (desc.fragmentShader)
-				gl.attachShader(this.program_, desc.fragmentShader);
-			gl.linkProgram(this.program_);
-
-			if (! gl.getProgramParameter(this.program_, gl.LINK_STATUS)) {
-				var errorLog = gl.getProgramInfoLog(this.program_);
-				// alert("LINK FAILED\n\n" + errorLog);
-				console.error("Program link failed:", errorLog);
-				assert(false, "bad program");
-			}
+			desc.attributeNames.forEach((name, role) => {
+				var attrIx = rc.gl.getAttribLocation(this.program_, name);
+				assert(attrIx >= 0, "cannot find attribute " + name);
+				this.attrRoleIndexMap_.set(role, attrIx);
+			});
 		}
 
 
@@ -93,8 +87,9 @@ namespace sd.render {
 			var gl = this.rc.gl;
 			gl.useProgram(this.program_);
 
-			if (this.writeMask_)
+			if (this.writeMask_) {
 				gl.colorMask(this.writeMask_.red, this.writeMask_.green, this.writeMask_.blue, this.writeMask_.alpha);
+			}
 
 			if (this.blending_.enabled) {
 				gl.enable(gl.BLEND);
@@ -116,8 +111,9 @@ namespace sd.render {
 			var gl = this.rc.gl;
 			gl.useProgram(null);
 
-			if (this.writeMask_)
+			if (this.writeMask_) {
 				gl.colorMask(true, true, true, true);
+			}
 
 			if (this.blending_.enabled) {
 				gl.disable(gl.BLEND);
@@ -133,6 +129,12 @@ namespace sd.render {
 		get stencilPixelFormat() { return this.stencilPixelFormat_; }
 
 		get program() { return this.program_; }
+
+		attributeIndexForRole(role: mesh.VertexAttributeRole) {
+			if (this.attrRoleIndexMap_.has(role))
+				return this.attrRoleIndexMap_.get(role);
+			return -1;
+		}
 	}
 
 } // ns sd.render

@@ -55,6 +55,9 @@ namespace sd.render {
 	}
 
 
+	export type AttributeNameMap = Map<mesh.VertexAttributeRole, string>;
+
+
 	export interface PipelineDescriptor {
 		colourPixelFormats: PixelFormat[];
 
@@ -66,6 +69,8 @@ namespace sd.render {
 
 		vertexShader: WebGLShader;
 		fragmentShader: WebGLShader;
+
+		attributeNames: AttributeNameMap;
 	}
 
 
@@ -110,7 +115,9 @@ namespace sd.render {
 			blending: makeColourBlendingDescriptor(),
 
 			vertexShader: null,
-			fragmentShader: null
+			fragmentShader: null,
+
+			attributeNames: new Map<mesh.VertexAttributeRole, string>()
 		};
 	}
 
