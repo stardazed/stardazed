@@ -43,6 +43,42 @@ namespace sd.render {
 
 		return contextLimits.maxDrawBuffers;
 	}
+
+
+	export function makeShader(rc: RenderContext, type: number, sourceText: string) {
+		var shader = rc.gl.createShader(type);
+		rc.gl.shaderSource(shader, sourceText);
+		rc.gl.compileShader(shader);
+
+		if (! rc.gl.getShaderParameter(shader, rc.gl.COMPILE_STATUS)) {
+			var errorLog = rc.gl.getShaderInfoLog(shader);
+			alert("COMPILE FAILED\n\n" + errorLog);
+			console.error("Shader compilation failed:", errorLog);
+			console.error("Source", sourceText);
+			assert(false, "bad shader");
+		}
+
+		return shader;
+	}
+
+
+	export function makeProgram(rc: RenderContext, vertexShader: WebGLShader, fragmentShader: WebGLShader) {
+		var program = rc.gl.createProgram();
+		if (vertexShader)
+			rc.gl.attachShader(program, vertexShader);
+		if (fragmentShader)
+			rc.gl.attachShader(program, fragmentShader);
+		rc.gl.linkProgram(program);
+
+		if (! rc.gl.getProgramParameter(program, rc.gl.LINK_STATUS)) {
+			var errorLog = rc.gl.getProgramInfoLog(program);
+			alert("LINK FAILED\n\n" + errorLog);
+			console.error("Program link failed:", errorLog);
+			assert(false, "bad program");
+		}
+
+		return program;
+	}
 	
 
 	export function makeRenderContext(canvas: HTMLCanvasElement): RenderContext {
