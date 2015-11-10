@@ -457,6 +457,8 @@ namespace sd.mesh {
 
 
 	export const enum PrimitiveType {
+		None,
+
 		Point,
 		Line,
 		LineStrip,

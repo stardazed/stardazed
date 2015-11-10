@@ -199,10 +199,10 @@ namespace sd.render {
 		}
 
 
-		drawPrimitives(primitiveType: mesh.PrimitiveType, startPrimitive: number, primitiveCount: number, instanceCount = 1) {
-			var glPrimitiveType = glTypeForPrimitiveType(this.rc, primitiveType);
-			var startVertex = mesh.indexOffsetForPrimitiveCount(primitiveType, startPrimitive);
-			var vertexCount = mesh.indexCountForPrimitiveCount(primitiveType, primitiveCount);
+		drawPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
+			var glPrimitiveType = this.mesh_.primitiveType;
+			var startVertex = mesh.indexOffsetForPrimitiveCount(this.mesh_.primitiveType, startPrimitive);
+			var vertexCount = mesh.indexCountForPrimitiveCount(this.mesh_.primitiveType, primitiveCount);
 
 			if (instanceCount == 1) {
 				this.rc.gl.drawArrays(glPrimitiveType, startVertex, vertexCount);
@@ -213,8 +213,8 @@ namespace sd.render {
 		}
 
 
-		drawPrimitiveGroup(primitiveType: mesh.PrimitiveType, primitiveGroup: mesh.PrimitiveGroup, instanceCount = 1) {
-			this.drawPrimitives(primitiveType, primitiveGroup.fromPrimIx, primitiveGroup.primCount, instanceCount);
+		drawPrimitiveGroup(primitiveGroup: mesh.PrimitiveGroup, instanceCount = 1) {
+			this.drawPrimitives(primitiveGroup.fromPrimIx, primitiveGroup.primCount, instanceCount);
 		}
 
 
