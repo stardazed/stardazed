@@ -188,9 +188,9 @@ namespace sd.render {
 
 		bind(usingPipeline: Pipeline) {
 			var roleIndexes = usingPipeline.attributePairs();
-			var pair: IteratorResult<[mesh.VertexAttributeRole, number]>;
+			var pair = roleIndexes.next();
 
-			while (pair = roleIndexes.next()) {
+			while (! pair.done) {
 				var attrRole = pair.value[0];
 				var attrIndex = pair.value[1];
 
@@ -203,6 +203,8 @@ namespace sd.render {
 					console.warn("Mesh does not have Pipeline attr for index " + attrIndex + " of role " + attrRole);
 					this.rc.gl.disableVertexAttribArray(attrIndex);
 				}
+
+				pair = roleIndexes.next();
 			}
 
 			if (this.hasIndexBuffer) {
@@ -213,11 +215,12 @@ namespace sd.render {
 
 		unbind(fromPipeline: Pipeline) {
 			var roleIndexes = fromPipeline.attributePairs();
-			var pair: IteratorResult<[mesh.VertexAttributeRole, number]>;
+			var pair = roleIndexes.next();
 
-			while (pair = roleIndexes.next()) {
+			while (! pair.done) {
 				var attrIndex = pair.value[1];
 				this.rc.gl.disableVertexAttribArray(attrIndex);
+				pair = roleIndexes.next();	
 			}
 		}
 
