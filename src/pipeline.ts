@@ -130,6 +130,8 @@ namespace sd.render {
 
 		get program() { return this.program_; }
 
+		get attributeCount() { return this.attrRoleIndexMap_.size; }
+		attributePairs() { return this.attrRoleIndexMap_.entries(); }
 		attributeIndexForRole(role: mesh.VertexAttributeRole) {
 			if (this.attrRoleIndexMap_.has(role))
 				return this.attrRoleIndexMap_.get(role);
