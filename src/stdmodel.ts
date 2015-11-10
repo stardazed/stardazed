@@ -64,6 +64,7 @@ namespace sd.world {
 				pld.attributeNames.set(mesh.VertexAttributeRole.UV, "vertexUV");
 			}
 
+			console.info("creating program for features: " + feat);
 			var pipeline = new render.Pipeline(this.rc, pld);
 			var program = <StandardGLProgram>pipeline.program;
 			
@@ -175,7 +176,7 @@ namespace sd.world {
 			if (feat & Feature.Specular) {
 				line("	outColour = outColour + specContrib;");
 			}
-			line  ("	gl_FragColour = vec4(outColour, 1.0);");
+			line  ("	gl_FragColor = vec4(outColour, 1.0);");
 
 			line  ("}");
 
@@ -193,12 +194,114 @@ namespace sd.world {
 	// |___/\__\__,_|_||_\__,_\__,_|_| \__,_|_|  |_\___/\__,_\___|_|_|  |_\__,_|_||_\__,_\__, \___|_|  
 	//                                                                                   |___/         
 
+	export type StandardModelInstance = Instance<StandardModelManager>;
+
 	export class StandardModelManager {
+		private stdPipeline: StandardPipeline;
+
+		private transforms_: TransformInstance[] = [];
+		private meshDatas_: mesh.MeshData[] = [];
+		private meshes_: render.Mesh[] = [];
+		private textures_: render.Texture[] = [];
+		private pipelines_: render.Pipeline[] = [];
+		private count_ = 0;
+
+		private modelViewMatrix_: Float32Array;
+		private modelViewProjectionMatrix_: Float32Array;
+		private normalMatrix_: Float32Array;
+		private lightNormalMatrix_: Float32Array;
+
+
 		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager) {
+			this.stdPipeline = new StandardPipeline(rc);
+
+			this.modelViewMatrix_ = mat4.create();
+			this.modelViewProjectionMatrix_ = mat4.create();
+			this.normalMatrix_ = mat3.create();
+			this.lightNormalMatrix_ = mat3.create();
 		}
 
 
-		create() {
+		private featuresOfModel(index: number): number {
+			var feat = 0;
+
+			var data = this.meshDatas_[index];
+			var hasColour = !!(data.findFirstAttributeWithRole(mesh.VertexAttributeRole.Colour));
+			var hasUV = !!(data.findFirstAttributeWithRole(mesh.VertexAttributeRole.UV));
+
+			if (hasColour) feat |= Feature.VtxColour;
+			if (hasUV) feat |= Feature.VtxUV;
+			if (hasColour) feat |= Feature.Specular; // TEMP for GranZero test setup
+			if (this.textures_[index]) feat |= Feature.AlbedoMap;
+
+			return feat;
+		}
+
+
+		create(entity: Entity, meshData: mesh.MeshData, texture: render.Texture = null): StandardModelInstance {
+			var ix = ++this.count_;
+
+			this.transforms_[ix] = this.transformMgr_.forEntity(entity);
+			this.meshDatas_[ix] = meshData;
+
+			var md = render.makeMeshDescriptor(meshData);
+			md.primitiveType = mesh.PrimitiveType.Triangle;
+			this.meshes_[ix] = new render.Mesh(this.rc, md);
+
+			this.textures_[ix] = texture;
+
+			// -- get appropriate pipeline for the model
+			this.pipelines_[ix] = this.stdPipeline.pipelineForFeatures(this.featuresOfModel(ix));
+
+			return new Instance<StandardModelManager>(ix);
+		}
+
+
+		drawAll(rp: render.RenderPass, proj: ProjectionSetup) {
+			var gl = this.rc.gl;
+
+			rp.setDepthTest(render.DepthTest.Less);
+
+			for (var mix = 1; mix <= this.count_; ++mix) {
+				rp.setPipeline(this.pipelines_[mix]);
+				rp.setTexture(this.textures_[mix], 0);
+				rp.setMesh(this.meshes_[mix]);
+
+				// -- uniforms
+				var program = <StandardGLProgram>this.pipelines_[mix].program;
+
+				gl.uniform1f(program.ambientSunFactorUniform, 0.7);
+
+				var modelMatrix = this.transformMgr_.modelMatrix(this.transforms_[mix]);
+				mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
+				mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
+
+				if (program.mvpMatrixUniform) {
+					gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);
+				}
+
+				if (program.mvMatrixUniform) {
+					gl.uniformMatrix4fv(program.mvMatrixUniform, false, this.modelViewMatrix_);
+				}
+
+				if (program.normalMatrixUniform) {
+					math.extractNormalMatrix(this.modelViewMatrix_, this.normalMatrix_);
+					gl.uniformMatrix3fv(program.normalMatrixUniform, false, this.normalMatrix_);
+				}
+
+				if (program.lightNormalMatrixUniform) {
+					math.extractNormalMatrix(proj.viewMatrix, this.lightNormalMatrix_);
+					gl.uniformMatrix3fv(program.lightNormalMatrixUniform, false, this.lightNormalMatrix_);
+				}
+
+				// -- draw
+				if (this.meshes_[mix].hasIndexBuffer)
+					rp.drawIndexedPrimitives(0, this.meshDatas_[mix].indexBuffer.primitiveCount);
+				else
+					rp.drawPrimitives(0, this.meshDatas_[mix].primaryVertexBuffer.itemCount / 3);
+
+				rp.setMesh(null);
+			}
 		}
 	}
 
