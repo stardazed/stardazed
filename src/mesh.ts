@@ -124,10 +124,12 @@ namespace sd.render {
 
 			this.rc.gl.enableVertexAttribArray(toVAIndex);
 			this.rc.gl.vertexAttribPointer(toVAIndex, elementCount, glElementType, normalized, stride, attr.offset);
+
+			// console.info("-- Enabled Attr " + toVAIndex + " " + elementCount + " floats @ " + attr.offset);
 		}
 
 
-		private bindVertexBufferAttributes(vb: mesh.VertexBuffer, startBoundIndex: number) {
+		bindVertexBufferAttributes(vb: mesh.VertexBuffer, startBoundIndex: number) {
 			var attrCount = vb.attributeCount,
 				stride = vb.strideBytes;
 
@@ -143,6 +145,8 @@ namespace sd.render {
 
 		constructor(private rc: RenderContext, desc: MeshDescriptor) {
 			var gl = rc.gl;
+
+			console.info("--MESH");
 
 			this.vao_ = rc.extVAO ? rc.extVAO.createVertexArrayOES() : null;
 			if (this.vao_)
@@ -167,6 +171,7 @@ namespace sd.render {
 				// -- allocate sized index buffer
 				var indexBuffer = new Buffer(rc, BufferRole.VertexIndex, desc.indexBinding.updateFrequency);
 				indexBuffer.allocateWithContents(desc.indexBinding.indexBuffer.buffer);
+				this.buffers_.push(indexBuffer);
 			
 				// -- precompute some info required for draw calls
 				this.primitiveType_ = desc.indexBinding.indexBuffer.primitiveType;

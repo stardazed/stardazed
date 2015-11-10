@@ -65,8 +65,8 @@ namespace sd.render {
 
 	export class Buffer {
 		private target_: number;
-		resource_: WebGLBuffer = null;
-		byteSize_ = 0;
+		private resource_: WebGLBuffer = null;
+		private byteSize_ = 0;
 
 		constructor(private rc: RenderContext, private role_: BufferRole, private updateFrequency_: BufferUpdateFrequency) {
 			this.target_ = glTargetForBufferRole(rc, this.role_);
