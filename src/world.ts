@@ -247,4 +247,12 @@ namespace sd.world {
 	}
 
 
+	// ------ TEMP
+
+	export interface ProjectionSetup {
+		projectionMatrix: ArrayOfNumber;
+		viewMatrix: ArrayOfNumber;
+	}
+
+
 } // ns sd.world
