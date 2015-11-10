@@ -197,15 +197,17 @@ namespace sd.mesh {
 
 
 	export const enum VertexAttributeRole {
-		Generic,
+		None,
 		Position,
 		Normal,
 		Tangent,
 		Colour,
 		UV,
-		UVW,
-		Index
-	};
+		UVW
+		/*
+		Custom1, etc.?
+		*/
+	}
 
 	// -- A VertexAttribute is a Field with a certain Role inside a VertexBuffer
 

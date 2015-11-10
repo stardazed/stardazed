@@ -106,7 +106,7 @@ namespace sd.render {
 
 
 	export class Mesh {
-		private vao_: WebGLVertexArrayObjectOES;		
+		private vao_: WebGLVertexArrayObjectOES;
 
 		private buffers_: Buffer[] = [];
 		private primitiveGroups_: mesh.PrimitiveGroup[];
@@ -124,8 +124,6 @@ namespace sd.render {
 
 			this.rc.gl.enableVertexAttribArray(toVAIndex);
 			this.rc.gl.vertexAttribPointer(toVAIndex, elementCount, glElementType, normalized, stride, attr.offset);
-
-			// console.info("-- Enabled Attr " + toVAIndex + " " + elementCount + " floats @ " + attr.offset);
 		}
 
 
@@ -145,8 +143,6 @@ namespace sd.render {
 
 		constructor(private rc: RenderContext, desc: MeshDescriptor) {
 			var gl = rc.gl;
-
-			console.info("--MESH");
 
 			this.vao_ = rc.extVAO ? rc.extVAO.createVertexArrayOES() : null;
 			if (this.vao_)

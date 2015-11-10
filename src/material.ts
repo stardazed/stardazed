@@ -6,7 +6,7 @@
 /// <reference path="container.ts" />
 /// <reference path="world.ts" />
 
-namespace sd.model {
+namespace sd.world {
 
 	//  __  __      _           _      _ __  __                             
 	// |  \/  |__ _| |_ ___ _ _(_)__ _| |  \/  |__ _ _ _  __ _ __ _ ___ _ _ 
