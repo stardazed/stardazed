@@ -8,20 +8,20 @@
 
 namespace sd.world {
 
-	//  ___ _                _             _ __  __      _           _      _ __  __          
-	// / __| |_ __ _ _ _  __| |__ _ _ _ __| |  \/  |__ _| |_ ___ _ _(_)__ _| |  \/  |__ _ _ _ 
-	// \__ \  _/ _` | ' \/ _` / _` | '_/ _` | |\/| / _` |  _/ -_) '_| / _` | | |\/| / _` | '_|
-	// |___/\__\__,_|_||_\__,_\__,_|_| \__,_|_|  |_\__,_|\__\___|_| |_\__,_|_|_|  |_\__, |_|  
-	//                                                                              |___/     
+	//  ___ _      _ __  __      _           _      _ __  __                             
+	// / __| |_ __| |  \/  |__ _| |_ ___ _ _(_)__ _| |  \/  |__ _ _ _  __ _ __ _ ___ _ _ 
+	// \__ \  _/ _` | |\/| / _` |  _/ -_) '_| / _` | | |\/| / _` | ' \/ _` / _` / -_) '_|
+	// |___/\__\__,_|_|  |_\__,_|\__\___|_| |_\__,_|_|_|  |_\__,_|_||_\__,_\__, \___|_|  
+	//                                                                     |___/         
 
-	export const enum StandardMaterialFlags {
+	export const enum StdMaterialFlags {
 		albedoAlphaIsTranslucency = 0x00000001,
 		albedoAlphaIsGloss        = 0x00000002,
 		normalAlphaIsHeight       = 0x00000004
 	}
 
 
-	export interface StandardMaterialDescriptor {
+	export interface StdMaterialDescriptor {
 		// colours
 		mainColour: ArrayOfNumber;      // v3, single colour or tint for albedo
 		specularColour: ArrayOfNumber;  // v3
@@ -34,11 +34,11 @@ namespace sd.world {
 		albedoMap: render.Texture;      // nullptr means use mainColour only
 		normalMap: render.Texture;      // nullptr means no bump
 
-		flags: StandardMaterialFlags;
+		flags: StdMaterialFlags;
 	}
 
 
-	export function makeStdMaterialDescriptor(): StandardMaterialDescriptor {
+	export function makeStdMaterialDescriptor(): StdMaterialDescriptor {
 		var vecs = new Float32Array(10);
 
 		return {
@@ -57,17 +57,17 @@ namespace sd.world {
 	}
 
 
-	export interface StandardMaterialData {
+	export interface StdMaterialData {
 		colourData: Float32Array;
 		specularData: Float32Array;
 		texScaleOffsetData: Float32Array;
-		flags: StandardMaterialFlags;
+		flags: StdMaterialFlags;
 	}
 
 
-	export type StandardMaterialIndex = world.Instance<StandardMaterialManager>;
+	export type StdMaterialIndex = world.Instance<StdMaterialManager>;
 
-	export class StandardMaterialManager {
+	export class StdMaterialManager {
 		private instanceData_: container.MultiArrayBuffer;
 		private albedoMaps_: render.Texture[] = [];
 		private normalMaps_: render.Texture[] = [];
@@ -102,7 +102,7 @@ namespace sd.world {
 		}
 
 
-		append(desc: StandardMaterialDescriptor): StandardMaterialIndex {
+		append(desc: StdMaterialDescriptor): StdMaterialIndex {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
@@ -119,11 +119,11 @@ namespace sd.world {
 			this.albedoMaps_[matIndex] = desc.albedoMap;
 			this.normalMaps_[matIndex] = desc.normalMap;
 
-			return new world.Instance<StandardMaterialManager>(matIndex);
+			return new world.Instance<StdMaterialManager>(matIndex);
 		}
 
 
-		destroy(index: StandardMaterialIndex) {
+		destroy(index: StdMaterialIndex) {
 			var matIndex = index.ref;
 
 			math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex).set(math.Vec4.zero);
@@ -138,7 +138,7 @@ namespace sd.world {
 		}
 
 
-		copyDescriptor(index: StandardMaterialIndex): StandardMaterialDescriptor {
+		copyDescriptor(index: StdMaterialIndex): StdMaterialDescriptor {
 			var matIndex = index.ref;
 			assert(matIndex < this.instanceData_.count);
 
@@ -160,7 +160,7 @@ namespace sd.world {
 
 
 		// direct data views to set uniforms with in StdModelMgr
-		getData(index: StandardMaterialIndex): StandardMaterialData {
+		getData(index: StdMaterialIndex): StdMaterialData {
 			var matIndex = index.ref;
 			return {
 				colourData: <Float32Array>math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex),

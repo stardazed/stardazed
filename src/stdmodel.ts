@@ -22,7 +22,7 @@ namespace sd.world {
 	}
 
 
-	interface StandardGLProgram extends WebGLProgram {
+	interface StdGLProgram extends WebGLProgram {
 		mvMatrixUniform?: WebGLUniformLocation;
 		mvpMatrixUniform?: WebGLUniformLocation;
 		normalMatrixUniform?: WebGLUniformLocation;
@@ -41,13 +41,13 @@ namespace sd.world {
 	}
 
 
-	//  ___ _                _             _ ___ _           _ _          
-	// / __| |_ __ _ _ _  __| |__ _ _ _ __| | _ (_)_ __  ___| (_)_ _  ___ 
-	// \__ \  _/ _` | ' \/ _` / _` | '_/ _` |  _/ | '_ \/ -_) | | ' \/ -_)
-	// |___/\__\__,_|_||_\__,_\__,_|_| \__,_|_| |_| .__/\___|_|_|_||_\___|
-	//                                            |_|                     
+	//  ___ _      _ ___ _           _ _          
+	// / __| |_ __| | _ (_)_ __  ___| (_)_ _  ___ 
+	// \__ \  _/ _` |  _/ | '_ \/ -_) | | ' \/ -_)
+	// |___/\__\__,_|_| |_| .__/\___|_|_|_||_\___|
+	//                    |_|                     
 
-	class StandardPipeline {
+	class StdPipeline {
 		private cachedPipelines_ = new Map<number, render.Pipeline>();
 
 		constructor(private rc: render.RenderContext) {
@@ -80,7 +80,7 @@ namespace sd.world {
 			}
 
 			var pipeline = new render.Pipeline(this.rc, pld);
-			var program = <StandardGLProgram>pipeline.program;
+			var program = <StdGLProgram>pipeline.program;
 			
 			gl.useProgram(program);
 
@@ -214,17 +214,17 @@ namespace sd.world {
 	}
 
 
-	//  ___ _                _             _ __  __         _     _ __  __          
-	// / __| |_ __ _ _ _  __| |__ _ _ _ __| |  \/  |___  __| |___| |  \/  |__ _ _ _ 
-	// \__ \  _/ _` | ' \/ _` / _` | '_/ _` | |\/| / _ \/ _` / -_) | |\/| / _` | '_|
-	// |___/\__\__,_|_||_\__,_\__,_|_| \__,_|_|  |_\___/\__,_\___|_|_|  |_\__, |_|  
-	//                                                                    |___/     
+	//  ___ _      _ __  __         _     _ __  __                             
+	// / __| |_ __| |  \/  |___  __| |___| |  \/  |__ _ _ _  __ _ __ _ ___ _ _ 
+	// \__ \  _/ _` | |\/| / _ \/ _` / -_) | |\/| / _` | ' \/ _` / _` / -_) '_|
+	// |___/\__\__,_|_|  |_\___/\__,_\___|_|_|  |_\__,_|_||_\__,_\__, \___|_|  
+	//                                                           |___/         
 
-	export type StandardModelInstance = Instance<StandardModelManager>;
+	export type StdModelInstance = Instance<StdModelManager>;
 
 
-	export class StandardModelManager {
-		private stdPipeline: StandardPipeline;
+	export class StdModelManager {
+		private stdPipeline: StdPipeline;
 
 		private transforms_: TransformInstance[] = [];
 		private meshes_: render.Mesh[] = [];
@@ -238,8 +238,8 @@ namespace sd.world {
 		private lightNormalMatrix_: Float32Array;
 
 
-		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager, private materialMgr_: StandardMaterialManager) {
-			this.stdPipeline = new StandardPipeline(rc);
+		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager, private materialMgr_: StdMaterialManager) {
+			this.stdPipeline = new StdPipeline(rc);
 
 			this.modelViewMatrix_ = mat4.create();
 			this.modelViewProjectionMatrix_ = mat4.create();
@@ -248,7 +248,7 @@ namespace sd.world {
 		}
 
 
-		create(entity: Entity, mesh: render.Mesh, materials: StandardMaterialIndex[]): StandardModelInstance {
+		create(entity: Entity, mesh: render.Mesh, materials: StdMaterialIndex[]): StdModelInstance {
 			var ix = ++this.count_;
 
 			this.transforms_[ix] = this.transformMgr_.forEntity(entity);
@@ -256,7 +256,7 @@ namespace sd.world {
 
 			// this.pipelines_[ix] = this.stdPipeline.pipelineForFeatures(this.featuresOfModel(ix));
 
-			return new Instance<StandardModelManager>(ix);
+			return new Instance<StdModelManager>(ix);
 		}
 
 
@@ -273,7 +273,7 @@ namespace sd.world {
 				rp.setMesh(this.meshes_[mix]);
 
 				// -- uniforms
-				var program = <StandardGLProgram>null;//this.pipelines_[mix].program;
+				var program = <StdGLProgram>null;//this.pipelines_[mix].program;
 				var mesh = this.meshes_[mix];
 
 				gl.uniform1f(program.ambientSunFactorUniform, 0.7);
