@@ -187,40 +187,69 @@ namespace sd.render {
 
 
 		bind(usingPipeline: Pipeline) {
-			var roleIndexes = usingPipeline.attributePairs();
-			var pair = roleIndexes.next();
+			var plVAO: WebGLVertexArrayObjectOES = null;
+			var needBinding = true;
 
-			while (! pair.done) {
-				var attrRole = pair.value[0];
-				var attrIndex = pair.value[1];
-
-				var meshAttr = this.attributes_.get(attrRole);
-				if (meshAttr) {
-					meshAttr.buffer.bind();
-					this.bindSingleAttribute(meshAttr.attribute, meshAttr.clientBuffer.strideBytes, attrIndex);
+			if (this.pipelineVAOMap_) {
+				// -- If we're using VAOs then each mesh has a VAO per Pipeline it is
+				// -- bound to. This approach is sadly necessary as attribute indexes
+				// -- can differ for the same attributes for every Pipeline.
+				// -- A GL with explicit attribute locations can avoid this by being
+				// -- consistent with attribute indexes for attribute roles.
+				plVAO = this.pipelineVAOMap_.get(usingPipeline);
+				if (plVAO) {
+					needBinding = false;
 				}
 				else {
-					console.warn("Mesh does not have Pipeline attr for index " + attrIndex + " of role " + attrRole);
-					this.rc.gl.disableVertexAttribArray(attrIndex);
+					plVAO = this.rc.extVAO.createVertexArrayOES();
+					this.pipelineVAOMap_.set(usingPipeline, plVAO);
 				}
 
-				pair = roleIndexes.next();
+				this.rc.extVAO.bindVertexArrayOES(plVAO);
 			}
 
-			if (this.hasIndexBuffer) {
-				this.indexBuffer().bind();
+			if (needBinding) {
+				var roleIndexes = usingPipeline.attributePairs();
+				var pair = roleIndexes.next();
+
+				while (!pair.done) {
+					var attrRole = pair.value[0];
+					var attrIndex = pair.value[1];
+
+					var meshAttr = this.attributes_.get(attrRole);
+					if (meshAttr) {
+						meshAttr.buffer.bind();
+						this.bindSingleAttribute(meshAttr.attribute, meshAttr.clientBuffer.strideBytes, attrIndex);
+					}
+					else {
+						console.warn("Mesh does not have Pipeline attr for index " + attrIndex + " of role " + attrRole);
+						this.rc.gl.disableVertexAttribArray(attrIndex);
+					}
+
+					pair = roleIndexes.next();
+				}
+
+				if (this.hasIndexBuffer) {
+					this.indexBuffer().bind();
+				}
 			}
 		}
 
 
 		unbind(fromPipeline: Pipeline) {
-			var roleIndexes = fromPipeline.attributePairs();
-			var pair = roleIndexes.next();
+			if (this.pipelineVAOMap_) {
+				this.rc.extVAO.bindVertexArrayOES(null);
+			}
+			else {
+				// -- explicitly disable all attributes specified in the pipeline
+				var roleIndexes = fromPipeline.attributePairs();
+				var pair = roleIndexes.next();
 
-			while (! pair.done) {
-				var attrIndex = pair.value[1];
-				this.rc.gl.disableVertexAttribArray(attrIndex);
-				pair = roleIndexes.next();	
+				while (!pair.done) {
+					var attrIndex = pair.value[1];
+					this.rc.gl.disableVertexAttribArray(attrIndex);
+					pair = roleIndexes.next();
+				}
 			}
 		}
 
