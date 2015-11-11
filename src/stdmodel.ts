@@ -3,7 +3,7 @@
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 /// <reference path="numeric.ts" />
-/// <reference path="material.ts" />
+/// <reference path="stdmaterial.ts" />
 /// <reference path="rendercontext.ts" />
 
 namespace sd.world {
@@ -29,7 +29,15 @@ namespace sd.world {
 		lightNormalMatrixUniform?: WebGLUniformLocation;
 
 		ambientSunFactorUniform?: WebGLUniformLocation;
-		textureUniform?: WebGLUniformLocation;
+
+		colourMapUniform?: WebGLUniformLocation;
+		normalMapUniform?: WebGLUniformLocation;
+	}
+
+
+	const enum TextureBindPoint {
+		Colour = 0, // rgb, (alpha|gloss)?
+		Normal = 1  // xyz, height?
 	}
 
 
@@ -61,6 +69,7 @@ namespace sd.world {
 			pld.vertexShader = render.makeShader(this.rc, gl.VERTEX_SHADER, vertexSource);
 			pld.fragmentShader = render.makeShader(this.rc, gl.FRAGMENT_SHADER, fragmentSource);
 
+			// -- mandatory and optional attribute arrays
 			pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
 			pld.attributeNames.set(mesh.VertexAttributeRole.Normal, "vertexNormal");
 			if (feat & Feature.VtxColour) {
@@ -75,13 +84,24 @@ namespace sd.world {
 			
 			gl.useProgram(program);
 
+			// -- transformation matrices
 			program.mvMatrixUniform = gl.getUniformLocation(program, "modelViewMatrix");
 			program.mvpMatrixUniform = gl.getUniformLocation(program, "modelViewProjectionMatrix");
 			program.normalMatrixUniform = gl.getUniformLocation(program, "normalMatrix");
 			program.lightNormalMatrixUniform = gl.getUniformLocation(program, "lightNormalMatrix");
 
+			// -- material properties
 			program.ambientSunFactorUniform = gl.getUniformLocation(program, "ambientSunFactor");
-			program.textureUniform = gl.getUniformLocation(program, "albedoSampler");
+
+			// -- texture samplers and their fixed binding indexes
+			program.colourMapUniform = gl.getUniformLocation(program, "albedoSampler");
+			if (program.colourMapUniform) {
+				gl.uniform1i(program.colourMapUniform, TextureBindPoint.Colour);
+			}
+			program.normalMapUniform = gl.getUniformLocation(program, "normalSampler");
+			if (program.normalMapUniform) {
+				gl.uniform1i(program.normalMapUniform, TextureBindPoint.Normal);
+			}
 
 			gl.useProgram(null);
 
@@ -194,22 +214,22 @@ namespace sd.world {
 	}
 
 
-	//  ___ _                _             _ __  __         _     _ __  __                             
-	// / __| |_ __ _ _ _  __| |__ _ _ _ __| |  \/  |___  __| |___| |  \/  |__ _ _ _  __ _ __ _ ___ _ _ 
-	// \__ \  _/ _` | ' \/ _` / _` | '_/ _` | |\/| / _ \/ _` / -_) | |\/| / _` | ' \/ _` / _` / -_) '_|
-	// |___/\__\__,_|_||_\__,_\__,_|_| \__,_|_|  |_\___/\__,_\___|_|_|  |_\__,_|_||_\__,_\__, \___|_|  
-	//                                                                                   |___/         
+	//  ___ _                _             _ __  __         _     _ __  __          
+	// / __| |_ __ _ _ _  __| |__ _ _ _ __| |  \/  |___  __| |___| |  \/  |__ _ _ _ 
+	// \__ \  _/ _` | ' \/ _` / _` | '_/ _` | |\/| / _ \/ _` / -_) | |\/| / _` | '_|
+	// |___/\__\__,_|_||_\__,_\__,_|_| \__,_|_|  |_\___/\__,_\___|_|_|  |_\__, |_|  
+	//                                                                    |___/     
 
 	export type StandardModelInstance = Instance<StandardModelManager>;
+
 
 	export class StandardModelManager {
 		private stdPipeline: StandardPipeline;
 
 		private transforms_: TransformInstance[] = [];
-		private meshDatas_: mesh.MeshData[] = [];
 		private meshes_: render.Mesh[] = [];
 		private textures_: render.Texture[] = [];
-		private pipelines_: render.Pipeline[] = [];
+		private primGroupFeatures_: number[] = [];
 		private count_ = 0;
 
 		private modelViewMatrix_: Float32Array;
@@ -218,7 +238,7 @@ namespace sd.world {
 		private lightNormalMatrix_: Float32Array;
 
 
-		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager) {
+		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager, private materialMgr_: StandardMaterialManager) {
 			this.stdPipeline = new StandardPipeline(rc);
 
 			this.modelViewMatrix_ = mat4.create();
@@ -228,53 +248,33 @@ namespace sd.world {
 		}
 
 
-		private featuresOfModel(index: number): number {
-			var feat = 0;
-
-			var data = this.meshDatas_[index];
-			var hasColour = !!(data.findFirstAttributeWithRole(mesh.VertexAttributeRole.Colour));
-			var hasUV = !!(data.findFirstAttributeWithRole(mesh.VertexAttributeRole.UV));
-
-			if (hasColour) feat |= Feature.VtxColour;
-			if (hasUV) feat |= Feature.VtxUV;
-			if (hasColour) feat |= Feature.Specular; // TEMP for GranZero test setup
-			if (this.textures_[index]) feat |= Feature.AlbedoMap;
-
-			return feat;
-		}
-
-
-		create(entity: Entity, meshData: mesh.MeshData, texture: render.Texture = null): StandardModelInstance {
+		create(entity: Entity, mesh: render.Mesh, materials: StandardMaterialIndex[]): StandardModelInstance {
 			var ix = ++this.count_;
 
 			this.transforms_[ix] = this.transformMgr_.forEntity(entity);
-			this.meshDatas_[ix] = meshData;
+			this.meshes_[ix] = mesh;
 
-			var md = render.makeMeshDescriptor(meshData);
-			md.primitiveType = mesh.PrimitiveType.Triangle;
-			this.meshes_[ix] = new render.Mesh(this.rc, md);
-
-			this.textures_[ix] = texture;
-
-			// -- get appropriate pipeline for the model
-			this.pipelines_[ix] = this.stdPipeline.pipelineForFeatures(this.featuresOfModel(ix));
+			// this.pipelines_[ix] = this.stdPipeline.pipelineForFeatures(this.featuresOfModel(ix));
 
 			return new Instance<StandardModelManager>(ix);
 		}
 
 
 		drawAll(rp: render.RenderPass, proj: ProjectionSetup) {
+			return;
+
 			var gl = this.rc.gl;
 
 			rp.setDepthTest(render.DepthTest.Less);
 
 			for (var mix = 1; mix <= this.count_; ++mix) {
-				rp.setPipeline(this.pipelines_[mix]);
-				rp.setTexture(this.textures_[mix], 0);
+				// rp.setPipeline(this.pipelines_[mix]);
+				rp.setTexture(this.textures_[mix], TextureBindPoint.Colour);
 				rp.setMesh(this.meshes_[mix]);
 
 				// -- uniforms
-				var program = <StandardGLProgram>this.pipelines_[mix].program;
+				var program = <StandardGLProgram>null;//this.pipelines_[mix].program;
+				var mesh = this.meshes_[mix];
 
 				gl.uniform1f(program.ambientSunFactorUniform, 0.7);
 
@@ -301,12 +301,10 @@ namespace sd.world {
 				}
 
 				// -- draw
-				if (this.meshes_[mix].hasIndexBuffer)
-					rp.drawIndexedPrimitives(0, this.meshDatas_[mix].indexBuffer.primitiveCount);
+				if (mesh.hasIndexBuffer)
+					rp.drawIndexedPrimitives(mesh.primitiveGroups[0].fromPrimIx, mesh.primitiveGroups[0].primCount);
 				else
-					rp.drawPrimitives(0, this.meshDatas_[mix].primaryVertexBuffer.itemCount / 3);
-
-				rp.setMesh(null);
+					rp.drawPrimitives(mesh.primitiveGroups[0].fromPrimIx, mesh.primitiveGroups[0].primCount);
 			}
 		}
 	}
