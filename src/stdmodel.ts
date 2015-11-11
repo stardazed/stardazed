@@ -40,11 +40,17 @@ namespace sd.world {
 	//                                            |_|                     
 
 	class StandardPipeline {
+		private cachedPipelines_ = new Map<number, render.Pipeline>();
+
 		constructor(private rc: render.RenderContext) {
 		}
 
 
 		pipelineForFeatures(feat: number) {
+			var cached = this.cachedPipelines_.get(feat);
+			if (cached)
+				return cached;
+
 			var gl = this.rc.gl;
 
 			var vertexSource = this.vertexShaderSource(feat);
@@ -64,7 +70,6 @@ namespace sd.world {
 				pld.attributeNames.set(mesh.VertexAttributeRole.UV, "vertexUV");
 			}
 
-			console.info("creating program for features: " + feat);
 			var pipeline = new render.Pipeline(this.rc, pld);
 			var program = <StandardGLProgram>pipeline.program;
 			
@@ -80,6 +85,7 @@ namespace sd.world {
 
 			gl.useProgram(null);
 
+			this.cachedPipelines_.set(feat, pipeline);
 			return pipeline;
 		}
 
