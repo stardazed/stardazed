@@ -228,8 +228,10 @@ namespace sd.world {
 
 		private transforms_: TransformInstance[] = [];
 		private meshes_: render.Mesh[] = [];
-		private textures_: render.Texture[] = [];
+		private materialIndexOffsets_: number[] = [];
+		private groupFeatureOffsets_: number[] = [];
 		private primGroupFeatures_: number[] = [];
+		private materialIndexes_: StdMaterialIndex[] = [];
 		private count_ = 0;
 
 		private modelViewMatrix_: Float32Array;
@@ -251,60 +253,88 @@ namespace sd.world {
 		create(entity: Entity, mesh: render.Mesh, materials: StdMaterialIndex[]): StdModelInstance {
 			var ix = ++this.count_;
 
+			var groups = mesh.primitiveGroups;
+			var maxLocalMatIndex = groups.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
+			assert(materials.length >= maxLocalMatIndex - 1, "not enough StdMaterialIndexes for this mesh");
+
 			this.transforms_[ix] = this.transformMgr_.forEntity(entity);
 			this.meshes_[ix] = mesh;
 
-			// this.pipelines_[ix] = this.stdPipeline.pipelineForFeatures(this.featuresOfModel(ix));
+			this.materialIndexOffsets_[ix] = this.materialIndexes_.length;
+			this.groupFeatureOffsets_[ix] = this.primGroupFeatures_.length;
+			groups.forEach((group, gix) => {
+				this.materialIndexes_.push(materials[group.materialIx]);
+				this.primGroupFeatures_.push(0x12);
+			});
 
 			return new Instance<StdModelManager>(ix);
 		}
 
 
-		drawAll(rp: render.RenderPass, proj: ProjectionSetup) {
-			return;
-
+		private drawOne(rp: render.RenderPass, proj: ProjectionSetup, mix: number) {
 			var gl = this.rc.gl;
 
-			rp.setDepthTest(render.DepthTest.Less);
+			var mesh = this.meshes_[mix];
 
-			for (var mix = 1; mix <= this.count_; ++mix) {
-				// rp.setPipeline(this.pipelines_[mix]);
-				rp.setTexture(this.textures_[mix], TextureBindPoint.Colour);
-				rp.setMesh(this.meshes_[mix]);
+			// -- calc transform matrices
+			var modelMatrix = this.transformMgr_.modelMatrix(this.transforms_[mix]);
+			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
+			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
 
-				// -- uniforms
-				var program = <StdGLProgram>null;//this.pipelines_[mix].program;
-				var mesh = this.meshes_[mix];
+			// -- draw all groups
+			var materialIndexBase = this.materialIndexOffsets_[mix];
+			var groupFeatureBase = this.groupFeatureOffsets_[mix];
+			var primGroupCount = mesh.primitiveGroups.length;
 
-				gl.uniform1f(program.ambientSunFactorUniform, 0.7);
+			for (var pgIx = 0; pgIx < primGroupCount; ++pgIx) {
+				var primGroup = mesh.primitiveGroups[pgIx];
+				var matIndex = this.materialIndexes_[materialIndexBase + pgIx];
+				var materialData = this.materialMgr_.getData(matIndex);
+				var features = this.primGroupFeatures_[groupFeatureBase + pgIx];
 
-				var modelMatrix = this.transformMgr_.modelMatrix(this.transforms_[mix]);
-				mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
-				mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
+				var pipeline = this.stdPipeline.pipelineForFeatures(features);
+				rp.setPipeline(pipeline);
+				rp.setMesh(mesh);
 
-				if (program.mvpMatrixUniform) {
-					gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);
+				if (features & Feature.AlbedoMap) {
+					rp.setTexture(materialData.albedoMap, TextureBindPoint.Colour);
 				}
+
+				// -- set transform and normal uniforms
+				var program = <StdGLProgram>(pipeline.program);
+
+				// mvp and normal matrices are always present
+				gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);
+				math.extractNormalMatrix(this.modelViewMatrix_, this.normalMatrix_);
+				gl.uniformMatrix3fv(program.normalMatrixUniform, false, this.normalMatrix_);
 
 				if (program.mvMatrixUniform) {
 					gl.uniformMatrix4fv(program.mvMatrixUniform, false, this.modelViewMatrix_);
 				}
-
-				if (program.normalMatrixUniform) {
-					math.extractNormalMatrix(this.modelViewMatrix_, this.normalMatrix_);
-					gl.uniformMatrix3fv(program.normalMatrixUniform, false, this.normalMatrix_);
-				}
-
 				if (program.lightNormalMatrixUniform) {
 					math.extractNormalMatrix(proj.viewMatrix, this.lightNormalMatrix_);
 					gl.uniformMatrix3fv(program.lightNormalMatrixUniform, false, this.lightNormalMatrix_);
 				}
 
+				// -- set material uniforms
+				gl.uniform1f(program.ambientSunFactorUniform, 0.7);
+
 				// -- draw
 				if (mesh.hasIndexBuffer)
-					rp.drawIndexedPrimitives(mesh.primitiveGroups[0].fromPrimIx, mesh.primitiveGroups[0].primCount);
+					rp.drawIndexedPrimitives(primGroup.fromPrimIx, primGroup.primCount);
 				else
-					rp.drawPrimitives(mesh.primitiveGroups[0].fromPrimIx, mesh.primitiveGroups[0].primCount);
+					rp.drawPrimitives(primGroup.fromPrimIx, primGroup.primCount);
+			}
+		}
+
+
+		drawAll(rp: render.RenderPass, proj: ProjectionSetup) {
+			var gl = this.rc.gl;
+
+			rp.setDepthTest(render.DepthTest.Less);
+
+			for (var mix = 1; mix <= this.count_; ++mix) {
+				this.drawOne(rp, proj, mix);
 			}
 		}
 	}
