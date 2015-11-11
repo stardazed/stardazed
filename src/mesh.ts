@@ -256,6 +256,7 @@ namespace sd.render {
 
 
 		// -- observers
+		hasAttributeOfRole(role: mesh.VertexAttributeRole) { return this.attributes_.has(role); }
 		get hasIndexBuffer() { return this.glIndexElementType_ != 0; }
 
 		get primitiveType() { return this.primitiveType_; }
