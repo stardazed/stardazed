@@ -97,10 +97,11 @@ namespace sd.render {
 			if (pipeline === this.pipeline_)
 				return;
 
-			if (this.pipeline_ && !pipeline) {
+			if (! pipeline) {
 				// only need to explicitly unbind if there is no replacement pipeline
 				if (this.mesh_) {
 					this.mesh_.unbind(this.pipeline_);
+					this.mesh_ = null;
 				}
 				this.pipeline_.unbind();
 			}
@@ -109,12 +110,6 @@ namespace sd.render {
 			if (this.pipeline_) {
 				// TODO: validate Pipeline against FrameBuffer
 				this.pipeline_.bind();
-				if (this.mesh_) {
-					this.mesh_.bind(this.pipeline_);
-				}
-			}
-			else {
-				this.mesh_ = null;
 			}
 		}
 
