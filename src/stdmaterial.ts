@@ -38,6 +38,33 @@ namespace sd.world {
 	}
 
 
+	export function makeStdMaterialDescriptor(): StandardMaterialDescriptor {
+		var vecs = new Float32Array(10);
+
+		return {
+			mainColour: vec3.copy(vecs.subarray(0, 3), math.Vec3.zero),
+			specularColour: vec3.copy(vecs.subarray(3, 6), math.Vec3.zero),
+			specularExponent: 0,
+
+			textureScale: vec2.copy(vecs.subarray(6, 8), math.Vec2.one),
+			textureOffset: vec2.copy(vecs.subarray(8, 10), math.Vec2.zero),
+
+			albedoMap: null,
+			normalMap: null,
+
+			flags: 0
+		};
+	}
+
+
+	export interface StandardMaterialData {
+		colourData: Float32Array;
+		specularData: Float32Array;
+		texScaleOffsetData: Float32Array;
+		flags: StandardMaterialFlags;
+	}
+
+
 	export type StandardMaterialIndex = world.Instance<StandardMaterialManager>;
 
 	export class StandardMaterialManager {
@@ -129,6 +156,18 @@ namespace sd.world {
 				albedoMap: this.albedoMaps_[matIndex],
 				normalMap: this.normalMaps_[matIndex] 
 			};		
+		}
+
+
+		// direct data views to set uniforms with in StdModelMgr
+		getData(index: StandardMaterialIndex): StandardMaterialData {
+			var matIndex = index.ref;
+			return {
+				colourData: <Float32Array>math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex),
+				specularData: <Float32Array>math.vectorArrayItem(this.specularBase_, math.Vec4, matIndex),
+				texScaleOffsetData: <Float32Array>math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, matIndex),
+				flags: this.flagsBase_[matIndex]
+			};
 		}
 	}
 
