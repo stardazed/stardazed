@@ -200,15 +200,18 @@ namespace sd.container {
 		count: number;
 	}
 
+
 	interface PositionedMABField extends MABField {
 		byteOffset: number;
 		sizeBytes: number;
 	}
 
+
 	export const enum InvalidatePointers {
 		No,
 		Yes
 	}
+
 
 	export class MultiArrayBuffer {
 		private fields_: PositionedMABField[];

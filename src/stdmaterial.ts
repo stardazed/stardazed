@@ -79,7 +79,7 @@ namespace sd.world {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
-			var matIndex = this.instanceData_.count - 1;
+			var matIndex = this.instanceData_.count; // entry 0 is reserved as nullptr-like
 
 			vec4.set(this.tempVec4, desc.mainColour[0], desc.mainColour[1], desc.mainColour[2], 0);
 			math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex).set(this.tempVec4);
