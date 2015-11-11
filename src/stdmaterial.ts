@@ -61,6 +61,8 @@ namespace sd.world {
 		colourData: Float32Array;
 		specularData: Float32Array;
 		texScaleOffsetData: Float32Array;
+		albedoMap: render.Texture;
+		normalMap: render.Texture;
 		flags: StdMaterialFlags;
 	}
 
@@ -152,9 +154,11 @@ namespace sd.world {
 				specularExponent: specularArr[3],
 				textureScale: Array.prototype.slice.call(texScaleOffsetArr, 0, 2),
 				textureOffset: Array.prototype.slice.call(texScaleOffsetArr, 2, 4),
-				flags: this.flagsBase_[matIndex],
+
 				albedoMap: this.albedoMaps_[matIndex],
-				normalMap: this.normalMaps_[matIndex] 
+				normalMap: this.normalMaps_[matIndex],
+
+				flags: this.flagsBase_[matIndex]
 			};		
 		}
 
@@ -166,6 +170,10 @@ namespace sd.world {
 				colourData: <Float32Array>math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex),
 				specularData: <Float32Array>math.vectorArrayItem(this.specularBase_, math.Vec4, matIndex),
 				texScaleOffsetData: <Float32Array>math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, matIndex),
+
+				albedoMap: this.albedoMaps_[matIndex],
+				normalMap: this.normalMaps_[matIndex],
+
 				flags: this.flagsBase_[matIndex]
 			};
 		}
