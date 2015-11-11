@@ -173,6 +173,7 @@ namespace sd.render {
 
 			// -- copy primitive groups
 			this.primitiveGroups_ = desc.primitiveGroups.map((pg) => cloneStruct(pg));
+			assert(this.primitiveGroups_.length > 0, "no primitive groups specified for Mesh");
 		}
 
 
@@ -256,8 +257,11 @@ namespace sd.render {
 
 		// -- observers
 		get hasIndexBuffer() { return this.glIndexElementType_ != 0; }
+
 		get primitiveType() { return this.primitiveType_; }
 		get glPrimitiveType() { return this.glPrimitiveType_; }
+		get primitiveGroups() { return this.primitiveGroups_; }
+
 		get glIndexElementType() { return this.glIndexElementType_; }
 		get indexElementSizeBytes() { return this.indexElementSizeBytes_; }
 

@@ -173,6 +173,9 @@ namespace sd.mesh {
 			curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
 		}
 
+		// single primitive group
+		mesh.primitiveGroups.push({ fromPrimIx: 0, primCount: vertexIx / 3, materialIx: 0 });
+
 		var t1 = performance.now();
 		// console.info("obj v:", vv.length / 3, "t:", tt.length / 2, "took:", (t1-t0).toFixed(2), "ms");
 		// console.info("mats:", materialGroups);
