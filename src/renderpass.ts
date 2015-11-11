@@ -222,11 +222,6 @@ namespace sd.render {
 		}
 
 
-		drawPrimitiveGroup(primitiveGroup: mesh.PrimitiveGroup, instanceCount = 1) {
-			this.drawPrimitives(primitiveGroup.fromPrimIx, primitiveGroup.primCount, instanceCount);
-		}
-
-
 		drawIndexedPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
 			var glPrimitiveType = this.mesh_.glPrimitiveType;
 			var startIndex = mesh.indexOffsetForPrimitiveCount(this.mesh_.primitiveType, startPrimitive);
@@ -239,11 +234,6 @@ namespace sd.render {
 			else {
 				this.rc.extInstancedArrays.drawElementsInstancedANGLE(glPrimitiveType, indexCount, this.mesh_.glIndexElementType, offsetBytes, instanceCount);
 			}
-		}
-
-
-		drawIndexedPrimitiveGroup(primitiveGroup: mesh.PrimitiveGroup, instanceCount = 1) {
-			this.drawIndexedPrimitives(primitiveGroup.fromPrimIx, primitiveGroup.primCount, instanceCount);
 		}
 	}
 
