@@ -102,8 +102,7 @@ namespace sd.math {
 		}
 
 		intersectsLineSegment(ptA: ArrayOfNumber, ptB: ArrayOfNumber): boolean {
-			var d = vec2.create();
-			vec2.subtract(d, ptB, ptA);
+			var d = [ptB[0] - ptA[0], ptB[1] - ptA[1]];
 
 			var tmin = 0;
 			var tmax = 9999;
@@ -124,8 +123,8 @@ namespace sd.math {
 						t1 = tt;
 					}
 
-					tmin = Math.max(tmin, t1);
-					tmax = Math.min(tmax, t2);
+					if (t1 > tmin) tmin = t1;
+					if (t2 < tmax) tmax = t2;
 
 					if (tmin > tmax)
 						return false;
