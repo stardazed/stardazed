@@ -8,7 +8,7 @@
 
 namespace sd.world {
 
-	const enum Feature {
+	const enum Features {
 		// VtxPosition and VtxNormal are required
 		//VtxTangent      = 0x0001,
 		VtxUV           = 0x0002,
@@ -72,10 +72,10 @@ namespace sd.world {
 			// -- mandatory and optional attribute arrays
 			pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
 			pld.attributeNames.set(mesh.VertexAttributeRole.Normal, "vertexNormal");
-			if (feat & Feature.VtxColour) {
+			if (feat & Features.VtxColour) {
 				pld.attributeNames.set(mesh.VertexAttributeRole.Colour, "vertexColour");
 			}
-			if (feat & Feature.VtxUV) {
+			if (feat & Features.VtxUV) {
 				pld.attributeNames.set(mesh.VertexAttributeRole.UV, "vertexUV");
 			}
 
@@ -119,27 +119,27 @@ namespace sd.world {
 			// In
 			line  ("attribute vec3 vertexPos_model;");
 			line  ("attribute vec3 vertexNormal;");
-			if_all("attribute vec2 vertexUV;", Feature.VtxUV);
-			if_all("attribute vec3 vertexColour;", Feature.VtxColour);
+			if_all("attribute vec2 vertexUV;", Features.VtxUV);
+			if_all("attribute vec3 vertexColour;", Features.VtxColour);
 
 			// Out
 			line  ("varying vec3 vertexNormal_intp;");
-			if_all("varying vec3 vertexPos_cam_intp;", Feature.Specular);
-			if_all("varying vec2 vertexUV_intp;", Feature.VtxUV);
-			if_all("varying vec3 vertexColour_intp;", Feature.VtxColour);
+			if_all("varying vec3 vertexPos_cam_intp;", Features.Specular);
+			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
+			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
 			// Uniforms
 			line  ("uniform mat4 modelViewProjectionMatrix;");
-			if_all("uniform mat4 modelViewMatrix;", Feature.Specular);
+			if_all("uniform mat4 modelViewMatrix;", Features.Specular);
 			line  ("uniform mat3 normalMatrix;");
 
 			// main()
 			line  ("void main() {");
 			line  ("	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);");
 			line  ("	vertexNormal_intp = normalize(normalMatrix * vertexNormal);");
-			if_all("	vertexPos_cam_intp = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;", Feature.Specular);
-			if_all("	vertexUV_intp = vertexUV;", Feature.VtxUV);
-			if_all("	vertexColour_intp = vertexColour;", Feature.VtxColour);
+			if_all("	vertexPos_cam_intp = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;", Features.Specular);
+			if_all("	vertexUV_intp = vertexUV;", Features.VtxUV);
+			if_all("	vertexColour_intp = vertexColour;", Features.VtxColour);
 			line  ("}");
 
 			// console.info("------ VERTEX");
@@ -159,14 +159,14 @@ namespace sd.world {
 
 			// In
 			line  ("varying vec3 vertexNormal_intp;");
-			if_all("varying vec3 vertexPos_cam_intp;", Feature.Specular);
-			if_all("varying vec2 vertexUV_intp;", Feature.VtxUV);
-			if_all("varying vec3 vertexColour_intp;", Feature.VtxColour);
+			if_all("varying vec3 vertexPos_cam_intp;", Features.Specular);
+			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
+			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
 			// Uniforms
 			line  ("uniform mat3 lightNormalMatrix;");
 			line  ("uniform float ambientSunFactor;");
-			if_all("uniform sampler2D albedoSampler;", Feature.AlbedoMap);
+			if_all("uniform sampler2D albedoSampler;", Features.AlbedoMap);
 
 			// Constants
 			line  ("const vec3 sunlightColour = vec3(1, 1, 1);");
@@ -178,7 +178,7 @@ namespace sd.world {
 			line  ("	vec3 lightVec = normalize(lightNormalMatrix * lightDirection);");
 
 			// specular
-			if (feat & Feature.Specular) {
+			if (feat & Features.Specular) {
 				line("	vec3 viewVec = normalize(-vertexPos_cam_intp);");
 				line("	vec3 reflectVec = reflect(-lightVec, normal);");
 				line("	float spec = max(dot(reflectVec, viewVec), 0.0);");
@@ -187,19 +187,19 @@ namespace sd.world {
 			}
 
 			// final color
-			if ((feat & (Feature.VtxUV | Feature.AlbedoMap)) == (Feature.VtxUV | Feature.AlbedoMap)) {
+			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
 				line("	vec3 lightColour = sunlightColour * max(ambientSunFactor, dot(lightVec, normal));");
 				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
 				line("	vec3 outColour = lightColour * texColour;");
 			}
-			else if (feat & Feature.VtxColour) {
+			else if (feat & Features.VtxColour) {
 				line("	vec3 diffColour = (sunlightColour * 0.1) + (vertexColour_intp * 0.9);");
 				line("	vec3 outColour = diffColour * (ambientSunFactor + 0.5 * dot(lightVec, normal));");
 			}
 			else {
 				line("	vec3 outColour = vec3(0.0, 1.0, 0.0);");	
 			}
-			if (feat & Feature.Specular) {
+			if (feat & Features.Specular) {
 				line("	outColour = outColour + specContrib;");
 			}
 			line  ("	gl_FragColor = vec4(outColour, 1.0);");
@@ -230,7 +230,7 @@ namespace sd.world {
 		private meshes_: render.Mesh[] = [];
 		private materialIndexOffsets_: number[] = [];
 		private groupFeatureOffsets_: number[] = [];
-		private primGroupFeatures_: number[] = [];
+		private primGroupFeatures_: Features[] = [];
 		private materialIndexes_: StdMaterialIndex[] = [];
 		private count_ = 0;
 
@@ -250,8 +250,18 @@ namespace sd.world {
 		}
 
 
-		private featuresForMeshAndMaterial(mesh: render.Mesh, material: StdMaterialIndex) {
-			return mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.Colour) ? 0x1C : 0x1A;
+		private featuresForMeshAndMaterial(mesh: render.Mesh, material: StdMaterialIndex): Features {
+			var features = 0;
+
+			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.Colour)) features |= Features.VtxColour;
+			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.UV)) features |= Features.VtxUV;
+
+			var matFlags = this.materialMgr_.flags(material);
+			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;
+
+			if (this.materialMgr_.albedoMap(material)) features |= Features.AlbedoMap;			
+
+			return features;
 		}
 
 
@@ -301,7 +311,7 @@ namespace sd.world {
 				rp.setPipeline(pipeline);
 				rp.setMesh(mesh);
 
-				if (features & Feature.AlbedoMap) {
+				if (features & Features.AlbedoMap) {
 					rp.setTexture(materialData.albedoMap, TextureBindPoint.Colour);
 				}
 
