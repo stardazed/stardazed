@@ -250,6 +250,11 @@ namespace sd.world {
 		}
 
 
+		private featuresForMeshAndMaterial(mesh: render.Mesh, material: StdMaterialIndex) {
+			return mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.Colour) ? 0x1C : 0x1A;
+		}
+
+
 		create(entity: Entity, mesh: render.Mesh, materials: StdMaterialIndex[]): StdModelInstance {
 			var ix = ++this.count_;
 
@@ -264,7 +269,7 @@ namespace sd.world {
 			this.groupFeatureOffsets_[ix] = this.primGroupFeatures_.length;
 			groups.forEach((group, gix) => {
 				this.materialIndexes_.push(materials[group.materialIx]);
-				this.primGroupFeatures_.push(0x12);
+				this.primGroupFeatures_.push(this.featuresForMeshAndMaterial(mesh, materials[group.materialIx]));
 			});
 
 			return new Instance<StdModelManager>(ix);
