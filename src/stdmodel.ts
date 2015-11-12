@@ -23,15 +23,18 @@ namespace sd.world {
 
 
 	interface StdGLProgram extends WebGLProgram {
-		mvMatrixUniform?: WebGLUniformLocation;
-		mvpMatrixUniform?: WebGLUniformLocation;
-		normalMatrixUniform?: WebGLUniformLocation;
-		lightNormalMatrixUniform?: WebGLUniformLocation;
+		mvMatrixUniform?: WebGLUniformLocation;         // mat4
+		mvpMatrixUniform?: WebGLUniformLocation;        // mat4
+		normalMatrixUniform?: WebGLUniformLocation;     // mat3
+		lightNormalMatrixUniform?: WebGLUniformLocation;// mat3
 
-		ambientSunFactorUniform?: WebGLUniformLocation;
+		ambientSunFactorUniform?: WebGLUniformLocation; // float
+		mainColourUniform: WebGLUniformLocation;        // vec4
+		specularUniform: WebGLUniformLocation;          // vec4
+		texScaleOffsetUniform: WebGLUniformLocation;    // vec4
 
-		colourMapUniform?: WebGLUniformLocation;
-		normalMapUniform?: WebGLUniformLocation;
+		colourMapUniform?: WebGLUniformLocation;        // sampler2D
+		normalMapUniform?: WebGLUniformLocation;        // sampler2D
 	}
 
 
@@ -92,6 +95,9 @@ namespace sd.world {
 
 			// -- material properties
 			program.ambientSunFactorUniform = gl.getUniformLocation(program, "ambientSunFactor");
+			program.mainColourUniform = gl.getUniformLocation(program, "mainColour");
+			program.specularUniform = gl.getUniformLocation(program, "specular");
+			program.texScaleOffsetUniform = gl.getUniformLocation(program, "texScaleOffset");
 
 			// -- texture samplers and their fixed binding indexes
 			program.colourMapUniform = gl.getUniformLocation(program, "albedoSampler");
@@ -166,6 +172,7 @@ namespace sd.world {
 			// Uniforms
 			line  ("uniform mat3 lightNormalMatrix;");
 			line  ("uniform float ambientSunFactor;");
+			if_all("uniform vec4 specular;", Features.Specular);
 			if_all("uniform sampler2D albedoSampler;", Features.AlbedoMap);
 
 			// Constants
@@ -182,8 +189,8 @@ namespace sd.world {
 				line("	vec3 viewVec = normalize(-vertexPos_cam_intp);");
 				line("	vec3 reflectVec = reflect(-lightVec, normal);");
 				line("	float spec = max(dot(reflectVec, viewVec), 0.0);");
-				line("	spec = pow(spec, 8.0); // shininess");
-				line("	vec3 specContrib = sunlightColour * spec;");
+				line("	spec = pow(spec, specular.w); // shininess");
+				line("	vec3 specContrib = specular.rgb * spec;");
 			}
 
 			// final color
@@ -333,6 +340,9 @@ namespace sd.world {
 
 				// -- set material uniforms
 				gl.uniform1f(program.ambientSunFactorUniform, 0.7);
+				if (features & Features.Specular) {
+					gl.uniform4fv(program.specularUniform, materialData.specularData);
+				}
 
 				// -- draw
 				if (mesh.hasIndexBuffer)
