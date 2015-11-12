@@ -23,16 +23,15 @@ namespace sd.render {
 			case PixelFormat.RGBA_5_5_5_1:
 				return gl.RGBA;
 
-			case PixelFormat.RGB32F: return gl.RGB;
-			case PixelFormat.RGBA32F: return gl.RGBA;
+			case PixelFormat.RGBA32F:
+				return gl.RGBA;
 
 			case PixelFormat.DXT1: return rc.extS3TC ? rc.extS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT : gl.NONE;
 			case PixelFormat.DXT3: return rc.extS3TC ? rc.extS3TC.COMPRESSED_RGBA_S3TC_DXT3_EXT : gl.NONE;
 			case PixelFormat.DXT5: return rc.extS3TC ? rc.extS3TC.COMPRESSED_RGBA_S3TC_DXT5_EXT : gl.NONE;
 
 			case PixelFormat.Depth16I:
-			case PixelFormat.Depth32I:
-			case PixelFormat.Depth32F:
+			case PixelFormat.Depth24I:
 				return gl.DEPTH_COMPONENT;
 
 			case PixelFormat.Stencil8:
@@ -68,14 +67,12 @@ namespace sd.render {
 			case PixelFormat.RGBA_5_5_5_1:
 				return gl.UNSIGNED_SHORT_5_5_5_1;
 
-			case PixelFormat.RGB32F:
 			case PixelFormat.RGBA32F:
-			case PixelFormat.Depth32F:
 				return gl.FLOAT;
 
 			case PixelFormat.Depth16I:
 				return gl.UNSIGNED_SHORT;
-			case PixelFormat.Depth32I:
+			case PixelFormat.Depth24I:
 				return gl.UNSIGNED_INT;
 
 			case PixelFormat.Depth24_Stencil8:

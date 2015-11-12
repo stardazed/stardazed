@@ -18,7 +18,6 @@ namespace sd.render {
 		RGBA_5_5_5_1,
 
 		// 32-bit component
-		RGB32F,
 		RGBA32F,
 
 		// S3TC (desktop only)
@@ -28,9 +27,7 @@ namespace sd.render {
 
 		// Depth / Stencil
 		Depth16I,
-		Depth32I,
-		Depth32F,
-		DepthShadow = Depth32F,
+		Depth24I,
 
 		Stencil8,
 
@@ -60,9 +57,8 @@ namespace sd.render {
 
 	export function pixelFormatIsDepthFormat(format: PixelFormat) {
 		return format == PixelFormat.Depth16I ||
-			   format == PixelFormat.Depth32I ||
-			   format == PixelFormat.Depth32F;
-	}
+			   format == PixelFormat.Depth24I;
+		}
 
 
 	export function pixelFormatIsStencilFormat(format: PixelFormat) {
@@ -91,13 +87,9 @@ namespace sd.render {
 				return 3;
 
 			case PixelFormat.RGBA8:
-			case PixelFormat.Depth32I:
-			case PixelFormat.Depth32F:
+			case PixelFormat.Depth24I:
 			case PixelFormat.Depth24_Stencil8:
 				return 4;
-
-			case PixelFormat.RGB32F:
-				return 12;
 
 			case PixelFormat.RGBA32F:
 				return 16;
