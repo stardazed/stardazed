@@ -45,7 +45,7 @@ namespace sd.world {
 		var vecs = new Float32Array(10);
 
 		return {
-			mainColour: vec3.copy(vecs.subarray(0, 3), math.Vec3.zero),
+			mainColour: vec3.copy(vecs.subarray(0, 3), math.Vec3.one),
 			specularColour: vec3.copy(vecs.subarray(3, 6), math.Vec3.zero),
 			specularExponent: 0,
 

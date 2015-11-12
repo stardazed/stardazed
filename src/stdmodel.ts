@@ -160,6 +160,7 @@ namespace sd.world {
 			var line = (s: string) => source.push(s);
 			var if_all = (s: string, f: number) => { if ((feat & f) == f) source.push(s) };
 			var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
+			var if_not = (s: string, f: number) => { if ((feat & f) == 0) source.push(s) };
 
 			line  ("precision highp float;");
 
@@ -171,8 +172,11 @@ namespace sd.world {
 
 			// Uniforms
 			line  ("uniform mat3 lightNormalMatrix;");
+
 			line  ("uniform float ambientSunFactor;");
+			if_not("uniform vec4 mainColour;", Features.VtxColour);
 			if_all("uniform vec4 specular;", Features.Specular);
+
 			if_all("uniform sampler2D albedoSampler;", Features.AlbedoMap);
 
 			// Constants
@@ -204,7 +208,8 @@ namespace sd.world {
 				line("	vec3 outColour = diffColour * (ambientSunFactor + 0.5 * dot(lightVec, normal));");
 			}
 			else {
-				line("	vec3 outColour = vec3(0.0, 1.0, 0.0);");	
+				line("	vec3 diffColour = (sunlightColour * 0.1) + (mainColour * 0.9);");
+				line("	vec3 outColour = diffColour * (ambientSunFactor + 0.5 * dot(lightVec, normal));");
 			}
 			if (feat & Features.Specular) {
 				line("	outColour = outColour + specContrib;");
