@@ -14,10 +14,13 @@ namespace sd.world {
 	// |___/\__\__,_|_|  |_\__,_|\__\___|_| |_\__,_|_|_|  |_\__,_|_||_\__,_\__, \___|_|  
 	//                                                                     |___/         
 
+	// FIXME: these flags are bad, replace with texture usage type or eqv.
 	export const enum StdMaterialFlags {
-		albedoAlphaIsTranslucency = 0x00000001,
-		albedoAlphaIsGloss        = 0x00000002,
-		normalAlphaIsHeight       = 0x00000004
+		usesSpecular              = 0x00000001,
+
+		albedoAlphaIsTranslucency = 0x00000101,
+		albedoAlphaIsGloss        = 0x00000102,
+		normalAlphaIsHeight       = 0x00000104,
 	}
 
 
@@ -104,7 +107,7 @@ namespace sd.world {
 		}
 
 
-		append(desc: StdMaterialDescriptor): StdMaterialIndex {
+		create(desc: StdMaterialDescriptor): StdMaterialIndex {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
@@ -116,6 +119,10 @@ namespace sd.world {
 			math.vectorArrayItem(this.specularBase_, math.Vec4, matIndex).set(this.tempVec4);
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
 			math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, matIndex).set(this.tempVec4);
+
+			if ((desc.flags & StdMaterialFlags.albedoAlphaIsGloss) && (desc.flags & StdMaterialFlags.albedoAlphaIsTranslucency)) {
+				assert(false, "invalid material flags")
+			}
 			this.flagsBase_[matIndex] = desc.flags;
 
 			this.albedoMaps_[matIndex] = desc.albedoMap;
@@ -140,6 +147,56 @@ namespace sd.world {
 		}
 
 
+		// -- individual element field accessors
+		mainColour(index: StdMaterialIndex): TypedArray {
+			return math.vectorArrayItem(this.mainColourBase_, math.Vec4, index.ref).subarray(0, 3);
+		}
+
+		specularColourExponent(index: StdMaterialIndex): TypedArray {
+			return math.vectorArrayItem(this.specularBase_, math.Vec4, index.ref);
+		}
+
+		textureScale(index: StdMaterialIndex): TypedArray {
+			return math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, index.ref).subarray(0, 2);
+		}
+
+		textureOffset(index: StdMaterialIndex): TypedArray {
+			return math.vectorArrayItem(this.specularBase_, math.Vec4, index.ref).subarray(2, 4);
+		}
+
+		textureScaleAndOffset(index: StdMaterialIndex): TypedArray {
+			return math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, index.ref);
+		}
+
+		albedoMap(index: StdMaterialIndex): render.Texture {
+			return this.albedoMaps_[index.ref];
+		}
+
+		normalMap(index: StdMaterialIndex): render.Texture {
+			return this.normalMaps_[index.ref];
+		}
+
+		flags(index: StdMaterialIndex): StdMaterialFlags {
+			return this.flagsBase_[index.ref];
+		}
+
+		// TODO: this will affect the pipeline required for this material, do we need this?
+		// setFlags(index: StdMaterialIndex, newFlags: StdMaterialFlags) {
+		// 	this.flagsBase_[index.ref] = newFlags;
+		// }
+
+		setAlbedoMap(index: StdMaterialIndex, newTex: render.Texture) {
+			// TODO: warn on changing from between null/non-null as it would affect the pipeline?
+			this.albedoMaps_[index.ref] = newTex;
+		}
+
+		setNormalMap(index: StdMaterialIndex, newTex: render.Texture) {
+			// TODO: warn on changing from between null/non-null as it would affect the pipeline?
+			this.normalMaps_[index.ref] = newTex;
+		}
+
+
+		// -- reconstruct a copy of the data as a descriptor
 		copyDescriptor(index: StdMaterialIndex): StdMaterialDescriptor {
 			var matIndex = index.ref;
 			assert(matIndex < this.instanceData_.count);
@@ -159,7 +216,7 @@ namespace sd.world {
 				normalMap: this.normalMaps_[matIndex],
 
 				flags: this.flagsBase_[matIndex]
-			};		
+			};
 		}
 
 
