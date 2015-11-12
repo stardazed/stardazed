@@ -58,7 +58,15 @@ namespace sd.render {
 			// if depth is not a DS format, then stencil cannot be a DS format either
 			assert(!pixelFormatIsDepthStencilFormat(desc.stencilPixelFormat));
 
-			// WebGL does not support formats suitable to be combined as a separate pixelformat
+			// in order to be combined, the usage hints must be the same
+			if (desc.depthUsageHint == desc.stencilUsageHint) {
+				// check for available depth/stencil format combinations
+				if (desc.stencilPixelFormat == PixelFormat.Stencil8) {
+					if (desc.depthPixelFormat == PixelFormat.Depth24I) {
+						combinedFormat = PixelFormat.Depth24_Stencil8;
+					}
+				}
+			}
 		}
 
 		// -- create the texture(s)
