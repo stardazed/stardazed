@@ -298,6 +298,11 @@ namespace sd.world {
 		}
 
 
+		mesh(h: StdModelInstance) {
+			return this.meshes_[h.ref];
+		}
+
+
 		private drawOne(rp: render.RenderPass, proj: ProjectionSetup, mix: number) {
 			var gl = this.rc.gl;
 

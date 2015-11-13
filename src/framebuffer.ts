@@ -161,7 +161,7 @@ namespace sd.render {
 			});
 
 			// -- setup the draw buffers to mimic the colour attachments
-			// -- as this is the wished behaviour in almost all cases (i.e. no NONE assignments)
+			// -- which is required in WebGL
 			rc.extDrawBuffers.drawBuffersWEBGL(drawBuffers);
 
 
