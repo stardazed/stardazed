@@ -52,6 +52,7 @@ namespace sd.world {
 
 	class StdPipeline {
 		private cachedPipelines_ = new Map<number, render.Pipeline>();
+		private shadowPipeline_: render.Pipeline = null;
 
 		constructor(private rc: render.RenderContext) {
 		}
@@ -116,7 +117,31 @@ namespace sd.world {
 		}
 
 
-		vertexShaderSource(feat: number) {
+		shadowPipeline() {
+			if (this.shadowPipeline_ == null) {
+				var pld = render.makePipelineDescriptor();
+				pld.depthPixelFormat = render.PixelFormat.Depth24I;
+				pld.vertexShader = render.makeShader(this.rc, this.rc.gl.VERTEX_SHADER, this.shadowVertexSource);
+				pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
+				pld.writeMask.red = pld.writeMask.green = pld.writeMask.blue = pld.writeMask.alpha = false;
+
+				this.shadowPipeline_ = new render.Pipeline(this.rc, pld);
+			}
+
+			return this.shadowPipeline_;
+		}
+
+
+		private shadowVertexSource = [
+			"attribute vec3 vertexPos_model;",
+			"uniform mat4 modelViewProjectionMatrix;",
+			"void main() {",
+			"	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);",
+			"}"
+		].join("");
+
+
+		private vertexShaderSource(feat: number) {
 			var source: string[] = [];
 			var line = (s: string) => source.push(s);
 			var if_all = (s: string, f: number) => { if ((feat & f) == f) source.push(s) };
@@ -155,7 +180,7 @@ namespace sd.world {
 		}
 
 
-		fragmentShaderSource(feat: number) {
+		private fragmentShaderSource(feat: number) {
 			var source: string[] = [];
 			var line = (s: string) => source.push(s);
 			var if_all = (s: string, f: number) => { if ((feat & f) == f) source.push(s) };
@@ -245,7 +270,7 @@ namespace sd.world {
 
 
 	export class StdModelManager {
-		private stdPipeline: StdPipeline;
+		private stdPipeline_: StdPipeline;
 
 		private transforms_: TransformInstance[] = [];
 		private meshes_: render.Mesh[] = [];
@@ -263,7 +288,7 @@ namespace sd.world {
 
 
 		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager, private materialMgr_: StdMaterialManager) {
-			this.stdPipeline = new StdPipeline(rc);
+			this.stdPipeline_ = new StdPipeline(rc);
 
 			this.modelViewMatrix_ = mat4.create();
 			this.modelViewProjectionMatrix_ = mat4.create();
@@ -335,7 +360,7 @@ namespace sd.world {
 				var materialData = this.materialMgr_.getData(matIndex);
 				var features = this.primGroupFeatures_[groupFeatureBase + pgIx];
 
-				var pipeline = this.stdPipeline.pipelineForFeatures(features);
+				var pipeline = this.stdPipeline_.pipelineForFeatures(features);
 				rp.setPipeline(pipeline);
 				rp.setMesh(mesh);
 
