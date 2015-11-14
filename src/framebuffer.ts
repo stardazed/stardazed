@@ -8,6 +8,44 @@
 
 namespace sd.render {
 
+	var fboBugs = {
+		mustHaveAColourAtt: <boolean>null
+	};
+
+	function fboMustHaveAColourAttachment(rc: RenderContext) {
+		if (fboBugs.mustHaveAColourAtt === null) {
+			var gl = rc.gl;
+			var fboBinding = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+
+			var fbo = gl.createFramebuffer();
+			gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+		
+			// -- create and attach depth buffer
+			var depthBuf = gl.createRenderbuffer();
+			gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuf);
+			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 160, 120);
+			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuf);
+
+			// -- specify empty draw buffer list
+			rc.extDrawBuffers.drawBuffersWEBGL([gl.NONE]);
+
+			// This bug occurs on Mac OS X with Safari 9 and Chrome 45, it is due to faulty
+			// setup of DRAW and READ buffer bindings in the underlying GL4 context.
+			// Bugs have been filed.		
+			var fbStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+			fboBugs.mustHaveAColourAtt = (fbStatus != gl.FRAMEBUFFER_COMPLETE);
+
+			gl.bindFramebuffer(gl.FRAMEBUFFER, fboBinding);
+			gl.bindTexture(gl.TEXTURE_2D, null);
+
+			gl.deleteFramebuffer(fbo);
+			gl.deleteRenderbuffer(depthBuf);
+		}
+
+		return fboBugs.mustHaveAColourAtt;
+	}
+
+
 	export function allocateTexturesForFrameBuffer(rc: RenderContext, desc: FrameBufferAllocationDescriptor): FrameBufferDescriptor {
 		var fbDesc = makeFrameBufferDescriptor();
 
