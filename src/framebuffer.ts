@@ -46,6 +46,28 @@ namespace sd.render {
 	}
 
 
+	export interface ScreenFBODesc {
+		colourCount: number;
+		useDepth?: boolean;
+		useStencil?: boolean;
+	}
+
+
+	// Creates a Framebuffer object with standard configuration: RGBA8 colour attachments
+	// and default depth and stencil formats when requested. All attachments are the size
+	// of the RenderContext's render area.
+	export function makeScreenFramebuffer(rc: RenderContext, desc: ScreenFBODesc) {
+		var fbad = render.makeFrameBufferAllocationDescriptor(desc.colourCount);
+		container.fill(fbad.colourPixelFormats, PixelFormat.RGBA8, desc.colourCount);
+		if (desc.useDepth) fbad.depthPixelFormat = render.PixelFormat.Depth24I;
+		if (desc.useStencil) fbad.stencilPixelFormat = render.PixelFormat.Stencil8;
+
+		var fbd = render.allocateTexturesForFrameBuffer(rc, fbad);
+
+		return new render.FrameBuffer(rc, fbd);
+	}
+
+
 	export function allocateTexturesForFrameBuffer(rc: RenderContext, desc: FrameBufferAllocationDescriptor): FrameBufferDescriptor {
 		var fbDesc = makeFrameBufferDescriptor();
 
