@@ -235,11 +235,21 @@ namespace sd.world {
 	export type StdModelInstance = Instance<StdModelManager>;
 
 
+	export interface StdModelDescriptor {
+		mesh: render.Mesh;
+		materials: StdMaterialIndex[];
+
+		castsShadows?: boolean;
+		acceptsShadows?: boolean;
+	}
+
+
 	export class StdModelManager {
 		private stdPipeline: StdPipeline;
 
 		private transforms_: TransformInstance[] = [];
 		private meshes_: render.Mesh[] = [];
+		private shadowFlags_: number[] = [];
 		private materialIndexOffsets_: number[] = [];
 		private groupFeatureOffsets_: number[] = [];
 		private primGroupFeatures_: Features[] = [];
@@ -277,21 +287,22 @@ namespace sd.world {
 		}
 
 
-		create(entity: Entity, mesh: render.Mesh, materials: StdMaterialIndex[]): StdModelInstance {
+		create(entity: Entity, desc: StdModelDescriptor): StdModelInstance {
 			var ix = ++this.count_;
 
-			var groups = mesh.primitiveGroups;
-			var maxLocalMatIndex = groups.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
-			assert(materials.length >= maxLocalMatIndex - 1, "not enough StdMaterialIndexes for this mesh");
-
 			this.transforms_[ix] = this.transformMgr_.forEntity(entity);
-			this.meshes_[ix] = mesh;
+			this.meshes_[ix] = desc.mesh;
+			this.shadowFlags_[ix] = 0;
+
+			var groups = desc.mesh.primitiveGroups;
+			var maxLocalMatIndex = groups.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
+			assert(desc.materials.length >= maxLocalMatIndex - 1, "not enough StdMaterialIndexes for this mesh");
 
 			this.materialIndexOffsets_[ix] = this.materialIndexes_.length;
 			this.groupFeatureOffsets_[ix] = this.primGroupFeatures_.length;
 			groups.forEach((group, gix) => {
-				this.materialIndexes_.push(materials[group.materialIx]);
-				this.primGroupFeatures_.push(this.featuresForMeshAndMaterial(mesh, materials[group.materialIx]));
+				this.materialIndexes_.push(desc.materials[group.materialIx]);
+				this.primGroupFeatures_.push(this.featuresForMeshAndMaterial(desc.mesh, desc.materials[group.materialIx]));
 			});
 
 			return new Instance<StdModelManager>(ix);
@@ -303,19 +314,19 @@ namespace sd.world {
 		}
 
 
-		private drawOne(rp: render.RenderPass, proj: ProjectionSetup, mix: number) {
+		private drawOne(rp: render.RenderPass, proj: ProjectionSetup, modelIx: number) {
 			var gl = this.rc.gl;
 
-			var mesh = this.meshes_[mix];
+			var mesh = this.meshes_[modelIx];
 
 			// -- calc transform matrices
-			var modelMatrix = this.transformMgr_.modelMatrix(this.transforms_[mix]);
+			var modelMatrix = this.transformMgr_.modelMatrix(this.transforms_[modelIx]);
 			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
 			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
 
 			// -- draw all groups
-			var materialIndexBase = this.materialIndexOffsets_[mix];
-			var groupFeatureBase = this.groupFeatureOffsets_[mix];
+			var materialIndexBase = this.materialIndexOffsets_[modelIx];
+			var groupFeatureBase = this.groupFeatureOffsets_[modelIx];
 			var primGroupCount = mesh.primitiveGroups.length;
 
 			for (var pgIx = 0; pgIx < primGroupCount; ++pgIx) {
