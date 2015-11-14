@@ -29,7 +29,7 @@ namespace sd.render {
 			// -- specify empty draw buffer list
 			rc.extDrawBuffers.drawBuffersWEBGL([gl.NONE]);
 
-			// This bug occurs on Mac OS X with Safari 9 and Chrome 45, it is due to faulty
+			// This bug occurs on Mac OS X in Safari 9 and Chrome 45, it is due to faulty
 			// setup of DRAW and READ buffer bindings in the underlying GL4 context.
 			// Bugs have been filed.		
 			var fbStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
@@ -59,6 +59,11 @@ namespace sd.render {
 		}
 	
 		// -- colour
+		if ((desc.colourPixelFormats[0] == PixelFormat.None) && fboMustHaveAColourAttachment(rc)) {
+			// work around FBO bug, see fboMustHaveAColourAttachment function
+			desc.colourPixelFormats[0] = PixelFormat.RGB8;
+		}
+
 		for (var colourAttIndex = 0; colourAttIndex < desc.colourPixelFormats.length; ++colourAttIndex) {
 			if (desc.colourPixelFormats[colourAttIndex] != PixelFormat.None) {
 				var texDesc = makeTextureDescriptor();
