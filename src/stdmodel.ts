@@ -122,6 +122,7 @@ namespace sd.world {
 				var pld = render.makePipelineDescriptor();
 				pld.depthPixelFormat = render.PixelFormat.Depth24I;
 				pld.vertexShader = render.makeShader(this.rc, this.rc.gl.VERTEX_SHADER, this.shadowVertexSource);
+				pld.fragmentShader = render.makeShader(this.rc, this.rc.gl.FRAGMENT_SHADER, this.shadowFragmentSource);
 				pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
 				pld.writeMask.red = pld.writeMask.green = pld.writeMask.blue = pld.writeMask.alpha = false;
 
@@ -137,6 +138,14 @@ namespace sd.world {
 			"uniform mat4 modelViewProjectionMatrix;",
 			"void main() {",
 			"	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);",
+			"}"
+		].join("");
+
+
+		private shadowFragmentSource = [
+			"precision highp float;",
+			"void main() {",
+			"	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);",
 			"}"
 		].join("");
 
@@ -269,6 +278,13 @@ namespace sd.world {
 	}
 
 
+	export const enum RenderMode {
+		Forward,
+		Deferred,
+		Shadow
+	}
+
+
 	export class StdModelManager {
 		private stdPipeline_: StdPipeline;
 
@@ -339,7 +355,7 @@ namespace sd.world {
 		}
 
 
-		private drawOne(rp: render.RenderPass, proj: ProjectionSetup, modelIx: number) {
+		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, modelIx: number) {
 			var gl = this.rc.gl;
 
 			var mesh = this.meshes_[modelIx];
@@ -399,13 +415,44 @@ namespace sd.world {
 		}
 
 
-		drawAll(rp: render.RenderPass, proj: ProjectionSetup) {
+		private drawSingleShadow(rp: render.RenderPass, proj: ProjectionSetup, shadowPipeline: render.Pipeline, modelIx: number) {
+			var gl = this.rc.gl;
+			var program = <StdGLProgram>(shadowPipeline.program);
+			var mesh = this.meshes_[modelIx];
+			rp.setMesh(mesh);
+
+			// -- calc MVP and set
+			var modelMatrix = this.transformMgr_.modelMatrix(this.transforms_[modelIx]);
+			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
+			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
+			gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);
+
+			// -- draw full mesh
+			if (mesh.hasIndexBuffer)
+				rp.drawIndexedPrimitives(0, 3);
+			else
+				rp.drawPrimitives(0, 3);
+		}
+
+
+		drawAll(rp: render.RenderPass, proj: ProjectionSetup, mode: RenderMode) {
 			var gl = this.rc.gl;
 
-			rp.setDepthTest(render.DepthTest.Less);
+			if (mode == RenderMode.Forward) {
+				rp.setDepthTest(render.DepthTest.Less);
 
-			for (var mix = 1; mix <= this.count_; ++mix) {
-				this.drawOne(rp, proj, mix);
+				for (var modelIx = 1; modelIx <= this.count_; ++modelIx) {
+					this.drawSingleForward(rp, proj, modelIx);
+				}
+			}
+			else if (mode == RenderMode.Shadow) {
+				var shadowPipeline = this.stdPipeline_.shadowPipeline();
+				rp.setPipeline(shadowPipeline);
+				rp.setDepthTest(render.DepthTest.Less);
+
+				for (var modelIx = 1; modelIx <= this.count_; ++modelIx) {
+					this.drawSingleShadow(rp, proj, shadowPipeline, modelIx);
+				}
 			}
 		}
 	}
