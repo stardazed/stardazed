@@ -271,7 +271,7 @@ namespace sd.world {
 
 	export interface StdModelDescriptor {
 		mesh: render.Mesh;
-		materials: StdMaterialIndex[];
+		materials: StdMaterialInstance[];
 
 		castsShadows?: boolean;
 		acceptsShadows?: boolean;
@@ -294,7 +294,7 @@ namespace sd.world {
 		private materialIndexOffsets_: number[] = [];
 		private groupFeatureOffsets_: number[] = [];
 		private primGroupFeatures_: Features[] = [];
-		private materialIndexes_: StdMaterialIndex[] = [];
+		private materialIndexes_: StdMaterialInstance[] = [];
 		private count_ = 0;
 
 		private modelViewMatrix_: Float32Array;
@@ -319,7 +319,7 @@ namespace sd.world {
 		}
 
 
-		private featuresForMeshAndMaterial(mesh: render.Mesh, material: StdMaterialIndex): Features {
+		private featuresForMeshAndMaterial(mesh: render.Mesh, material: StdMaterialInstance): Features {
 			var features = 0;
 
 			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.Colour)) features |= Features.VtxColour;

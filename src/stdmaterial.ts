@@ -4,7 +4,7 @@
 
 /// <reference path="math.ts" />
 /// <reference path="container.ts" />
-/// <reference path="world.ts" />
+/// <reference path="entity.ts" />
 
 namespace sd.world {
 
@@ -73,7 +73,7 @@ namespace sd.world {
 	}
 
 
-	export type StdMaterialIndex = world.Instance<StdMaterialManager>;
+	export type StdMaterialInstance = world.Instance<StdMaterialManager>;
 
 	export class StdMaterialManager {
 		private instanceData_: container.MultiArrayBuffer;
@@ -94,7 +94,7 @@ namespace sd.world {
 				{ type: Float, count: 4 },  // mainColour[3], specularIntensity
 				{ type: Float, count: 4 },  // specularColour[3], specularExponent
 				{ type: Float, count: 4 },  // textureScale[2], textureOffset[2]
-				{ type: UInt32, count: 1 }, // flags
+				{ type: SInt32, count: 1 }, // flags
 			];
 
 			this.instanceData_ = new container.MultiArrayBuffer(initialCapacity, fields);
@@ -110,7 +110,7 @@ namespace sd.world {
 		}
 
 
-		create(desc: StdMaterialDescriptor): StdMaterialIndex {
+		create(desc: StdMaterialDescriptor): StdMaterialInstance {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
@@ -135,8 +135,8 @@ namespace sd.world {
 		}
 
 
-		destroy(index: StdMaterialIndex) {
-			var matIndex = <number>index;
+		destroy(inst: StdMaterialInstance) {
+			var matIndex = <number>inst;
 
 			math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex).set(math.Vec4.zero);
 			math.vectorArrayItem(this.specularBase_, math.Vec4, matIndex).set(math.Vec4.zero);
@@ -151,36 +151,36 @@ namespace sd.world {
 
 
 		// -- individual element field accessors
-		mainColour(index: StdMaterialIndex): TypedArray {
-			return math.vectorArrayItem(this.mainColourBase_, math.Vec4, <number>index).subarray(0, 3);
+		mainColour(inst: StdMaterialInstance): TypedArray {
+			return math.vectorArrayItem(this.mainColourBase_, math.Vec4, <number>inst).subarray(0, 3);
 		}
 
-		specularColourExponent(index: StdMaterialIndex): TypedArray {
-			return math.vectorArrayItem(this.specularBase_, math.Vec4, <number>index);
+		specularColourExponent(inst: StdMaterialInstance): TypedArray {
+			return math.vectorArrayItem(this.specularBase_, math.Vec4, <number>inst);
 		}
 
-		textureScale(index: StdMaterialIndex): TypedArray {
-			return math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, <number>index).subarray(0, 2);
+		textureScale(inst: StdMaterialInstance): TypedArray {
+			return math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, <number>inst).subarray(0, 2);
 		}
 
-		textureOffset(index: StdMaterialIndex): TypedArray {
-			return math.vectorArrayItem(this.specularBase_, math.Vec4, <number>index).subarray(2, 4);
+		textureOffset(inst: StdMaterialInstance): TypedArray {
+			return math.vectorArrayItem(this.specularBase_, math.Vec4, <number>inst).subarray(2, 4);
 		}
 
-		textureScaleAndOffset(index: StdMaterialIndex): TypedArray {
-			return math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, <number>index);
+		textureScaleAndOffset(inst: StdMaterialInstance): TypedArray {
+			return math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, <number>inst);
 		}
 
-		albedoMap(index: StdMaterialIndex): render.Texture {
-			return this.albedoMaps_[<number>index];
+		albedoMap(inst: StdMaterialInstance): render.Texture {
+			return this.albedoMaps_[<number>inst];
 		}
 
-		normalMap(index: StdMaterialIndex): render.Texture {
-			return this.normalMaps_[<number>index];
+		normalMap(inst: StdMaterialInstance): render.Texture {
+			return this.normalMaps_[<number>inst];
 		}
 
-		flags(index: StdMaterialIndex): StdMaterialFlags {
-			return this.flagsBase_[<number>index];
+		flags(inst: StdMaterialInstance): StdMaterialFlags {
+			return this.flagsBase_[<number>inst];
 		}
 
 		// TODO: this will affect the pipeline required for this material, do we need this?
@@ -188,20 +188,20 @@ namespace sd.world {
 		// 	this.flagsBase_[index] = newFlags;
 		// }
 
-		setAlbedoMap(index: StdMaterialIndex, newTex: render.Texture) {
+		setAlbedoMap(inst: StdMaterialInstance, newTex: render.Texture) {
 			// TODO: warn on changing from between null/non-null as it would affect the pipeline?
-			this.albedoMaps_[<number>index] = newTex;
+			this.albedoMaps_[<number>inst] = newTex;
 		}
 
-		setNormalMap(index: StdMaterialIndex, newTex: render.Texture) {
+		setNormalMap(inst: StdMaterialInstance, newTex: render.Texture) {
 			// TODO: warn on changing from between null/non-null as it would affect the pipeline?
-			this.normalMaps_[<number>index] = newTex;
+			this.normalMaps_[<number>inst] = newTex;
 		}
 
 
 		// -- reconstruct a copy of the data as a descriptor
-		copyDescriptor(index: StdMaterialIndex): StdMaterialDescriptor {
-			var matIndex = <number>index;
+		copyDescriptor(inst: StdMaterialInstance): StdMaterialDescriptor {
+			var matIndex = <number>inst;
 			assert(matIndex < this.instanceData_.count);
 
 			var mainColourArr = math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex);
@@ -227,8 +227,8 @@ namespace sd.world {
 
 
 		// direct data views to set uniforms with in StdModelMgr
-		getData(index: StdMaterialIndex): StdMaterialData {
-			var matIndex = <number>index;
+		getData(inst: StdMaterialInstance): StdMaterialData {
+			var matIndex = <number>inst;
 			return {
 				colourData: <Float32Array>math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex),
 				specularData: <Float32Array>math.vectorArrayItem(this.specularBase_, math.Vec4, matIndex),
