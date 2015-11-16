@@ -14,7 +14,8 @@ namespace sd.world {
 
 	export interface LightDescriptor {
 		colour: ArrayOfNumber;
-		intensity: number;
+		ambientIntensity: number;
+		diffuseIntensity: number;
 	}
 
 
@@ -23,6 +24,7 @@ namespace sd.world {
 
 		private typeBase_: TypedArray;
 		private colourBase_: TypedArray;
+		private parameterBase_: TypedArray;
 		private transforms_: TransformInstance[];
 
 		private tempVec4_ = new Float32Array(4);
@@ -33,8 +35,8 @@ namespace sd.world {
 
 			var fields: container.MABField[] = [
 				{ type: UInt8, count: 1 },  // type
-				{ type: Float, count: 4 },  // colour[3], intensity
-				{ type: UInt32, count: 1 }, // transformRef (TODO: later)
+				{ type: Float, count: 4 },  // colour[3], 0
+				{ type: Float, count: 4 },  // ambientIntensity, diffuseIntensity, 0, 0
 			];
 
 			this.instanceData_ = new container.MultiArrayBuffer(initialCapacity, fields);
@@ -45,6 +47,7 @@ namespace sd.world {
 		private rebase() {
 			this.typeBase_ = this.instanceData_.indexedFieldView(0);
 			this.colourBase_ = this.instanceData_.indexedFieldView(1);
+			this.parameterBase_ = this.instanceData_.indexedFieldView(2);
 		}
 
 
@@ -54,8 +57,12 @@ namespace sd.world {
 			}
 
 			var instanceIx = this.instanceData_.count;
-			vec4.set(this.tempVec4_, desc.colour[0], desc.colour[1], desc.colour[2], desc.intensity);
+
+			vec4.set(this.tempVec4_, desc.colour[0], desc.colour[1], desc.colour[2], 0);
 			math.vectorArrayItem(this.colourBase_, math.Vec4, instanceIx).set(this.tempVec4_);
+
+			vec4.set(this.tempVec4_, desc.ambientIntensity, desc.diffuseIntensity, 0, 0);
+			math.vectorArrayItem(this.parameterBase_, math.Vec4, instanceIx).set(this.tempVec4_);
 
 			var transform = this.transformMgr_.forEntity(entity);
 			this.transformMgr_.setRotation(transform, quat.rotationTo([], [1, 0, 0], orientation));
@@ -70,19 +77,28 @@ namespace sd.world {
 		}
 
 
-		intensity(h: LightInstance) {
-			return math.vectorArrayItem(this.colourBase_, math.Vec4, h.ref)[3];
+		ambientIntensity(h: LightInstance) {
+			return math.vectorArrayItem(this.parameterBase_, math.Vec4, h.ref)[0];
 		}
 	
-		setIntensity(h: LightInstance, newIntensity: number) {
-			math.vectorArrayItem(this.colourBase_, math.Vec4, h.ref)[3] = newIntensity;
+		setAmbientIntensity(h: LightInstance, newIntensity: number) {
+			math.vectorArrayItem(this.parameterBase_, math.Vec4, h.ref)[0] = newIntensity;
+		}
+
+		diffuseIntensity(h: LightInstance) {
+			return math.vectorArrayItem(this.parameterBase_, math.Vec4, h.ref)[1];
+		}
+
+		setDiffuseIntensity(h: LightInstance, newIntensity: number) {
+			math.vectorArrayItem(this.parameterBase_, math.Vec4, h.ref)[1] = newIntensity;
 		}
 
 
 		getData(h: LightInstance) {
 			return {
 				type: this.typeBase_[h.ref],
-				colourData: math.vectorArrayItem(this.colourBase_, math.Vec4, h.ref)
+				colourData: math.vectorArrayItem(this.colourBase_, math.Vec4, h.ref),
+				parameterData: math.vectorArrayItem(this.parameterBase_, math.Vec4, h.ref)
 			};
 		}
 	}

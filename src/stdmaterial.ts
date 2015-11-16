@@ -27,8 +27,10 @@ namespace sd.world {
 	export interface StdMaterialDescriptor {
 		// colours
 		mainColour: ArrayOfNumber;      // v3, single colour or tint for albedo
+
 		specularColour: ArrayOfNumber;  // v3
-		specularExponent: number;       // 0 means no specular
+		specularExponent: number;       // 0 means no specular, 0+
+		specularIntensity: number;      // 0 means no specular, 0.0-1.0
 
 		// textures
 		textureScale: ArrayOfNumber;    // v2, scale and offset apply to all textures
@@ -48,6 +50,7 @@ namespace sd.world {
 			mainColour: vec3.copy(vecs.subarray(0, 3), math.Vec3.one),
 			specularColour: vec3.copy(vecs.subarray(3, 6), math.Vec3.zero),
 			specularExponent: 0,
+			specularIntensity: 0,
 
 			textureScale: vec2.copy(vecs.subarray(6, 8), math.Vec2.one),
 			textureOffset: vec2.copy(vecs.subarray(8, 10), math.Vec2.zero),
@@ -88,7 +91,7 @@ namespace sd.world {
 			const initialCapacity = 256;
 
 			var fields: container.MABField[] = [
-				{ type: Float, count: 4 },  // mainColour[3], reserved(=0)
+				{ type: Float, count: 4 },  // mainColour[3], specularIntensity
 				{ type: Float, count: 4 },  // specularColour[3], specularExponent
 				{ type: Float, count: 4 },  // textureScale[2], textureOffset[2]
 				{ type: UInt32, count: 1 }, // flags
@@ -113,7 +116,7 @@ namespace sd.world {
 			}
 			var matIndex = this.instanceData_.count; // entry 0 is reserved as nullptr-like
 
-			vec4.set(this.tempVec4, desc.mainColour[0], desc.mainColour[1], desc.mainColour[2], 0);
+			vec4.set(this.tempVec4, desc.mainColour[0], desc.mainColour[1], desc.mainColour[2], desc.specularIntensity);
 			math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex).set(this.tempVec4);
 			vec4.set(this.tempVec4, desc.specularColour[0], desc.specularColour[1], desc.specularColour[2], desc.specularExponent);
 			math.vectorArrayItem(this.specularBase_, math.Vec4, matIndex).set(this.tempVec4);
