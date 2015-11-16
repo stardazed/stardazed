@@ -11,7 +11,7 @@ namespace sd.render {
 		switch (op) {
 			case BlendOperation.Add: return rc.gl.FUNC_ADD;
 			case BlendOperation.Subtract: return rc.gl.FUNC_SUBTRACT;
-			case BlendOperation.ReverseSubtract: rc.gl.FUNC_REVERSE_SUBTRACT;
+			case BlendOperation.ReverseSubtract: return rc.gl.FUNC_REVERSE_SUBTRACT;
 
 			case BlendOperation.Min: return rc.extMinMax ? rc.extMinMax.MIN_EXT : rc.gl.FUNC_SUBTRACT;
 			case BlendOperation.Max: return rc.extMinMax ? rc.extMinMax.MAX_EXT : rc.gl.FUNC_ADD;
@@ -24,7 +24,7 @@ namespace sd.render {
 			case BlendFactor.Zero: return rc.gl.ZERO;
 			case BlendFactor.One: return rc.gl.ONE;
 			case BlendFactor.SourceColour: return rc.gl.SRC_COLOR;
-			case BlendFactor.OneMinusSourceColour: rc.gl.ONE_MINUS_SRC_COLOR;
+			case BlendFactor.OneMinusSourceColour: return rc.gl.ONE_MINUS_SRC_COLOR;
 			case BlendFactor.DestColour: return rc.gl.DST_COLOR;
 			case BlendFactor.OneMinusDestColour: return rc.gl.ONE_MINUS_DST_COLOR;
 			case BlendFactor.SourceAlpha: return rc.gl.SRC_ALPHA;
