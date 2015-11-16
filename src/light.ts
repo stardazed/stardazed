@@ -22,10 +22,11 @@ namespace sd.world {
 	export class LightManager {
 		private instanceData_: container.MultiArrayBuffer;
 
+		private entityBase_: TypedArray;
+		private transformBase_: TypedArray;
 		private typeBase_: TypedArray;
 		private colourBase_: TypedArray;
 		private parameterBase_: TypedArray;
-		private transforms_: TransformInstance[];
 
 		private tempVec4_ = new Float32Array(4);
 
@@ -34,6 +35,8 @@ namespace sd.world {
 			const initialCapacity = 256;
 
 			var fields: container.MABField[] = [
+				{ type: SInt32, count: 1 }, // entity
+				{ type: SInt32, count: 1 }, // transformInstance
 				{ type: UInt8, count: 1 },  // type
 				{ type: Float, count: 4 },  // colour[3], 0
 				{ type: Float, count: 4 },  // ambientIntensity, diffuseIntensity, 0, 0
@@ -45,9 +48,11 @@ namespace sd.world {
 
 
 		private rebase() {
-			this.typeBase_ = this.instanceData_.indexedFieldView(0);
-			this.colourBase_ = this.instanceData_.indexedFieldView(1);
-			this.parameterBase_ = this.instanceData_.indexedFieldView(2);
+			this.entityBase_ = this.instanceData_.indexedFieldView(0);
+			this.transformBase_ = this.instanceData_.indexedFieldView(1);
+			this.typeBase_ = this.instanceData_.indexedFieldView(2);
+			this.colourBase_ = this.instanceData_.indexedFieldView(3);
+			this.parameterBase_ = this.instanceData_.indexedFieldView(4);
 		}
 
 
@@ -55,20 +60,32 @@ namespace sd.world {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
-
 			var instanceIx = this.instanceData_.count;
 
+			// -- entity and transform links
+			this.entityBase_[instanceIx] = <number>entity;
+
+			var transform = this.transformMgr_.forEntity(entity);
+			this.transformMgr_.setRotation(transform, quat.rotationTo([], [1, 0, 0], orientation));
+			this.transformBase_[instanceIx] = <number>transform;
+
+			// -- light data
 			vec4.set(this.tempVec4_, desc.colour[0], desc.colour[1], desc.colour[2], 0);
 			math.vectorArrayItem(this.colourBase_, math.Vec4, instanceIx).set(this.tempVec4_);
 
 			vec4.set(this.tempVec4_, desc.ambientIntensity, desc.diffuseIntensity, 0, 0);
 			math.vectorArrayItem(this.parameterBase_, math.Vec4, instanceIx).set(this.tempVec4_);
 
-			var transform = this.transformMgr_.forEntity(entity);
-			this.transformMgr_.setRotation(transform, quat.rotationTo([], [1, 0, 0], orientation));
-			this.transforms_[instanceIx] = transform;
-
 			return instanceIx;
+		}
+
+
+		entity(inst: LightInstance): Entity {
+			return this.entityBase_[<number>inst];
+		}
+
+		transform(inst: LightInstance): TransformInstance {
+			return this.transformBase_[<number>inst];
 		}
 
 
