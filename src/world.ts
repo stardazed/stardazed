@@ -17,25 +17,25 @@ namespace sd.world {
 		__C?: Component;
 	}
 
+	export type Entity = Instance<EntityManager>;
 
-	export class Entity {
-		private static minFreedBuildup = 1024;
-		private static indexBits = 24;
-		private static generationBits = 7; // I trust browsers up to 31 bits inclusive
-		private static indexMask = (1 << Entity.indexBits) - 1;
-		private static generationMask = (1 << Entity.generationBits) - 1;
 
-		id: number;
+	// -- Entity bit-field build up
+	const entityIndexBits = 24;
+	const entityGenerationBits = 7; // I trust browsers up to 31 bits inclusive
+	const entityIndexMask = (1 << entityIndexBits) - 1;
+	const entityGenerationMask = (1 << entityGenerationBits) - 1;
 
-		constructor(index: number, gen: number) {
-			this.id = (gen << Entity.indexBits) | index;
-		}
+	function entityGeneration(ent: Entity) {
+		return ((<number>ent) >> entityIndexBits) & entityGenerationMask;
+	}
 
-		get index() { return this.id & Entity.indexMask; }
-		get generation() { return (this.id >> Entity.indexBits) & Entity.generationMask; }
+	function entityIndex(ent: Entity) {
+		return <number>ent & entityIndexMask;
+	}
 
-		equals(other: Entity) { return other.id == this.id; }
-		get valid() { return this.id != 0; }
+	function makeEntity(index: number, generation: number): Entity {
+		return ((generation & entityGenerationMask) << entityIndexBits) | (index & entityIndexMask);
 	}
 
 
@@ -45,13 +45,9 @@ namespace sd.world {
 		private freedIndices_: container.Deque<number>;
 
 		private minFreedBuildup = 1024;
-		private indexBits = 24;
-		private generationBits = 7; // I trust browsers up to 31 bits inclusive
-		private indexMask = (1 << this.indexBits) - 1;
-		private generationMask = (1 << this.generationBits) - 1;
 
 		constructor() {
-			this.generation_ = new Uint8Array(2048);
+			this.generation_ = new Uint8Array(8192);
 			this.freedIndices_ = new container.Deque<number>();
 			this.genCount_ = -1;
 
@@ -82,16 +78,18 @@ namespace sd.world {
 				index = this.appendGeneration();
 			}
 
-			return new Entity(index, this.generation_[index]);
+			return makeEntity(index, this.generation_[index]);
 		}
 
 		alive(ent: Entity) {
-			var index = ent.index;
-			return index <= this.genCount_ && (ent.generation == this.generation_[index]);
+			// explicitly "inlined" calls to entityIndex/Generation as this method will be called a lot
+			var index = <number>ent & entityIndexMask;
+			var generation = ((<number>ent) >> entityIndexBits) & entityGenerationMask;
+			return index <= this.genCount_ && (generation == this.generation_[index]);
 		}
 
 		destroy(ent: Entity) {
-			var index = ent.index;
+			var index = entityIndex(ent);
 			this.generation_[index]++;
 			this.freedIndices_.append(index);
 		}

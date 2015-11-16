@@ -57,7 +57,7 @@ namespace sd.world {
 		assign(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
 		assign(linkedEntity: Entity, desc: TransformDescriptor, parent?: TransformInstance): TransformInstance;
 		assign(linkedEntity: Entity, descOrParent: TransformDescriptor | TransformInstance, parent?: TransformInstance): TransformInstance {
-			var entIndex = linkedEntity.index;
+			var entIndex = <number>linkedEntity; // TODO: fix this
 
 			if (this.instanceData_.count < entIndex) {
 				var newCount = math.roundUpPowerOf2(entIndex);
@@ -140,7 +140,7 @@ namespace sd.world {
 
 		// -- Entity -> TransformInstance mapping
 		forEntity(ent: Entity): TransformInstance {
-			return ent.index;
+			return <number>ent;
 		}
 	}
 
