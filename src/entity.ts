@@ -21,8 +21,8 @@ namespace sd.world {
 
 
 	// -- Entity bit-field build up
-	const entityIndexBits = 24;
-	const entityGenerationBits = 7; // I trust browsers up to 31 bits inclusive
+	const entityIndexBits = 23; // numbers are signed int32 types internally in browsers when not used as int
+	const entityGenerationBits = 8; 
 	const entityIndexMask = (1 << entityIndexBits) - 1;
 	const entityGenerationMask = (1 << entityGenerationBits) - 1;
 

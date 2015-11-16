@@ -32,7 +32,7 @@ namespace sd.world {
 
 		constructor() {
 			var instanceFields: container.MABField[] = [
-				{ type: UInt32, count: 1 }, // parentHandle
+				{ type: SInt32, count: 1 }, // parentInstance
 				{ type: Float, count: 3 },  // position
 				{ type: Float, count: 4 },  // rotation
 				{ type: Float, count: 3 },  // scale
