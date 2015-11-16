@@ -303,7 +303,13 @@ namespace sd.world {
 		private lightNormalMatrix_: Float32Array;
 
 
-		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager, private materialMgr_: StdMaterialManager) {
+		constructor(
+			private rc: render.RenderContext,
+			private transformMgr_: TransformManager,
+			private materialMgr_: StdMaterialManager,
+			private lightMgr_: LightManager
+		)
+		{
 			this.stdPipeline_ = new StdPipeline(rc);
 
 			this.modelViewMatrix_ = mat4.create();
