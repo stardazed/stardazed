@@ -67,7 +67,7 @@ namespace sd.world {
 
 			var transform = this.transformMgr_.forEntity(entity);
 			vec3.normalize(orientation, orientation);
-			this.transformMgr_.setRotation(transform, quat.rotationTo([], [1, 0, 0], orientation));
+			this.transformMgr_.setRotation(transform, quat.rotationTo([], [0, 0, 1], orientation));
 			this.transformBase_[instanceIx] = <number>transform;
 
 			// -- light data
@@ -119,7 +119,7 @@ namespace sd.world {
 				colourData: math.vectorArrayItem(this.colourBase_, math.Vec4, <number>inst),
 				parameterData: math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst),
 				position: this.transformMgr_.position(transform),
-				orientation: vec3.transformQuat([], [1, 0, 0], this.transformMgr_.rotation(transform))
+				orientation: vec3.transformQuat([], [0, 0, 1], this.transformMgr_.rotation(transform))
 			};
 		}
 	}
