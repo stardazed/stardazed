@@ -60,8 +60,7 @@ namespace sd.world {
 			var entIndex = <number>linkedEntity; // TODO: fix this
 
 			if (this.instanceData_.count < entIndex) {
-				var newCount = math.roundUpPowerOf2(entIndex);
-				if (this.instanceData_.resize(newCount) == container.InvalidatePointers.Yes) {
+				if (this.instanceData_.resize(entIndex) == container.InvalidatePointers.Yes) {
 					this.rebase();
 				}
 			}

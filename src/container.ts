@@ -320,7 +320,8 @@ namespace sd.container {
 			var invalidation = InvalidatePointers.No;
 
 			if (newCount > this.capacity_) {
-				invalidation = this.reserve(newCount);
+				// automatically expand up to next highest power of 2 size
+				invalidation = this.reserve(math.roundUpPowerOf2(newCount));
 			}
 			else if (newCount < this.count_) {
 				// Reducing the count will clear the now freed up elements so that when
