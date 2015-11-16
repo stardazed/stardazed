@@ -38,8 +38,8 @@ namespace sd.world {
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transformInstance
 				{ type: UInt8, count: 1 },  // type
-				{ type: Float, count: 4 },  // colour[3], 0
-				{ type: Float, count: 4 },  // ambientIntensity, diffuseIntensity, 0, 0
+				{ type: Float, count: 4 },  // colour[3], amplitude(0..1)
+				{ type: Float, count: 4 },  // ambientIntensity, diffuseIntensity, range(spot/point), cutoff(spot)
 			];
 
 			this.instanceData_ = new container.MultiArrayBuffer(initialCapacity, fields);
@@ -66,6 +66,7 @@ namespace sd.world {
 			this.entityBase_[instanceIx] = <number>entity;
 
 			var transform = this.transformMgr_.forEntity(entity);
+			vec3.normalize(orientation, orientation);
 			this.transformMgr_.setRotation(transform, quat.rotationTo([], [1, 0, 0], orientation));
 			this.transformBase_[instanceIx] = <number>transform;
 
@@ -112,10 +113,13 @@ namespace sd.world {
 
 
 		getData(inst: LightInstance) {
+			var transform = this.transformBase_[<number>inst];
 			return {
 				type: this.typeBase_[<number>inst],
 				colourData: math.vectorArrayItem(this.colourBase_, math.Vec4, <number>inst),
-				parameterData: math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)
+				parameterData: math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst),
+				position: this.transformMgr_.position(transform),
+				orientation: vec3.transformQuat([], [1, 0, 0], this.transformMgr_.rotation(transform))
 			};
 		}
 	}
