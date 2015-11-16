@@ -51,7 +51,7 @@ namespace sd.world {
 		}
 
 
-		createDirectionalLight(entity: Entity, desc: LightDescriptor, orientation: ArrayOfNumber) {
+		createDirectionalLight(entity: Entity, desc: LightDescriptor, orientation: ArrayOfNumber): LightInstance {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
@@ -68,37 +68,37 @@ namespace sd.world {
 			this.transformMgr_.setRotation(transform, quat.rotationTo([], [1, 0, 0], orientation));
 			this.transforms_[instanceIx] = transform;
 
-			return new Instance<LightManager>(instanceIx);
+			return instanceIx;
 		}
 
 
-		colour(h: LightInstance) {
-			return math.vectorArrayItem(this.colourBase_, math.Vec4, h.ref).subarray(0, 3);
+		colour(inst: LightInstance) {
+			return math.vectorArrayItem(this.colourBase_, math.Vec4, <number>inst).subarray(0, 3);
 		}
 
 
-		ambientIntensity(h: LightInstance) {
-			return math.vectorArrayItem(this.parameterBase_, math.Vec4, h.ref)[0];
+		ambientIntensity(inst: LightInstance) {
+			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[0];
 		}
 	
-		setAmbientIntensity(h: LightInstance, newIntensity: number) {
-			math.vectorArrayItem(this.parameterBase_, math.Vec4, h.ref)[0] = newIntensity;
+		setAmbientIntensity(inst: LightInstance, newIntensity: number) {
+			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[0] = newIntensity;
 		}
 
-		diffuseIntensity(h: LightInstance) {
-			return math.vectorArrayItem(this.parameterBase_, math.Vec4, h.ref)[1];
+		diffuseIntensity(inst: LightInstance) {
+			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[1];
 		}
 
-		setDiffuseIntensity(h: LightInstance, newIntensity: number) {
-			math.vectorArrayItem(this.parameterBase_, math.Vec4, h.ref)[1] = newIntensity;
+		setDiffuseIntensity(inst: LightInstance, newIntensity: number) {
+			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[1] = newIntensity;
 		}
 
 
-		getData(h: LightInstance) {
+		getData(inst: LightInstance) {
 			return {
-				type: this.typeBase_[h.ref],
-				colourData: math.vectorArrayItem(this.colourBase_, math.Vec4, h.ref),
-				parameterData: math.vectorArrayItem(this.parameterBase_, math.Vec4, h.ref)
+				type: this.typeBase_[<number>inst],
+				colourData: math.vectorArrayItem(this.colourBase_, math.Vec4, <number>inst),
+				parameterData: math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)
 			};
 		}
 	}

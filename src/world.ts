@@ -1,4 +1,4 @@
-// world - entities and common components
+// world - entities and shared interfaces
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
@@ -13,12 +13,8 @@ namespace sd.world {
 	// |___|_||_\__|_|\__|\_, |_|  |_\__,_|_||_\__,_\__, \___|_|  
 	//                    |__/                      |___/         
 
-	export class Instance<Component> {
-		private __C: Component; // type differentiation, does not gen code
-
-		constructor(public ref: number) {}
-		equals(other: Instance<Component>) { return other.ref == this.ref; }
-		valid() { return this.ref != 0; }
+	export interface Instance<Component> extends Number {
+		__C?: Component;
 	}
 
 

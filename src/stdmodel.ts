@@ -352,12 +352,12 @@ namespace sd.world {
 				this.primGroupFeatures_.push(this.featuresForMeshAndMaterial(desc.mesh, desc.materials[group.materialIx]));
 			});
 
-			return new Instance<StdModelManager>(ix);
+			return ix;
 		}
 
 
-		mesh(h: StdModelInstance) {
-			return this.meshes_[h.ref];
+		mesh(inst: StdModelInstance) {
+			return this.meshes_[<number>inst];
 		}
 
 
