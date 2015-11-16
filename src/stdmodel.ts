@@ -288,19 +288,24 @@ namespace sd.world {
 	export class StdModelManager {
 		private stdPipeline_: StdPipeline;
 
-		private transforms_: TransformInstance[] = [];
-		private meshes_: render.Mesh[] = [];
-		private shadowFlags_: number[] = [];
-		private materialIndexOffsets_: number[] = [];
-		private groupFeatureOffsets_: number[] = [];
-		private primGroupFeatures_: Features[] = [];
-		private materialIndexes_: StdMaterialInstance[] = [];
-		private count_ = 0;
+		private instanceData_: container.MultiArrayBuffer;
+		private entityBase_: TypedArray;
+		private transformBase_: TypedArray;
+		private shadowFlagBase_: TypedArray;
+		private primGroupOffsetBase_: TypedArray;
 
-		private modelViewMatrix_: Float32Array;
-		private modelViewProjectionMatrix_: Float32Array;
-		private normalMatrix_: Float32Array;
-		private lightNormalMatrix_: Float32Array;
+		private primGroupData_: container.MultiArrayBuffer;
+		private primGroupMaterialBase_: TypedArray;
+		private primGroupFeatureBase_: TypedArray;
+
+		private meshes_: render.Mesh[] = [];
+
+
+		// -- for temp calculations
+		private modelViewMatrix_ = mat4.create();
+		private modelViewProjectionMatrix_ = mat4.create();
+		private normalMatrix_ = mat3.create();
+		private lightNormalMatrix_ = mat3.create();
 
 
 		constructor(
@@ -312,10 +317,37 @@ namespace sd.world {
 		{
 			this.stdPipeline_ = new StdPipeline(rc);
 
-			this.modelViewMatrix_ = mat4.create();
-			this.modelViewProjectionMatrix_ = mat4.create();
-			this.normalMatrix_ = mat3.create();
-			this.lightNormalMatrix_ = mat3.create();
+			var instFields: container.MABField[] = [
+				{ type: SInt32, count: 1 }, // entity
+				{ type: SInt32, count: 1 }, // transform
+				{ type: SInt32, count: 1 }, // shadowFlags
+				{ type: SInt32, count: 1 }, // primGroupOffset (offset into primGroupMaterials_ and primGroupFeatures_)
+			];
+			this.instanceData_ = new container.MultiArrayBuffer(1024, instFields);
+
+			var groupFields: container.MABField[] = [
+				{ type: SInt32, count: 1 }, // material
+				{ type: SInt32, count: 1 }, // features
+			];
+			this.primGroupData_ = new container.MultiArrayBuffer(2048, groupFields);
+
+			this.rebase();
+			this.groupRebase();
+		}
+
+
+		private rebase() {
+			this.entityBase_ = this.instanceData_.indexedFieldView(0);
+			this.transformBase_ = this.instanceData_.indexedFieldView(1);
+			this.shadowFlagBase_ = this.instanceData_.indexedFieldView(2);
+			this.primGroupOffsetBase_ = this.instanceData_.indexedFieldView(3);
+		}
+
+
+		private groupRebase() {
+			console.info("groupRebase()");
+			this.primGroupMaterialBase_ = this.primGroupData_.indexedFieldView(0);
+			this.primGroupFeatureBase_ = this.primGroupData_.indexedFieldView(1);
 		}
 
 
@@ -335,26 +367,48 @@ namespace sd.world {
 
 
 		create(entity: Entity, desc: StdModelDescriptor): StdModelInstance {
-			var ix = ++this.count_;
+			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
+				this.rebase();
+			}
+			var ix = this.instanceData_.count;
 
-			this.transforms_[ix] = this.transformMgr_.forEntity(entity);
+			this.entityBase_[ix] = <number>entity;
+			this.transformBase_[ix] = <number>this.transformMgr_.forEntity(entity);
 			this.meshes_[ix] = desc.mesh;
-			this.shadowFlags_[ix] = 0;
+			this.shadowFlagBase_[ix] = 0;
 
+			// -- check correctness of mesh against material list
 			var groups = desc.mesh.primitiveGroups;
 			var maxLocalMatIndex = groups.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
 			assert(desc.materials.length >= maxLocalMatIndex - 1, "not enough StdMaterialIndexes for this mesh");
 
-			this.materialIndexOffsets_[ix] = this.materialIndexes_.length;
-			this.groupFeatureOffsets_[ix] = this.primGroupFeatures_.length;
+			// -- pre-calc global material indexes and program features for each group
+			var primGroupCount = this.primGroupData_.count;
+			this.primGroupOffsetBase_[ix] = this.primGroupData_.count;
+
+			// -- grow primitiveGroup metadata buffer when necessary
+			if (this.primGroupData_.resize(primGroupCount + groups.length) == container.InvalidatePointers.Yes) {
+				this.groupRebase();
+			}
+
+			// -- append metadata for each primGroup
 			groups.forEach((group, gix) => {
-				this.materialIndexes_.push(desc.materials[group.materialIx]);
-				this.primGroupFeatures_.push(this.featuresForMeshAndMaterial(desc.mesh, desc.materials[group.materialIx]));
+				this.primGroupFeatureBase_[primGroupCount] = this.featuresForMeshAndMaterial(desc.mesh, desc.materials[group.materialIx]);
+				this.primGroupMaterialBase_[primGroupCount] = <number>desc.materials[group.materialIx];
+				++primGroupCount;
 			});
 
 			return ix;
 		}
 
+
+		entity(inst: StdModelInstance): Entity {
+			return this.entityBase_[<number>inst];
+		}
+
+		transform(inst: StdModelInstance): TransformInstance {
+			return this.transformBase_[<number>inst];
+		}
 
 		mesh(inst: StdModelInstance) {
 			return this.meshes_[<number>inst];
@@ -367,20 +421,19 @@ namespace sd.world {
 			var mesh = this.meshes_[modelIx];
 
 			// -- calc transform matrices
-			var modelMatrix = this.transformMgr_.modelMatrix(this.transforms_[modelIx]);
+			var modelMatrix = this.transformMgr_.modelMatrix(this.transformBase_[modelIx]);
 			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
 			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
 
 			// -- draw all groups
-			var materialIndexBase = this.materialIndexOffsets_[modelIx];
-			var groupFeatureBase = this.groupFeatureOffsets_[modelIx];
+			var primGroupBase = this.primGroupOffsetBase_[modelIx];
 			var primGroupCount = mesh.primitiveGroups.length;
 
 			for (var pgIx = 0; pgIx < primGroupCount; ++pgIx) {
 				var primGroup = mesh.primitiveGroups[pgIx];
-				var matIndex = this.materialIndexes_[materialIndexBase + pgIx];
-				var materialData = this.materialMgr_.getData(matIndex);
-				var features = this.primGroupFeatures_[groupFeatureBase + pgIx];
+				var matInst: StdMaterialInstance = this.primGroupMaterialBase_[primGroupBase + pgIx];
+				var materialData = this.materialMgr_.getData(matInst);
+				var features: Features = this.primGroupFeatureBase_[primGroupBase + pgIx];
 
 				var pipeline = this.stdPipeline_.pipelineForFeatures(features);
 				rp.setPipeline(pipeline);
@@ -428,7 +481,7 @@ namespace sd.world {
 			rp.setMesh(mesh);
 
 			// -- calc MVP and set
-			var modelMatrix = this.transformMgr_.modelMatrix(this.transforms_[modelIx]);
+			var modelMatrix = this.transformMgr_.modelMatrix(this.transformBase_[modelIx]);
 			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
 			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
 			gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);
@@ -443,11 +496,12 @@ namespace sd.world {
 
 		drawAll(rp: render.RenderPass, proj: ProjectionSetup, mode: RenderMode) {
 			var gl = this.rc.gl;
+			var count = this.instanceData_.count;
 
 			if (mode == RenderMode.Forward) {
 				rp.setDepthTest(render.DepthTest.Less);
 
-				for (var modelIx = 1; modelIx <= this.count_; ++modelIx) {
+				for (var modelIx = 1; modelIx <= count; ++modelIx) {
 					this.drawSingleForward(rp, proj, modelIx);
 				}
 			}
@@ -456,7 +510,7 @@ namespace sd.world {
 				rp.setPipeline(shadowPipeline);
 				rp.setDepthTest(render.DepthTest.Less);
 
-				for (var modelIx = 1; modelIx <= this.count_; ++modelIx) {
+				for (var modelIx = 1; modelIx <= count; ++modelIx) {
 					this.drawSingleShadow(rp, proj, shadowPipeline, modelIx);
 				}
 			}
