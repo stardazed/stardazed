@@ -29,8 +29,8 @@ namespace sd.world {
 		mainColour: ArrayOfNumber;      // v3, single colour or tint for albedo
 
 		specularColour: ArrayOfNumber;  // v3
-		specularExponent: number;       // 0 means no specular, 0+
-		specularIntensity: number;      // 0 means no specular, 0.0-1.0
+		specularExponent: number;       // 0+
+		specularIntensity: number;      // 0..1
 
 		// textures
 		textureScale: ArrayOfNumber;    // v2, scale and offset apply to all textures

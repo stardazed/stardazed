@@ -208,7 +208,7 @@ namespace sd.world {
 			line  ("uniform mat3 lightNormalMatrix;");
 
 			line  ("uniform float ambientSunFactor;");
-			if_not("uniform vec4 mainColour;", Features.VtxColour);
+			line  ("uniform vec4 mainColour;");
 			if_all("uniform vec4 specular;", Features.Specular);
 
 			if_all("uniform sampler2D albedoSampler;", Features.AlbedoMap);
@@ -228,7 +228,7 @@ namespace sd.world {
 				line("	vec3 reflectVec = reflect(-lightVec, normal);");
 				line("	float spec = max(dot(reflectVec, viewVec), 0.0);");
 				line("	spec = pow(spec, specular.w); // shininess");
-				line("	vec3 specContrib = specular.rgb * spec;");
+				line("	vec3 specContrib = specular.rgb * spec * mainColour.w;");
 			}
 
 			// final color
@@ -461,6 +461,7 @@ namespace sd.world {
 
 				// -- set material uniforms
 				gl.uniform1f(program.ambientSunFactorUniform, 0.7);
+				gl.uniform4fv(program.mainColourUniform, materialData.colourData);
 				if (features & Features.Specular) {
 					gl.uniform4fv(program.specularUniform, materialData.specularData);
 				}
