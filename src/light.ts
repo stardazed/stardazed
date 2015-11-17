@@ -6,7 +6,9 @@ namespace sd.world {
 
 	export const enum LightType {
 		None,
-		Directional
+		Directional,
+		Point,
+		Spot
 	}
 
 
@@ -16,6 +18,9 @@ namespace sd.world {
 		colour: ArrayOfNumber;
 		ambientIntensity: number;
 		diffuseIntensity: number;
+
+		range?: number;  // m
+		cutoff?: number; // rad
 	}
 
 
@@ -65,7 +70,22 @@ namespace sd.world {
 		}
 
 
-		createDirectionalLight(entity: Entity, desc: LightDescriptor, direction: ArrayOfNumber): LightInstance {
+		private createLight(entity: Entity, type: LightType, desc: LightDescriptor, position: ArrayOfNumber, direction: ArrayOfNumber): LightInstance {
+			// -- validate parameters
+			assert(type != LightType.None);
+			if (type == LightType.Directional) {
+				assert(vec3.length(direction) > 0, "Directional lights require a valid direction vector");
+			}
+			else if (type == LightType.Point) {
+				assert((desc.range != undefined) && (desc.range >= 0), "Point lights require a valid range");
+			}
+			else if (type == LightType.Spot) {
+				assert(vec3.length(direction) > 0, "Spot lights require a valid direction vector");
+				assert((desc.range != undefined) && (desc.range >= 0), "Spot lights require a valid range (0+)");
+				assert((desc.cutoff != undefined) && (desc.cutoff >= 0), "Spot lights require a valid cutoff arc (0+)");
+			}
+
+			// -- create instance
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
@@ -76,18 +96,36 @@ namespace sd.world {
 
 			var transform = this.transformMgr_.forEntity(entity);
 			vec3.normalize(direction, direction);
-			this.transformMgr_.setRotation(transform, quat.rotationTo([], [0, 0, 1], direction));
+			this.transformMgr_.setPositionAndRotation(transform, position, quat.rotationTo([], [0, 0, 1], direction));
 			this.transformBase_[instanceIx] = <number>transform;
 
-			// -- light data
-			this.typeBase_[instanceIx] = LightType.Directional;
+			// -- colour and amp
+			this.typeBase_[instanceIx] = type;
 			vec4.set(this.tempVec4_, desc.colour[0], desc.colour[1], desc.colour[2], 1.0);
 			math.vectorArrayItem(this.colourBase_, math.Vec4, instanceIx).set(this.tempVec4_);
 
-			vec4.set(this.tempVec4_, desc.ambientIntensity, desc.diffuseIntensity, 0, 0);
+			// -- parameters, force 0 for unused fields for specified type
+			var range = (type == LightType.Directional) ? 0 : desc.range;
+			var cutoff = (type != LightType.Spot) ? 0 : desc.cutoff;
+			vec4.set(this.tempVec4_, desc.ambientIntensity, desc.diffuseIntensity, range, cutoff);
 			math.vectorArrayItem(this.parameterBase_, math.Vec4, instanceIx).set(this.tempVec4_);
 
 			return instanceIx;
+		}
+
+
+		createDirectionalLight(entity: Entity, desc: LightDescriptor, direction: ArrayOfNumber): LightInstance {
+			return this.createLight(entity, LightType.Directional, desc, [0, 0, 0], direction);
+		}
+
+
+		createPointLight(entity: Entity, desc: LightDescriptor, position: ArrayOfNumber): LightInstance {
+			return this.createLight(entity, LightType.Point, desc, position, [0, 0, 1]); // arbitrary direction
+		}
+
+
+		createSpotLight(entity: Entity, desc: LightDescriptor, position: ArrayOfNumber, direction: ArrayOfNumber): LightInstance {
+			return this.createLight(entity, LightType.Spot, desc, position, direction);
 		}
 
 
@@ -105,6 +143,15 @@ namespace sd.world {
 		}
 
 
+		amplitude(inst: LightInstance) {
+			return math.vectorArrayItem(this.colourBase_, math.Vec4, <number>inst)[3];
+		}
+
+		setAmplitude(inst: LightInstance, newAmplitude: number) {
+			math.vectorArrayItem(this.colourBase_, math.Vec4, <number>inst)[3] = newAmplitude;
+		}
+
+
 		ambientIntensity(inst: LightInstance) {
 			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[0];
 		}
@@ -112,6 +159,7 @@ namespace sd.world {
 		setAmbientIntensity(inst: LightInstance, newIntensity: number) {
 			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[0] = newIntensity;
 		}
+
 
 		diffuseIntensity(inst: LightInstance) {
 			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[1];
