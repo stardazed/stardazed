@@ -80,6 +80,7 @@ namespace sd.world {
 			this.transformBase_[instanceIx] = <number>transform;
 
 			// -- light data
+			this.typeBase_[instanceIx] = LightType.Directional;
 			vec4.set(this.tempVec4_, desc.colour[0], desc.colour[1], desc.colour[2], 1.0);
 			math.vectorArrayItem(this.colourBase_, math.Vec4, instanceIx).set(this.tempVec4_);
 

@@ -66,13 +66,6 @@ namespace sd.world {
 		private cachedPipelines_ = new Map<number, render.Pipeline>();
 		private shadowPipeline_: render.Pipeline = null;
 
-		private lightTypeArray = new Int32Array(MAX_FRAGMENT_LIGHTS);
-		private lightPositionArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 3);
-		private lightDirectionArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 3);
-		private lightColourArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private lightParamArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-
-
 		constructor(private rc: render.RenderContext) {
 		}
 
@@ -135,12 +128,8 @@ namespace sd.world {
 			program.lightColourArrayUniform = gl.getUniformLocation(program, "lightColourData");
 			program.lightParamArrayUniform = gl.getUniformLocation(program, "lightParamData");
 
-			// -- explicitly zero light properties
-			gl.uniform1iv(program.lightTypeArrayUniform, this.lightTypeArray);
-			gl.uniform1iv(program.lightPositionArrayUniform, this.lightPositionArray);
-			gl.uniform1iv(program.lightDirectionArrayUniform, this.lightDirectionArray);
-			gl.uniform1iv(program.lightColourArrayUniform, this.lightColourArray);
-			gl.uniform1iv(program.lightParamArrayUniform, this.lightParamArray);
+			// -- zero out light types
+			gl.uniform1iv(program.lightTypeArrayUniform, new Int32Array(MAX_FRAGMENT_LIGHTS));
 
 			gl.useProgram(null);
 
@@ -339,6 +328,12 @@ namespace sd.world {
 
 		private meshes_: render.Mesh[] = [];
 
+		// -- for light uniform updates
+		private lightTypeArray = new Int32Array(MAX_FRAGMENT_LIGHTS);
+		private lightPositionArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 3);
+		private lightDirectionArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 3);
+		private lightColourArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
+		private lightParamArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
 
 		// -- for temp calculations
 		private modelViewMatrix_ = mat4.create();
@@ -503,6 +498,13 @@ namespace sd.world {
 					gl.uniform4fv(program.specularUniform, materialData.specularData);
 				}
 
+				// -- light data FIXME: only update these when local light data was changed
+				gl.uniform1iv(program.lightTypeArrayUniform, this.lightTypeArray);
+				gl.uniform3fv(program.lightPositionArrayUniform, this.lightPositionArray);
+				gl.uniform3fv(program.lightDirectionArrayUniform, this.lightDirectionArray);
+				gl.uniform4fv(program.lightColourArrayUniform, this.lightColourArray);
+				gl.uniform4fv(program.lightParamArrayUniform, this.lightParamArray);
+
 				// -- draw
 				if (mesh.hasIndexBuffer)
 					rp.drawIndexedPrimitives(primGroup.fromPrimIx, primGroup.primCount);
@@ -553,6 +555,31 @@ namespace sd.world {
 				}
 			}
 		}
+
+
+		setFragmentLights(lights: LightInstance[]) {
+			assert(lights.length <= MAX_FRAGMENT_LIGHTS);
+
+			for (var lix = 0; lix < MAX_FRAGMENT_LIGHTS; ++lix) {
+				var light = lix < lights.length ? lights[lix] : null;
+				var lightData = this.lightMgr_.getData(light);
+
+				if (lightData) {
+					assert(lightData.type != LightType.None);
+
+					this.lightTypeArray[lix] = lightData.type;
+					math.vectorArrayItem(this.lightColourArray, math.Vec4, lix).set(lightData.colourData);
+					math.vectorArrayItem(this.lightParamArray, math.Vec4, lix).set(lightData.parameterData);
+
+					if (lightData.type == LightType.Directional) {
+						math.vectorArrayItem(this.lightDirectionArray, math.Vec3, lix).set(lightData.direction);
+					}
+				}
+				else {
+					this.lightTypeArray[lix] = LightType.None;
+				}
+			}
+		}
 	}
 
-} // ns.model
+} // ns sd.world
