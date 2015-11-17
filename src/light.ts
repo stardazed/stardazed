@@ -53,7 +53,7 @@ namespace sd.world {
 				{ type: SInt32, count: 1 }, // transformInstance
 				{ type: UInt8, count: 1 },  // type
 				{ type: Float, count: 4 },  // colour[3], amplitude(0..1)
-				{ type: Float, count: 4 },  // ambientIntensity, diffuseIntensity, range(spot/point), cutoff(spot)
+				{ type: Float, count: 4 },  // ambientIntensity, diffuseIntensity, range(spot/point), cos(cutoff)(spot)
 			];
 
 			this.instanceData_ = new container.MultiArrayBuffer(initialCapacity, fields);
@@ -107,7 +107,7 @@ namespace sd.world {
 			// -- parameters, force 0 for unused fields for specified type
 			var range = (type == LightType.Directional) ? 0 : desc.range;
 			var cutoff = (type != LightType.Spot) ? 0 : desc.cutoff;
-			vec4.set(this.tempVec4_, desc.ambientIntensity, desc.diffuseIntensity, range, cutoff);
+			vec4.set(this.tempVec4_, desc.ambientIntensity, desc.diffuseIntensity, range, Math.cos(cutoff));
 			math.vectorArrayItem(this.parameterBase_, math.Vec4, instanceIx).set(this.tempVec4_);
 
 			return instanceIx;
