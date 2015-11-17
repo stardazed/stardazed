@@ -122,11 +122,11 @@ namespace sd.world {
 			}
 
 			// -- light property arrays
-			program.lightTypeArrayUniform = gl.getUniformLocation(program, "lightType");
-			program.lightPositionArrayUniform = gl.getUniformLocation(program, "lightPosition");
-			program.lightDirectionArrayUniform = gl.getUniformLocation(program, "lightDirection");
-			program.lightColourArrayUniform = gl.getUniformLocation(program, "lightColourData");
-			program.lightParamArrayUniform = gl.getUniformLocation(program, "lightParamData");
+			program.lightTypeArrayUniform = gl.getUniformLocation(program, "lightTypes");
+			program.lightPositionArrayUniform = gl.getUniformLocation(program, "lightPositions");
+			program.lightDirectionArrayUniform = gl.getUniformLocation(program, "lightDirections");
+			program.lightColourArrayUniform = gl.getUniformLocation(program, "lightColours");
+			program.lightParamArrayUniform = gl.getUniformLocation(program, "lightParams");
 
 			// -- zero out light types
 			gl.uniform1iv(program.lightTypeArrayUniform, new Int32Array(MAX_FRAGMENT_LIGHTS));
@@ -235,49 +235,83 @@ namespace sd.world {
 
 			// -- lights (with 4 lights, this will take up 20 frag vector uniforms)
 			line  ("const int MAX_FRAGMENT_LIGHTS = " + MAX_FRAGMENT_LIGHTS + ";");
-			line  ("uniform int lightType[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec3 lightPosition[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec3 lightDirection[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightColourData[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightParamData[MAX_FRAGMENT_LIGHTS];");
+			line  ("const int LPARAM_AMBIENT_INTENSITY = 0;");
+			line  ("const int LPARAM_DIFFUSE_INTENSITY = 1;");
+			line  ("const int LPARAM_RANGE = 2;");
+			line  ("const int LPARAM_CUTOFF = 3;");
+
+			line  ("uniform int lightTypes[MAX_FRAGMENT_LIGHTS];");
+			line  ("uniform vec3 lightPositions[MAX_FRAGMENT_LIGHTS];");
+			line  ("uniform vec3 lightDirections[MAX_FRAGMENT_LIGHTS];");
+			line  ("uniform vec4 lightColours[MAX_FRAGMENT_LIGHTS];");
+			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
 
 			// Constants
 			line  ("const vec3 sunlightColour = vec3(1, 1, 1);");
 
+			// Light helper functions
+			line  ("vec3 calcLightShared(vec4 colour, vec4 param, vec3 lightDirection, vec3 normal) {");
+			line  ("	vec3 ambientContrib = colour.rgb * param[LPARAM_AMBIENT_INTENSITY];");
+			line  ("	float diffuseStrength = dot(normal, lightDirection);");
+			line  ("	if (diffuseStrength <= 0.0) {");
+			line  ("		return ambientContrib;");
+			line  ("	}");
+			line  ("	vec3 diffuseContrib = colour.rgb * diffuseStrength * param[LPARAM_DIFFUSE_INTENSITY];");
+
+			if (feat & Features.Specular) {
+				line("	vec3 specularContrib = vec3(0.0, 0.0, 0.0);");
+				line("	vec3 viewVec = normalize(-vertexPos_cam_intp);");
+				line("	vec3 reflectVec = reflect(-lightDirection, normal);");
+				line("	float specularStrength = dot(reflectVec, viewVec);");
+				line("	if (specularStrength > 0.0) {");
+				line("		specularStrength = pow(specularStrength, specular.w);"); // specular.w = specularExponent
+				line("		specularContrib = specular.rgb * specularStrength * mainColour.w;"); // mainColour.w = specularIntensity
+				line("	}");
+				line("	return (ambientContrib + diffuseContrib + specularContrib) * colour.w;"); // lightColour.w = lightAmplitude
+			}
+			else {
+				line("	return (ambientContrib + diffuseContrib) * colour.w;");
+			}
+			line  ("}");
+
+
+			line("vec3 calcDirectionalLight(vec4 colour, vec4 param, vec3 direction, vec3 normal) {");
+			line("	return calcLightShared(colour, param, direction, normal);");
+			line("}");
+
 			// main()
 			line  ("void main() {");
-			line  ("	vec3 lightDirection = normalize(vec3(.8, .7, .4));");
-			line  ("	vec3 normal = normalize(vertexNormal_intp);");
-			line  ("	vec3 lightVec = normalize(lightNormalMatrix * lightDirection);");
 
-			// specular
-			if (feat & Features.Specular) {
-				line("	vec3 viewVec = normalize(-vertexPos_cam_intp);");
-				line("	vec3 reflectVec = reflect(-lightVec, normal);");
-				line("	float spec = max(dot(reflectVec, viewVec), 0.0);");
-				line("	spec = pow(spec, specular.w); // shininess");
-				line("	vec3 specContrib = specular.rgb * spec * mainColour.w;");
-			}
+			line  ("	vec3 normal = normalize(vertexNormal_intp);");
+			line  ("	vec3 totalLight = vec3(0.0, 0.0, 0.0);");
+
+			line  ("	for (int lightIx = 0; lightIx < MAX_FRAGMENT_LIGHTS; ++lightIx) {");
+			line  ("		int type = lightTypes[lightIx];");
+			line  ("		if (type == 0) break;");
+			line  ("		vec3 lightPos = lightPositions[lightIx];");  // all array accesses must be constant or a loop index
+			line  ("		vec3 lightDir = lightNormalMatrix * lightDirections[lightIx];"); // FIXME: this is frag/vert invariant
+			line  ("		vec4 lightColour = lightColours[lightIx];");
+			line  ("		vec4 lightParam = lightParams[lightIx];");
+			line  ("		if (type == 1) {")
+			line  ("			totalLight += calcDirectionalLight(lightColour, lightParam, lightDir, normal);");
+			line  ("		}");
+			line  ("	}");
+
+			// line  ("	gl_FragColor = vec4(totalLight, 1.0); return;");
 
 			// final color
 			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
-				line("	vec3 lightColour = sunlightColour * max(0.7, dot(lightVec, normal));");
 				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
-				line("	vec3 outColour = lightColour * texColour;");
+				line("	vec3 outColour = totalLight * texColour * mainColour.rgb;");
 			}
 			else if (feat & Features.VtxColour) {
-				line("	vec3 diffColour = (sunlightColour * 0.1) + (vertexColour_intp * 0.9);");
-				line("	vec3 outColour = diffColour * (0.7 + 0.5 * dot(lightVec, normal));");
+				line("	vec3 outColour = totalLight * vertexColour_intp * mainColour.rgb;");
 			}
 			else {
-				line("	vec3 diffColour = (sunlightColour * 0.1) + (mainColour * 0.9);");
-				line("	vec3 outColour = diffColour * (0.7 + 0.5 * dot(lightVec, normal));");
+				line("	vec3 outColour = totalLight * mainColour.rgb;");
 			}
-			if (feat & Features.Specular) {
-				line("	outColour = outColour + specContrib;");
-			}
-			line  ("	gl_FragColor = vec4(outColour, 1.0);");
 
+			line  ("	gl_FragColor = vec4(outColour, 1.0);");
 			line  ("}");
 
 			// console.info("------ FRAGMENT");
