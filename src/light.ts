@@ -19,6 +19,15 @@ namespace sd.world {
 	}
 
 
+	export interface LightData {
+		type: number;
+		colourData: ArrayOfNumber;
+		parameterData: ArrayOfNumber;
+		position: ArrayOfNumber;
+		direction: ArrayOfNumber;
+	}
+
+
 	export class LightManager {
 		private instanceData_: container.MultiArrayBuffer;
 
@@ -98,7 +107,7 @@ namespace sd.world {
 		ambientIntensity(inst: LightInstance) {
 			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[0];
 		}
-	
+
 		setAmbientIntensity(inst: LightInstance, newIntensity: number) {
 			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[0] = newIntensity;
 		}
@@ -112,7 +121,7 @@ namespace sd.world {
 		}
 
 
-		getData(inst: LightInstance) {
+		getData(inst: LightInstance): LightData {
 			var transform = this.transformBase_[<number>inst];
 			return {
 				type: this.typeBase_[<number>inst],
