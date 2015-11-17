@@ -23,18 +23,26 @@ namespace sd.world {
 
 
 	interface StdGLProgram extends WebGLProgram {
+		// -- transform
 		mvMatrixUniform?: WebGLUniformLocation;         // mat4
 		mvpMatrixUniform?: WebGLUniformLocation;        // mat4
 		normalMatrixUniform?: WebGLUniformLocation;     // mat3
 		lightNormalMatrixUniform?: WebGLUniformLocation;// mat3
 
-		ambientSunFactorUniform?: WebGLUniformLocation; // float
+		// -- mesh material
 		mainColourUniform: WebGLUniformLocation;        // vec4
 		specularUniform: WebGLUniformLocation;          // vec4
 		texScaleOffsetUniform: WebGLUniformLocation;    // vec4
 
 		colourMapUniform?: WebGLUniformLocation;        // sampler2D
 		normalMapUniform?: WebGLUniformLocation;        // sampler2D
+
+		// -- lights
+		lightTypeArrayUniform?: WebGLUniformLocation;      // int[MAX_FRAGMENT_LIGHTS]
+		lightPositionArrayUniform?: WebGLUniformLocation;  // vec3[MAX_FRAGMENT_LIGHTS]
+		lightDirectionArrayUniform?: WebGLUniformLocation; // vec3[MAX_FRAGMENT_LIGHTS]
+		lightColourArrayUniform?: WebGLUniformLocation;    // vec4[MAX_FRAGMENT_LIGHTS]
+		lightParamArrayUniform?: WebGLUniformLocation;     // vec4[MAX_FRAGMENT_LIGHTS]
 	}
 
 
@@ -50,9 +58,20 @@ namespace sd.world {
 	// |___/\__\__,_|_| |_| .__/\___|_|_|_||_\___|
 	//                    |_|                     
 
+	// -- shader limits
+	const MAX_FRAGMENT_LIGHTS = 4;
+
+
 	class StdPipeline {
 		private cachedPipelines_ = new Map<number, render.Pipeline>();
 		private shadowPipeline_: render.Pipeline = null;
+
+		private lightTypeArray = new Int32Array(MAX_FRAGMENT_LIGHTS);
+		private lightPositionArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 3);
+		private lightDirectionArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 3);
+		private lightColourArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
+		private lightParamArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
+
 
 		constructor(private rc: render.RenderContext) {
 		}
@@ -95,7 +114,6 @@ namespace sd.world {
 			program.lightNormalMatrixUniform = gl.getUniformLocation(program, "lightNormalMatrix");
 
 			// -- material properties
-			program.ambientSunFactorUniform = gl.getUniformLocation(program, "ambientSunFactor");
 			program.mainColourUniform = gl.getUniformLocation(program, "mainColour");
 			program.specularUniform = gl.getUniformLocation(program, "specular");
 			program.texScaleOffsetUniform = gl.getUniformLocation(program, "texScaleOffset");
@@ -109,6 +127,20 @@ namespace sd.world {
 			if (program.normalMapUniform) {
 				gl.uniform1i(program.normalMapUniform, TextureBindPoint.Normal);
 			}
+
+			// -- light property arrays
+			program.lightTypeArrayUniform = gl.getUniformLocation(program, "lightType");
+			program.lightPositionArrayUniform = gl.getUniformLocation(program, "lightPosition");
+			program.lightDirectionArrayUniform = gl.getUniformLocation(program, "lightDirection");
+			program.lightColourArrayUniform = gl.getUniformLocation(program, "lightColourData");
+			program.lightParamArrayUniform = gl.getUniformLocation(program, "lightParamData");
+
+			// -- explicitly zero light properties
+			gl.uniform1iv(program.lightTypeArrayUniform, this.lightTypeArray);
+			gl.uniform1iv(program.lightPositionArrayUniform, this.lightPositionArray);
+			gl.uniform1iv(program.lightDirectionArrayUniform, this.lightDirectionArray);
+			gl.uniform1iv(program.lightColourArrayUniform, this.lightColourArray);
+			gl.uniform1iv(program.lightParamArrayUniform, this.lightParamArray);
 
 			gl.useProgram(null);
 
@@ -207,11 +239,18 @@ namespace sd.world {
 			// Uniforms
 			line  ("uniform mat3 lightNormalMatrix;");
 
-			line  ("uniform float ambientSunFactor;");
+			// -- material
 			line  ("uniform vec4 mainColour;");
 			if_all("uniform vec4 specular;", Features.Specular);
-
 			if_all("uniform sampler2D albedoSampler;", Features.AlbedoMap);
+
+			// -- lights (with 4 lights, this will take up 20 frag vector uniforms)
+			line  ("const int MAX_FRAGMENT_LIGHTS = " + MAX_FRAGMENT_LIGHTS + ";");
+			line  ("uniform int lightType[MAX_FRAGMENT_LIGHTS];");
+			line  ("uniform vec3 lightPosition[MAX_FRAGMENT_LIGHTS];");
+			line  ("uniform vec3 lightDirection[MAX_FRAGMENT_LIGHTS];");
+			line  ("uniform vec4 lightColourData[MAX_FRAGMENT_LIGHTS];");
+			line  ("uniform vec4 lightParamData[MAX_FRAGMENT_LIGHTS];");
 
 			// Constants
 			line  ("const vec3 sunlightColour = vec3(1, 1, 1);");
@@ -233,17 +272,17 @@ namespace sd.world {
 
 			// final color
 			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
-				line("	vec3 lightColour = sunlightColour * max(ambientSunFactor, dot(lightVec, normal));");
+				line("	vec3 lightColour = sunlightColour * max(0.7, dot(lightVec, normal));");
 				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
 				line("	vec3 outColour = lightColour * texColour;");
 			}
 			else if (feat & Features.VtxColour) {
 				line("	vec3 diffColour = (sunlightColour * 0.1) + (vertexColour_intp * 0.9);");
-				line("	vec3 outColour = diffColour * (ambientSunFactor + 0.5 * dot(lightVec, normal));");
+				line("	vec3 outColour = diffColour * (0.7 + 0.5 * dot(lightVec, normal));");
 			}
 			else {
 				line("	vec3 diffColour = (sunlightColour * 0.1) + (mainColour * 0.9);");
-				line("	vec3 outColour = diffColour * (ambientSunFactor + 0.5 * dot(lightVec, normal));");
+				line("	vec3 outColour = diffColour * (0.7 + 0.5 * dot(lightVec, normal));");
 			}
 			if (feat & Features.Specular) {
 				line("	outColour = outColour + specContrib;");
@@ -345,7 +384,6 @@ namespace sd.world {
 
 
 		private groupRebase() {
-			console.info("groupRebase()");
 			this.primGroupMaterialBase_ = this.primGroupData_.indexedFieldView(0);
 			this.primGroupFeatureBase_ = this.primGroupData_.indexedFieldView(1);
 		}
@@ -460,7 +498,6 @@ namespace sd.world {
 				}
 
 				// -- set material uniforms
-				gl.uniform1f(program.ambientSunFactorUniform, 0.7);
 				gl.uniform4fv(program.mainColourUniform, materialData.colourData);
 				if (features & Features.Specular) {
 					gl.uniform4fv(program.specularUniform, materialData.specularData);
