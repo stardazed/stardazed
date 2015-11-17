@@ -287,8 +287,22 @@ namespace sd.world {
 			line("	float distance = length(lightDirection);");
 			line("	lightDirection = normalize(lightDirection);");
 			line("	vec3 light = calcLightShared(colour, param, lightDirection, normal);");
-			line("	float attenuation = 1.0 - smoothstep(0.0, param[LPARAM_RANGE], distance);");
+			line("	float attenuation = 1.0 - step(param[LPARAM_RANGE], distance);");
 			line("	return light * attenuation;");
+			line("}");
+
+
+			// -- calcSpotLight()
+			line("vec3 calcSpotLight(vec4 colour, vec4 param, vec3 lightPos_world, vec3 lightDirection, vec3 normal) {");
+			line("	vec3 lightToPoint = normalize(vertexPos_world - lightPos_world);");
+			line("	float spotCosAngle = dot(lightToPoint, lightDirection);");
+			line("	float cutoff = param[LPARAM_CUTOFF];");
+			line("	if (spotCosAngle > cutoff) {");
+			line("		vec3 light = calcPointLight(colour, param, lightPos_world, normal);");
+			// line("		return light * (1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff));");
+			line("		return light;");
+			line("	}");
+			line("	return vec3(0.0, 0.0, 0.0);");
 			line("}");
 
 
@@ -304,6 +318,7 @@ namespace sd.world {
 			line  ("	vec3 normal = normalize(vertexNormal_intp);");
 			line  ("	vec3 totalLight = vec3(0.0, 0.0, 0.0);");
 
+			// -- calculate light arriving at the fragment
 			line  ("	for (int lightIx = 0; lightIx < MAX_FRAGMENT_LIGHTS; ++lightIx) {");
 			line  ("		int type = lightTypes[lightIx];");
 			line  ("		if (type == 0) break;");
@@ -317,11 +332,14 @@ namespace sd.world {
 			line  ("		else if (type == 2) {")
 			line  ("			totalLight += calcPointLight(lightColour, lightParam, lightPos_world, normal);");
 			line  ("		}");
+			line  ("		else if (type == 3) {")
+			line  ("			totalLight += calcSpotLight(lightColour, lightParam, lightPos_world, lightDir, normal);");
+			line  ("		}");
 			line  ("	}");
 
 			// line  ("	gl_FragColor = vec4(totalLight, 1.0); return;");
 
-			// final color
+			// -- combine light with material colour
 			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
 				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
 				line("	vec3 outColour = totalLight * texColour * mainColour.rgb;");
@@ -364,7 +382,7 @@ namespace sd.world {
 
 	export const enum RenderMode {
 		Forward,
-		Deferred,
+		//Deferred,
 		Shadow
 	}
 
@@ -628,8 +646,11 @@ namespace sd.world {
 					math.vectorArrayItem(this.lightColourArray, math.Vec4, lix).set(lightData.colourData);
 					math.vectorArrayItem(this.lightParamArray, math.Vec4, lix).set(lightData.parameterData);
 
-					if (lightData.type == LightType.Directional) {
+					if (lightData.type != LightType.Point) {
 						math.vectorArrayItem(this.lightDirectionArray, math.Vec3, lix).set(lightData.direction);
+					}
+					if (lightData.type != LightType.Directional) {
+						math.vectorArrayItem(this.lightPositionArray, math.Vec3, lix).set(lightData.position);	
 					}
 				}
 				else {
