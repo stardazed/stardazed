@@ -24,6 +24,7 @@ namespace sd.world {
 
 	interface StdGLProgram extends WebGLProgram {
 		// -- transform
+		modelMatrixUniform?: WebGLUniformLocation;      // mat4
 		mvMatrixUniform?: WebGLUniformLocation;         // mat4
 		mvpMatrixUniform?: WebGLUniformLocation;        // mat4
 		normalMatrixUniform?: WebGLUniformLocation;     // mat3
@@ -101,6 +102,7 @@ namespace sd.world {
 			gl.useProgram(program);
 
 			// -- transformation matrices
+			program.modelMatrixUniform = gl.getUniformLocation(program, "modelMatrix");
 			program.mvMatrixUniform = gl.getUniformLocation(program, "modelViewMatrix");
 			program.mvpMatrixUniform = gl.getUniformLocation(program, "modelViewProjectionMatrix");
 			program.normalMatrixUniform = gl.getUniformLocation(program, "normalMatrix");
@@ -185,11 +187,13 @@ namespace sd.world {
 
 			// Out
 			line  ("varying vec3 vertexNormal_intp;");
+			line  ("varying vec3 vertexPos_world;");
 			if_all("varying vec3 vertexPos_cam_intp;", Features.Specular);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
 			// Uniforms
+			line  ("uniform mat4 modelMatrix;");
 			line  ("uniform mat4 modelViewProjectionMatrix;");
 			if_all("uniform mat4 modelViewMatrix;", Features.Specular);
 			line  ("uniform mat3 normalMatrix;");
@@ -197,6 +201,7 @@ namespace sd.world {
 			// main()
 			line  ("void main() {");
 			line  ("	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);");
+			line  ("	vertexPos_world = (modelMatrix * vec4(vertexPos_model, 1.0)).xyz;");
 			line  ("	vertexNormal_intp = normalize(normalMatrix * vertexNormal);");
 			if_all("	vertexPos_cam_intp = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;", Features.Specular);
 			if_all("	vertexUV_intp = vertexUV;", Features.VtxUV);
@@ -220,6 +225,7 @@ namespace sd.world {
 			line  ("precision highp float;");
 
 			// In
+			line  ("varying vec3 vertexPos_world;");
 			line  ("varying vec3 vertexNormal_intp;");
 			if_all("varying vec3 vertexPos_cam_intp;", Features.Specular);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
@@ -249,7 +255,7 @@ namespace sd.world {
 			// Constants
 			line  ("const vec3 sunlightColour = vec3(1, 1, 1);");
 
-			// Light helper functions
+			// -- calcLightShared()
 			line  ("vec3 calcLightShared(vec4 colour, vec4 param, vec3 lightDirection, vec3 normal) {");
 			line  ("	vec3 ambientContrib = colour.rgb * param[LPARAM_AMBIENT_INTENSITY];");
 			line  ("	float diffuseStrength = dot(normal, lightDirection);");
@@ -275,9 +281,22 @@ namespace sd.world {
 			line  ("}");
 
 
+			// -- calcPointLight()
+			line("vec3 calcPointLight(vec4 colour, vec4 param, vec3 lightPos_world, vec3 normal) {");
+			line("	vec3 lightDirection = lightPos_world - vertexPos_world;");
+			line("	float distance = length(lightDirection);");
+			line("	lightDirection = normalize(lightDirection);");
+			line("	vec3 light = calcLightShared(colour, param, lightDirection, normal);");
+			line("	float attenuation = 1.0 - smoothstep(0.0, param[LPARAM_RANGE], distance);");
+			line("	return light * attenuation;");
+			line("}");
+
+
+			// -- calcDirectionalLight()
 			line("vec3 calcDirectionalLight(vec4 colour, vec4 param, vec3 direction, vec3 normal) {");
 			line("	return calcLightShared(colour, param, direction, normal);");
 			line("}");
+
 
 			// main()
 			line  ("void main() {");
@@ -288,12 +307,15 @@ namespace sd.world {
 			line  ("	for (int lightIx = 0; lightIx < MAX_FRAGMENT_LIGHTS; ++lightIx) {");
 			line  ("		int type = lightTypes[lightIx];");
 			line  ("		if (type == 0) break;");
-			line  ("		vec3 lightPos = lightPositions[lightIx];");  // all array accesses must be constant or a loop index
+			line  ("		vec3 lightPos_world = lightPositions[lightIx];");  // all array accesses must be constant or a loop index
 			line  ("		vec3 lightDir = lightNormalMatrix * lightDirections[lightIx];"); // FIXME: this is frag/vert invariant
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
 			line  ("		if (type == 1) {")
 			line  ("			totalLight += calcDirectionalLight(lightColour, lightParam, lightDir, normal);");
+			line  ("		}");
+			line  ("		else if (type == 2) {")
+			line  ("			totalLight += calcPointLight(lightColour, lightParam, lightPos_world, normal);");
 			line  ("		}");
 			line  ("	}");
 
@@ -513,7 +535,8 @@ namespace sd.world {
 				// -- set transform and normal uniforms
 				var program = <StdGLProgram>(pipeline.program);
 
-				// mvp and normal matrices are always present
+				// model, mvp and normal matrices are always present
+				gl.uniformMatrix4fv(program.modelMatrixUniform, false, <Float32Array>modelMatrix);
 				gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);
 				math.extractNormalMatrix(this.modelViewMatrix_, this.normalMatrix_);
 				gl.uniformMatrix3fv(program.normalMatrixUniform, false, this.normalMatrix_);
