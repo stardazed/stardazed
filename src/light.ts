@@ -56,7 +56,7 @@ namespace sd.world {
 		}
 
 
-		createDirectionalLight(entity: Entity, desc: LightDescriptor, orientation: ArrayOfNumber): LightInstance {
+		createDirectionalLight(entity: Entity, desc: LightDescriptor, direction: ArrayOfNumber): LightInstance {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
@@ -66,12 +66,12 @@ namespace sd.world {
 			this.entityBase_[instanceIx] = <number>entity;
 
 			var transform = this.transformMgr_.forEntity(entity);
-			vec3.normalize(orientation, orientation);
-			this.transformMgr_.setRotation(transform, quat.rotationTo([], [0, 0, 1], orientation));
+			vec3.normalize(direction, direction);
+			this.transformMgr_.setRotation(transform, quat.rotationTo([], [0, 0, 1], direction));
 			this.transformBase_[instanceIx] = <number>transform;
 
 			// -- light data
-			vec4.set(this.tempVec4_, desc.colour[0], desc.colour[1], desc.colour[2], 0);
+			vec4.set(this.tempVec4_, desc.colour[0], desc.colour[1], desc.colour[2], 1.0);
 			math.vectorArrayItem(this.colourBase_, math.Vec4, instanceIx).set(this.tempVec4_);
 
 			vec4.set(this.tempVec4_, desc.ambientIntensity, desc.diffuseIntensity, 0, 0);
@@ -119,7 +119,7 @@ namespace sd.world {
 				colourData: math.vectorArrayItem(this.colourBase_, math.Vec4, <number>inst),
 				parameterData: math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst),
 				position: this.transformMgr_.position(transform),
-				orientation: vec3.transformQuat([], [0, 0, 1], this.transformMgr_.rotation(transform))
+				direction: vec3.transformQuat([], [0, 0, 1], this.transformMgr_.rotation(transform))
 			};
 		}
 	}
