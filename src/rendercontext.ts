@@ -85,10 +85,13 @@ namespace sd.render {
 		var gl: WebGLRenderingContext;
 
 		// try and create the 3D context
+		var contextAttrs: WebGLContextAttributes = {
+			antialias: true
+		};
 		try {
-			gl = canvas.getContext("webgl");
+			gl = canvas.getContext("webgl", contextAttrs);
 			if (!gl)
-				gl = canvas.getContext("experimental-webgl");
+				gl = canvas.getContext("experimental-webgl", contextAttrs);
 		} catch (e) {
 			gl = null;
 		}
