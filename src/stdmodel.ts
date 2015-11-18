@@ -232,7 +232,6 @@ namespace sd.world {
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
 			// Uniforms
-			line("uniform mat3 normalMatrix;");
 			line("uniform mat3 lightNormalMatrix;");
 
 			// -- material
@@ -295,7 +294,7 @@ namespace sd.world {
 
 			// -- calcSpotLight()
 			line("vec3 calcSpotLight(vec3 matColour, vec4 colour, vec4 param, vec3 lightPos_world, vec3 lightDirection, vec3 normal_cam) {");
-			line("	vec3 lightToPoint = normalize(vertexPos_world - lightPos_world);");
+			line("	vec3 lightToPoint = lightNormalMatrix * normalize(vertexPos_world - lightPos_world);");
 			line("	float spotCosAngle = dot(lightToPoint, lightDirection);");
 			line("	float cutoff = param[LPARAM_CUTOFF];");
 			line("	if (spotCosAngle > cutoff) {");
@@ -336,7 +335,7 @@ namespace sd.world {
 			line  ("		int type = lightTypes[lightIx];");
 			line  ("		if (type == 0) break;");
 			line  ("		vec3 lightPos_world = lightPositions[lightIx];");  // all array accesses must be constant or a loop index
-			line  ("		vec3 lightDir = lightDirections[lightIx];"); // FIXME: this is frag/vert invariant
+			line  ("		vec3 lightDir = lightNormalMatrix * lightDirections[lightIx];"); // FIXME: this is frag/vert invariant
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
 			line  ("		if (type == 1) {")
