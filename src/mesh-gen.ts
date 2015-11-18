@@ -646,7 +646,7 @@ namespace sd.mesh.gen {
 		}
 
 		explicitNormals() {
-			return false;
+			return true;
 		}
 
 		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
@@ -667,14 +667,19 @@ namespace sd.mesh.gen {
 				for (var seg = 0; seg <= this.segs_; ++seg) {
 					var innerAngle = (Tau * seg) / this.segs_;
 
+					var cx = Math.cos(majorAngle) * this.majorRadius_;
+					var cy = Math.sin(majorAngle) * this.majorRadius_;
+
 					var x = Math.cos(majorAngle) * (this.majorRadius_ + Math.cos(innerAngle) * innerRadius);
 					var y = Math.sin(majorAngle) * (this.majorRadius_ + Math.cos(innerAngle) * innerRadius);
 
 					var z = Math.sin(innerAngle) * innerRadius;
 
 					var texU = seg / this.segs_;
+					var vNorm = vec3.normalize([], [x - cx, y - cy, z]);
 
 					position(x, y, z);
+					normal(vNorm[0], vNorm[1], vNorm[2]);
 					uv(texU, texV);
 					++vix;
 				}
