@@ -443,13 +443,15 @@ namespace sd.mesh.gen {
 		}
 
 		explicitNormals() {
-			return false;
+			return true;
 		}
 
 		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
 			var vix = 0;
 			var radiusDiff = this.radiusB_ - this.radiusA_;
 			var Tau = Math.PI * 2;
+
+			var yNorm = radiusDiff / this.height_;
 
 			for (var row = 0; row <= this.rows_; ++row) {
 				var relPos = row / this.rows_;
@@ -464,6 +466,8 @@ namespace sd.mesh.gen {
 					var texU = seg / this.segs_;
 
 					position(x, y, z);
+					var norm = vec3.normalize([], [x, yNorm, z]);
+					normal(norm[0], norm[1], norm[2]);
 					uv(texU, texV);
 					++vix;
 				}
