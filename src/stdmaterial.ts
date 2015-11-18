@@ -28,9 +28,9 @@ namespace sd.world {
 		// colours
 		mainColour: ArrayOfNumber;      // v3, single colour or tint for albedo
 
-		specularColour: ArrayOfNumber;  // v3
-		specularExponent: number;       // 0+
 		specularIntensity: number;      // 0..1
+		specularExponent: number;       // 0+
+		specularColourMix: number;      // 0..1: mix between material colour and light colour for specular (0: all material, 1: all light)
 
 		// textures
 		textureScale: ArrayOfNumber;    // v2, scale and offset apply to all textures
@@ -44,16 +44,17 @@ namespace sd.world {
 
 
 	export function makeStdMaterialDescriptor(): StdMaterialDescriptor {
-		var vecs = new Float32Array(10);
+		var vecs = new Float32Array(7);
 
 		return {
 			mainColour: vec3.copy(vecs.subarray(0, 3), math.Vec3.one),
-			specularColour: vec3.copy(vecs.subarray(3, 6), math.Vec3.zero),
-			specularExponent: 0,
-			specularIntensity: 0,
 
-			textureScale: vec2.copy(vecs.subarray(6, 8), math.Vec2.one),
-			textureOffset: vec2.copy(vecs.subarray(8, 10), math.Vec2.zero),
+			specularIntensity: 0,
+			specularExponent: 0,
+			specularColourMix: 0.8,
+
+			textureScale: vec2.copy(vecs.subarray(3, 5), math.Vec2.one),
+			textureOffset: vec2.copy(vecs.subarray(5, 7), math.Vec2.zero),
 
 			albedoMap: null,
 			normalMap: null,
@@ -91,8 +92,8 @@ namespace sd.world {
 			const initialCapacity = 256;
 
 			var fields: container.MABField[] = [
-				{ type: Float, count: 4 },  // mainColour[3], specularIntensity
-				{ type: Float, count: 4 },  // specularColour[3], specularExponent
+				{ type: Float, count: 4 },  // mainColour[3], 0
+				{ type: Float, count: 4 },  // specularIntensity, specularExponent, specularColourMix, 0
 				{ type: Float, count: 4 },  // textureScale[2], textureOffset[2]
 				{ type: SInt32, count: 1 }, // flags
 			];
@@ -116,9 +117,9 @@ namespace sd.world {
 			}
 			var matIndex = this.instanceData_.count; // entry 0 is reserved as nullptr-like
 
-			vec4.set(this.tempVec4, desc.mainColour[0], desc.mainColour[1], desc.mainColour[2], desc.specularIntensity);
+			vec4.set(this.tempVec4, desc.mainColour[0], desc.mainColour[1], desc.mainColour[2], 0);
 			math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex).set(this.tempVec4);
-			vec4.set(this.tempVec4, desc.specularColour[0], desc.specularColour[1], desc.specularColour[2], desc.specularExponent);
+			vec4.set(this.tempVec4, desc.specularIntensity, desc.specularExponent, desc.specularColourMix, 0);
 			math.vectorArrayItem(this.specularBase_, math.Vec4, matIndex).set(this.tempVec4);
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
 			math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, matIndex).set(this.tempVec4);
@@ -155,7 +156,31 @@ namespace sd.world {
 			return math.vectorArrayItem(this.mainColourBase_, math.Vec4, <number>inst).subarray(0, 3);
 		}
 
-		specularColourExponent(inst: StdMaterialInstance): TypedArray {
+		specularIntensity(inst: StdMaterialInstance): number {
+			return this.specularParams(inst)[0];
+		}
+
+		setSpecularIntensity(inst: StdMaterialInstance, newIntensity: number): number {
+			return this.specularParams(inst)[0] = newIntensity;
+		}
+
+		specularExponent(inst: StdMaterialInstance): number {
+			return this.specularParams(inst)[1];
+		}
+
+		setSpecularExponent(inst: StdMaterialInstance, newExponent: number): number {
+			return this.specularParams(inst)[1] = newExponent;
+		}
+
+		specularColourMix(inst: StdMaterialInstance): number {
+			return this.specularParams(inst)[2];
+		}
+
+		setSpecularColourMix(inst: StdMaterialInstance, newMix: number): number {
+			return this.specularParams(inst)[2] = newMix;
+		}
+
+		specularParams(inst: StdMaterialInstance): TypedArray {
 			return math.vectorArrayItem(this.specularBase_, math.Vec4, <number>inst);
 		}
 
@@ -211,9 +236,9 @@ namespace sd.world {
 			return {
 				mainColour: Array.prototype.slice.call(mainColourArr, 0, 3),
 
-				specularColour: Array.prototype.slice.call(specularArr, 0, 3),
-				specularExponent: specularArr[3],
-				specularIntensity: 0,
+				specularIntensity: specularArr[0],
+				specularExponent: specularArr[1],
+				specularColourMix: specularArr[2],
 
 				textureScale: Array.prototype.slice.call(texScaleOffsetArr, 0, 2),
 				textureOffset: Array.prototype.slice.call(texScaleOffsetArr, 2, 4),

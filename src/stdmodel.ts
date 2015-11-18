@@ -243,6 +243,10 @@ namespace sd.world {
 			if_all("uniform vec4 specular;", Features.Specular);
 			if_all("uniform sampler2D albedoSampler;", Features.AlbedoMap);
 
+			line  ("const int SPEC_INTENSITY = 0;");
+			line  ("const int SPEC_EXPONENT = 1;");
+			line  ("const int SPEC_COLOURMIX = 2;");
+
 			// -- lights (with 4 lights, this will take up 20 frag vector uniforms)
 			line  ("const int MAX_FRAGMENT_LIGHTS = " + MAX_FRAGMENT_LIGHTS + ";");
 			line  ("const int LPARAM_AMBIENT_INTENSITY = 0;");
@@ -257,7 +261,7 @@ namespace sd.world {
 			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
 
 			// -- calcLightShared()
-			line  ("vec3 calcLightShared(vec4 colour, vec4 param, float diffuseStrength, vec3 lightDirection, vec3 worldNormal) {");
+			line  ("vec3 calcLightShared(vec3 matColour, vec4 colour, vec4 param, float diffuseStrength, vec3 lightDirection, vec3 worldNormal) {");
 			line  ("	vec3 ambientContrib = colour.rgb * param[LPARAM_AMBIENT_INTENSITY];");
 			line  ("	if (diffuseStrength <= 0.0) {");
 			line  ("		return ambientContrib;");
@@ -270,8 +274,9 @@ namespace sd.world {
 				line("	vec3 reflectVec = reflect(lightDirection, worldNormal);");
 				line("	float specularStrength = dot(reflectVec, viewVec);");
 				line("	if (specularStrength > 0.0) {");
-				line("		specularStrength = pow(specularStrength, specular.w);"); // specular.w = specularExponent
-				line("		specularContrib = specular.rgb * specularStrength * mainColour.w;"); // mainColour.w = specularIntensity
+				line("		vec3 specularColour = mix(matColour, colour.rgb, specular[SPEC_COLOURMIX]);");
+				line("		specularStrength = pow(specularStrength, specular[SPEC_EXPONENT]);");
+				line("		specularContrib = specularColour * specularStrength * specular[SPEC_INTENSITY];");
 				line("	}");
 				line("	return (ambientContrib + diffuseContrib + specularContrib) * colour.w;"); // lightColour.w = lightAmplitude
 			}
@@ -282,38 +287,49 @@ namespace sd.world {
 
 
 			// -- calcPointLight()
-			line("vec3 calcPointLight(vec4 colour, vec4 param, vec3 lightPos_world, vec3 worldNormal) {");
+			line("vec3 calcPointLight(vec3 matColour, vec4 colour, vec4 param, vec3 lightPos_world, vec3 worldNormal) {");
 			line("	vec3 lightDirection = vertexPos_world - lightPos_world;");
 			line("	float distance = length(lightDirection);");
 			line("	lightDirection = normalize(lightDirection);");
 			line("	float attenuation = 1.0 - smoothstep(0.0, param[LPARAM_RANGE], distance);");
-			line("	return calcLightShared(colour, param, attenuation, lightDirection, worldNormal);");
+			line("	return calcLightShared(matColour, colour, param, attenuation, lightDirection, worldNormal);");
 			line("}");
 
 
 			// -- calcSpotLight()
-			line("vec3 calcSpotLight(vec4 colour, vec4 param, vec3 lightPos_world, vec3 lightDirection, vec3 worldNormal) {");
+			line("vec3 calcSpotLight(vec3 matColour, vec4 colour, vec4 param, vec3 lightPos_world, vec3 lightDirection, vec3 worldNormal) {");
 			line("	vec3 lightToPoint = normalize(vertexPos_world - lightPos_world);");
 			line("	float spotCosAngle = dot(lightToPoint, lightDirection);");
 			line("	float cutoff = param[LPARAM_CUTOFF];");
 			line("	if (spotCosAngle > cutoff) {");
-			line("		vec3 light = calcPointLight(colour, param, lightPos_world, worldNormal);");
-			line("		return light * (1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff));");
-			//line("		return light;");
+			line("		vec3 light = calcPointLight(matColour, colour, param, lightPos_world, worldNormal);");
+			line("		return light * pow(1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff), 0.5);");
 			line("	}");
 			line("	return vec3(0.0, 0.0, 0.0);");
 			line("}");
 
 
 			// -- calcDirectionalLight()
-			line("vec3 calcDirectionalLight(vec4 colour, vec4 param, vec3 lightDirection, vec3 worldNormal) {");
+			line("vec3 calcDirectionalLight(vec3 matColour, vec4 colour, vec4 param, vec3 lightDirection, vec3 worldNormal) {");
 			line("	float diffuseStrength = dot(worldNormal, -lightDirection);");
-			line("	return calcLightShared(colour, param, diffuseStrength, lightDirection, worldNormal);");
+			line("	return calcLightShared(matColour, colour, param, diffuseStrength, lightDirection, worldNormal);");
 			line("}");
 
 
 			// main()
 			line  ("void main() {");
+
+			// -- material colour at point
+			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
+				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
+				line("	vec3 matColour = texColour * mainColour.rgb;");
+			}
+			else if (feat & Features.VtxColour) {
+				line("	vec3 matColour = vertexColour_intp * mainColour.rgb;");
+			}
+			else {
+				line("	vec3 matColour = mainColour.rgb;");
+			}
 
 			line  ("	vec3 worldNormal = normalize(vertexNormal_world_intp);");
 			line  ("	vec3 totalLight = vec3(0.0, 0.0, 0.0);");
@@ -327,31 +343,20 @@ namespace sd.world {
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
 			line  ("		if (type == 1) {")
-			line  ("			totalLight += calcDirectionalLight(lightColour, lightParam, lightDir, worldNormal);");
+			line  ("			totalLight += calcDirectionalLight(matColour, lightColour, lightParam, lightDir, worldNormal);");
 			line  ("		}");
 			line  ("		else if (type == 2) {")
-			line  ("			totalLight += calcPointLight(lightColour, lightParam, lightPos_world, worldNormal);");
+			line  ("			totalLight += calcPointLight(matColour, lightColour, lightParam, lightPos_world, worldNormal);");
 			line  ("		}");
 			line  ("		else if (type == 3) {")
-			line  ("			totalLight += calcSpotLight(lightColour, lightParam, lightPos_world, lightDir, worldNormal);");
+			line  ("			totalLight += calcSpotLight(matColour, lightColour, lightParam, lightPos_world, lightDir, worldNormal);");
 			line  ("		}");
 			line  ("	}");
 
-			line  ("	gl_FragColor = vec4(totalLight, 1.0); return;");
+			// -- debug: view only light contribution
+			//line  ("	gl_FragColor = vec4(totalLight, 1.0); return;");
 
-			// -- combine light with material colour
-			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
-				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
-				line("	vec3 outColour = totalLight * texColour * mainColour.rgb;");
-			}
-			else if (feat & Features.VtxColour) {
-				line("	vec3 outColour = totalLight * vertexColour_intp * mainColour.rgb;");
-			}
-			else {
-				line("	vec3 outColour = totalLight * mainColour.rgb;");
-			}
-
-			line  ("	gl_FragColor = vec4(outColour, 1.0);");
+			line  ("	gl_FragColor = vec4(totalLight * matColour, 1.0);");
 			line  ("}");
 
 			// console.info("------ FRAGMENT");
