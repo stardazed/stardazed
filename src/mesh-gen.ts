@@ -81,7 +81,7 @@ namespace sd.mesh.gen {
 
 			var normal: PositionAddFn = normals ?
 				(x: number, y: number, z: number) => {
-					var v3 = normals.item(posIx);
+					var v3 = normals.item(normalIx);
 					v3[0] = x;
 					v3[1] = y;
 					v3[2] = z;
@@ -163,7 +163,7 @@ namespace sd.mesh.gen {
 
 			var normal: PositionAddFn = normals ?
 				(x: number, y: number, z: number) => {
-					var v3 = normals.item(posIx);
+					var v3 = normals.item(normalIx);
 					v3[0] = x;
 					v3[1] = y;
 					v3[2] = z;
@@ -540,7 +540,7 @@ namespace sd.mesh.gen {
 		}
 
 		explicitNormals() {
-			return false;
+			return true;
 		}
 
 		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
@@ -566,7 +566,10 @@ namespace sd.mesh.gen {
 					var z = Math.cos(tauSeg * seg) * segRad;
 					var texU = seg / this.segs_;
 
+					// for a sphere with origin at [0,0,0], the normalized position is the normal
 					position(x, y, z);
+					var norm = vec3.normalize([], [x, y, z]);
+					normal(norm[0], norm[1], norm[2]);
 					uv(texU, texV);
 					++vix;
 				}
