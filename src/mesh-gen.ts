@@ -22,7 +22,8 @@ namespace sd.mesh.gen {
 		abstract vertexCount(): number;
 		abstract faceCount(): number;
 
-		abstract generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn): void;
+		abstract generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn): void;
+		abstract explicitNormals(): boolean;
 
 		generate(attrList?: VertexAttribute[]): MeshData {
 			if (!attrList)
@@ -36,14 +37,21 @@ namespace sd.mesh.gen {
 			var indexElementType = minimumIndexElementTypeForVertexCount(vtxCount);
 			mesh.indexBuffer.allocate(PrimitiveType.Triangle, indexElementType, this.faceCount());
 
+			// -- views into various attributes
 			var posView = new VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(VertexAttributeRole.Position));
+
 			var texAttr = vertexBuffer.attrByRole(VertexAttributeRole.UV);
 			var texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
 
-			var triView = new IndexBufferTriangleView(mesh.indexBuffer);
-			this.generateInto(posView, triView, texView);
+			var normalAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
+			var normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
 
-			mesh.genVertexNormals();
+			// -- treat index buffer as triangle-indexes
+			var triView = new IndexBufferTriangleView(mesh.indexBuffer);
+			this.generateInto(posView, triView, normalView, texView);
+
+			if (! this.explicitNormals())
+				mesh.genVertexNormals();
 
 			// add a default primitive group that covers the complete generated mesh
 			// TODO: let generator impls build 1 or more drawgroups instead
@@ -52,8 +60,8 @@ namespace sd.mesh.gen {
 			return mesh;
 		}
 
-		generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, uvs?: VertexBufferAttributeView): void {
-			var posIx = 0, faceIx = 0, uvIx = 0;
+		generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, normals?: VertexBufferAttributeView, uvs?: VertexBufferAttributeView): void {
+			var posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0;
 
 			var pos: PositionAddFn = (x: number, y: number, z: number) => {
 				var v3 = positions.item(posIx);
@@ -71,6 +79,16 @@ namespace sd.mesh.gen {
 				faceIx++;
 			};
 
+			var normal: PositionAddFn = normals ?
+				(x: number, y: number, z: number) => {
+					var v3 = normals.item(posIx);
+					v3[0] = x;
+					v3[1] = y;
+					v3[2] = z;
+					normalIx++;
+				}
+				: (x: number, y: number, z: number) => { };
+
 			var uv: UVAddFn = uvs ?
 				(u: number, v: number) => {
 					var v2 = uvs.item(uvIx);
@@ -80,7 +98,7 @@ namespace sd.mesh.gen {
 				}
 				: (u: number, v: number) => { };
 
-			this.generateImpl(pos, face, uv);
+			this.generateImpl(pos, face, normal, uv);
 		}
 	}
 
@@ -119,8 +137,12 @@ namespace sd.mesh.gen {
 			return this.totalFaces_;
 		}
 
-		generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, uvs?: VertexBufferAttributeView): void {
-			var posIx = 0, faceIx = 0, uvIx = 0;
+		explicitNormals() {
+			return false;
+		}
+
+		generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, normals?: VertexBufferAttributeView, uvs?: VertexBufferAttributeView): void {
+			var posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0;
 			var baseVertex = 0;
 
 			var pos: PositionAddFn = (x: number, y: number, z: number) => {
@@ -139,6 +161,16 @@ namespace sd.mesh.gen {
 				faceIx++;
 			};
 
+			var normal: PositionAddFn = normals ?
+				(x: number, y: number, z: number) => {
+					var v3 = normals.item(posIx);
+					v3[0] = x;
+					v3[1] = y;
+					v3[2] = z;
+					normalIx++;
+				}
+				: (x: number, y: number, z: number) => { };
+
 			var uv: UVAddFn = uvs ?
 				(u: number, v: number) => {
 					var v2 = uvs.item(uvIx);
@@ -150,7 +182,7 @@ namespace sd.mesh.gen {
 
 			// generate and transform each submesh
 			this.parts_.forEach((part) => {
-				part.generator.generateImpl(pos, face, uv);
+				part.generator.generateImpl(pos, face, normal, uv);
 
 				var transMatrix = mat4.create();
 				var rotation = part.rotation || quat.create();
@@ -166,7 +198,7 @@ namespace sd.mesh.gen {
 			});
 		}
 
-		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
+		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
 			// stub, unused
 		}
 	}
@@ -219,7 +251,11 @@ namespace sd.mesh.gen {
 			return 2 * this.rows_ * this.segs_;
 		}
 
-		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
+		explicitNormals() {
+			return false;
+		}
+
+		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
 			var halfWidth = this.width_ / 2;
 			var halfDepth = this.depth_ / 2;
 			var tileDimX = this.width_ / this.segs_;
@@ -304,7 +340,11 @@ namespace sd.mesh.gen {
 			return 12;
 		}
 
-		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
+		explicitNormals() {
+			return false;
+		}
+
+		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
 			var xh = this.xDiam_ / 2;
 			var yh = this.yDiam_ / 2;
 			var zh = this.zDiam_ / 2;
@@ -402,7 +442,11 @@ namespace sd.mesh.gen {
 			return fc;
 		}
 
-		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
+		explicitNormals() {
+			return false;
+		}
+
+		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
 			var vix = 0;
 			var radiusDiff = this.radiusB_ - this.radiusA_;
 			var Tau = Math.PI * 2;
@@ -495,7 +539,11 @@ namespace sd.mesh.gen {
 			return fc; 
 		}
 
-		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
+		explicitNormals() {
+			return false;
+		}
+
+		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
 			var Pi = Math.PI;
 			var Tau = Math.PI * 2;
 
@@ -594,7 +642,11 @@ namespace sd.mesh.gen {
 			return 2 * this.segs_ * this.rows_;
 		}
 
-		generateImpl(position: PositionAddFn, face: FaceAddFn, uv: UVAddFn) {
+		explicitNormals() {
+			return false;
+		}
+
+		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
 			var Pi = Math.PI;
 			var Tau = Math.PI * 2;
 
