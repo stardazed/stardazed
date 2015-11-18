@@ -187,6 +187,7 @@ namespace sd.world {
 
 			// Out
 			line  ("varying vec3 vertexNormal_intp;");
+			line  ("varying vec3 vertexNormal_world_intp;");
 			line  ("varying vec3 vertexPos_world;");
 			if_all("varying vec3 vertexPos_cam_intp;", Features.Specular);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
@@ -197,12 +198,14 @@ namespace sd.world {
 			line  ("uniform mat4 modelViewProjectionMatrix;");
 			if_all("uniform mat4 modelViewMatrix;", Features.Specular);
 			line  ("uniform mat3 normalMatrix;");
+			line  ("uniform mat3 lightNormalMatrix;");
 
 			// main()
 			line  ("void main() {");
 			line  ("	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);");
 			line  ("	vertexPos_world = (modelMatrix * vec4(vertexPos_model, 1.0)).xyz;");
-			line  ("	vertexNormal_intp = normalize(normalMatrix * vertexNormal);");
+			line  ("	vertexNormal_intp = normalMatrix * vertexNormal;");
+			line  ("	vertexNormal_world_intp = lightNormalMatrix * vertexNormal;");
 			if_all("	vertexPos_cam_intp = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;", Features.Specular);
 			if_all("	vertexUV_intp = vertexUV;", Features.VtxUV);
 			if_all("	vertexColour_intp = vertexColour;", Features.VtxColour);
@@ -226,6 +229,7 @@ namespace sd.world {
 
 			// In
 			line  ("varying vec3 vertexPos_world;");
+			line  ("varying vec3 vertexNormal_world_intp;");
 			line  ("varying vec3 vertexNormal_intp;");
 			if_all("varying vec3 vertexPos_cam_intp;", Features.Specular);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
@@ -253,9 +257,8 @@ namespace sd.world {
 			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
 
 			// -- calcLightShared()
-			line  ("vec3 calcLightShared(vec4 colour, vec4 param, vec3 lightDirection, vec3 normal) {");
+			line  ("vec3 calcLightShared(vec4 colour, vec4 param, float diffuseStrength, vec3 lightDirection, vec3 worldNormal) {");
 			line  ("	vec3 ambientContrib = colour.rgb * param[LPARAM_AMBIENT_INTENSITY];");
-			line  ("	float diffuseStrength = dot(normal, lightDirection);");
 			line  ("	if (diffuseStrength <= 0.0) {");
 			line  ("		return ambientContrib;");
 			line  ("	}");
@@ -264,7 +267,7 @@ namespace sd.world {
 			if (feat & Features.Specular) {
 				line("	vec3 specularContrib = vec3(0.0, 0.0, 0.0);");
 				line("	vec3 viewVec = normalize(-vertexPos_cam_intp);");
-				line("	vec3 reflectVec = reflect(-lightDirection, normal);");
+				line("	vec3 reflectVec = reflect(lightDirection, worldNormal);");
 				line("	float specularStrength = dot(reflectVec, viewVec);");
 				line("	if (specularStrength > 0.0) {");
 				line("		specularStrength = pow(specularStrength, specular.w);"); // specular.w = specularExponent
@@ -279,40 +282,40 @@ namespace sd.world {
 
 
 			// -- calcPointLight()
-			line("vec3 calcPointLight(vec4 colour, vec4 param, vec3 lightPos_world, vec3 normal) {");
-			line("	vec3 lightDirection = lightPos_world - vertexPos_world;");
+			line("vec3 calcPointLight(vec4 colour, vec4 param, vec3 lightPos_world, vec3 worldNormal) {");
+			line("	vec3 lightDirection = vertexPos_world - lightPos_world;");
 			line("	float distance = length(lightDirection);");
 			line("	lightDirection = normalize(lightDirection);");
-			line("	vec3 light = calcLightShared(colour, param, lightDirection, normal);");
-			line("	float attenuation = 1.0 - step(param[LPARAM_RANGE], distance);");
-			line("	return light * attenuation;");
+			line("	float attenuation = 1.0 - smoothstep(0.0, param[LPARAM_RANGE], distance);");
+			line("	return calcLightShared(colour, param, attenuation, lightDirection, worldNormal);");
 			line("}");
 
 
 			// -- calcSpotLight()
-			line("vec3 calcSpotLight(vec4 colour, vec4 param, vec3 lightPos_world, vec3 lightDirection, vec3 normal) {");
+			line("vec3 calcSpotLight(vec4 colour, vec4 param, vec3 lightPos_world, vec3 lightDirection, vec3 worldNormal) {");
 			line("	vec3 lightToPoint = normalize(vertexPos_world - lightPos_world);");
 			line("	float spotCosAngle = dot(lightToPoint, lightDirection);");
 			line("	float cutoff = param[LPARAM_CUTOFF];");
 			line("	if (spotCosAngle > cutoff) {");
-			line("		vec3 light = calcPointLight(colour, param, lightPos_world, normal);");
-			// line("		return light * (1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff));");
-			line("		return light;");
+			line("		vec3 light = calcPointLight(colour, param, lightPos_world, worldNormal);");
+			line("		return light * (1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff));");
+			//line("		return light;");
 			line("	}");
 			line("	return vec3(0.0, 0.0, 0.0);");
 			line("}");
 
 
 			// -- calcDirectionalLight()
-			line("vec3 calcDirectionalLight(vec4 colour, vec4 param, vec3 direction, vec3 normal) {");
-			line("	return calcLightShared(colour, param, direction, normal);");
+			line("vec3 calcDirectionalLight(vec4 colour, vec4 param, vec3 lightDirection, vec3 worldNormal) {");
+			line("	float diffuseStrength = dot(worldNormal, -lightDirection);");
+			line("	return calcLightShared(colour, param, diffuseStrength, lightDirection, worldNormal);");
 			line("}");
 
 
 			// main()
 			line  ("void main() {");
 
-			line  ("	vec3 normal = normalize(vertexNormal_intp);");
+			line  ("	vec3 worldNormal = normalize(vertexNormal_world_intp);");
 			line  ("	vec3 totalLight = vec3(0.0, 0.0, 0.0);");
 
 			// -- calculate light arriving at the fragment
@@ -324,17 +327,17 @@ namespace sd.world {
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
 			line  ("		if (type == 1) {")
-			line  ("			totalLight += calcDirectionalLight(lightColour, lightParam, lightDir, normal);");
+			line  ("			totalLight += calcDirectionalLight(lightColour, lightParam, lightDir, worldNormal);");
 			line  ("		}");
 			line  ("		else if (type == 2) {")
-			line  ("			totalLight += calcPointLight(lightColour, lightParam, lightPos_world, normal);");
+			line  ("			totalLight += calcPointLight(lightColour, lightParam, lightPos_world, worldNormal);");
 			line  ("		}");
 			line  ("		else if (type == 3) {")
-			line  ("			totalLight += calcSpotLight(lightColour, lightParam, lightPos_world, lightDir, normal);");
+			line  ("			totalLight += calcSpotLight(lightColour, lightParam, lightPos_world, lightDir, worldNormal);");
 			line  ("		}");
 			line  ("	}");
 
-			// line  ("	gl_FragColor = vec4(totalLight, 1.0); return;");
+			line  ("	gl_FragColor = vec4(totalLight, 1.0); return;");
 
 			// -- combine light with material colour
 			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
@@ -560,7 +563,7 @@ namespace sd.world {
 					gl.uniformMatrix4fv(program.mvMatrixUniform, false, this.modelViewMatrix_);
 				}
 				if (program.lightNormalMatrixUniform) {
-					math.extractNormalMatrix(proj.viewMatrix, this.lightNormalMatrix_);
+					math.extractNormalMatrix(modelMatrix, this.lightNormalMatrix_);
 					gl.uniformMatrix3fv(program.lightNormalMatrixUniform, false, this.lightNormalMatrix_);
 				}
 
