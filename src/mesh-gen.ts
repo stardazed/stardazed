@@ -513,8 +513,9 @@ namespace sd.mesh.gen {
 				var texV = this.sliceFrom_ + ((row / this.rows_) * slice);
 
 				for (var seg = 0; seg <= this.segs_; ++seg) {
-					var x = Math.sin((Tau / this.segs_) * seg) * segRad;
-					var z = Math.cos((Tau / this.segs_) * seg) * segRad;
+					var tauSeg = (Tau / this.segs_);
+					var x = Math.sin(tauSeg * seg) * segRad;
+					var z = Math.cos(tauSeg * seg) * segRad;
 					var texU = seg / this.segs_;
 
 					position(x, y, z);

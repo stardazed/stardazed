@@ -639,8 +639,8 @@ namespace sd.mesh {
 			if (this.fromTriangle_ >= this.indexBuffer_.primitiveCount)
 				this.fromTriangle_ = this.indexBuffer_.primitiveCount - 1;
 
-			if ((this.toTriangle_ < 0) || (this.toTriangle_ >= this.indexBuffer_.primitiveCount))
-				this.toTriangle_ = this.indexBuffer_.primitiveCount - 1;
+			if ((this.toTriangle_ < 0) || (this.toTriangle_ > this.indexBuffer_.primitiveCount))
+				this.toTriangle_ = this.indexBuffer_.primitiveCount;
 		}
 
 		forEach(callback: (proxy: TriangleProxy) => void) {
@@ -703,8 +703,9 @@ namespace sd.mesh {
 			vec3.subtract(lineA, posB, posA);
 			vec3.subtract(lineB, posC, posB);
 
-			if (vec3.length(lineA) < 0.00001 || vec3.length(lineB) < 0.00001)
+			if (vec3.length(lineA) < 0.00001 || vec3.length(lineB) < 0.00001) {
 				return;
+			}
 
 			vec3.cross(faceNormal, lineA, lineB);
 			vec3.normalize(faceNormal, faceNormal);
@@ -719,7 +720,6 @@ namespace sd.mesh {
 
 				usages[fvi] += 1;
 			}
-
 		});
 
 		normView.forEach((norm) => {
