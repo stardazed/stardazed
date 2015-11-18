@@ -252,9 +252,6 @@ namespace sd.world {
 			line  ("uniform vec4 lightColours[MAX_FRAGMENT_LIGHTS];");
 			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
 
-			// Constants
-			line  ("const vec3 sunlightColour = vec3(1, 1, 1);");
-
 			// -- calcLightShared()
 			line  ("vec3 calcLightShared(vec4 colour, vec4 param, vec3 lightDirection, vec3 normal) {");
 			line  ("	vec3 ambientContrib = colour.rgb * param[LPARAM_AMBIENT_INTENSITY];");
