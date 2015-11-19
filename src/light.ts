@@ -138,6 +138,24 @@ namespace sd.world {
 		}
 
 
+		position(inst: LightInstance): ArrayOfNumber {
+			return vec3.clone(this.transformMgr_.position(this.transformBase_[<number>inst]));
+		}
+
+		setPosition(inst: LightInstance, newPosition: ArrayOfNumber) {
+			this.transformMgr_.setPosition(this.transformBase_[<number>inst], newPosition);
+		}
+
+
+		direction(inst: LightInstance): ArrayOfNumber {
+			return vec3.transformQuat([], [0, 0, 1], this.transformMgr_.rotation(this.transformBase_[<number>inst]));
+		}
+
+		setDirection(inst: LightInstance, newDirection: ArrayOfNumber) {
+			this.transformMgr_.setRotation(this.transformBase_[<number>inst], quat.rotationTo([], [0, 0, 1], newDirection));
+		}
+
+
 		colour(inst: LightInstance) {
 			return math.vectorArrayItem(this.colourBase_, math.Vec4, <number>inst).subarray(0, 3);
 		}
