@@ -119,6 +119,7 @@ namespace sd.render {
 
 		private buffers_: Buffer[] = [];
 		private primitiveGroups_: mesh.PrimitiveGroup[];
+		private totalPrimitiveCount_ = 0;
 
 		private primitiveType_: mesh.PrimitiveType;
 		private glPrimitiveType_ = 0;
@@ -172,7 +173,10 @@ namespace sd.render {
 
 
 			// -- copy primitive groups
-			this.primitiveGroups_ = desc.primitiveGroups.map((pg) => cloneStruct(pg));
+			this.primitiveGroups_ = desc.primitiveGroups.map((pg) => {
+				this.totalPrimitiveCount_ += pg.primCount;
+				return cloneStruct(pg);
+			});
 			assert(this.primitiveGroups_.length > 0, "no primitive groups specified for Mesh");
 		}
 
@@ -262,6 +266,7 @@ namespace sd.render {
 		get primitiveType() { return this.primitiveType_; }
 		get glPrimitiveType() { return this.glPrimitiveType_; }
 		get primitiveGroups() { return this.primitiveGroups_; }
+		get totalPrimitiveCount() { return this.totalPrimitiveCount_; }
 
 		get glIndexElementType() { return this.glIndexElementType_; }
 		get indexElementSizeBytes() { return this.indexElementSizeBytes_; }
