@@ -298,7 +298,7 @@ namespace sd.world {
 				line("	return (ambientContrib + shadowFactor * (diffuseContrib + specularContrib)) * colour.w;"); // lightColour.w = lightAmplitude
 			}
 			else {
-				line("	return (ambientContrib + diffuseContrib) * colour.w;");
+				line("	return (ambientContrib + (shadowFactor * diffuseContrib)) * colour.w;");
 			}
 			line  ("}");
 
@@ -350,7 +350,7 @@ namespace sd.world {
 
 			// -- material colour at point
 			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
-				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
+				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz / 2.0;");
 				line("	vec3 matColour = texColour * mainColour.rgb;");
 			}
 			else if (feat & Features.VtxColour) {
@@ -385,7 +385,7 @@ namespace sd.world {
 			// -- debug: view only light contribution
 			// line  ("	gl_FragColor = vec4(totalLight, 1.0);return;");
 
-			line  ("	gl_FragColor = vec4(totalLight * matColour, 1.0);");
+			line  ("	gl_FragColor = vec4(totalLight + matColour, 1.0);");
 			line  ("}");
 
 			// console.info("------ FRAGMENT");
@@ -591,6 +591,7 @@ namespace sd.world {
 			}
 		}
 
+		globalKaunt = 0;
 
 		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: Shadow, modelIx: number) {
 			var gl = this.rc.gl;
@@ -658,10 +659,11 @@ namespace sd.world {
 				// -- shadow map and matrix
 				if (features & Features.ShadowMap) {
 					rp.setTexture(shadow.shadowFBO.depthAttachmentTexture(), TextureBindPoint.Shadow);
+					// rp.setTexture(shadow.shadowFBO.colourAttachmentTexture(0), TextureBindPoint.Shadow);
 
 					mat4.multiply(this.lightViewProjectionMatrix_, shadow.lightProjection.projectionMatrix, shadow.lightProjection.viewMatrix);
-					var lightOffset = mat4.multiply([], mat4.fromTranslation([], [.5, .5, .5]), mat4.fromScaling([], [.5, .5, .5]));
-					mat4.multiply(this.lightViewProjectionMatrix_, this.lightViewProjectionMatrix_, lightOffset);
+					var lightBiasMat = mat4.multiply([], mat4.fromTranslation([], [.5, .5, .5]), mat4.fromScaling([], [.5, .5, .5]));
+					mat4.multiply(this.lightViewProjectionMatrix_, lightBiasMat, this.lightViewProjectionMatrix_);
 
 					gl.uniformMatrix4fv(program.lightViewProjectionMatrixUniform, false, this.lightViewProjectionMatrix_);
 				}
@@ -710,7 +712,7 @@ namespace sd.world {
 				var shadowPipeline = this.stdPipeline_.shadowPipeline();
 				rp.setPipeline(shadowPipeline);
 				rp.setDepthTest(render.DepthTest.Less);
-				rp.setFaceCulling(render.FaceCulling.Front);
+				// rp.setFaceCulling(render.FaceCulling.Front);
 
 				// -- leave room for 1px frame
 				// var shadowPort = render.makeViewport();
@@ -724,7 +726,7 @@ namespace sd.world {
 
 				// -- restore
 				// rp.setViewPort(render.makeViewport());
-				rp.setFaceCulling(render.FaceCulling.Disabled);
+				// rp.setFaceCulling(render.FaceCulling.Disabled);
 			}
 		}
 	}
