@@ -46,18 +46,21 @@ namespace sd.render {
 	}
 
 
-	export interface ScreenFBODesc {
+	// Util functions to create a Framebuffer object with standard configuration:
+	// RGBA8 colour attachments and default depth and stencil formats when requested.
+	// Width/Height, Square and Screen dimension versions are available.
+	
+	export interface DefaultFBODesc {
 		colourCount: number;
 		useDepth?: boolean;
 		useStencil?: boolean;
 	}
 
 
-	// Creates a Framebuffer object with standard configuration: RGBA8 colour attachments
-	// and default depth and stencil formats when requested. All attachments are the size
-	// of the RenderContext's render area.
-	export function makeScreenFramebuffer(rc: RenderContext, desc: ScreenFBODesc) {
+	export function makeDefaultFrameBuffer(rc: RenderContext, width: number, height: number, desc: DefaultFBODesc) {
 		var fbad = render.makeFrameBufferAllocationDescriptor(desc.colourCount);
+		fbad.width = width;
+		fbad.height = height;
 		container.fill(fbad.colourPixelFormats, PixelFormat.RGBA8, desc.colourCount);
 		if (desc.useDepth) fbad.depthPixelFormat = render.PixelFormat.Depth24I;
 		if (desc.useStencil) fbad.stencilPixelFormat = render.PixelFormat.Stencil8;
@@ -65,6 +68,16 @@ namespace sd.render {
 		var fbd = render.allocateTexturesForFrameBuffer(rc, fbad);
 
 		return new render.FrameBuffer(rc, fbd);
+	}
+
+
+	export function makeSquareFrameBuffer(rc: RenderContext, dimension: number, desc: DefaultFBODesc) {
+		return makeDefaultFrameBuffer(rc, dimension, dimension, desc);
+	}
+
+
+	export function makeScreenFrameBuffer(rc: RenderContext, desc: DefaultFBODesc) {
+		return makeDefaultFrameBuffer(rc, 0, 0, desc);
 	}
 
 
