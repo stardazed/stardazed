@@ -26,11 +26,11 @@ namespace sd.world {
 	const entityIndexMask = (1 << entityIndexBits) - 1;
 	const entityGenerationMask = (1 << entityGenerationBits) - 1;
 
-	function entityGeneration(ent: Entity) {
+	export function entityGeneration(ent: Entity) {
 		return ((<number>ent) >> entityIndexBits) & entityGenerationMask;
 	}
 
-	function entityIndex(ent: Entity) {
+	export function entityIndex(ent: Entity) {
 		return <number>ent & entityIndexMask;
 	}
 
@@ -93,15 +93,6 @@ namespace sd.world {
 			this.generation_[index]++;
 			this.freedIndices_.append(index);
 		}
-	}
-
-
-	// ------------------------
-
-
-	export interface ProjectionSetup {
-		projectionMatrix: ArrayOfNumber;
-		viewMatrix: ArrayOfNumber;
 	}
 
 } // ns sd.world
