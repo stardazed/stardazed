@@ -54,10 +54,10 @@ namespace sd.world {
 		// -- array access
 		get count() { return this.instanceData_.count; }
 
-		assign(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
-		assign(linkedEntity: Entity, desc: TransformDescriptor, parent?: TransformInstance): TransformInstance;
-		assign(linkedEntity: Entity, descOrParent: TransformDescriptor | TransformInstance, parent?: TransformInstance): TransformInstance {
-			var entIndex = <number>linkedEntity; // TODO: fix this
+		create(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
+		create(linkedEntity: Entity, desc: TransformDescriptor, parent?: TransformInstance): TransformInstance;
+		create(linkedEntity: Entity, descOrParent: TransformDescriptor | TransformInstance, parent?: TransformInstance): TransformInstance {
+			var entIndex = entityIndex(linkedEntity);
 
 			if (this.instanceData_.count < entIndex) {
 				if (this.instanceData_.resize(entIndex) == container.InvalidatePointers.Yes) {
@@ -139,7 +139,10 @@ namespace sd.world {
 
 		// -- Entity -> TransformInstance mapping
 		forEntity(ent: Entity): TransformInstance {
-			return <number>ent;
+			var index = entityIndex(ent);
+			if (index > 0 && index <= this.instanceData_.count)
+				return <number>ent;
+			assert(false, "No transform for entity " + index);
 		}
 	}
 

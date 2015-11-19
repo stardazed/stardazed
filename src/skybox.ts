@@ -70,7 +70,7 @@ namespace sd.world {
 
 		setEntity(entity: Entity) {
 			this.entity_ = entity;
-			this.txInstance_ = this.transformMgr_.assign(entity);
+			this.txInstance_ = this.transformMgr_.create(entity);
 		}
 
 
