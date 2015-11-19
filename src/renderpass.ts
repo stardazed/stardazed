@@ -89,7 +89,7 @@ namespace sd.render {
 
 
 		// -- observers
-		frameBuffer() { return this.frameBuffer_; }
+		get frameBuffer() { return this.frameBuffer_; }
 
 
 		// -- render state
@@ -159,8 +159,13 @@ namespace sd.render {
 
 
 		setViewPort(viewport: Viewport) {
-			// FIXME: treat width, height == 0 as alias for full viewport
-			this.rc.gl.viewport(viewport.originX, viewport.originY, viewport.width, viewport.height);
+			// shortcut for restoring viewport to normal by passing w,h = 0,0
+			if (viewport.width == 0 && viewport.height == 0) {
+				this.rc.gl.viewport(0, 0, this.rc.gl.drawingBufferWidth, this.rc.gl.drawingBufferHeight);
+			}
+			else {
+				this.rc.gl.viewport(viewport.originX, viewport.originY, viewport.width, viewport.height);
+			}
 			this.rc.gl.depthRange(viewport.nearZ, viewport.farZ);
 		}
 
