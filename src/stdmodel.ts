@@ -41,8 +41,8 @@ namespace sd.world {
 
 		// -- lights
 		lightTypeArrayUniform?: WebGLUniformLocation;      // int[MAX_FRAGMENT_LIGHTS]
-		lightPositionArrayUniform?: WebGLUniformLocation;  // vec3[MAX_FRAGMENT_LIGHTS]
-		lightDirectionArrayUniform?: WebGLUniformLocation; // vec3[MAX_FRAGMENT_LIGHTS]
+		lightPositionArrayUniform?: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
+		lightDirectionArrayUniform?: WebGLUniformLocation; // vec4[MAX_FRAGMENT_LIGHTS]
 		lightColourArrayUniform?: WebGLUniformLocation;    // vec4[MAX_FRAGMENT_LIGHTS]
 		lightParamArrayUniform?: WebGLUniformLocation;     // vec4[MAX_FRAGMENT_LIGHTS]
 
@@ -264,16 +264,19 @@ namespace sd.world {
 			line  ("const int SPEC_EXPONENT = 1;");
 			line  ("const int SPEC_COLOURMIX = 2;");
 
-			// -- lights (with 4 lights, this will take up 20 frag vector uniforms)
+			// -- light param constants
 			line  ("const int MAX_FRAGMENT_LIGHTS = " + MAX_FRAGMENT_LIGHTS + ";");
 			line  ("const int LPARAM_AMBIENT_INTENSITY = 0;");
 			line  ("const int LPARAM_DIFFUSE_INTENSITY = 1;");
 			line  ("const int LPARAM_RANGE = 2;");
 			line  ("const int LPARAM_CUTOFF = 3;");
+			line  ("const int LPOS_STRENGTH = 3;");
+			line  ("const int LDIR_BIAS = 3;");
 
+			// -- lights (with 4 lights, this will take up 20 frag vector uniforms)
 			line  ("uniform int lightTypes[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec3 lightPositions[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec3 lightDirections[MAX_FRAGMENT_LIGHTS];");
+			line  ("uniform vec4 lightPositions[MAX_FRAGMENT_LIGHTS];");
+			line  ("uniform vec4 lightDirections[MAX_FRAGMENT_LIGHTS];");
 			line  ("uniform vec4 lightColours[MAX_FRAGMENT_LIGHTS];");
 			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
 
@@ -309,8 +312,6 @@ namespace sd.world {
 			line  ("	vec3 lightDirection = vertexPos_world - lightPos_world;");
 			line  ("	float distance = length(lightDirection);");
 			line  ("	lightDirection = normalize(lightDirection);");
-			// line("	float attenuation = 1.0 - smoothstep(0.0, param[LPARAM_RANGE], distance);");
-			// line  ("	float attenuation = 1.0 - step(param[LPARAM_RANGE], distance);");
 			line  ("	float attenuation = 1.0 - pow(clamp(distance / param[LPARAM_RANGE], 0.0, 1.0), 2.0);");
 			line  ("	return calcLightShared(matColour, colour, param, attenuation, lightDirection, normal_cam);");
 			line  ("}");
@@ -326,8 +327,9 @@ namespace sd.world {
 			// shadow intensity
 			if (feat & Features.ShadowMap) {
 				line("		float shadowFactor = 1.0;");
+				line("		float shadowBias = 0.05;");
 				line("		float shadowZ = texture2DProj(shadowSampler, vertexPos_light_intp.xyw).z;");
-				line("		float fragZ = (vertexPos_light_intp.z - 0.005) / vertexPos_light_intp.w;")
+				line("		float fragZ = (vertexPos_light_intp.z - shadowBias) / vertexPos_light_intp.w;")
 				line("		if (shadowZ < fragZ) {");
 				line("			shadowFactor = 0.2;")
 				line("		}");
@@ -372,8 +374,8 @@ namespace sd.world {
 			line  ("	for (int lightIx = 0; lightIx < MAX_FRAGMENT_LIGHTS; ++lightIx) {");
 			line  ("		int type = lightTypes[lightIx];");
 			line  ("		if (type == 0) break;");
-			line  ("		vec3 lightPos_world = lightPositions[lightIx];");  // all array accesses must be constant or a loop index
-			line  ("		vec3 lightDir = lightNormalMatrix * lightDirections[lightIx];"); // FIXME: this is frag/vert invariant
+			line  ("		vec3 lightPos_world = lightPositions[lightIx].xyz;");  // all array accesses must be constant or a loop index
+			line  ("		vec3 lightDir = lightNormalMatrix * lightDirections[lightIx].xyz;"); // FIXME: this is frag/vert invariant
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
 			line  ("		if (type == 1) {")
@@ -450,8 +452,8 @@ namespace sd.world {
 
 		// -- for light uniform updates
 		private lightTypeArray = new Int32Array(MAX_FRAGMENT_LIGHTS);
-		private lightPositionArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 3);
-		private lightDirectionArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 3);
+		private lightPositionArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
+		private lightDirectionArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
 		private lightColourArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
 		private lightParamArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
 
@@ -584,10 +586,10 @@ namespace sd.world {
 					math.vectorArrayItem(this.lightParamArray, math.Vec4, lix).set(lightData.parameterData);
 
 					if (lightData.type != LightType.Point) {
-						math.vectorArrayItem(this.lightDirectionArray, math.Vec3, lix).set(lightData.direction);
+						math.vectorArrayItem(this.lightDirectionArray, math.Vec4, lix).set(lightData.direction);
 					}
 					if (lightData.type != LightType.Directional) {
-						math.vectorArrayItem(this.lightPositionArray, math.Vec3, lix).set(lightData.position);
+						math.vectorArrayItem(this.lightPositionArray, math.Vec4, lix).set(lightData.position);
 					}
 				}
 				else {
@@ -656,8 +658,8 @@ namespace sd.world {
 
 				// -- light data FIXME: only update these when local light data was changed -> pos and rot can change as well
 				gl.uniform1iv(program.lightTypeArrayUniform, this.lightTypeArray);
-				gl.uniform3fv(program.lightPositionArrayUniform, this.lightPositionArray);
-				gl.uniform3fv(program.lightDirectionArrayUniform, this.lightDirectionArray);
+				gl.uniform4fv(program.lightPositionArrayUniform, this.lightPositionArray);
+				gl.uniform4fv(program.lightDirectionArrayUniform, this.lightDirectionArray);
 				gl.uniform4fv(program.lightColourArrayUniform, this.lightColourArray);
 				gl.uniform4fv(program.lightParamArrayUniform, this.lightParamArray);
 
