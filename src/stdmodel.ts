@@ -304,17 +304,7 @@ namespace sd.world {
 
 
 			// -- calcPointLight()
-			line("vec3 calcPointLight(vec3 matColour, vec4 colour, vec4 param, vec3 lightPos_world, vec3 normal_cam) {");
-
-			// shadow intensity
-			if (feat & Features.ShadowMap) {
-				line("	vec3 projLite = vertexPos_light_intp.xyz / vertexPos_light_intp.w;");
-				line("	float shadowZ = texture2D(shadowSampler, projLite.xy).r;");
-				line("	float shadowFactor = (projLite.z < shadowZ) ? 1.0 : 0.0;");
-			}
-			else {
-				line("	float shadowFactor = 1.0;");
-			}
+			line("vec3 calcPointLight(vec3 matColour, vec4 colour, vec4 param, vec3 lightPos_world, vec3 normal_cam, float shadowFactor) {");
 
 			line("	vec3 lightDirection = vertexPos_world - lightPos_world;");
 			line("	float distance = length(lightDirection);");
@@ -331,7 +321,27 @@ namespace sd.world {
 			line("	float spotCosAngle = dot(lightToPoint, lightDirection);");
 			line("	float cutoff = param[LPARAM_CUTOFF];");
 			line("	if (spotCosAngle > cutoff) {");
-			line("		vec3 light = calcPointLight(matColour, colour, param, lightPos_world, normal_cam);");
+
+			// shadow intensity
+			if (feat & Features.ShadowMap) {
+				// line("	vec3 projLite = vertexPos_light_intp.xyz / vertexPos_light_intp.w;");
+				// line("	float shadowZ = texture2D(shadowSampler, projLite.xy).r;");
+				// line("	float shadowFactor = (projLite.z < shadowZ) ? 1.0 : 0.0;");
+			
+				line("	float shadowFactor = 1.0;");
+				line("	vec4 hmm = vertexPos_light_intp;");
+				line("  vec2 sp2 = hmm.xy / hmm.w;");
+				//line("	sp2.y = 1.0 - sp2.y;");
+				line("	float shadowZ = texture2D(shadowSampler, sp2).z;");
+				line("	if (shadowZ < (hmm.z - 0.005) / hmm.w) {");
+				line("		shadowFactor = 0.1;")
+				line("	}");
+			}
+			else {
+				line("	float shadowFactor = 1.0;");
+			}
+
+			line("		vec3 light = calcPointLight(matColour, colour, param, lightPos_world, normal_cam, shadowFactor);");
 			line("		return light * pow(1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff), 0.5);");
 			line("	}");
 			line("	return vec3(0.0, 0.0, 0.0);");
@@ -375,7 +385,7 @@ namespace sd.world {
 			line  ("			totalLight += calcDirectionalLight(matColour, lightColour, lightParam, lightDir, normal_cam);");
 			line  ("		}");
 			line  ("		else if (type == 2) {")
-			line  ("			totalLight += calcPointLight(matColour, lightColour, lightParam, lightPos_world, normal_cam);");
+			line  ("			totalLight += calcPointLight(matColour, lightColour, lightParam, lightPos_world, normal_cam, 1.0);");
 			line  ("		}");
 			line  ("		else if (type == 3) {")
 			line  ("			totalLight += calcSpotLight(matColour, lightColour, lightParam, lightPos_world, lightDir, normal_cam);");
@@ -702,6 +712,7 @@ namespace sd.world {
 			var count = this.instanceData_.count;
 
 			if (mode == RenderMode.Forward) {
+				rp.setViewPort(render.makeViewport());
 				rp.setDepthTest(render.DepthTest.Less);
 
 				for (var modelIx = 1; modelIx <= count; ++modelIx) {
@@ -712,21 +723,19 @@ namespace sd.world {
 				var shadowPipeline = this.stdPipeline_.shadowPipeline();
 				rp.setPipeline(shadowPipeline);
 				rp.setDepthTest(render.DepthTest.Less);
-				// rp.setFaceCulling(render.FaceCulling.Front);
+				rp.setFaceCulling(render.FaceCulling.Front);
 
-				// -- leave room for 1px frame
-				// var shadowPort = render.makeViewport();
-				// shadowPort.width = rp.frameBuffer.width - 2;
-				// shadowPort.height = rp.frameBuffer.height - 2;
-				// rp.setViewPort(shadowPort);
+				var shadowPort = render.makeViewport();
+				shadowPort.width = rp.frameBuffer.width;
+				shadowPort.height = rp.frameBuffer.height;
+				rp.setViewPort(shadowPort);
 
 				for (var modelIx = 1; modelIx <= count; ++modelIx) {
 					this.drawSingleShadow(rp, proj, shadowPipeline, modelIx);
 				}
 
 				// -- restore
-				// rp.setViewPort(render.makeViewport());
-				// rp.setFaceCulling(render.FaceCulling.Disabled);
+				rp.setFaceCulling(render.FaceCulling.Disabled);
 			}
 		}
 	}
