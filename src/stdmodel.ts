@@ -258,6 +258,7 @@ namespace sd.world {
 			line  ("uniform vec4 mainColour;");
 			if_all("uniform vec4 specular;", Features.Specular);
 			if_all("uniform sampler2D albedoSampler;", Features.AlbedoMap);
+			if_all("uniform vec4 texScaleOffset;", Features.AlbedoMap);
 			if_all("uniform sampler2D shadowSampler;", Features.ShadowMap);
 
 			line  ("const int SPEC_INTENSITY = 0;");
@@ -357,7 +358,8 @@ namespace sd.world {
 
 			// -- material colour at point
 			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
-				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
+				line("	vec2 texCoord = (vertexUV_intp * texScaleOffset.xy) + texScaleOffset.zw;");
+				line("	vec3 texColour = texture2D(albedoSampler, texCoord).xyz;");
 				line("	vec3 matColour = texColour * mainColour.rgb;");
 			}
 			else if (feat & Features.VtxColour) {
@@ -598,7 +600,6 @@ namespace sd.world {
 			}
 		}
 
-		globalKaunt = 0;
 
 		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: Shadow, modelIx: number) {
 			var gl = this.rc.gl;
@@ -628,10 +629,6 @@ namespace sd.world {
 				rp.setPipeline(pipeline);
 				rp.setMesh(mesh);
 
-				if (features & Features.AlbedoMap) {
-					rp.setTexture(materialData.albedoMap, TextureBindPoint.Colour);
-				}
-
 				// -- set transform and normal uniforms
 				var program = <StdGLProgram>(pipeline.program);
 
@@ -654,6 +651,10 @@ namespace sd.world {
 				gl.uniform4fv(program.mainColourUniform, materialData.colourData);
 				if (features & Features.Specular) {
 					gl.uniform4fv(program.specularUniform, materialData.specularData);
+				}
+				if (features & Features.AlbedoMap) {
+					rp.setTexture(materialData.albedoMap, TextureBindPoint.Colour);
+					gl.uniform4fv(program.texScaleOffsetUniform, materialData.texScaleOffsetData);
 				}
 
 				// -- light data FIXME: only update these when local light data was changed -> pos and rot can change as well

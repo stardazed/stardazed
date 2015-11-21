@@ -189,7 +189,7 @@ namespace sd.world {
 		}
 
 		textureOffset(inst: StdMaterialInstance): TypedArray {
-			return math.vectorArrayItem(this.specularBase_, math.Vec4, <number>inst).subarray(2, 4);
+			return math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, <number>inst).subarray(2, 4);
 		}
 
 		textureScaleAndOffset(inst: StdMaterialInstance): TypedArray {
