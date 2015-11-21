@@ -215,6 +215,7 @@ namespace sd.world {
 			line  ("uniform mat4 modelViewProjectionMatrix;");
 			if_all("uniform mat4 lightViewProjectionMatrix;", Features.ShadowMap);
 			line  ("uniform mat3 normalMatrix;");
+			if_all("uniform vec4 texScaleOffset;", Features.VtxUV);
 
 			// main()
 			line  ("void main() {");
@@ -223,7 +224,7 @@ namespace sd.world {
 			line  ("	vertexNormal_intp = normalMatrix * vertexNormal;");
 			if_all("	vertexPos_cam_intp = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;", Features.Specular);
 			if_all("	vertexPos_light_intp = lightViewProjectionMatrix * modelMatrix * vec4(vertexPos_model, 1.0);", Features.ShadowMap);
-			if_all("	vertexUV_intp = vertexUV;", Features.VtxUV);
+			if_all("	vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;", Features.VtxUV);
 			if_all("	vertexColour_intp = vertexColour;", Features.VtxColour);
 			line  ("}");
 
@@ -258,7 +259,6 @@ namespace sd.world {
 			line  ("uniform vec4 mainColour;");
 			if_all("uniform vec4 specular;", Features.Specular);
 			if_all("uniform sampler2D albedoSampler;", Features.AlbedoMap);
-			if_all("uniform vec4 texScaleOffset;", Features.AlbedoMap);
 			if_all("uniform sampler2D shadowSampler;", Features.ShadowMap);
 
 			line  ("const int SPEC_INTENSITY = 0;");
@@ -358,8 +358,7 @@ namespace sd.world {
 
 			// -- material colour at point
 			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
-				line("	vec2 texCoord = (vertexUV_intp * texScaleOffset.xy) + texScaleOffset.zw;");
-				line("	vec3 texColour = texture2D(albedoSampler, texCoord).xyz;");
+				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
 				line("	vec3 matColour = texColour * mainColour.rgb;");
 			}
 			else if (feat & Features.VtxColour) {
