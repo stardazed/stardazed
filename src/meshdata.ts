@@ -433,6 +433,10 @@ namespace sd.mesh {
 			return this.viewItemCount_;
 		}
 
+		get baseVertex() {
+			return this.firstItem_;
+		}
+
 		get vertexBuffer() {
 			return this.vertexBuffer_;
 		}
@@ -559,7 +563,7 @@ namespace sd.mesh {
 		get buffer() { return this.storage_; }
 
 		// -- read/write indexes
-		typedBasePtr(baseIndexNr: number, elementCount?: number): TypedIndexArray {
+		typedBasePtr(baseIndexNr: number, elementCount: number): TypedIndexArray {
 			var offsetBytes = this.indexElementSizeBytes_ * baseIndexNr;
 
 			if (this.indexElementType_ == IndexElementType.UInt32) {
@@ -578,7 +582,7 @@ namespace sd.mesh {
 			assert(baseIndexNr + outputCount < this.indexCount_);
 			assert(outputPtr.length >= outputCount);
 
-			var typedBasePtr = this.typedBasePtr(baseIndexNr);
+			var typedBasePtr = this.typedBasePtr(baseIndexNr, outputCount);
 
 			for (let ix = 0; ix < outputCount; ++ix) {
 				outputPtr[ix] = typedBasePtr[ix];
@@ -595,7 +599,7 @@ namespace sd.mesh {
 			assert(baseIndexNr + sourceCount < this.indexCount_);
 			assert(sourcePtr.length >= sourceCount);
 
-			var typedBasePtr = this.typedBasePtr(baseIndexNr);
+			var typedBasePtr = this.typedBasePtr(baseIndexNr, sourceCount);
 
 			for (let ix = 0; ix < sourceCount; ++ix) {
 				typedBasePtr[ix] = sourcePtr[ix];
@@ -612,7 +616,7 @@ namespace sd.mesh {
 		private data_: TypedIndexArray;
 
 		constructor(data: TypedIndexArray, triangleIndex: number) {
-			this.data_ = new (<any>data.constructor)(data.buffer, triangleIndex * 3 * data.BYTES_PER_ELEMENT, 3);
+			this.data_ = data.subarray(triangleIndex * 3, (triangleIndex + 1) * 3);
 		}
 
 		index(index: number) { return this.data_[index]; }
@@ -644,8 +648,8 @@ namespace sd.mesh {
 		}
 
 		forEach(callback: (proxy: TriangleProxy) => void) {
-			var basePtr = this.indexBuffer_.typedBasePtr(this.fromTriangle_ * 3);
 			var primCount = this.toTriangle_ - this.fromTriangle_;
+			var basePtr = this.indexBuffer_.typedBasePtr(this.fromTriangle_ * 3, primCount * 3);
 
 			for (let tix = 0; tix < primCount; ++tix) {
 				callback(new TriangleProxy(basePtr, tix));
@@ -653,7 +657,11 @@ namespace sd.mesh {
 		}
 
 		item(triangleIndex: number) {
-			return this.indexBuffer_.typedBasePtr(triangleIndex * 3, 3);
+			return this.indexBuffer_.typedBasePtr((triangleIndex + this.fromTriangle_) * 3, 3);
+		}
+
+		subView(fromTriangle: number, triangleCount: number) {
+			return new IndexBufferTriangleView(this.indexBuffer_, this.fromTriangle_ + fromTriangle, this.fromTriangle_ + fromTriangle + triangleCount);
 		}
 
 		get count() {
@@ -678,14 +686,15 @@ namespace sd.mesh {
 		var normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
 		var triView = new IndexBufferTriangleView(indexBuffer);
 
-		calcVertexNormalsImpl(posView, normView, triView);
+		calcVertexNormalsViews(posView, normView, triView);
 	}
 
 
-	function calcVertexNormalsImpl(posView: VertexBufferAttributeView, normView: VertexBufferAttributeView, triView: IndexBufferTriangleView) {
+	export function calcVertexNormalsViews(posView: VertexBufferAttributeView, normView: VertexBufferAttributeView, triView: IndexBufferTriangleView) {
 		var vertexCount = posView.count;
 		var normalCount = normView.count;
 		assert(vertexCount <= normalCount);
+		var baseVertex = normView.baseVertex;
 
 		normView.forEach((norm) => {
 			vec3.set(norm, 0, 0, 1);
@@ -696,9 +705,9 @@ namespace sd.mesh {
 		var faceNormal = vec3.create(), temp = vec3.create();
 
 		triView.forEach((face: TriangleProxy) => {
-			var posA = posView.item(face.a());
-			var posB = posView.item(face.b());
-			var posC = posView.item(face.c());
+			var posA = posView.item(face.a() - baseVertex);
+			var posB = posView.item(face.b() - baseVertex);
+			var posC = posView.item(face.c() - baseVertex);
 
 			vec3.subtract(lineA, posB, posA);
 			vec3.subtract(lineB, posC, posB);
@@ -711,7 +720,7 @@ namespace sd.mesh {
 			vec3.normalize(faceNormal, faceNormal);
 
 			for (let fi = 0; fi < 3; ++fi) {
-				let fvi = face.index(fi);
+				let fvi = face.index(fi) - baseVertex;
 				let norm = normView.item(fvi);
 
 				// normBegin[fvi] = (normBegin[fvi] * usages[fvi] + faceNormal) / (usages[fvi] + 1.0f);
