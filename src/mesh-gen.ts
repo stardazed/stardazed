@@ -297,6 +297,59 @@ namespace sd.mesh.gen {
 	}
 
 
+	//   ___               _ 
+	//  / _ \ _  _ __ _ __| |
+	// | (_) | || / _` / _` |
+	//  \__\_\\_,_\__,_\__,_|
+	// 						 
+
+	export class Quad extends MeshGenerator {
+		constructor(private width_: number = 1, private height_: number = 1) {
+			super();
+
+			assert(width_ > 0);
+			assert(height_ > 0);
+		}
+
+		vertexCount(): number {
+			return 4;
+		}
+
+		faceCount(): number {
+			return 2;
+		}
+
+		explicitNormals() {
+			return true;
+		}
+
+		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
+			var xh = this.width_ / 2;
+			var yh = this.height_ / 2;
+
+			position(-xh,  yh, 0);
+			position( xh,  yh, 0);
+			position(-xh, -yh, 0);
+			position( xh, -yh, 0);
+
+			normal(0, 0, -1);
+			normal(0, 0, -1);
+			normal(0, 0, -1);
+			normal(0, 0, -1);
+
+			// quad shows texture fully
+			uv(0, 0);
+			uv(1, 0);
+			uv(0, 1);
+			uv(1, 1);
+
+			// ccw faces
+			face(0, 3, 1);
+			face(0, 2, 3);
+		}
+	}
+
+
 	//  ___          
 	// | _ ) _____ __
 	// | _ \/ _ \ \ /
