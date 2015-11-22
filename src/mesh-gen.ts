@@ -14,192 +14,177 @@ namespace sd.mesh.gen {
 	// |_|  |_\___/__/_||_\___\___|_||_\___|_| \__,_|\__\___/_|  
 	//                                                          
 
-	export type PositionAddFn = (x: number, y: number, z: number) => void;
-	export type FaceAddFn = (a: number, b: number, c: number) => void;
-	export type UVAddFn = (u: number, v: number) => void;
+	export type Vec2AddFn = (u: number, v: number) => void;
+	export type Vec3AddFn = (x: number, y: number, z: number) => void;
+	export type IndexesAddFn = (a: number, b: number, c: number) => void;
 
-	export abstract class MeshGenerator {
-		abstract vertexCount(): number;
-		abstract faceCount(): number;
+	export interface MeshGenerator {
+		vertexCount: number;
+		faceCount: number;
 
-		abstract generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn): void;
-		abstract explicitNormals(): boolean;
+		explicitNormals: boolean;
 
-		generate(attrList?: VertexAttribute[]): MeshData {
-			if (!attrList)
-				attrList = AttrList.Pos3Norm3UV2();
-
-			var vtxCount = this.vertexCount();
-			var mesh = new MeshData(attrList);
-			var vertexBuffer = mesh.primaryVertexBuffer;
-
-			vertexBuffer.allocate(vtxCount);
-			var indexElementType = minimumIndexElementTypeForVertexCount(vtxCount);
-			mesh.indexBuffer.allocate(PrimitiveType.Triangle, indexElementType, this.faceCount());
-
-			// -- views into various attributes
-			var posView = new VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(VertexAttributeRole.Position));
-
-			var texAttr = vertexBuffer.attrByRole(VertexAttributeRole.UV);
-			var texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
-
-			var normalAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
-			var normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
-
-			// -- treat index buffer as triangle-indexes
-			var triView = new IndexBufferTriangleView(mesh.indexBuffer);
-			this.generateInto(posView, triView, normalView, texView);
-
-			if (! this.explicitNormals())
-				mesh.genVertexNormals();
-
-			// add a default primitive group that covers the complete generated mesh
-			// TODO: let generator impls build 1 or more drawgroups instead
-			mesh.primitiveGroups.push({ fromPrimIx: 0, primCount: this.faceCount(), materialIx: 0 });
-
-			return mesh;
-		}
-
-		generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, normals?: VertexBufferAttributeView, uvs?: VertexBufferAttributeView): void {
-			var posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0;
-
-			var pos: PositionAddFn = (x: number, y: number, z: number) => {
-				var v3 = positions.item(posIx);
-				v3[0] = x;
-				v3[1] = y;
-				v3[2] = z;
-				posIx++;
-			};
-
-			var face: FaceAddFn = (a: number, b: number, c: number) => {
-				var v3 = faces.item(faceIx);
-				v3[0] = a;
-				v3[1] = b;
-				v3[2] = c;
-				faceIx++;
-			};
-
-			var normal: PositionAddFn = normals ?
-				(x: number, y: number, z: number) => {
-					var v3 = normals.item(normalIx);
-					v3[0] = x;
-					v3[1] = y;
-					v3[2] = z;
-					normalIx++;
-				}
-				: (x: number, y: number, z: number) => { };
-
-			var uv: UVAddFn = uvs ?
-				(u: number, v: number) => {
-					var v2 = uvs.item(uvIx);
-					v2[0] = u;
-					v2[1] = v;
-					uvIx++;
-				}
-				: (u: number, v: number) => { };
-
-			this.generateImpl(pos, face, normal, uv);
-		}
+		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn): void;
 	}
 
-
-	//   ___                        _ _       
-	//  / __|___ _ __  _ __  ___ __(_) |_ ___ 
-	// | (__/ _ \ '  \| '_ \/ _ (_-< |  _/ -_)
-	//  \___\___/_|_|_| .__/\___/__/_|\__\___|
-	//                |_|                     
-
-	export interface TransformedMeshDescriptor {
+	export interface TransformedMeshGen {
 		generator: MeshGenerator;
 		rotation?: ArrayOfNumber; // quat
 		translation?: ArrayOfNumber; // vec3
 		scale?: ArrayOfNumber; // vec3
 	}
 
-	export class Composite extends MeshGenerator {
-		private totalVertexes_ = 0;
-		private totalFaces_ = 0;
+	export type MeshGenSource = MeshGenerator | TransformedMeshGen;
 
-		constructor(private parts_: TransformedMeshDescriptor[]) {
-			super();
 
-			parts_.forEach((tmd) => {
-				this.totalVertexes_ += tmd.generator.vertexCount();
-				this.totalFaces_ += tmd.generator.faceCount();
-			});
+	export function createMesh(gens: MeshGenSource | MeshGenSource[], attrList?: VertexAttribute[]): MeshData {
+		if (! attrList)
+			attrList = AttrList.Pos3Norm3UV2();
+
+		var genList = <MeshGenSource[]>seq(gens);
+		var totalVertexCount = 0;
+		var totalFaceCount = 0;
+
+		for (var genSource of genList) {
+			var generator: MeshGenerator = ("generator" in genSource) ? (<TransformedMeshGen>genSource).generator : <MeshGenerator>genSource;
+			totalVertexCount += generator.vertexCount;
+			totalFaceCount += generator.faceCount;
 		}
 
-		vertexCount(): number {
-			return this.totalVertexes_;
-		}
+		// -- create vertex and index buffers for combined mesh
+		var mesh = new MeshData(attrList);
+		var vertexBuffer = mesh.primaryVertexBuffer;
 
-		faceCount(): number {
-			return this.totalFaces_;
-		}
+		vertexBuffer.allocate(totalVertexCount);
+		var indexElementType = minimumIndexElementTypeForVertexCount(totalVertexCount);
+		mesh.indexBuffer.allocate(PrimitiveType.Triangle, indexElementType, totalFaceCount);
 
-		explicitNormals() {
-			return false;
-		}
+		// -- views into various attributes and the index buffer
+		var normalAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
+		var texAttr = vertexBuffer.attrByRole(VertexAttributeRole.UV);
 
-		generateInto(positions: VertexBufferAttributeView, faces: IndexBufferTriangleView, normals?: VertexBufferAttributeView, uvs?: VertexBufferAttributeView): void {
-			var posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0;
-			var baseVertex = 0;
+		var posView = new VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(VertexAttributeRole.Position));
+		var normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
+		var texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
 
-			var pos: PositionAddFn = (x: number, y: number, z: number) => {
-				var v3 = positions.item(posIx);
-				v3[0] = x;
-				v3[1] = y;
-				v3[2] = z;
-				posIx++;
-			};
+		var triView = new IndexBufferTriangleView(mesh.indexBuffer);
 
-			var face: FaceAddFn = (a: number, b: number, c: number) => {
-				var v3 = faces.item(faceIx);
-				v3[0] = a + baseVertex;
-				v3[1] = b + baseVertex;
-				v3[2] = c + baseVertex;
-				faceIx++;
-			};
+		// -- data add functions for the generators
+		var posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;
 
-			var normal: PositionAddFn = normals ?
-				(x: number, y: number, z: number) => {
-					var v3 = normals.item(normalIx);
-					v3[0] = x;
-					v3[1] = y;
-					v3[2] = z;
-					normalIx++;
-				}
-				: (x: number, y: number, z: number) => { };
+		var pos: Vec3AddFn = (x: number, y: number, z: number) => {
+			var v3 = posView.item(posIx);
+			v3[0] = x; v3[1] = y; v3[2] = z;
+			posIx++;
+		};
 
-			var uv: UVAddFn = uvs ?
-				(u: number, v: number) => {
-					var v2 = uvs.item(uvIx);
-					v2[0] = u;
-					v2[1] = v;
-					uvIx++;
-				}
-				: (u: number, v: number) => { };
+		var face: IndexesAddFn = (a: number, b: number, c: number) => {
+			var i3 = triView.item(faceIx);
+			i3[0] = a + baseVertex; i3[1] = b + baseVertex; i3[2] = c + baseVertex;
+			faceIx++;
+		};
 
-			// generate and transform each submesh
-			this.parts_.forEach((part) => {
-				part.generator.generateImpl(pos, face, normal, uv);
+		var normal: Vec3AddFn = normalView ?
+			(x: number, y: number, z: number) => {
+				var v3 = normalView.item(normalIx);
+				v3[0] = x; v3[1] = y; v3[2] = z;
+				normalIx++;
+			}
+			: (x: number, y: number, z: number) => { };
 
-				var transMatrix = mat4.create();
-				var rotation = part.rotation || quat.create();
-				var translation = part.translation || vec3.create();
-				var scale = part.scale || vec3.fromValues(1, 1, 1);
+		var uv: Vec2AddFn = texView ?
+			(u: number, v: number) => {
+				var v2 = texView.item(uvIx);
+				v2[0] = u; v2[1] = v;
+				uvIx++;
+			}
+			: (u: number, v: number) => { };
+
+		// -- generate and optionally transform each mesh part
+		var transMatrix = mat4.create();
+
+		for (var genSource of genList) {
+			var generator: MeshGenerator = ("generator" in genSource) ? (<TransformedMeshGen>genSource).generator : <MeshGenerator>genSource;
+			generator.generate(pos, face, normal, uv);
+
+			var subVtxCount = generator.vertexCount;
+			var subFaceCount = generator.faceCount;
+			var subPosView = posView.subView(baseVertex, subVtxCount);
+
+			if ("generator" in genSource) {
+				let xformGen = <TransformedMeshGen>genSource;
+				let rotation = xformGen.rotation || quat.create();
+				let translation = xformGen.translation || vec3.create();
+				let scale = xformGen.scale || vec3.fromValues(1, 1, 1);
 				mat4.fromRotationTranslationScale(transMatrix, rotation, translation, scale);
-
-				var partVertexCount = part.generator.vertexCount();
-				var subPosView = positions.subView(baseVertex, partVertexCount);
 				subPosView.forEach((pos) => { vec3.transformMat4(pos, pos, transMatrix); });
+			}
 
-				baseVertex += partVertexCount;
-			});
+			if (normalAttr && !generator.explicitNormals) {
+				let subNormalView = normalView.subView(baseVertex, subVtxCount);
+				let subFaceView = triView.subView(faceIx - subFaceCount, subFaceCount);
+				calcVertexNormalsViews(subPosView, subNormalView, subFaceView);
+
+				normalIx += subVtxCount;
+			}
+
+			baseVertex += generator.vertexCount;
 		}
 
-		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
-			// stub, unused
+		// -- currently generate single primitive group for full mesh, TODO: make this more configurable
+		mesh.primitiveGroups.push({ fromPrimIx: 0, primCount: totalFaceCount, materialIx: 0 });
+
+		return mesh;
+	}
+
+
+	//   ___               _ 
+	//  / _ \ _  _ __ _ __| |
+	// | (_) | || / _` / _` |
+	//  \__\_\\_,_\__,_\__,_|
+	// 						 
+
+	export class Quad implements MeshGenerator {
+		constructor(private width_: number = 1, private height_: number = 1) {
+			assert(width_ > 0);
+			assert(height_ > 0);
+		}
+
+		get vertexCount(): number {
+			return 4;
+		}
+
+		get faceCount(): number {
+			return 2;
+		}
+
+		get explicitNormals() {
+			return true;
+		}
+
+		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
+			var xh = this.width_ / 2;
+			var yh = this.height_ / 2;
+
+			position(-xh, yh, 0);
+			position(xh, yh, 0);
+			position(-xh, -yh, 0);
+			position(xh, -yh, 0);
+
+			normal(0, 0, -1);
+			normal(0, 0, -1);
+			normal(0, 0, -1);
+			normal(0, 0, -1);
+
+			// quad shows texture fully
+			uv(0, 0);
+			uv(1, 0);
+			uv(0, 1);
+			uv(1, 1);
+
+			// ccw faces
+			face(0, 3, 1);
+			face(0, 2, 3);
 		}
 	}
 
@@ -221,7 +206,7 @@ namespace sd.mesh.gen {
 		segs: number;
 	}
 
-	export class Plane extends MeshGenerator {
+	export class Plane implements MeshGenerator {
 		private width_: number;
 		private depth_: number;
 		private rows_: number;
@@ -229,8 +214,6 @@ namespace sd.mesh.gen {
 		private yGen_: PlaneYGenerator;
 
 		constructor(desc: PlaneDescriptor) {
-			super();
-
 			this.width_ = desc.width;
 			this.depth_ = desc.depth;
 			this.rows_ = desc.rows | 0;
@@ -243,19 +226,19 @@ namespace sd.mesh.gen {
 			assert(this.segs_ > 0);
 		}
 
-		vertexCount(): number {
+		get vertexCount(): number {
 			return (this.rows_ + 1) * (this.segs_ + 1);
 		}
 
-		faceCount(): number {
+		get faceCount(): number {
 			return 2 * this.rows_ * this.segs_;
 		}
 
-		explicitNormals() {
+		get explicitNormals() {
 			return false;
 		}
 
-		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
+		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
 			var halfWidth = this.width_ / 2;
 			var halfDepth = this.depth_ / 2;
 			var tileDimX = this.width_ / this.segs_;
@@ -297,59 +280,6 @@ namespace sd.mesh.gen {
 	}
 
 
-	//   ___               _ 
-	//  / _ \ _  _ __ _ __| |
-	// | (_) | || / _` / _` |
-	//  \__\_\\_,_\__,_\__,_|
-	// 						 
-
-	export class Quad extends MeshGenerator {
-		constructor(private width_: number = 1, private height_: number = 1) {
-			super();
-
-			assert(width_ > 0);
-			assert(height_ > 0);
-		}
-
-		vertexCount(): number {
-			return 4;
-		}
-
-		faceCount(): number {
-			return 2;
-		}
-
-		explicitNormals() {
-			return true;
-		}
-
-		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
-			var xh = this.width_ / 2;
-			var yh = this.height_ / 2;
-
-			position(-xh,  yh, 0);
-			position( xh,  yh, 0);
-			position(-xh, -yh, 0);
-			position( xh, -yh, 0);
-
-			normal(0, 0, -1);
-			normal(0, 0, -1);
-			normal(0, 0, -1);
-			normal(0, 0, -1);
-
-			// quad shows texture fully
-			uv(0, 0);
-			uv(1, 0);
-			uv(0, 1);
-			uv(1, 1);
-
-			// ccw faces
-			face(0, 3, 1);
-			face(0, 2, 3);
-		}
-	}
-
-
 	//  ___          
 	// | _ ) _____ __
 	// | _ \/ _ \ \ /
@@ -368,14 +298,12 @@ namespace sd.mesh.gen {
 		return { width: diam, height: diam, depth: diam };
 	}
 
-	export class Box extends MeshGenerator {
+	export class Box implements MeshGenerator {
 		private xDiam_: number;
 		private yDiam_: number;
 		private zDiam_: number;
 
 		constructor(desc: BoxDescriptor) {
-			super();
-
 			this.xDiam_ = desc.width;
 			this.yDiam_ = desc.height;
 			this.zDiam_ = desc.depth;
@@ -385,19 +313,19 @@ namespace sd.mesh.gen {
 			assert(this.zDiam_ > 0);
 		}
 
-		vertexCount(): number {
+		get vertexCount(): number {
 			return 24;
 		}
 
-		faceCount(): number {
+		get faceCount(): number {
 			return 12;
 		}
 
-		explicitNormals() {
+		get explicitNormals() {
 			return false;
 		}
 
-		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
+		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
 			var xh = this.xDiam_ / 2;
 			var yh = this.yDiam_ / 2;
 			var zh = this.zDiam_ / 2;
@@ -461,7 +389,7 @@ namespace sd.mesh.gen {
 		segs: number;    // int, 3..
 	}
 
-	export class Cone extends MeshGenerator {
+	export class Cone implements MeshGenerator {
 		private radiusA_: number;
 		private radiusB_: number;
 		private height_: number;
@@ -469,8 +397,6 @@ namespace sd.mesh.gen {
 		private segs_: number;
 
 		constructor(desc: ConeDescriptor) {
-			super();
-
 			this.radiusA_ = desc.radiusA;
 			this.radiusB_ = desc.radiusB;
 			this.height_ = desc.height;
@@ -484,22 +410,22 @@ namespace sd.mesh.gen {
 			assert(this.segs_ >= 3);
 		}
 
-		vertexCount(): number {
+		get vertexCount(): number {
 			return (this.segs_ + 1) * (this.rows_ + 1);
 		}
 
-		faceCount(): number {
+		get faceCount(): number {
 			var fc = (2 * this.segs_ * this.rows_);
 			if ((this.radiusA_ == 0) || (this.radiusB_ == 0))
 				fc -= this.segs_;
 			return fc;
 		}
 
-		explicitNormals() {
+		get explicitNormals() {
 			return true;
 		}
 
-		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
+		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
 			var vix = 0;
 			var radiusDiff = this.radiusB_ - this.radiusA_;
 			var Tau = Math.PI * 2;
@@ -561,7 +487,7 @@ namespace sd.mesh.gen {
 		sliceTo?: number;   // float: 0.0..1.0, vertical end of sphere section (def: 1.0)
 	}
 
-	export class Sphere extends MeshGenerator {
+	export class Sphere implements MeshGenerator {
 		private radius_: number;
 		private rows_: number;
 		private segs_: number;
@@ -569,8 +495,6 @@ namespace sd.mesh.gen {
 		private sliceTo_: number;
 
 		constructor(desc: SphereDescriptor) {
-			super();
-
 			this.radius_ = desc.radius;
 			this.rows_ = desc.rows | 0;
 			this.segs_ = desc.segs | 0;
@@ -583,11 +507,11 @@ namespace sd.mesh.gen {
 			assert(this.sliceTo_ > this.sliceFrom_);
 		}
 
-		vertexCount(): number {
+		get vertexCount(): number {
 			return (this.segs_ + 1) * (this.rows_ + 1);
 		}
 
-		faceCount(): number {
+		get faceCount(): number {
 			var fc = 2 * this.segs_ * this.rows_;
 			if (this.sliceFrom_ == 0.0)
 				fc -= this.segs_;
@@ -596,11 +520,11 @@ namespace sd.mesh.gen {
 			return fc; 
 		}
 
-		explicitNormals() {
+		get explicitNormals() {
 			return true;
 		}
 
-		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
+		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
 			var Pi = Math.PI;
 			var Tau = Math.PI * 2;
 
@@ -668,7 +592,7 @@ namespace sd.mesh.gen {
 		sliceTo?: number;   // float: 0.0..1.0, end point of torus center axis
 	}
 
-	export class Torus extends MeshGenerator {
+	export class Torus implements MeshGenerator {
 		private minorRadius_: number;
 		private majorRadius_: number;
 		private rows_: number;
@@ -677,8 +601,6 @@ namespace sd.mesh.gen {
 		private sliceTo_: number;
 		
 		constructor(desc: TorusDescriptor) {
-			super();
-
 			this.minorRadius_ = desc.minorRadius;
 			this.majorRadius_ = desc.majorRadius;
 			this.rows_ = desc.rows | 0;
@@ -694,19 +616,19 @@ namespace sd.mesh.gen {
 			assert(this.sliceTo_ > this.sliceFrom_);
 		}
 
-		vertexCount(): number {
+		get vertexCount(): number {
 			return (this.segs_ + 1) * (this.rows_ + 1);
 		}
 
-		faceCount(): number {
+		get faceCount(): number {
 			return 2 * this.segs_ * this.rows_;
 		}
 
-		explicitNormals() {
+		get explicitNormals() {
 			return true;
 		}
 
-		generateImpl(position: PositionAddFn, face: FaceAddFn, normal: PositionAddFn, uv: UVAddFn) {
+		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
 			var Pi = Math.PI;
 			var Tau = Math.PI * 2;
 
