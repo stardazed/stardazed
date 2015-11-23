@@ -298,7 +298,7 @@ namespace sd.world {
 			if (feat & Features.Specular) {
 				line("	vec3 specularContrib = vec3(0.0, 0.0, 0.0);");
 				line("	vec3 viewVec = normalize(-vertexPos_cam_intp);");
-				line("	vec3 reflectVec = reflect(lightDirection, normal_cam);");
+				line("	vec3 reflectVec = reflect(lightDirection.xyz, normal_cam);");
 				line("	float specularStrength = dot(reflectVec, viewVec);");
 				line("	if (specularStrength > 0.0) {");
 				line("		vec3 specularColour = mix(matColour, colour.rgb, specular[SPEC_COLOURMIX]);");
@@ -314,9 +314,9 @@ namespace sd.world {
 
 
 			// -- calcPointLight()
-			line  ("vec3 calcPointLight(vec3 matColour, vec4 colour, vec4 param, vec3 lightPos_world, vec3 normal_cam) {");
+			line  ("vec3 calcPointLight(vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_world, vec3 normal_cam) {");
 
-			line  ("	vec3 lightDirection = vertexPos_world - lightPos_world;");
+			line  ("	vec3 lightDirection = vertexPos_world - lightPos_world.xyz;");
 			line  ("	float distance = length(lightDirection);");
 			line  ("	lightDirection = normalize(lightDirection);");
 			line  ("	float attenuation = 1.0 - pow(clamp(distance / param[LPARAM_RANGE], 0.0, 1.0), 2.0);");
@@ -325,37 +325,38 @@ namespace sd.world {
 
 
 			// -- calcSpotLight()
-			line  ("vec3 calcSpotLight(vec3 matColour, vec4 colour, vec4 param, vec3 lightPos_world, vec3 lightDirection, vec3 normal_cam) {");
-			line  ("	vec3 lightToPoint = lightNormalMatrix * normalize(vertexPos_world - lightPos_world);");
-			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection);");
+			line  ("vec3 calcSpotLight(vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_world, vec4 lightDirection, vec3 normal_cam) {");
+			line  ("	vec3 lightToPoint = lightNormalMatrix * normalize(vertexPos_world - lightPos_world.xyz);");
+			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection.xyz);");
 			line  ("	float cutoff = param[LPARAM_CUTOFF];");
 			line  ("	if (spotCosAngle > cutoff) {");
 
 			// shadow intensity
 			if (feat & Features.ShadowMap) {
 				line("		float shadowFactor = 1.0;");
-				line("		float shadowBias = 0.05;");
+				line("		float shadowBias = lightDirection[LDIR_BIAS];"); // shadow bias stores in light direction
 				line("		float fragZ = (vertexPos_light_intp.z - shadowBias) / vertexPos_light_intp.w;");
 
 				if (feat & Features.SoftShadow) {
 					// well, soft-ish
+					line("		float strengthIncrement = lightPos_world[LPOS_STRENGTH] / 4.0;");
 					line("		for (int ssi = 0; ssi < 4; ++ssi) {");
 					line("			vec2 shadowSampleCoord = (vertexPos_light_intp.xy / vertexPos_light_intp.w) + (poissonDisk[ssi] / 700.0);");
 					line("			float shadowZ = texture2D(shadowSampler, shadowSampleCoord).z;");
 					line("			if (shadowZ < fragZ) {");
-					line("				shadowFactor -= 0.2;");
+					line("				shadowFactor -= strengthIncrement;");
 					line("			}");
 					line("		}");
 				}
 				else {
 					line("		float shadowZ = texture2DProj(shadowSampler, vertexPos_light_intp.xyw).z;");
 					line("		if (shadowZ < fragZ) {");
-					line("			shadowFactor = 0.2;");
+					line("			shadowFactor = 1.0 - lightPos_world[LPOS_STRENGTH];"); // shadow strength stored in light world pos
 					line("		}");
 				}
 			}
 			else {
-				line("		float shadowFactor = 1.0;");
+				line("		const float shadowFactor = 1.0;");
 			}
 
 			line  ("		vec3 light = shadowFactor * calcPointLight(matColour, colour, param, lightPos_world, normal_cam);");
@@ -366,9 +367,9 @@ namespace sd.world {
 
 
 			// -- calcDirectionalLight()
-			line  ("vec3 calcDirectionalLight(vec3 matColour, vec4 colour, vec4 param, vec3 lightDirection, vec3 normal_cam) {");
-			line  ("	float diffuseStrength = dot(normal_cam, -lightDirection);");
-			line  ("	return calcLightShared(matColour, colour, param, diffuseStrength, lightDirection, normal_cam);");
+			line  ("vec3 calcDirectionalLight(vec3 matColour, vec4 colour, vec4 param, vec4 lightDirection, vec3 normal_cam) {");
+			line  ("	float diffuseStrength = dot(normal_cam, -lightDirection.xyz);");
+			line  ("	return calcLightShared(matColour, colour, param, diffuseStrength, lightDirection.xyz, normal_cam);");
 			line  ("}");
 
 
@@ -402,8 +403,9 @@ namespace sd.world {
 			line  ("	for (int lightIx = 0; lightIx < MAX_FRAGMENT_LIGHTS; ++lightIx) {");
 			line  ("		int type = lightTypes[lightIx];");
 			line  ("		if (type == 0) break;");
-			line  ("		vec3 lightPos_world = lightPositions[lightIx].xyz;");  // all array accesses must be constant or a loop index
-			line  ("		vec3 lightDir = lightNormalMatrix * lightDirections[lightIx].xyz;"); // FIXME: this is frag/vert invariant
+			line  ("		vec4 lightPos_world = lightPositions[lightIx];");   // all array accesses must be constant or a loop index
+			line  ("		vec4 lightDir = lightDirections[lightIx];");        // keep w component (LDIR_BIAS)
+			line  ("		lightDir.xyz = lightNormalMatrix * lightDir.xyz;"); // FIXME: this is frag/vert invariant
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
 			line  ("		if (type == 1) {")
@@ -646,8 +648,13 @@ namespace sd.world {
 
 				// -- features are a combo of Material features and optional shadow
 				var features: Features = this.primGroupFeatureBase_[primGroupBase + pgIx];
-				if (shadow)
+				if (shadow) {
 					features |= Features.ShadowMap;
+					var shadowType = this.lightMgr_.shadowType(shadow.light);
+					if (shadowType == ShadowType.Soft) {
+						features |= Features.SoftShadow;
+					}
+				}
 
 				var pipeline = this.stdPipeline_.pipelineForFeatures(features);
 				rp.setPipeline(pipeline);
