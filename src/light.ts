@@ -269,16 +269,35 @@ namespace sd.world {
 			return this.shadowTypeBase_[<number>inst];
 		}
 
+		setShadowType(inst: LightInstance, newType: ShadowType) {
+			this.shadowTypeBase_[<number>inst] = newType;
+		}
+
+
 		shadowQuality(inst: LightInstance): ShadowQuality {
 			return this.shadowQualityBase_[<number>inst];
 		}
+
+		setShadowQuality(inst: LightInstance, newQuality: ShadowQuality) {
+			this.shadowQualityBase_[<number>inst] = newQuality;
+		}
+
 
 		shadowStrength(inst: LightInstance): number {
 			return math.vectorArrayItem(this.shadowParamBase_, math.Vec2, <number>inst)[ShadowParam.Strength];
 		}
 
+		setShadowStrength(inst: LightInstance, newStrength: number) {
+			math.vectorArrayItem(this.shadowParamBase_, math.Vec2, <number>inst)[ShadowParam.Strength] = newStrength;
+		}
+
+
 		shadowBias(inst: LightInstance): number {
 			return math.vectorArrayItem(this.shadowParamBase_, math.Vec2, <number>inst)[ShadowParam.Bias];
+		}
+
+		setShadowBias(inst: LightInstance, newBias: number) {
+			math.vectorArrayItem(this.shadowParamBase_, math.Vec2, <number>inst)[ShadowParam.Bias] = newBias;
 		}
 
 
