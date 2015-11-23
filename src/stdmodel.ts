@@ -19,7 +19,8 @@ namespace sd.world {
 		//GlossMap        = 0x0040, // /
 		//NormalMap       = 0x0080, // Requires VtxTangent
 		//HeightMap       = 0x0100,
-		ShadowMap       = 0x1000
+		ShadowMap       = 0x1000,
+		SoftShadow      = 0x2000
 	}
 
 
@@ -281,6 +282,11 @@ namespace sd.world {
 			line  ("uniform vec4 lightColours[MAX_FRAGMENT_LIGHTS];");
 			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
 
+			if (feat & Features.SoftShadow) {
+				// initialized in main() as GLSL ES 2 does not support array initializers
+				line("vec2 poissonDisk[4];");
+			}
+
 			// -- calcLightShared()
 			line  ("vec3 calcLightShared(vec3 matColour, vec4 colour, vec4 param, float diffuseStrength, vec3 lightDirection, vec3 normal_cam) {");
 			line  ("	vec3 ambientContrib = colour.rgb * param[LPARAM_AMBIENT_INTENSITY];");
@@ -329,11 +335,24 @@ namespace sd.world {
 			if (feat & Features.ShadowMap) {
 				line("		float shadowFactor = 1.0;");
 				line("		float shadowBias = 0.05;");
-				line("		float shadowZ = texture2DProj(shadowSampler, vertexPos_light_intp.xyw).z;");
-				line("		float fragZ = (vertexPos_light_intp.z - shadowBias) / vertexPos_light_intp.w;")
-				line("		if (shadowZ < fragZ) {");
-				line("			shadowFactor = 0.2;")
-				line("		}");
+				line("		float fragZ = (vertexPos_light_intp.z - shadowBias) / vertexPos_light_intp.w;");
+
+				if (feat & Features.SoftShadow) {
+					// well, soft-ish
+					line("		for (int ssi = 0; ssi < 4; ++ssi) {");
+					line("			vec2 shadowSampleCoord = (vertexPos_light_intp.xy / vertexPos_light_intp.w) + (poissonDisk[ssi] / 700.0);");
+					line("			float shadowZ = texture2D(shadowSampler, shadowSampleCoord).z;");
+					line("			if (shadowZ < fragZ) {");
+					line("				shadowFactor -= 0.2;");
+					line("			}");
+					line("		}");
+				}
+				else {
+					line("		float shadowZ = texture2DProj(shadowSampler, vertexPos_light_intp.xyw).z;");
+					line("		if (shadowZ < fragZ) {");
+					line("			shadowFactor = 0.2;");
+					line("		}");
+				}
 			}
 			else {
 				line("		float shadowFactor = 1.0;");
@@ -368,6 +387,14 @@ namespace sd.world {
 				line("	vec3 matColour = mainColour.rgb;");
 			}
 
+			if (feat & Features.SoftShadow) {
+				// -- init global poisson sample array (GLSL ES 2 does not support vector array initializers)
+				line("	poissonDisk[0] = vec2(-0.94201624, -0.39906216);");
+				line("	poissonDisk[1] = vec2(0.94558609, -0.76890725);");
+				line("	poissonDisk[2] = vec2(-0.094184101, -0.92938870);");
+				line("	poissonDisk[3] = vec2(0.34495938, 0.29387760);");
+			}
+
 			line  ("	vec3 normal_cam = normalize(vertexNormal_intp);");
 			line  ("	vec3 totalLight = vec3(0.0, 0.0, 0.0);");
 
@@ -390,9 +417,7 @@ namespace sd.world {
 			line  ("		}");
 			line  ("	}");
 
-			// -- debug: view only light contribution
-			// line  ("	gl_FragColor = vec4(totalLight, 1.0);return;");
-
+			// -- final colour result
 			line  ("	gl_FragColor = vec4(totalLight * matColour, 1.0);");
 			line  ("}");
 
