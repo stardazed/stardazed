@@ -634,7 +634,7 @@ namespace sd.world {
 				// model, mvp and normal matrices are always present
 				gl.uniformMatrix4fv(program.modelMatrixUniform, false, <Float32Array>modelMatrix);
 				gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);
-				math.extractNormalMatrix(this.modelViewMatrix_, this.normalMatrix_);
+				mat3.normalFromMat4(this.normalMatrix_, this.modelViewMatrix_);
 				gl.uniformMatrix3fv(program.normalMatrixUniform, false, this.normalMatrix_);
 
 				if (program.mvMatrixUniform) {
@@ -642,7 +642,7 @@ namespace sd.world {
 				}
 
 				if (program.lightNormalMatrixUniform) {
-					math.extractNormalMatrix(proj.viewMatrix, this.lightNormalMatrix_);
+					mat3.normalFromMat4(this.lightNormalMatrix_, proj.viewMatrix);
 					gl.uniformMatrix3fv(program.lightNormalMatrixUniform, false, this.lightNormalMatrix_);
 				}
 

@@ -204,11 +204,4 @@ namespace sd.math {
 		return array.subarray(fromElement, toElement);
 	}
 
-
-	export function extractNormalMatrix(matIn4: ArrayOfNumber, matOut3: ArrayOfNumber) {
-		mat3.fromMat4(matOut3, matIn4);
-		mat3.invert(matOut3, matOut3);
-		mat3.transpose(matOut3, matOut3);
-	}
-
 } // ns sd.math
