@@ -10,9 +10,9 @@ namespace sd.render {
 
 	function glTypeForIndexElementType(rc: RenderContext, iet: mesh.IndexElementType): number {
 		switch (iet) {
-			case sd.mesh.IndexElementType.UInt8: return rc.gl.UNSIGNED_BYTE;
-			case sd.mesh.IndexElementType.UInt16: return rc.gl.UNSIGNED_SHORT;
-			case sd.mesh.IndexElementType.UInt32:
+			case mesh.IndexElementType.UInt8: return rc.gl.UNSIGNED_BYTE;
+			case mesh.IndexElementType.UInt16: return rc.gl.UNSIGNED_SHORT;
+			case mesh.IndexElementType.UInt32:
 				return rc.ext32bitIndexes ? rc.gl.UNSIGNED_INT : rc.gl.NONE;
 
 			default:
