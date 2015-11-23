@@ -46,6 +46,7 @@ namespace sd.world {
 		lightDirectionArrayUniform?: WebGLUniformLocation; // vec4[MAX_FRAGMENT_LIGHTS]
 		lightColourArrayUniform?: WebGLUniformLocation;    // vec4[MAX_FRAGMENT_LIGHTS]
 		lightParamArrayUniform?: WebGLUniformLocation;     // vec4[MAX_FRAGMENT_LIGHTS]
+		shadowCastingLightIndexUniform: WebGLUniformLocation; // int (-1..MAX_FRAGMENT_LIGHTS - 1)
 
 		// -- shadow
 		lightViewProjectionMatrixUniform?: WebGLUniformLocation; // mat4
@@ -140,6 +141,11 @@ namespace sd.world {
 			program.lightDirectionArrayUniform = gl.getUniformLocation(program, "lightDirections");
 			program.lightColourArrayUniform = gl.getUniformLocation(program, "lightColours");
 			program.lightParamArrayUniform = gl.getUniformLocation(program, "lightParams");
+			program.shadowCastingLightIndexUniform = gl.getUniformLocation(program, "shadowCastingLightIndex");
+			if (program.shadowCastingLightIndexUniform) {
+				// if this exists, init to -1 to signify no shadow caster
+				gl.uniform1i(program.shadowCastingLightIndexUniform, -1);
+			}
 
 			// -- zero out light types
 			gl.uniform1iv(program.lightTypeArrayUniform, new Int32Array(MAX_FRAGMENT_LIGHTS));
@@ -261,6 +267,7 @@ namespace sd.world {
 			if_all("uniform vec4 specular;", Features.Specular);
 			if_all("uniform sampler2D albedoSampler;", Features.AlbedoMap);
 			if_all("uniform sampler2D shadowSampler;", Features.ShadowMap);
+			if_all("uniform int shadowCastingLightIndex;", Features.ShadowMap);
 
 			line  ("const int SPEC_INTENSITY = 0;");
 			line  ("const int SPEC_EXPONENT = 1;");
@@ -314,7 +321,7 @@ namespace sd.world {
 
 
 			// -- calcPointLight()
-			line  ("vec3 calcPointLight(vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_world, vec3 normal_cam) {");
+			line  ("vec3 calcPointLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_world, vec3 normal_cam) {");
 
 			line  ("	vec3 lightDirection = vertexPos_world - lightPos_world.xyz;");
 			line  ("	float distance = length(lightDirection);");
@@ -325,41 +332,42 @@ namespace sd.world {
 
 
 			// -- calcSpotLight()
-			line  ("vec3 calcSpotLight(vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_world, vec4 lightDirection, vec3 normal_cam) {");
+			line  ("vec3 calcSpotLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_world, vec4 lightDirection, vec3 normal_cam) {");
 			line  ("	vec3 lightToPoint = lightNormalMatrix * normalize(vertexPos_world - lightPos_world.xyz);");
 			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection.xyz);");
 			line  ("	float cutoff = param[LPARAM_CUTOFF];");
 			line  ("	if (spotCosAngle > cutoff) {");
 
 			// shadow intensity
+			line("		float shadowFactor = 1.0;");
+
 			if (feat & Features.ShadowMap) {
-				line("		float shadowFactor = 1.0;");
-				line("		float shadowBias = lightDirection[LDIR_BIAS];"); // shadow bias stores in light direction
-				line("		float fragZ = (vertexPos_light_intp.z - shadowBias) / vertexPos_light_intp.w;");
+				line("		if (lightIx == shadowCastingLightIndex) {");
+				line("			float shadowBias = lightDirection[LDIR_BIAS];"); // shadow bias stores in light direction
+				line("			float fragZ = (vertexPos_light_intp.z - shadowBias) / vertexPos_light_intp.w;");
 
 				if (feat & Features.SoftShadow) {
 					// well, soft-ish
-					line("		float strengthIncrement = lightPos_world[LPOS_STRENGTH] / 4.0;");
-					line("		for (int ssi = 0; ssi < 4; ++ssi) {");
-					line("			vec2 shadowSampleCoord = (vertexPos_light_intp.xy / vertexPos_light_intp.w) + (poissonDisk[ssi] / 700.0);");
-					line("			float shadowZ = texture2D(shadowSampler, shadowSampleCoord).z;");
-					line("			if (shadowZ < fragZ) {");
-					line("				shadowFactor -= strengthIncrement;");
+					line("			float strengthIncrement = lightPos_world[LPOS_STRENGTH] / 4.0;");
+					line("			for (int ssi = 0; ssi < 4; ++ssi) {");
+					line("				vec2 shadowSampleCoord = (vertexPos_light_intp.xy / vertexPos_light_intp.w) + (poissonDisk[ssi] / 700.0);");
+					line("				float shadowZ = texture2D(shadowSampler, shadowSampleCoord).z;");
+					line("				if (shadowZ < fragZ) {");
+					line("					shadowFactor -= strengthIncrement;");
+					line("				}");
 					line("			}");
-					line("		}");
 				}
 				else {
-					line("		float shadowZ = texture2DProj(shadowSampler, vertexPos_light_intp.xyw).z;");
-					line("		if (shadowZ < fragZ) {");
-					line("			shadowFactor = 1.0 - lightPos_world[LPOS_STRENGTH];"); // shadow strength stored in light world pos
-					line("		}");
+					line("			float shadowZ = texture2DProj(shadowSampler, vertexPos_light_intp.xyw).z;");
+					line("			if (shadowZ < fragZ) {");
+					line("				shadowFactor = 1.0 - lightPos_world[LPOS_STRENGTH];"); // shadow strength stored in light world pos
+					line("			}");
 				}
-			}
-			else {
-				line("		const float shadowFactor = 1.0;");
+
+				line("		}"); // lightIx == shadowCastingLightIndex
 			}
 
-			line  ("		vec3 light = shadowFactor * calcPointLight(matColour, colour, param, lightPos_world, normal_cam);");
+			line  ("		vec3 light = shadowFactor * calcPointLight(lightIx, matColour, colour, param, lightPos_world, normal_cam);");
 			line  ("		return light * pow(1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff), 0.5);");
 			line  ("	}");
 			line  ("	return vec3(0.0, 0.0, 0.0);");
@@ -367,7 +375,7 @@ namespace sd.world {
 
 
 			// -- calcDirectionalLight()
-			line  ("vec3 calcDirectionalLight(vec3 matColour, vec4 colour, vec4 param, vec4 lightDirection, vec3 normal_cam) {");
+			line  ("vec3 calcDirectionalLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightDirection, vec3 normal_cam) {");
 			line  ("	float diffuseStrength = dot(normal_cam, -lightDirection.xyz);");
 			line  ("	return calcLightShared(matColour, colour, param, diffuseStrength, lightDirection.xyz, normal_cam);");
 			line  ("}");
@@ -403,19 +411,21 @@ namespace sd.world {
 			line  ("	for (int lightIx = 0; lightIx < MAX_FRAGMENT_LIGHTS; ++lightIx) {");
 			line  ("		int type = lightTypes[lightIx];");
 			line  ("		if (type == 0) break;");
+
 			line  ("		vec4 lightPos_world = lightPositions[lightIx];");   // all array accesses must be constant or a loop index
 			line  ("		vec4 lightDir = lightDirections[lightIx];");        // keep w component (LDIR_BIAS)
 			line  ("		lightDir.xyz = lightNormalMatrix * lightDir.xyz;"); // FIXME: this is frag/vert invariant
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
+
 			line  ("		if (type == 1) {")
-			line  ("			totalLight += calcDirectionalLight(matColour, lightColour, lightParam, lightDir, normal_cam);");
+			line  ("			totalLight += calcDirectionalLight(lightIx, matColour, lightColour, lightParam, lightDir, normal_cam);");
 			line  ("		}");
 			line  ("		else if (type == 2) {")
-			line  ("			totalLight += calcPointLight(matColour, lightColour, lightParam, lightPos_world, normal_cam);");
+			line  ("			totalLight += calcPointLight(lightIx, matColour, lightColour, lightParam, lightPos_world, normal_cam);");
 			line  ("		}");
 			line  ("		else if (type == 3) {")
-			line  ("			totalLight += calcSpotLight(matColour, lightColour, lightParam, lightPos_world, lightDir, normal_cam);");
+			line  ("			totalLight += calcSpotLight(lightIx, matColour, lightColour, lightParam, lightPos_world, lightDir, normal_cam);");
 			line  ("		}");
 			line  ("	}");
 
@@ -479,11 +489,12 @@ namespace sd.world {
 		private meshes_: render.Mesh[] = [];
 
 		// -- for light uniform updates
-		private lightTypeArray = new Int32Array(MAX_FRAGMENT_LIGHTS);
-		private lightPositionArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private lightDirectionArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private lightColourArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private lightParamArray = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
+		private lightTypeArray_ = new Int32Array(MAX_FRAGMENT_LIGHTS);
+		private lightPositionArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
+		private lightDirectionArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
+		private lightColourArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
+		private lightParamArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
+		private shadowCastingLightIndex_ = -1;
 
 		// -- for temp calculations
 		private modelViewMatrix_ = mat4.create();
@@ -599,7 +610,7 @@ namespace sd.world {
 		}
 
 
-		setFragmentLights(lights: LightInstance[]) {
+		setFragmentLights(lights: LightInstance[], shadowCasterIndex: number) {
 			assert(lights.length <= MAX_FRAGMENT_LIGHTS);
 
 			for (var lix = 0; lix < MAX_FRAGMENT_LIGHTS; ++lix) {
@@ -609,21 +620,29 @@ namespace sd.world {
 				if (lightData) {
 					assert(lightData.type != LightType.None);
 
-					this.lightTypeArray[lix] = lightData.type;
-					math.vectorArrayItem(this.lightColourArray, math.Vec4, lix).set(lightData.colourData);
-					math.vectorArrayItem(this.lightParamArray, math.Vec4, lix).set(lightData.parameterData);
+					this.lightTypeArray_[lix] = lightData.type;
+					math.vectorArrayItem(this.lightColourArray_, math.Vec4, lix).set(lightData.colourData);
+					math.vectorArrayItem(this.lightParamArray_, math.Vec4, lix).set(lightData.parameterData);
 
 					if (lightData.type != LightType.Point) {
-						math.vectorArrayItem(this.lightDirectionArray, math.Vec4, lix).set(lightData.direction);
+						math.vectorArrayItem(this.lightDirectionArray_, math.Vec4, lix).set(lightData.direction);
 					}
 					if (lightData.type != LightType.Directional) {
-						math.vectorArrayItem(this.lightPositionArray, math.Vec4, lix).set(lightData.position);
+						math.vectorArrayItem(this.lightPositionArray_, math.Vec4, lix).set(lightData.position);
 					}
 				}
 				else {
-					this.lightTypeArray[lix] = LightType.None;
+					this.lightTypeArray_[lix] = LightType.None;
 				}
 			}
+
+			// -- forward rendering supports 1 dynamic shadowing light at a time
+			shadowCasterIndex |= 0;
+			if (shadowCasterIndex < 0 || shadowCasterIndex >= lights.length) {
+				// no shadow caster
+				shadowCasterIndex = -1;
+			}
+			this.shadowCastingLightIndex_ = shadowCasterIndex;
 		}
 
 
@@ -689,14 +708,16 @@ namespace sd.world {
 				}
 
 				// -- light data FIXME: only update these when local light data was changed -> pos and rot can change as well
-				gl.uniform1iv(program.lightTypeArrayUniform, this.lightTypeArray);
-				gl.uniform4fv(program.lightPositionArrayUniform, this.lightPositionArray);
-				gl.uniform4fv(program.lightDirectionArrayUniform, this.lightDirectionArray);
-				gl.uniform4fv(program.lightColourArrayUniform, this.lightColourArray);
-				gl.uniform4fv(program.lightParamArrayUniform, this.lightParamArray);
+				gl.uniform1iv(program.lightTypeArrayUniform, this.lightTypeArray_);
+				gl.uniform4fv(program.lightPositionArrayUniform, this.lightPositionArray_);
+				gl.uniform4fv(program.lightDirectionArrayUniform, this.lightDirectionArray_);
+				gl.uniform4fv(program.lightColourArrayUniform, this.lightColourArray_);
+				gl.uniform4fv(program.lightParamArrayUniform, this.lightParamArray_);
 
-				// -- shadow map and matrix
+				// -- shadow map and metadata
 				if (features & Features.ShadowMap) {
+					gl.uniform1i(program.shadowCastingLightIndexUniform, this.shadowCastingLightIndex_);
+
 					rp.setTexture(shadow.shadowFBO.depthAttachmentTexture(), TextureBindPoint.Shadow);
 
 					mat4.multiply(this.lightViewProjectionMatrix_, shadow.lightProjection.projectionMatrix, shadow.lightProjection.viewMatrix);
