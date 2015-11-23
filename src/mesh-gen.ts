@@ -101,7 +101,8 @@ namespace sd.mesh.gen {
 			: (u: number, v: number) => { };
 
 		// -- generate and optionally transform each mesh part
-		var transMatrix = mat4.create();
+		var posTransMatrix = mat4.create();
+		var normTransMatrix = mat3.create();
 
 		for (var genSource of genList) {
 			var generator: MeshGenerator = ("generator" in genSource) ? (<TransformedMeshGen>genSource).generator : <MeshGenerator>genSource;
@@ -110,22 +111,32 @@ namespace sd.mesh.gen {
 			var subVtxCount = generator.vertexCount;
 			var subFaceCount = generator.faceCount;
 			var subPosView = posView.subView(baseVertex, subVtxCount);
+			var subNormalView = normalView ? normalView.subView(baseVertex, subVtxCount) : null;
 
+			// -- if the generator does not supply normals but the mesh has a Normal attribute, we calculate them
+			if (subNormalView && !generator.explicitNormals) {
+				let subFaceView = triView.subView(faceIx - subFaceCount, subFaceCount);
+				calcVertexNormalsViews(subPosView, subNormalView, subFaceView);
+
+				normalIx += subVtxCount;
+			}
+
+			// is this a TransformedMeshGen?
 			if ("generator" in genSource) {
 				let xformGen = <TransformedMeshGen>genSource;
 				let rotation = xformGen.rotation || quat.create();
 				let translation = xformGen.translation || vec3.create();
 				let scale = xformGen.scale || vec3.fromValues(1, 1, 1);
-				mat4.fromRotationTranslationScale(transMatrix, rotation, translation, scale);
-				subPosView.forEach((pos) => { vec3.transformMat4(pos, pos, transMatrix); });
-			}
 
-			if (normalAttr && !generator.explicitNormals) {
-				let subNormalView = normalView.subView(baseVertex, subVtxCount);
-				let subFaceView = triView.subView(faceIx - subFaceCount, subFaceCount);
-				calcVertexNormalsViews(subPosView, subNormalView, subFaceView);
+				// -- transform positions
+				mat4.fromRotationTranslationScale(posTransMatrix, rotation, translation, scale);
+				subPosView.forEach((pos) => { vec3.transformMat4(pos, pos, posTransMatrix); });
 
-				normalIx += subVtxCount;
+				// -- transform normals
+				if (subNormalView) {
+					mat3.normalFromMat4(normTransMatrix, posTransMatrix);
+					subNormalView.forEach((norm) => { vec3.transformMat3(norm, norm, normTransMatrix); });
+				}
 			}
 
 			baseVertex += generator.vertexCount;
