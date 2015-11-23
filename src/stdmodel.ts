@@ -11,16 +11,17 @@ namespace sd.world {
 	const enum Features {
 		// VtxPosition and VtxNormal are required
 		//VtxTangent      = 0x0001,
-		VtxUV           = 0x0002,
-		VtxColour       = 0x0004,
-		Specular        = 0x0008, // Implied true if GlossMap
-		AlbedoMap       = 0x0010,
-		//TranslucencyMap = 0x0020, // \__ Mutually Exclusive
-		//GlossMap        = 0x0040, // /
-		//NormalMap       = 0x0080, // Requires VtxTangent
-		//HeightMap       = 0x0100,
-		ShadowMap       = 0x1000,
-		SoftShadow      = 0x2000
+		VtxUV           = 0x00002,
+		VtxColour       = 0x00004,
+		Specular        = 0x00008, // Implied true if GlossMap
+		AlbedoMap       = 0x00010,
+		//TranslucencyMap = 0x00020, // \__ Mutually Exclusive
+		//GlossMap        = 0x00040, // /
+		//NormalMap       = 0x00080, // Requires VtxTangent
+		//HeightMap       = 0x00100,
+		ShadowMap       = 0x01000,
+		SoftShadow      = 0x02000,
+		//Instancing      = 0x10000
 	}
 
 
@@ -611,7 +612,7 @@ namespace sd.world {
 
 
 		setFragmentLights(lights: LightInstance[], shadowCasterIndex: number) {
-			assert(lights.length <= MAX_FRAGMENT_LIGHTS);
+			assert(lights.length <= MAX_FRAGMENT_LIGHTS, "too many fragment lights");
 
 			for (var lix = 0; lix < MAX_FRAGMENT_LIGHTS; ++lix) {
 				var light = lix < lights.length ? lights[lix] : null;
@@ -761,7 +762,6 @@ namespace sd.world {
 			var count = this.instanceData_.count;
 
 			if (mode == RenderMode.Forward) {
-				rp.setViewPort(render.makeViewport());
 				rp.setDepthTest(render.DepthTest.Less);
 
 				for (var modelIx = 1; modelIx <= count; ++modelIx) {
@@ -773,11 +773,6 @@ namespace sd.world {
 				rp.setPipeline(shadowPipeline);
 				rp.setDepthTest(render.DepthTest.Less);
 				rp.setFaceCulling(render.FaceCulling.Front);
-
-				var shadowPort = render.makeViewport();
-				shadowPort.width = rp.frameBuffer.width;
-				shadowPort.height = rp.frameBuffer.height;
-				rp.setViewPort(shadowPort);
 
 				for (var modelIx = 1; modelIx <= count; ++modelIx) {
 					this.drawSingleShadow(rp, proj, shadowPipeline, modelIx);

@@ -255,7 +255,7 @@ namespace sd.world {
 		}
 
 
-		// -- Cutoff is stored as the cosine of the angle for quick usage in the shader
+		// cutoff is stored as the cosine of the angle for quick usage in the shader
 		cutoff(inst: LightInstance) {
 			return Math.acos(math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.Cutoff]);
 		}

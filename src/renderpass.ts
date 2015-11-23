@@ -57,6 +57,16 @@ namespace sd.render {
 
 			if (this.frameBuffer_) {
 				this.frameBuffer_.bind();
+
+				// auto-set viewport to FB dimensions (good idea?)
+				var port = render.makeViewport();
+				port.width = this.frameBuffer_.width;
+				port.height = this.frameBuffer_.height;
+				this.setViewPort(port);
+			}
+			else {
+				// set viewport to full canvas
+				this.setViewPort(render.makeViewport());	
 			}
 
 			// -- clear indicated buffers
