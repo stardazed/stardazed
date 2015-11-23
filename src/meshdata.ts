@@ -454,6 +454,8 @@ namespace sd.mesh {
 	//                                                
 
 	export const enum IndexElementType {
+		None,
+
 		UInt8,
 		UInt16,
 		UInt32

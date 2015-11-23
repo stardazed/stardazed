@@ -7,6 +7,8 @@
 namespace sd.render {
 
 	export const enum TextureClass {
+		None, 
+
 		Tex2D,
 		TexCube
 	}

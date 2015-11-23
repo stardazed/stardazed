@@ -14,6 +14,7 @@ namespace sd.render {
 
 
 	export const enum BufferRole {
+		None,
 		VertexAttribute,
 		VertexIndex
 	}
