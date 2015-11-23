@@ -37,7 +37,7 @@ namespace sd.mesh.gen {
 	export type MeshGenSource = MeshGenerator | TransformedMeshGen;
 
 
-	export function createMesh(gens: MeshGenSource | MeshGenSource[], attrList?: VertexAttribute[]): MeshData {
+	export function generate(gens: MeshGenSource | MeshGenSource[], attrList?: VertexAttribute[]): MeshData {
 		if (! attrList)
 			attrList = AttrList.Pos3Norm3UV2();
 

@@ -60,7 +60,7 @@ namespace sd.world {
 
 			// -- mesh
 			var sphereGen = new mesh.gen.Sphere({ radius: 400, rows: 10, segs: 15 });
-			this.meshData_ = mesh.gen.createMesh(sphereGen, [mesh.attrPosition3()]);
+			this.meshData_ = mesh.gen.generate(sphereGen, [mesh.attrPosition3()]);
 			this.primitiveCount_ = this.meshData_.primitiveGroups[0].primCount;
 
 			var meshDesc = render.makeMeshDescriptor(this.meshData_);
