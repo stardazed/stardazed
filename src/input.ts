@@ -31,8 +31,17 @@ namespace sd.io {
 	};
 
 
+	export interface ButtonState {
+		down: boolean;
+		halfTransitionCount: number;
+	}
+
+
 	export class Keyboard {
-		keys: { [key: number]: { down: boolean; when: number; }; } = {};
+		private keyData_: container.MultiArrayBuffer;
+		private downBase_: TypedArray;
+		private halfTransBase_: TypedArray;
+		private lastEventBase_: TypedArray;
 
 		// The extra check in the key handlers for the timeStamp was added
 		// after I encountered a rare, but frequently enough occuring bug
@@ -43,48 +52,68 @@ namespace sd.io {
 		// keyup event handler, causing the key to appear to be "stuck".
 
 		constructor() {
+			var fields: container.MABField[] = [
+				{ type: UInt8, count: 1 }, // down
+				{ type: UInt8, count: 1 }, // halfTransitionCount
+				{ type: UInt32, count: 1 }, // lastEvent
+			];
+			this.keyData_ = new container.MultiArrayBuffer(128, fields);
+			this.downBase_ = this.keyData_.indexedFieldView(0);
+			this.halfTransBase_ = this.keyData_.indexedFieldView(1);
+			this.lastEventBase_ = this.keyData_.indexedFieldView(2);
+
 			on(window, "keydown", (evt: KeyboardEvent) => {
-				var key = this.keys[evt.keyCode];
+				var lastEvent = this.lastEventBase_[evt.keyCode];
+				var wasDown = this.downBase_[evt.keyCode];
 
-				if (!key) {
-					this.keys[evt.keyCode] = { down: true, when: evt.timeStamp };
-				}
-				else {
-					if (key.when < evt.timeStamp) {
-						key.down = true;
-						key.when = evt.timeStamp;
+				if (lastEvent < evt.timeStamp) {
+					if (! wasDown) { // ignore key repeat events
+						this.downBase_[evt.keyCode] = 1;
+						++this.halfTransBase_[evt.keyCode];
 					}
+					this.lastEventBase_[evt.keyCode] = evt.timeStamp;
 				}
 
-				if (!evt.metaKey)
+				if (! evt.metaKey)
 					evt.preventDefault();
 			});
 
 			on(window, "keyup", (evt: KeyboardEvent) => {
-				var key = this.keys[evt.keyCode];
-				if (!key) {
-					this.keys[evt.keyCode] = { down: false, when: evt.timeStamp };
-				}
-				else {
-					key.down = false;
-					key.when = evt.timeStamp;
-				}
+				this.downBase_[evt.keyCode] = 0;
+				++this.halfTransBase_[evt.keyCode];
+				this.lastEventBase_[evt.keyCode] = evt.timeStamp;
 
-				if (!evt.metaKey)
+				if (! evt.metaKey)
 					evt.preventDefault();
 			});
 
+			// -- losing or gaining focus will reset all key state to avoid stuck keys
 			on(window, "blur", (evt) => {
-				this.keys = {};
+				this.keyData_.clear();
 			});
 
 			on(window, "focus", (evt) => {
-				this.keys = {};
+				this.keyData_.clear();
 			});
 		}
 
+		keyState(kc: Key): ButtonState {
+			return {
+				down: !!this.downBase_[kc],
+				halfTransitionCount: this.halfTransBase_[kc]
+			};
+		}
+
 		down(kc: Key): boolean {
-			return !!(this.keys[kc] && this.keys[kc].down);
+			return !!this.downBase_[kc];
+		}
+
+		halfTransitions(kc: Key): number {
+			return this.halfTransBase_[kc];
+		}
+
+		resetHalfTransitions() {
+			container.fill(this.halfTransBase_, 0, this.halfTransBase_.length);
 		}
 	}
 
