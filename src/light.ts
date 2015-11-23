@@ -62,6 +62,7 @@ namespace sd.world {
 		Bias = 1
 	}
 
+
 	export class LightManager {
 		private instanceData_: container.MultiArrayBuffer;
 

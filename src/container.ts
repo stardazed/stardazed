@@ -309,10 +309,21 @@ namespace sd.container {
 
 
 		clear() {
-			// This behaviour differs from the C++ implementation in that this replaces the buffer with
-			// a newly created one. For clients there is no noticeable difference.
 			this.count_ = 0;
-			this.data_ = new ArrayBuffer(this.capacity_ * this.elementSumSize_);
+
+			var numDoubles = (this.data_.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
+			var doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
+			var remainingBytes = this.data_.byteLength - doublesByteSize;
+
+			// As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
+			var doubleView = new Float64Array(this.data_);
+			var remainderView = new Uint8Array(this.data_, doublesByteSize);
+			for (var d = 0; d < numDoubles; ++d) {
+				doubleView[d] = 0;
+			}
+			for (var b = 0; b < remainingBytes; ++b) {
+				remainderView[b] = 0;
+			}
 		}
 
 
