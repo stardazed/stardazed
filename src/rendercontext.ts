@@ -18,6 +18,8 @@ namespace sd.render {
 		extTexAnisotropy: EXTTextureFilterAnisotropic;
 		extVAO: OESVertexArrayObject;
 		extInstancedArrays: ANGLEInstancedArrays;
+		extDerivatives: OESStandardDerivatives;
+		extFragmentLOD: EXTShaderTextureLOD;
 	}
 
 
@@ -129,6 +131,10 @@ namespace sd.render {
 		// enable instanced draw calls
 		var aia = gl.getExtension("ANGLE_instanced_arrays");
 
+		// enable texture gradient calc and *Lod and *Grad texture calls in fragment shaders
+		var drv = gl.getExtension("OES_standard_derivatives");
+		var fsl = gl.getExtension("EXT_shader_texture_lod");
+
 
 		// -- FIXME: Temporary setup
 		gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -144,7 +150,9 @@ namespace sd.render {
 			extMinMax: bmm,
 			extTexAnisotropy: txa,
 			extVAO: vao,
-			extInstancedArrays: aia
+			extInstancedArrays: aia,
+			extDerivatives: drv,
+			extFragmentLOD: fsl
 		};
 	}
 
