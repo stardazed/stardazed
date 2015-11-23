@@ -112,6 +112,10 @@ namespace sd.io {
 			return this.halfTransBase_[kc];
 		}
 
+		pressed(kc: Key): boolean {
+			return this.downBase_[kc] && (this.halfTransBase_[kc] > 0);
+		}
+
 		resetHalfTransitions() {
 			container.fill(this.halfTransBase_, 0, this.halfTransBase_.length);
 		}
