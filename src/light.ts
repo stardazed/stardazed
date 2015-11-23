@@ -50,6 +50,13 @@ namespace sd.world {
 	}
 
 
+	const enum LightParam {
+		AmbIntensity,
+		DiffIntensity,
+		Range,
+		Cutoff
+	}
+
 	const enum ShadowParam {
 		Strength = 0,
 		Bias = 1
@@ -221,20 +228,39 @@ namespace sd.world {
 
 
 		ambientIntensity(inst: LightInstance) {
-			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[0];
+			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.AmbIntensity];
 		}
 
 		setAmbientIntensity(inst: LightInstance, newIntensity: number) {
-			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[0] = newIntensity;
+			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.AmbIntensity] = newIntensity;
 		}
 
 
 		diffuseIntensity(inst: LightInstance) {
-			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[1];
+			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.DiffIntensity];
 		}
 
 		setDiffuseIntensity(inst: LightInstance, newIntensity: number) {
-			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[1] = newIntensity;
+			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.DiffIntensity] = newIntensity;
+		}
+
+
+		range(inst: LightInstance) {
+			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.Range];
+		}
+
+		setRange(inst: LightInstance, newRange: number) {
+			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.Range] = newRange;
+		}
+
+
+		// -- Cutoff is stored as the cosine of the angle for quick usage in the shader
+		cutoff(inst: LightInstance) {
+			return Math.acos(math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.Cutoff]);
+		}
+
+		setCutoff(inst: LightInstance, newCutoff: number) {
+			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.Cutoff] = Math.cos(newCutoff);
 		}
 
 
