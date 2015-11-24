@@ -616,7 +616,7 @@ namespace sd.world {
 
 			for (var lix = 0; lix < MAX_FRAGMENT_LIGHTS; ++lix) {
 				var light = lix < lights.length ? lights[lix] : null;
-				var lightData = this.lightMgr_.getData(light);
+				var lightData = light && this.lightMgr_.getData(light);
 
 				if (lightData) {
 					assert(lightData.type != LightType.None);
@@ -653,7 +653,7 @@ namespace sd.world {
 			var mesh = this.meshes_[modelIx];
 
 			// -- calc transform matrices
-			var modelMatrix = this.transformMgr_.modelMatrix(this.transformBase_[modelIx]);
+			var modelMatrix = this.transformMgr_.worldMatrix(this.transformBase_[modelIx]);
 			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
 			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
 
@@ -744,7 +744,7 @@ namespace sd.world {
 			rp.setMesh(mesh);
 
 			// -- calc MVP and set
-			var modelMatrix = this.transformMgr_.modelMatrix(this.transformBase_[modelIx]);
+			var modelMatrix = this.transformMgr_.worldMatrix(this.transformBase_[modelIx]);
 			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
 			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
 			gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);

@@ -86,7 +86,7 @@ namespace sd.world {
 			rp.setDepthTest(render.DepthTest.LessOrEqual);
 
 			// -- mvp
-			mat4.multiply(this.modelViewProjectionMatrix_, proj.viewMatrix, this.transformMgr_.modelMatrix(this.txInstance_));
+			mat4.multiply(this.modelViewProjectionMatrix_, proj.viewMatrix, this.transformMgr_.worldMatrix(this.txInstance_));
 			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewProjectionMatrix_);
 			this.rc.gl.uniformMatrix4fv(this.mvpMatrixUniform_, false, this.modelViewProjectionMatrix_);
 
