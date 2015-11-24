@@ -333,7 +333,7 @@ namespace sd.mesh.gen {
 		}
 
 		get explicitNormals() {
-			return false;
+			return true;
 		}
 
 		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
@@ -356,11 +356,17 @@ namespace sd.mesh.gen {
 			];
 
 			// topleft, topright, botright, botleft
-			var quad = function(a: number, b: number, c: number, d: number) {
+			var quad = function(a: number, b: number, c: number, d: number, norm: ArrayOfNumber) {
 				position(p[a][0], p[a][1], p[a][2]);
 				position(p[b][0], p[b][1], p[b][2]);
 				position(p[c][0], p[c][1], p[c][2]);
 				position(p[d][0], p[d][1], p[d][2]);
+
+				// normals
+				normal(norm[0], norm[1], norm[2]);
+				normal(norm[0], norm[1], norm[2]);
+				normal(norm[0], norm[1], norm[2]);
+				normal(norm[0], norm[1], norm[2]);
 
 				// each cube quad shows texture fully
 				uv(1, 0);
@@ -369,18 +375,18 @@ namespace sd.mesh.gen {
 				uv(1, 1);
 
 				// ccw faces
-				face(curVtx, curVtx + 1, curVtx + 2);
-				face(curVtx + 2, curVtx + 3, curVtx);
+				face(curVtx, curVtx + 2, curVtx + 1);
+				face(curVtx + 2, curVtx, curVtx + 3);
 
 				curVtx += 4;
 			};
 
-			quad(3, 2, 1, 0); // front
-			quad(7, 3, 0, 4); // left
-			quad(6, 7, 4, 5); // back
-			quad(2, 6, 5, 1); // right
-			quad(7, 6, 2, 3); // top
-			quad(5, 4, 0, 1); // bottom
+			quad(3, 2, 1, 0, [ 0, 0, 1]); // front
+			quad(7, 3, 0, 4, [ 1, 0 ,0]); // left
+			quad(6, 7, 4, 5, [ 0, 0,-1]); // back
+			quad(2, 6, 5, 1, [-1, 0, 0]); // right
+			quad(7, 6, 2, 3, [ 0,-1, 0]); // top
+			quad(5, 4, 0, 1, [ 0, 1, 0]); // bottom
 		}
 	}
 
