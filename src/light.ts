@@ -112,17 +112,13 @@ namespace sd.world {
 		}
 
 
-		private createLight(entity: Entity, type: LightType, desc: LightDescriptor, position: ArrayOfNumber, direction: ArrayOfNumber): LightInstance {
+		create(entity: Entity, type: LightType, desc: LightDescriptor): LightInstance {
 			// -- validate parameters
 			assert(type != LightType.None);
-			if (type == LightType.Directional) {
-				assert(vec3.length(direction) > 0, "Directional lights require a valid direction vector");
-			}
-			else if (type == LightType.Point) {
+			if (type == LightType.Point) {
 				assert((desc.range != undefined) && (desc.range >= 0), "Point lights require a valid range");
 			}
 			else if (type == LightType.Spot) {
-				assert(vec3.length(direction) > 0, "Spot lights require a valid direction vector");
 				assert((desc.range != undefined) && (desc.range >= 0), "Spot lights require a valid range (0+)");
 				assert((desc.cutoff != undefined) && (desc.cutoff >= 0), "Spot lights require a valid cutoff arc (0+)");
 			}
@@ -135,11 +131,7 @@ namespace sd.world {
 
 			// -- entity and transform links
 			this.entityBase_[instanceIx] = <number>entity;
-
-			var transform = this.transformMgr_.forEntity(entity);
-			vec3.normalize(direction, direction);
-			this.transformMgr_.setPositionAndRotation(transform, position, quat.rotationTo([], this.nullVec3_, direction));
-			this.transformBase_[instanceIx] = <number>transform;
+			this.transformBase_[instanceIx] = <number>this.transformMgr_.forEntity(entity);
 
 			// -- colour and amp
 			this.typeBase_[instanceIx] = type;
@@ -166,21 +158,6 @@ namespace sd.world {
 		}
 
 
-		createDirectionalLight(entity: Entity, desc: LightDescriptor, direction: ArrayOfNumber): LightInstance {
-			return this.createLight(entity, LightType.Directional, desc, [0, 0, 0], direction);
-		}
-
-
-		createPointLight(entity: Entity, desc: LightDescriptor, position: ArrayOfNumber): LightInstance {
-			return this.createLight(entity, LightType.Point, desc, position, this.nullVec3_);
-		}
-
-
-		createSpotLight(entity: Entity, desc: LightDescriptor, position: ArrayOfNumber, direction: ArrayOfNumber): LightInstance {
-			return this.createLight(entity, LightType.Spot, desc, position, direction);
-		}
-
-
 		// -- linked objects
 
 		entity(inst: LightInstance): Entity {
@@ -195,7 +172,7 @@ namespace sd.world {
 		// -- indirect properties (in Transform)
 
 		position(inst: LightInstance): ArrayOfNumber {
-			return vec3.clone(this.transformMgr_.position(this.transformBase_[<number>inst]));
+			return vec3.clone(this.transformMgr_.worldPosition(this.transformBase_[<number>inst]));
 		}
 
 		setPosition(inst: LightInstance, newPosition: ArrayOfNumber) {
@@ -204,11 +181,13 @@ namespace sd.world {
 
 
 		direction(inst: LightInstance): ArrayOfNumber {
-			return vec3.transformQuat([], this.nullVec3_, this.transformMgr_.rotation(this.transformBase_[<number>inst]));
+			var rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(this.transformBase_[<number>inst]));
+			return vec3.normalize([], vec3.transformMat3([], this.nullVec3_, rotMat));
 		}
 
 		setDirection(inst: LightInstance, newDirection: ArrayOfNumber) {
-			this.transformMgr_.setRotation(this.transformBase_[<number>inst], quat.rotationTo([], this.nullVec3_, newDirection));
+			var normalizedDir = vec3.normalize([], newDirection);
+			this.transformMgr_.setRotation(this.transformBase_[<number>inst], quat.rotationTo([], this.nullVec3_, normalizedDir));
 		}
 
 
@@ -309,10 +288,11 @@ namespace sd.world {
 			var paramData = math.vectorArrayItem(this.shadowParamBase_, math.Vec2, <number>inst);
 			var posAndStrength = new Float32Array(4);
 			var dirAndBias = new Float32Array(4);
+			var rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(transform));
 
-			posAndStrength.set(this.transformMgr_.position(transform), 0);
+			posAndStrength.set(this.transformMgr_.worldPosition(transform), 0);
 			posAndStrength[3] = paramData[ShadowParam.Strength];
-			dirAndBias.set(vec3.transformQuat([], this.nullVec3_, this.transformMgr_.rotation(transform)), 0);
+			dirAndBias.set(vec3.normalize([], vec3.transformMat3([], this.nullVec3_, rotMat)), 0);
 			dirAndBias[3] = paramData[ShadowParam.Bias];
 
 			return {
