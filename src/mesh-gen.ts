@@ -375,18 +375,18 @@ namespace sd.mesh.gen {
 				uv(1, 1);
 
 				// ccw faces
-				face(curVtx, curVtx + 2, curVtx + 1);
-				face(curVtx + 2, curVtx, curVtx + 3);
+				face(curVtx, curVtx + 1, curVtx + 2);
+				face(curVtx + 2, curVtx + 3, curVtx);
 
 				curVtx += 4;
 			};
 
-			quad(3, 2, 1, 0, [ 0, 0, 1]); // front
-			quad(7, 3, 0, 4, [ 1, 0 ,0]); // left
-			quad(6, 7, 4, 5, [ 0, 0,-1]); // back
-			quad(2, 6, 5, 1, [-1, 0, 0]); // right
-			quad(7, 6, 2, 3, [ 0,-1, 0]); // top
-			quad(5, 4, 0, 1, [ 0, 1, 0]); // bottom
+			quad(3, 2, 1, 0, [ 0, 0,-1]); // front
+			quad(7, 3, 0, 4, [-1, 0 ,0]); // left
+			quad(6, 7, 4, 5, [ 0, 0, 1]); // back
+			quad(2, 6, 5, 1, [ 1, 0, 0]); // right
+			quad(7, 6, 2, 3, [ 0, 1, 0]); // top
+			quad(5, 4, 0, 1, [ 0,-1, 0]); // bottom
 		}
 	}
 

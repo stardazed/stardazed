@@ -763,6 +763,7 @@ namespace sd.world {
 
 			if (mode == RenderMode.Forward) {
 				rp.setDepthTest(render.DepthTest.Less);
+				rp.setFaceCulling(render.FaceCulling.Back);
 
 				for (var modelIx = 1; modelIx <= count; ++modelIx) {
 					this.drawSingleForward(rp, proj, shadow, modelIx);
