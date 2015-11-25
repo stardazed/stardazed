@@ -27,9 +27,11 @@ namespace sd.world {
 			var fields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transform
+
 				{ type: Float, count: 1 },  // mass
 				{ type: Float, count: 3 },  // velocity
 				{ type: Float, count: 3 },  // force
+
 				{ type: Float, count: 1 },  // inertia
 				{ type: Float, count: 3 },  // angVelocity
 				{ type: Float, count: 3 },  // torque
@@ -67,7 +69,28 @@ namespace sd.world {
 		}
 
 
+		get count() { return this.instanceData_.count; }
 
+
+		simulateAll(dt: number) {
+		}
+
+
+		entity(inst: RigidBodyInstance): Entity {
+			return this.entityBase_[<number>inst];
+		}
+
+		transform(inst: RigidBodyInstance): TransformInstance {
+			return this.transformBase_[<number>inst];
+		}
+
+		mass(inst: RigidBodyInstance): number {
+			return this.massBase_[<number>inst];
+		}
+
+		velocity(inst: RigidBodyInstance): ArrayOfNumber {
+			return math.vectorArrayItem(this.velocityBase_, math.Vec3, <number>inst);
+		}
 	}
 
 } // ns sd.world
