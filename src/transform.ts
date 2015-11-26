@@ -91,6 +91,8 @@ namespace sd.world {
 			var parentInstance = 0;
 			var descriptor: TransformDescriptor = null;
 
+			this.entityBase_[thisInstance] = <number>linkedEntity;
+
 			if (descOrParent) {
 				if (typeof descOrParent == "number") {
 					parentInstance = <number>descOrParent;
