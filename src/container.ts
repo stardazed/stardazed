@@ -49,6 +49,47 @@ namespace sd.container {
 	}
 
 
+	// -- single element copy and set methods, mostly meant for accessors of components with MABs
+
+	export function copyIndexedVec2(data: TypedArray, index: number): ArrayOfNumber {
+		var offset = (index * 2) | 0;
+		return [data[offset], data[offset + 1]];
+	}
+
+	export function setIndexedVec2(data: TypedArray, index: number, v2: ArrayOfNumber) {
+		var offset = (index * 2) | 0;
+		data[offset]     = v2[0];
+		data[offset + 1] = v2[1];
+	}
+
+
+	export function copyIndexedVec3(data: TypedArray, index: number): ArrayOfNumber {
+		var offset = (index * 3) | 0;
+		return [data[offset], data[offset + 1], data[offset + 2]];
+	}
+
+	export function setIndexedVec3(data: TypedArray, index: number, v3: ArrayOfNumber) {
+		var offset = (index * 3) | 0;
+		data[offset]     = v3[0];
+		data[offset + 1] = v3[1];
+		data[offset + 2] = v3[2];
+	}
+
+
+	export function copyIndexedVec4(data: TypedArray, index: number): ArrayOfNumber {
+		var offset = (index * 4) | 0;
+		return [data[offset], data[offset + 1], data[offset + 2], data[offset + 3]];
+	}
+
+	export function setIndexedVec4(data: TypedArray, index: number, v4: ArrayOfNumber) {
+		var offset = (index * 4) | 0;
+		data[offset]     = v4[0];
+		data[offset + 1] = v4[1];
+		data[offset + 2] = v4[2];
+		data[offset + 3] = v4[3];
+	}
+
+
 	//  ___                    
 	// |   \ ___ __ _ _  _ ___ 
 	// | |) / -_) _` | || / -_)
