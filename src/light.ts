@@ -50,6 +50,10 @@ namespace sd.world {
 	}
 
 
+	const enum ColourParam {
+		Amplitude = 3
+	}
+
 	const enum LightParam {
 		AmbIntensity,
 		DiffIntensity,
@@ -136,20 +140,20 @@ namespace sd.world {
 			// -- colour and amp
 			this.typeBase_[instanceIx] = type;
 			vec4.set(this.tempVec4_, desc.colour[0], desc.colour[1], desc.colour[2], 1.0);
-			math.vectorArrayItem(this.colourBase_, math.Vec4, instanceIx).set(this.tempVec4_);
+			container.setIndexedVec4(this.colourBase_, instanceIx, this.tempVec4_);
 
 			// -- parameters, force 0 for unused fields for specified type
 			var range = (type == LightType.Directional) ? 0 : desc.range;
 			var cutoff = (type != LightType.Spot) ? 0 : desc.cutoff;
 			vec4.set(this.tempVec4_, desc.ambientIntensity, desc.diffuseIntensity, range, Math.cos(cutoff));
-			math.vectorArrayItem(this.parameterBase_, math.Vec4, instanceIx).set(this.tempVec4_);
+			container.setIndexedVec4(this.parameterBase_, instanceIx, this.tempVec4_);
 
 			// -- shadow info
 			if ((desc.shadowType != undefined) && (desc.shadowType != ShadowType.None)) {
 				this.shadowTypeBase_[instanceIx] = desc.shadowType;
 				this.shadowQualityBase_[instanceIx] = desc.shadowQuality || ShadowQuality.Auto;
 
-				var paramData = math.vectorArrayItem(this.shadowParamBase_, math.Vec2, instanceIx);
+				var paramData = container.refIndexedVec2(this.shadowParamBase_, instanceIx);
 				paramData[ShadowParam.Strength] = (desc.shadowStrength != undefined) ? math.clamp01(desc.shadowStrength) : 1.0;
 				paramData[ShadowParam.Bias] = (desc.shadowBias != undefined) ? math.clamp01(desc.shadowBias) : 0.05;
 			}
@@ -194,53 +198,54 @@ namespace sd.world {
 		// -- internal properties
 
 		colour(inst: LightInstance) {
-			return math.vectorArrayItem(this.colourBase_, math.Vec4, <number>inst).subarray(0, 3);
+			return container.copyIndexedVec4(this.colourBase_, <number>inst).slice(0, 3);
 		}
 
 
 		amplitude(inst: LightInstance) {
-			return math.vectorArrayItem(this.colourBase_, math.Vec4, <number>inst)[3];
+			return this.colourBase_[(<number>inst * 4) + ColourParam.Amplitude];
 		}
 
 		setAmplitude(inst: LightInstance, newAmplitude: number) {
-			math.vectorArrayItem(this.colourBase_, math.Vec4, <number>inst)[3] = newAmplitude;
+			return this.colourBase_[(<number>inst * 4) + ColourParam.Amplitude] = newAmplitude;
 		}
 
 
 		ambientIntensity(inst: LightInstance) {
-			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.AmbIntensity];
+			return this.parameterBase_[(<number>inst * 4) + LightParam.AmbIntensity];
 		}
 
 		setAmbientIntensity(inst: LightInstance, newIntensity: number) {
-			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.AmbIntensity] = newIntensity;
+			this.parameterBase_[(<number>inst * 4) + LightParam.AmbIntensity] = newIntensity;
 		}
 
 
 		diffuseIntensity(inst: LightInstance) {
-			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.DiffIntensity];
+			return this.parameterBase_[(<number>inst * 4) + LightParam.DiffIntensity];
 		}
 
 		setDiffuseIntensity(inst: LightInstance, newIntensity: number) {
-			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.DiffIntensity] = newIntensity;
+			this.parameterBase_[(<number>inst * 4) + LightParam.DiffIntensity] = newIntensity;
 		}
 
 
 		range(inst: LightInstance) {
-			return math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.Range];
+			return this.parameterBase_[(<number>inst * 4) + LightParam.Range];
 		}
 
 		setRange(inst: LightInstance, newRange: number) {
-			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.Range] = newRange;
+			this.parameterBase_[(<number>inst * 4) + LightParam.Range] = newRange;
 		}
 
 
 		// cutoff is stored as the cosine of the angle for quick usage in the shader
 		cutoff(inst: LightInstance) {
-			return Math.acos(math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.Cutoff]);
+			var cosCutoff = this.parameterBase_[(<number>inst * 4) + LightParam.Cutoff];
+			return Math.acos(cosCutoff);
 		}
 
 		setCutoff(inst: LightInstance, newCutoff: number) {
-			math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst)[LightParam.Cutoff] = Math.cos(newCutoff);
+			this.parameterBase_[(<number>inst * 4) + LightParam.Cutoff] = Math.cos(newCutoff);
 		}
 
 
@@ -263,20 +268,20 @@ namespace sd.world {
 
 
 		shadowStrength(inst: LightInstance): number {
-			return math.vectorArrayItem(this.shadowParamBase_, math.Vec2, <number>inst)[ShadowParam.Strength];
+			return this.shadowParamBase_[(<number>inst * 2) + ShadowParam.Strength];
 		}
 
 		setShadowStrength(inst: LightInstance, newStrength: number) {
-			math.vectorArrayItem(this.shadowParamBase_, math.Vec2, <number>inst)[ShadowParam.Strength] = newStrength;
+			this.shadowParamBase_[(<number>inst * 2) + ShadowParam.Strength] = newStrength;
 		}
 
 
 		shadowBias(inst: LightInstance): number {
-			return math.vectorArrayItem(this.shadowParamBase_, math.Vec2, <number>inst)[ShadowParam.Bias];
+			return this.shadowParamBase_[(<number>inst * 2) + ShadowParam.Bias];
 		}
 
 		setShadowBias(inst: LightInstance, newBias: number) {
-			math.vectorArrayItem(this.shadowParamBase_, math.Vec2, <number>inst)[ShadowParam.Bias] = newBias;
+			this.shadowParamBase_[(<number>inst * 2) + ShadowParam.Bias] = newBias;
 		}
 
 
@@ -285,7 +290,7 @@ namespace sd.world {
 		getData(inst: LightInstance): LightData {
 			var transform = this.transformBase_[<number>inst];
 
-			var paramData = math.vectorArrayItem(this.shadowParamBase_, math.Vec2, <number>inst);
+			var paramData = container.copyIndexedVec2(this.shadowParamBase_, <number>inst);
 			var posAndStrength = new Float32Array(4);
 			var dirAndBias = new Float32Array(4);
 			var rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(transform));
@@ -297,8 +302,8 @@ namespace sd.world {
 
 			return {
 				type: this.typeBase_[<number>inst],
-				colourData: math.vectorArrayItem(this.colourBase_, math.Vec4, <number>inst),
-				parameterData: math.vectorArrayItem(this.parameterBase_, math.Vec4, <number>inst),
+				colourData: container.refIndexedVec4(this.colourBase_, <number>inst),
+				parameterData: container.refIndexedVec4(this.parameterBase_, <number>inst),
 				position: posAndStrength,
 				direction: dirAndBias
 			};

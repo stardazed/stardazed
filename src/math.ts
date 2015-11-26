@@ -198,10 +198,4 @@ namespace sd.math {
 	}
 
 
-	export function vectorArrayItem(array: TypedArray, type: VectorType, index: number) {
-		var fromElement = type.elementCount * index;
-		var toElement = fromElement + type.elementCount;
-		return array.subarray(fromElement, toElement);
-	}
-
 } // ns sd.math

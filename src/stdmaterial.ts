@@ -74,6 +74,13 @@ namespace sd.world {
 	}
 
 
+	const enum SpecularElem {
+		Intensity = 0,
+		Exponent = 1,
+		ColourMix = 2
+	}
+
+
 	export type StdMaterialInstance = world.Instance<StdMaterialManager>;
 
 	export class StdMaterialManager {
@@ -118,11 +125,11 @@ namespace sd.world {
 			var matIndex = this.instanceData_.count; // entry 0 is reserved as nullptr-like
 
 			vec4.set(this.tempVec4, desc.mainColour[0], desc.mainColour[1], desc.mainColour[2], 0);
-			math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex).set(this.tempVec4);
+			container.setIndexedVec4(this.mainColourBase_, matIndex, this.tempVec4);
 			vec4.set(this.tempVec4, desc.specularIntensity, desc.specularExponent, desc.specularColourMix, 0);
-			math.vectorArrayItem(this.specularBase_, math.Vec4, matIndex).set(this.tempVec4);
+			container.setIndexedVec4(this.specularBase_, matIndex, this.tempVec4);
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
-			math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, matIndex).set(this.tempVec4);
+			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
 			if ((desc.flags & StdMaterialFlags.albedoAlphaIsGloss) && (desc.flags & StdMaterialFlags.albedoAlphaIsTranslucency)) {
 				assert(false, "invalid material flags")
@@ -139,9 +146,9 @@ namespace sd.world {
 		destroy(inst: StdMaterialInstance) {
 			var matIndex = <number>inst;
 
-			math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex).set(math.Vec4.zero);
-			math.vectorArrayItem(this.specularBase_, math.Vec4, matIndex).set(math.Vec4.zero);
-			math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, matIndex).set(math.Vec4.zero);
+			container.setIndexedVec4(this.mainColourBase_, matIndex, math.Vec4.zero);
+			container.setIndexedVec4(this.specularBase_, matIndex, math.Vec4.zero);
+			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, math.Vec4.zero);
 			this.flagsBase_[matIndex] = 0;
 
 			this.albedoMaps_[matIndex] = null;
@@ -152,57 +159,91 @@ namespace sd.world {
 
 
 		// -- individual element field accessors
-		mainColour(inst: StdMaterialInstance): TypedArray {
-			return math.vectorArrayItem(this.mainColourBase_, math.Vec4, <number>inst).subarray(0, 3);
+		mainColour(inst: StdMaterialInstance): ArrayOfNumber {
+			var offset = <number>inst * 4;
+			return [
+				this.mainColourBase_[offset],
+				this.mainColourBase_[offset + 1],
+				this.mainColourBase_[offset + 2]
+			];
 		}
+
+		setMainColour(inst: StdMaterialInstance, newColour: ArrayOfNumber) {
+			var offset = <number>inst * 4;
+			this.mainColourBase_[offset]     = newColour[0];
+			this.mainColourBase_[offset + 1] = newColour[1];
+			this.mainColourBase_[offset + 2] = newColour[2];
+		}
+
 
 		specularIntensity(inst: StdMaterialInstance): number {
-			return this.specularParams(inst)[0];
+			return this.specularBase_[(<number>inst * 4) + SpecularElem.Intensity];
 		}
 
-		setSpecularIntensity(inst: StdMaterialInstance, newIntensity: number): number {
-			return this.specularParams(inst)[0] = newIntensity;
+		setSpecularIntensity(inst: StdMaterialInstance, newIntensity: number) {
+			this.specularBase_[(<number>inst * 4) + SpecularElem.Intensity] = newIntensity;
 		}
+
 
 		specularExponent(inst: StdMaterialInstance): number {
-			return this.specularParams(inst)[1];
+			return this.specularBase_[(<number>inst * 4) + SpecularElem.Exponent];
 		}
 
-		setSpecularExponent(inst: StdMaterialInstance, newExponent: number): number {
-			return this.specularParams(inst)[1] = newExponent;
+		setSpecularExponent(inst: StdMaterialInstance, newExponent: number) {
+			this.specularBase_[(<number>inst * 4) + SpecularElem.Exponent] = newExponent;
 		}
+
 
 		specularColourMix(inst: StdMaterialInstance): number {
-			return this.specularParams(inst)[2];
+			return this.specularBase_[(<number>inst * 4) + SpecularElem.ColourMix];
 		}
 
-		setSpecularColourMix(inst: StdMaterialInstance, newMix: number): number {
-			return this.specularParams(inst)[2] = newMix;
+		setSpecularColourMix(inst: StdMaterialInstance, newMix: number) {
+			this.specularBase_[(<number>inst * 4) + SpecularElem.ColourMix] = newMix;
 		}
 
-		specularParams(inst: StdMaterialInstance): TypedArray {
-			return math.vectorArrayItem(this.specularBase_, math.Vec4, <number>inst);
+
+		textureScale(inst: StdMaterialInstance): ArrayOfNumber {
+			var offset = <number>inst * 4;
+			return [this.texScaleOffsetBase_[offset], this.texScaleOffsetBase_[offset + 1]];
 		}
 
-		textureScale(inst: StdMaterialInstance): TypedArray {
-			return math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, <number>inst).subarray(0, 2);
+		setTextureScale(inst: StdMaterialInstance, newScale: ArrayOfNumber) {
+			var offset = <number>inst * 4;
+			this.texScaleOffsetBase_[offset] = newScale[0];
+			this.texScaleOffsetBase_[offset + 1] = newScale[1];
 		}
 
-		textureOffset(inst: StdMaterialInstance): TypedArray {
-			return math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, <number>inst).subarray(2, 4);
+
+		textureOffset(inst: StdMaterialInstance): ArrayOfNumber {
+			var offset = <number>inst * 4;
+			return [this.texScaleOffsetBase_[offset + 2], this.texScaleOffsetBase_[offset + 3]];
 		}
 
-		textureScaleAndOffset(inst: StdMaterialInstance): TypedArray {
-			return math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, <number>inst);
+		setTextureOffset(inst: StdMaterialInstance, newOffset: ArrayOfNumber) {
+			var offset = <number>inst * 4;
+			this.texScaleOffsetBase_[offset + 2] = newOffset[0];
+			this.texScaleOffsetBase_[offset + 3] = newOffset[1];
 		}
+
 
 		albedoMap(inst: StdMaterialInstance): render.Texture {
 			return this.albedoMaps_[<number>inst];
 		}
 
+		setAlbedoMap(inst: StdMaterialInstance, newTex: render.Texture) {
+			this.albedoMaps_[<number>inst] = newTex;
+		}
+
+
 		normalMap(inst: StdMaterialInstance): render.Texture {
 			return this.normalMaps_[<number>inst];
 		}
+
+		setNormalMap(inst: StdMaterialInstance, newTex: render.Texture) {
+			this.normalMaps_[<number>inst] = newTex;
+		}
+
 
 		flags(inst: StdMaterialInstance): StdMaterialFlags {
 			return this.flagsBase_[<number>inst];
@@ -213,25 +254,14 @@ namespace sd.world {
 		// 	this.flagsBase_[index] = newFlags;
 		// }
 
-		setAlbedoMap(inst: StdMaterialInstance, newTex: render.Texture) {
-			// TODO: warn on changing from between null/non-null as it would affect the pipeline?
-			this.albedoMaps_[<number>inst] = newTex;
-		}
-
-		setNormalMap(inst: StdMaterialInstance, newTex: render.Texture) {
-			// TODO: warn on changing from between null/non-null as it would affect the pipeline?
-			this.normalMaps_[<number>inst] = newTex;
-		}
-
 
 		// -- reconstruct a copy of the data as a descriptor
 		copyDescriptor(inst: StdMaterialInstance): StdMaterialDescriptor {
 			var matIndex = <number>inst;
 			assert(matIndex < this.instanceData_.count);
 
-			var mainColourArr = math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex);
-			var specularArr = math.vectorArrayItem(this.specularBase_, math.Vec4, matIndex);
-			var texScaleOffsetArr = math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, matIndex);
+			var mainColourArr = container.copyIndexedVec4(this.mainColourBase_, matIndex);
+			var specularArr = container.copyIndexedVec4(this.specularBase_, matIndex);
 
 			return {
 				mainColour: Array.prototype.slice.call(mainColourArr, 0, 3),
@@ -240,8 +270,8 @@ namespace sd.world {
 				specularExponent: specularArr[1],
 				specularColourMix: specularArr[2],
 
-				textureScale: Array.prototype.slice.call(texScaleOffsetArr, 0, 2),
-				textureOffset: Array.prototype.slice.call(texScaleOffsetArr, 2, 4),
+				textureScale: this.textureScale(inst),
+				textureOffset: this.textureOffset(inst),
 
 				albedoMap: this.albedoMaps_[matIndex],
 				normalMap: this.normalMaps_[matIndex],
@@ -255,9 +285,9 @@ namespace sd.world {
 		getData(inst: StdMaterialInstance): StdMaterialData {
 			var matIndex = <number>inst;
 			return {
-				colourData: <Float32Array>math.vectorArrayItem(this.mainColourBase_, math.Vec4, matIndex),
-				specularData: <Float32Array>math.vectorArrayItem(this.specularBase_, math.Vec4, matIndex),
-				texScaleOffsetData: <Float32Array>math.vectorArrayItem(this.texScaleOffsetBase_, math.Vec4, matIndex),
+				colourData: <Float32Array>container.refIndexedVec4(this.mainColourBase_, matIndex),
+				specularData: <Float32Array>container.refIndexedVec4(this.specularBase_, matIndex),
+				texScaleOffsetData: <Float32Array>container.refIndexedVec4(this.texScaleOffsetBase_, matIndex),
 
 				albedoMap: this.albedoMaps_[matIndex],
 				normalMap: this.normalMaps_[matIndex],

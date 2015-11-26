@@ -171,17 +171,17 @@ namespace sd.world {
 		prevSibling(inst: TransformInstance): TransformInstance { return this.prevSiblingBase_[<number>inst]; }
 		nextSibling(inst: TransformInstance): TransformInstance { return this.nextSiblingBase_[<number>inst]; }
 
-		localPosition(inst: TransformInstance) { return math.vectorArrayItem(this.positionBase_, math.Vec3, <number>inst); }
-		localRotation(inst: TransformInstance) { return math.vectorArrayItem(this.rotationBase_, math.Quat, <number>inst); }
-		localScale(inst: TransformInstance) { return math.vectorArrayItem(this.scaleBase_, math.Vec3, <number>inst); }
+		localPosition(inst: TransformInstance) { return container.copyIndexedVec3(this.positionBase_, <number>inst); }
+		localRotation(inst: TransformInstance) { return container.copyIndexedVec4(this.rotationBase_, <number>inst); }
+		localScale(inst: TransformInstance) { return container.copyIndexedVec3(this.scaleBase_, <number>inst); }
 
 		worldPosition(inst: TransformInstance): ArrayOfNumber {
-			var worldMat = math.vectorArrayItem(this.worldMatrixBase_, math.Mat4, <number>inst);
-			return [worldMat[12], worldMat[13], worldMat[14]];
+			var matOffset = <number>inst * 16;
+			return [this.worldMatrixBase_[matOffset + 12], this.worldMatrixBase_[matOffset + 13], this.worldMatrixBase_[matOffset + 14]];
 		}
 
-		localMatrix(inst: TransformInstance) { return math.vectorArrayItem(this.localMatrixBase_, math.Mat4, <number>inst); }
-		worldMatrix(inst: TransformInstance) { return math.vectorArrayItem(this.worldMatrixBase_, math.Mat4, <number>inst); }
+		localMatrix(inst: TransformInstance) { return container.refIndexedMat4(this.localMatrixBase_, <number>inst); }
+		worldMatrix(inst: TransformInstance) { return container.refIndexedMat4(this.worldMatrixBase_, <number>inst); }
 
 
 		// update the world matrices of inst and all of its children
@@ -202,7 +202,7 @@ namespace sd.world {
 		setLocalMatrix(inst: TransformInstance, newLocalMatrix: ArrayOfNumber): void;
 		setLocalMatrix(inst: TransformInstance, newRotation: ArrayOfNumber, newPosition: ArrayOfNumber, newScale: ArrayOfNumber): void;
 		setLocalMatrix(inst: TransformInstance, localMatOrRot: ArrayOfNumber, newPosition?: ArrayOfNumber, newScale?: ArrayOfNumber) {
-			var localMat = math.vectorArrayItem(this.localMatrixBase_, math.Mat4, <number>inst);
+			var localMat = container.refIndexedMat4(this.localMatrixBase_, <number>inst);
 			if (arguments.length == 4) {
 				mat4.fromRotationTranslationScale(localMat, localMatOrRot, newPosition, newScale);
 			}

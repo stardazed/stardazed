@@ -623,14 +623,14 @@ namespace sd.world {
 					assert(lightData.type != LightType.None);
 
 					this.lightTypeArray_[lix] = lightData.type;
-					math.vectorArrayItem(this.lightColourArray_, math.Vec4, lix).set(lightData.colourData);
-					math.vectorArrayItem(this.lightParamArray_, math.Vec4, lix).set(lightData.parameterData);
+					container.setIndexedVec4(this.lightColourArray_, lix, lightData.colourData);
+					container.setIndexedVec4(this.lightParamArray_, lix, lightData.parameterData);
 
 					if (lightData.type != LightType.Point) {
-						math.vectorArrayItem(this.lightDirectionArray_, math.Vec4, lix).set(lightData.direction);
+						container.setIndexedVec4(this.lightDirectionArray_, lix, lightData.direction);
 					}
 					if (lightData.type != LightType.Directional) {
-						math.vectorArrayItem(this.lightPositionArray_, math.Vec4, lix).set(lightData.position);
+						container.setIndexedVec4(this.lightPositionArray_, lix, lightData.position);
 					}
 				}
 				else {
