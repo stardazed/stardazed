@@ -17,14 +17,22 @@ namespace sd.world {
 
 		private entityBase_: TypedArray;
 		private transformBase_: TypedArray;
+
 		private massBase_: TypedArray;
 		private momentumBase_: TypedArray;
 		private velocityBase_: TypedArray;
 		private forceBase_: TypedArray;
+
 		private inertiaBase_: TypedArray;
 		private angMomentumBase_: TypedArray;
 		private angVelocityBase_: TypedArray;
 		private torqueBase_: TypedArray;
+
+		private prevPositionBase_: TypedArray;
+		private prevVelocityBase_: TypedArray;
+
+		private TIME_STEP = 1 / 60;
+		private timeLag = 0;
 
 
 		constructor(private transformMgr_: TransformManager) {
@@ -41,6 +49,9 @@ namespace sd.world {
 				{ type: Float, count: 3 },  // angMomentum
 				{ type: Float, count: 3 },  // angVelocity
 				{ type: Float, count: 3 },  // torque
+
+				{ type: Float, count: 3 },  // prevPosition
+				{ type: Float, count: 3 },  // prevVelocity
 			];
 
 			this.instanceData_ = new container.MultiArrayBuffer(128, fields);
@@ -61,6 +72,9 @@ namespace sd.world {
 			this.angMomentumBase_ = this.instanceData_.indexedFieldView(7);
 			this.angVelocityBase_ = this.instanceData_.indexedFieldView(8);
 			this.torqueBase_ = this.instanceData_.indexedFieldView(9);
+
+			this.prevPositionBase_ = this.instanceData_.indexedFieldView(10);
+			this.prevVelocityBase_ = this.instanceData_.indexedFieldView(11);
 		}
 
 
@@ -87,6 +101,10 @@ namespace sd.world {
 			container.setIndexedVec3(this.angVelocityBase_, instance, zero3);
 			container.setIndexedVec3(this.torqueBase_, instance, zero3);
 
+			// -- previous pos and vel set to current state, used for interpolation
+			container.setIndexedVec3(this.prevPositionBase_, instance, this.transformMgr_.localPosition(this.transformBase_[instance]));
+			container.setIndexedVec3(this.prevVelocityBase_, instance, zero3);
+
 			return instance;
 		}
 
@@ -94,16 +112,33 @@ namespace sd.world {
 		get count() { return this.instanceData_.count; }
 
 
-		simulateAll(dt: number) {
+		addTimeLag(dt: number) {
+			this.timeLag += dt;
+
+			if (this.timeLag > this.TIME_STEP * 4) {
+				this.timeLag = this.TIME_STEP * 4;
+			}
+		}
+
+		simulateAll() {
 			var zero3 = math.Vec3.zero;
 
+			// FIXME: run simulation in discrete fixed TIME_STEP blocks
+			// Requires additional extropolation of pos/rot after the fact for rendering
+
 			for (var index = 1, max = this.count; index <= max; ++index) {
-				var dxdt = vec3.scale([], container.copyIndexedVec3(this.velocityBase_, index), dt);
-				var dpdt = vec3.scale([], container.copyIndexedVec3(this.forceBase_, index), dt);
+				var dxdt = vec3.scale([], container.copyIndexedVec3(this.velocityBase_, index), this.timeLag);
+				var dpdt = vec3.scale([], container.copyIndexedVec3(this.forceBase_, index), this.timeLag);
 				var inverseMass = this.massBase_[(index * 2) + 1];
+				var transform = this.transformBase_[index];
+
+				// store current as previous state
+				container.setIndexedVec3(this.prevPositionBase_, index, this.transformMgr_.localPosition(transform));
+				var curVelocity = container.copyIndexedVec3(this.velocityBase_, index);
+				container.setIndexedVec3(this.prevVelocityBase_, index, curVelocity);
 
 				// primaries
-				this.transformMgr_.translate(this.transformBase_[index], dxdt);
+				this.transformMgr_.translate(transform, dxdt);
 				var momentum = container.copyIndexedVec3(this.momentumBase_, index);
 				momentum[0] += dpdt[0];
 				momentum[1] += dpdt[1];
@@ -124,6 +159,8 @@ namespace sd.world {
 		}
 
 
+		// -- linked instances
+
 		entity(inst: RigidBodyInstance): Entity {
 			return this.entityBase_[<number>inst];
 		}
@@ -132,6 +169,8 @@ namespace sd.world {
 			return this.transformBase_[<number>inst];
 		}
 
+
+		// -- single-instance accessors
 
 		mass(inst: RigidBodyInstance): number {
 			return container.copyIndexedVec2(this.massBase_, <number>inst)[0];
@@ -159,7 +198,31 @@ namespace sd.world {
 		}
 
 
+		prevPosition(inst: RigidBodyInstance): ArrayOfNumber {
+			return container.copyIndexedVec3(this.prevPositionBase_, <number>inst);
+		}
+
+		prevVelocity(inst: RigidBodyInstance): ArrayOfNumber {
+			return container.copyIndexedVec3(this.prevVelocityBase_, <number>inst);
+		}
+
+
+		// -- derived data
+
+		acceleration(inst: RigidBodyInstance): ArrayOfNumber {
+			var vCur = container.copyIndexedVec3(this.velocityBase_, <number>inst);
+			var vLast = container.copyIndexedVec3(this.prevVelocityBase_, <number>inst);
+
+			vCur[0] = (vCur[0] - vLast[0]) * this.TIME_STEP;
+			vCur[1] = (vCur[1] - vLast[1]) * this.TIME_STEP;
+			vCur[2] = (vCur[2] - vLast[2]) * this.TIME_STEP;
+
+			return vCur;
+		}
+
+
 		// -- per timestep accumulated forces and torques
+
 		addForce(inst: RigidBodyInstance, force: ArrayOfNumber) {
 			// as of Nov 2015 this is (a lot) faster than subarray()/set()
 			var totalForce = container.copyIndexedVec3(this.forceBase_, <number>inst);

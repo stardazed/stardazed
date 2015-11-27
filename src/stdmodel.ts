@@ -352,7 +352,7 @@ namespace sd.world {
 					// well, soft-ish
 					line("			float strengthIncrement = lightPos_world[LPOS_STRENGTH] / 4.0;");
 					line("			for (int ssi = 0; ssi < 4; ++ssi) {");
-					line("				vec2 shadowSampleCoord = (vertexPos_light_intp.xy / vertexPos_light_intp.w) + (poissonDisk[ssi] / 700.0);");
+					line("				vec2 shadowSampleCoord = (vertexPos_light_intp.xy / vertexPos_light_intp.w) + (poissonDisk[ssi] / 550.0);");
 					line("				float shadowZ = texture2D(shadowSampler, shadowSampleCoord).z;");
 					line("				if (shadowZ < fragZ) {");
 					line("					shadowFactor -= strengthIncrement;");
