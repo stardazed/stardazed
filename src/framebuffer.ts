@@ -27,7 +27,8 @@ namespace sd.render {
 			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuf);
 
 			// -- specify empty draw buffer list
-			rc.extDrawBuffers.drawBuffersWEBGL([gl.NONE]);
+			if (rc.extDrawBuffers)
+				rc.extDrawBuffers.drawBuffersWEBGL([gl.NONE]);
 
 			// This bug occurs on Mac OS X in Safari 9 and Chrome 45, it is due to faulty
 			// setup of DRAW and READ buffer bindings in the underlying GL4 context.
@@ -62,8 +63,14 @@ namespace sd.render {
 		fbad.width = width;
 		fbad.height = height;
 		container.fill(fbad.colourPixelFormats, PixelFormat.RGBA8, desc.colourCount);
-		if (desc.useDepth) fbad.depthPixelFormat = render.PixelFormat.Depth24I;
-		if (desc.useStencil) fbad.stencilPixelFormat = render.PixelFormat.Stencil8;
+		if (desc.useDepth) {
+			fbad.depthPixelFormat = render.PixelFormat.Depth24I;
+			fbad.depthUsageHint = render.TextureUsageHint.Normal;
+		}
+		if (desc.useStencil) {
+			fbad.stencilPixelFormat = render.PixelFormat.Stencil8;
+			fbad.stencilUsageHint = render.TextureUsageHint.Normal;
+		}
 
 		var fbd = render.allocateTexturesForFrameBuffer(rc, fbad);
 
@@ -229,7 +236,7 @@ namespace sd.render {
 			var drawBuffers = desc.colourAttachments.map((attachment, attIndex) => {
 				if (attachment.texture) {
 					anyTexture = attachment.texture;
-					var glAttachment = rc.extDrawBuffers.COLOR_ATTACHMENT0_WEBGL + attIndex;
+					var glAttachment = rc.extDrawBuffers ? (rc.extDrawBuffers.COLOR_ATTACHMENT0_WEBGL + attIndex) : rc.gl.COLOR_ATTACHMENT0;
 					this.attachTexture(glAttachment, attachment);
 					return glAttachment;
 				}
@@ -240,7 +247,8 @@ namespace sd.render {
 
 			// -- setup the draw buffers to mimic the colour attachments
 			// -- which is required in WebGL
-			rc.extDrawBuffers.drawBuffersWEBGL(drawBuffers);
+			if (rc.extDrawBuffers)
+				rc.extDrawBuffers.drawBuffersWEBGL(drawBuffers);
 
 
 			// -- depth and/or stencil
