@@ -156,6 +156,8 @@ namespace sd.world {
 				// clear sum force
 				container.setIndexedVec3(this.forceBase_, index, zero3);
 			}
+
+			this.timeLag = 0;
 		}
 
 

@@ -68,7 +68,7 @@ namespace sd.render {
 					highestEnabledAttachment = ix;
 			});
 			if (highestEnabledAttachment >= maxColourAttachments(rc)) {
-				assert(rc.extDrawBuffers, "This GL only supports up to " + maxColourAttachments(rc) + " attachment(s)");
+				assert(false, "This GL only supports up to " + maxColourAttachments(rc) + " attachment(s)");
 			}
 
 			// -- create program and find attribute locations
