@@ -370,7 +370,7 @@ namespace sd.world {
 			}
 
 			line  ("		vec3 light = shadowFactor * calcPointLight(lightIx, matColour, colour, param, lightPos_world, normal_cam);");
-			line  ("		return light * pow(1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff), 0.5);");
+			line  ("		return light * (1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff));");
 			line  ("	}");
 			line  ("	return vec3(0.0, 0.0, 0.0);");
 			line  ("}");
