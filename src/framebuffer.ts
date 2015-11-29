@@ -55,6 +55,7 @@ namespace sd.render {
 		colourCount: number;
 		useDepth?: boolean;
 		useStencil?: boolean;
+		depthReadback?: boolean;
 	}
 
 
@@ -64,12 +65,20 @@ namespace sd.render {
 		fbad.height = height;
 		container.fill(fbad.colourPixelFormats, PixelFormat.RGBA8, desc.colourCount);
 		if (desc.useDepth) {
-			fbad.depthPixelFormat = render.PixelFormat.Depth24I;
-			fbad.depthUsageHint = render.TextureUsageHint.Normal;
+			if (rc.extDepthTexture) {
+				fbad.depthPixelFormat = render.PixelFormat.Depth24I;
+				fbad.depthUsageHint = render.TextureUsageHint.Normal;
+			}
+			else {
+				assert(!desc.depthReadback, "depth textures not supported on this device");
+				fbad.depthPixelFormat = render.PixelFormat.Depth16I;
+				fbad.depthUsageHint = render.TextureUsageHint.RenderTargetOnly;
+			}
 		}
 		if (desc.useStencil) {
 			fbad.stencilPixelFormat = render.PixelFormat.Stencil8;
-			fbad.stencilUsageHint = render.TextureUsageHint.Normal;
+			// always mirror the depth usage hint to allow for depth/stencil combinations using tex and rb
+			fbad.stencilUsageHint = fbad.depthUsageHint;
 		}
 
 		var fbd = render.allocateTexturesForFrameBuffer(rc, fbad);
