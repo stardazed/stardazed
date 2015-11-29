@@ -177,7 +177,7 @@ namespace sd.world {
 		localRotation(inst: TransformInstance) { return container.copyIndexedVec4(this.rotationBase_, <number>inst); }
 		localScale(inst: TransformInstance) { return container.copyIndexedVec3(this.scaleBase_, <number>inst); }
 
-		worldPosition(inst: TransformInstance): ArrayOfNumber {
+		worldPosition(inst: TransformInstance): number[] {
 			var matOffset = <number>inst * 16;
 			return [this.worldMatrixBase_[matOffset + 12], this.worldMatrixBase_[matOffset + 13], this.worldMatrixBase_[matOffset + 14]];
 		}

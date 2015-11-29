@@ -115,8 +115,8 @@ namespace sd.world {
 		addTimeLag(dt: number) {
 			this.timeLag += dt;
 
-			if (this.timeLag > this.TIME_STEP * 4) {
-				this.timeLag = this.TIME_STEP * 4;
+			if (this.timeLag > this.TIME_STEP * 2) {
+				this.timeLag = this.TIME_STEP * 2;
 			}
 		}
 
