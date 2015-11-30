@@ -124,7 +124,7 @@ namespace sd.world {
 			var zero3 = math.Vec3.zero;
 
 			// FIXME: run simulation in discrete fixed TIME_STEP blocks
-			// Requires additional extropolation of pos/rot after the fact for rendering
+			// Requires additional extropolation of pos/rot after the fact for rendering to avoid jitter
 
 			for (var index = 1, max = this.count; index <= max; ++index) {
 				var dxdt = vec3.scale([], container.copyIndexedVec3(this.velocityBase_, index), this.timeLag);
