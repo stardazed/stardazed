@@ -50,6 +50,15 @@ namespace sd.world {
 	}
 
 
+	export interface ShadowView {
+		light: LightInstance;
+		lightProjection: ProjectionSetup;
+		shadowFBO: render.FrameBuffer;
+	}
+
+
+	// -- internal enums
+
 	const enum ColourParam {
 		Amplitude = 3
 	}
@@ -82,6 +91,7 @@ namespace sd.world {
 		private tempVec4_ = new Float32Array(4);
 		private nullVec3_ = new Float32Array(3); // used to convert directions to rotations
 
+		private shadowFBO_: render.FrameBuffer = null;
 
 		constructor(private transformMgr_: TransformManager) {
 			const initialCapacity = 256;
@@ -89,12 +99,12 @@ namespace sd.world {
 			var fields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transformInstance
-				{ type: UInt8,  count: 1 }, // type
-				{ type: Float,  count: 4 }, // colour[3], amplitude(0..1)
-				{ type: Float,  count: 4 }, // ambientIntensity, diffuseIntensity, range(spot/point), cos(cutoff)(spot)
-				{ type: UInt8,  count: 1 }, // shadowType
-				{ type: UInt8,  count: 1 }, // shadowQuality
-				{ type: Float,  count: 2 }, // shadowStrength, shadowBias
+				{ type: UInt8, count: 1 }, // type
+				{ type: Float, count: 4 }, // colour[3], amplitude(0..1)
+				{ type: Float, count: 4 }, // ambientIntensity, diffuseIntensity, range(spot/point), cos(cutoff)(spot)
+				{ type: UInt8, count: 1 }, // shadowType
+				{ type: UInt8, count: 1 }, // shadowQuality
+				{ type: Float, count: 2 }, // shadowStrength, shadowBias
 			];
 
 			this.instanceData_ = new container.MultiArrayBuffer(initialCapacity, fields);
@@ -175,11 +185,11 @@ namespace sd.world {
 
 		// -- indirect properties (in Transform)
 
-		position(inst: LightInstance): ArrayOfNumber {
-			return vec3.clone(this.transformMgr_.worldPosition(this.transformBase_[<number>inst]));
+		localPosition(inst: LightInstance): number[] {
+			return this.transformMgr_.localPosition(this.transformBase_[<number>inst]);
 		}
 
-		setPosition(inst: LightInstance, newPosition: ArrayOfNumber) {
+		setLocalPosition(inst: LightInstance, newPosition: ArrayOfNumber) {
 			this.transformMgr_.setPosition(this.transformBase_[<number>inst], newPosition);
 		}
 
@@ -192,6 +202,54 @@ namespace sd.world {
 		setDirection(inst: LightInstance, newDirection: ArrayOfNumber) {
 			var normalizedDir = vec3.normalize([], newDirection);
 			this.transformMgr_.setRotation(this.transformBase_[<number>inst], quat.rotationTo([], this.nullVec3_, normalizedDir));
+		}
+
+
+		// -- derived properties
+
+		projectionSetupForLight(inst: LightInstance, viewportWidth: number, viewportHeight: number): ProjectionSetup {
+			var transform = this.transformBase_[<number>inst];
+			var worldPos = this.transformMgr_.worldPosition(transform);
+			var worldTarget = vec3.add([], worldPos, this.direction(inst));
+
+			var viewMatrix = mat4.lookAt([], worldPos, worldTarget, [0, 1, 0]); // FIXME: this can likely be done cheaper
+			var projectionMatrix: ArrayOfNumber = null;
+
+			const nearZ = 2; // fixed near-z
+
+			var type = this.typeBase_[<number>inst];
+			if (type == LightType.Spot) {
+				var farZ = this.range(inst);
+				var fov = this.cutoff(inst) * 2; // cutoff is half-angle
+				projectionMatrix = mat4.perspective([], fov, viewportWidth / viewportHeight, nearZ, farZ);
+				// TODO: cache this matrix?
+			}
+
+			return {
+				projectionMatrix: projectionMatrix,
+				viewMatrix: viewMatrix
+			};
+		}
+
+
+		private shadowFrameBufferOfQuality(rc: render.RenderContext, quality: ShadowQuality) {
+			// TODO: each shadow quality level of shadows will have a dedicated, reusable FBO
+			if (! this.shadowFBO_) {
+				this.shadowFBO_ = render.makeShadowMapFrameBuffer(rc, 1024);
+			}
+
+			return this.shadowFBO_;
+		}
+
+
+		shadowViewForLight(inst: LightInstance, rc: render.RenderContext): ShadowView {
+			var fbo = this.shadowFrameBufferOfQuality(rc, this.shadowQualityBase_[<number>inst]);
+
+			return {
+				light: inst,
+				lightProjection: this.projectionSetupForLight(inst, fbo.width, fbo.height), 
+				shadowFBO: fbo
+			};
 		}
 
 

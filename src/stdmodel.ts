@@ -468,13 +468,6 @@ namespace sd.world {
 	}
 
 
-	export interface Shadow {
-		light: LightInstance;
-		lightProjection: ProjectionSetup;
-		shadowFBO: render.FrameBuffer;
-	}
-
-
 	export class StdModelManager {
 		private stdPipeline_: StdPipeline;
 
@@ -648,7 +641,7 @@ namespace sd.world {
 		}
 
 
-		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: Shadow, modelIx: number) {
+		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, modelIx: number) {
 			var gl = this.rc.gl;
 
 			var mesh = this.meshes_[modelIx];
@@ -758,7 +751,7 @@ namespace sd.world {
 		}
 
 
-		drawAll(rp: render.RenderPass, proj: ProjectionSetup, shadow: Shadow, mode: RenderMode) {
+		drawAll(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, mode: RenderMode) {
 			var gl = this.rc.gl;
 			var count = this.instanceData_.count;
 
