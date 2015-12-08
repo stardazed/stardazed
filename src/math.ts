@@ -13,13 +13,18 @@ interface Math {
 namespace sd.math {
 
 	export function intRandom(maximum: number): number {
-		return (Math.random() * (maximum + 1)) << 0;
+		return (Math.random() * (maximum + 1)) | 0;
 	}
 
 
 	export function intRandomRange(minimum: number, maximum: number): number {
-		var diff = (maximum - minimum) << 0;
+		var diff = (maximum - minimum) | 0;
 		return minimum + intRandom(diff);
+	}
+
+
+	export function hertz(hz: number) {
+		return 1 / hz;
 	}
 
 
