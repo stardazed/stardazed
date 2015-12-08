@@ -31,9 +31,6 @@ namespace sd.world {
 		private prevPositionBase_: TypedArray;
 		private prevVelocityBase_: TypedArray;
 
-		private TIME_STEP = 1 / 60;
-		private timeLag = 0;
-
 
 		constructor(private transformMgr_: TransformManager) {
 			var fields: container.MABField[] = [
@@ -112,23 +109,12 @@ namespace sd.world {
 		get count() { return this.instanceData_.count; }
 
 
-		addTimeLag(dt: number) {
-			this.timeLag += dt;
-
-			if (this.timeLag > this.TIME_STEP * 2) {
-				this.timeLag = this.TIME_STEP * 2;
-			}
-		}
-
-		simulateAll() {
+		simulateAll(dt: number) {
 			var zero3 = math.Vec3.zero;
 
-			// FIXME: run simulation in discrete fixed TIME_STEP blocks
-			// Requires additional extropolation of pos/rot after the fact for rendering to avoid jitter
-
 			for (var index = 1, max = this.count; index <= max; ++index) {
-				var dxdt = vec3.scale([], container.copyIndexedVec3(this.velocityBase_, index), this.timeLag);
-				var dpdt = vec3.scale([], container.copyIndexedVec3(this.forceBase_, index), this.timeLag);
+				var dxdt = vec3.scale([], container.copyIndexedVec3(this.velocityBase_, index), dt);
+				var dpdt = vec3.scale([], container.copyIndexedVec3(this.forceBase_, index), dt);
 				var inverseMass = this.massBase_[(index * 2) + 1];
 				var transform = this.transformBase_[index];
 
@@ -156,8 +142,6 @@ namespace sd.world {
 				// clear sum force
 				container.setIndexedVec3(this.forceBase_, index, zero3);
 			}
-
-			this.timeLag = 0;
 		}
 
 
@@ -215,9 +199,9 @@ namespace sd.world {
 			var vCur = container.copyIndexedVec3(this.velocityBase_, <number>inst);
 			var vLast = container.copyIndexedVec3(this.prevVelocityBase_, <number>inst);
 
-			vCur[0] = (vCur[0] - vLast[0]) * this.TIME_STEP;
-			vCur[1] = (vCur[1] - vLast[1]) * this.TIME_STEP;
-			vCur[2] = (vCur[2] - vLast[2]) * this.TIME_STEP;
+			vCur[0] = (vCur[0] - vLast[0]) * (1 / 60); // FIXME: meh
+			vCur[1] = (vCur[1] - vLast[1]) * (1 / 60);
+			vCur[2] = (vCur[2] - vLast[2]) * (1 / 60);
 
 			return vCur;
 		}
