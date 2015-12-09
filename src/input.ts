@@ -37,7 +37,16 @@ namespace sd.io {
 	}
 
 
-	export class Keyboard {
+	export interface Keyboard {
+		keyState(kc: Key): ButtonState;
+		down(kc: Key): boolean;
+		pressed(kc: Key): boolean;
+		halfTransitions(kc: Key): number;
+		resetHalfTransitions(): void;
+	}
+
+
+	class KeyboardImpl implements Keyboard {
 		private keyData_: container.MultiArrayBuffer;
 		private downBase_: TypedArray;
 		private halfTransBase_: TypedArray;
@@ -120,5 +129,9 @@ namespace sd.io {
 			container.fill(this.halfTransBase_, 0, this.halfTransBase_.length);
 		}
 	}
+
+
+	// -- exported devices
+	export const keyboard: Keyboard = new KeyboardImpl();
 
 } // ns sd.io

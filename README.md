@@ -5,7 +5,7 @@ Sibling of and proving grounds for [Stardazed](https://github.com/zenmumbler/sta
 
 Built in TypeScript, builds against TS 1.6 or newer, just run `tsc` somewhere inside the project dir.
 
-**Project status**: *In Development (Pre-Alpha)*.<br>
+**Project status**: *In Development (Pre-Alpha)*<br>
 Features and APIs still very much in flux, but functional and usable for actual development
 (I'm using it for prototypes and Game Jams).
 
@@ -25,8 +25,6 @@ Features
 NEXT
 ----
 
-- io should give direct access to fixed devices: Keyboard, Mouse, Touches, Controller[]
-	- RunLoop must maintain per-frame state of io
 - de/serialization of components and scenes
 - asset loader / management
 - spot and point lights do not take diffuse angle into account
