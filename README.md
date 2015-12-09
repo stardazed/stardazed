@@ -27,28 +27,21 @@ NEXT
 
 - io should give direct access to fixed devices: Keyboard, Mouse, Touches, Controller[]
 	- RunLoop must maintain per-frame state of io
-
 - de/serialization of components and scenes
-
 - asset loader / management
-
 - spot and point lights do not take diffuse angle into account
 - directional shadow
-
 - StdModel:
 	- tangent gen
 	- normal map
 	- height map
-
 - Deferred renderer
-
 - pixel buffers, create, combine into channel, etc
-
 - PBR
 	- 100s of things
-
 - Sound beyond just loading sound files
 
+---
 
 License: MIT License<br>
 (c) 2015 by Arthur Langereis ([@zenmumbler](https://twitter.com/zenmumbler))
