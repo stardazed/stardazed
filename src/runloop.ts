@@ -34,6 +34,7 @@ namespace sd {
 			this.globalTime_ += dt;
 
 
+
 			if (this.runState_ == RunLoopState.Running) {
 				this.rafID_ = requestAnimationFrame(this.nextFrameFn_);
 			}
@@ -62,6 +63,11 @@ namespace sd {
 				cancelAnimationFrame(this.rafID_);
 				this.rafID_ = 0;
 			}
+		}
+
+
+		get globalTime() {
+			return this.globalTime_;
 		}
 	}
 
