@@ -4,32 +4,24 @@
 
 namespace sd.world {
 
-	export interface Scene {
+	export class Scene {
 		entityMgr: EntityManager;
 		transformMgr: TransformManager;
 		lightMgr: LightManager;
 		stdMaterialMgr: StdMaterialManager;
 		stdModelMgr: StdModelManager;
 		rigidBodyMgr: RigidBodyManager;
-	}
+
+		constructor(rc: render.RenderContext) {
+			this.entityMgr = new EntityManager();
+			this.transformMgr = new TransformManager();
+			this.lightMgr = new LightManager(this.transformMgr);
+			this.stdMaterialMgr = new StdMaterialManager();
+			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.stdMaterialMgr, this.lightMgr);
+			this.rigidBodyMgr = new RigidBodyManager(this.transformMgr);
+		}
 
 
-	export function makeScene(rc: render.RenderContext, sharedEntityMgr?: EntityManager): Scene {
-		var em = sharedEntityMgr || new EntityManager();
-		var txm = new TransformManager();
-		var lm = new LightManager(txm);
-		var smam = new StdMaterialManager();
-		var smom = new StdModelManager(rc, txm, smam, lm);
-		var rbm = new RigidBodyManager(txm);
-
-		return {
-			entityMgr: em,
-			transformMgr: txm,
-			lightMgr: lm,
-			stdMaterialMgr: smam,
-			stdModelMgr: smom,
-			rigidBodyMgr: rbm
-		};
 	}
 
 } // ns sd.world
