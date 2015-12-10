@@ -113,25 +113,48 @@ namespace sd.world {
 			var zero3 = math.Vec3.zero;
 
 			for (var index = 1, max = this.count; index <= max; ++index) {
+				var transform = this.transformBase_[index];
+
+				// discrete step vectors for the positional and angular changes
 				var dxdt = vec3.scale([], container.copyIndexedVec3(this.velocityBase_, index), dt);
 				var dpdt = vec3.scale([], container.copyIndexedVec3(this.forceBase_, index), dt);
 				var inverseMass = this.massBase_[(index * 2) + 1];
-				var transform = this.transformBase_[index];
+
+				var dOdt = vec3.scale([], container.copyIndexedVec3(this.angVelocityBase_, index), dt);
+				var dTdt = vec3.scale([], container.copyIndexedVec3(this.torqueBase_, index), dt);
+				var inverseInertia = this.inertiaBase_[(index * 2) + 1];
+
 
 				// store current as previous state
 				container.setIndexedVec3(this.prevPositionBase_, index, this.transformMgr_.localPosition(transform));
 				var curVelocity = container.copyIndexedVec3(this.velocityBase_, index);
 				container.setIndexedVec3(this.prevVelocityBase_, index, curVelocity);
 
-				// primaries
-				this.transformMgr_.translate(transform, dxdt);
+
+				// apply discrete forces to transform
+				if (dxdt[0] || dxdt[1] || dxdt[2]) {
+					this.transformMgr_.translate(transform, dxdt);
+				}
+				if (dOdt[0] || dOdt[1] || dOdt[2]) {
+					this.transformMgr_.rotateByAngles(transform, dOdt);
+				}
+
+
+				// calc primaries
 				var momentum = container.copyIndexedVec3(this.momentumBase_, index);
 				momentum[0] += dpdt[0];
 				momentum[1] += dpdt[1];
 				momentum[2] += dpdt[2];
 				container.setIndexedVec3(this.momentumBase_, index, momentum);
 
-				// secondaries
+				var angMomentum = container.copyIndexedVec3(this.angMomentumBase_, index);
+				angMomentum[0] += dTdt[0];
+				angMomentum[1] += dTdt[1];
+				angMomentum[2] += dTdt[2];
+				container.setIndexedVec3(this.angMomentumBase_, index, angMomentum);
+
+
+				// calc secondaries
 				var velocity = [
 					momentum[0] * inverseMass,
 					momentum[1] * inverseMass,
@@ -139,8 +162,17 @@ namespace sd.world {
 				];
 				container.setIndexedVec3(this.velocityBase_, index, velocity);
 
-				// clear sum force
+				var angVelocity = [
+					angMomentum[0] * inverseInertia,
+					angMomentum[1] * inverseInertia,
+					angMomentum[2] * inverseInertia
+				];
+				container.setIndexedVec3(this.angVelocityBase_, index, angVelocity);
+
+
+				// clear sum force and torque
 				container.setIndexedVec3(this.forceBase_, index, zero3);
+				container.setIndexedVec3(this.torqueBase_, index, zero3);
 			}
 		}
 
@@ -209,13 +241,18 @@ namespace sd.world {
 
 		// -- per timestep accumulated forces and torques
 
-		addForce(inst: RigidBodyInstance, force: ArrayOfNumber) {
+		addForce(inst: RigidBodyInstance, force: ArrayOfNumber, forceCenterOffset?: ArrayOfNumber) {
 			// as of Nov 2015 this is (a lot) faster than subarray()/set()
 			var totalForce = container.copyIndexedVec3(this.forceBase_, <number>inst);
 			totalForce[0] += force[0];
 			totalForce[1] += force[1];
 			totalForce[2] += force[2];
 			container.setIndexedVec3(this.forceBase_, <number>inst, totalForce);
+
+			if (forceCenterOffset) {
+				// apply torque as well if force was not applied at exact center of body
+				this.addTorque(inst, vec3.cross([], forceCenterOffset, force));
+			}
 		}
 		
 		addTorque(inst: RigidBodyInstance, torque: ArrayOfNumber) {
