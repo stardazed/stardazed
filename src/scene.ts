@@ -4,7 +4,7 @@
 
 namespace sd.world {
 
-	class Scene {
+	export class Scene {
 		entityMgr: EntityManager;
 		transformMgr: TransformManager;
 		lightMgr: LightManager;
@@ -22,13 +22,6 @@ namespace sd.world {
 		}
 
 		
-	}
-
-
-	class SceneController {
-		constructor() {
-
-		}
 	}
 
 } // ns sd.world
