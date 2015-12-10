@@ -26,6 +26,7 @@ namespace sd {
 		private maxFrameDuration_ = this.tickDuration_ * 10; // 6 fps
 
 		private globalTime_ = 0;
+		private lastFrameTime_ = 0;
 
 		private runState_ = RunLoopState.Idle;
 		private rafID_ = 0;
@@ -39,12 +40,14 @@ namespace sd {
 		}
 
 
-		private nextFrame(dt: number) {
+		private nextFrame(now: number) {
 			// if we exceed the max frame time then we will start introducing
 			// real lag and slowing the game down to catch up
+			var dt = (now - this.lastFrameTime_) / 1000.0;
 			if (dt > this.maxFrameDuration_) {
 				dt = this.maxFrameDuration_;
 			}
+			this.lastFrameTime_ = now;
 			this.globalTime_ += dt;
 
 			if (this.sceneCtrl_) {
@@ -73,6 +76,7 @@ namespace sd {
 				this.sceneCtrl_.resume();
 			}
 
+			this.lastFrameTime_ = performance.now();
 			this.rafID_ = requestAnimationFrame(this.nextFrameFn_);
 		}
 
