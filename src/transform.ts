@@ -255,9 +255,15 @@ namespace sd.world {
 
 		// -- relative transform helpers
 
-		translate(inst: TransformInstance, localDelta: ArrayOfNumber) {
+		translate(inst: TransformInstance, localDelta3: ArrayOfNumber) {
 			var pos = this.localPosition(inst);
-			this.setPosition(inst, [pos[0] + localDelta[0], pos[1] + localDelta[1], pos[2] + localDelta[2]]);
+			this.setPosition(inst, [pos[0] + localDelta3[0], pos[1] + localDelta3[1], pos[2] + localDelta3[2]]);
+		}
+
+		rotateByAngles(inst: TransformInstance, angDelta3: ArrayOfNumber) {
+			var rot = this.localRotation(inst);
+			var q = quat.fromEuler(angDelta3[2], angDelta3[1], angDelta3[0]);
+			this.setRotation(inst, quat.multiply([], rot, q));
 		}
 	}
 
