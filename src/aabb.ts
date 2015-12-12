@@ -4,7 +4,7 @@
 
 namespace sd.math {
 
-	class AABB {
+	export class AABB {
 		// initialize min-max to extreme invalid bounds so it can be be used
 		// as a starting point with def ctor and then using include(…) calls
 		private min_ = new Float32Array([Float.max, Float.max, Float.max]);
