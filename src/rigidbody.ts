@@ -198,6 +198,12 @@ namespace sd.world {
 			return container.copyIndexedVec3(this.momentumBase_, <number>inst);
 		}
 
+		setMomentum(inst: RigidBodyInstance, newMomentum: ArrayOfNumber) {
+			container.setIndexedVec3(this.momentumBase_, <number>inst, newMomentum);
+			var newVelocity = vec3.scale([], newMomentum, this.massBase_[(<number>inst * 2) + 1]);
+			container.setIndexedVec3(this.velocityBase_, <number>inst, newVelocity);
+		}
+
 		velocity(inst: RigidBodyInstance): ArrayOfNumber {
 			return container.copyIndexedVec3(this.velocityBase_, <number>inst);
 		}
@@ -240,6 +246,11 @@ namespace sd.world {
 
 
 		// -- per timestep accumulated forces and torques
+
+		stop(inst: RigidBodyInstance) {
+			container.setIndexedVec3(this.momentumBase_, <number>inst, math.Vec3.zero);
+			container.setIndexedVec3(this.velocityBase_, <number>inst, math.Vec3.zero);
+		}
 
 		addForce(inst: RigidBodyInstance, force: ArrayOfNumber, forceCenterOffset?: ArrayOfNumber) {
 			// as of Nov 2015 this is (a lot) faster than subarray()/set()
