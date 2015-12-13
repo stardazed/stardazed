@@ -16,8 +16,6 @@ namespace sd {
 
 		resume(): void;
 		suspend(): void;
-
-		scene: world.Scene;
 	}
 
 
