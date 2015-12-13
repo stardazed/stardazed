@@ -227,4 +227,10 @@ namespace sd.math {
 	}
 
 
+	// ----
+
+	export function reflectVec3(v3: ArrayOfNumber, normal: ArrayOfNumber) {
+		return vec3.sub([], v3, vec3.scale([], normal, 2 * vec3.dot(v3, normal)));
+	}
+
 } // ns sd.math
