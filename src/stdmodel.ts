@@ -328,7 +328,7 @@ namespace sd.world {
 			line  ("	float distance = length(lightDirection);");
 			line  ("	lightDirection = normalize(lightDirection);");
 			line  ("	float attenuation = 1.0 - pow(clamp(distance / param[LPARAM_RANGE], 0.0, 1.0), 2.0);");
-			// line  ("    attenuation *= smodot(normal_cam, lightNormalMatrix * -lightDirection.xyz);"); // I need to reject light back-facing polies, but this is too strong
+			line  ("    attenuation *= dot(normal_cam, lightNormalMatrix * -lightDirection.xyz);"); // I need to reject light back-facing polies, but this is too strong
 			line  ("	return calcLightShared(matColour, colour, param, attenuation, lightDirection, normal_cam);");
 			line  ("}");
 
