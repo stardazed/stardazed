@@ -16,6 +16,9 @@ namespace sd {
 
 		resume(): void;
 		suspend(): void;
+
+		focus(): void;
+		blur(): void;
 	}
 
 
@@ -103,13 +106,22 @@ namespace sd {
 		get sceneController() {
 			return this.sceneCtrl_;
 		}
+
 		set sceneController(newCtrl: SceneController) {
-			if (this.runState_ == RunLoopState.Running && this.sceneCtrl_) {
-				this.sceneCtrl_.suspend();
+			if (this.sceneCtrl_) {
+				if (this.runState_ == RunLoopState.Running) {
+					this.sceneCtrl_.suspend();
+				}
+				this.sceneCtrl_.blur();
 			}
+
 			this.sceneCtrl_ = newCtrl;
-			if (this.runState_ == RunLoopState.Running && this.sceneCtrl_) {
-				this.sceneCtrl_.resume();
+
+			if (this.sceneCtrl_) {
+				this.sceneCtrl_.focus();
+				if (this.runState_ == RunLoopState.Running) {
+					this.sceneCtrl_.resume();
+				}
 			}
 		}
 	}
