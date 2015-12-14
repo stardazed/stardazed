@@ -226,8 +226,61 @@ namespace sd.world {
 		}
 
 
+		private removeFromParent(inst: TransformInstance) {
+			var index = <number>inst;
+			var parentIndex = this.parentBase_[index];
+			
+			if (! parentIndex) {
+				return;
+			}
+
+			var firstChild = this.firstChildBase_[parentIndex];
+			var prevSibling = this.prevSiblingBase_[index];
+			var nextSibling = this.nextSiblingBase_[index];
+
+			if (firstChild == index) {
+				this.firstChildBase_[parentIndex] = nextSibling;
+			}
+			if (prevSibling) {
+				this.nextSiblingBase_[prevSibling] = nextSibling;
+				this.prevSiblingBase_[index] = 0;
+			}
+			if (nextSibling) {
+				this.prevSiblingBase_[nextSibling] = prevSibling;
+				this.nextSiblingBase_[index] = 0;
+			}
+
+			this.parentBase_[index] = 0;
+		}
+
+
 		setParent(inst: TransformInstance, newParent: TransformInstance) {
-			this.parentBase_[<number>inst] = <number>newParent;
+			var thisIndex = <number>inst;
+			var parentIndex = <number>newParent;
+
+			this.removeFromParent(inst);
+
+			if (parentIndex) {
+				this.parentBase_[thisIndex] = parentIndex;
+				var myPrevSibling = this.firstChildBase_[parentIndex];
+
+				if (myPrevSibling) {
+					// find end of child chain
+					while (this.nextSiblingBase_[myPrevSibling] != 0) {
+						myPrevSibling = this.nextSiblingBase_[myPrevSibling];
+					}
+
+					// append self to parent's child list
+					this.nextSiblingBase_[myPrevSibling] = thisIndex;
+					this.prevSiblingBase_[thisIndex] = myPrevSibling;
+				}
+				else {
+					// create new chain with self at front
+					this.firstChildBase_[parentIndex] = thisIndex;
+					this.prevSiblingBase_[thisIndex] = 0;
+					this.nextSiblingBase_[thisIndex] = 0;
+				}
+			}
 		}
 
 
