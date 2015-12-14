@@ -21,7 +21,7 @@ namespace sd {
 
 	export class RunLoop {
 		private tickDuration_ = math.hertz(60);
-		private maxFrameDuration_ = this.tickDuration_ * 10; // 6 fps
+		private maxFrameDuration_ = this.tickDuration_ * 2;
 
 		private globalTime_ = 0;
 		private lastFrameTime_ = 0;
