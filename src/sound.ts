@@ -19,7 +19,11 @@ class SoundManager {
 
 	constructor() {
 		this.context = window.AudioContext ? new AudioContext() : (window.webkitAudioContext ? new webkitAudioContext() : null);
-		assert(this.context, "No sound");
+		//assert(this.context, "No sound");
+	}
+
+	get valid() {
+		return this.context != null;
 	}
 
 	loadSoundFile(filePath: string): Promise<AudioBuffer> {
@@ -27,6 +31,10 @@ class SoundManager {
 			responseType: FileLoadType.ArrayBuffer
 		}).then((data: ArrayBuffer) => {
 			return new Promise<AudioBuffer>((resolve, reject) => {
+				if (! this.valid) {
+					resolve(null);
+					return;
+				}
 				this.context.decodeAudioData(data,
 					(audioData: AudioBuffer) => {
 						resolve(audioData);
