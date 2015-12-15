@@ -68,7 +68,7 @@ function $n(sel: string, base?: HTMLElement): HTMLElement[] { return Array.proto
 function $(sel: ElemSelector, base?: HTMLElement) { return (typeof(sel) == 'string') ? $n(<string>sel, base) : seq(sel); }
 function $1(sel: ElemSelector, base?: HTMLElement): HTMLElement { return $(sel, base)[0]; }
 
-function show(sel: ElemSelector, disp?: string) { $(sel).forEach(function(el){ el.style.display = disp||"block" }); }
+function show(sel: ElemSelector, disp?: string) { $(sel).forEach(function(el){ el.style.display = (disp != null) ? disp : "block" }); }
 function hide(sel: ElemSelector) { $(sel).forEach(function(el){ el.style.display = "none" }); }
 
 function setDisabled(sel: ElemSelector, dis: boolean) { $(sel).forEach(function(el){ el.disabled = dis; }); }
