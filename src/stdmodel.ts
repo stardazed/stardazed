@@ -555,7 +555,7 @@ namespace sd.world {
 			// Bugfix: GL drivers can (and do) remove attributes only used in the vertex shader
 			var prePrune = features;
 
-			// -- disable UV attr and AlbedoMap unless both are provided
+			// disable UV attr and AlbedoMap unless both are provided (TODO: also take other maps into account when added later)
 			if ((features & (Features.VtxUV | Features.AlbedoMap)) != (Features.VtxUV | Features.AlbedoMap)) {
 				features &= ~(Features.VtxUV | Features.AlbedoMap);
 			}
