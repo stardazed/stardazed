@@ -550,7 +550,25 @@ namespace sd.world {
 			var matFlags = this.materialMgr_.flags(material);
 			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;
 
-			if (this.materialMgr_.albedoMap(material)) features |= Features.AlbedoMap;			
+			if (this.materialMgr_.albedoMap(material)) features |= Features.AlbedoMap;
+
+			// Bugfix: GL drivers can (and do) remove attributes only used in the vertex shader
+			var prePrune = features;
+
+			// -- disable UV attr and AlbedoMap unless both are provided
+			if ((features & (Features.VtxUV | Features.AlbedoMap)) != (Features.VtxUV | Features.AlbedoMap)) {
+				features &= ~(Features.VtxUV | Features.AlbedoMap);
+			}
+
+			// In the same vein, we don't use vertexColours if texture maps are provided (and because of the
+			// above check we are sure that both Albedo and vtxUV are available or neither)
+			if ((features & (Features.VtxColour | Features.AlbedoMap)) == (Features.VtxColour | Features.AlbedoMap)) {
+				features &= ~Features.VtxColour;
+			}
+
+			// if (features != prePrune) {
+			// 	console.info("Filtered " + prePrune + " to " + features);
+			// }
 
 			return features;
 		}
