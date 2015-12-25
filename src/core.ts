@@ -27,8 +27,15 @@ function cloneStruct<T>(object: T): T {
 	var copy = {};
 	Object.getOwnPropertyNames(object).forEach(name => {
 		(<any>copy)[name] = (<any>object)[name];
-	})
+	});
 	return <T>copy;
+}
+
+
+function copyValues(dest: any, source: any) {
+	Object.getOwnPropertyNames(source).forEach(name => {
+		dest[name] = source[name];
+	});
 }
 
 
