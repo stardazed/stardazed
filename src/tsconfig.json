@@ -9,7 +9,7 @@
         "listFiles": false,
 
         "noImplicitAny": true,
-        "suppressImplicitAnyIndexErrors": true,
+        "suppressImplicitAnyIndexErrors": false,
 
         "removeComments": true,
         "sourceMap": false,

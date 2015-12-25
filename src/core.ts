@@ -26,7 +26,7 @@ function applyMixins(derivedCtor: any, baseCtors: any[]) {
 function cloneStruct<T>(object: T): T {
 	var copy = {};
 	Object.getOwnPropertyNames(object).forEach(name => {
-		copy[name] = object[name];
+		(<any>copy)[name] = (<any>object)[name];
 	})
 	return <T>copy;
 }
@@ -118,7 +118,7 @@ function encodeAsQueryString(obj: Object): string {
 
 	for (var k in obj) {
 		if (obj.hasOwnProperty(k)) {
-			items.push(encodeURIComponent(k) + "=" + encodeURIComponent(obj[k]));
+			items.push(encodeURIComponent(k) + "=" + encodeURIComponent((<any>obj)[k]));
 		}
 	}
 

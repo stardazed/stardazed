@@ -112,12 +112,13 @@ class TMXData {
 				});
 
 				for (var ix=0; ix < tileDoc.childNodes.length; ++ix) {
+					var q: NamedNodeMap;
 					var node = tileDoc.childNodes[ix];
 					if (node.nodeName == "layer") {
-						this.layers[node.attributes["name"].textContent] = new TMXLayer(node); // fixme: use name attrib of layer node
+						this.layers[node.attributes.getNamedItem("name").textContent] = new TMXLayer(node); // fixme: use name attrib of layer node
 					}
 					else if (node.nodeName == "objectgroup") {
-						this.objectGroups[node.attributes["name"].textContent] = new TMXObjectGroup(node);
+						this.objectGroups[node.attributes.getNamedItem("name").textContent] = new TMXObjectGroup(node);
 					}
 				}
 
