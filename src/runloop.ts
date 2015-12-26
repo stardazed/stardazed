@@ -14,11 +14,11 @@ namespace sd {
 		renderFrame(timeStep: number): void;
 		simulationStep(timeStep: number): void;
 
-		resume(): void;
-		suspend(): void;
+		resume?(): void;
+		suspend?(): void;
 
-		focus(): void;
-		blur(): void;
+		focus?(): void;
+		blur?(): void;
 	}
 
 
@@ -74,7 +74,7 @@ namespace sd {
 
 			this.runState_ = RunLoopState.Running;
 			if (this.sceneCtrl_) {
-				this.sceneCtrl_.resume();
+				this.sceneCtrl_.resume && this.sceneCtrl_.resume();
 			}
 
 			this.lastFrameTime_ = performance.now();
@@ -88,7 +88,7 @@ namespace sd {
 
 			this.runState_ = RunLoopState.Idle;
 			if (this.sceneCtrl_) {
-				this.sceneCtrl_.suspend();
+				this.sceneCtrl_.suspend && this.sceneCtrl_.suspend();
 			}
 
 			if (this.rafID_) {
@@ -110,17 +110,17 @@ namespace sd {
 		set sceneController(newCtrl: SceneController) {
 			if (this.sceneCtrl_) {
 				if (this.runState_ == RunLoopState.Running) {
-					this.sceneCtrl_.suspend();
+					this.sceneCtrl_.suspend && this.sceneCtrl_.suspend();
 				}
-				this.sceneCtrl_.blur();
+				this.sceneCtrl_.blur && this.sceneCtrl_.blur();
 			}
 
 			this.sceneCtrl_ = newCtrl;
 
 			if (this.sceneCtrl_) {
-				this.sceneCtrl_.focus();
+				this.sceneCtrl_.focus && this.sceneCtrl_.focus();
 				if (this.runState_ == RunLoopState.Running) {
-					this.sceneCtrl_.resume();
+					this.sceneCtrl_.resume && this.sceneCtrl_.resume();
 				}
 			}
 		}
