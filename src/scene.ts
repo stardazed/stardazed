@@ -11,6 +11,7 @@ namespace sd.world {
 		stdMaterialMgr: StdMaterialManager;
 		stdModelMgr: StdModelManager;
 		rigidBodyMgr: RigidBodyManager;
+		colliderMgr: ColliderManager;
 
 		constructor(rc: render.RenderContext) {
 			this.entityMgr = new EntityManager();
@@ -19,6 +20,7 @@ namespace sd.world {
 			this.stdMaterialMgr = new StdMaterialManager();
 			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.stdMaterialMgr, this.lightMgr);
 			this.rigidBodyMgr = new RigidBodyManager(this.transformMgr);
+			this.colliderMgr = new ColliderManager(this.transformMgr, this.rigidBodyMgr);
 		}
 
 		
