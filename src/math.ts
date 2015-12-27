@@ -167,60 +167,59 @@ namespace sd.math {
 
 	// --- Float vector types
 
-	export interface VectorType {
-		elementCount: number;
-		byteSize: number;
-	}
-
 	export class Vec2 {
-		static zero = new Float32Array([0, 0]);
-		static one = new Float32Array([1, 1]);
+		static get zero() { return new Float32Array([0, 0]); }
+		static get one() { return new Float32Array([1, 1]); }
 
 		static elementCount = 2;
 		static byteSize = Float.byteSize * Vec2.elementCount;
 	}
 
 	export class Vec3 {
-		static zero = new Float32Array([0, 0, 0]);
-		static one = new Float32Array([1, 1, 1]);
+		static get zero() { return new Float32Array([0, 0, 0]); }
+		static get one() { return new Float32Array([1, 1, 1]); }
 	
 		static elementCount = 3;
 		static byteSize = Float.byteSize * Vec3.elementCount;
 	}
 
 	export class Vec4 {
-		static zero = new Float32Array([0, 0, 0, 0]);
-		static one = new Float32Array([1, 1, 1, 1]);
+		static get zero() { return new Float32Array([0, 0, 0, 0]); }
+		static get one() { return new Float32Array([1, 1, 1, 1]); }
 	
 		static elementCount = 4;
 		static byteSize = Float.byteSize * Vec4.elementCount;
 	}
 
 	export class Quat {
-		static identity = new Float32Array([0, 0, 0, 1]);
+		static get identity() { return new Float32Array([0, 0, 0, 1]); }
 
 		static elementCount = 4;
 		static byteSize = Float.byteSize * Quat.elementCount;
 	}
 
 	export class Mat3 {
-		static identity = new Float32Array([
-			1, 0, 0,
-			0, 1, 0,
-			0, 0, 1
-		]);
+		static get identity() {
+			return new Float32Array([
+				1, 0, 0,
+				0, 1, 0,
+				0, 0, 1
+			]);
+		}
 
 		static elementCount = 9;
 		static byteSize = Float.byteSize * Mat3.elementCount;
 	}
 
 	export class Mat4 {
-		static identity = new Float32Array([
-			1, 0, 0, 0,
-			0, 1, 0, 0, 
-			0, 0, 1, 0, 
-			0, 0, 0, 1
-		]);
+		static get identity() {
+			return new Float32Array([
+				1, 0, 0, 0,
+				0, 1, 0, 0,
+				0, 0, 1, 0,
+				0, 0, 0, 1
+			]);
+		}
 
 		static elementCount = 16;
 		static byteSize = Float.byteSize * Mat4.elementCount;
