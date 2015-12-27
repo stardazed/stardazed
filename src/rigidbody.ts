@@ -14,6 +14,7 @@ namespace sd.world {
 
 	export class RigidBodyManager {
 		private instanceData_: container.MultiArrayBuffer;
+		private instanceEntityMap_: Map<Entity, RigidBodyInstance>;
 
 		private entityBase_: TypedArray;
 		private transformBase_: TypedArray;
@@ -53,6 +54,8 @@ namespace sd.world {
 
 			this.instanceData_ = new container.MultiArrayBuffer(128, fields);
 			this.rebase();
+
+			this.instanceEntityMap_ = new Map<Entity, RigidBodyInstance>();
 		}
 
 
@@ -83,6 +86,8 @@ namespace sd.world {
 			var instance = this.instanceData_.count;
 			this.entityBase_[instance] = <number>ent;
 			this.transformBase_[instance] = <number>this.transformMgr_.forEntity(ent);
+
+			this.instanceEntityMap_.set(ent, <RigidBodyInstance>instance);
 
 			// -- set constant data
 			container.setIndexedVec2(this.massBase_, instance, [desc.mass, 1 / desc.mass]);
@@ -185,6 +190,10 @@ namespace sd.world {
 
 		transform(inst: RigidBodyInstance): TransformInstance {
 			return this.transformBase_[<number>inst];
+		}
+
+		forEntity(ent: Entity): RigidBodyInstance {
+			return this.instanceEntityMap_.get(ent) || <RigidBodyInstance>0;
 		}
 
 
