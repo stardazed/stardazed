@@ -5,6 +5,7 @@
 namespace sd.world {
 
 	export class Scene {
+		aabbMgr: AABBManager;
 		entityMgr: EntityManager;
 		transformMgr: TransformManager;
 		lightMgr: LightManager;
@@ -14,13 +15,15 @@ namespace sd.world {
 		colliderMgr: ColliderManager;
 
 		constructor(rc: render.RenderContext) {
+			this.aabbMgr = new AABBManager();
+
 			this.entityMgr = new EntityManager();
 			this.transformMgr = new TransformManager();
 			this.lightMgr = new LightManager(this.transformMgr);
 			this.stdMaterialMgr = new StdMaterialManager();
 			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.stdMaterialMgr, this.lightMgr);
 			this.rigidBodyMgr = new RigidBodyManager(this.transformMgr);
-			this.colliderMgr = new ColliderManager(this.transformMgr, this.rigidBodyMgr);
+			this.colliderMgr = new ColliderManager(this.transformMgr, this.rigidBodyMgr, this.aabbMgr);
 		}
 
 		
