@@ -29,6 +29,18 @@ namespace sd.world {
 		}
 
 
+		createEmpty(): AABB {
+			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
+				this.rebase();
+			}
+
+			var instance = this.instanceData_.count;
+			container.setIndexedVec3(this.minBase_, <number>instance, [Float.max, Float.max, Float.max]);
+			container.setIndexedVec3(this.maxBase_, <number>instance, [Float.min, Float.min, Float.min]);
+			return instance;
+		}
+
+
 		createFromCenterAndSize(center: ArrayOfNumber, size: ArrayOfNumber): AABB {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
@@ -117,6 +129,39 @@ namespace sd.world {
 
 			container.setIndexedVec3(this.minBase_, <number>into, intoMin);
 			container.setIndexedVec3(this.maxBase_, <number>into, intoMax);
+		}
+
+
+		// --
+
+
+		transformMat3(dest: AABB, source: AABB, mat: ArrayOfNumber) {
+			var sourceMin = container.copyIndexedVec3(this.minBase_, <number>source);
+			var sourceMax = container.copyIndexedVec3(this.maxBase_, <number>source);
+
+			var destA = vec3.transformMat3([], sourceMin, mat);
+			var destB = vec3.transformMat3([], sourceMax, mat);
+
+			var destMin = vec3.min([], destA, destB);
+			var destMax = vec3.max([], destA, destB);
+
+			container.setIndexedVec3(this.minBase_, <number>dest, destMin);
+			container.setIndexedVec3(this.maxBase_, <number>dest, destMax);
+		}
+
+
+		transformMat4(dest: AABB, source: AABB, mat: ArrayOfNumber) {
+			var sourceMin = container.copyIndexedVec3(this.minBase_, <number>source);
+			var sourceMax = container.copyIndexedVec3(this.maxBase_, <number>source);
+
+			var destA = vec3.transformMat4([], sourceMin, mat);
+			var destB = vec3.transformMat4([], sourceMax, mat);
+
+			var destMin = vec3.min([], destA, destB);
+			var destMax = vec3.max([], destA, destB);
+
+			container.setIndexedVec3(this.minBase_, <number>dest, destMin);
+			container.setIndexedVec3(this.maxBase_, <number>dest, destMax);
 		}
 
 
