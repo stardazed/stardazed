@@ -243,4 +243,34 @@ namespace sd.math {
 		return vec3.sub([], v3, vec3.scale([], normal, 2 * vec3.dot(v3, normal)));
 	}
 
+
+	export function arbitraryOrthogonalVec3(v: Float3): Float3 {
+		var ax = Math.abs(v[0]),
+			ay = Math.abs(v[1]),
+			az = Math.abs(v[2]);
+
+		var dominantAxis = (ax > ay) ? (ax > az ? 0 : 2) : (ay > az ? 1 : 2);
+
+		var p: Float3 = [];
+		switch(dominantAxis) {
+			case 0:
+				p[0] = -v[1] - v[2];
+				p[1] = v[0];
+				p[2] = v[0];
+				break;
+			case 1:
+				p[0] = v[1];
+				p[1] = -v[0] - v[2];
+				p[2] = v[1];
+				break;
+			case 2:
+				p[0] = v[2];
+				p[1] = v[2];
+				p[2] = -v[0] - v[1];
+				break;
+		}
+
+		return p;
+	}
+
 } // ns sd.math
