@@ -8,9 +8,9 @@
 namespace sd.mesh {
 
 	export interface Material {
-		ambientColor?: ArrayOfNumber;
-		diffuseColor?: ArrayOfNumber;
-		specularColor?: ArrayOfNumber;
+		ambientColor?: Float3;
+		diffuseColor?: Float3;
+		specularColor?: Float3;
 	}
 
 	export type MaterialSet = { [matName: string]: Material };

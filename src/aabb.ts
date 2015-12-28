@@ -41,7 +41,7 @@ namespace sd.world {
 		}
 
 
-		createFromCenterAndSize(center: ArrayOfNumber, size: ArrayOfNumber): AABB {
+		createFromCenterAndSize(center: Float3, size: Float3): AABB {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
@@ -52,7 +52,7 @@ namespace sd.world {
 		}
 
 
-		createFromMinAndMax(min: ArrayOfNumber, max: ArrayOfNumber): AABB {
+		createFromMinAndMax(min: Float3, max: Float3): AABB {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
@@ -66,7 +66,7 @@ namespace sd.world {
 		// ----
 
 
-		setCenterAndSize(inst: AABB, center: ArrayOfNumber, size: ArrayOfNumber) {
+		setCenterAndSize(inst: AABB, center: Float3, size: Float3) {
 			assert(size[0] >= 0);
 			assert(size[1] >= 0);
 			assert(size[2] >= 0);
@@ -84,7 +84,7 @@ namespace sd.world {
 		}
 
 
-		setMinAndMax(inst: AABB, min: ArrayOfNumber, max: ArrayOfNumber) {
+		setMinAndMax(inst: AABB, min: Float3, max: Float3) {
 			assert(min[0] <= max[0]);
 			assert(min[1] <= max[1]);
 			assert(min[2] <= max[2]);
@@ -94,7 +94,7 @@ namespace sd.world {
 		}
 
 
-		includePoint(inst: AABB, pt3: ArrayOfNumber) {
+		includePoint(inst: AABB, pt3: Float3) {
 			var instMin = container.copyIndexedVec3(this.minBase_, <number>inst);
 			var instMax = container.copyIndexedVec3(this.maxBase_, <number>inst);
 			
@@ -135,7 +135,7 @@ namespace sd.world {
 		// --
 
 
-		transformMat3(dest: AABB, source: AABB, mat: ArrayOfNumber) {
+		transformMat3(dest: AABB, source: AABB, mat: Float3x3) {
 			var sourceMin = container.copyIndexedVec3(this.minBase_, <number>source);
 			var sourceMax = container.copyIndexedVec3(this.maxBase_, <number>source);
 
@@ -150,7 +150,7 @@ namespace sd.world {
 		}
 
 
-		transformMat4(dest: AABB, source: AABB, mat: ArrayOfNumber) {
+		transformMat4(dest: AABB, source: AABB, mat: Float4x4) {
 			var sourceMin = container.copyIndexedVec3(this.minBase_, <number>source);
 			var sourceMax = container.copyIndexedVec3(this.maxBase_, <number>source);
 
@@ -179,7 +179,7 @@ namespace sd.world {
 		// --
 
 		
-		containsPoint(inst: AABB, pt: ArrayOfNumber) {
+		containsPoint(inst: AABB, pt: Float3) {
 			var instMin = container.copyIndexedVec3(this.minBase_, <number>inst);
 			var instMax = container.copyIndexedVec3(this.maxBase_, <number>inst);
 			
@@ -211,7 +211,7 @@ namespace sd.world {
 		}
 
 
-		closestPoint(inst: AABB, pt3: ArrayOfNumber): number[] {
+		closestPoint(inst: AABB, pt3: Float3): number[] {
 			var instMin = container.copyIndexedVec3(this.minBase_, <number>inst);
 			var instMax = container.copyIndexedVec3(this.maxBase_, <number>inst);
 			

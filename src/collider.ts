@@ -14,8 +14,8 @@ namespace sd.world {
 
 	export interface ColliderDescriptor {
 		type: ColliderType;
-		center: ArrayOfNumber; // vec3, offset from center of model
-		size: ArrayOfNumber;   // vec3, scaled by entity's transform scale
+		center: Float3; // offset from center of model
+		size: Float3;   // scaled by entity's transform scale
 	}
 
 

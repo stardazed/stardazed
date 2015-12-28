@@ -141,7 +141,7 @@ namespace sd.math {
 			// console.info("FRAME", this.topLeft, this.topRight, this.bottomLeft, this.bottomRight);
 		}
 
-		intersectsLineSegment(ptA: ArrayOfNumber, ptB: ArrayOfNumber): boolean {
+		intersectsLineSegment(ptA: Float3, ptB: Float3): boolean {
 			var d = [ptB[0] - ptA[0], ptB[1] - ptA[1]];
 
 			var tmin = 0;
@@ -239,7 +239,7 @@ namespace sd.math {
 
 	// ----
 
-	export function reflectVec3(v3: ArrayOfNumber, normal: ArrayOfNumber) {
+	export function reflectVec3(v3: Float3, normal: Float3) {
 		return vec3.sub([], v3, vec3.scale([], normal, 2 * vec3.dot(v3, normal)));
 	}
 

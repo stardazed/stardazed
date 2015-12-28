@@ -74,7 +74,7 @@ namespace sd.world {
 		}
 
 
-		setCenter(xyz: ArrayOfNumber) {
+		setCenter(xyz: Float3) {
 			this.transformMgr_.setPosition(this.txInstance_, xyz);
 		}
 

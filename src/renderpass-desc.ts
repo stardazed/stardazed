@@ -68,7 +68,7 @@ namespace sd.render {
 	export interface RenderPassDescriptor {
 		clearMask: ClearMask;
 
-		clearColour: ArrayOfNumber;
+		clearColour: Float4;
 		clearDepth: number;
 		clearStencil: number;		
 	}

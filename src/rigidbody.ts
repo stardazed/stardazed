@@ -203,17 +203,17 @@ namespace sd.world {
 			return container.copyIndexedVec2(this.massBase_, <number>inst)[0];
 		}
 
-		momentum(inst: RigidBodyInstance): ArrayOfNumber {
+		momentum(inst: RigidBodyInstance): Float3 {
 			return container.copyIndexedVec3(this.momentumBase_, <number>inst);
 		}
 
-		setMomentum(inst: RigidBodyInstance, newMomentum: ArrayOfNumber) {
+		setMomentum(inst: RigidBodyInstance, newMomentum: Float3) {
 			container.setIndexedVec3(this.momentumBase_, <number>inst, newMomentum);
 			var newVelocity = vec3.scale([], newMomentum, this.massBase_[(<number>inst * 2) + 1]);
 			container.setIndexedVec3(this.velocityBase_, <number>inst, newVelocity);
 		}
 
-		velocity(inst: RigidBodyInstance): ArrayOfNumber {
+		velocity(inst: RigidBodyInstance): Float3 {
 			return container.copyIndexedVec3(this.velocityBase_, <number>inst);
 		}
 
@@ -222,33 +222,33 @@ namespace sd.world {
 			return container.copyIndexedVec2(this.inertiaBase_, <number>inst)[0];
 		}
 
-		angMomentum(inst: RigidBodyInstance): ArrayOfNumber {
+		angMomentum(inst: RigidBodyInstance): Float3 {
 			return container.copyIndexedVec3(this.angMomentumBase_, <number>inst);
 		}
 
-		setAngMomentum(inst: RigidBodyInstance, newAngMomentum: ArrayOfNumber) {
+		setAngMomentum(inst: RigidBodyInstance, newAngMomentum: Float3) {
 			container.setIndexedVec3(this.angMomentumBase_, <number>inst, newAngMomentum);
 			var newAngVelocity = vec3.scale([], newAngMomentum, this.inertiaBase_[(<number>inst * 2) + 1]);
 			container.setIndexedVec3(this.angVelocityBase_, <number>inst, newAngVelocity);
 		}
 
-		angVelocity(inst: RigidBodyInstance): ArrayOfNumber {
+		angVelocity(inst: RigidBodyInstance): Float3 {
 			return container.copyIndexedVec3(this.angVelocityBase_, <number>inst);
 		}
 
 
-		prevPosition(inst: RigidBodyInstance): ArrayOfNumber {
+		prevPosition(inst: RigidBodyInstance): Float3 {
 			return container.copyIndexedVec3(this.prevPositionBase_, <number>inst);
 		}
 
-		prevVelocity(inst: RigidBodyInstance): ArrayOfNumber {
+		prevVelocity(inst: RigidBodyInstance): Float3 {
 			return container.copyIndexedVec3(this.prevVelocityBase_, <number>inst);
 		}
 
 
 		// -- derived data
 
-		acceleration(inst: RigidBodyInstance): ArrayOfNumber {
+		acceleration(inst: RigidBodyInstance): Float3 {
 			var vCur = container.copyIndexedVec3(this.velocityBase_, <number>inst);
 			var vLast = container.copyIndexedVec3(this.prevVelocityBase_, <number>inst);
 
@@ -267,7 +267,7 @@ namespace sd.world {
 			container.setIndexedVec3(this.velocityBase_, <number>inst, math.Vec3.zero);
 		}
 
-		addForce(inst: RigidBodyInstance, force: ArrayOfNumber, forceCenterOffset?: ArrayOfNumber) {
+		addForce(inst: RigidBodyInstance, force: Float3, forceCenterOffset?: Float3) {
 			// as of Nov 2015 this is (a lot) faster than subarray()/set()
 			var totalForce = container.copyIndexedVec3(this.forceBase_, <number>inst);
 			totalForce[0] += force[0];
@@ -281,7 +281,7 @@ namespace sd.world {
 			}
 		}
 		
-		addTorque(inst: RigidBodyInstance, torque: ArrayOfNumber) {
+		addTorque(inst: RigidBodyInstance, torque: Float3) {
 			// as of Nov 2015 this is (a lot) faster than subarray()/set()
 			var totalTorque = container.copyIndexedVec3(this.torqueBase_, <number>inst);
 			totalTorque[0] += torque[0];

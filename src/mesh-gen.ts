@@ -29,9 +29,9 @@ namespace sd.mesh.gen {
 
 	export interface TransformedMeshGen {
 		generator: MeshGenerator;
-		rotation?: ArrayOfNumber; // quat
-		translation?: ArrayOfNumber; // vec3
-		scale?: ArrayOfNumber; // vec3
+		rotation?: Float4; // quat
+		translation?: Float3; // vec3
+		scale?: Float3; // vec3
 	}
 
 	export type MeshGenSource = MeshGenerator | TransformedMeshGen;
@@ -356,7 +356,7 @@ namespace sd.mesh.gen {
 			];
 
 			// topleft, topright, botright, botleft
-			var quad = function(a: number, b: number, c: number, d: number, norm: ArrayOfNumber) {
+			var quad = function(a: number, b: number, c: number, d: number, norm: Float3) {
 				position(p[a][0], p[a][1], p[a][2]);
 				position(p[b][0], p[b][1], p[b][2]);
 				position(p[c][0], p[c][1], p[c][2]);

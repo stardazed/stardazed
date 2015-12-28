@@ -7,8 +7,8 @@
 namespace sd.world {
 
 	export interface ProjectionSetup {
-		projectionMatrix: ArrayOfNumber;
-		viewMatrix: ArrayOfNumber;
+		projectionMatrix: Float4x4;
+		viewMatrix: Float4x4;
 	}
 
 } // sd.world

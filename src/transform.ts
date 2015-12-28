@@ -13,9 +13,9 @@ namespace sd.world {
 	export type TransformInstance = Instance<TransformManager>;
 
 	export interface TransformDescriptor {
-		position: ArrayOfNumber;
-		rotation?: ArrayOfNumber;
-		scale?: ArrayOfNumber;
+		position: Float3;
+		rotation?: Float4;
+		scale?: Float3;
 	}
 
 
@@ -187,7 +187,7 @@ namespace sd.world {
 
 
 		// update the world matrices of inst and all of its children
-		private applyParentTransform(parentMatrix: ArrayOfNumber, inst: TransformInstance) {
+		private applyParentTransform(parentMatrix: Float4x4, inst: TransformInstance) {
 			var localMat = this.localMatrix(inst);
 			var worldMat = this.worldMatrix(inst);
 			mat4.multiply(worldMat, parentMatrix, localMat);
@@ -201,9 +201,9 @@ namespace sd.world {
 
 
 		// two overloads: one with new matrix, one with tranform components
-		setLocalMatrix(inst: TransformInstance, newLocalMatrix: ArrayOfNumber): void;
-		setLocalMatrix(inst: TransformInstance, newRotation: ArrayOfNumber, newPosition: ArrayOfNumber, newScale: ArrayOfNumber): void;
-		setLocalMatrix(inst: TransformInstance, localMatOrRot: ArrayOfNumber, newPosition?: ArrayOfNumber, newScale?: ArrayOfNumber) {
+		setLocalMatrix(inst: TransformInstance, newLocalMatrix: Float4x4): void;
+		setLocalMatrix(inst: TransformInstance, newRotation: Float4, newPosition: Float3, newScale: Float3): void;
+		setLocalMatrix(inst: TransformInstance, localMatOrRot: ArrayOfNumber, newPosition?: Float3, newScale?: Float3) {
 			var localMat = container.refIndexedMat4(this.localMatrixBase_, <number>inst);
 			if (arguments.length == 4) {
 				mat4.fromRotationTranslationScale(localMat, localMatOrRot, newPosition, newScale);
@@ -284,23 +284,23 @@ namespace sd.world {
 		}
 
 
-		setPosition(inst: TransformInstance, newPosition: ArrayOfNumber) {
+		setPosition(inst: TransformInstance, newPosition: Float3) {
 			this.positionBase_.set(newPosition, <number>inst * math.Vec3.elementCount);
 			this.setLocalMatrix(inst, this.localRotation(inst), newPosition, this.localScale(inst));
 		}
 
-		setRotation(inst: TransformInstance, newRotation: ArrayOfNumber) {
+		setRotation(inst: TransformInstance, newRotation: Float4) {
 			this.rotationBase_.set(newRotation, <number>inst * math.Quat.elementCount);
 			this.setLocalMatrix(inst, newRotation, this.localPosition(inst), this.localScale(inst));
 		}
 
-		setPositionAndRotation(inst: TransformInstance, newPosition: ArrayOfNumber, newRotation: ArrayOfNumber) {
+		setPositionAndRotation(inst: TransformInstance, newPosition: Float3, newRotation: Float4) {
 			this.positionBase_.set(newPosition, <number>inst * math.Vec3.elementCount);
 			this.rotationBase_.set(newRotation, <number>inst * math.Quat.elementCount);
 			this.setLocalMatrix(inst, newRotation, newPosition, this.localScale(inst));
 		}
 
-		setScale(inst: TransformInstance, newScale: ArrayOfNumber) {
+		setScale(inst: TransformInstance, newScale: Float3) {
 			this.scaleBase_.set(newScale, <number>inst * math.Vec3.elementCount);
 			this.setLocalMatrix(inst, this.localRotation(inst), this.localPosition(inst), newScale);
 		}
@@ -308,12 +308,12 @@ namespace sd.world {
 
 		// -- relative transform helpers
 
-		translate(inst: TransformInstance, localDelta3: ArrayOfNumber) {
+		translate(inst: TransformInstance, localDelta3: Float3) {
 			var pos = this.localPosition(inst);
 			this.setPosition(inst, [pos[0] + localDelta3[0], pos[1] + localDelta3[1], pos[2] + localDelta3[2]]);
 		}
 
-		rotateByAngles(inst: TransformInstance, angDelta3: ArrayOfNumber) {
+		rotateByAngles(inst: TransformInstance, angDelta3: Float3) {
 			var rot = this.localRotation(inst);
 			var q = quat.fromEuler(angDelta3[2], angDelta3[1], angDelta3[0]);
 			this.setRotation(inst, quat.multiply([], rot, q));

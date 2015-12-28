@@ -26,15 +26,15 @@ namespace sd.world {
 
 	export interface StdMaterialDescriptor {
 		// colours
-		mainColour: ArrayOfNumber;      // v3, single colour or tint for albedo
+		mainColour: Float3;             // v3, single colour or tint for albedo
 
 		specularIntensity: number;      // 0..1
 		specularExponent: number;       // 0+
 		specularColourMix: number;      // 0..1: mix between material colour and light colour for specular (0: all material, 1: all light)
 
 		// textures
-		textureScale: ArrayOfNumber;    // v2, scale and offset apply to all textures
-		textureOffset: ArrayOfNumber;
+		textureScale: Float2;           // v2, scale and offset apply to all textures
+		textureOffset: Float2;
 
 		albedoMap: render.Texture;      // nullptr means use mainColour only
 		normalMap: render.Texture;      // nullptr means no bump
@@ -159,7 +159,7 @@ namespace sd.world {
 
 
 		// -- individual element field accessors
-		mainColour(inst: StdMaterialInstance): ArrayOfNumber {
+		mainColour(inst: StdMaterialInstance): Float3 {
 			var offset = <number>inst * 4;
 			return [
 				this.mainColourBase_[offset],
@@ -168,7 +168,7 @@ namespace sd.world {
 			];
 		}
 
-		setMainColour(inst: StdMaterialInstance, newColour: ArrayOfNumber) {
+		setMainColour(inst: StdMaterialInstance, newColour: Float3) {
 			var offset = <number>inst * 4;
 			this.mainColourBase_[offset]     = newColour[0];
 			this.mainColourBase_[offset + 1] = newColour[1];
@@ -203,24 +203,24 @@ namespace sd.world {
 		}
 
 
-		textureScale(inst: StdMaterialInstance): ArrayOfNumber {
+		textureScale(inst: StdMaterialInstance): Float2 {
 			var offset = <number>inst * 4;
 			return [this.texScaleOffsetBase_[offset], this.texScaleOffsetBase_[offset + 1]];
 		}
 
-		setTextureScale(inst: StdMaterialInstance, newScale: ArrayOfNumber) {
+		setTextureScale(inst: StdMaterialInstance, newScale: Float2) {
 			var offset = <number>inst * 4;
 			this.texScaleOffsetBase_[offset] = newScale[0];
 			this.texScaleOffsetBase_[offset + 1] = newScale[1];
 		}
 
 
-		textureOffset(inst: StdMaterialInstance): ArrayOfNumber {
+		textureOffset(inst: StdMaterialInstance): Float2 {
 			var offset = <number>inst * 4;
 			return [this.texScaleOffsetBase_[offset + 2], this.texScaleOffsetBase_[offset + 3]];
 		}
 
-		setTextureOffset(inst: StdMaterialInstance, newOffset: ArrayOfNumber) {
+		setTextureOffset(inst: StdMaterialInstance, newOffset: Float2) {
 			var offset = <number>inst * 4;
 			this.texScaleOffsetBase_[offset + 2] = newOffset[0];
 			this.texScaleOffsetBase_[offset + 3] = newOffset[1];

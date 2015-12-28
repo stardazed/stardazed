@@ -27,7 +27,7 @@ namespace sd.world {
 	export type LightInstance = Instance<LightManager>;
 
 	export interface LightDescriptor {
-		colour: ArrayOfNumber;
+		colour: Float3;
 		ambientIntensity: number;
 		diffuseIntensity: number;
 
@@ -43,10 +43,10 @@ namespace sd.world {
 
 	export interface LightData {
 		type: number;
-		colourData: ArrayOfNumber;    // vec4, colour[3], amplitude
-		parameterData: ArrayOfNumber; // vec4, ambIntensity, diffIntensity, range, cutoff
-		position: ArrayOfNumber;      // vec4, position[3], shadowStrength
-		direction: ArrayOfNumber;     // vec4, direction[3], shadowBias
+		colourData: Float4;    // colour[3], amplitude
+		parameterData: Float4; // ambIntensity, diffIntensity, range, cutoff
+		position: Float4;      // position[3], shadowStrength
+		direction: Float4;     // direction[3], shadowBias
 	}
 
 
@@ -189,17 +189,17 @@ namespace sd.world {
 			return this.transformMgr_.localPosition(this.transformBase_[<number>inst]);
 		}
 
-		setLocalPosition(inst: LightInstance, newPosition: ArrayOfNumber) {
+		setLocalPosition(inst: LightInstance, newPosition: Float3) {
 			this.transformMgr_.setPosition(this.transformBase_[<number>inst], newPosition);
 		}
 
 
-		direction(inst: LightInstance): ArrayOfNumber {
+		direction(inst: LightInstance): Float3 {
 			var rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(this.transformBase_[<number>inst]));
 			return vec3.normalize([], vec3.transformMat3([], this.nullVec3_, rotMat));
 		}
 
-		setDirection(inst: LightInstance, newDirection: ArrayOfNumber) {
+		setDirection(inst: LightInstance, newDirection: Float3) {
 			var normalizedDir = vec3.normalize([], newDirection);
 			this.transformMgr_.setRotation(this.transformBase_[<number>inst], quat.rotationTo([], this.nullVec3_, normalizedDir));
 		}
@@ -213,7 +213,7 @@ namespace sd.world {
 			var worldTarget = vec3.add([], worldPos, this.direction(inst));
 
 			var viewMatrix = mat4.lookAt([], worldPos, worldTarget, [0, 1, 0]); // FIXME: this can likely be done cheaper
-			var projectionMatrix: ArrayOfNumber = null;
+			var projectionMatrix: Float4x4 = null;
 
 			const nearZ = 2; // fixed near-z
 

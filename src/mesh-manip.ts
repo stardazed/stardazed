@@ -6,7 +6,7 @@
 
 namespace sd.mesh {
 
-	export function scale(mesh: MeshData, scale: ArrayOfNumber) {
+	export function scale(mesh: MeshData, scale: Float3) {
 		assert(scale.length == 3);
 
 		var posAttr = mesh.findFirstAttributeWithRole(VertexAttributeRole.Position);
@@ -17,7 +17,7 @@ namespace sd.mesh {
 	}
 
 
-	export function translate(mesh: MeshData, globalDelta: ArrayOfNumber) {
+	export function translate(mesh: MeshData, globalDelta: Float3) {
 		assert(globalDelta.length == 3);
 
 		var posAttr = mesh.findFirstAttributeWithRole(VertexAttributeRole.Position);
@@ -28,7 +28,7 @@ namespace sd.mesh {
 	}
 
 
-	export function rotate(mesh: MeshData, rotation: ArrayOfNumber) {
+	export function rotate(mesh: MeshData, rotation: Float4) {
 		assert(rotation.length == 4);
 
 		var posAttr = mesh.findFirstAttributeWithRole(VertexAttributeRole.Position);
@@ -45,7 +45,7 @@ namespace sd.mesh {
 	}
 
 
-	export function transform(mesh: MeshData, rotate?: ArrayOfNumber, translate?: ArrayOfNumber, scale?: ArrayOfNumber) {
+	export function transform(mesh: MeshData, rotate?: Float4, translate?: Float3, scale?: Float3) {
 		if (! rotate)
 			rotate = quat.create();
 		if (! translate)

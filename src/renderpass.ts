@@ -201,7 +201,7 @@ namespace sd.render {
 		}
 
 
-		setConstantBlendColour(colour4: ArrayOfNumber) {
+		setConstantBlendColour(colour4: Float4) {
 			assert(colour4.length >= 4);
 			this.rc.gl.blendColor(colour4[0], colour4[1], colour4[2], colour4[3]);
 		}
