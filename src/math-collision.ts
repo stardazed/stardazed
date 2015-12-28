@@ -1,30 +1,94 @@
 // math-collision - intersection tests of primitives
-// based on text and sources from Real-Time Collision Detection by Christer Ericson
+// portions based on text and sources from Real-Time Collision Detection by Christer Ericson
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 namespace sd.math {
 
 	export interface Sphere {
-		center: ArrayOfNumber;
+		center: Float3;
 		radius: number;
 	}
 
 
 	export interface Plane {
-		normal: ArrayOfNumber;
+		normal: Float3;
 		d: number;
+	}
+
+
+	export interface BoundedPlane extends Plane {
+		center: Float3;
+		size: Float2;
+	}
+
+
+	// a, b, c must be in CCW order
+	export function makePlaneFromPoints(a: Float3, b: Float3, c: Float3): Plane {
+		var normal = vec3.normalize([], vec3.cross([], vec3.sub([], b, a), vec3.sub([], c, a)));
+
+		return {
+			normal: normal,
+			d: vec3.dot(normal, a)
+		};
+	}
+
+
+	export function makePlaneFromPointAndNormal(p: Float3, normal: Float3): Plane {
+		var orthoNormal = arbitraryOrthogonalVec3(normal);
+		var b = vec3.add([], p, orthoNormal);
+		var c = vec3.add([], p, vec3.cross([], normal, orthoNormal));
+
+		return makePlaneFromPoints(p, b, c);
+	}
+
+
+	export function makeBoundedPlane(center: Float3, normal: Float3, size: Float2): BoundedPlane {
+		var bp = makePlaneFromPointAndNormal(center, normal);
+		
+
+		return null;
+	}
+
+
+	export function extentsOfBoundedPlane(bp: BoundedPlane): Float3 {
+		return null;
 	}
 
 
 	export interface SpherePlaneIntersection {
 		intersected: boolean;
 		t?: number;
-		point?: ArrayOfNumber;
+		point?: Float3;
 	}
 
 
-	export function intersectMovingSpherePlane(sphere: Sphere, direction: ArrayOfNumber, plane: Plane): SpherePlaneIntersection {
+	export function planesOfTransformedBox(center: Float3, size: Float3, transMat4: Float4x4): Plane[] {
+		var planes: Plane[] = [];
+		var extents = vec3.scale([], size, 0.5);
+
+		var cx = center[0], cy = center[1], cz = center[2];
+		var ex = extents[0], ey = extents[1], ez = extents[2];
+
+		var corners: Float3[] = [
+			vec3.fromValues(cx - ex, cy - ey, cz - ez),
+			vec3.fromValues(cx - ex, cy - ey, cz + ez),
+			vec3.fromValues(cx + ex, cy - ey, cz - ez),
+			vec3.fromValues(cx + ex, cy - ey, cz + ez),
+		
+			vec3.fromValues(cx - ex, cy + ey, cz - ez),
+			vec3.fromValues(cx - ex, cy + ey, cz + ez),
+			vec3.fromValues(cx + ex, cy + ey, cz - ez),
+			vec3.fromValues(cx + ex, cy + ey, cz + ez)
+		];
+
+		planes.push(makePlaneFromPoints(corners[2], corners[1], corners[0]));
+
+		return planes;
+	}
+
+
+	export function intersectMovingSpherePlane(sphere: Sphere, direction: Float3, plane: Plane): SpherePlaneIntersection {
 		var result: SpherePlaneIntersection = { intersected: false };
 
 		var dist = vec3.dot(plane.normal, sphere.center) - plane.d;
