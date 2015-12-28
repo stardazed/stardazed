@@ -33,6 +33,17 @@ quat.fromEuler = function(yaw: number, pitch: number, roll: number) {
 }
 
 
+// types to use in function signatures to not have ArrayOfNumber everywhere
+
+type Float2 = ArrayOfNumber;
+type Float3 = ArrayOfNumber;
+type Float4 = ArrayOfNumber;
+
+type Float2x2 = ArrayOfNumber;
+type Float3x3 = ArrayOfNumber;
+type Float4x4 = ArrayOfNumber;
+
+
 
 namespace sd.math {
 
