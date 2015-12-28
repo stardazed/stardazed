@@ -8,14 +8,16 @@ namespace sd.world {
 
 	export const enum ColliderType {
 		None,
-		Box,
-		Sphere
+		Sphere,
+		Plane
 	}
 
 	export interface ColliderDescriptor {
 		type: ColliderType;
-		center: Float3; // offset from center of model
-		size: Float3;   // scaled by entity's transform scale
+		center: Float3;                 // offset from center of model
+
+		normal?: Float3;                // used for Plane
+		size?: number | ArrayOfNumber;  // Sphere: Float, Plane: Float2, Box: Float3
 	}
 
 
@@ -58,7 +60,7 @@ namespace sd.world {
 		}
 
 
-		create(ent: Entity, desc: ColliderDescriptor): RigidBodyInstance {
+		create(ent: Entity, desc: ColliderDescriptor): ColliderInstance {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
@@ -67,7 +69,16 @@ namespace sd.world {
 			this.entityBase_[instance] = <number>ent;
 			this.transformBase_[instance] = <number>this.transformMgr_.forEntity(ent);
 			this.bodyBase_[instance] = <number>this.rigidBodyMgr_.forEntity(ent);
-			this.boundsBase_[instance] = <number>this.aabbMgr_.createFromCenterAndSize(desc.center, desc.size);
+			this.typeBase_[instance] = desc.type;
+
+			// -- determine
+			if (desc.type == ColliderType.Sphere) {
+				var diameter = <number>desc.size * 2;
+				this.boundsBase_[instance] = <number>this.aabbMgr_.createFromCenterAndSize(desc.center, [diameter, diameter, diameter]);
+			}
+			else if (desc.type == ColliderType.Plane) {
+				
+			}
 
 			return instance;
 		}
