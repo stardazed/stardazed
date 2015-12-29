@@ -19,7 +19,7 @@ namespace sd.math {
 
 	export interface BoundedPlane extends Plane {
 		center: Float3;
-		size: Float2;
+		size: Float2;   // 2 dimensions!
 	}
 
 
@@ -51,8 +51,17 @@ namespace sd.math {
 	}
 
 
-	export function sizeOfBoundedPlane(bp: BoundedPlane): Float3 {
-		return null;
+	export function boundingSizeOfBoundedPlane(bp: BoundedPlane): Float3 {
+		// FIXME: this is kind of a guess which seems to return reasonable sizes, but need to check and improve this
+		var wx = Math.abs(Math.sin(Math.acos(bp.normal[0])));
+		var wz = Math.abs(Math.sin(Math.acos(bp.normal[2])));
+
+		// give plane a depth of 1mm 
+		return [
+			Math.max(0.001, bp.size[0] * wx),
+			Math.max(0.001, (bp.normal[0] * bp.size[0]) + (bp.normal[2] * bp.size[1])),
+			Math.max(0.001, bp.size[1] * wz)
+		];
 	}
 
 

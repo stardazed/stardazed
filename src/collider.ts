@@ -14,10 +14,8 @@ namespace sd.world {
 
 	export interface ColliderDescriptor {
 		type: ColliderType;
-		center: Float3;                 // offset from center of model
-
-		normal?: Float3;                // used for Plane
-		size?: number | ArrayOfNumber;  // Sphere: Float, Plane: Float2, Box: Float3
+		sphere?: math.Sphere;
+		plane?: math.BoundedPlane;
 	}
 
 
@@ -73,11 +71,14 @@ namespace sd.world {
 
 			// -- determine
 			if (desc.type == ColliderType.Sphere) {
-				var diameter = <number>desc.size * 2;
-				this.boundsBase_[instance] = <number>this.aabbMgr_.createFromCenterAndSize(desc.center, [diameter, diameter, diameter]);
+				assert(desc.sphere);
+				var diameter = <number>desc.sphere.radius * 2;
+				this.boundsBase_[instance] = <number>this.aabbMgr_.createFromCenterAndSize(desc.sphere.center, [diameter, diameter, diameter]);
 			}
 			else if (desc.type == ColliderType.Plane) {
-				
+				assert(desc.plane);
+				var boundingSize = math.boundingSizeOfBoundedPlane(desc.plane);
+				this.boundsBase_[instance] = <number>this.aabbMgr_.createFromCenterAndSize(desc.plane.center, boundingSize);
 			}
 
 			return instance;
