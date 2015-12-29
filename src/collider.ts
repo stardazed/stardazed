@@ -26,7 +26,10 @@ namespace sd.world {
 		private transformBase_: Int32Array;
 		private bodyBase_: Int32Array;
 		private boundsBase_: Int32Array;
-		private typeBase_: Uint32Array;
+		private typeBase_: Int32Array;
+
+		private sphereData_: Map<number, math.Sphere>;
+		private planeData_: Map<number, math.BoundedPlane>;
 
 		private worldBoundsA_: AABB;
 		private worldBoundsB_: AABB;
@@ -38,11 +41,14 @@ namespace sd.world {
 				{ type: SInt32, count: 1 }, // transform
 				{ type: SInt32, count: 1 }, // rigidBody
 				{ type: SInt32, count: 1 }, // aabb
-				{ type: UInt32, count: 1 }, // type
+				{ type: SInt32, count: 1 }, // type
 			];
 
 			this.instanceData_ = new container.MultiArrayBuffer(128, fields);
 			this.rebase();
+
+			this.sphereData_ = new Map<number, math.Sphere>();
+			this.planeData_ = new Map<number, math.BoundedPlane>();
 
 			this.worldBoundsA_ = this.aabbMgr_.createEmpty();
 			this.worldBoundsB_ = this.aabbMgr_.createEmpty();
@@ -54,7 +60,7 @@ namespace sd.world {
 			this.transformBase_ = <Int32Array>this.instanceData_.indexedFieldView(1);
 			this.bodyBase_ = <Int32Array>this.instanceData_.indexedFieldView(2);
 			this.boundsBase_ = <Int32Array>this.instanceData_.indexedFieldView(3);
-			this.typeBase_ = <Uint32Array>this.instanceData_.indexedFieldView(4);
+			this.typeBase_ = <Int32Array>this.instanceData_.indexedFieldView(4);
 		}
 
 
@@ -74,11 +80,13 @@ namespace sd.world {
 				assert(desc.sphere);
 				var diameter = <number>desc.sphere.radius * 2;
 				this.boundsBase_[instance] = <number>this.aabbMgr_.createFromCenterAndSize(desc.sphere.center, [diameter, diameter, diameter]);
+				this.sphereData_.set(instance, desc.sphere);
 			}
 			else if (desc.type == ColliderType.Plane) {
 				assert(desc.plane);
 				var boundingSize = math.boundingSizeOfBoundedPlane(desc.plane);
 				this.boundsBase_[instance] = <number>this.aabbMgr_.createFromCenterAndSize(desc.plane.center, boundingSize);
+				this.planeData_.set(instance, desc.plane);
 			}
 
 			return instance;
@@ -113,20 +121,37 @@ namespace sd.world {
 						var typeA = <ColliderType>this.typeBase_[collA];
 						var typeB = <ColliderType>this.typeBase_[collB];
 
-
-
-
-
-						var velPrevA = this.rigidBodyMgr_.prevVelocity(rbA);
-						var velCurA = this.rigidBodyMgr_.velocity(rbA);
-
 						var posPrevA = this.rigidBodyMgr_.prevPosition(rbA);
 						var posCurA = this.transformMgr_.localPosition(txA);
+						var dirA = vec3.subtract([], posCurA, posPrevA);
 
+						var matB = this.transformMgr_.localMatrix(txB);
 
+						var sphereADef = this.sphereData_.get(collA);
+						var sphereA = { center: vec3.add([], sphereADef.center, posPrevA), radius: sphereADef.radius };
+						var planeBDef = this.planeData_.get(collB);
+						var planeB = math.transformBoundedPlaneMat4(planeBDef, matB);
+						var intersection = math.intersectMovingSpherePlane(sphereA, dirA, planeB);
+						if (intersection.intersected && intersection.t >= 0 && intersection.t <= 1) {
+							var velPrevA = this.rigidBodyMgr_.prevVelocity(rbA);
+							var velCurA = this.rigidBodyMgr_.velocity(rbA);
+							var velDiffA = vec3.subtract([], velCurA, velPrevA);
+							var velAtHit = vec3.scaleAndAdd([], velPrevA, velDiffA, intersection.t);
+							var exitVelA = math.reflectVec3(velAtHit, planeB.normal);
+							vec3.scale(exitVelA, exitVelA, 0.4);
 
+							if (vec3.squaredLength(exitVelA) < 0.001) {
+								exitVelA = [0,0,0];
+							}
+							console.info(vec3.length(exitVelA));
 
-						this.rigidBodyMgr_.setMomentum(rbA, [0, 0, 0]);
+							var posAtHit = vec3.scaleAndAdd([], posPrevA, vec3.subtract([], posCurA, posPrevA), intersection.t);
+							var newPosA = vec3.scaleAndAdd([], posAtHit, exitVelA, dt * (1 - intersection.t));
+
+							this.transformMgr_.setPosition(txA, newPosA);
+							this.rigidBodyMgr_.setVelocity(rbA, exitVelA);
+							this.rigidBodyMgr_.addForce(rbA, vec3.scale([], velAtHit, dt), vec3.subtract([], intersection.point, sphereA.center));
+						}
 					}
 				}
 			}
