@@ -44,14 +44,14 @@ namespace sd.math {
 
 
 	export function makeBoundedPlane(center: Float3, normal: Float3, size: Float2): BoundedPlane {
-		var bp = makePlaneFromPointAndNormal(center, normal);
-		
-
-		return null;
+		var bp = <BoundedPlane>makePlaneFromPointAndNormal(center, normal);
+		bp.center = vec3.clone(center);
+		bp.size = vec2.clone(size);
+		return bp;
 	}
 
 
-	export function extentsOfBoundedPlane(bp: BoundedPlane): Float3 {
+	export function sizeOfBoundedPlane(bp: BoundedPlane): Float3 {
 		return null;
 	}
 
