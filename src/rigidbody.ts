@@ -217,6 +217,12 @@ namespace sd.world {
 			return container.copyIndexedVec3(this.velocityBase_, <number>inst);
 		}
 
+		setVelocity(inst: RigidBodyInstance, newVelocity: Float3) {
+			container.setIndexedVec3(this.velocityBase_, <number>inst, newVelocity);
+			var newMomentum = vec3.scale([], newVelocity, this.massBase_[(<number>inst * 2)]);
+			container.setIndexedVec3(this.momentumBase_, <number>inst, newMomentum);
+		}
+
 
 		inertia(inst: RigidBodyInstance): number {
 			return container.copyIndexedVec2(this.inertiaBase_, <number>inst)[0];
