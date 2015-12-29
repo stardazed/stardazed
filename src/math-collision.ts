@@ -65,6 +65,15 @@ namespace sd.math {
 	}
 
 
+	export function transformBoundedPlaneMat4(bp: BoundedPlane, mat: Float4x4): BoundedPlane {
+		var newCenter = vec3.transformMat4([], bp.center, mat);
+		var normMat = mat3.normalFromMat4([], mat);
+		var newNormal = vec3.transformMat3([], bp.normal, normMat);
+
+		return makeBoundedPlane(newCenter, newNormal, bp.size);
+	}
+
+
 	export interface SpherePlaneIntersection {
 		intersected: boolean;
 		t?: number;
