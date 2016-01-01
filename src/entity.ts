@@ -1,4 +1,4 @@
-// world - entities and shared interfaces
+// entity - entities and shared interfaces
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
@@ -6,16 +6,6 @@
 /// <reference path="container.ts" />
 
 namespace sd.world {
-
-	//  ___     _   _ _        __  __                             
-	// | __|_ _| |_(_) |_ _  _|  \/  |__ _ _ _  __ _ __ _ ___ _ _ 
-	// | _|| ' \  _| |  _| || | |\/| / _` | ' \/ _` / _` / -_) '_|
-	// |___|_||_\__|_|\__|\_, |_|  |_\__,_|_||_\__,_\__, \___|_|  
-	//                    |__/                      |___/         
-
-	export interface Instance<Component> extends Number {
-		__C?: Component;
-	}
 
 	export type Entity = Instance<EntityManager>;
 
