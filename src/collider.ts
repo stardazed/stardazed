@@ -19,7 +19,7 @@ namespace sd.world {
 	}
 
 
-	export class ColliderManager {
+	export class ColliderManager implements ComponentManager<ColliderManager> {
 		private instanceData_: container.MultiArrayBuffer;
 
 		private entityBase_: Int32Array;
@@ -96,6 +96,11 @@ namespace sd.world {
 		get count() { return this.instanceData_.count; }
 
 
+		valid(inst: ColliderInstance) {
+			return <number>inst <= this.count;
+		}
+
+
 		resolveAll(dt: number) {
 			var maxIndex = this.count;
 
@@ -160,11 +165,11 @@ namespace sd.world {
 
 		// -- linked instances
 
-		entity(inst: RigidBodyInstance): Entity {
+		entity(inst: ColliderInstance): Entity {
 			return this.entityBase_[<number>inst];
 		}
 
-		transform(inst: RigidBodyInstance): TransformInstance {
+		transform(inst: ColliderInstance): TransformInstance {
 			return this.transformBase_[<number>inst];
 		}
 	}

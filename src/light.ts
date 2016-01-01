@@ -76,7 +76,7 @@ namespace sd.world {
 	}
 
 
-	export class LightManager {
+	export class LightManager implements ComponentManager<LightManager> {
 		private instanceData_: container.MultiArrayBuffer;
 
 		private entityBase_: TypedArray;
@@ -169,6 +169,14 @@ namespace sd.world {
 			}
 
 			return instanceIx;
+		}
+
+
+		get count() { return this.instanceData_.count; }
+
+
+		valid(inst: LightInstance) {
+			return <number>inst <= this.count;
 		}
 
 

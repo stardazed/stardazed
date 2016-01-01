@@ -6,7 +6,7 @@ namespace sd.world {
 
 	export type AABB = Instance<AABBManager>;
 
-	export class AABBManager {
+	export class AABBManager implements ComponentManager<AABBManager> {
 		private instanceData_: container.MultiArrayBuffer;
 
 		private minBase_: Float32Array;
@@ -60,6 +60,17 @@ namespace sd.world {
 			var instance = this.instanceData_.count;
 			this.setMinAndMax(instance, min, max);
 			return instance;
+		}
+
+
+		// ----
+
+
+		get count() { return this.instanceData_.count; }
+
+
+		valid(inst: AABB) {
+			return <number>inst <= this.count;
 		}
 
 

@@ -12,7 +12,7 @@ namespace sd.world {
 	}
 
 
-	export class RigidBodyManager {
+	export class RigidBodyManager implements ComponentManager<RigidBodyManager> {
 		private instanceData_: container.MultiArrayBuffer;
 		private instanceEntityMap_: Map<Entity, RigidBodyInstance>;
 
@@ -112,6 +112,11 @@ namespace sd.world {
 
 
 		get count() { return this.instanceData_.count; }
+
+
+		valid(inst: RigidBodyInstance) {
+			return <number>inst <= this.count;
+		}
 
 
 		simulateAll(dt: number) {

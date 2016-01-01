@@ -83,7 +83,7 @@ namespace sd.world {
 
 	export type StdMaterialInstance = world.Instance<StdMaterialManager>;
 
-	export class StdMaterialManager {
+	export class StdMaterialManager implements ComponentManager<StdMaterialManager> {
 		private instanceData_: container.MultiArrayBuffer;
 		private albedoMaps_: render.Texture[] = [];
 		private normalMaps_: render.Texture[] = [];
@@ -155,6 +155,14 @@ namespace sd.world {
 			this.normalMaps_[matIndex] = null;
 
 			// TODO: track/reuse freed instances etc.
+		}
+
+
+		get count() { return this.instanceData_.count; }
+
+
+		valid(inst: StdMaterialInstance) {
+			return <number>inst <= this.count;
 		}
 
 

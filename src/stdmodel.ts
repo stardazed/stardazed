@@ -468,7 +468,7 @@ namespace sd.world {
 	}
 
 
-	export class StdModelManager {
+	export class StdModelManager implements ComponentManager<StdModelManager> {
 		private stdPipeline_: StdPipeline;
 
 		private instanceData_: container.MultiArrayBuffer;
@@ -538,6 +538,16 @@ namespace sd.world {
 		private groupRebase() {
 			this.primGroupMaterialBase_ = this.primGroupData_.indexedFieldView(0);
 			this.primGroupFeatureBase_ = this.primGroupData_.indexedFieldView(1);
+		}
+
+
+		get count() {
+			return this.instanceData_.count;
+		}
+
+
+		valid(inst: StdModelInstance) {
+			return <number>inst <= this.count;
 		}
 
 

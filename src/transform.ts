@@ -19,7 +19,7 @@ namespace sd.world {
 	}
 
 
-	export class TransformManager {
+	export class TransformManager implements ComponentManager<TransformManager> {
 		private instanceData_: container.MultiArrayBuffer;
 
 		private entityBase_: TypedArray;
@@ -71,9 +71,6 @@ namespace sd.world {
 			this.localMatrixBase_ = this.instanceData_.indexedFieldView(8);
 			this.worldMatrixBase_ = this.instanceData_.indexedFieldView(9);
 		}
-
-		// -- array access
-		get count() { return this.instanceData_.count; }
 
 
 		create(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
@@ -153,6 +150,14 @@ namespace sd.world {
 			}
 
 			return thisInstance;
+		}
+
+
+		get count() { return this.instanceData_.count; }
+
+
+		valid(inst: TransformInstance) {
+			return <number>inst <= this.count;
 		}
 
 
