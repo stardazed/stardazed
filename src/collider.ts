@@ -5,6 +5,7 @@
 namespace sd.world {
 
 	export type ColliderInstance = Instance<ColliderManager>;
+	export type ColliderIterator = InstanceIterator<ColliderManager>;
 
 	export const enum ColliderType {
 		None,
@@ -98,6 +99,20 @@ namespace sd.world {
 
 		valid(inst: ColliderInstance) {
 			return <number>inst <= this.count;
+		}
+
+
+		all(): ColliderIterator {
+			var mgr = this;
+
+			return {
+				current: <ColliderInstance>0,
+				reset: function() { this.current = 0; },
+				next: function() {
+					++this.current;
+					return mgr.valid(this.current);
+				}
+			};
 		}
 
 

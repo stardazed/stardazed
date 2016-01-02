@@ -9,6 +9,11 @@ namespace sd.world {
 	}
 
 
+	export interface InstanceRange<Component> {
+		
+	}
+
+
 	export interface InstanceIterator<Component> {
 		current: Instance<Component>;
 
