@@ -560,6 +560,10 @@ namespace sd.world {
 			return new InstanceSet<StdModelManager>();
 		}
 
+		makeLinearRange(first: StdModelInstance, last: StdModelInstance): StdModelRange {
+			return new InstanceLinearRange<StdModelManager>(first, last);
+		}
+
 
 		private featuresForMeshAndMaterial(mesh: render.Mesh, material: StdMaterialInstance): Features {
 			var features = 0;

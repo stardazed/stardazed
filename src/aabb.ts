@@ -84,6 +84,10 @@ namespace sd.world {
 			return new InstanceSet<AABBManager>();
 		}
 
+		makeLinearRange(first: AABB, last: AABB): AABBRange {
+			return new InstanceLinearRange<AABBManager>(first, last);
+		}
+
 		// ----
 
 

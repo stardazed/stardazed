@@ -171,6 +171,10 @@ namespace sd.world {
 			return new InstanceSet<TransformManager>();
 		}
 
+		makeLinearRange(first: TransformInstance, last: TransformInstance): TransformRange {
+			return new InstanceLinearRange<TransformManager>(first, last);
+		}
+
 
 		// Entity -> TransformInstance mapping
 		forEntity(ent: Entity): TransformInstance {

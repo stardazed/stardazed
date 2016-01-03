@@ -176,6 +176,10 @@ namespace sd.world {
 			return new InstanceSet<StdMaterialManager>();
 		}
 
+		makeLinearRange(first: StdMaterialInstance, last: StdMaterialInstance): StdMaterialRange {
+			return new InstanceLinearRange<StdMaterialManager>(first, last);
+		}
+
 
 		// -- individual element field accessors
 		mainColour(inst: StdMaterialInstance): Float3 {

@@ -147,6 +147,7 @@ namespace sd.world {
 
 		all(): InstanceRange<Component>;
 		makeSetRange(): InstanceSet<Component>;
+		makeLinearRange(first: Instance<Component>, last: Instance<Component>): InstanceRange<Component>;
 	}
 
 } // ns sd.world

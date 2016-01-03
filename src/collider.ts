@@ -110,6 +110,10 @@ namespace sd.world {
 			return new InstanceSet<ColliderManager>();
 		}
 
+		makeLinearRange(first: ColliderInstance, last: ColliderInstance): ColliderRange {
+			return new InstanceLinearRange<ColliderManager>(first, last);
+		}
+
 
 		resolve(range: ColliderRange, dt: number) {
 			var iterA = range.makeIterator();

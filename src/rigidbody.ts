@@ -129,6 +129,10 @@ namespace sd.world {
 			return new InstanceSet<RigidBodyManager>();
 		}
 
+		makeLinearRange(first: RigidBodyInstance, last: RigidBodyInstance): RigidBodyRange {
+			return new InstanceLinearRange<RigidBodyManager>(first, last);
+		}
+
 
 		simulate(range: RigidBodyRange, dt: number) {
 			var zero3 = math.Vec3.zero;
