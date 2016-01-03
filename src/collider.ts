@@ -30,8 +30,8 @@ namespace sd.world {
 		private boundsBase_: Int32Array;
 		private typeBase_: Int32Array;
 
-		private sphereData_: Map<number, math.Sphere>;
-		private planeData_: Map<number, math.BoundedPlane>;
+		private sphereData_: Map<ColliderInstance, math.Sphere>;
+		private planeData_: Map<ColliderInstance, math.BoundedPlane>;
 
 		private worldBoundsA_: AABB;
 		private worldBoundsB_: AABB;
@@ -49,8 +49,8 @@ namespace sd.world {
 			this.instanceData_ = new container.MultiArrayBuffer(128, fields);
 			this.rebase();
 
-			this.sphereData_ = new Map<number, math.Sphere>();
-			this.planeData_ = new Map<number, math.BoundedPlane>();
+			this.sphereData_ = new Map<ColliderInstance, math.Sphere>();
+			this.planeData_ = new Map<ColliderInstance, math.BoundedPlane>();
 
 			this.worldBoundsA_ = this.aabbMgr_.createEmpty();
 			this.worldBoundsB_ = this.aabbMgr_.createEmpty();
@@ -108,30 +108,33 @@ namespace sd.world {
 		}
 
 
-		resolveAll(dt: number) {
-			var maxIndex = this.count;
+		resolve(range: ColliderRange, dt: number) {
+			var iterA = range.makeIterator();
 
-			for (var collA = 1; collA <= maxIndex; ++collA) {
-				var rbA = <RigidBodyInstance>this.bodyBase_[collA];
+			while (iterA.next()) {
+				var collA = iterA.current;
+				var rbA = <RigidBodyInstance>this.bodyBase_[<number>collA];
 				if (rbA == 0)
 					continue;
 				
-				var txA = <TransformInstance>this.transformBase_[collA];
-				var boundsA = <AABB>this.boundsBase_[collA];
+				var txA = <TransformInstance>this.transformBase_[<number>collA];
+				var boundsA = <AABB>this.boundsBase_[<number>collA];
 				this.aabbMgr_.transformMat4(this.worldBoundsA_, boundsA, this.transformMgr_.worldMatrix(txA));
 
-				for (var collB = 1; collB <= maxIndex; ++collB) {
+				var iterB = range.makeIterator();
+				while (iterB.next()) {
+					var collB = iterB.current;
 					if (collB == collA)
 						continue;
 
-					var txB = <TransformInstance>this.transformBase_[collB];
-					var rbB = <RigidBodyInstance>this.bodyBase_[collB];
-					var boundsB = <AABB>this.boundsBase_[collB];
+					var txB = <TransformInstance>this.transformBase_[<number>collB];
+					var rbB = <RigidBodyInstance>this.bodyBase_[<number>collB];
+					var boundsB = <AABB>this.boundsBase_[<number>collB];
 					this.aabbMgr_.transformMat4(this.worldBoundsB_, boundsB, this.transformMgr_.worldMatrix(txB));
 
 					if (this.aabbMgr_.intersects(this.worldBoundsA_, this.worldBoundsB_)) {
-						var typeA = <ColliderType>this.typeBase_[collA];
-						var typeB = <ColliderType>this.typeBase_[collB];
+						var typeA = <ColliderType>this.typeBase_[<number>collA];
+						var typeB = <ColliderType>this.typeBase_[<number>collB];
 
 						var posPrevA = this.rigidBodyMgr_.prevPosition(rbA);
 						var posCurA = this.transformMgr_.localPosition(txA);
@@ -143,6 +146,7 @@ namespace sd.world {
 						var sphereA = { center: vec3.add([], sphereADef.center, posPrevA), radius: sphereADef.radius };
 						var planeBDef = this.planeData_.get(collB);
 						var planeB = math.transformBoundedPlaneMat4(planeBDef, matB);
+
 						var intersection = math.intersectMovingSpherePlane(sphereA, dirA, planeB);
 						if (intersection.intersected && intersection.t >= 0 && intersection.t <= 1) {
 							var velPrevA = this.rigidBodyMgr_.prevVelocity(rbA);

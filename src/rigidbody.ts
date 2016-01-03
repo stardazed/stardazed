@@ -127,10 +127,12 @@ namespace sd.world {
 		}
 
 
-		simulateAll(dt: number) {
+		simulate(range: RigidBodyRange, dt: number) {
 			var zero3 = math.Vec3.zero;
 
-			for (var index = 1, max = this.count; index <= max; ++index) {
+			var iter = range.makeIterator();
+			while (iter.next()) {
+				var index = <number>iter.current;
 				var transform = this.transformBase_[index];
 
 				// discrete step vectors for the positional and angular changes

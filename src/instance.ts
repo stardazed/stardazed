@@ -101,8 +101,8 @@ namespace sd.world {
 
 	export class InstanceLinearRange<Component> implements InstanceRange<Component> {
 		constructor(private first: Instance<Component>, private last: Instance<Component>) {
-			// invalid ranges are just treated as empty
 			// valid ranges require first >= 1 and last >= first
+			// invalid ranges are just treated as empty
 		}
 
 		get empty() {

@@ -786,16 +786,17 @@ namespace sd.world {
 		}
 
 
-		drawAll(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, mode: RenderMode) {
+		draw(range: StdModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, mode: RenderMode) {
 			var gl = this.rc.gl;
 			var count = this.instanceData_.count;
+			var iter = range.makeIterator();
 
 			if (mode == RenderMode.Forward) {
 				rp.setDepthTest(render.DepthTest.Less);
 				// rp.setFaceCulling(render.FaceCulling.Back);
 
-				for (var modelIx = 1; modelIx <= count; ++modelIx) {
-					this.drawSingleForward(rp, proj, shadow, modelIx);
+				while (iter.next()) {
+					this.drawSingleForward(rp, proj, shadow, <number>iter.current);
 				}
 			}
 			else if (mode == RenderMode.Shadow) {
@@ -804,8 +805,8 @@ namespace sd.world {
 				rp.setDepthTest(render.DepthTest.Less);
 				rp.setFaceCulling(render.FaceCulling.Front);
 
-				for (var modelIx = 1; modelIx <= count; ++modelIx) {
-					this.drawSingleShadow(rp, proj, shadowPipeline, modelIx);
+				while (iter.next()) {
+					this.drawSingleShadow(rp, proj, shadowPipeline, <number>iter.current);
 				}
 			}
 

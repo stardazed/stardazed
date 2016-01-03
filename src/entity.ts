@@ -2,9 +2,6 @@
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
-/// <reference path="math.ts" />
-/// <reference path="container.ts" />
-
 namespace sd.world {
 
 	export type Entity = Instance<EntityManager>;
