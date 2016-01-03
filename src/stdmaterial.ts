@@ -81,7 +81,10 @@ namespace sd.world {
 	}
 
 
-	export type StdMaterialInstance = world.Instance<StdMaterialManager>;
+	export type StdMaterialInstance = Instance<StdMaterialManager>;
+	export type StdMaterialRange = InstanceRange<StdMaterialManager>;
+	export type StdMaterialIterator = InstanceIterator<StdMaterialManager>;
+
 
 	export class StdMaterialManager implements ComponentManager<StdMaterialManager> {
 		private instanceData_: container.MultiArrayBuffer;
@@ -163,6 +166,11 @@ namespace sd.world {
 
 		valid(inst: StdMaterialInstance) {
 			return <number>inst <= this.count;
+		}
+
+
+		all(): StdMaterialRange {
+			return new InstanceLinearRange<StdMaterialManager>(1, this.count);
 		}
 
 

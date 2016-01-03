@@ -5,6 +5,9 @@
 namespace sd.world {
 
 	export type AABB = Instance<AABBManager>;
+	export type AABBRange = InstanceRange<AABBManager>;
+	export type AABBIterator = InstanceIterator<AABBManager>;
+
 
 	export class AABBManager implements ComponentManager<AABBManager> {
 		private instanceData_: container.MultiArrayBuffer;
@@ -73,6 +76,10 @@ namespace sd.world {
 			return <number>inst <= this.count;
 		}
 
+
+		all(): AABBRange {
+			return new InstanceLinearRange<AABBManager>(1, this.count);
+		}
 
 		// ----
 

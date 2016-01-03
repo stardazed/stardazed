@@ -25,6 +25,9 @@ namespace sd.world {
 
 
 	export type LightInstance = Instance<LightManager>;
+	export type LightRange = InstanceRange<LightManager>;
+	export type LightIterator = InstanceIterator<LightManager>;
+
 
 	export interface LightDescriptor {
 		colour: Float3;
@@ -177,6 +180,11 @@ namespace sd.world {
 
 		valid(inst: LightInstance) {
 			return <number>inst <= this.count;
+		}
+
+
+		all(): LightRange {
+			return new InstanceLinearRange<LightManager>(1, this.count);
 		}
 
 

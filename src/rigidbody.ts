@@ -5,6 +5,9 @@
 namespace sd.world {
 
 	export type RigidBodyInstance = Instance<RigidBodyManager>;
+	export type RigidBodyRange = InstanceRange<RigidBodyManager>;
+	export type RigidBodyIterator = InstanceIterator<RigidBodyManager>;
+
 
 	export interface RigidBodyDescriptor {
 		mass: number;
@@ -116,6 +119,11 @@ namespace sd.world {
 
 		valid(inst: RigidBodyInstance) {
 			return <number>inst <= this.count;
+		}
+
+
+		all(): RigidBodyRange {
+			return new InstanceLinearRange<RigidBodyManager>(1, this.count);
 		}
 
 

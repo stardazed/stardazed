@@ -450,6 +450,8 @@ namespace sd.world {
 	//                                                           |___/         
 
 	export type StdModelInstance = Instance<StdModelManager>;
+	export type StdModelRange = InstanceRange<StdModelManager>;
+	export type StdModelIterator = InstanceIterator<StdModelManager>;
 
 
 	export interface StdModelDescriptor {
@@ -548,6 +550,11 @@ namespace sd.world {
 
 		valid(inst: StdModelInstance) {
 			return <number>inst <= this.count;
+		}
+
+
+		all(): StdModelRange {
+			return new InstanceLinearRange<StdModelManager>(1, this.count);
 		}
 
 

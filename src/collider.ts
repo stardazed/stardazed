@@ -5,6 +5,7 @@
 namespace sd.world {
 
 	export type ColliderInstance = Instance<ColliderManager>;
+	export type ColliderRange = InstanceRange<ColliderManager>;
 	export type ColliderIterator = InstanceIterator<ColliderManager>;
 
 	export const enum ColliderType {
@@ -102,19 +103,8 @@ namespace sd.world {
 		}
 
 
-		all(): ColliderIterator {
-			var mgr = this;
-
-			return {
-				current: <ColliderInstance>0,
-				next: function() {
-					++this.current;
-					return mgr.valid(this.current);
-				},
-				clone: function() {
-					return mgr.all();
-				}
-			};
+		all(): ColliderRange {
+			return new InstanceLinearRange<ColliderManager>(1, this.count);
 		}
 
 

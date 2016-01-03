@@ -11,6 +11,9 @@ namespace sd.world {
 	//                                                               |___/         
 
 	export type TransformInstance = Instance<TransformManager>;
+	export type TransformRange = InstanceRange<TransformManager>;
+	export type TransformIterator = InstanceIterator<TransformManager>;
+
 
 	export interface TransformDescriptor {
 		position: Float3;
@@ -158,6 +161,11 @@ namespace sd.world {
 
 		valid(inst: TransformInstance) {
 			return <number>inst <= this.count;
+		}
+
+
+		all(): TransformRange {
+			return new InstanceLinearRange<TransformManager>(1, this.count);
 		}
 
 
