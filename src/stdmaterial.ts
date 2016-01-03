@@ -83,6 +83,7 @@ namespace sd.world {
 
 	export type StdMaterialInstance = Instance<StdMaterialManager>;
 	export type StdMaterialRange = InstanceRange<StdMaterialManager>;
+	export type StdMaterialSet = InstanceSet<StdMaterialManager>;
 	export type StdMaterialIterator = InstanceIterator<StdMaterialManager>;
 
 
@@ -163,14 +164,16 @@ namespace sd.world {
 
 		get count() { return this.instanceData_.count; }
 
-
 		valid(inst: StdMaterialInstance) {
 			return <number>inst <= this.count;
 		}
 
-
 		all(): StdMaterialRange {
 			return new InstanceLinearRange<StdMaterialManager>(1, this.count);
+		}
+
+		makeSetRange(): StdMaterialSet {
+			return new InstanceSet<StdMaterialManager>();
 		}
 
 

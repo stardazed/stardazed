@@ -6,6 +6,7 @@ namespace sd.world {
 
 	export type ColliderInstance = Instance<ColliderManager>;
 	export type ColliderRange = InstanceRange<ColliderManager>;
+	export type ColliderSet = InstanceSet<ColliderManager>;
 	export type ColliderIterator = InstanceIterator<ColliderManager>;
 
 	export const enum ColliderType {
@@ -97,14 +98,16 @@ namespace sd.world {
 
 		get count() { return this.instanceData_.count; }
 
-
 		valid(inst: ColliderInstance) {
 			return <number>inst <= this.count;
 		}
 
-
 		all(): ColliderRange {
 			return new InstanceLinearRange<ColliderManager>(1, this.count);
+		}
+
+		makeSetRange(): ColliderSet {
+			return new InstanceSet<ColliderManager>();
 		}
 
 

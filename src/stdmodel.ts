@@ -451,6 +451,7 @@ namespace sd.world {
 
 	export type StdModelInstance = Instance<StdModelManager>;
 	export type StdModelRange = InstanceRange<StdModelManager>;
+	export type StdModelSet = InstanceSet<StdModelManager>;
 	export type StdModelIterator = InstanceIterator<StdModelManager>;
 
 
@@ -547,14 +548,16 @@ namespace sd.world {
 			return this.instanceData_.count;
 		}
 
-
 		valid(inst: StdModelInstance) {
 			return <number>inst <= this.count;
 		}
 
-
 		all(): StdModelRange {
 			return new InstanceLinearRange<StdModelManager>(1, this.count);
+		}
+
+		makeSetRange(): StdModelSet {
+			return new InstanceSet<StdModelManager>();
 		}
 
 

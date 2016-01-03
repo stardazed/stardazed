@@ -12,6 +12,7 @@ namespace sd.world {
 
 	export type TransformInstance = Instance<TransformManager>;
 	export type TransformRange = InstanceRange<TransformManager>;
+	export type TransformSet = InstanceSet<TransformManager>;
 	export type TransformIterator = InstanceIterator<TransformManager>;
 
 
@@ -158,14 +159,16 @@ namespace sd.world {
 
 		get count() { return this.instanceData_.count; }
 
-
 		valid(inst: TransformInstance) {
 			return <number>inst <= this.count;
 		}
 
-
 		all(): TransformRange {
 			return new InstanceLinearRange<TransformManager>(1, this.count);
+		}
+
+		makeSetRange(): TransformSet {
+			return new InstanceSet<TransformManager>();
 		}
 
 

@@ -146,6 +146,7 @@ namespace sd.world {
 		valid(inst: Instance<Component>): boolean;
 
 		all(): InstanceRange<Component>;
+		makeSetRange(): InstanceSet<Component>;
 	}
 
 } // ns sd.world

@@ -6,6 +6,7 @@ namespace sd.world {
 
 	export type AABB = Instance<AABBManager>;
 	export type AABBRange = InstanceRange<AABBManager>;
+	export type AABBSet = InstanceSet<AABBManager>;
 	export type AABBIterator = InstanceIterator<AABBManager>;
 
 
@@ -71,14 +72,16 @@ namespace sd.world {
 
 		get count() { return this.instanceData_.count; }
 
-
 		valid(inst: AABB) {
 			return <number>inst <= this.count;
 		}
 
+		all(): AABBSet {
+			return new InstanceSet<AABBManager>();
+		}
 
-		all(): AABBRange {
-			return new InstanceLinearRange<AABBManager>(1, this.count);
+		makeSetRange(): InstanceSet<AABBManager> {
+			return new InstanceSet<AABBManager>();
 		}
 
 		// ----

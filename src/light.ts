@@ -26,6 +26,7 @@ namespace sd.world {
 
 	export type LightInstance = Instance<LightManager>;
 	export type LightRange = InstanceRange<LightManager>;
+	export type LightSet = InstanceSet<LightManager>;
 	export type LightIterator = InstanceIterator<LightManager>;
 
 
@@ -185,6 +186,10 @@ namespace sd.world {
 
 		all(): LightRange {
 			return new InstanceLinearRange<LightManager>(1, this.count);
+		}
+
+		makeSetRange(): LightSet {
+			return new InstanceSet<LightManager>();
 		}
 
 
