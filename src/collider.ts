@@ -107,10 +107,12 @@ namespace sd.world {
 
 			return {
 				current: <ColliderInstance>0,
-				reset: function() { this.current = 0; },
 				next: function() {
 					++this.current;
 					return mgr.valid(this.current);
+				},
+				clone: function() {
+					return mgr.all();
 				}
 			};
 		}
