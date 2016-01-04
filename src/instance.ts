@@ -145,6 +145,9 @@ namespace sd.world {
 
 		valid(inst: Instance<Component>): boolean;
 
+		destroy(inst: Instance<Component>): void;
+		destroyRange(range: InstanceRange<Component>): void;
+
 		all(): InstanceRange<Component>;
 		makeSetRange(): InstanceSet<Component>;
 		makeLinearRange(first: Instance<Component>, last: Instance<Component>): InstanceRange<Component>;
