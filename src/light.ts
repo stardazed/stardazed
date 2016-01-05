@@ -176,6 +176,14 @@ namespace sd.world {
 		}
 
 
+		destroy(inst: LightInstance) {
+		}
+
+
+		destroyRange(range: LightRange) {
+		}
+
+
 		get count() { return this.instanceData_.count; }
 
 

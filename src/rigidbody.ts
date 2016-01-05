@@ -115,6 +115,14 @@ namespace sd.world {
 		}
 
 
+		destroy(inst: RigidBodyInstance) {
+		}
+
+
+		destroyRange(range: RigidBodyRange) {
+		}
+
+
 		get count() { return this.instanceData_.count; }
 
 		valid(inst: RigidBodyInstance) {

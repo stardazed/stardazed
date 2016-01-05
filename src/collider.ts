@@ -96,6 +96,14 @@ namespace sd.world {
 		}
 
 
+		destroy(inst: ColliderInstance) {
+		}
+
+
+		destroyRange(range: ColliderRange) {
+		}
+
+
 		get count() { return this.instanceData_.count; }
 
 		valid(inst: ColliderInstance) {

@@ -61,7 +61,6 @@ namespace sd {
 			// reset io devices
 			io.keyboard.resetHalfTransitions();
 
-
 			if (this.runState_ == RunLoopState.Running) {
 				this.rafID_ = requestAnimationFrame(this.nextFrameFn_);
 			}

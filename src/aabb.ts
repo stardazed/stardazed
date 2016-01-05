@@ -67,6 +67,14 @@ namespace sd.world {
 		}
 
 
+		destroy(inst: AABB) {
+		}
+
+
+		destroyRange(range: AABBRange) {
+		}
+
+
 		// ----
 
 

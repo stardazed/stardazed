@@ -544,27 +544,6 @@ namespace sd.world {
 		}
 
 
-		get count() {
-			return this.instanceData_.count;
-		}
-
-		valid(inst: StdModelInstance) {
-			return <number>inst <= this.count;
-		}
-
-		all(): StdModelRange {
-			return new InstanceLinearRange<StdModelManager>(1, this.count);
-		}
-
-		makeSetRange(): StdModelSet {
-			return new InstanceSet<StdModelManager>();
-		}
-
-		makeLinearRange(first: StdModelInstance, last: StdModelInstance): StdModelRange {
-			return new InstanceLinearRange<StdModelManager>(first, last);
-		}
-
-
 		private featuresForMeshAndMaterial(mesh: render.Mesh, material: StdMaterialInstance): Features {
 			var features = 0;
 
@@ -631,6 +610,36 @@ namespace sd.world {
 			});
 
 			return ix;
+		}
+
+
+		destroy(inst: StdModelInstance) {
+		}
+
+
+		destroyRange(range: StdModelRange) {
+		}
+
+
+
+		get count() {
+			return this.instanceData_.count;
+		}
+
+		valid(inst: StdModelInstance) {
+			return <number>inst <= this.count;
+		}
+
+		all(): StdModelRange {
+			return new InstanceLinearRange<StdModelManager>(1, this.count);
+		}
+
+		makeSetRange(): StdModelSet {
+			return new InstanceSet<StdModelManager>();
+		}
+
+		makeLinearRange(first: StdModelInstance, last: StdModelInstance): StdModelRange {
+			return new InstanceLinearRange<StdModelManager>(first, last);
 		}
 
 

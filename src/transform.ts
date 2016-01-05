@@ -157,6 +157,14 @@ namespace sd.world {
 		}
 
 
+		destroy(inst: TransformInstance) {
+		}
+
+
+		destroyRange(range: TransformRange) {
+		}
+
+
 		get count() { return this.instanceData_.count; }
 
 		valid(inst: TransformInstance) {

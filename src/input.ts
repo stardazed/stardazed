@@ -62,8 +62,8 @@ namespace sd.io {
 
 		constructor() {
 			var fields: container.MABField[] = [
-				{ type: UInt8, count: 1 }, // down
-				{ type: UInt8, count: 1 }, // halfTransitionCount
+				{ type: UInt8, count: 1 },  // down
+				{ type: UInt8, count: 1 },  // halfTransitionCount
 				{ type: UInt32, count: 1 }, // lastEvent
 			];
 			this.keyData_ = new container.MultiArrayBuffer(128, fields);
