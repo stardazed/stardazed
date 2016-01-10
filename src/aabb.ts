@@ -1,260 +1,184 @@
-// AABB (Axis-Aligned Bounding Box component)
+// AABB (Axis-Aligned Bounding Box)
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2016 by Arthur Langereis - @zenmumbler
 
-namespace sd.world {
+namespace sd.math {
 
-	export type AABB = Instance<AABBManager>;
-	export type AABBRange = InstanceRange<AABBManager>;
-	export type AABBSet = InstanceSet<AABBManager>;
-	export type AABBIterator = InstanceIterator<AABBManager>;
+	export namespace aabb {
 
-
-	export class AABBManager implements ComponentManager<AABBManager> {
-		private instanceData_: container.MultiArrayBuffer;
-
-		private minBase_: Float32Array;
-		private maxBase_: Float32Array;
+		export function setCenterAndSize(min: Float3, max: Float3, center: Float3, size: Float3): void {
+			vec3.scaleAndAdd(min, center, size, -0.5);
+			vec3.scaleAndAdd(max, center, size, 0.5);
+		}
 
 
-		constructor() {
-			var fields: container.MABField[] = [
-				{ type: Float, count: 3 }, // min
-				{ type: Float, count: 3 }, // max
+		export function calculateCenterAndSize(center: Float3, size: Float3, min: Float3, max: Float3): void {
+			vec3.subtract(size, max, min);
+			vec3.scaleAndAdd(center, min, size, 0.5);
+		}
+
+
+		export function encapsulatePoint(min: Float3, max: Float3, pt: Float3): void {
+			if (pt[0] < min[0]) min[0] = pt[0];
+			if (pt[0] > max[0]) max[0] = pt[0];
+
+			if (pt[1] < min[1]) min[1] = pt[1];
+			if (pt[1] > max[1]) max[1] = pt[1];
+
+			if (pt[2] < min[2]) min[2] = pt[2];
+			if (pt[2] > max[2]) max[2] = pt[2];
+		}
+
+
+		export function encapsulateAABB(min: Float3, max: Float3, otherMin: Float3, otherMax: Float3): void {
+			if (otherMin[0] < min[0]) min[0] = otherMin[0];
+			if (otherMax[0] > max[0]) max[0] = otherMax[0];
+
+			if (otherMin[1] < min[1]) min[1] = otherMin[1];
+			if (otherMax[1] > max[1]) max[1] = otherMax[1];
+
+			if (otherMin[2] < min[2]) min[2] = otherMin[2];
+			if (otherMax[2] > max[2]) max[2] = otherMax[2];
+		}
+
+
+		export function containsPoint(min: Float3, max: Float3, pt: ArrayOfNumber): boolean {
+			return pt[0] >= min[0] && pt[1] >= min[1] && pt[2] >= min[2] &&
+				   pt[0] <= max[0] && pt[1] <= max[1] && pt[2] <= max[2];
+		}
+
+
+		export function containsAABB(min: Float3, max: Float3, otherMin: Float3, otherMax: Float3): boolean {
+			return otherMin[0] >= min[0] && otherMin[1] >= min[1] && otherMin[2] >= min[2] &&
+				   otherMax[0] <= max[0] && otherMax[1] <= max[1] && otherMax[2] <= max[2];
+		}
+
+
+		export function intersectsAABB(min: Float3, max: Float3, otherMin: Float3, otherMax: Float3): boolean {
+			return otherMin[0] <= max[0] && otherMax[0] >= min[0] &&
+				   otherMin[1] <= max[1] && otherMax[1] >= min[1] &&
+				   otherMin[2] <= max[2] && otherMax[2] >= min[2];
+		}
+
+
+		export function closestPoint(min: Float3, max: Float3, pt: Float3): Float3 {
+			return [
+				math.clamp(pt[0], min[0], max[0]),
+				math.clamp(pt[1], min[1], max[1]),
+				math.clamp(pt[2], min[2], max[2])
 			];
-			this.instanceData_ = new container.MultiArrayBuffer(1024, fields);
-			this.rebase();
 		}
 
 
-		private rebase() {
-			this.minBase_ = <Float32Array>this.instanceData_.indexedFieldView(0);
-			this.maxBase_ = <Float32Array>this.instanceData_.indexedFieldView(1);
+		export function size(min: Float3, max: Float3): Float3 {
+			return vec3.subtract([], max, min);
 		}
 
 
-		createEmpty(): AABB {
-			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
-				this.rebase();
-			}
-
-			var instance = this.instanceData_.count;
-			container.setIndexedVec3(this.minBase_, <number>instance, [Float.max, Float.max, Float.max]);
-			container.setIndexedVec3(this.maxBase_, <number>instance, [Float.min, Float.min, Float.min]);
-			return instance;
+		export function extents(min: Float3, max: Float3): Float3 {
+			return vec3.scale([], this.size(min, max), 0.5);
 		}
 
 
-		createFromCenterAndSize(center: Float3, size: Float3): AABB {
-			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
-				this.rebase();
-			}
-
-			var instance = this.instanceData_.count;
-			this.setCenterAndSize(instance, center, size);
-			return instance;
+		export function center(min: Float3, max: Float3): Float3 {
+			return vec3.add([], min, this.extents(min, max));
 		}
 
 
-		createFromMinAndMax(min: Float3, max: Float3): AABB {
-			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
-				this.rebase();
-			}
-
-			var instance = this.instanceData_.count;
-			this.setMinAndMax(instance, min, max);
-			return instance;
-		}
-
-
-		destroy(inst: AABB) {
-		}
-
-
-		destroyRange(range: AABBRange) {
-		}
-
-
-		// ----
-
-
-		get count() { return this.instanceData_.count; }
-
-		valid(inst: AABB) {
-			return <number>inst <= this.count;
-		}
-
-		all(): AABBSet {
-			return new InstanceSet<AABBManager>();
-		}
-
-		makeSetRange(): InstanceSet<AABBManager> {
-			return new InstanceSet<AABBManager>();
-		}
-
-		makeLinearRange(first: AABB, last: AABB): AABBRange {
-			return new InstanceLinearRange<AABBManager>(first, last);
-		}
-
-
-		// ----
-
-
-		setCenterAndSize(inst: AABB, center: Float3, size: Float3) {
-			assert(size[0] >= 0);
-			assert(size[1] >= 0);
-			assert(size[2] >= 0);
-
-			var extents = vec3.scale([], size, 0.5);
-			var offset = 3 * <number>inst;
-
-			this.minBase_[offset    ] = center[0] - extents[0];
-			this.minBase_[offset + 1] = center[1] - extents[1];
-			this.minBase_[offset + 2] = center[2] - extents[2];
-
-			this.maxBase_[offset    ] = center[0] + extents[0];
-			this.maxBase_[offset + 1] = center[1] + extents[1];
-			this.maxBase_[offset + 2] = center[2] + extents[2];
-		}
-
-
-		setMinAndMax(inst: AABB, min: Float3, max: Float3) {
-			assert(min[0] <= max[0]);
-			assert(min[1] <= max[1]);
-			assert(min[2] <= max[2]);
-
-			container.setIndexedVec3(this.minBase_, <number>inst, min);
-			container.setIndexedVec3(this.maxBase_, <number>inst, max);
-		}
-
-
-		includePoint(inst: AABB, pt3: Float3) {
-			var instMin = container.copyIndexedVec3(this.minBase_, <number>inst);
-			var instMax = container.copyIndexedVec3(this.maxBase_, <number>inst);
-			
-			if (pt3[0] < instMin[0]) instMin[0] = pt3[0];
-			if (pt3[0] > instMax[0]) instMax[0] = pt3[0];
-
-			if (pt3[1] < instMin[1]) instMin[1] = pt3[1];
-			if (pt3[1] > instMax[1]) instMax[1] = pt3[1];
-
-			if (pt3[2] < instMin[2]) instMin[2] = pt3[2];
-			if (pt3[2] > instMax[2]) instMax[2] = pt3[2];
-
-			container.setIndexedVec3(this.minBase_, <number>inst, instMin);
-			container.setIndexedVec3(this.maxBase_, <number>inst, instMax);
-		}
-
-
-		includeAABB(into: AABB, source: AABB) {
-			var intoMin = container.copyIndexedVec3(this.minBase_, <number>into);
-			var intoMax = container.copyIndexedVec3(this.maxBase_, <number>into);
-			var sourceMin = container.copyIndexedVec3(this.minBase_, <number>source);
-			var sourceMax = container.copyIndexedVec3(this.maxBase_, <number>source);
-
-			if (sourceMin[0] < intoMin[0]) intoMin[0] = sourceMin[0];
-			if (sourceMax[0] > intoMax[0]) intoMax[0] = sourceMax[0];
-
-			if (sourceMin[1] < intoMin[1]) intoMin[1] = sourceMin[1];
-			if (sourceMax[1] > intoMax[1]) intoMax[1] = sourceMax[1];
-
-			if (sourceMin[2] < intoMin[2]) intoMin[2] = sourceMin[2];
-			if (sourceMax[2] > intoMax[2]) intoMax[2] = sourceMax[2];
-
-			container.setIndexedVec3(this.minBase_, <number>into, intoMin);
-			container.setIndexedVec3(this.maxBase_, <number>into, intoMax);
-		}
-
-
-		// --
-
-
-		transformMat3(dest: AABB, source: AABB, mat: Float3x3) {
-			var sourceMin = container.copyIndexedVec3(this.minBase_, <number>source);
-			var sourceMax = container.copyIndexedVec3(this.maxBase_, <number>source);
-
+		export function transformMat3(destMin: Float3, destMax: Float3, sourceMin: Float3, sourceMax: Float3, mat: Float3x3) {
 			var destA = vec3.transformMat3([], sourceMin, mat);
 			var destB = vec3.transformMat3([], sourceMax, mat);
-
-			var destMin = vec3.min([], destA, destB);
-			var destMax = vec3.max([], destA, destB);
-
-			container.setIndexedVec3(this.minBase_, <number>dest, destMin);
-			container.setIndexedVec3(this.maxBase_, <number>dest, destMax);
+			vec3.min(destMin, destA, destB);
+			vec3.max(destMax, destA, destB);
 		}
 
 
-		transformMat4(dest: AABB, source: AABB, mat: Float4x4) {
-			var sourceMin = container.copyIndexedVec3(this.minBase_, <number>source);
-			var sourceMax = container.copyIndexedVec3(this.maxBase_, <number>source);
-
+		export function transformMat4(destMin: Float3, destMax: Float3, sourceMin: Float3, sourceMax: Float3, mat: Float4x4) {
 			var destA = vec3.transformMat4([], sourceMin, mat);
 			var destB = vec3.transformMat4([], sourceMax, mat);
+			vec3.min(destMin, destA, destB);
+			vec3.max(destMax, destA, destB);
+		}
+	
+	} // ns sd.math.aabb
 
-			var destMin = vec3.min([], destA, destB);
-			var destMax = vec3.max([], destA, destB);
 
-			container.setIndexedVec3(this.minBase_, <number>dest, destMin);
-			container.setIndexedVec3(this.maxBase_, <number>dest, destMax);
+	export class AABB {
+		public min: Float32Array;
+		public max: Float32Array;
+
+		constructor();
+		constructor(min: Float3, max: Float3);
+		constructor(min?: Float3, max?: Float3) {
+			var data = new Float32Array(6);
+			this.min = data.subarray(0, 2);
+			this.max = data.subarray(3, 5);
+
+			if (min && max) {
+				this.min[0] = min[0]; this.min[1] = min[1]; this.min[2] = min[2];
+				this.max[0] = max[0]; this.max[1] = max[1]; this.max[2] = max[2];
+			}
+			else {
+				this.min[0] = Float.max; this.min[1] = Float.max; this.min[2] = Float.max;
+				this.max[0] = Float.min; this.max[1] = Float.min; this.max[2] = Float.min;
+			}
 		}
 
+		setCenterAndSize(center: Float3, size: Float3) {
+			aabb.setCenterAndSize(this.min, this.max, center, size);
+		}
+
+		setMinAndMax(min: Float3, max: Float3) {
+			this.min[0] = min[0]; this.min[1] = min[1]; this.min[2] = min[2];
+			this.max[0] = max[0]; this.max[1] = max[1]; this.max[2] = max[2];
+		}
+
+		encapsulatePoint(pt: Float3) {
+			aabb.encapsulatePoint(this.min, this.max, pt);
+		}
+
+		encapsulateAABB(bounds: AABB) {
+			aabb.encapsulateAABB(this.min, this.max, bounds.min, bounds.max);
+		}
 
 		// --
 
-
-		min(inst: AABB) { return container.copyIndexedVec3(this.minBase_, <number>inst); }
-		max(inst: AABB) { return container.copyIndexedVec3(this.maxBase_, <number>inst); }
-
-		size(inst: AABB) { return vec3.subtract([], this.max(inst), this.min(inst)); }
-		extents(inst: AABB) { return vec3.scale([], this.size(inst), 0.5); }
-		center(inst: AABB) { return vec3.add([], this.min(inst), this.extents(inst)); }
-
+		get size() { return aabb.size(this.min, this.max); }
+		get extents() { return aabb.extents(this.min, this.max); }
+		get center() { return aabb.center(this.min, this.max); }
 		
 		// --
-
 		
-		containsPoint(inst: AABB, pt: Float3) {
-			var instMin = container.copyIndexedVec3(this.minBase_, <number>inst);
-			var instMax = container.copyIndexedVec3(this.maxBase_, <number>inst);
-			
-			return pt[0] >= instMin[0] && pt[1] >= instMin[1] && pt[2] >= instMin[2] &&
-				   pt[0] <= instMax[0] && pt[1] <= instMax[1] && pt[2] <= instMax[2];
+		containsPoint(pt: ArrayOfNumber) {
+			return aabb.containsPoint(this.min, this.max, pt);
 		}
 
-
-		containsAABB(outer: AABB, inner: AABB) {
-			var outerMin = container.copyIndexedVec3(this.minBase_, <number>outer);
-			var outerMax = container.copyIndexedVec3(this.maxBase_, <number>outer);
-			var innerMin = container.copyIndexedVec3(this.minBase_, <number>inner);
-			var innerMax = container.copyIndexedVec3(this.maxBase_, <number>inner);
-
-			return innerMin[0] >= outerMin[0] && innerMin[1] >= outerMin[1] && innerMin[2] >= outerMin[2] &&
-				   innerMax[0] <= outerMax[0] && innerMax[1] <= outerMax[1] && innerMax[2] <= outerMax[2];
+		containsAABB(bounds: AABB) {
+			return aabb.containsAABB(this.min, this.max, bounds.min, bounds.max);
 		}
 
-
-		intersects(a: AABB, b: AABB) {
-			var aMin = container.copyIndexedVec3(this.minBase_, <number>a);
-			var aMax = container.copyIndexedVec3(this.maxBase_, <number>a);
-			var bMin = container.copyIndexedVec3(this.minBase_, <number>b);
-			var bMax = container.copyIndexedVec3(this.maxBase_, <number>b);
-			
-			return bMin[0] <= aMax[0] && bMax[0] >= aMin[0] &&
-				   bMin[1] <= aMax[1] && bMax[1] >= aMin[1] &&
-				   bMin[2] <= aMax[2] && bMax[2] >= aMin[2];
+		intersectsAABB(bounds: AABB) {
+			return aabb.intersectsAABB(this.min, this.max, bounds.min, bounds.max);
 		}
 
-
-		closestPoint(inst: AABB, pt3: Float3): number[] {
-			var instMin = container.copyIndexedVec3(this.minBase_, <number>inst);
-			var instMax = container.copyIndexedVec3(this.maxBase_, <number>inst);
-			
-			return [
-				math.clamp(pt3[0], instMin[0], instMax[0]),
-				math.clamp(pt3[1], instMin[1], instMax[1]),
-				math.clamp(pt3[2], instMin[2], instMax[2])
-			];
+		closestPoint(pt: Float3): Float3 {
+			return aabb.closestPoint(this.min, this.max, pt);
 		}
 	}
 
-} // ns sd.world
+
+} // ns sd.math
+
+
+namespace sd.world {
+
+	export type AABBNode = world.Instance<AABBTree>;
+	export type AABBNodeRange = world.InstanceRange<AABBTree>;
+	export type AABBNodeSet = world.InstanceSet<AABBTree>;
+	export type AABBNodeIterator = world.InstanceIterator<AABBTree>;
+
+	export class AABBTree {
+
+	}
+
+}

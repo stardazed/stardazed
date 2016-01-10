@@ -34,11 +34,12 @@ namespace sd.world {
 		private sphereData_: Map<ColliderInstance, math.Sphere>;
 		private planeData_: Map<ColliderInstance, math.BoundedPlane>;
 
-		private worldBoundsA_: AABB;
-		private worldBoundsB_: AABB;
+		private aabbTree_: AABBTree;
+		private worldBoundsA_: math.AABB;
+		private worldBoundsB_: math.AABB;
 
 
-		constructor(private transformMgr_: TransformManager, private rigidBodyMgr_: RigidBodyManager, private aabbMgr_: AABBManager) {
+		constructor(private transformMgr_: TransformManager, private rigidBodyMgr_: RigidBodyManager) {
 			var fields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transform
@@ -53,8 +54,8 @@ namespace sd.world {
 			this.sphereData_ = new Map<ColliderInstance, math.Sphere>();
 			this.planeData_ = new Map<ColliderInstance, math.BoundedPlane>();
 
-			this.worldBoundsA_ = this.aabbMgr_.createEmpty();
-			this.worldBoundsB_ = this.aabbMgr_.createEmpty();
+			this.worldBoundsA_ = new math.AABB();
+			this.worldBoundsB_ = new math.AABB();
 		}
 
 
@@ -82,13 +83,13 @@ namespace sd.world {
 			if (desc.type == ColliderType.Sphere) {
 				assert(desc.sphere);
 				var diameter = <number>desc.sphere.radius * 2;
-				this.boundsBase_[instance] = <number>this.aabbMgr_.createFromCenterAndSize(desc.sphere.center, [diameter, diameter, diameter]);
+				this.boundsBase_[instance] = <number>this.aabbTree_.createFromCenterAndSize(desc.sphere.center, [diameter, diameter, diameter]);
 				this.sphereData_.set(instance, desc.sphere);
 			}
 			else if (desc.type == ColliderType.Plane) {
 				assert(desc.plane);
 				var boundingSize = math.boundingSizeOfBoundedPlane(desc.plane);
-				this.boundsBase_[instance] = <number>this.aabbMgr_.createFromCenterAndSize(desc.plane.center, boundingSize);
+				this.boundsBase_[instance] = <number>this.aabbTree_.createFromCenterAndSize(desc.plane.center, boundingSize);
 				this.planeData_.set(instance, desc.plane);
 			}
 
@@ -133,8 +134,8 @@ namespace sd.world {
 					continue;
 				
 				var txA = <TransformInstance>this.transformBase_[<number>collA];
-				var boundsA = <AABB>this.boundsBase_[<number>collA];
-				this.aabbMgr_.transformMat4(this.worldBoundsA_, boundsA, this.transformMgr_.worldMatrix(txA));
+				var boundsA = <AABBNode>this.boundsBase_[<number>collA];
+				math.aabb.transformMat4(this.worldBoundsA_, boundsA, this.transformMgr_.worldMatrix(txA));
 
 				var iterB = range.makeIterator();
 				while (iterB.next()) {
@@ -144,10 +145,10 @@ namespace sd.world {
 
 					var txB = <TransformInstance>this.transformBase_[<number>collB];
 					var rbB = <RigidBodyInstance>this.bodyBase_[<number>collB];
-					var boundsB = <AABB>this.boundsBase_[<number>collB];
-					this.aabbMgr_.transformMat4(this.worldBoundsB_, boundsB, this.transformMgr_.worldMatrix(txB));
+					var boundsB = <AABBNode>this.boundsBase_[<number>collB];
+					math.aabb.transformMat4(this.worldBoundsB_, boundsB, this.transformMgr_.worldMatrix(txB));
 
-					if (this.aabbMgr_.intersects(this.worldBoundsA_, this.worldBoundsB_)) {
+					if (this.worldBoundsA_.intersectsAABB(this.worldBoundsB_)) {
 						var typeA = <ColliderType>this.typeBase_[<number>collA];
 						var typeB = <ColliderType>this.typeBase_[<number>collB];
 
