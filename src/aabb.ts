@@ -168,17 +168,3 @@ namespace sd.math {
 
 
 } // ns sd.math
-
-
-namespace sd.world {
-
-	export type AABBNode = world.Instance<AABBTree>;
-	export type AABBNodeRange = world.InstanceRange<AABBTree>;
-	export type AABBNodeSet = world.InstanceSet<AABBTree>;
-	export type AABBNodeIterator = world.InstanceIterator<AABBTree>;
-
-	export class AABBTree {
-
-	}
-
-}

@@ -11,14 +11,12 @@ namespace sd.world {
 
 	export const enum ColliderType {
 		None,
-		Sphere,
-		Plane
+		Sphere
 	}
 
 	export interface ColliderDescriptor {
 		type: ColliderType;
 		sphere?: math.Sphere;
-		plane?: math.BoundedPlane;
 	}
 
 
@@ -28,7 +26,6 @@ namespace sd.world {
 		private entityBase_: Int32Array;
 		private transformBase_: Int32Array;
 		private bodyBase_: Int32Array;
-		private boundsBase_: Int32Array;
 		private typeBase_: Int32Array;
 
 		private sphereData_: Map<ColliderInstance, math.Sphere>;
@@ -41,30 +38,24 @@ namespace sd.world {
 
 		constructor(private transformMgr_: TransformManager, private rigidBodyMgr_: RigidBodyManager) {
 			var fields: container.MABField[] = [
+				{ type: SInt32, count: 1 }, // type
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transform
 				{ type: SInt32, count: 1 }, // rigidBody
-				{ type: SInt32, count: 1 }, // aabb
-				{ type: SInt32, count: 1 }, // type
 			];
 
 			this.instanceData_ = new container.MultiArrayBuffer(128, fields);
 			this.rebase();
 
 			this.sphereData_ = new Map<ColliderInstance, math.Sphere>();
-			this.planeData_ = new Map<ColliderInstance, math.BoundedPlane>();
-
-			this.worldBoundsA_ = new math.AABB();
-			this.worldBoundsB_ = new math.AABB();
 		}
 
 
 		private rebase() {
-			this.entityBase_ = <Int32Array>this.instanceData_.indexedFieldView(0);
-			this.transformBase_ = <Int32Array>this.instanceData_.indexedFieldView(1);
-			this.bodyBase_ = <Int32Array>this.instanceData_.indexedFieldView(2);
-			this.boundsBase_ = <Int32Array>this.instanceData_.indexedFieldView(3);
-			this.typeBase_ = <Int32Array>this.instanceData_.indexedFieldView(4);
+			this.typeBase_ = <Int32Array>this.instanceData_.indexedFieldView(0);
+			this.entityBase_ = <Int32Array>this.instanceData_.indexedFieldView(1);
+			this.transformBase_ = <Int32Array>this.instanceData_.indexedFieldView(2);
+			this.bodyBase_ = <Int32Array>this.instanceData_.indexedFieldView(3);
 		}
 
 
@@ -74,23 +65,15 @@ namespace sd.world {
 			}
 
 			var instance = this.instanceData_.count;
+			this.typeBase_[instance] = desc.type;
 			this.entityBase_[instance] = <number>ent;
 			this.transformBase_[instance] = <number>this.transformMgr_.forEntity(ent);
 			this.bodyBase_[instance] = <number>this.rigidBodyMgr_.forEntity(ent);
-			this.typeBase_[instance] = desc.type;
 
 			// -- determine
 			if (desc.type == ColliderType.Sphere) {
 				assert(desc.sphere);
-				var diameter = <number>desc.sphere.radius * 2;
-				this.boundsBase_[instance] = <number>this.aabbTree_.createFromCenterAndSize(desc.sphere.center, [diameter, diameter, diameter]);
 				this.sphereData_.set(instance, desc.sphere);
-			}
-			else if (desc.type == ColliderType.Plane) {
-				assert(desc.plane);
-				var boundingSize = math.boundingSizeOfBoundedPlane(desc.plane);
-				this.boundsBase_[instance] = <number>this.aabbTree_.createFromCenterAndSize(desc.plane.center, boundingSize);
-				this.planeData_.set(instance, desc.plane);
 			}
 
 			return instance;
@@ -122,6 +105,9 @@ namespace sd.world {
 		makeLinearRange(first: ColliderInstance, last: ColliderInstance): ColliderRange {
 			return new InstanceLinearRange<ColliderManager>(first, last);
 		}
+
+
+		// --
 
 
 		resolve(range: ColliderRange, dt: number) {

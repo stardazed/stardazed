@@ -11,8 +11,9 @@ namespace sd.world {
 
 
 	export interface RigidBodyDescriptor {
-		mass: number;
-		inertia: number;
+		mass: number;    // kg
+		// drag: number, angularDrag: number (defaults: 0, 0.05)
+		// kinematic: boolean, gravity: boolean
 	}
 
 
