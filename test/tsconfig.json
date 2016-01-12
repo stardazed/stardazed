@@ -1,10 +1,9 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "moduleResolution": "node",
         "target": "es5",
         "rootDir": "src",
-        "outDir": "build",
+        "outFile": "build/sdtx-test.js",
         "noEmitOnError": true,
         "diagnostics": false,
         "listFiles": false,
@@ -12,7 +11,7 @@
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": false,
 
-        "removeComments": true,
+        "removeComments": false,
         "sourceMap": false
     },
     "exclude": [

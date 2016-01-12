@@ -1,9 +1,10 @@
-import * as td from "./testdazed";
 
-export default function dequeTests() {
+function dequeTests() {
 	td.group("Deque", () => {
-		td.test("construct", () => {
-			td.checkEqual(1, 1);
+		td.test("init", () => {
+			var deq = new sd.container.Deque<number>();
+			td.checkEqual(deq.count, 0);
+			td.checkTrue(deq.empty);
 		});
 	});
 }

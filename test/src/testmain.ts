@@ -1,18 +1,20 @@
-import * as td from "./testdazed";
+/// <reference path="../../build/stardazed-tx.d.ts" />
+import td = testdazed;
 
-class SimpleTestReport implements td.TestReport {
+class SimpleTestReport implements testdazed.TestReport {
 	private passes_ = 0;
 	private failures_ = 0;
 	private errors_ = 0;
 	private checkIndex_ = 0;
 	private nameTree_: string[] = [];
+	private result_: string[] = [];
 	
 	private out(...args: any[]) {
-		console.info.apply(console, args);
+		this.result_.push(args.join(""));
 	}
 
 	startReport() {
-		this.out("Test Report\n------------------");
+		this.out("Messages\n------------------");
 	}
 
 	finishReport() {
@@ -55,13 +57,16 @@ class SimpleTestReport implements td.TestReport {
 	get passes() { return this.passes_; }
 	get failures() { return this.failures_; }
 	get errors() { return this.errors_; }
+
+	get result() {
+		return this.result_.join("\n");
+	}
 }
 
-
 // -- add tests to run from external files
-import dequeTests from "./test-deque"; dequeTests();
-
+dequeTests();
 
 // -- run and report on tests
 var report = new SimpleTestReport();
 td.runAll(report);
+document.querySelector("pre").textContent = report.result;

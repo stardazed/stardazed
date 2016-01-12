@@ -120,8 +120,8 @@ namespace sd.world {
 					continue;
 				
 				var txA = <TransformInstance>this.transformBase_[<number>collA];
-				var boundsA = <AABBNode>this.boundsBase_[<number>collA];
-				math.aabb.transformMat4(this.worldBoundsA_, boundsA, this.transformMgr_.worldMatrix(txA));
+				// var boundsA = <AABBNode>this.boundsBase_[<number>collA];
+				// math.aabb.transformMat4(this.worldBoundsA_, boundsA, this.transformMgr_.worldMatrix(txA));
 
 				var iterB = range.makeIterator();
 				while (iterB.next()) {
@@ -131,8 +131,8 @@ namespace sd.world {
 
 					var txB = <TransformInstance>this.transformBase_[<number>collB];
 					var rbB = <RigidBodyInstance>this.bodyBase_[<number>collB];
-					var boundsB = <AABBNode>this.boundsBase_[<number>collB];
-					math.aabb.transformMat4(this.worldBoundsB_, boundsB, this.transformMgr_.worldMatrix(txB));
+					// var boundsB = <AABBNode>this.boundsBase_[<number>collB];
+					// math.aabb.transformMat4(this.worldBoundsB_, boundsB, this.transformMgr_.worldMatrix(txB));
 
 					if (this.worldBoundsA_.intersectsAABB(this.worldBoundsB_)) {
 						var typeA = <ColliderType>this.typeBase_[<number>collA];
