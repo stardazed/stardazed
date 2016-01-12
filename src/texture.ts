@@ -333,12 +333,12 @@ namespace sd.render {
 			var npot = !(math.isPowerOf2(this.width) && math.isPowerOf2(this.height));
 			if (npot) {
 				if (this.sampler_.repeatS != TextureRepeatMode.ClampToEdge || this.sampler_.repeatT != TextureRepeatMode.ClampToEdge) {
-					console.warn("NPOT textures cannot not repeat, overriding with ClampToEdge", desc);
+					console.warn("NPOT textures cannot repeat, overriding with ClampToEdge", desc);
 					this.sampler_.repeatS = TextureRepeatMode.ClampToEdge;
 					this.sampler_.repeatT = TextureRepeatMode.ClampToEdge;
 				}
 				if (this.mipmaps_ > 1) {
-					console.warn("NPOT textures cannot not have mipmaps, setting levels to 1", desc);
+					console.warn("NPOT textures cannot have mipmaps, setting levels to 1", desc);
 					this.mipmaps_ = 1;
 				}
 				if (this.sampler_.mipFilter != TextureMipFilter.None) {

@@ -1,4 +1,5 @@
-# Stardazed TX
+Stardazed TX
+============
 
 A library to enable quick development of custom 3D games in the browser.<br>
 Sibling of and proving grounds for [Stardazed](https://github.com/zenmumbler/stardazed), my native C++ game library.
@@ -44,15 +45,14 @@ NEXT
 - full discrete physics model
 - de/serialization of components and scenes
 - asset loader / management
-- spot and point lights do not take diffuse angle into account
-- directional shadow
+- directional light shadow
 - StdModel:
 	- tangent gen
 	- normal map
 	- height map
 - Deferred renderer
-- pixel buffers, create, combine into channel, etc
-- Sound beyond just loading sound files
+- pixel buffers, create, combine into channel, etc.
+- Sound integrated with the scene graph
 - PBR
 	- 100s of things
 

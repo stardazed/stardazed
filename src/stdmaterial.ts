@@ -18,9 +18,9 @@ namespace sd.world {
 	export const enum StdMaterialFlags {
 		usesSpecular              = 0x00000001,
 
-		albedoAlphaIsTranslucency = 0x00000101,
-		albedoAlphaIsGloss        = 0x00000102,
-		normalAlphaIsHeight       = 0x00000104,
+		albedoAlphaIsTranslucency = 0x00000100,
+		albedoAlphaIsGloss        = 0x00000200,
+		normalAlphaIsHeight       = 0x00000400,
 	}
 
 
