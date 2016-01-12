@@ -1,7 +1,7 @@
 /// <reference path="../../build/stardazed-tx.d.ts" />
 import td = testdazed;
 
-class SimpleTestReport implements testdazed.TestReport {
+class SimpleTestReport implements td.TestReport {
 	private passes_ = 0;
 	private failures_ = 0;
 	private errors_ = 0;
@@ -37,10 +37,9 @@ class SimpleTestReport implements testdazed.TestReport {
 		return this.nameTree_.join(".");
 	}
 
-	pass(msg?: string, innerMsg?: string) {
+	pass() {
 		this.checkIndex_++;
 		this.passes_++;
-		// out("PASS (check #" + checkIndex_ + ") " + this.nameTree + msg + ' ' + (innerMsg || ""));
 	}
 		
 	failure(msg: string, innerMsg?: string) {
@@ -51,7 +50,7 @@ class SimpleTestReport implements testdazed.TestReport {
 		
 	error(msg: string, innerMsg?: string) {
 		this.errors_++;
-		this.out("ERROR " + this.nameTree + ": " + msg + ' ' + (innerMsg || ""));
+		this.out("ERROR in " + this.nameTree + ": " + msg + ' ' + (innerMsg || ""));
 	}
 
 	get passes() { return this.passes_; }
@@ -63,10 +62,10 @@ class SimpleTestReport implements testdazed.TestReport {
 	}
 }
 
-// -- add tests to run from external files
+// -- add groups and tests
 dequeTests();
 
-// -- run and report on tests
+// -- run and show report
 var report = new SimpleTestReport();
 td.runAll(report);
 document.querySelector("pre").textContent = report.result;

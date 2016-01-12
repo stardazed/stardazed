@@ -41,7 +41,7 @@ namespace testdazed {
 		enterTest(test: Test): void;
 		leaveTest(test: Test): void;
 
-		pass(msg?: string, innerMsg?: string): void;
+		pass(): void;
 		failure(msg: string, innerMsg?: string): void;
 		error(msg: string, innerMsg?: string): void;
 
@@ -98,6 +98,10 @@ namespace testdazed {
 		return success;
 	}
 
+
+	export function checkCustom(expr: CheckExpr, failMsg: string) {
+		return checkImpl(expr, failMsg);
+	}
 
 	export function checkTrue(expr: boolean) {
 		return checkImpl(() => expr, "expression was expected to be true");
