@@ -23,8 +23,9 @@ technical expertise to use.
 - Compact library code size (currently the minified js is ~130KiB vs 25MiB+ for Unity webgl)
 - Fast and scalable (a lot of the data is kept in linear typed arrays, not in millions of tiny objects)
 - Powerful renderer (getting to a level of at least Unity 4 — pre-PBR — is the current goal)
-- Solid physics engine (good for even demanding sitations)
+- Solid physics engine (good even for demanding sitations)
 - Scalable and compatible (works well with all modern browsers, desktop and mobile)
+- Learn about all aspects of game programming by implementing them. An educational project for myself.
 
 Features
 --------
@@ -51,9 +52,9 @@ NEXT
 	- height map
 - Deferred renderer
 - pixel buffers, create, combine into channel, etc
+- Sound beyond just loading sound files
 - PBR
 	- 100s of things
-- Sound beyond just loading sound files
 
 ---
 
