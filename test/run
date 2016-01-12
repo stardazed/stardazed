@@ -1,0 +1,5 @@
+#!/bin/sh
+tsc
+if [ $? -eq 0 ]; then
+	node build/testmain.js
+fi
