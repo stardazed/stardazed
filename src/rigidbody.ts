@@ -12,8 +12,10 @@ namespace sd.world {
 
 	export interface RigidBodyDescriptor {
 		mass: number;    // kg
-		// drag: number, angularDrag: number (defaults: 0, 0.05)
-		// kinematic: boolean, gravity: boolean
+		// drag: number (0)
+		// angularDrag: number (0.05)
+		// kinematic: boolean (false)
+		// gravity: boolean (true)
 	}
 
 
@@ -95,8 +97,9 @@ namespace sd.world {
 			this.instanceEntityMap_.set(ent, <RigidBodyInstance>instance);
 
 			// -- set constant data
+			var inertia = desc.mass / 12;
 			container.setIndexedVec2(this.massBase_, instance, [desc.mass, 1 / desc.mass]);
-			container.setIndexedVec2(this.inertiaBase_, instance, [desc.inertia, 1 / desc.inertia]);
+			container.setIndexedVec2(this.inertiaBase_, instance, [inertia, 1 / inertia]);
 
 			// -- clear the rest
 			var zero3 = math.Vec3.zero;
