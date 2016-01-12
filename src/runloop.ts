@@ -133,11 +133,11 @@ namespace sd {
 	}
 
 
-	on(window, "blur", function() {
+	dom.on(window, "blur", function() {
 		defaultRunLoop_s.stop();
 	});
 
-	on(window, "focus", function() {
+	dom.on(window, "focus", function() {
 		defaultRunLoop_s.start();
 	});
 

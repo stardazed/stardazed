@@ -71,7 +71,7 @@ namespace sd.io {
 			this.halfTransBase_ = this.keyData_.indexedFieldView(1);
 			this.lastEventBase_ = this.keyData_.indexedFieldView(2);
 
-			on(window, "keydown", (evt: KeyboardEvent) => {
+			dom.on(window, "keydown", (evt: KeyboardEvent) => {
 				var lastEvent = this.lastEventBase_[evt.keyCode];
 				var wasDown = this.downBase_[evt.keyCode];
 
@@ -87,7 +87,7 @@ namespace sd.io {
 					evt.preventDefault();
 			});
 
-			on(window, "keyup", (evt: KeyboardEvent) => {
+			dom.on(window, "keyup", (evt: KeyboardEvent) => {
 				this.downBase_[evt.keyCode] = 0;
 				++this.halfTransBase_[evt.keyCode];
 				this.lastEventBase_[evt.keyCode] = evt.timeStamp;
@@ -97,11 +97,11 @@ namespace sd.io {
 			});
 
 			// -- losing or gaining focus will reset all key state to avoid stuck keys
-			on(window, "blur", (evt) => {
+			dom.on(window, "blur", (evt) => {
 				this.keyData_.clear();
 			});
 
-			on(window, "focus", (evt) => {
+			dom.on(window, "focus", (evt) => {
 				this.keyData_.clear();
 			});
 		}
