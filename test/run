@@ -1,5 +1,9 @@
 #!/bin/sh
-tsc
+if [ "$1" != "notsc" ]; then
+	tsc
+else
+	echo "* skipped tsc"
+fi
 if [ $? -eq 0 ]; then
 	node build/testmain.js
 fi
