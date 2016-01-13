@@ -1,6 +1,6 @@
 // transform - Transform component
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2015-6 by Arthur Langereis - @zenmumbler
 
 namespace sd.world {
 
@@ -14,7 +14,7 @@ namespace sd.world {
 	export type TransformRange = InstanceRange<TransformManager>;
 	export type TransformSet = InstanceSet<TransformManager>;
 	export type TransformIterator = InstanceIterator<TransformManager>;
-
+	export type TransformArrayView = InstanceArrayView<TransformManager>;
 
 	export interface TransformDescriptor {
 		position: Float3;

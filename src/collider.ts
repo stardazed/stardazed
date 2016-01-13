@@ -8,6 +8,7 @@ namespace sd.world {
 	export type ColliderRange = InstanceRange<ColliderManager>;
 	export type ColliderSet = InstanceSet<ColliderManager>;
 	export type ColliderIterator = InstanceIterator<ColliderManager>;
+	export type ColliderArrayView = InstanceArrayView<ColliderManager>;
 
 	export const enum ColliderType {
 		None,

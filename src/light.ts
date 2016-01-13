@@ -1,6 +1,6 @@
 // light - Light component
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2015-6 by Arthur Langereis - @zenmumbler
 
 namespace sd.world {
 
@@ -28,7 +28,7 @@ namespace sd.world {
 	export type LightRange = InstanceRange<LightManager>;
 	export type LightSet = InstanceSet<LightManager>;
 	export type LightIterator = InstanceIterator<LightManager>;
-
+	export type LightArrayView = InstanceArrayView<LightManager>;
 
 	export interface LightDescriptor {
 		colour: Float3;

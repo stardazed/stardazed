@@ -1,10 +1,11 @@
 // entity - entities and shared interfaces
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2015-6 by Arthur Langereis - @zenmumbler
 
 namespace sd.world {
 
 	export type Entity = Instance<EntityManager>;
+	export type EntityArrayView = InstanceArrayView<EntityManager>;
 
 
 	// -- Entity bit-field build up

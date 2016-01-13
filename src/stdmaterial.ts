@@ -1,10 +1,6 @@
 // stdmaterial - standard model material data
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
-
-/// <reference path="math.ts" />
-/// <reference path="container.ts" />
-/// <reference path="entity.ts" />
+// (c) 2015-6 by Arthur Langereis - @zenmumbler
 
 namespace sd.world {
 
@@ -85,6 +81,7 @@ namespace sd.world {
 	export type StdMaterialRange = InstanceRange<StdMaterialManager>;
 	export type StdMaterialSet = InstanceSet<StdMaterialManager>;
 	export type StdMaterialIterator = InstanceIterator<StdMaterialManager>;
+	export type StdMaterialArrayView = InstanceArrayView<StdMaterialManager>;
 
 
 	export class StdMaterialManager implements ComponentManager<StdMaterialManager> {

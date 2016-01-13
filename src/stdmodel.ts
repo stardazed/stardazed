@@ -1,10 +1,6 @@
 // stdmodel - standard model component
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
-
-/// <reference path="numeric.ts" />
-/// <reference path="stdmaterial.ts" />
-/// <reference path="rendercontext.ts" />
+// (c) 2015-6 by Arthur Langereis - @zenmumbler
 
 namespace sd.world {
 
@@ -453,7 +449,7 @@ namespace sd.world {
 	export type StdModelRange = InstanceRange<StdModelManager>;
 	export type StdModelSet = InstanceSet<StdModelManager>;
 	export type StdModelIterator = InstanceIterator<StdModelManager>;
-
+	export type StdModelArrayView = InstanceArrayView<StdModelManager>;
 
 	export interface StdModelDescriptor {
 		mesh: render.Mesh;

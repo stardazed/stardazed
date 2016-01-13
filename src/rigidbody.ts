@@ -1,6 +1,6 @@
 // rigidbody - RigidBody component
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2015-6 by Arthur Langereis - @zenmumbler
 
 namespace sd.world {
 
@@ -8,7 +8,7 @@ namespace sd.world {
 	export type RigidBodyRange = InstanceRange<RigidBodyManager>;
 	export type RigidBodySet = InstanceSet<RigidBodyManager>;
 	export type RigidBodyIterator = InstanceIterator<RigidBodyManager>;
-
+	export type RigidBodyArrayView = InstanceArrayView<RigidBodyManager>;
 
 	export interface RigidBodyDescriptor {
 		mass: number;    // kg

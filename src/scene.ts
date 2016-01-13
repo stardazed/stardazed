@@ -1,6 +1,6 @@
 // scene - manages a set of related components
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2015-6 by Arthur Langereis - @zenmumbler
 
 namespace sd.world {
 
