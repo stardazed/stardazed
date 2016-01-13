@@ -160,6 +160,10 @@ namespace sd.world {
 
 
 		destroyRange(range: StdMaterialRange) {
+			var iter = range.makeIterator();
+			while (iter.next()) {
+				this.destroy(iter.current);
+			}
 		}
 
 

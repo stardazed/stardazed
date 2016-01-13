@@ -21,7 +21,7 @@ namespace sd.world {
 
 	export class RigidBodyManager implements ComponentManager<RigidBodyManager> {
 		private instanceData_: container.MultiArrayBuffer;
-		private instanceEntityMap_: Map<Entity, RigidBodyInstance>;
+		private entityMap_: Map<Entity, RigidBodyInstance>;
 
 		private entityBase_: TypedArray;
 		private transformBase_: TypedArray;
@@ -40,7 +40,7 @@ namespace sd.world {
 		private prevVelocityBase_: TypedArray;
 
 
-		constructor(private transformMgr_: TransformManager) {
+		constructor(private transformMgr_: TransformManager, private colliderMgr_: ColliderManager) {
 			var fields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transform
@@ -62,7 +62,7 @@ namespace sd.world {
 			this.instanceData_ = new container.MultiArrayBuffer(128, fields);
 			this.rebase();
 
-			this.instanceEntityMap_ = new Map<Entity, RigidBodyInstance>();
+			this.entityMap_ = new Map<Entity, RigidBodyInstance>();
 		}
 
 
@@ -94,7 +94,7 @@ namespace sd.world {
 			this.entityBase_[instance] = <number>ent;
 			this.transformBase_[instance] = <number>this.transformMgr_.forEntity(ent);
 
-			this.instanceEntityMap_.set(ent, <RigidBodyInstance>instance);
+			this.entityMap_.set(ent, <RigidBodyInstance>instance);
 
 			// -- set constant data
 			var inertia = desc.mass / 12;
@@ -124,6 +124,10 @@ namespace sd.world {
 
 
 		destroyRange(range: RigidBodyRange) {
+			var iter = range.makeIterator();
+			while (iter.next()) {
+				this.destroy(iter.current);
+			}
 		}
 
 
@@ -227,7 +231,7 @@ namespace sd.world {
 		}
 
 		forEntity(ent: Entity): RigidBodyInstance {
-			return this.instanceEntityMap_.get(ent) || <RigidBodyInstance>0;
+			return this.entityMap_.get(ent) || <RigidBodyInstance>0;
 		}
 
 

@@ -181,6 +181,10 @@ namespace sd.world {
 
 
 		destroyRange(range: LightRange) {
+			var iter = range.makeIterator();
+			while (iter.next()) {
+				this.destroy(iter.current);
+			}
 		}
 
 

@@ -58,6 +58,10 @@ namespace sd.world {
 		}
 
 		destroyRange(range: ColliderRange) {
+			var iter = range.makeIterator();
+			while (iter.next()) {
+				this.destroy(iter.current);
+			}
 		}
 
 		get count() { return this.instanceData_.count; }
