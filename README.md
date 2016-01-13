@@ -2,7 +2,7 @@ Stardazed TX
 ============
 
 A library to enable quick development of custom 3D games in the browser.<br>
-Sibling of and proving grounds for [Stardazed](https://github.com/zenmumbler/stardazed), my native C++ game library.
+Sibling of and proving grounds for [Stardazed](https://github.com/stardazed/stardazed), my native C++ game library.
 
 Built in TypeScript, builds against TS 1.6 or newer, just run `tsc` somewhere inside the project dir.
 
@@ -39,22 +39,8 @@ Features
 - LWO object + material support
 - SceneController based automated RunLoop
 
-NEXT
-----
-
-- full discrete physics model
-- de/serialization of components and scenes
-- asset loader / management
-- directional light shadow
-- StdModel:
-	- tangent gen
-	- normal map
-	- height map
-- Deferred renderer
-- pixel buffers, create, combine into channel, etc.
-- Sound integrated with the scene graph
-- PBR
-	- 100s of things
+Development is ongoing continuously, check the [issues page](https://github.com/stardazed/stardazed-tx/issues)
+to see what we're working on.
 
 ---
 
