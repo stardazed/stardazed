@@ -33,7 +33,7 @@ namespace sd.world {
 		specularColourMix: number;      // 0..1: mix between material colour and light colour for specular (0: all material, 1: all light)
 
 		// textures
-		textureScale: Float2;           // v2, scale and offset apply to all textures
+		textureScale: Float2;           // [0..1, 0..1], scale and offset apply to all textures, u and v clamped to 0..1
 		textureOffset: Float2;
 
 		albedoMap: render.Texture;      // nullptr means use mainColour only
