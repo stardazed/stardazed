@@ -8,6 +8,7 @@ namespace sd.world {
 	export type PhysicsMaterialRange = InstanceRange<PhysicsMaterialManager>;
 	export type PhysicsMaterialSet = InstanceSet<PhysicsMaterialManager>;
 	export type PhysicsMaterialIterator = InstanceIterator<PhysicsMaterialManager>;
+	export type PhysicsMaterialArrayView = InstanceArrayView<PhysicsMaterialManager>;
 
 
 	export interface PhysicsMaterialDescriptor {

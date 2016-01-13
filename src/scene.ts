@@ -10,6 +10,7 @@ namespace sd.world {
 		lightMgr: LightManager;
 		stdMaterialMgr: StdMaterialManager;
 		stdModelMgr: StdModelManager;
+		physMatMgr: PhysicsMaterialManager;
 		rigidBodyMgr: RigidBodyManager;
 		colliderMgr: ColliderManager;
 
@@ -19,8 +20,9 @@ namespace sd.world {
 			this.lightMgr = new LightManager(this.transformMgr);
 			this.stdMaterialMgr = new StdMaterialManager();
 			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.stdMaterialMgr, this.lightMgr);
+			this.physMatMgr = new PhysicsMaterialManager();
 			this.rigidBodyMgr = new RigidBodyManager(this.transformMgr);
-			this.colliderMgr = new ColliderManager(this.transformMgr, this.rigidBodyMgr);
+			this.colliderMgr = new ColliderManager(this.transformMgr, this.rigidBodyMgr, this.physMatMgr);
 		}
 
 		

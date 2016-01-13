@@ -1,6 +1,6 @@
 // collider - Collider component
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2016 by Arthur Langereis - @zenmumbler
 
 namespace sd.world {
 
@@ -16,6 +16,7 @@ namespace sd.world {
 
 	export interface ColliderDescriptor {
 		type: ColliderType;
+		physicsMaterial: PhysicsMaterialInstance;
 		sphere?: math.Sphere;
 	}
 
@@ -23,25 +24,22 @@ namespace sd.world {
 	export class ColliderManager implements ComponentManager<ColliderManager> {
 		private instanceData_: container.MultiArrayBuffer;
 
+		private typeBase_: Int32Array;
 		private entityBase_: Int32Array;
 		private transformBase_: Int32Array;
 		private bodyBase_: Int32Array;
-		private typeBase_: Int32Array;
+		private physMatBase_: PhysicsMaterialArrayView;
 
 		private sphereData_: Map<ColliderInstance, math.Sphere>;
-		private planeData_: Map<ColliderInstance, math.BoundedPlane>;
-
-		private aabbTree_: AABBTree;
-		private worldBoundsA_: math.AABB;
-		private worldBoundsB_: math.AABB;
 
 
-		constructor(private transformMgr_: TransformManager, private rigidBodyMgr_: RigidBodyManager) {
+		constructor(private transformMgr_: TransformManager, private rigidBodyMgr_: RigidBodyManager, private physMatMgr_: PhysicsMaterialManager) {
 			var fields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // type
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transform
 				{ type: SInt32, count: 1 }, // rigidBody
+				{ type: SInt32, count: 1 }, // physicsMaterial
 			];
 
 			this.instanceData_ = new container.MultiArrayBuffer(128, fields);
@@ -56,6 +54,7 @@ namespace sd.world {
 			this.entityBase_ = <Int32Array>this.instanceData_.indexedFieldView(1);
 			this.transformBase_ = <Int32Array>this.instanceData_.indexedFieldView(2);
 			this.bodyBase_ = <Int32Array>this.instanceData_.indexedFieldView(3);
+			this.physMatBase_ = <PhysicsMaterialArrayView>this.instanceData_.indexedFieldView(4);
 		}
 
 
@@ -69,11 +68,12 @@ namespace sd.world {
 			this.entityBase_[instance] = <number>ent;
 			this.transformBase_[instance] = <number>this.transformMgr_.forEntity(ent);
 			this.bodyBase_[instance] = <number>this.rigidBodyMgr_.forEntity(ent);
+			this.physMatBase_[instance] = desc.physicsMaterial;
 
-			// -- determine
+			// -- shape-specific data
 			if (desc.type == ColliderType.Sphere) {
 				assert(desc.sphere);
-				this.sphereData_.set(instance, desc.sphere);
+				this.sphereData_.set(instance, cloneStruct(desc.sphere));
 			}
 
 			return instance;
@@ -81,7 +81,6 @@ namespace sd.world {
 
 
 		// --
-
 
 		destroy(inst: ColliderInstance) {
 		}
@@ -112,12 +111,15 @@ namespace sd.world {
 
 		// --
 
-
 		resolve(range: ColliderRange, dt: number) {
 		}
 
 
-		// -- linked instances
+		// -- per instance properties
+
+		type(inst: ColliderInstance): ColliderType {
+			return this.typeBase_[<number>inst];
+		}
 
 		entity(inst: ColliderInstance): Entity {
 			return this.entityBase_[<number>inst];
@@ -125,6 +127,14 @@ namespace sd.world {
 
 		transform(inst: ColliderInstance): TransformInstance {
 			return this.transformBase_[<number>inst];
+		}
+
+		body(inst: ColliderInstance): RigidBodyInstance {
+			return this.bodyBase_[<number>inst];
+		}
+
+		physicsMaterial(inst: ColliderInstance): PhysicsMaterialInstance {
+			return this.physMatBase_[<number>inst];	
 		}
 	}
 
