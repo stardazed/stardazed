@@ -80,6 +80,9 @@ namespace sd.world {
 		}
 
 
+		// --
+
+
 		destroy(inst: ColliderInstance) {
 		}
 
@@ -111,68 +114,6 @@ namespace sd.world {
 
 
 		resolve(range: ColliderRange, dt: number) {
-			var iterA = range.makeIterator();
-
-			while (iterA.next()) {
-				var collA = iterA.current;
-				var rbA = <RigidBodyInstance>this.bodyBase_[<number>collA];
-				if (rbA == 0)
-					continue;
-				
-				var txA = <TransformInstance>this.transformBase_[<number>collA];
-				// var boundsA = <AABBNode>this.boundsBase_[<number>collA];
-				// math.aabb.transformMat4(this.worldBoundsA_, boundsA, this.transformMgr_.worldMatrix(txA));
-
-				var iterB = range.makeIterator();
-				while (iterB.next()) {
-					var collB = iterB.current;
-					if (collB == collA)
-						continue;
-
-					var txB = <TransformInstance>this.transformBase_[<number>collB];
-					var rbB = <RigidBodyInstance>this.bodyBase_[<number>collB];
-					// var boundsB = <AABBNode>this.boundsBase_[<number>collB];
-					// math.aabb.transformMat4(this.worldBoundsB_, boundsB, this.transformMgr_.worldMatrix(txB));
-
-					if (this.worldBoundsA_.intersectsAABB(this.worldBoundsB_)) {
-						var typeA = <ColliderType>this.typeBase_[<number>collA];
-						var typeB = <ColliderType>this.typeBase_[<number>collB];
-
-						var posPrevA = this.rigidBodyMgr_.prevPosition(rbA);
-						var posCurA = this.transformMgr_.localPosition(txA);
-						var dirA = vec3.subtract([], posCurA, posPrevA);
-
-						var matB = this.transformMgr_.localMatrix(txB);
-
-						var sphereADef = this.sphereData_.get(collA);
-						var sphereA = { center: vec3.add([], sphereADef.center, posPrevA), radius: sphereADef.radius };
-						var planeBDef = this.planeData_.get(collB);
-						var planeB = math.transformBoundedPlaneMat4(planeBDef, matB);
-
-						var intersection = math.intersectMovingSpherePlane(sphereA, dirA, planeB);
-						if (intersection.intersected && intersection.t >= 0 && intersection.t <= 1) {
-							var velPrevA = this.rigidBodyMgr_.prevVelocity(rbA);
-							var velCurA = this.rigidBodyMgr_.velocity(rbA);
-							var velDiffA = vec3.subtract([], velCurA, velPrevA);
-							var velAtHit = vec3.scaleAndAdd([], velPrevA, velDiffA, intersection.t);
-							var exitVelA = math.reflectVec3(velAtHit, planeB.normal);
-							vec3.scale(exitVelA, exitVelA, 0.4);
-
-							if (vec3.squaredLength(exitVelA) < 0.001) {
-								exitVelA = [0,0,0];
-							}
-							console.info(vec3.length(exitVelA));
-
-							var posAtHit = vec3.scaleAndAdd([], posPrevA, vec3.subtract([], posCurA, posPrevA), intersection.t);
-							var newPosA = vec3.scaleAndAdd([], posAtHit, exitVelA, dt * (1 - intersection.t));
-
-							this.transformMgr_.setPosition(txA, newPosA);
-							this.rigidBodyMgr_.setVelocity(rbA, exitVelA);
-							this.rigidBodyMgr_.addForce(rbA, vec3.scale([], velAtHit, dt), vec3.subtract([], intersection.point, sphereA.center));
-						}
-					}
-				}
-			}
 		}
 
 

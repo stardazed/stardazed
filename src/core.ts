@@ -14,7 +14,7 @@ function assert(cond: any, msg?: string) {
 
 // -- Sequences (global)
 
-function seq<T>(t: Array<T>): Array<T>;
+function seq<T>(t: ArrayLike<T>): Array<T>;
 function seq(t: any): Array<any>;
 
 function seq(t: any): any {
