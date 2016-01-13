@@ -27,25 +27,23 @@ namespace sd.world {
 
 		private typeBase_: Int32Array;
 		private entityBase_: Int32Array;
-		private transformBase_: Int32Array;
-		private bodyBase_: Int32Array;
 		private physMatBase_: PhysicsMaterialArrayView;
 
+		private entityMap_: Map<Entity, ColliderInstance>;
 		private sphereData_: Map<ColliderInstance, math.Sphere>;
 
 
-		constructor(private transformMgr_: TransformManager, private rigidBodyMgr_: RigidBodyManager, private physMatMgr_: PhysicsMaterialManager) {
+		constructor(private physMatMgr_: PhysicsMaterialManager) {
 			var fields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // type
 				{ type: SInt32, count: 1 }, // entity
-				{ type: SInt32, count: 1 }, // transform
-				{ type: SInt32, count: 1 }, // rigidBody
 				{ type: SInt32, count: 1 }, // physicsMaterial
 			];
 
 			this.instanceData_ = new container.MultiArrayBuffer(128, fields);
 			this.rebase();
 
+			this.entityMap_ = new Map<Entity, ColliderInstance>();
 			this.sphereData_ = new Map<ColliderInstance, math.Sphere>();
 		}
 
@@ -53,9 +51,7 @@ namespace sd.world {
 		private rebase() {
 			this.typeBase_ = <Int32Array>this.instanceData_.indexedFieldView(0);
 			this.entityBase_ = <Int32Array>this.instanceData_.indexedFieldView(1);
-			this.transformBase_ = <Int32Array>this.instanceData_.indexedFieldView(2);
-			this.bodyBase_ = <Int32Array>this.instanceData_.indexedFieldView(3);
-			this.physMatBase_ = <PhysicsMaterialArrayView>this.instanceData_.indexedFieldView(4);
+			this.physMatBase_ = <PhysicsMaterialArrayView>this.instanceData_.indexedFieldView(2);
 		}
 
 
@@ -67,9 +63,9 @@ namespace sd.world {
 			var instance = this.instanceData_.count;
 			this.typeBase_[instance] = desc.type;
 			this.entityBase_[instance] = <number>ent;
-			this.transformBase_[instance] = <number>this.transformMgr_.forEntity(ent);
-			this.bodyBase_[instance] = <number>this.rigidBodyMgr_.forEntity(ent);
 			this.physMatBase_[instance] = desc.physicsMaterial;
+
+			this.entityMap_.set(ent, instance);
 
 			// -- shape-specific data
 			if (desc.type == ColliderType.Sphere) {
@@ -81,13 +77,22 @@ namespace sd.world {
 		}
 
 
-		// --
-
-		destroy(inst: ColliderInstance) {
+		forEntity(ent: Entity): ColliderInstance {
+			return this.entityMap_.get(ent) || 0;
 		}
 
 
+		// --
+
+		destroy(inst: ColliderInstance) {
+
+		}
+
 		destroyRange(range: ColliderRange) {
+			var iter = range.makeIterator();
+			while (iter.next()) {
+				this.destroy(iter.current);
+			}
 		}
 
 
@@ -110,12 +115,6 @@ namespace sd.world {
 		}
 
 
-		// --
-
-		resolve(range: ColliderRange, dt: number) {
-		}
-
-
 		// -- per instance properties
 
 		type(inst: ColliderInstance): ColliderType {
@@ -124,14 +123,6 @@ namespace sd.world {
 
 		entity(inst: ColliderInstance): Entity {
 			return this.entityBase_[<number>inst];
-		}
-
-		transform(inst: ColliderInstance): TransformInstance {
-			return this.transformBase_[<number>inst];
-		}
-
-		body(inst: ColliderInstance): RigidBodyInstance {
-			return this.bodyBase_[<number>inst];
 		}
 
 		physicsMaterial(inst: ColliderInstance): PhysicsMaterialInstance {
