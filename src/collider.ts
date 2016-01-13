@@ -17,7 +17,7 @@ namespace sd.world {
 
 	export interface ColliderDescriptor {
 		type: ColliderType;
-		physicsMaterial: PhysicsMaterialInstance;
+		physicsMaterial: PhysicsMaterialRef;
 		sphere?: math.Sphere;
 	}
 
@@ -125,8 +125,9 @@ namespace sd.world {
 			return this.entityBase_[<number>inst];
 		}
 
-		physicsMaterial(inst: ColliderInstance): PhysicsMaterialInstance {
-			return this.physMatBase_[<number>inst];	
+		physicsMaterial(inst: ColliderInstance): PhysicsMaterialData {
+			var ref = this.physMatBase_[<number>inst];
+			return this.physMatMgr_.item(ref);
 		}
 	}
 

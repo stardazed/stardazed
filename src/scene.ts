@@ -15,17 +15,18 @@ namespace sd.world {
 		colliderMgr: ColliderManager;
 
 		constructor(rc: render.RenderContext) {
+			this.stdMaterialMgr = new StdMaterialManager();
+			this.physMatMgr = new PhysicsMaterialManager();
+
 			this.entityMgr = new EntityManager();
 			this.transformMgr = new TransformManager();
-			this.lightMgr = new LightManager(this.transformMgr);
-			this.stdMaterialMgr = new StdMaterialManager();
-			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.stdMaterialMgr, this.lightMgr);
-			this.physMatMgr = new PhysicsMaterialManager();
-			this.rigidBodyMgr = new RigidBodyManager(this.transformMgr);
-			this.colliderMgr = new ColliderManager(this.transformMgr, this.rigidBodyMgr, this.physMatMgr);
-		}
 
-		
+			this.lightMgr = new LightManager(this.transformMgr);
+			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.stdMaterialMgr, this.lightMgr);
+
+			this.colliderMgr = new ColliderManager(this.physMatMgr);
+			this.rigidBodyMgr = new RigidBodyManager(this.transformMgr, this.colliderMgr);
+		}
 	}
 
 } // ns sd.world
