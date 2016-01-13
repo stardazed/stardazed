@@ -9,6 +9,12 @@ namespace sd.world {
 	}
 
 
+	export interface InstanceArrayView<Component> {
+		length: number;
+		[index: number]: Instance<Component>;
+	}
+
+
 	export interface InstanceRange<Component> {
 		empty: boolean;
 		has(inst: Instance<Component>): boolean;
