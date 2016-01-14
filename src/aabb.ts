@@ -111,8 +111,8 @@ namespace sd.math {
 		constructor(min: Float3, max: Float3);
 		constructor(min?: Float3, max?: Float3) {
 			var data = new Float32Array(6);
-			this.min = data.subarray(0, 2);
-			this.max = data.subarray(3, 5);
+			this.min = data.subarray(0, 3);
+			this.max = data.subarray(3, 6);
 
 			if (min && max) {
 				this.min[0] = min[0]; this.min[1] = min[1]; this.min[2] = min[2];
@@ -122,6 +122,13 @@ namespace sd.math {
 				this.min[0] = Float.max; this.min[1] = Float.max; this.min[2] = Float.max;
 				this.max[0] = Float.min; this.max[1] = Float.min; this.max[2] = Float.min;
 			}
+		}
+
+		static fromCenterAndSize(center: Float3, size: Float3): AABB {
+			var min = <number[]>[];
+			var max = <number[]>[];
+			aabb.setCenterAndSize(min, max, center, size);
+			return new AABB(min, max);
 		}
 
 		setCenterAndSize(center: Float3, size: Float3) {
