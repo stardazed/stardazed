@@ -10,8 +10,10 @@ namespace sd.world {
 	export type RigidBodyIterator = InstanceIterator<RigidBodyManager>;
 	export type RigidBodyArrayView = InstanceArrayView<RigidBodyManager>;
 
+
 	export interface RigidBodyDescriptor {
-		mass: number;    // kg
+		mass: number;     // kg
+		hullSize?: Float3; // vec3: w,h,d (defaults to 1,1,1)
 		// drag: number (0)
 		// angularDrag: number (0.05)
 		// kinematic: boolean (false)
@@ -24,20 +26,15 @@ namespace sd.world {
 		private entityMap_: Map<Entity, RigidBodyInstance>;
 
 		private entityBase_: TypedArray;
-		private transformBase_: TypedArray;
+		private transformBase_: TransformArrayView;
 
-		private massBase_: TypedArray;
-		private momentumBase_: TypedArray;
-		private velocityBase_: TypedArray;
-		private forceBase_: TypedArray;
+		private massBase_: Float32Array;
+		private velocityBase_: Float32Array;
+		private forceBase_: Float32Array;
 
-		private inertiaBase_: TypedArray;
-		private angMomentumBase_: TypedArray;
-		private angVelocityBase_: TypedArray;
-		private torqueBase_: TypedArray;
-
-		private prevPositionBase_: TypedArray;
-		private prevVelocityBase_: TypedArray;
+		private inertiaBase_: Float32Array;
+		private angVelocityBase_: Float32Array;
+		private torqueBase_: Float32Array;
 
 
 		constructor(private transformMgr_: TransformManager, private colliderMgr_: ColliderManager) {
@@ -46,17 +43,12 @@ namespace sd.world {
 				{ type: SInt32, count: 1 }, // transform
 
 				{ type: Float, count: 2 },  // mass, invMass
-				{ type: Float, count: 3 },  // momentum
 				{ type: Float, count: 3 },  // velocity
 				{ type: Float, count: 3 },  // force
 
-				{ type: Float, count: 2 },  // inertia, invInertia
-				{ type: Float, count: 3 },  // angMomentum
+				{ type: Float, count: 18 }, // inertia, invInertia (Float3x3)
 				{ type: Float, count: 3 },  // angVelocity
 				{ type: Float, count: 3 },  // torque
-
-				{ type: Float, count: 3 },  // prevPosition
-				{ type: Float, count: 3 },  // prevVelocity
 			];
 
 			this.instanceData_ = new container.MultiArrayBuffer(128, fields);
@@ -70,18 +62,13 @@ namespace sd.world {
 			this.entityBase_ = this.instanceData_.indexedFieldView(0);
 			this.transformBase_ = this.instanceData_.indexedFieldView(1);
 
-			this.massBase_ = this.instanceData_.indexedFieldView(2);
-			this.momentumBase_ = this.instanceData_.indexedFieldView(3);
-			this.velocityBase_ = this.instanceData_.indexedFieldView(4);
-			this.forceBase_ = this.instanceData_.indexedFieldView(5);
+			this.massBase_ = <Float32Array>this.instanceData_.indexedFieldView(2);
+			this.velocityBase_ = <Float32Array>this.instanceData_.indexedFieldView(3);
+			this.forceBase_ = <Float32Array>this.instanceData_.indexedFieldView(4);
 
-			this.inertiaBase_ = this.instanceData_.indexedFieldView(6);
-			this.angMomentumBase_ = this.instanceData_.indexedFieldView(7);
-			this.angVelocityBase_ = this.instanceData_.indexedFieldView(8);
-			this.torqueBase_ = this.instanceData_.indexedFieldView(9);
-
-			this.prevPositionBase_ = this.instanceData_.indexedFieldView(10);
-			this.prevVelocityBase_ = this.instanceData_.indexedFieldView(11);
+			this.inertiaBase_ = <Float32Array>this.instanceData_.indexedFieldView(5);
+			this.angVelocityBase_ = <Float32Array>this.instanceData_.indexedFieldView(6);
+			this.torqueBase_ = <Float32Array>this.instanceData_.indexedFieldView(7);
 		}
 
 
@@ -97,23 +84,15 @@ namespace sd.world {
 			this.entityMap_.set(ent, <RigidBodyInstance>instance);
 
 			// -- set constant data
-			var inertia = desc.mass / 12;
-			container.setIndexedVec2(this.massBase_, instance, [desc.mass, 1 / desc.mass]);
-			container.setIndexedVec2(this.inertiaBase_, instance, [inertia, 1 / inertia]);
+			this.setMass(instance, desc.mass, desc.hullSize);
 
 			// -- clear the rest
 			var zero3 = math.Vec3.zero;
-			container.setIndexedVec3(this.momentumBase_, instance, zero3);
 			container.setIndexedVec3(this.velocityBase_, instance, zero3);
 			container.setIndexedVec3(this.forceBase_, instance, zero3);
 
-			container.setIndexedVec3(this.angMomentumBase_, instance, zero3);
 			container.setIndexedVec3(this.angVelocityBase_, instance, zero3);
 			container.setIndexedVec3(this.torqueBase_, instance, zero3);
-
-			// -- previous pos and vel set to current state, used for interpolation
-			container.setIndexedVec3(this.prevPositionBase_, instance, this.transformMgr_.localPosition(this.transformBase_[instance]));
-			container.setIndexedVec3(this.prevVelocityBase_, instance, zero3);
 
 			return instance;
 		}
@@ -122,14 +101,12 @@ namespace sd.world {
 		destroy(inst: RigidBodyInstance) {
 		}
 
-
 		destroyRange(range: RigidBodyRange) {
 			var iter = range.makeIterator();
 			while (iter.next()) {
 				this.destroy(iter.current);
 			}
 		}
-
 
 		get count() { return this.instanceData_.count; }
 
@@ -150,6 +127,8 @@ namespace sd.world {
 		}
 
 
+		// -- simulation
+
 		simulate(range: RigidBodyRange, dt: number) {
 			var zero3 = math.Vec3.zero;
 
@@ -161,18 +140,11 @@ namespace sd.world {
 				// discrete step vectors for the positional and angular changes
 				var dxdt = vec3.scale([], container.copyIndexedVec3(this.velocityBase_, index), dt);
 				var dpdt = vec3.scale([], container.copyIndexedVec3(this.forceBase_, index), dt);
-				var inverseMass = this.massBase_[(index * 2) + 1];
+				var inverseMass = this.inverseMass(index);
 
 				var dOdt = vec3.scale([], container.copyIndexedVec3(this.angVelocityBase_, index), dt);
 				var dTdt = vec3.scale([], container.copyIndexedVec3(this.torqueBase_, index), dt);
-				var inverseInertia = this.inertiaBase_[(index * 2) + 1];
-
-
-				// store current as previous state
-				container.setIndexedVec3(this.prevPositionBase_, index, this.transformMgr_.localPosition(transform));
-				var curVelocity = container.copyIndexedVec3(this.velocityBase_, index);
-				container.setIndexedVec3(this.prevVelocityBase_, index, curVelocity);
-
+				var inverseInertia = this.inverseInertia(index);
 
 				// apply discrete forces to transform
 				if (dxdt[0] || dxdt[1] || dxdt[2]) {
@@ -182,38 +154,18 @@ namespace sd.world {
 					this.transformMgr_.rotateByAngles(transform, dOdt);
 				}
 
+				// update state
+				var indexVec3 = container.offsetOfIndexedVec3(index);
+				this.velocityBase_[indexVec3 + 0] += dpdt[0] * inverseMass;
+				this.velocityBase_[indexVec3 + 1] += dpdt[1] * inverseMass;
+				this.velocityBase_[indexVec3 + 2] += dpdt[2] * inverseMass;
 
-				// calc primaries
-				var momentum = container.copyIndexedVec3(this.momentumBase_, index);
-				momentum[0] += dpdt[0];
-				momentum[1] += dpdt[1];
-				momentum[2] += dpdt[2];
-				container.setIndexedVec3(this.momentumBase_, index, momentum);
+				var torqueInvInvertia = vec3.transformMat3([], dTdt, inverseInertia);
+				this.angVelocityBase_[indexVec3 + 0] += torqueInvInvertia[0];
+				this.angVelocityBase_[indexVec3 + 1] += torqueInvInvertia[1];
+				this.angVelocityBase_[indexVec3 + 2] += torqueInvInvertia[2];
 
-				var angMomentum = container.copyIndexedVec3(this.angMomentumBase_, index);
-				angMomentum[0] += dTdt[0];
-				angMomentum[1] += dTdt[1];
-				angMomentum[2] += dTdt[2];
-				container.setIndexedVec3(this.angMomentumBase_, index, angMomentum);
-
-
-				// calc secondaries
-				var velocity = [
-					momentum[0] * inverseMass,
-					momentum[1] * inverseMass,
-					momentum[2] * inverseMass
-				];
-				container.setIndexedVec3(this.velocityBase_, index, velocity);
-
-				var angVelocity = [
-					angMomentum[0] * inverseInertia,
-					angMomentum[1] * inverseInertia,
-					angMomentum[2] * inverseInertia
-				];
-				container.setIndexedVec3(this.angVelocityBase_, index, angVelocity);
-
-
-				// clear sum force and torque
+				// clear sum force and torque (FIXME, make this a one-step clear all)
 				container.setIndexedVec3(this.forceBase_, index, zero3);
 				container.setIndexedVec3(this.torqueBase_, index, zero3);
 			}
@@ -235,21 +187,48 @@ namespace sd.world {
 		}
 
 
-		// -- single-instance accessors
+		// -- constant state
+
+		setMass(inst: RigidBodyInstance, newMass: number, hullSize: Float3 = math.Vec3.one) {
+			var massOver12 = newMass / 12.0;
+
+			const ww = hullSize[0] * hullSize[0],
+				hh = hullSize[1] * hullSize[1],
+				dd = hullSize[2] * hullSize[2];
+
+			var inertia = mat3.create();
+			inertia[0] = massOver12 * (hh + dd);
+			inertia[4] = massOver12 * (ww + dd);
+			inertia[8] = massOver12 * (ww + hh);
+
+			var invInertia = mat3.invert([], inertia);
+
+			// -- set all constant data
+			container.setIndexedVec2(this.massBase_, <number>inst, [newMass, 1 / newMass]);
+			var doubleIndex = 2 * <number>inst;
+			container.setIndexedMat3(this.inertiaBase_, doubleIndex, inertia);
+			container.setIndexedMat3(this.inertiaBase_, doubleIndex + 1, invInertia);
+		}
+
 
 		mass(inst: RigidBodyInstance): number {
 			return container.copyIndexedVec2(this.massBase_, <number>inst)[0];
 		}
 
-		momentum(inst: RigidBodyInstance): Float3 {
-			return container.copyIndexedVec3(this.momentumBase_, <number>inst);
+		inverseMass(inst: RigidBodyInstance): number {
+			return container.copyIndexedVec2(this.massBase_, <number>inst)[1];
 		}
 
-		setMomentum(inst: RigidBodyInstance, newMomentum: Float3) {
-			container.setIndexedVec3(this.momentumBase_, <number>inst, newMomentum);
-			var newVelocity = vec3.scale([], newMomentum, this.massBase_[(<number>inst * 2) + 1]);
-			container.setIndexedVec3(this.velocityBase_, <number>inst, newVelocity);
+		inertia(inst: RigidBodyInstance): Float3x3 {
+			return container.copyIndexedMat3(this.inertiaBase_, <number>inst * 2);
 		}
+
+		inverseInertia(inst: RigidBodyInstance): Float3x3 {
+			return container.copyIndexedMat3(this.inertiaBase_, 1 + <number>inst * 2);
+		}
+
+
+		// -- dynamic state
 
 		velocity(inst: RigidBodyInstance): Float3 {
 			return container.copyIndexedVec3(this.velocityBase_, <number>inst);
@@ -257,67 +236,30 @@ namespace sd.world {
 
 		setVelocity(inst: RigidBodyInstance, newVelocity: Float3) {
 			container.setIndexedVec3(this.velocityBase_, <number>inst, newVelocity);
-			var newMomentum = vec3.scale([], newVelocity, this.massBase_[(<number>inst * 2)]);
-			container.setIndexedVec3(this.momentumBase_, <number>inst, newMomentum);
-		}
-
-
-		inertia(inst: RigidBodyInstance): number {
-			return container.copyIndexedVec2(this.inertiaBase_, <number>inst)[0];
-		}
-
-		angMomentum(inst: RigidBodyInstance): Float3 {
-			return container.copyIndexedVec3(this.angMomentumBase_, <number>inst);
-		}
-
-		setAngMomentum(inst: RigidBodyInstance, newAngMomentum: Float3) {
-			container.setIndexedVec3(this.angMomentumBase_, <number>inst, newAngMomentum);
-			var newAngVelocity = vec3.scale([], newAngMomentum, this.inertiaBase_[(<number>inst * 2) + 1]);
-			container.setIndexedVec3(this.angVelocityBase_, <number>inst, newAngVelocity);
 		}
 
 		angVelocity(inst: RigidBodyInstance): Float3 {
 			return container.copyIndexedVec3(this.angVelocityBase_, <number>inst);
 		}
 
-
-		prevPosition(inst: RigidBodyInstance): Float3 {
-			return container.copyIndexedVec3(this.prevPositionBase_, <number>inst);
+		setAngVelocity(inst: RigidBodyInstance, newAngVelocity: Float3) {
+			container.setIndexedVec3(this.angVelocityBase_, <number>inst, newAngVelocity);
 		}
 
-		prevVelocity(inst: RigidBodyInstance): Float3 {
-			return container.copyIndexedVec3(this.prevVelocityBase_, <number>inst);
-		}
-
-
-		// -- derived data
-
-		acceleration(inst: RigidBodyInstance): Float3 {
-			var vCur = container.copyIndexedVec3(this.velocityBase_, <number>inst);
-			var vLast = container.copyIndexedVec3(this.prevVelocityBase_, <number>inst);
-
-			vCur[0] = (vCur[0] - vLast[0]) * (1 / 60); // FIXME: meh
-			vCur[1] = (vCur[1] - vLast[1]) * (1 / 60);
-			vCur[2] = (vCur[2] - vLast[2]) * (1 / 60);
-
-			return vCur;
+		stop(inst: RigidBodyInstance) {
+			const zero3 = math.Vec3.zero;
+			container.setIndexedVec3(this.velocityBase_, <number>inst, zero3);
+			container.setIndexedVec3(this.angVelocityBase_, <number>inst, zero3);
 		}
 
 
 		// -- per timestep accumulated forces and torques
 
-		stop(inst: RigidBodyInstance) {
-			container.setIndexedVec3(this.momentumBase_, <number>inst, math.Vec3.zero);
-			container.setIndexedVec3(this.velocityBase_, <number>inst, math.Vec3.zero);
-		}
-
 		addForce(inst: RigidBodyInstance, force: Float3, forceCenterOffset?: Float3) {
-			// as of Nov 2015 this is (a lot) faster than subarray()/set()
-			var totalForce = container.copyIndexedVec3(this.forceBase_, <number>inst);
-			totalForce[0] += force[0];
-			totalForce[1] += force[1];
-			totalForce[2] += force[2];
-			container.setIndexedVec3(this.forceBase_, <number>inst, totalForce);
+			var indexVec3 = container.offsetOfIndexedVec3(<number>inst);
+			this.forceBase_[indexVec3 + 0] += force[0];
+			this.forceBase_[indexVec3 + 1] += force[1];
+			this.forceBase_[indexVec3 + 2] += force[2];
 
 			if (forceCenterOffset) {
 				// apply torque as well if force was not applied at exact center of body
@@ -326,12 +268,10 @@ namespace sd.world {
 		}
 		
 		addTorque(inst: RigidBodyInstance, torque: Float3) {
-			// as of Nov 2015 this is (a lot) faster than subarray()/set()
-			var totalTorque = container.copyIndexedVec3(this.torqueBase_, <number>inst);
-			totalTorque[0] += torque[0];
-			totalTorque[1] += torque[1];
-			totalTorque[2] += torque[2];
-			container.setIndexedVec3(this.torqueBase_, <number>inst, totalTorque);
+			var indexVec3 = container.offsetOfIndexedVec3(<number>inst);
+			this.torqueBase_[indexVec3 + 0] += torque[0];
+			this.torqueBase_[indexVec3 + 1] += torque[1];
+			this.torqueBase_[indexVec3 + 2] += torque[2];
 		}
 	}
 
