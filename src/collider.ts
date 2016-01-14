@@ -85,7 +85,6 @@ namespace sd.world {
 		// --
 
 		destroy(inst: ColliderInstance) {
-
 		}
 
 		destroyRange(range: ColliderRange) {
@@ -128,6 +127,10 @@ namespace sd.world {
 		physicsMaterial(inst: ColliderInstance): PhysicsMaterialData {
 			var ref = this.physMatBase_[<number>inst];
 			return this.physMatMgr_.item(ref);
+		}
+
+		sphereData(inst: ColliderInstance): math.Sphere {
+			return this.sphereData_.get(inst);
 		}
 	}
 
