@@ -84,7 +84,7 @@ namespace sd.world {
 			this.entityMap_.set(ent, <RigidBodyInstance>instance);
 
 			// -- set constant data
-			this.setMass(instance, desc.mass, desc.hullSize);
+			this.setMass(instance, desc.mass, desc.hullSize || math.Vec3.one);
 
 			// -- clear the rest
 			var zero3 = math.Vec3.zero;
@@ -189,12 +189,12 @@ namespace sd.world {
 
 		// -- constant state
 
-		setMass(inst: RigidBodyInstance, newMass: number, hullSize: Float3 = math.Vec3.one) {
+		setMass(inst: RigidBodyInstance, newMass: number, hullSize: Float3) {
 			var massOver12 = newMass / 12.0;
 
 			const ww = hullSize[0] * hullSize[0],
-				hh = hullSize[1] * hullSize[1],
-				dd = hullSize[2] * hullSize[2];
+				  hh = hullSize[1] * hullSize[1],
+				  dd = hullSize[2] * hullSize[2];
 
 			var inertia = mat3.create();
 			inertia[0] = massOver12 * (hh + dd);
