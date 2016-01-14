@@ -66,6 +66,8 @@ namespace sd.container {
 		data[offset + 1] = v2[1];
 	}
 
+	export function offsetOfIndexedVec2(index: number) { return (index * 2) | 0; }
+
 
 	export function refIndexedVec3(data: TypedArray, index: number): TypedArray {
 		return data.subarray(index * 3, (index + 1) * 3);
@@ -82,6 +84,8 @@ namespace sd.container {
 		data[offset + 1] = v3[1];
 		data[offset + 2] = v3[2];
 	}
+
+	export function offsetOfIndexedVec3(index: number) { return (index * 3) | 0; }
 
 
 	export function refIndexedVec4(data: TypedArray, index: number): TypedArray {
@@ -100,6 +104,8 @@ namespace sd.container {
 		data[offset + 2] = v4[2];
 		data[offset + 3] = v4[3];
 	}
+
+	export function offsetOfIndexedVec4(index: number) { return (index * 4) | 0; }
 
 
 
@@ -122,6 +128,8 @@ namespace sd.container {
 		data[offset + 3] = m3[3]; data[offset + 4] = m3[4]; data[offset + 5] = m3[5];
 		data[offset + 6] = m3[6]; data[offset + 7] = m3[7]; data[offset + 8] = m3[8];
 	}
+
+	export function offsetOfIndexedMat3(index: number) { return (index * 9) | 0; }
 
 
 
@@ -146,6 +154,8 @@ namespace sd.container {
 		data[offset + 8]  = m4[8];  data[offset + 9]  = m4[9];  data[offset + 10] = m4[10]; data[offset + 11] = m4[11];
 		data[offset + 12] = m4[12]; data[offset + 13] = m4[13]; data[offset + 14] = m4[14]; data[offset + 15] = m4[15];
 	}
+
+	export function offsetOfIndexedMat4(index: number) { return (index * 16) | 0; }
 
 
 	//  ___                    
