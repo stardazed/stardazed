@@ -1,52 +1,22 @@
 // math - general purpose functions, equations, RNG, etc.
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2016 by Arthur Langereis - @zenmumbler
 
-/// <reference path="../defs/gl-matrix.d.ts" />
-/// <reference path="numeric.ts" />
+namespace sd {
+	// types to use in function signatures to not have ArrayOfNumber everywhere
+	export type Float2 = ArrayOfNumber;
+	export type Float3 = ArrayOfNumber;
+	export type Float4 = ArrayOfNumber;
 
-interface Math {
-	sign(n: number): number;
-}
-
-
-interface quat {
-	fromEuler(yaw: number, pitch: number, roll: number): Float32Array;
-}
-
-quat.fromEuler = function(yaw: number, pitch: number, roll: number) {
-	var y = yaw * 0.5;
-	var p = pitch * 0.5;
-	var r = roll * 0.5;
-
-	var siny = Math.sin(y), cosy = Math.cos(y);
-	var sinp = Math.sin(p), cosp = Math.cos(p);
-	var sinr = Math.sin(r), cosr = Math.cos(r);
-
-	// evaluated form of 3 Quat multiplications (of yaw, pitch and roll)
-	return <Float32Array>quat.normalize(new Float32Array(4), [
-		sinr * cosp * cosy - cosr * sinp * siny,
-		cosr * sinp * cosy + sinr * cosp * siny,
-		cosr * cosp * siny - sinr * sinp * cosy,
-		cosr * cosp * cosy + sinr * sinp * siny
-	]);
-}
-
-
-// types to use in function signatures to not have ArrayOfNumber everywhere
-
-type Float2 = ArrayOfNumber;
-type Float3 = ArrayOfNumber;
-type Float4 = ArrayOfNumber;
-
-type Float2x2 = ArrayOfNumber;
-type Float3x3 = ArrayOfNumber;
-type Float4x4 = ArrayOfNumber;
-
+	export type Float2x2 = ArrayOfNumber;
+	export type Float3x3 = ArrayOfNumber;
+	export type Float4x4 = ArrayOfNumber;
+} // ns sd
 
 
 namespace sd.math {
 
+	// common functions
 	export function intRandom(maximum: number): number {
 		return (Math.random() * (maximum + 1)) | 0;
 	}
