@@ -471,10 +471,11 @@ namespace sd.world {
 		private stdPipeline_: StdPipeline;
 
 		private instanceData_: container.MultiArrayBuffer;
-		private entityBase_: TypedArray;
-		private transformBase_: TypedArray;
-		private shadowFlagBase_: TypedArray;
-		private primGroupOffsetBase_: TypedArray;
+		private entityBase_: EntityArrayView;
+		private transformBase_: TransformArrayView;
+		private enabledBase_: Uint8Array;
+		private shadowFlagBase_: Int32Array;
+		private primGroupOffsetBase_: Int32Array;
 
 		private primGroupData_: container.MultiArrayBuffer;
 		private primGroupMaterialBase_: TypedArray;
@@ -510,6 +511,7 @@ namespace sd.world {
 			var instFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transform
+				{ type: UInt8, count: 1 },  // enabled
 				{ type: SInt32, count: 1 }, // shadowFlags
 				{ type: SInt32, count: 1 }, // primGroupOffset (offset into primGroupMaterials_ and primGroupFeatures_)
 			];
@@ -529,8 +531,9 @@ namespace sd.world {
 		private rebase() {
 			this.entityBase_ = this.instanceData_.indexedFieldView(0);
 			this.transformBase_ = this.instanceData_.indexedFieldView(1);
-			this.shadowFlagBase_ = this.instanceData_.indexedFieldView(2);
-			this.primGroupOffsetBase_ = this.instanceData_.indexedFieldView(3);
+			this.enabledBase_ = <Uint8Array>this.instanceData_.indexedFieldView(2);
+			this.shadowFlagBase_ = <Int32Array>this.instanceData_.indexedFieldView(3);
+			this.primGroupOffsetBase_ = <Int32Array>this.instanceData_.indexedFieldView(4);
 		}
 
 
@@ -551,7 +554,7 @@ namespace sd.world {
 
 			if (this.materialMgr_.albedoMap(material)) features |= Features.AlbedoMap;
 
-			// Bugfix: GL drivers can (and do) remove attributes only used in the vertex shader
+			// Bugfix: GL drivers can (and do) remove attributes that are only used in the vertex shader
 			var prePrune = features;
 
 			// disable UV attr and AlbedoMap unless both are provided (TODO: also take other maps into account when added later)
@@ -581,6 +584,7 @@ namespace sd.world {
 
 			this.entityBase_[ix] = <number>entity;
 			this.transformBase_[ix] = <number>this.transformMgr_.forEntity(entity);
+			this.enabledBase_[ix] = +true;
 			this.meshes_[ix] = desc.mesh;
 			this.shadowFlagBase_[ix] = 0;
 
@@ -621,7 +625,6 @@ namespace sd.world {
 		}
 
 
-
 		get count() {
 			return this.instanceData_.count;
 		}
@@ -653,6 +656,14 @@ namespace sd.world {
 
 		mesh(inst: StdModelInstance) {
 			return this.meshes_[<number>inst];
+		}
+
+		enabled(inst: StdModelInstance): boolean {
+			return this.enabledBase_[<number>inst] != 0;
+		}
+
+		setEnabled(inst: StdModelInstance, newEnabled: boolean) {
+			this.enabledBase_[<number>inst] = +newEnabled;
 		}
 
 
@@ -822,7 +833,10 @@ namespace sd.world {
 				rp.setFaceCulling(render.FaceCulling.Front);
 
 				while (iter.next()) {
-					this.drawSingleShadow(rp, proj, shadowPipeline, <number>iter.current);
+					let inst = <number>iter.current;
+					if (this.enabledBase_[inst]) {
+						this.drawSingleShadow(rp, proj, shadowPipeline, inst);
+					}
 				}
 			}
 
