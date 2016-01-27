@@ -31,9 +31,11 @@ namespace sd.world {
 	export type LightArrayView = InstanceArrayView<LightManager>;
 
 	export interface LightDescriptor {
+		type: LightType;
+
 		colour: Float3;
-		ambientIntensity: number;
 		diffuseIntensity: number;
+		ambientIntensity?: number;
 
 		range?: number;  // m   (point/spot only)
 		cutoff?: number; // rad (spot only)
@@ -130,13 +132,13 @@ namespace sd.world {
 		}
 
 
-		create(entity: Entity, type: LightType, desc: LightDescriptor): LightInstance {
+		create(entity: Entity, desc: LightDescriptor): LightInstance {
 			// -- validate parameters
-			assert(type != LightType.None);
-			if (type == LightType.Point) {
+			assert(desc.type != LightType.None);
+			if (desc.type == LightType.Point) {
 				assert((desc.range != undefined) && (desc.range >= 0), "Point lights require a valid range");
 			}
-			else if (type == LightType.Spot) {
+			else if (desc.type == LightType.Spot) {
 				assert((desc.range != undefined) && (desc.range >= 0), "Spot lights require a valid range (0+)");
 				assert((desc.cutoff != undefined) && (desc.cutoff >= 0), "Spot lights require a valid cutoff arc (0+)");
 			}
@@ -151,15 +153,15 @@ namespace sd.world {
 			this.entityBase_[instanceIx] = <number>entity;
 			this.transformBase_[instanceIx] = <number>this.transformMgr_.forEntity(entity);
 
-			// -- colour and amp
-			this.typeBase_[instanceIx] = type;
+			// -- colour and amplitude
+			this.typeBase_[instanceIx] = desc.type;
 			vec4.set(this.tempVec4_, desc.colour[0], desc.colour[1], desc.colour[2], 1.0);
 			container.setIndexedVec4(this.colourBase_, instanceIx, this.tempVec4_);
 
 			// -- parameters, force 0 for unused fields for specified type
-			var range = (type == LightType.Directional) ? 0 : desc.range;
-			var cutoff = (type != LightType.Spot) ? 0 : desc.cutoff;
-			vec4.set(this.tempVec4_, desc.ambientIntensity, desc.diffuseIntensity, range, Math.cos(cutoff));
+			var range = (desc.type == LightType.Directional) ? 0 : desc.range;
+			var cutoff = (desc.type != LightType.Spot) ? 0 : desc.cutoff;
+			vec4.set(this.tempVec4_, desc.ambientIntensity || 0, desc.diffuseIntensity, range, Math.cos(cutoff));
 			container.setIndexedVec4(this.parameterBase_, instanceIx, this.tempVec4_);
 
 			// -- shadow info
