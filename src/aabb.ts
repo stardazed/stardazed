@@ -2,6 +2,8 @@
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 
+/// <reference path="math.ts" />
+
 namespace sd.math {
 
 	export namespace aabb {

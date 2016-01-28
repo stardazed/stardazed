@@ -2,6 +2,9 @@
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 
+/// <reference path="numeric.ts" />
+
+
 namespace sd {
 	// types to use in function signatures to not have ArrayOfNumber everywhere
 	export type Float2 = ArrayOfNumber;
