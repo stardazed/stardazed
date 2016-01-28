@@ -136,10 +136,6 @@ namespace sd.render {
 		var fsl = gl.getExtension("EXT_shader_texture_lod");
 
 
-		// -- FIXME: Temporary setup
-		gl.clearColor(0.0, 0.0, 0.0, 1.0);
-		gl.enable(gl.DEPTH_TEST);
-
 		return {
 			gl: gl,
 
