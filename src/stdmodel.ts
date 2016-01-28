@@ -823,7 +823,10 @@ namespace sd.world {
 				// rp.setFaceCulling(render.FaceCulling.Back);
 
 				while (iter.next()) {
-					this.drawSingleForward(rp, proj, shadow, <number>iter.current);
+					let inst = <number>iter.current;
+					if (this.enabledBase_[inst]) {
+						this.drawSingleForward(rp, proj, shadow, inst);
+					}
 				}
 			}
 			else if (mode == RenderMode.Shadow) {
