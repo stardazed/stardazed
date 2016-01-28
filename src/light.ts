@@ -63,6 +63,14 @@ namespace sd.world {
 	}
 
 
+	export interface FogDescriptor {
+		colour: Float3;
+		offset: number;        // 0+
+		depth: number;         // 0+,
+		density: number;       // 0..1
+	}
+
+
 	// -- internal enums
 
 	const enum ColourParam {

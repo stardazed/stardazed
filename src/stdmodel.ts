@@ -17,6 +17,7 @@ namespace sd.world {
 		//HeightMap       = 0x00100,
 		ShadowMap       = 0x01000,
 		SoftShadow      = 0x02000,
+		Fog             = 0x04000,
 		//Instancing      = 0x10000
 	}
 
@@ -48,6 +49,10 @@ namespace sd.world {
 		// -- shadow
 		lightViewProjectionMatrixUniform?: WebGLUniformLocation; // mat4
 		shadowMapUniform?: WebGLUniformLocation;        // sampler2D/Cube
+
+		// -- fog
+		fogColourUniform?: WebGLUniformLocation;        // vec4 (rgb, 0)
+		fogParamsUniform?: WebGLUniformLocation;        // vec4 (start, depth, density, 0)
 	}
 
 
@@ -150,6 +155,10 @@ namespace sd.world {
 			// -- shadow properties
 			program.lightViewProjectionMatrixUniform = gl.getUniformLocation(program, "lightViewProjectionMatrix");
 
+			// -- fog properties
+			program.fogColourUniform = gl.getUniformLocation(program, "fogColour");
+			program.fogParamsUniform = gl.getUniformLocation(program, "fogParams");
+
 			gl.useProgram(null);
 
 			this.cachedPipelines_.set(feat, pipeline);
@@ -208,14 +217,14 @@ namespace sd.world {
 			// Out
 			line  ("varying vec3 vertexNormal_intp;");
 			line  ("varying vec3 vertexPos_world;");
-			if_all("varying vec3 vertexPos_cam_intp;", Features.Specular);
+			if_any("varying vec3 vertexPos_cam_intp;", Features.Specular | Features.Fog);
 			if_all("varying vec4 vertexPos_light_intp;", Features.ShadowMap);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
 			// Uniforms
 			line  ("uniform mat4 modelMatrix;");
-			if_all("uniform mat4 modelViewMatrix;", Features.Specular);
+			if_any("uniform mat4 modelViewMatrix;", Features.Specular | Features.Fog);
 			line  ("uniform mat4 modelViewProjectionMatrix;");
 			if_all("uniform mat4 lightViewProjectionMatrix;", Features.ShadowMap);
 			line  ("uniform mat3 normalMatrix;");
@@ -226,7 +235,7 @@ namespace sd.world {
 			line  ("	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);");
 			line  ("	vertexPos_world = (modelMatrix * vec4(vertexPos_model, 1.0)).xyz;");
 			line  ("	vertexNormal_intp = normalMatrix * vertexNormal;");
-			if_all("	vertexPos_cam_intp = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;", Features.Specular);
+			if_any("	vertexPos_cam_intp = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;", Features.Specular | Features.Fog);
 			if_all("	vertexPos_light_intp = lightViewProjectionMatrix * modelMatrix * vec4(vertexPos_model, 1.0);", Features.ShadowMap);
 			if_all("	vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;", Features.VtxUV);
 			if_all("	vertexColour_intp = vertexColour;", Features.VtxColour);
@@ -251,7 +260,7 @@ namespace sd.world {
 			// In
 			line  ("varying vec3 vertexPos_world;");
 			line  ("varying vec3 vertexNormal_intp;");
-			if_all("varying vec3 vertexPos_cam_intp;", Features.Specular);
+			if_any("varying vec3 vertexPos_cam_intp;", Features.Specular | Features.Fog);
 			if_all("varying vec4 vertexPos_light_intp;", Features.ShadowMap);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
@@ -286,10 +295,18 @@ namespace sd.world {
 			line  ("uniform vec4 lightColours[MAX_FRAGMENT_LIGHTS];");
 			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
 
-			if (feat & Features.SoftShadow) {
-				// initialized in main() as GLSL ES 2 does not support array initializers
-				line("vec2 poissonDisk[4];");
+			// -- fog
+			if (feat & Features.Fog) {
+				line("const int FOGPARAM_START = 0;");
+				line("const int FOGPARAM_DEPTH = 1;");
+				line("const int FOGPARAM_DENSITY = 2;");
+
+				line("uniform vec4 fogColour;");
+				line("uniform vec4 fogParams;");
 			}
+
+			// initialized in main() as GLSL ES 2 does not support array initializers
+			if_all("vec2 poissonDisk[4];", Features.SoftShadow);
 
 			// -- calcLightShared()
 			line  ("vec3 calcLightShared(vec3 matColour, vec4 colour, vec4 param, float diffuseStrength, vec3 lightDirection, vec3 normal_cam) {");
@@ -434,7 +451,14 @@ namespace sd.world {
 			line  ("	}");
 
 			// -- final colour result
-			line  ("	gl_FragColor = vec4(totalLight * matColour, 1.0);");
+			if (feat & Features.Fog) {
+				line("	float fogDensity = clamp((length(vertexPos_cam_intp) - fogParams[FOGPARAM_START]) / fogParams[FOGPARAM_DEPTH], 0.0, fogParams[FOGPARAM_DENSITY]);");
+				line("	gl_FragColor = vec4(mix(totalLight * matColour, fogColour.rgb, fogDensity), 1.0);");
+			}
+			else {
+				line("	gl_FragColor = vec4(totalLight * matColour, 1.0);");	
+			}
+
 			line  ("}");
 
 			// console.info("------ FRAGMENT");
@@ -703,7 +727,7 @@ namespace sd.world {
 		}
 
 
-		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, modelIx: number) {
+		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, fogSpec: world.FogDescriptor, modelIx: number) {
 			var gl = this.rc.gl;
 
 			var mesh = this.meshes_[modelIx];
@@ -730,6 +754,10 @@ namespace sd.world {
 					if (shadowType == ShadowType.Soft) {
 						features |= Features.SoftShadow;
 					}
+				}
+
+				if (fogSpec) {
+					features |= Features.Fog;
 				}
 
 				var pipeline = this.stdPipeline_.pipelineForFeatures(features);
@@ -770,6 +798,12 @@ namespace sd.world {
 				gl.uniform4fv(program.lightDirectionArrayUniform, this.lightDirectionArray_);
 				gl.uniform4fv(program.lightColourArrayUniform, this.lightColourArray_);
 				gl.uniform4fv(program.lightParamArrayUniform, this.lightParamArray_);
+
+				// -- fog data (TODO: directly using descriptor)
+				if (features & Features.Fog) {
+					gl.uniform4fv(program.fogColourUniform, new Float32Array([fogSpec.colour[0], fogSpec.colour[1], fogSpec.colour[2], 0]));
+					gl.uniform4fv(program.fogParamsUniform, new Float32Array([fogSpec.offset, fogSpec.depth, fogSpec.density, 0]));
+				}
 
 				// -- shadow map and metadata
 				if (features & Features.ShadowMap) {
@@ -813,7 +847,7 @@ namespace sd.world {
 		}
 
 
-		draw(range: StdModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, mode: RenderMode) {
+		draw(range: StdModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, fogSpec: world.FogDescriptor, mode: RenderMode) {
 			var gl = this.rc.gl;
 			var count = this.instanceData_.count;
 			var iter = range.makeIterator();
@@ -825,7 +859,7 @@ namespace sd.world {
 				while (iter.next()) {
 					let inst = <number>iter.current;
 					if (this.enabledBase_[inst]) {
-						this.drawSingleForward(rp, proj, shadow, inst);
+						this.drawSingleForward(rp, proj, shadow, fogSpec, inst);
 					}
 				}
 			}
