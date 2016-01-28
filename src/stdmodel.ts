@@ -385,7 +385,13 @@ namespace sd.world {
 			// -- material colour at point
 			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
 				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
-				line("	vec3 matColour = texColour * mainColour.rgb;");
+
+				if (feat & Features.VtxColour) {
+					line("	vec3 matColour = vertexColour_intp * texColour * mainColour.rgb;");
+				}
+				else {
+					line("	vec3 matColour = texColour * mainColour.rgb;");	
+				}
 			}
 			else if (feat & Features.VtxColour) {
 				line("	vec3 matColour = vertexColour_intp * mainColour.rgb;");
@@ -560,12 +566,6 @@ namespace sd.world {
 			// disable UV attr and AlbedoMap unless both are provided (TODO: also take other maps into account when added later)
 			if ((features & (Features.VtxUV | Features.AlbedoMap)) != (Features.VtxUV | Features.AlbedoMap)) {
 				features &= ~(Features.VtxUV | Features.AlbedoMap);
-			}
-
-			// In the same vein, we don't use vertexColours if texture maps are provided (and because of the
-			// above check we are sure that both Albedo and vtxUV are available or neither)
-			if ((features & (Features.VtxColour | Features.AlbedoMap)) == (Features.VtxColour | Features.AlbedoMap)) {
-				features &= ~Features.VtxColour;
 			}
 
 			// if (features != prePrune) {
