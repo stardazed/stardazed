@@ -4,14 +4,7 @@
 
 namespace sd.asset {
 
-	export const enum FBXArrayElementType {
-		SInt32,
-		Float32
-	}
-
-
 	export type FBXFieldProp = number | string;
-
 
 	export interface FBXParserDelegate {
 		field(name: string, properties: FBXFieldProp[]): void;
