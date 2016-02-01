@@ -10,13 +10,19 @@ namespace sd.asset {
 	}
 
 
+	export type FBXFieldProp = number | string;
+
+
 	export interface FBXParserDelegate {
-		label(name: string): void;
-		string(value: string): void;
-		number(value: number): void;
+		field(name: string, properties: FBXFieldProp[]): void;
+
+		provideArray(size: number): TypedArray;
+		arrayFilled(array: TypedArray): void;
 
 		openContext(): void;
 		closeContext(): void;
+
+		error(msg: string, offset: number, token?: string): void;
 	}
 
 
@@ -25,16 +31,19 @@ namespace sd.asset {
 
 
 	class FBX2013ParserDelegate implements FBXParserDelegate {
-		label(name: string) {
-			console.info("KEY: " + name);
+		private curField_ = "";
+		private curArray_: TypedArray = null;
+
+		field(name: string, properties: FBXFieldProp[]) {
+			console.info(name, properties);
 		}
 
-		string(value: string) {
-			console.info("P: " + value);
+		provideArray(size: number): TypedArray {
+			return new Float32Array(size);
 		}
 
-		number(value: number) {
-			console.info("P: " + value);
+		arrayFilled(array: TypedArray) {
+			console.info("Array", array);
 		}
 
 		openContext() {
@@ -45,6 +54,9 @@ namespace sd.asset {
 			console.info("<<<<");
 		}
 
+		error(msg: string, offset: number, token?: string) {
+		}
+
 		output(): FBXData {
 			return {};
 		}
@@ -53,10 +65,10 @@ namespace sd.asset {
 
 	function parseFBXTextSource(text: string) {
 		var del = new FBX2013ParserDelegate();
-		var parser = new FBXTextParser(text);
-
-		parser.parse();		
-
+		var parser = new FBXTextParser(text, del);
+		var t0 = performance.now();
+		parser.parse();
+		console.info("time: " + (performance.now() - t0).toFixed(3));
 		return del.output;
 	}
 
