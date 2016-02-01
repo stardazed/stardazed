@@ -234,4 +234,4 @@ namespace sd.asset {
 		);
 	}
 
-} // ns sd.mesh
+} // ns sd.asset
