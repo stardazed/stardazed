@@ -1,11 +1,11 @@
-// mesh-lwo.ts - Lightwave OBJ mesh file import
+// asset-lwo.ts - Lightwave OBJ mesh file import
 // Part of Stardazed TX
 // (c) 2015 by Arthur Langereis - @zenmumbler
 
 /// <reference path="core.ts" />
 /// <reference path="meshdata.ts" />
 
-namespace sd.mesh {
+namespace sd.asset {
 
 	export interface Material {
 		ambientColor?: Float3;
@@ -53,13 +53,13 @@ namespace sd.mesh {
 
 	export interface LWMeshData {
 		mtlFileName: string;
-		mesh: MeshData;
+		mesh: mesh.MeshData;
 		materials: MaterialSet;
 		drawGroups: LWDrawGroup[];
 	}
 
 
-	function genColorEntriesFromDrawGroups(drawGroups: LWDrawGroup[], materials: MaterialSet, colourView: VertexBufferAttributeView) {
+	function genColorEntriesFromDrawGroups(drawGroups: LWDrawGroup[], materials: MaterialSet, colourView: mesh.VertexBufferAttributeView) {
 		var lastGroup = drawGroups[drawGroups.length - 1];
 		var totalIndexes = lastGroup.indexCount + lastGroup.fromIndex;
 
@@ -86,12 +86,12 @@ namespace sd.mesh {
 		var materialGroups: LWDrawGroup[] = [];
 		var curMaterialGroup: LWDrawGroup = null;
 
-		var mesh = new MeshData(AttrList.Pos3Norm3Colour3UV2());
-		var vb = mesh.primaryVertexBuffer;
+		var meshData = new mesh.MeshData(mesh.AttrList.Pos3Norm3Colour3UV2());
+		var vb = meshData.primaryVertexBuffer;
 
-		var posView: VertexBufferAttributeView;
-		var normView: VertexBufferAttributeView;
-		var uvView: VertexBufferAttributeView;
+		var posView: mesh.VertexBufferAttributeView;
+		var normView: mesh.VertexBufferAttributeView;
+		var uvView: mesh.VertexBufferAttributeView;
 		var vertexIx = 0;
 
 		function vtx(vx: number, tx: number, nx: number) {
@@ -124,10 +124,10 @@ namespace sd.mesh {
 		});
 
 		vb.allocate(triCount * 3);
-		posView = new VertexBufferAttributeView(vb, vb.attrByRole(VertexAttributeRole.Position));
-		normView = new VertexBufferAttributeView(vb, vb.attrByRole(VertexAttributeRole.Normal));
-		uvView = new VertexBufferAttributeView(vb, vb.attrByRole(VertexAttributeRole.UV));
-		mesh.indexBuffer = null;
+		posView = new mesh.VertexBufferAttributeView(vb, vb.attrByRole(mesh.VertexAttributeRole.Position));
+		normView = new mesh.VertexBufferAttributeView(vb, vb.attrByRole(mesh.VertexAttributeRole.Normal));
+		uvView = new mesh.VertexBufferAttributeView(vb, vb.attrByRole(mesh.VertexAttributeRole.UV));
+		meshData.indexBuffer = null;
 
 		// convert a face index to zero-based int or -1 for empty index	
 		function fxtoi(fx: string) { return (+fx) - 1; }
@@ -174,7 +174,7 @@ namespace sd.mesh {
 		}
 
 		// single primitive group
-		mesh.primitiveGroups.push({ fromPrimIx: 0, primCount: vertexIx / 3, materialIx: 0 });
+		meshData.primitiveGroups.push({ fromPrimIx: 0, primCount: vertexIx / 3, materialIx: 0 });
 
 		var t1 = performance.now();
 		// console.info("obj v:", vv.length / 3, "t:", tt.length / 2, "took:", (t1-t0).toFixed(2), "ms");
@@ -182,7 +182,7 @@ namespace sd.mesh {
 	
 		return {
 			mtlFileName: mtlFileName,
-			mesh: mesh,
+			mesh: meshData,
 			drawGroups: materialGroups,
 			materials: null
 		};
@@ -226,8 +226,8 @@ namespace sd.mesh {
 				var materials: MaterialSet = values[0];
 				var obj: LWMeshData = values[1];
 				obj.materials = materials;
-				var colourAttr = obj.mesh.primaryVertexBuffer.attrByRole(VertexAttributeRole.Colour);
-				var colourView = new VertexBufferAttributeView(obj.mesh.primaryVertexBuffer, colourAttr);
+				var colourAttr = obj.mesh.primaryVertexBuffer.attrByRole(mesh.VertexAttributeRole.Colour);
+				var colourView = new mesh.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer, colourAttr);
 				genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
 				return obj;
 			}

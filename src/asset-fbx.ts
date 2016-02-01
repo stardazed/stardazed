@@ -1,8 +1,8 @@
-// model-fbx.ts - FBX scene/model file import
+// asset-fbx.ts - FBX asset file import
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 
-namespace sd.world {
+namespace sd.asset {
 
 	const enum FBXArrayElementType {
 		SInt32,
@@ -29,7 +29,7 @@ namespace sd.world {
 
 	class FBX2013ParserDelegate implements FBXParserDelegate {
 		key(name: string) {
-			
+
 		}
 
 		property(value: string | number) {
