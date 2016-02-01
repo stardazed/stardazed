@@ -29,7 +29,7 @@ namespace sd.world {
 
 	class FBX2013ParserDelegate implements FBXParserDelegate {
 		key(name: string) {
-
+			
 		}
 
 		property(value: string | number) {
@@ -176,30 +176,76 @@ namespace sd.world {
 
 		private parseStringProperty() {
 			this.offset++;
+			if (this.offset == this.length) {
+				this.state = FBXTextParserState.Error;
+				return null;
+			}
+
 			var stringStartOffset = this.offset;
 			var stringEndOffset = stringStartOffset;
-			while (this.offset < this.length) {
-				// if (this.source[]) {
-					
-				// }
+			var c = this.source[this.offset];
+
+			while (this.offset < this.length && c != '\r' && c != '\n') {
+				c = this.source[this.offset];
+
+				// there are no escape sequences or anything like that
+				if (c == '"') {
+					stringEndOffset = this.offset;
+					break;
+				}
+				this.offset++;
 			}
+
+			if (stringEndOffset == stringStartOffset) {
+				this.state = FBXTextParserState.Error;
+				return null;
+			}
+
+			var string = this.source.substring(stringStartOffset, stringEndOffset);
+			this.offset++; // move past closing quote
+			if (this.offset == this.length) {
+				this.state = FBXTextParserState.EOF;
+			}
+			return string;
 		}
 
 
 		private parseIntProperty() {
+			var intStartOffset = this.offset;
+			var intEndOffset = intStartOffset;
+			var c = this.source[this.offset];
 
+			while (this.offset < this.length) {
+				c = this.source[this.offset];
+
+				if (c == '\r' || c == '\n' || c == ',') {
+					intEndOffset = this.offset;
+					break;
+				}
+				else if (c != '-' && (c < '0' || c > '9')) {
+					this.state = FBXTextParserState.Error;
+					return null;
+				}
+				this.offset++;
+			}
+
+			// number was at end of file (TODO: likely an error)
+			if (intEndOffset == intStartOffset) {
+				intEndOffset = this.offset;
+			}
+
+			var intString = this.source.substring(intStartOffset, intEndOffset);
+			return parseInt(intString);
 		}
 
 
 		private parseProperty(): string | number {
 			var c = this.source[this.offset];
 			if (c == '"') {
-				return "aap";
+				return this.parseStringProperty();
 			}
-			else if (c >= '0' && c <= '9') {
-				var numStartOffset = this.offset;
-
-				return 0;
+			else if (c == '-' || (c >= '0' && c <= '9')) {
+				return this.parseIntProperty();
 			}
 			else {
 				this.state = FBXTextParserState.Error;
@@ -253,6 +299,15 @@ namespace sd.world {
 							var prop = this.parseProperty();
 							if (prop) {
 								this.delegate.property(prop);
+
+								if (this.source[this.offset] == ',') {
+									this.offset++;
+								}
+								else {
+									// TODO: check for stuff before end of line
+									this.skipToNextLine();
+									return;
+								}
 							}
 						}
 					}
