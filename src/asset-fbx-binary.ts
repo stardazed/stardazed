@@ -47,7 +47,7 @@ namespace sd.asset {
 			// the first 2 bytes are usually 0x7801, which is a DEFLATE marker
 			// the final 4 bytes are likely a checksum
 			assert(dataBlock.byteLength > 6, "Compressed array data size is too small");
-			var compData = new Uint8Array(dataBlock.buffer, 2, dataBlock.byteLength - 6);
+			var compData = new Uint8Array(dataBlock.buffer, dataBlock.byteOffset + 2, dataBlock.byteLength - 6);
 
 			var inf = new Inflater();
 			var result = inf.append(compData);
@@ -196,21 +196,26 @@ namespace sd.asset {
 
 					// Integer arrays
 					case 'b':
+						this.offset_ += 1;
 						arrayProp = this.readArrayProperty(UInt8);
 						break;
 					case 'i':
+						this.offset_ += 1;
 						arrayProp = this.readArrayProperty(UInt32);
 						break;
 					case 'l':
+						this.offset_ += 1;
 						arrayProp = this.readArrayProperty(Double); // use double for proper size
 						arrayProp = null;
 						console.warn("An 8-byte int array property was skipped.");
 						break;
 
 					case 'f':
+						this.offset_ += 1;
 						arrayProp = this.readArrayProperty(Float);
 						break;
 					case 'd':
+						this.offset_ += 1;
 						arrayProp = this.readArrayProperty(Double);
 						break;
 
