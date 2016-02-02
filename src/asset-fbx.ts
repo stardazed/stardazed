@@ -66,8 +66,23 @@ namespace sd.asset {
 	}
 
 
+	function parseFBXBinarySource(data: ArrayBuffer) {
+		var del = new FBX2013ParserDelegate();
+		var parser = new FBXBinaryParser(data, del);
+		var t0 = performance.now();
+		parser.parse();
+		console.info("time: " + (performance.now() - t0).toFixed(3));
+		return del.output;
+	}
+
+
 	export function loadFBXTextFile(filePath: string): Promise<FBXData> {
 		return loadFile(filePath).then((text: string) => parseFBXTextSource(text));
+	}
+
+
+	export function loadFBXBinaryFile(filePath: string): Promise<FBXData> {
+		return loadFile(filePath, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => parseFBXBinarySource(data));
 	}
 
 } // ns sd.asset
