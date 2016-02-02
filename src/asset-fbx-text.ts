@@ -267,7 +267,8 @@ namespace sd.asset {
 					case TokenType.Label:
 						if (this.expect_ & Expect.Key) {
 							if (this.expectNextKey_ == null || this.expectNextKey_ == token.val) {
-								// "a" fields are just noise, so we don't report them
+								// for consistency with the binary format, we don't report
+								// the "a:" pseudo-field or the containing braces
 								if (token.val != "a") {
 									this.reportField();
 									this.field_.push(token.val);
@@ -340,7 +341,11 @@ namespace sd.asset {
 					case TokenType.OpenContext:
 						if (this.expect_ & Expect.Open) {
 							this.reportField();
-							this.delegate_.openContext();
+							// for consistency with the binary format, we don't report
+							// the opening or closing of the container for the "a:" pseudo-field
+							if (this.array_ == null) {
+								this.delegate_.openContext();
+							}
 
 							this.depth_++;
 
@@ -357,7 +362,11 @@ namespace sd.asset {
 					case TokenType.CloseContext:
 						if ((this.expectNextKey_ == null) && (this.expect_ & Expect.Close)) {
 							this.reportField();
-							this.delegate_.closeContext();
+							// for consistency with the binary format, we don't report
+							// the opening or closing of the container for the "a:" pseudo-field
+							if (this.array_ == null) {
+								this.delegate_.closeContext();
+							}
 
 							this.array_ = null;
 							this.depth_--;
