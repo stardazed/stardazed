@@ -4,7 +4,7 @@
 
 namespace sd.asset {
 
-	export type FBXFieldProp = number | string;
+	export type FBXFieldProp = number | string | ArrayBuffer;
 
 	export interface FBXParserDelegate {
 		field(name: string, properties: FBXFieldProp[]): void;

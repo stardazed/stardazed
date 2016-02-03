@@ -27,6 +27,9 @@ namespace sd.asset {
 		private version_ = 0;
 		private stack_: FieldHeader[] = [];
 
+		private twoExp21 = Math.pow(2, 21);
+		private twoExp32 = Math.pow(2, 32);
+
 		constructor(data: ArrayBuffer, private delegate_: FBXParserDelegate) {
 			this.length_ = data.byteLength;
 			this.bytes_ = new Uint8Array(data);
@@ -41,6 +44,9 @@ namespace sd.asset {
 			this.delegate_.error(msg, offset);
 			this.offset_ = this.length_;
 		}
+
+
+		get version() { return this.version_; }
 
 		
 		private inflateCompressedArray(dataBlock: TypedArray, outElementType: NumericType): TypedArray {
@@ -137,6 +143,18 @@ namespace sd.asset {
 		}
 
 
+		private convertInt64ToDouble(dv: DataView, offset: number): number {
+			let vLo = dv.getUint32(offset, true);
+			let vHi = dv.getInt32(offset + 4, true);
+
+			if (vHi > this.twoExp21 || vHi < -this.twoExp21) {
+				console.warn("A 64-bit int property was larger than (+/-)2^53 so it may not be accurately represented.");
+			}
+
+			return vLo + vHi * this.twoExp32;
+		}
+
+
 		private readProperties(field: FieldHeader) {
 			var count = field.propertyCount;
 			var arrayProp: TypedArray = null;
@@ -147,75 +165,83 @@ namespace sd.asset {
 				let val: FBXFieldProp;
 				let type = String.fromCharCode(this.bytes_[this.offset_]);
 				let propLen: number;
+				this.offset_ += 1;
 
 				switch (type) {
 					// String and data
 					case 'S':
 					case 'R':
-						if (type == 'R') {
-							console.warn("A raw data property was converted to a string.");
-						}
-						propLen = this.dataView_.getUint32(this.offset_ + 1, true);
+						propLen = this.dataView_.getUint32(this.offset_, true);
 						if (propLen > 0) {
-							val = String.fromCharCode.apply(null, this.bytes_.subarray(this.offset_ + 5, this.offset_ + 5 + propLen));
+							let propData = this.bytes_.subarray(this.offset_ + 4, this.offset_ + 4 + propLen);
+							if (type == 'S') {
+								val = String.fromCharCode.apply(null, propData);
+							}
+							else {
+								val = propData.buffer.slice(this.offset_ + 4, this.offset_ + 4 + propLen);
+							}
 						}
 						else {
 							val = "";
 						}
-						this.offset_ += 5 + propLen;
+						this.offset_ += 4 + propLen;
 						break;
 
 					// Signed integer
 					case 'C':
-						val = this.dataView_.getInt8(this.offset_ + 1);
-						this.offset_ += 2;
+						val = this.dataView_.getInt8(this.offset_);
+						this.offset_ += 1;
 						break;
 					case 'Y':
-						val = this.dataView_.getInt16(this.offset_ + 1, true);
-						this.offset_ += 3;
+						val = this.dataView_.getInt16(this.offset_, true);
+						this.offset_ += 2;
 						break;
 					case 'I':
-						val = this.dataView_.getInt32(this.offset_ + 1, true);
-						this.offset_ += 5;
+						val = this.dataView_.getInt32(this.offset_, true);
+						this.offset_ += 4;
 						break;
 					case 'L':
-						val = 0;
-						console.warn("An 8-byte int property was skipped and 0 was returned.");
-						this.offset_ += 9;
+						val = this.convertInt64ToDouble(this.dataView_, this.offset_);
+						this.offset_ += 8;
 						break;
 
 					// Floating point
 					case 'F':
-						val = this.dataView_.getFloat32(this.offset_ + 1, true);
-						this.offset_ += 5;
+						val = this.dataView_.getFloat32(this.offset_, true);
+						this.offset_ += 4;
 						break;
 					case 'D':
-						val = this.dataView_.getFloat64(this.offset_ + 1, true);
-						this.offset_ += 9;
+						val = this.dataView_.getFloat64(this.offset_, true);
+						this.offset_ += 8;
 						break;
 
 					// Integer arrays
 					case 'b':
-						this.offset_ += 1;
 						arrayProp = this.readArrayProperty(UInt8);
 						break;
 					case 'i':
-						this.offset_ += 1;
 						arrayProp = this.readArrayProperty(UInt32);
 						break;
 					case 'l':
-						this.offset_ += 1;
-						arrayProp = this.readArrayProperty(Double); // use double for proper size
-						arrayProp = null;
-						console.warn("An 8-byte int array property was skipped.");
+						{
+							// read array as doubles for proper size and alignment
+							let doubles = this.readArrayProperty(Double);
+
+							// reinterpret array as a double-length list of int32s and convert in-place
+							let view = new DataView(doubles.buffer);
+							for (let di = 0; di < doubles.length; ++di) {
+								let v = this.convertInt64ToDouble(view, di * 8);
+								doubles[di] = v;
+							}
+
+							arrayProp = doubles;
+						}
 						break;
 
 					case 'f':
-						this.offset_ += 1;
 						arrayProp = this.readArrayProperty(Float);
 						break;
 					case 'd':
-						this.offset_ += 1;
 						arrayProp = this.readArrayProperty(Double);
 						break;
 
@@ -242,7 +268,7 @@ namespace sd.asset {
 
 
 		parse() {
-			if (!this.checkHeader()) {
+			if (! this.checkHeader()) {
 				return;
 			}
 
@@ -256,7 +282,7 @@ namespace sd.asset {
 						this.delegate_.closeContext();
 					}
 					else {
-						// we're done here, there is some footer data below, but we don't know what it's for
+						// we're done here, there is some footer data left, but we don't know what it's for
 						return;
 					}
 				}
@@ -267,6 +293,10 @@ namespace sd.asset {
 						this.delegate_.openContext();
 					}
 				}
+			}
+
+			if (this.stack_.length > 0) {
+				this.error("Unexpected EOF at nesting depth " + this.stack_.length);
 			}
 		}
 	}
