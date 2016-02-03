@@ -7,15 +7,6 @@
 
 namespace sd.asset {
 
-	export interface Material {
-		ambientColor?: Float3;
-		diffuseColor?: Float3;
-		specularColor?: Float3;
-	}
-
-	export type MaterialSet = { [matName: string]: Material };
-
-
 	function parseLWMaterialSource(text: string): MaterialSet {
 		var lines = text.split("\n");
 		var materials: MaterialSet = {};
