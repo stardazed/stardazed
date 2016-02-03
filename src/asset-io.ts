@@ -1,4 +1,4 @@
-// asset.ts - Common asset interfaces
+// asset-io.ts - Asset file helpers
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 
@@ -29,6 +29,7 @@ namespace sd.asset {
 			default: return "";
 		}
 	}
+
 
 	export function loadFile(filePath: string, opts?: FileLoadOptions) {
 		return new Promise(function(resolve, reject) {
