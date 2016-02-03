@@ -32,7 +32,7 @@ namespace sd.asset {
 		}
 
 		provideArray(size: number): TypedArray {
-			return new Float32Array(size);
+			return new Float64Array(size);
 		}
 
 		arrayFilled(array: TypedArray) {
