@@ -4,13 +4,16 @@
 
 namespace sd.asset {
 
+	export interface FBXDocument {
+
+	}	
+
+
 	export type FBXFieldProp = number | string | ArrayBuffer;
 
 	export interface FBXParserDelegate {
 		field(name: string, properties: FBXFieldProp[]): void;
-
-		provideArray(size: number): TypedArray;
-		arrayFilled(array: TypedArray): void;
+		arrayProperty(array: TypedArray): void;
 
 		openContext(): void;
 		closeContext(): void;
@@ -19,69 +22,60 @@ namespace sd.asset {
 	}
 
 
-	export interface FBXData {
-	}
+	class FBX7DocumentBuilder implements FBXParserDelegate {
+		private doc: FBXDocument;
 
-
-	class FBX2013ParserDelegate implements FBXParserDelegate {
-		private curField_ = "";
-		private curArray_: TypedArray = null;
+		constructor() {
+		}
 
 		field(name: string, properties: FBXFieldProp[]) {
-			console.info(name, properties);
 		}
 
-		provideArray(size: number): TypedArray {
-			return new Float64Array(size);
-		}
-
-		arrayFilled(array: TypedArray) {
-			console.info("Array", array);
+		arrayProperty(array: TypedArray) {
 		}
 
 		openContext() {
-			console.info(">>>>");
 		}
 
 		closeContext() {
-			console.info("<<<<");
 		}
 
 		error(msg: string, offset: number, token?: string) {
+			console.warn("FBX Error @ offset " + offset + ": " + msg);
 		}
 
-		output(): FBXData {
-			return {};
+		get document(): FBXDocument {
+			return this.doc;
 		}
 	}
 
 
 	function parseFBXTextSource(text: string) {
-		var del = new FBX2013ParserDelegate();
+		var del = new FBX7DocumentBuilder();
 		var parser = new FBXTextParser(text, del);
 		var t0 = performance.now();
 		parser.parse();
 		console.info("time: " + (performance.now() - t0).toFixed(3));
-		return del.output;
+		return del.document;
 	}
 
 
 	function parseFBXBinarySource(data: ArrayBuffer) {
-		var del = new FBX2013ParserDelegate();
+		var del = new FBX7DocumentBuilder();
 		var parser = new FBXBinaryParser(data, del);
 		var t0 = performance.now();
 		parser.parse();
 		console.info("time: " + (performance.now() - t0).toFixed(3));
-		return del.output;
+		return del.document;
 	}
 
 
-	export function loadFBXTextFile(filePath: string): Promise<FBXData> {
+	export function loadFBXTextFile(filePath: string): Promise<FBXDocument> {
 		return loadFile(filePath).then((text: string) => parseFBXTextSource(text));
 	}
 
 
-	export function loadFBXBinaryFile(filePath: string): Promise<FBXData> {
+	export function loadFBXBinaryFile(filePath: string): Promise<FBXDocument> {
 		return loadFile(filePath, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => parseFBXBinarySource(data));
 	}
 

@@ -1,4 +1,4 @@
-// core.ts - Basic type and DOM helpers
+// core.ts - common helpers and types
 // Part of Stardazed TX
 // (c) 2015-6 by Arthur Langereis - @zenmumbler
 
