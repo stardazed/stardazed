@@ -267,7 +267,7 @@ namespace sd.asset {
 			// report to delegate in same order as for text files
 			this.delegate_.field(field.name, props);
 			if (arrayProp) {
-				this.delegate_.arrayFilled(arrayProp);
+				this.delegate_.arrayProperty(arrayProp);
 			}
 		}
 

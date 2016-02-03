@@ -299,7 +299,7 @@ namespace sd.asset {
 								this.array_[this.arrayIndex_++] = <number>token.val;
 
 								if (this.arrayIndex_ == this.arrayLength_) {
-									this.delegate_.arrayFilled(this.array_);
+									this.delegate_.arrayProperty(this.array_);
 									this.expect_ = Expect.Close;
 								}
 								else {
@@ -324,8 +324,8 @@ namespace sd.asset {
 						if ((this.expectNextKey_ == null) && (this.expect_ == Expect.ValueOrOpen)) {
 							this.reportField();
 
-							// -- request an array from the delegate that we will fill
-							this.array_ = this.delegate_.provideArray(<number>token.val);
+							// -- create an ArrayBuffer to fill; TODO: create appropriate view based on current field name
+							this.array_ = new Float64Array(<number>token.val);
 							this.arrayIndex_ = 0;
 							this.arrayLength_ = this.array_.length;
 
