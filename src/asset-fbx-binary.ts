@@ -170,11 +170,16 @@ namespace sd.asset {
 				switch (type) {
 					// String and data
 					case 'S':
+						// [[fallthrough]]
 					case 'R':
 						propLen = this.dataView_.getUint32(this.offset_, true);
 						if (propLen > 0) {
 							let propData = this.bytes_.subarray(this.offset_ + 4, this.offset_ + 4 + propLen);
 							if (type == 'S') {
+								// TODO: in WebKit at least, this can cause a stack overflow to occur
+								// inside fromCharCode if the data is very long, apparently implemented recursively?
+								// This is both slow and can lead to errors. Chop this up in pieces and convert
+								// separately.
 								val = String.fromCharCode.apply(null, propData);
 							}
 							else {

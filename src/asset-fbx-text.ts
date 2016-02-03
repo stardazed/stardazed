@@ -287,6 +287,7 @@ namespace sd.asset {
 						break;
 
 					case TokenType.String:
+						// [[fallthrough]]
 					case TokenType.Number:
 						if ((this.expectNextKey_ == null) && (this.expect_ & Expect.Value)) {
 							if (this.array_) {
