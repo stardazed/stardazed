@@ -16,16 +16,16 @@ namespace sd.asset {
 			var tokens = line.split(" ");
 			switch (tokens[0]) {
 				case "newmtl":
-					curMat = materials[tokens[1]] = {};
+					curMat = materials[tokens[1]] = makeMaterial();
 					break;
 				case "Ka":
-					curMat.ambientColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+					curMat.ambientColour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
 					break;
 				case "Kd":
-					curMat.diffuseColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+					curMat.diffuseColour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
 					break;
 				case "Ks":
-					curMat.specularColor = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+					curMat.specularColour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
 					break;
 				default:
 					break;
@@ -61,7 +61,7 @@ namespace sd.asset {
 			assert(mat, "material " + group.materialName + " not found");
 
 			while (curIndex < maxIndex) {
-				vec3.copy(colourView.item(curIndex), mat.diffuseColor);
+				vec3.copy(colourView.item(curIndex), mat.diffuseColour);
 				curIndex++;
 			}
 		});

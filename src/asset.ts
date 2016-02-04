@@ -29,7 +29,7 @@ namespace sd.asset {
 	export type MaterialSet = { [name: string]: Material };
 
 
-	function makeMaterial(): Material {
+	export function makeMaterial(): Material {
 		return {
 			ambientColour: [0, 0, 0],
 			diffuseColour: [0, 0, 0],
@@ -45,7 +45,7 @@ namespace sd.asset {
 	}
 
 
-	export interface Model {
+	interface Model {
 		
 	}
 
