@@ -180,7 +180,12 @@ namespace sd.asset {
 								// inside fromCharCode if the data is very long, apparently implemented recursively?
 								// This is both slow and can lead to errors. Chop this up in pieces and convert
 								// separately.
-								val = String.fromCharCode.apply(null, propData);
+								let str: string = String.fromCharCode.apply(null, propData);
+
+								// In binary FBX, the :: separating a name and a classname is replaced with a 0x0001 sequence
+								str = str.replace("\x00\x01", "::");
+
+								val = str;
 							}
 							else {
 								val = propData.buffer.slice(this.offset_ + 4, this.offset_ + 4 + propLen);
