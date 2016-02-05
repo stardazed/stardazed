@@ -7,13 +7,13 @@
 
 /// <reference path="../defs/inflate.d.ts" />
 
-namespace sd.asset {
+namespace sd.asset.fbx {
 
-	interface FieldHeader {
+	interface PropertyHeader {
 		offset: number;
 		endOffset: number;
-		propertyCount: number;
-		propertiesSizeBytes: number;
+		valueCount: number;
+		valuesSizeBytes: number;
 		nameLength: number;
 		name: string;
 	}
@@ -25,7 +25,8 @@ namespace sd.asset {
 		private offset_ = 0;
 		private length_ = 0;
 		private version_ = 0;
-		private stack_: FieldHeader[] = [];
+		private stack_: PropertyHeader[] = [];
+		private inProp70Block = false;
 
 		private twoExp21 = Math.pow(2, 21);
 		private twoExp32 = Math.pow(2, 32);
@@ -64,7 +65,7 @@ namespace sd.asset {
 		}
 
 
-		private checkHeader() {
+		private checkFileHeader() {
 			var ident = String.fromCharCode.apply(null, this.bytes_.subarray(0, 20));
 			if (ident != "Kaydara FBX Binary  ") {
 				this.error("Not an FBX binary file");
@@ -93,11 +94,11 @@ namespace sd.asset {
 			const propertiesSizeBytes = this.dataView_.getUint32(this.offset_ + 8, true);
 			const nameLength = this.dataView_.getUint8(this.offset_ + 12);
 
-			var result: FieldHeader = {
+			var result: PropertyHeader = {
 				offset: this.offset_,
 				endOffset: endOffset,
-				propertyCount: propertyCount,
-				propertiesSizeBytes: propertiesSizeBytes,
+				valueCount: propertyCount,
+				valuesSizeBytes: propertiesSizeBytes,
 				nameLength: nameLength,
 				name: nameLength > 0 ? String.fromCharCode.apply(null, this.bytes_.subarray(this.offset_ + 13, this.offset_ + 13 + nameLength)) : ""
 			};
@@ -155,14 +156,13 @@ namespace sd.asset {
 		}
 
 
-		private readProperties(field: FieldHeader) {
-			var count = field.propertyCount;
-			var arrayProp: TypedArray = null;
-			var props: FBXFieldProp[] = [];
+		private readValues(header: PropertyHeader): FBXValue[] {
+			var count = header.valueCount;
+			var values: FBXValue[] = [];
 			var firstPropOffset = this.offset_;
 
 			while (count--) {
-				let val: FBXFieldProp;
+				let val: FBXValue;
 				let type = String.fromCharCode(this.bytes_[this.offset_]);
 				let propLen: number;
 				this.offset_ += 1;
@@ -227,10 +227,10 @@ namespace sd.asset {
 
 					// Integer arrays
 					case 'b':
-						arrayProp = this.readArrayProperty(UInt8);
+						val = this.readArrayProperty(UInt8);
 						break;
 					case 'i':
-						arrayProp = this.readArrayProperty(UInt32);
+						val = this.readArrayProperty(SInt32);
 						break;
 					case 'l':
 						{
@@ -244,41 +244,34 @@ namespace sd.asset {
 								doubles[di] = v;
 							}
 
-							arrayProp = doubles;
+							val = doubles;
 						}
 						break;
 
 					case 'f':
-						arrayProp = this.readArrayProperty(Float);
+						val = this.readArrayProperty(Float);
 						break;
 					case 'd':
-						arrayProp = this.readArrayProperty(Double);
+						val = this.readArrayProperty(Double);
 						break;
 
 					default:
 						console.warn("Unknown property type: " + type + ". Skipping further properties for this field.");
 						count = 0;
-						this.offset_ = firstPropOffset + field.propertiesSizeBytes;
+						this.offset_ = firstPropOffset + header.valuesSizeBytes;
 						break;
 				}
 
-				if (arrayProp == null) {
-					props.push(val);
-				}
+				values.push(val);
 			}
 
-			assert(this.offset_ - field.propertiesSizeBytes == firstPropOffset);
-
-			// report to delegate in same order as for text files
-			this.delegate_.field(field.name, props);
-			if (arrayProp) {
-				this.delegate_.arrayProperty(arrayProp);
-			}
+			assert(this.offset_ - header.valuesSizeBytes == firstPropOffset);
+			return values;
 		}
 
 
 		parse() {
-			if (! this.checkHeader()) {
+			if (! this.checkFileHeader()) {
 				return;
 			}
 
@@ -289,7 +282,13 @@ namespace sd.asset {
 					if (this.stack_.length > 0) {
 						var closing = this.stack_.pop();
 						assert(closing.endOffset == this.offset_, "Offset mismatch at end of scope");
-						this.delegate_.closeContext();
+						if (this.inProp70Block) {
+							assert(closing.name == "Properties70", "Invalid parser state, assumed closing a Prop70 but was closing a " + closing.name);
+							this.inProp70Block = false;
+						}
+						else {
+							this.delegate_.endBlock();
+						}
 					}
 					else {
 						// we're done here, there is some footer data left, but we don't know what it's for
@@ -297,10 +296,34 @@ namespace sd.asset {
 					}
 				}
 				else {
-					this.readProperties(hdr);
+					let values = this.readValues(hdr);
 					if (hdr.endOffset != this.offset_) {
-						this.stack_.push(hdr);
-						this.delegate_.openContext();
+						let blockAction = FBXBlockAction.Enter;
+
+						if (hdr.name == "Properties70") {
+							this.inProp70Block = true;
+						}
+						else {
+							blockAction = this.delegate_.block(hdr.name, values);
+						}
+
+						if (blockAction == FBXBlockAction.Enter) {
+							this.stack_.push(hdr);
+						}
+						else {
+							// skip the entire block
+							this.offset_ = hdr.endOffset;
+						}
+					}
+					else {
+						if (this.inProp70Block) {
+							assert(hdr.name == "P", "Only P properties are allowed in a Properties70 block.");
+							let p70p = interpretProp70P(values);
+							this.delegate_.typedProperty(p70p.name, p70p.type, p70p.typeName, p70p.values);
+						}
+						else {
+							this.delegate_.property(hdr.name, values);
+						}
 					}
 				}
 			}
@@ -311,4 +334,4 @@ namespace sd.asset {
 		}
 	}
 
-} // sd.asset
+} // sd.asset.fbx
