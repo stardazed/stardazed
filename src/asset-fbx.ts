@@ -18,7 +18,8 @@ namespace sd.asset {
 		export const enum FBXGeometryStreamMappingType {
 			PerVertex = 1,
 			PerPolygonvertex,
-			PerPolygon
+			PerPolygon,
+			AllSame
 		}
 
 		export const enum FBXGeometryStreamReferenceType {
@@ -117,33 +118,35 @@ namespace sd.asset {
 		const fbxTypeNameMapping: { [type: string]: FBXValueType } = {
 			"enum": FBXValueType.Int,
 			"int": FBXValueType.Int,
+			"integer": FBXValueType.Int,
 
 			"double": FBXValueType.Double,
-			"Number": FBXValueType.Double,
-			"ULongLong": FBXValueType.Double,
+			"number": FBXValueType.Double,
+			"ulonglong": FBXValueType.Double,
 
 			"bool": FBXValueType.Bool,
-			"Visibility": FBXValueType.Bool,
-			"Visibility Inheritance": FBXValueType.Bool,
+			"visibility": FBXValueType.Bool,
+			"visibility inheritance": FBXValueType.Bool,
 
-			"KTime": FBXValueType.Time,
+			"ktime": FBXValueType.Time,
 
-			"KString": FBXValueType.String,
-			"DateTime": FBXValueType.String,
+			"kstring": FBXValueType.String,
+			"datetime": FBXValueType.String,
 
-			"Vector3D": FBXValueType.Vector3D,
-			"Vector": FBXValueType.Vector3D,
-			"ColorRGB": FBXValueType.Vector3D,
-			"Lcl Translation": FBXValueType.Vector3D,
-			"Lcl Rotation": FBXValueType.Vector3D,
-			"Lcl Scaling": FBXValueType.Vector3D,
+			"vector3d": FBXValueType.Vector3D,
+			"vector": FBXValueType.Vector3D,
+			"color": FBXValueType.Vector3D,
+			"colorrgb": FBXValueType.Vector3D,
+			"lcl translation": FBXValueType.Vector3D,
+			"lcl rotation": FBXValueType.Vector3D,
+			"lcl scaling": FBXValueType.Vector3D,
 
 			"object": FBXValueType.Object,
-			"Compound": FBXValueType.Compound
+			"compound": FBXValueType.Compound
 		};
 
 		export function normalizeFBXType(fbxType: string): FBXValueType {
-			return fbxTypeNameMapping[fbxType] || FBXValueType.Invalid;
+			return fbxTypeNameMapping[fbxType.toLowerCase()] || FBXValueType.Invalid;
 		}
 
 		export interface FBXProp70Prop {
