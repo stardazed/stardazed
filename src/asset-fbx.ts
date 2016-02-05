@@ -4,172 +4,257 @@
 
 namespace sd.asset {
 
-	export interface FBXDocument {
-	}	
+	export namespace fbx {
 
+		// -- FBX Document data
 
-	export type FBXFieldProp = number | string | ArrayBuffer;
+		export const enum FBXGeometryStreamType {
+			Normal = 1,
+			UV,
+			MaterialIndex,
+			TextureIndex
+		}
 
-	export interface FBXParserDelegate {
-		field(name: string, properties: FBXFieldProp[]): void;
-		arrayProperty(array: TypedArray): void;
+		export const enum FBXGeometryStreamMappingType {
+			PerVertex = 1,
+			PerPolygonvertex,
+			PerPolygon
+		}
 
-		openContext(): void;
-		closeContext(): void;
+		export const enum FBXGeometryStreamReferenceType {
+			Direct = 1,
+			IndexToDirect = 2
+		}
 
-		error(msg: string, offset: number, token?: string): void;
-	}
+		export interface FBXGeometryStream {
+			name: string;
+			index: number;
+			type: FBXGeometryStreamMappingType;
+			mappingType: FBXGeometryStreamMappingType;
+			referenceType: FBXGeometryStreamReferenceType;
+			dataArray?: TypedArray;
+			indexArray?: TypedArray;
+		}
 
+		export interface FBXGeometry {
+			vertexCount: number;
+			triangleCount: number;
 
-	interface FBXNode {
-		name: string;
-		properties: FBXFieldProp[];
-		fields: { [name: string]: FBXTypedProperty };
-		array?: TypedArray;
-	}
+			positions: TypedArray;
+			triangleIndexes: TypedArray;
 
+			streams: FBXGeometryStream[];
+		}
 
-	interface FBXObject extends FBXNode {
-		id: number;
-		class: string;
-		subClass: string;
-	}
+		export interface FBXModel {
+			localPosition: Float3;
+			localRotation: Float4;
+			localScaling: Float3;
+		}
 
+		export interface FBXMeshModel extends FBXModel {
+			geometry: FBXGeometry;
+			materials: Material[];
+		}
 
-	interface FBXTypedProperty {
-		type: string;
-		values: (FBXFieldProp | TypedArray)[];
-	}
+		export interface FBXLightAttr {
+			colour: Float3;
+			intensity: number;
+		}
 
+		export interface FBXLightModel extends FBXModel {
+			light: FBXLightAttr;
+		}
 
-	const enum FBXSection {
-		None,
+		export interface FBXCameraAttr {
+			clearColour: Float3;
+			fov: number;
+			nearZ: number;
+			farZ: number;
+		}
 
-		Header,
-		GlobalSettings,
-		Objects,
-		Connections,
+		export interface FBXCameraModel {
+			camera: FBXCameraAttr;
+		}
 
-		Ignored
-	}
+		export interface FBXDocument {
+			geometries: FBXGeometry[];
+			lightAttrs: FBXLightAttr[];
+			cameraAttrs: FBXCameraAttr[];
 
+			meshes: FBXMeshModel[];
+			lights: FBXLightModel[];
+			cameras: FBXCameraModel[];
 
-	class FBX7DocumentBuilder implements FBXParserDelegate {
-		private doc: FBXDocument;
-		private objects: Map<number, FBXObject>;
-		private stack: FBXNode[] = [];
-		private section: FBXSection = FBXSection.None;
-		private curNode: FBXNode = null;
-		private insideProp70 = false;
-
-		constructor() {
-			this.objects = new Map<number, FBXObject>();
+			materials: Material[];
+			textures: Texture2D[];
 		}
 
 
-		private get curParent() {
-			if (this.stack.length == 0) {
-				return null;
+		// -- Parser related types and functions
+
+		export type FBXValue = number | string | ArrayBuffer | TypedArray;
+
+		export const enum FBXBlockAction {
+			Enter,
+			Skip
+		}
+
+		export const enum FBXValueType {
+			Invalid,
+
+			Int,
+			Double,
+			Bool,
+			Time,
+			String,
+			Vector3D,
+			Object,
+
+			Compound
+		}
+
+		const fbxTypeNameMapping: { [type: string]: FBXValueType } = {
+			"enum": FBXValueType.Int,
+			"int": FBXValueType.Int,
+
+			"double": FBXValueType.Double,
+			"Number": FBXValueType.Double,
+			"ULongLong": FBXValueType.Double,
+
+			"bool": FBXValueType.Bool,
+			"Visibility": FBXValueType.Bool,
+			"Visibility Inheritance": FBXValueType.Bool,
+
+			"KTime": FBXValueType.Time,
+
+			"KString": FBXValueType.String,
+			"DateTime": FBXValueType.String,
+
+			"Vector3D": FBXValueType.Vector3D,
+			"Vector": FBXValueType.Vector3D,
+			"ColorRGB": FBXValueType.Vector3D,
+			"Lcl Translation": FBXValueType.Vector3D,
+			"Lcl Rotation": FBXValueType.Vector3D,
+			"Lcl Scaling": FBXValueType.Vector3D,
+
+			"object": FBXValueType.Object,
+			"Compound": FBXValueType.Compound
+		};
+
+		export function normalizeFBXType(fbxType: string): FBXValueType {
+			return fbxTypeNameMapping[fbxType] || FBXValueType.Invalid;
+		}
+
+		export interface FBXProp70Prop {
+			name: string;
+			typeName: string;
+			type: FBXValueType;
+			values: FBXValue[];
+		}
+
+		export function interpretProp70P(pValues: FBXValue[]) {
+			assert(pValues.length >= 4, "A P must have 4 or more values.");
+
+			var result: FBXProp70Prop = {
+				name: <string>pValues[0],
+				typeName: <string>pValues[1],
+				type: normalizeFBXType(<string>pValues[1]),
+				values: pValues.slice(4)
+			};
+
+			assert(result.type != FBXValueType.Invalid, "Unknown Prop70 type: " + result.typeName);
+			return result;
+		}
+
+
+		export interface FBXParserDelegate {
+			block(name: string, values: FBXValue[]): FBXBlockAction;
+			endBlock(): void;
+
+			property(name: string, values: FBXValue[]): void;
+			typedProperty(name: string, type: FBXValueType, typeName: string, values: FBXValue[]): void;
+
+			error(msg: string, offset: number, token?: string): void;
+		}
+
+
+		// -- Document builder
+
+		const enum FBXSection {
+			Root,
+
+			Header,
+			GlobalSettings,
+			Objects,
+			Connections
+		}
+
+
+		export class FBX7DocumentBuilder implements FBXParserDelegate {
+			private doc: FBXDocument;
+			private section: FBXSection = FBXSection.Root;
+
+			constructor() {
+				this.doc = {
+					geometries: [],
+					lightAttrs: [],
+					cameraAttrs: [],
+
+					meshes: [],
+					lights: [],
+					cameras: [],
+
+					materials: [],
+					textures: []
+				};
 			}
 
-			return this.stack[this.stack.length - 1];
-		}
 
-
-		private appendNodeAsField(node: FBXNode) {
-			var parent = this.curParent;
-			assert(parent != null);
-
-			// parent.fields[node.name] = {
-			// 	type: 
-			// };
-		}
-
-		field(name: string, properties: FBXFieldProp[]) {
-			if (this.stack.length == 0) {
-				switch (name) {
-					case "HeaderExtension": this.section = FBXSection.Header; break;
-					case "GlobalSettings": this.section = FBXSection.GlobalSettings; break;
-					case "Objects": this.section = FBXSection.Objects; break;
-					case "Connections": this.section = FBXSection.Connections; break;
-					default: this.section = FBXSection.Ignored; break;
-				}
+			block(name: string, values: FBXValue[]): FBXBlockAction {
+				console.info("BLK: " + name, values);
+				return (name == "Definitions") ? FBXBlockAction.Skip : FBXBlockAction.Enter;
 			}
-			else {
-				if (name == "Properties70") {
-					this.insideProp70 = true;
-				}
-				else {
-					if (this.insideProp70) {
-						assert(name == "P", "Expected only P properties in a Properties70 context, got:" + name);
-						assert(this.curNode.fields[name] == null, "Duplicate typed field " + name);
-						assert(properties.length > 4, "A P must have 4 strings followed by at least 1 data value");
 
-						this.curNode.fields[<string>(properties[0])] = {
-							type: <string>(properties[1]),
-							values: <(number | string)[]>(properties.slice(4))
-						};
-					}
-					else {
-						if (this.curNode) {
-							this.appendNodeAsField(this.curNode);
-						}
-						this.curNode = { name: name, properties: properties, fields: {} };
-					}
-				}
+			property(name: string, values: FBXValue[]) {
+				console.info("Prop: " + name, values);
+			}
+
+			typedProperty(name: string, type: FBXValueType, typeName: string, values: FBXValue[]) {
+				console.info("Typed Prop: " + name + " " + typeName + " (" + type + ")", values);
+			}
+
+			endBlock() {
+				console.info("/BLK");
+			}
+
+
+			error(msg: string, offset: number, token?: string) {
+				console.warn("FBX parse error @ offset " + offset + ": " + msg);
+			}
+
+
+			get document(): FBXDocument {
+				return this.doc;
 			}
 		}
 
-		arrayProperty(array: TypedArray) {
-			this.curNode.array = array;
-		}
-
-		openContext() {
-			if (! this.insideProp70) {
-				this.stack.push(this.curNode);
-				this.curNode = null;
-			}
-		}
-
-		closeContext() {
-			if (this.insideProp70) {
-				this.insideProp70 = false;
-			}
-			else {
-				if (this.curNode) {
-					this.appendNodeAsField(this.curNode);
-					this.curNode = null;
-				}
-
-				if (this.stack.length == 0) {
-					this.section = FBXSection.None;
-				}
-			}
-		}
-
-		error(msg: string, offset: number, token?: string) {
-			console.warn("FBX Error @ offset " + offset + ": " + msg);
-		}
-
-		get document(): FBXDocument {
-			return this.doc;
-		}
-	}
+	} // ns fbx
 
 
-	function parseFBXTextSource(text: string) {
-		var del = new FBX7DocumentBuilder();
-		var parser = new FBXTextParser(text, del);
-		var t0 = performance.now();
-		parser.parse();
-		console.info("time: " + (performance.now() - t0).toFixed(3));
-		return del.document;
-	}
+	// function parseFBXTextSource(text: string) {
+	// 	var del = new fbx.FBX7DocumentBuilder();
+	// 	var parser = new fbx.FBXTextParser(text, del);
+	// 	var t0 = performance.now();
+	// 	parser.parse();
+	// 	console.info("time: " + (performance.now() - t0).toFixed(3));
+	// 	return del.document;
+	// }
 
 
 	function parseFBXBinarySource(data: ArrayBuffer) {
-		var del = new FBX7DocumentBuilder();
-		var parser = new FBXBinaryParser(data, del);
+		var del = new fbx.FBX7DocumentBuilder();
+		var parser = new fbx.FBXBinaryParser(data, del);
 		var t0 = performance.now();
 		parser.parse();
 		console.info("time: " + (performance.now() - t0).toFixed(3));
@@ -177,13 +262,13 @@ namespace sd.asset {
 	}
 
 
-	export function loadFBXTextFile(filePath: string): Promise<FBXDocument> {
-		return loadFile(filePath).then((text: string) => parseFBXTextSource(text));
-	}
+	// export function loadFBXTextFile(filePath: string): Promise<fbx.FBXDocument> {
+	// 	return loadFile(filePath).then((text: string) => parseFBXTextSource(text));
+	// }
 
 
-	export function loadFBXBinaryFile(filePath: string): Promise<FBXDocument> {
+	export function loadFBXBinaryFile(filePath: string): Promise<fbx.FBXDocument> {
 		return loadFile(filePath, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => parseFBXBinarySource(data));
 	}
 
-} // ns sd.asset
+} // ns sd.asset.fbx
