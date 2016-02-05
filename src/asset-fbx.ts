@@ -242,14 +242,14 @@ namespace sd.asset {
 	} // ns fbx
 
 
-	// function parseFBXTextSource(text: string) {
-	// 	var del = new fbx.FBX7DocumentBuilder();
-	// 	var parser = new fbx.FBXTextParser(text, del);
-	// 	var t0 = performance.now();
-	// 	parser.parse();
-	// 	console.info("time: " + (performance.now() - t0).toFixed(3));
-	// 	return del.document;
-	// }
+	function parseFBXTextSource(text: string) {
+		var del = new fbx.FBX7DocumentBuilder();
+		var parser = new fbx.FBXTextParser(text, del);
+		var t0 = performance.now();
+		parser.parse();
+		console.info("time: " + (performance.now() - t0).toFixed(3));
+		return del.document;
+	}
 
 
 	function parseFBXBinarySource(data: ArrayBuffer) {
@@ -262,9 +262,9 @@ namespace sd.asset {
 	}
 
 
-	// export function loadFBXTextFile(filePath: string): Promise<fbx.FBXDocument> {
-	// 	return loadFile(filePath).then((text: string) => parseFBXTextSource(text));
-	// }
+	export function loadFBXTextFile(filePath: string): Promise<fbx.FBXDocument> {
+		return loadFile(filePath).then((text: string) => parseFBXTextSource(text));
+	}
 
 
 	export function loadFBXBinaryFile(filePath: string): Promise<fbx.FBXDocument> {

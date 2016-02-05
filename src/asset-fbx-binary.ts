@@ -26,7 +26,7 @@ namespace sd.asset.fbx {
 		private length_ = 0;
 		private version_ = 0;
 		private stack_: PropertyHeader[] = [];
-		private inProp70Block = false;
+		private inProp70Block_ = false;
 
 		private twoExp21 = Math.pow(2, 21);
 		private twoExp32 = Math.pow(2, 32);
@@ -282,9 +282,9 @@ namespace sd.asset.fbx {
 					if (this.stack_.length > 0) {
 						var closing = this.stack_.pop();
 						assert(closing.endOffset == this.offset_, "Offset mismatch at end of scope");
-						if (this.inProp70Block) {
+						if (this.inProp70Block_) {
 							assert(closing.name == "Properties70", "Invalid parser state, assumed closing a Prop70 but was closing a " + closing.name);
-							this.inProp70Block = false;
+							this.inProp70Block_ = false;
 						}
 						else {
 							this.delegate_.endBlock();
@@ -301,7 +301,7 @@ namespace sd.asset.fbx {
 						let blockAction = FBXBlockAction.Enter;
 
 						if (hdr.name == "Properties70") {
-							this.inProp70Block = true;
+							this.inProp70Block_ = true;
 						}
 						else {
 							blockAction = this.delegate_.block(hdr.name, values);
@@ -316,7 +316,7 @@ namespace sd.asset.fbx {
 						}
 					}
 					else {
-						if (this.inProp70Block) {
+						if (this.inProp70Block_) {
 							assert(hdr.name == "P", "Only P properties are allowed in a Properties70 block.");
 							let p70p = interpretProp70P(values);
 							this.delegate_.typedProperty(p70p.name, p70p.type, p70p.typeName, p70p.values);

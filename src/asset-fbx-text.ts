@@ -2,19 +2,19 @@
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 
-namespace sd.asset {
+namespace sd.asset.fbx {
 
 	const enum TokenType {
-		Invalid = 1,
+		Invalid,
 		EOF,
 
-		Label,
+		Key,
 		String,
 		Number,
 		ArrayCount,
 
-		OpenContext,
-		CloseContext,
+		OpenBlock,
+		CloseBlock,
 		Comma
 	}
 
@@ -119,13 +119,13 @@ namespace sd.asset {
 			}
 			else if (c == '{') {
 				return {
-					type: TokenType.OpenContext,
+					type: TokenType.OpenBlock,
 					offset: tokenStart
 				};
 			}
 			else if (c == '}') {
 				return {
-					type: TokenType.CloseContext,
+					type: TokenType.CloseBlock,
 					offset: tokenStart
 				};
 			}
@@ -158,7 +158,7 @@ namespace sd.asset {
 
 					// TODO: verify that only correct chars are used in label [a-zA-Z0-9]
 					return {
-						type: TokenType.Label,
+						type: TokenType.Key,
 						offset: tokenStart,
 						val: token.substr(0, token.length - 1)
 					};
@@ -224,12 +224,14 @@ namespace sd.asset {
 
 		private eof_ = false;
 		private depth_ = 0;
+		private inProp70Block_ = false;
+		private skippingUntilDepth_ = 1000;
 
 		private array_: TypedArray = null;
 		private arrayLength_ = 0;
 		private arrayIndex_ = 0;
 
-		private field_: FBXFieldProp[] = [];
+		private values_: FBXValue[] = [];
 
 		constructor(text: string, private delegate_: FBXParserDelegate) {
 			this.tokenizer_ = new FBXTextTokenizer(text);
@@ -248,14 +250,48 @@ namespace sd.asset {
 		}
 
 
-		private reportField() {
-			if (this.field_.length == 0) {
-				return;
+		private reportBlock(): FBXBlockAction {
+			assert(this.values_.length > 0);
+
+			var blockName = <string>this.values_[0];
+			var blockAction = FBXBlockAction.Enter;
+
+			// The delegate contract does not care about "a:" pseudo-blocks or
+			// the "Properties70:" block
+			if (this.array_ == null) {
+				if (blockName == "Properties70") {
+					this.inProp70Block_ = true;
+				}
+				else {
+					if (this.depth_ <= this.skippingUntilDepth_) {
+						blockAction = this.delegate_.block(blockName, this.values_.slice(1));
+					}
+				}
+				this.values_ = [];
 			}
 
-			var fieldName = <string>this.field_.shift();
-			this.delegate_.field(fieldName, this.field_);
-			this.field_ = [];
+			return blockAction;
+		}
+
+
+		private reportProperty() {
+			assert(this.values_.length > 0);
+
+			var propName = <string>this.values_[0];
+			var values = this.values_.slice(1);
+
+			if (this.depth_ <= this.skippingUntilDepth_) {
+				if (this.inProp70Block_) {
+					assert(propName == "P", "Only P properties are allowed in a Properties70 block.");
+					let p70p = interpretProp70P(values);
+					this.delegate_.typedProperty(p70p.name, p70p.type, p70p.typeName, p70p.values);
+				}
+				else {
+					this.delegate_.property(propName, values);
+				}
+			}
+
+			this.values_ = [];
 		}
 
 
@@ -264,25 +300,28 @@ namespace sd.asset {
 				var token = this.tokenizer_.nextToken();	
 
 				switch (token.type) {
-					case TokenType.Label:
+					case TokenType.Key:
 						if (this.expect_ & Expect.Key) {
 							if (this.expectNextKey_ == null || this.expectNextKey_ == token.val) {
-								// for consistency with the binary format, we don't report
-								// the "a:" pseudo-field or the containing braces
 								if (token.val != "a") {
-									this.reportField();
-									this.field_.push(token.val);
+									if (this.values_.length > 0) {
+										// since we don't track newlines, we need to deal with 2 normal properties
+										// after each other. The Key indicates the end of the current property.
+										this.reportProperty();
+									}
+
+									this.values_.push(token.val);
 								}
 
 								this.expect_ = Expect.ValueOrOpen;
 								this.expectNextKey_ = null;
 							}
 							else {
-								this.unexpected(token);
+								return this.unexpected(token);
 							}
 						}
 						else {
-							this.unexpected(token);
+							return this.unexpected(token);
 						}
 						break;
 
@@ -294,12 +333,13 @@ namespace sd.asset {
 								// in Array mode, fill delegate-provided array with numbers
 								if (token.type != TokenType.Number) {
 									this.delegate_.error("Only numbers are allowed in arrays", token.offset, token.val.toString());
+									return;
 								}
 
 								this.array_[this.arrayIndex_++] = <number>token.val;
 
 								if (this.arrayIndex_ == this.arrayLength_) {
-									this.delegate_.arrayProperty(this.array_);
+									this.values_.push(this.array_);
 									this.expect_ = Expect.Close;
 								}
 								else {
@@ -307,7 +347,7 @@ namespace sd.asset {
 								}
 							}
 							else {
-								this.field_.push(token.val);
+								this.values_.push(token.val);
 								this.expect_ = Expect.CommaOrOpenOrKey;
 							}
 
@@ -316,14 +356,12 @@ namespace sd.asset {
 							}
 						}
 						else {
-							this.unexpected(token);
+							return this.unexpected(token);
 						}
 						break;
 
 					case TokenType.ArrayCount:
 						if ((this.expectNextKey_ == null) && (this.expect_ == Expect.ValueOrOpen)) {
-							this.reportField();
-
 							// -- create an ArrayBuffer to fill; TODO: create appropriate view based on current field name
 							this.array_ = new Float64Array(<number>token.val);
 							this.arrayIndex_ = 0;
@@ -334,20 +372,17 @@ namespace sd.asset {
 							this.expectNextKey_ = "a";
 						}
 						else {
-							this.unexpected(token);
+							return this.unexpected(token);
 						}
 
 						break;
 
-					case TokenType.OpenContext:
+					case TokenType.OpenBlock:
 						if (this.expect_ & Expect.Open) {
-							this.reportField();
-							// for consistency with the binary format, we don't report
-							// the opening or closing of the container for the "a:" pseudo-field
-							if (this.array_ == null) {
-								this.delegate_.openContext();
+							let blockAction = this.reportBlock();
+							if (blockAction == FBXBlockAction.Skip) {
+								this.skippingUntilDepth_ = this.depth_;
 							}
-
 							this.depth_++;
 
 							this.expect_ = Expect.Key;
@@ -360,17 +395,29 @@ namespace sd.asset {
 						}
 						break;
 
-					case TokenType.CloseContext:
+					case TokenType.CloseBlock:
 						if ((this.expectNextKey_ == null) && (this.expect_ & Expect.Close)) {
-							this.reportField();
-							// for consistency with the binary format, we don't report
-							// the opening or closing of the container for the "a:" pseudo-field
-							if (this.array_ == null) {
-								this.delegate_.closeContext();
+							if (this.values_.length > 0) {
+								this.reportProperty();
+							}
+							// The delegate contract does not care about "a:" pseudo-blocks or
+							// the "Properties70:" block
+							if (this.array_) {
+								this.array_ = null;
+							}
+							else if (this.inProp70Block_) {
+								this.inProp70Block_ = false;
+							}
+							else if (this.depth_ <= this.skippingUntilDepth_) {
+								this.delegate_.endBlock();
 							}
 
-							this.array_ = null;
 							this.depth_--;
+							if (this.depth_ == this.skippingUntilDepth_) {
+								this.skippingUntilDepth_ = 1000;
+							}
+
+
 							this.expect_ = Expect.Key;
 							if (this.depth_ > 0) {
 								this.expect_ |= Expect.Close;
@@ -403,4 +450,4 @@ namespace sd.asset {
 		}
 	}
 
-} // sd.asset
+} // sd.asset.fbx
