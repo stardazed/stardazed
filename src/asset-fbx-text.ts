@@ -298,6 +298,7 @@ namespace sd.asset.fbx {
 		private arrayForKey(key: string, elementCount: number): TypedArray {
 			if (key == "PolygonVertexIndex" ||
 				key == "UVIndex" ||
+				key == "Edges" ||
 				key == "Materials" ||
 				key == "KeyAttrFlags" ||
 				key == "KeyAttrRefCount")
@@ -313,6 +314,7 @@ namespace sd.asset.fbx {
 
 			if (key == "Vertices" ||
 				key == "Normals" ||
+				key == "NormalsW" ||
 				key == "UV" ||
 				key == "KeyTime")
 			{
