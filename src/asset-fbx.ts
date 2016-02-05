@@ -230,7 +230,7 @@ namespace sd.asset {
 
 
 			error(msg: string, offset: number, token?: string) {
-				console.warn("FBX parse error @ offset " + offset + ": " + msg);
+				console.warn("FBX parse error @ offset " + offset + ": " + msg, token);
 			}
 
 

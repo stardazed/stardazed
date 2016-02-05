@@ -295,6 +295,35 @@ namespace sd.asset.fbx {
 		}
 
 
+		private arrayForKey(key: string, elementCount: number): TypedArray {
+			if (key == "PolygonVertexIndex" ||
+				key == "UVIndex" ||
+				key == "Materials" ||
+				key == "KeyAttrFlags" ||
+				key == "KeyAttrRefCount")
+			{
+				return new Int32Array(elementCount);
+			}
+
+			if (key == "KeyValueFloat" ||
+				key == "KeyAttrDataFloat")
+			{
+				return new Float32Array(elementCount);
+			}
+
+			if (key == "Vertices" ||
+				key == "Normals" ||
+				key == "UV" ||
+				key == "KeyTime")
+			{
+				return new Float64Array(elementCount);
+			}
+
+			console.warn("Unknown array key " + key + ", making default Float64 array.");
+			return new Float64Array(elementCount);
+		}
+
+
 		parse() {
 			do {
 				var token = this.tokenizer_.nextToken();	
@@ -363,7 +392,7 @@ namespace sd.asset.fbx {
 					case TokenType.ArrayCount:
 						if ((this.expectNextKey_ == null) && (this.expect_ == Expect.ValueOrOpen)) {
 							// -- create an ArrayBuffer to fill; TODO: create appropriate view based on current field name
-							this.array_ = new Float64Array(<number>token.val);
+							this.array_ = this.arrayForKey(<string>this.values_[0], <number>token.val);
 							this.arrayIndex_ = 0;
 							this.arrayLength_ = this.array_.length;
 
