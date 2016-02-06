@@ -2,7 +2,7 @@
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 
-namespace sd.asset.fbx {
+namespace sd.asset.fbx.parse {
 
 	const enum TokenType {
 		Invalid,
@@ -235,6 +235,11 @@ namespace sd.asset.fbx {
 
 		constructor(text: string, private delegate_: FBXParserDelegate) {
 			this.tokenizer_ = new FBXTextTokenizer(text);
+		}
+
+
+		get delegate() {
+			return this.delegate_;
 		}
 
 
@@ -481,4 +486,4 @@ namespace sd.asset.fbx {
 		}
 	}
 
-} // sd.asset.fbx
+} // sd.asset.fbx.parse

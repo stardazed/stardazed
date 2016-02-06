@@ -7,7 +7,7 @@
 
 /// <reference path="../defs/inflate.d.ts" />
 
-namespace sd.asset.fbx {
+namespace sd.asset.fbx.parse {
 
 	interface PropertyHeader {
 		offset: number;
@@ -38,6 +38,11 @@ namespace sd.asset.fbx {
 		}
 
 
+		get delegate() {
+			return this.delegate_;
+		}
+
+
 		private error(msg: string, offset?: number) {
 			if (offset == null) {
 				offset = this.offset_;
@@ -45,9 +50,6 @@ namespace sd.asset.fbx {
 			this.delegate_.error(msg, offset);
 			this.offset_ = this.length_;
 		}
-
-
-		get version() { return this.version_; }
 
 		
 		private inflateCompressedArray(dataBlock: TypedArray, outElementType: NumericType): TypedArray {
@@ -330,4 +332,4 @@ namespace sd.asset.fbx {
 		}
 	}
 
-} // sd.asset.fbx
+} // sd.asset.fbx.parse
