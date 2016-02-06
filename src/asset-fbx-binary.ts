@@ -176,11 +176,7 @@ namespace sd.asset.fbx {
 						if (propLen > 0) {
 							let propData = this.bytes_.subarray(this.offset_ + 4, this.offset_ + 4 + propLen);
 							if (type == 'S') {
-								// TODO: in WebKit at least, this can cause a stack overflow to occur
-								// inside fromCharCode if the data is very long, apparently implemented recursively?
-								// This is both slow and can lead to errors. Chop this up in pieces and convert
-								// separately.
-								let str: string = String.fromCharCode.apply(null, propData);
+								let str = convertBytesToString(propData);
 
 								// In binary FBX, the :: separating a name and a classname is replaced with a 0x0001 sequence
 								str = str.replace("\x00\x01", "::");

@@ -32,6 +32,25 @@ interface Array<T> {
 }
 
 
+function convertBytesToString(bytes: Uint8Array) {
+	var strings: string[] = [];
+
+	var bytesLeft = bytes.length;
+	var offset = 0;
+	const maxBlockSize = 65536; // max parameter array size for use in Webkit
+
+	while (bytesLeft > 0) {
+		let blockSize = Math.min(bytesLeft, maxBlockSize);
+		let str: string = String.fromCharCode.apply(null, bytes.subarray(offset, offset + blockSize));
+		strings.push(str);
+		offset += blockSize;
+		bytesLeft -= blockSize;
+	}
+
+	return strings.length == 1 ? strings[0] : strings.join("");
+}
+
+
 // -- Mixins (from TS site)
 
 function applyMixins(derivedCtor: any, baseCtors: any[]) {
