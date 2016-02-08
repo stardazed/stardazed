@@ -27,24 +27,24 @@ namespace sd.asset.fbx.parse {
 
 
 	class FBXTextTokenizer {
-		private offset = -1;
-		private length = 0;
-		private lastChar = "";
+		private offset_ = -1;
+		private length_ = 0;
+		private lastChar_ = "";
 
 		constructor(private source: string) {
-			this.length = source.length;
+			this.length_ = source.length;
 		}
 
 		private nextChar() {
-			this.offset++;
-			if (this.offset < this.length) {
-				this.lastChar = this.source[this.offset];
+			this.offset_++;
+			if (this.offset_ < this.length_) {
+				this.lastChar_ = this.source[this.offset_];
 			}
 			else {
-				this.lastChar = null;
+				this.lastChar_ = null;
 			}
 
-			return this.lastChar;
+			return this.lastChar_;
 		}
 
 
@@ -65,20 +65,22 @@ namespace sd.asset.fbx.parse {
 			}
 		}
 
+		get offset() { return this.offset_; }
+		get length() { return this.length_; }
 
 		nextToken(): Token {
 			this.skipWS();
-			if (this.offset >= this.length) {
-				this.offset = this.length;
+			if (this.offset_ >= this.length_) {
+				this.offset_ = this.length_;
 				return {
 					type: TokenType.EOF,
-					offset: this.length
+					offset: this.length_
 				};
 			}
 
-			var tokenStart = this.offset;
+			var tokenStart = this.offset_;
 			var tokenEnd = 0;
-			var c = this.lastChar;
+			var c = this.lastChar_;
 
 			var invalid = (): Token => { return {
 				type: TokenType.Invalid,
@@ -98,7 +100,7 @@ namespace sd.asset.fbx.parse {
 					if (c == '"' || c == '\r' || c == '\n')
 						break;
 				}
-				tokenEnd = this.offset;
+				tokenEnd = this.offset_;
 
 				if (c != '"') {
 					return invalid();
@@ -138,8 +140,8 @@ namespace sd.asset.fbx.parse {
 				}
 
 				// rewind 1 pos to allow non-ws breaking chars to be separate tokens
-				tokenEnd = this.offset;
-				this.offset--;
+				tokenEnd = this.offset_;
+				this.offset_--;
 				let token = this.source.substring(tokenStart, tokenEnd);
 
 				if ((firstChar >= 'A' && firstChar <= 'Z') || (firstChar >= 'a' && firstChar <= 'z')) {
@@ -483,6 +485,13 @@ namespace sd.asset.fbx.parse {
 				}
 
 			} while (!this.eof_);
+
+			if (this.depth_ > 0) {
+				this.delegate_.error("Unexpected EOF at nesting depth " + this.depth_, this.tokenizer_.offset);
+			}
+			else {
+				this.delegate_.completed();
+			}
 		}
 	}
 

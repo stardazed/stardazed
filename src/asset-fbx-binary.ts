@@ -292,6 +292,7 @@ namespace sd.asset.fbx.parse {
 					}
 					else {
 						// we're done here, there is some footer data left, but we don't know what it's for
+						this.delegate_.completed();
 						return;
 					}
 				}
@@ -328,9 +329,7 @@ namespace sd.asset.fbx.parse {
 				}
 			}
 
-			if (this.stack_.length > 0) {
-				this.error("Unexpected EOF at nesting depth " + this.stack_.length);
-			}
+			this.error("Unexpected EOF at nesting depth " + this.stack_.length);
 		}
 	}
 
