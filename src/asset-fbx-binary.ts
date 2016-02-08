@@ -181,7 +181,9 @@ namespace sd.asset.fbx.parse {
 								let str = convertBytesToString(propData);
 
 								// In binary FBX, the :: separating a name and a classname is replaced with a 0x0001 sequence
-								str = str.replace("\x00\x01", "::");
+								// and the order is reversed from the text version. name::class
+								// We normalise this value with the text version considered to be canonical.
+								str = str.split("\x00\x01").reverse().join("::");
 
 								val = str;
 							}
