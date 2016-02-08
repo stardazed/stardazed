@@ -31,6 +31,30 @@ namespace sd.asset {
 	}
 
 
+	export function fileExtensionOfFilePath(filePath: string): string {
+		var lastDot = filePath.lastIndexOf(".");
+		if (lastDot > -1) {
+			var ext = filePath.substr(lastDot + 1);
+			return ext.toLowerCase();
+		}
+		return "";
+	}
+
+	const mimeTypeMapping: { [extension: string]: string } = {
+		"bm": "image/bmp",
+		"bmp": "image/bmp",
+		"png": "image/png",
+		"jpg": "image/jpeg",
+		"jpeg": "image/jpeg",
+		"gif": "image/gif"
+	};
+
+	export function mimeTypeForFilePath(filePath: string): string {
+		var ext = fileExtensionOfFilePath(filePath);
+		return mimeTypeMapping[ext] || null;
+	}
+
+
 	export function loadFile(filePath: string, opts?: FileLoadOptions) {
 		return new Promise(function(resolve, reject) {
 			opts = opts || {};
