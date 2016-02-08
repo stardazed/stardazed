@@ -149,6 +149,11 @@ namespace sd.asset {
 				node.parent = this;
 				this.children.push(node);
 			}
+
+			objectName() {
+				var cns = <string>this.values[1];
+				return cns.split("::")[1];
+			}
 		}
 
 
@@ -213,6 +218,14 @@ namespace sd.asset {
 				var id = <number>node.values[0];
 				var set = typeSetMap[node.name];
 				assert(set != null, "Unknown object class " + node.name);
+
+				if (node.name == "Model") {
+					if (<string>node.values[2] != "Mesh") {
+						// ignore all non-mesh models for now
+						return;
+					}
+				}
+
 				set[id] = node;
 				this.allObjects[id] = node;
 			}
@@ -226,6 +239,35 @@ namespace sd.asset {
 					conn.toNode.connectionsIn.push(conn);
 					this.connections.push(conn);
 				}
+			}
+
+			resolve() {
+				var group = new AssetGroup();
+
+				for (var matID in this.materialNodes) {
+					let fbxMat = this.materialNodes[matID];
+					let mat = makeMaterial();
+					mat.name = fbxMat.objectName();
+
+					for (let c of fbxMat.children) {
+						if (c.name == "DiffuseColor") {
+							vec3.copy(mat.diffuseColour, <number[]>c.values);
+						}
+						else if (c.name == "SpecularColor") {
+							vec3.copy(mat.specularColour, <number[]>c.values);
+						}
+						else if (c.name == "SpecularFactor") {
+							mat.specularFactor = <number>c.values[0];
+						}
+						else if (c.name == "ShininessExponent") {
+							mat.specularExponent = <number>c.values[0];	
+						}
+					}
+
+					group.addMaterial(mat);
+				}
+
+				return group;
 			}
 		}
 
@@ -248,6 +290,8 @@ namespace sd.asset {
 			private curNodeParent: Node = null;
 
 			private knownObjects: Set<string>;
+
+			private assets_: AssetGroup = null;
 
 			constructor() {
 				this.doc = new FBXDocumentBuilder();
@@ -347,7 +391,7 @@ namespace sd.asset {
 
 
 			completed() {
-				console.info(this.doc);
+				this.assets_ = this.doc.resolve();
 			}
 
 
@@ -356,15 +400,15 @@ namespace sd.asset {
 			}
 
 
-			get document(): FBXDocument {
-				return null;
+			get assets(): AssetGroup {
+				return this.assets_;
 			}
 		}
 
 	} // ns fbx
 
 
-	function parseFBXSource(source: string | ArrayBuffer): fbx.FBXDocument {
+	function parseFBXSource(source: string | ArrayBuffer): AssetGroup {
 		var t0 = performance.now();
  		var del = new fbx.FBX7DocumentParser();
 		var parser: fbx.parse.FBXParser;
@@ -376,16 +420,16 @@ namespace sd.asset {
 		}
 		parser.parse();
 		console.info("took: " + (performance.now() - t0).toFixed(1) + "ms");
-		return del.document;
+		return del.assets;
 	}
 
 
-	export function loadFBXTextFile(filePath: string): Promise<fbx.FBXDocument> {
+	export function loadFBXTextFile(filePath: string): Promise<AssetGroup> {
 		return loadFile(filePath).then((text: string) => parseFBXSource(text));
 	}
 
 
-	export function loadFBXBinaryFile(filePath: string): Promise<fbx.FBXDocument> {
+	export function loadFBXBinaryFile(filePath: string): Promise<AssetGroup> {
 		return loadFile(filePath, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => parseFBXSource(data));
 	}
 

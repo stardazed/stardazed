@@ -14,6 +14,8 @@ namespace sd.asset {
 
 
 	export interface Material {
+		name: string;
+
 		diffuseColour: Float3;
 		diffuseTexture: Texture2D;
 
@@ -27,18 +29,57 @@ namespace sd.asset {
 
 	export function makeMaterial(): Material {
 		return {
+			name: "",
+
 			diffuseColour: [0, 0, 0],
 			diffuseTexture: null,
 
-			specularColour: [0, 0, 0],
+			specularColour: [0, 0, 0], // this field is ignored by StdModels
 			specularFactor: 0,
 			specularExponent: 0,
 		};
 	}
 
 
-	interface Model {
-		
+	export interface Transform {
+		translation: Float3;	// m
+		rotationAngles: Float3; // rad
+		scale: Float3;
+	}
+
+
+	export interface Model {
+		meshIndex: number;
+		materialIndexes: number[];
+		transform: Transform;
+	}
+
+
+	export class AssetGroup {
+		meshDatas: mesh.MeshData[] = [];
+		textures: Texture2D[] = [];
+		materials: Material[] = [];
+		models: Model[] = [];
+
+		addMeshData(meshData: mesh.MeshData): number {
+			this.meshDatas.push(meshData);
+			return this.meshDatas.length - 1;
+		}
+
+		addTexture(tex: Texture2D): number {
+			this.textures.push(tex);
+			return this.textures.length - 1;
+		}
+
+		addMaterial(mat: Material): number {
+			this.materials.push(mat);
+			return this.materials.length - 1;
+		}
+
+		addModel(model: Model): number {
+			this.models.push(model);
+			return this.models.length - 1;
+		}
 	}
 
 } // ns sd.asset
