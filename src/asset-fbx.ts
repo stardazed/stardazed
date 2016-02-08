@@ -173,7 +173,7 @@ namespace sd.asset {
 		}
 
 
-		class FBXDocumentBuilder {
+		class FBXDocumentGraph {
 			private globals: Node[];
 
 			private allObjects: ObjectSet; 
@@ -282,7 +282,7 @@ namespace sd.asset {
 
 
 		export class FBX7DocumentParser implements parse.FBXParserDelegate {
-			private doc: FBXDocumentBuilder;
+			private doc: FBXDocumentGraph;
 			private state = BuilderState.Root;
 
 			private depth = 0;
@@ -294,7 +294,7 @@ namespace sd.asset {
 			private assets_: AssetGroup = null;
 
 			constructor() {
-				this.doc = new FBXDocumentBuilder();
+				this.doc = new FBXDocumentGraph();
 				this.knownObjects = new Set<string>(["Geometry", "Video", "Texture", "Material", "Model"]);
 			}
 
