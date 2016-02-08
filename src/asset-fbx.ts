@@ -112,6 +112,19 @@ namespace sd.asset {
 			NodeAttribute
 		}
 
+		function fbxObjectTypeForName(typeName: string) {
+			switch (typeName) {
+				case "Geometry": return FBXObjectType.Geometry;
+				case "Model": return FBXObjectType.Model;
+				case "Material": return FBXObjectType.Material;
+				case "Video": return FBXObjectType.Video;
+				case "Texture": return FBXObjectType.Texture;
+				case "NodeAttribute": return FBXObjectType.NodeAttribute;
+			}
+
+			return FBXObjectType.None;
+		}
+
 		export interface FBXObject {
 			type: FBXObjectType;
 			id: number;
@@ -194,21 +207,143 @@ namespace sd.asset {
 			camera: FBXCameraAttr;
 		}
 
+		export interface FBXMarkerAttr extends FBXObject {
+			colour: Float3;
+		}
+
+		export interface FBXMarkerModel extends FBXModel {
+			marker: FBXMarkerAttr;
+		}
+
+		export interface FBXVideo extends FBXObject {
+			useMipMap: boolean;
+			filePath: string;
+			texture?: FBXTexture;
+			textureData?: ArrayBuffer;
+		}
+
+		export interface FBXTexture extends FBXObject {
+			uvStreamName: string;
+			uvScale: Float2;
+			uvOffset: Float2;
+		}
+
 		export interface FBXDocument {
 			geometries: FBXGeometry[];
 			lightAttrs: FBXLightAttr[];
 			cameraAttrs: FBXCameraAttr[];
+			markerAttrs: FBXMarkerAttr[];
 
 			meshes: FBXMeshModel[];
 			lights: FBXLightModel[];
 			cameras: FBXCameraModel[];
+			markers: FBXMarkerModel[];
 
 			materials: FBXMaterial[];
-			textures: Texture2D[];
+			clips: FBXVideo[];
+			textures: FBXTexture[];
 		}
 
-		function makeFBXObject(type: FBXObjectType): FBXObject {
-			return null;
+
+		function makeFBXObject(name: string, values: parse.FBXValue[]): FBXObject {
+			assert(values.length == 3 &&
+				typeof values[0] == "number" &&
+				typeof values[1] == "string" &&
+				typeof values[2] == "string");
+
+			var classAndName = (<string>values[1]).split("::");
+			assert(values.length == 2);
+
+			var o: FBXObject = {
+				type: fbxObjectTypeForName(name),
+				id: <number>values[0],
+				name: classAndName[1],
+				"class": classAndName[0],
+				subClass: <string>values[2]
+			};
+
+			switch (o.type) {
+				case FBXObjectType.Geometry:
+					{
+						let g = <FBXGeometry>(o);
+						g.vertexCount = 0;
+						g.triangleCount = 0;
+						g.positions = null;
+						g.triangleIndexes = null;
+						g.streams = [];
+					}
+					break;
+				case FBXObjectType.Material:
+					{
+						let m = <FBXMaterial>(o);
+						m.material = makeMaterial();
+					}
+					break;
+				case FBXObjectType.Model:
+					{
+						let m = <FBXModel>(o);
+						m.localPosition = [0, 0, 0];
+						m.localRotation = [0, 0, 0];
+						m.localScaling = [1, 1, 1];
+
+						if (o.subClass == "Mesh") {
+							let mm = <FBXMeshModel>(m);
+							mm.geometry = null;
+							mm.materials = [];
+						}
+						else if (o.subClass == "Light") {
+							let lm = <FBXLightModel>(m);
+							lm.light = null;
+						}
+						else if (o.subClass == "Camera") {
+							let cm = <FBXCameraModel>(m);
+							cm.camera = null;
+						}
+						else if (o.subClass == "Marker") {
+							let mm = <FBXMarkerModel>(o);
+							mm.marker = null;
+						}
+					}
+					break;
+				case FBXObjectType.NodeAttribute:
+					{
+						if (o.subClass == "Light") {
+							let la = <FBXLightAttr>(o);
+							la.colour = [0, 0, 0];
+							la.intensity = 0;
+						}
+						else if (o.subClass == "Camera") {
+							let ca = <FBXCameraAttr>(o);
+							ca.clearColour = [0, 0, 0];
+							ca.nearZ = 1;
+							ca.farZ = 1000;
+							ca.fov = 45;
+						}
+						else if (o.subClass == "Marker") {
+							let ma = <FBXMarkerAttr>(o);
+							ma.colour = [0, 0, 0];
+						}
+					}
+					break;
+				case FBXObjectType.Texture:
+					{
+						let t = <FBXTexture>(o);
+						t.uvOffset = [0, 0];
+						t.uvScale = [1, 1];
+						t.uvStreamName = "";
+					}
+					break;
+				case FBXObjectType.Video:
+					{
+						let v = <FBXVideo>(o);
+						v.filePath = "";
+						v.texture = null;
+						v.textureData = null;
+					}
+					break;
+			}
+
+			return o;
 		}
 
 
@@ -234,12 +369,15 @@ namespace sd.asset {
 					geometries: [],
 					lightAttrs: [],
 					cameraAttrs: [],
+					markerAttrs: [],
 
 					meshes: [],
 					lights: [],
 					cameras: [],
+					markers: [],
 
 					materials: [],
+					clips: [],
 					textures: []
 				};
 			}
@@ -261,7 +399,7 @@ namespace sd.asset {
 				else if (this.section == Section.Objects) {
 					if (this.depth == 1) {
 						if (name == "Geometry") {
-							this.object = makeFBXObject(FBXObjectType.Geometry);
+							this.object = makeFBXObject(name, values);
 						}
 					}
 				}
@@ -275,27 +413,22 @@ namespace sd.asset {
 
 
 			endBlock() {
+				console.info("/BLK");
 				this.depth--;
 				if (this.depth == 0) {
 					this.section = Section.Root;
 				}
-				console.info("/BLK");
 			}
 
 
 			property(name: string, values: parse.FBXValue[]) {
 				console.info("Prop: " + name, values);
 				if (name == "Content") {
-					var t0 = performance.now();
 					var str = convertBytesToString(new Uint8Array(<ArrayBuffer>values[0]));
-					var t1 = performance.now();
 					var b64 = btoa(str);
-					var t2 = performance.now();
 					str = "data:image/png;base64," + b64;
 					var img = new Image();
 					img.src = str;
-					var t3 = performance.now(); 
-					console.warn(t1 - t0, t2 - t1, t3 - t2);
 				}
 			}
 
