@@ -14,16 +14,12 @@ namespace sd.asset {
 
 
 	export interface Material {
-		ambientColour: Float3;
 		diffuseColour: Float3;
+		diffuseTexture: Texture2D;
 
 		specularColour: Float3;
 		specularFactor: number;
 		specularExponent: number;
-
-		emissiveColour: Float3;
-
-		diffuseTexture: Texture2D;
 	}
 
 	export type MaterialSet = { [name: string]: Material };
@@ -31,16 +27,12 @@ namespace sd.asset {
 
 	export function makeMaterial(): Material {
 		return {
-			ambientColour: [0, 0, 0],
 			diffuseColour: [0, 0, 0],
+			diffuseTexture: null,
 
 			specularColour: [0, 0, 0],
 			specularFactor: 0,
 			specularExponent: 0,
-
-			emissiveColour: [0, 0, 0],
-
-			diffuseTexture: null
 		};
 	}
 

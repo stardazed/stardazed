@@ -18,9 +18,6 @@ namespace sd.asset {
 				case "newmtl":
 					curMat = materials[tokens[1]] = makeMaterial();
 					break;
-				case "Ka":
-					curMat.ambientColour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
-					break;
 				case "Kd":
 					curMat.diffuseColour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
 					break;
