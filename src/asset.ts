@@ -5,19 +5,23 @@
 namespace sd.asset {
 
 	export interface Texture2D {
-		data: render.TextureImageData;
-		format: render.PixelFormat;
-
-		width: number;
-		height: number;
+		name: string;
+		userRef?: any;
+		
+		filePath?: string;
+		useMipMaps: render.UseMipMaps;
+		descriptor?: render.TextureDescriptor;
 	}
 
 
 	export interface Material {
 		name: string;
+		userRef?: any;
 
 		diffuseColour: Float3;
 		diffuseTexture: Texture2D;
+		textureScale: Float2;
+		textureOffset: Float2;
 
 		specularColour: Float3;
 		specularFactor: number;
@@ -33,6 +37,8 @@ namespace sd.asset {
 
 			diffuseColour: [0, 0, 0],
 			diffuseTexture: null,
+			textureScale: [1, 1],
+			textureOffset: [0, 0],
 
 			specularColour: [0, 0, 0], // this field is ignored by StdModels
 			specularFactor: 0,
