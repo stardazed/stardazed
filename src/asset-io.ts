@@ -96,6 +96,20 @@ namespace sd.asset {
 	}
 
 
+	export function loadImageFromBuffer(buffer: ArrayBuffer, mimeType: string): Promise<render.TextureImageSource> {
+		return new Promise((resolve, reject) => {
+			// Create an image in a most convolated manner. Hurrah for the web.
+			var str = convertBytesToString(new Uint8Array(buffer));
+			var b64 = btoa(str);
+			str = "data:" + mimeType + ";base64," + b64;
+			var img = new Image();
+			img.onload = () => { resolve(img); };
+			img.onerror = () => { reject("Bad image data."); };
+			img.src = str;
+		});
+	}
+
+
 	export function imageData(image: HTMLImageElement): ImageData {
 		var cvs = document.createElement("canvas");
 		cvs.width = image.width;
