@@ -112,15 +112,6 @@ namespace sd.asset {
 
 		// -- Document builder
 
-		function i2i(values: parse.FBXValue[]) {
-			var str = convertBytesToString(new Uint8Array(<ArrayBuffer>values[0]));
-			var b64 = btoa(str);
-			str = "data:image/png;base64," + b64;
-			var img = new Image();
-			img.src = str;
-		}
-
-
 		class Node {
 			name: string;
 			type: parse.FBXPropertyType;
@@ -216,12 +207,19 @@ namespace sd.asset {
 				};
 
 				var id = <number>node.values[0];
+				var subClass = <string>node.values[2];
 				var set = typeSetMap[node.name];
 				assert(set != null, "Unknown object class " + node.name);
 
 				if (node.name == "Model") {
-					if (<string>node.values[2] != "Mesh") {
+					if (subClass != "Mesh") {
 						// ignore all non-mesh models for now
+						return;
+					}
+				}
+				else if (node.name == "Video") {
+					if (subClass != "Clip") {
+						// ignore HLSL shaders
 						return;
 					}
 				}
@@ -241,33 +239,121 @@ namespace sd.asset {
 				}
 			}
 
-			resolve() {
-				var group = new AssetGroup();
 
-				for (var matID in this.materialNodes) {
-					let fbxMat = this.materialNodes[matID];
-					let mat = makeMaterial();
-					mat.name = fbxMat.objectName();
+			private loadTextures(group: AssetGroup): Promise<AssetGroup> {
+				var fileProms: Promise<Texture2D>[] = [];
 
-					for (let c of fbxMat.children) {
-						if (c.name == "DiffuseColor") {
-							vec3.copy(mat.diffuseColour, <number[]>c.values);
+				Object.keys(this.videoNodes).forEach((idStr) => {
+					var vidID = +idStr;
+					var fbxVideo = this.videoNodes[vidID];
+					var tex: Texture2D = {
+						name: fbxVideo.objectName(),
+						userRef: vidID,
+						useMipMaps: render.UseMipMaps.No
+					};
+					var fileData: ArrayBuffer = null;
+
+					for (let c of fbxVideo.children) {
+						if (c.name == "UseMipMap") {
+							tex.useMipMaps = (<number>c.values[0] != 0) ? render.UseMipMaps.Yes : render.UseMipMaps.No;
 						}
-						else if (c.name == "SpecularColor") {
-							vec3.copy(mat.specularColour, <number[]>c.values);
+						else if (c.name == "RelativeFilename") {
+							tex.filePath = <string>c.values[0];
 						}
-						else if (c.name == "SpecularFactor") {
-							mat.specularFactor = <number>c.values[0];
-						}
-						else if (c.name == "ShininessExponent") {
-							mat.specularExponent = <number>c.values[0];	
+						else if (c.name == "Content") {
+							fileData = <ArrayBuffer>c.values[0];
 						}
 					}
 
-					group.addMaterial(mat);
-				}
+					var makeTexDesc = (img: render.TextureImageSource) => {
+						return render.makeTexDesc2DFromImageSource(img, tex.useMipMaps);
+					};
 
-				return group;
+					if (fileData) {
+						fileProms.push(new Promise((resolve, reject) => {
+							var mime = mimeTypeForFilePath(tex.filePath);
+							if (! mime) {
+								reject("Cannot create texture, no mime-type found for file path " + tex.filePath);
+							}
+							else {
+								loadImageFromBuffer(fileData, mime).then((img) => {
+									tex.descriptor = makeTexDesc(img);
+									resolve(tex);
+								}, (error) => reject(error));
+							}
+						}));
+					}
+					else {
+						fileProms.push(loadImage(tex.filePath).then((img) => {
+							tex.descriptor = makeTexDesc(img);
+							return tex;
+						}));
+					}
+				});
+
+				return Promise.all(fileProms).then((textures) => {
+					for (var tex of textures) {
+						group.addTexture(tex);
+					}
+					return group;
+				}, () => null);
+			}
+
+
+			resolve(): Promise<AssetGroup> {
+				return this.loadTextures(new AssetGroup())
+				.then((group) => {
+					for (var matID in this.materialNodes) {
+						let fbxMat = this.materialNodes[matID];
+						let mat = makeMaterial();
+						mat.name = fbxMat.objectName();
+
+						for (let c of fbxMat.children) {
+							if (c.name == "DiffuseColor") {
+								vec3.copy(mat.diffuseColour, <number[]>c.values);
+							}
+							else if (c.name == "SpecularColor") {
+								vec3.copy(mat.specularColour, <number[]>c.values);
+							}
+							else if (c.name == "SpecularFactor") {
+								mat.specularFactor = <number>c.values[0];
+							}
+							else if (c.name == "ShininessExponent") {
+								mat.specularExponent = <number>c.values[0];
+							}
+						}
+
+						// use only first connection for now (if it exists)
+						if (fbxMat.connectionsIn.length > 0) {
+							// An FBX "Texture" connects a "Video" clip to a "Material"
+							// with some parameters and may also directly reference a named
+							// set of UV coordinates in a "Model" used by the material...
+							var texNode = fbxMat.connectionsIn[0].fromNode;
+							var videoNodeID = texNode.connectionsIn[0].fromID;
+							var tex2D = group.textures.find((t) => <number>t.userRef == videoNodeID);
+							
+							if (! (texNode && tex2D)) {
+								console.warn("Could not link texture to material.");
+							}
+							else {
+								mat.diffuseTexture = tex2D;
+
+								for (let tc of texNode.children) {
+									if (tc.name == "ModelUVTranslation") {
+										vec2.copy(mat.textureOffset, <number[]>tc.values);
+									}
+									else if (tc.name == "ModelUVScaling") {
+										vec2.copy(mat.textureScale, <number[]>tc.values);
+									}
+								}
+							}
+						}
+
+						group.addMaterial(mat);
+					}
+
+					return group;
+				});
 			}
 		}
 
@@ -291,7 +377,7 @@ namespace sd.asset {
 
 			private knownObjects: Set<string>;
 
-			private assets_: AssetGroup = null;
+			private assets_: Promise<AssetGroup> = null;
 
 			constructor() {
 				this.doc = new FBXDocumentGraph();
@@ -400,7 +486,7 @@ namespace sd.asset {
 			}
 
 
-			get assets(): AssetGroup {
+			get assets(): Promise<AssetGroup> {
 				return this.assets_;
 			}
 		}
@@ -408,7 +494,7 @@ namespace sd.asset {
 	} // ns fbx
 
 
-	function parseFBXSource(source: string | ArrayBuffer): AssetGroup {
+	function parseFBXSource(source: string | ArrayBuffer): Promise<AssetGroup> {
 		var t0 = performance.now();
  		var del = new fbx.FBX7DocumentParser();
 		var parser: fbx.parse.FBXParser;
