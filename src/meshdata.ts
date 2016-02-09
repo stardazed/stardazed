@@ -1,6 +1,6 @@
 // meshdata.ts - mesh data
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2015-6 by Arthur Langereis - @zenmumbler
 
 /// <reference path="../defs/webgl-ext.d.ts" />
 
@@ -202,8 +202,7 @@ namespace sd.mesh {
 		Normal,
 		Tangent,
 		Colour,
-		UV,
-		UVW
+		UV
 		/*
 		Custom1, etc.?
 		*/
@@ -230,19 +229,19 @@ namespace sd.mesh {
 
 	export namespace AttrList {
 		export function Pos3Norm3(): VertexAttribute[] {
-			return [ attrPosition3(), attrNormal3() ];
+			return [attrPosition3(), attrNormal3()];
 		}
 		export function Pos3Norm3Colour3() {
 			return [attrPosition3(), attrNormal3(), attrColour3()];	
 		}
 		export function Pos3Norm3UV2(): VertexAttribute[] {
-			return [ attrPosition3(), attrNormal3(), attrUV2() ];
+			return [attrPosition3(), attrNormal3(), attrUV2()];
 		}
 		export function Pos3Norm3Colour3UV2() {
 			return [attrPosition3(), attrNormal3(), attrColour3(), attrUV2()];
 		}
 		export function Pos3Norm3UV2Tan4(): VertexAttribute[] {
-			return [ attrPosition3(), attrNormal3(), attrUV2(), attrTangent4() ];
+			return [attrPosition3(), attrNormal3(), attrUV2(), attrTangent4()];
 		}
 	}
 
@@ -275,9 +274,7 @@ namespace sd.mesh {
 
 
 	function alignFieldOnSize(size: number, offset: number) {
-		// FIXME: this will fail if size is not a power of 2
-		// extend to nearest power of 2, then - 1
-		var mask = size - 1;
+		var mask = math.roundUpPowerOf2(size) - 1;
 		return (offset + mask) & ~mask;
 	}
 
@@ -613,6 +610,7 @@ namespace sd.mesh {
 			typedBasePtr[0] = newValue;
 		}
 	}
+
 
 	export class TriangleProxy {
 		private data_: TypedIndexArray;
