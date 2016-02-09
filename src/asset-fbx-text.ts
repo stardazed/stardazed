@@ -305,7 +305,13 @@ namespace sd.asset.fbx.parse {
 		private arrayForKey(key: string, elementCount: number): TypedArray {
 			if (key == "PolygonVertexIndex" ||
 				key == "UVIndex" ||
+				key == "ColorIndex" ||
+				key == "NormalsIndex" ||
+				key == "BinormalsIndex" ||
+				key == "TangentsIndex" ||
 				key == "Edges" ||
+				key == "Smoothing" ||
+				key == "Visibility" ||
 				key == "Materials" ||
 				key == "KeyAttrFlags" ||
 				key == "KeyAttrRefCount")
@@ -322,7 +328,12 @@ namespace sd.asset.fbx.parse {
 			if (key == "Vertices" ||
 				key == "Normals" ||
 				key == "NormalsW" ||
+				key == "Binormals" ||
+				key == "BinormalsW" ||
+				key == "Tangents" ||
+				key == "TangentsW" ||
 				key == "UV" ||
+				key == "Colors" ||
 				key == "KeyTime")
 			{
 				return new Float64Array(elementCount);
