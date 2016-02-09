@@ -24,7 +24,7 @@ namespace sd.asset {
 		textureOffset: Float2;
 
 		specularColour: Float3;
-		specularFactor: number;
+		specularIntensity: number;
 		specularExponent: number;
 	}
 
@@ -41,9 +41,20 @@ namespace sd.asset {
 			textureOffset: [0, 0],
 
 			specularColour: [0, 0, 0], // this field is ignored by StdModels
-			specularFactor: 0,
+			specularIntensity: 0,
 			specularExponent: 0,
 		};
+	}
+
+
+	export interface Mesh {
+		name: string;
+		userRef?: any;
+
+		positions: Float64Array;
+		streams: mesh.VertexAttributeStream[];
+
+		meshData?: mesh.MeshData;
 	}
 
 
@@ -62,14 +73,14 @@ namespace sd.asset {
 
 
 	export class AssetGroup {
-		meshDatas: mesh.MeshData[] = [];
+		meshes: Mesh[] = [];
 		textures: Texture2D[] = [];
 		materials: Material[] = [];
 		models: Model[] = [];
 
-		addMeshData(meshData: mesh.MeshData): number {
-			this.meshDatas.push(meshData);
-			return this.meshDatas.length - 1;
+		addMesh(mesh: Mesh): number {
+			this.meshes.push(mesh);
+			return this.meshes.length - 1;
 		}
 
 		addTexture(tex: Texture2D): number {
