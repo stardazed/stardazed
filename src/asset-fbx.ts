@@ -160,10 +160,6 @@ namespace sd.asset {
 		}
 
 
-		export interface FBXDocument {
-		}
-
-
 		class FBXDocumentGraph {
 			private globals: Node[];
 
@@ -193,9 +189,11 @@ namespace sd.asset {
 				this.allObjects[0] = this.rootNode;
 			}
 
+
 			globalSetting(node: Node) {
 				this.globals.push(node);
 			}
+
 
 			addObject(node: Node) {
 				var typeSetMap: { [name: string]: ObjectSet } = {
@@ -227,6 +225,7 @@ namespace sd.asset {
 				set[id] = node;
 				this.allObjects[id] = node;
 			}
+
 
 			addConnection(conn: Connection) {
 				conn.fromNode = this.allObjects[conn.fromID];
@@ -300,57 +299,172 @@ namespace sd.asset {
 			}
 
 
-			resolve(): Promise<AssetGroup> {
-				return this.loadTextures(new AssetGroup())
-				.then((group) => {
-					for (var matID in this.materialNodes) {
-						let fbxMat = this.materialNodes[matID];
-						let mat = makeMaterial();
-						mat.name = fbxMat.objectName();
+			private buildMaterials(group: AssetGroup) {
+				for (var matID in this.materialNodes) {
+					let fbxMat = this.materialNodes[matID];
+					let mat = makeMaterial();
+					mat.name = fbxMat.objectName();
+					mat.userRef = matID;
 
-						for (let c of fbxMat.children) {
-							if (c.name == "DiffuseColor") {
-								vec3.copy(mat.diffuseColour, <number[]>c.values);
-							}
-							else if (c.name == "SpecularColor") {
-								vec3.copy(mat.specularColour, <number[]>c.values);
-							}
-							else if (c.name == "SpecularFactor") {
-								mat.specularFactor = <number>c.values[0];
-							}
-							else if (c.name == "ShininessExponent") {
-								mat.specularExponent = <number>c.values[0];
-							}
+					for (let c of fbxMat.children) {
+						if (c.name == "DiffuseColor") {
+							vec3.copy(mat.diffuseColour, <number[]>c.values);
 						}
+						else if (c.name == "SpecularColor") {
+							vec3.copy(mat.specularColour, <number[]>c.values);
+						}
+						else if (c.name == "SpecularFactor") {
+							mat.specularIntensity = <number>c.values[0];
+						}
+						else if (c.name == "ShininessExponent") {
+							mat.specularExponent = <number>c.values[0];
+						}
+					}
 
-						// use only first connection for now (if it exists)
-						if (fbxMat.connectionsIn.length > 0) {
-							// An FBX "Texture" connects a "Video" clip to a "Material"
-							// with some parameters and may also directly reference a named
-							// set of UV coordinates in a "Model" used by the material...
-							var texNode = fbxMat.connectionsIn[0].fromNode;
-							var videoNodeID = texNode.connectionsIn[0].fromID;
-							var tex2D = group.textures.find((t) => <number>t.userRef == videoNodeID);
-							
-							if (! (texNode && tex2D)) {
-								console.warn("Could not link texture to material.");
-							}
-							else {
-								mat.diffuseTexture = tex2D;
+					// use only first connection for now (if it exists)
+					if (fbxMat.connectionsIn.length > 0) {
+						// An FBX "Texture" connects a "Video" clip to a "Material"
+						// with some parameters and may also directly reference a named
+						// set of UV coordinates in a "Model" used by the material...
+						var texNode = fbxMat.connectionsIn[0].fromNode;
+						var videoNodeID = texNode.connectionsIn[0].fromID;
+						var tex2D = group.textures.find((t) => <number>t.userRef == videoNodeID);
 
-								for (let tc of texNode.children) {
-									if (tc.name == "ModelUVTranslation") {
-										vec2.copy(mat.textureOffset, <number[]>tc.values);
-									}
-									else if (tc.name == "ModelUVScaling") {
-										vec2.copy(mat.textureScale, <number[]>tc.values);
-									}
+						if (!(texNode && tex2D)) {
+							console.warn("Could not link texture to material.");
+						}
+						else {
+							mat.diffuseTexture = tex2D;
+
+							for (let tc of texNode.children) {
+								if (tc.name == "ModelUVTranslation") {
+									vec2.copy(mat.textureOffset, <number[]>tc.values);
+								}
+								else if (tc.name == "ModelUVScaling") {
+									vec2.copy(mat.textureScale, <number[]>tc.values);
 								}
 							}
 						}
-
-						group.addMaterial(mat);
 					}
+
+					group.addMaterial(mat);
+				}
+			}
+
+
+			private makeLayerElementStream(layerElemNode: Node): mesh.VertexAttributeStream {
+				var valueArrayName: string, indexArrayName: string;
+				var stream: mesh.VertexAttributeStream = {
+					name: "",
+					attr: null,
+					mapping: mesh.VertexAttributeMapping.Undefined
+				};
+		
+				// Determine array key names as they are obviously not consistent
+				if (layerElemNode.name == "LayerElementNormal") {
+					valueArrayName = "Normals";
+					indexArrayName = "NormalsIndex";
+					stream.attr = { role: mesh.VertexAttributeRole.Normal, field: mesh.VertexField.Floatx3 };
+				}
+				else if (layerElemNode.name == "LayerElementColor") {
+					valueArrayName = "Colors";
+					indexArrayName = "ColorIndex";
+					stream.attr = { role: mesh.VertexAttributeRole.Colour, field: mesh.VertexField.Floatx3 };
+				}
+				else if (layerElemNode.name == "LayerElementUV") {
+					valueArrayName = "UV";
+					indexArrayName = "UVIndex";
+					stream.attr = { role: mesh.VertexAttributeRole.UV, field: mesh.VertexField.Floatx2 };
+				}
+				else if (layerElemNode.name == "LayerElementTangent") {
+					valueArrayName = "Tangents";
+					indexArrayName = "TangentsIndex";
+					stream.attr = { role: mesh.VertexAttributeRole.Tangent, field: mesh.VertexField.Floatx4 };
+				}
+				else if (layerElemNode.name == "LayerElementMaterial") {
+					valueArrayName = "--UNUSED--";
+					indexArrayName = "Materials";
+				}
+				else {
+					assert(false, "Unhandled layer element node");
+				}
+
+				for (var c of layerElemNode.children) {
+					if (c.name == "Name") {
+						stream.name = <string>c.values[0];
+					}
+					else if (c.name == "MappingInformationType") {
+						let mappingName = <string>c.values[0];
+						if (mappingName == "ByPolygonVertex") {
+							stream.mapping = mesh.VertexAttributeMapping.PolygonVertex;
+						}
+						else if (mappingName == "ByPolygon") {
+							stream.mapping = mesh.VertexAttributeMapping.Polygon;	
+						}
+						else if (mappingName == "AllSame") {
+							stream.mapping = mesh.VertexAttributeMapping.SingleValue;
+						}
+					}
+					else if (c.name == valueArrayName) {
+						stream.values = <TypedArray>c.values[0];
+					}
+					else if (c.name == indexArrayName) {
+						stream.indexes = <TypedArray>c.values[0];
+					}
+				}
+
+				return stream;
+			}
+
+
+			private buildMeshes(group: AssetGroup) {
+				for (var geomID in this.geometryNodes) {
+					var fbxGeom = this.geometryNodes[geomID];
+					var sdMesh: Mesh = {
+						name: fbxGeom.objectName(),
+						userRef: <number>fbxGeom.values[0],
+						positions: null,
+						streams: []
+					};
+					var polygonIndexes: Int32Array = null;
+					var materialStream: mesh.VertexAttributeStream = null;
+
+					for (var c of fbxGeom.children) {
+						if (c.name == "Vertices") {
+							sdMesh.positions = <Float64Array>c.values[0];
+						}
+						else if (c.name == "PolygonVertexIndex") {
+							polygonIndexes = <Int32Array>c.values[0];
+						}
+						else if (c.name == "LayerElementMaterial") {
+							materialStream = this.makeLayerElementStream(c);
+						}
+						else if (c.name == "LayerElementNormal" ||
+							c.name == "LayerElementColor" ||
+							c.name == "LayerElementUV" ||
+							c.name == "LayerElementTangent")
+						{
+							let streamIndex = <number>c.values[0];
+							if (streamIndex == 0) {
+								sdMesh.streams.push(this.makeLayerElementStream(c));
+							}
+							else {
+								console.warn("Skipping Geometry LayerElement with index > 0", c);
+							}
+						}
+					}
+
+					// With all streams and stuff collected, create the mesh
+					console.info("MESH", sdMesh);
+				}
+			}
+
+
+			resolve(): Promise<AssetGroup> {
+				return this.loadTextures(new AssetGroup())
+				.then((group) => {
+					this.buildMaterials(group);
+					this.buildMeshes(group);
 
 					return group;
 				});
