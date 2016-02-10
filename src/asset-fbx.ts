@@ -395,7 +395,7 @@ namespace sd.asset {
 					}
 					else if (c.name == "MappingInformationType") {
 						let mappingName = <string>c.values[0];
-						if (mappingName == "ByPolygonVertex") {
+						if (mappingName == "ByPolygonVertex" || mappingName == "ByVertice") {
 							stream.mapping = mesh.VertexAttributeMapping.PolygonVertex;
 						}
 						else if (mappingName == "ByPolygon") {
@@ -403,6 +403,9 @@ namespace sd.asset {
 						}
 						else if (mappingName == "AllSame") {
 							stream.mapping = mesh.VertexAttributeMapping.SingleValue;
+						}
+						else {
+							assert(false, "Unknown stream mapping name: " + mappingName);
 						}
 					}
 					else if (c.name == valueArrayName) {
