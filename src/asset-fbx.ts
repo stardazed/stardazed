@@ -357,6 +357,7 @@ namespace sd.asset {
 				var stream: mesh.VertexAttributeStream = {
 					name: "",
 					attr: null,
+					includeInMesh: true,
 					mapping: mesh.VertexAttributeMapping.Undefined
 				};
 		
@@ -382,8 +383,10 @@ namespace sd.asset {
 					stream.attr = { role: mesh.VertexAttributeRole.Tangent, field: mesh.VertexField.Floatx4 };
 				}
 				else if (layerElemNode.name == "LayerElementMaterial") {
-					valueArrayName = "--UNUSED--";
-					indexArrayName = "Materials";
+					valueArrayName = "Materials";
+					indexArrayName = "--UNUSED--";
+					stream.includeInMesh = false;
+					stream.controlsGrouping = true;
 				}
 				else {
 					assert(false, "Unhandled layer element node");
