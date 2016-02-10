@@ -423,7 +423,6 @@ namespace sd.asset {
 					}
 				}
 
-
 				// check material stream applicability
 				if (layerElemNode.name == "LayerElementMaterial") {
 					assert(

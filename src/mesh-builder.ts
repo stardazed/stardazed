@@ -38,7 +38,7 @@ namespace sd.mesh {
 		private triangleCount = 0;
 		private vertexMapping: Map<string, number>;
 
-		private groupIndex = 0;
+		private groupIndex = -1;
 		private groupFirstTriangleIndex = 0;
 		private groups: mesh.PrimitiveGroup[] = [];
 
@@ -195,7 +195,14 @@ namespace sd.mesh {
 			var indexElemType = mesh.minimumIndexElementTypeForVertexCount(this.vertexCount);
 			meshData.indexBuffer.allocate(PrimitiveType.Triangle, indexElemType, this.triangleCount);
 			meshData.indexBuffer.setIndexes(0, this.indexes.length, this.indexes);
-			meshData.primitiveGroups.push({ materialIx: 0, fromPrimIx: 0, primCount: this.triangleCount });
+
+			if (this.groupIndex == -1) {
+				// groupIndex was never set, i.e. no grouping stream, just create a single group with material 0
+				meshData.primitiveGroups.push({ materialIx: 0, fromPrimIx: 0, primCount: this.triangleCount });
+			}
+			else {
+				
+			}
 
 			return meshData;
 		}
