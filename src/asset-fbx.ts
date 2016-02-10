@@ -458,7 +458,31 @@ namespace sd.asset {
 					}
 
 					// With all streams and stuff collected, create the mesh
-					console.info("MESH", sdMesh);
+					var t0 = performance.now();
+					var mb = new mesh.MeshBuilder(sdMesh.positions, sdMesh.streams);
+					var indexCount = polygonIndexes.length;
+					var poly: number[] = []
+
+					// Perform linear scan through polygon indexes as tris and quads can
+					// be used arbitrarily, the last index of each polygon is indicated
+					// by a negated index.
+					for (var pvix = 0; pvix < indexCount; ++pvix) {
+						var pvi = polygonIndexes[pvix];
+						if (pvi < 0) {
+							poly.push(-pvi);
+							mb.addPolygon(poly);
+							poly = [];
+						}
+						else {
+							poly.push(pvi);
+						}
+					}
+					
+					var md = mb.complete();
+					// console.info("MB", (performance.now() - t0).toFixed(1), mb, md);
+					md.genVertexNormals();
+					sdMesh.meshData = md;
+					group.addMesh(sdMesh);
 				}
 			}
 
