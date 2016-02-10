@@ -144,10 +144,6 @@ namespace sd.mesh {
 		}
 
 
-		setMaterialIndex(matIndex: number) {
-		}
-
-
 		complete() {
 			var attrs = this.streams.map(s => s.attr);
 			var meshData = new MeshData();
