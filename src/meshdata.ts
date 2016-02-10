@@ -380,7 +380,7 @@ namespace sd.mesh {
 			this.itemCount_ = itemCount;
 			this.storage_ = new ArrayBuffer(this.layout_.bytesRequiredForVertexCount(itemCount));
 		}
-	
+
 		// -- attribute access pass-through
 	
 		hasAttributeWithRole(role: VertexAttributeRole) {
@@ -418,6 +418,57 @@ namespace sd.mesh {
 			var max = this.count;
 			for (let ix = 0; ix < max; ++ix) {
 				callback(this.item(ix));
+			}
+		}
+
+		copyValuesFrom(source: ArrayOfNumber, valueCount: number, offset: number = 0) {
+			assert(this.firstItem_ + offset + valueCount <= this.viewItemCount_, "buffer overflow");
+			assert(source.length >= valueCount * this.attrElementCount_, "not enough elements in source");
+
+			var firstIndex = this.firstItem_ + offset;
+			var offsetBytes = (this.stride_ * firstIndex) + this.attrOffset_;
+			var buffer = this.buffer_;
+			var stride = this.stride_;
+			var sourceIndex = 0;
+			var arrView: TypedArray;
+
+			if (this.attrElementCount_ == 1) {
+				for (var n = 0; n < valueCount; ++n) {
+					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 1);
+					arrView[0] = source[sourceIndex];
+					sourceIndex += 1;
+					offsetBytes += stride;
+				}
+			}
+			else if (this.attrElementCount_ == 2) {
+				for (var n = 0; n < valueCount; ++n) {
+					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 2);
+					arrView[0] = source[sourceIndex];
+					arrView[1] = source[sourceIndex + 1];
+					sourceIndex += 2;
+					offsetBytes += stride;
+				}
+			}
+			else if (this.attrElementCount_ == 3) {
+				for (var n = 0; n < valueCount; ++n) {
+					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 3);
+					arrView[0] = source[sourceIndex];
+					arrView[1] = source[sourceIndex + 1];
+					arrView[2] = source[sourceIndex + 2];
+					sourceIndex += 3;
+					offsetBytes += stride;
+				}
+			}
+			else if (this.attrElementCount_ == 4) {
+				for (var n = 0; n < valueCount; ++n) {
+					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 4);
+					arrView[0] = source[sourceIndex];
+					arrView[1] = source[sourceIndex + 1];
+					arrView[2] = source[sourceIndex + 2];
+					arrView[3] = source[sourceIndex + 3];
+					sourceIndex += 4;
+					offsetBytes += stride;
+				}
 			}
 		}
 
