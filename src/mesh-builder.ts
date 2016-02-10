@@ -7,6 +7,7 @@ namespace sd.mesh {
 	export const enum VertexAttributeMapping {
 		Undefined,
 
+		Vertex,
 		PolygonVertex,
 		Polygon,
 		SingleValue
@@ -40,7 +41,7 @@ namespace sd.mesh {
 		constructor(positions: Float32Array, streams: VertexAttributeStream[]) {
 			var positionStream: VertexAttributeStream = {
 				attr: { role: VertexAttributeRole.Position, field: VertexField.Floatx3 },
-				mapping: VertexAttributeMapping.PolygonVertex,
+				mapping: VertexAttributeMapping.Vertex,
 				values: positions
 			};	
 			this.streams = [positionStream].concat(streams.slice(0));
@@ -55,12 +56,15 @@ namespace sd.mesh {
 		}
 
 
-		private streamIndexesForPVI(polygonVertexIndex: number, polygonIndex: number) {
+		private streamIndexesForPVI(polygonVertexIndex: number, vertexIndex: number, polygonIndex: number) {
 			var res: number[] = [];
 
 			for (var stream of this.streams) {
 				var index: number;
-				if (stream.mapping == VertexAttributeMapping.PolygonVertex) {
+				if (stream.mapping == VertexAttributeMapping.Vertex) {
+					index = vertexIndex;
+				}
+				else if (stream.mapping == VertexAttributeMapping.PolygonVertex) {
 					index = polygonVertexIndex;
 				}
 				else if (stream.mapping == VertexAttributeMapping.Polygon) {
@@ -101,12 +105,12 @@ namespace sd.mesh {
 				return vertexIndex;
 			}
 		}
-		
 
-		private addTriangle(srcVIxA: number, srcVIxB: number, srcVIxC: number) {
-			var indexesA = this.streamIndexesForPVI(srcVIxA, this.sourcePolygonIndex);
-			var indexesB = this.streamIndexesForPVI(srcVIxB, this.sourcePolygonIndex);
-			var indexesC = this.streamIndexesForPVI(srcVIxC, this.sourcePolygonIndex);
+
+		private addTriangle(polygonVertexIndexes: ArrayOfNumber, vertexIndexes: ArrayOfNumber) {
+			var indexesA = this.streamIndexesForPVI(polygonVertexIndexes[0], vertexIndexes[0], this.sourcePolygonIndex);
+			var indexesB = this.streamIndexesForPVI(polygonVertexIndexes[1], vertexIndexes[1], this.sourcePolygonIndex);
+			var indexesC = this.streamIndexesForPVI(polygonVertexIndexes[2], vertexIndexes[2], this.sourcePolygonIndex);
 
 			var dstVIxA = this.getVertexIndex(indexesA);
 			var dstVIxB = this.getVertexIndex(indexesB);
@@ -117,16 +121,23 @@ namespace sd.mesh {
 		}
 
 
-		addPolygon(vertexIndexes: ArrayOfNumber) {
-			var polyPoints = vertexIndexes.length;
-			var polyNext = 3;
-			const a = vertexIndexes[0];
-			const b = vertexIndexes[1];
-			const c = vertexIndexes[2];
-			this.addTriangle(a, b, c);
+		addPolygon(polygonVertexIndexes: ArrayOfNumber, vertexIndexes: ArrayOfNumber) {
+			if (polygonVertexIndexes.length == 3) {
+				this.addTriangle(polygonVertexIndexes, vertexIndexes);
+			}
+			else {
+				var polyPoints = vertexIndexes.length;
+				var polyNext = 2;
+				const pv0 = polygonVertexIndexes[0];
+				const v0 = vertexIndexes[0];
 
-			while (polyNext++ < polyPoints) {
-				this.addTriangle(a, vertexIndexes[polyNext - 1], vertexIndexes[polyNext]);
+				while (polyNext < polyPoints) {
+					this.addTriangle(
+						[pv0, polygonVertexIndexes[polyNext - 1], polygonVertexIndexes[polyNext]],
+						[v0, vertexIndexes[polyNext - 1], vertexIndexes[polyNext]]
+					);
+					polyNext++;
+				}
 			}
 
 			this.sourcePolygonIndex++;
@@ -140,12 +151,21 @@ namespace sd.mesh {
 		complete() {
 			var attrs = this.streams.map(s => s.attr);
 			var meshData = new MeshData();
+
 			var vb = new VertexBuffer(attrs);
 			meshData.vertexBuffers.push(vb);
 			vb.allocate(this.vertexMapping.size);
-			meshData.indexBuffer.allocate(PrimitiveType.Triangle, IndexElementType.UInt32, this.triangleCount);
+			for (var six = 0; six < this.streamCount; ++six) {
+				let streamData = this.vertexData[six];
+				let view = new VertexBufferAttributeView(vb, vb.attrByIndex(six));
+				view.copyValuesFrom(streamData, this.vertexCount);
+			}
+
+			var indexElemType = mesh.minimumIndexElementTypeForVertexCount(this.vertexCount);
+			meshData.indexBuffer.allocate(PrimitiveType.Triangle, indexElemType, this.triangleCount);
 			meshData.indexBuffer.setIndexes(0, this.indexes.length, this.indexes);
 			meshData.primitiveGroups.push({ materialIx: 0, fromPrimIx: 0, primCount: this.triangleCount });
+
 			return meshData;
 		}
 	}
