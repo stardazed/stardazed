@@ -122,14 +122,31 @@ namespace sd.mesh {
 				for (var streamIx = 0; streamIx < this.streamCount; ++streamIx) {
 					var stream = this.streams[streamIx];
 					var fieldIndex = streamIndexes[streamIx];
-					var fieldOffset = stream.elementCount * fieldIndex;
-
+					var elemCount = stream.elementCount;
+					var fieldOffset = elemCount * fieldIndex;
+					var values = stream.values;
 					var array = this.vertexData[streamIx];
 
-					// The loop is sadly a lot faster on all browsers than the commented statement
+					// This is slowest on all browsers (by a mile)
 					// array.push.apply(array, stream.values.subarray(fieldOffset, fieldOffset + stream.elementCount));
-					for (var el = 0; el < stream.elementCount; ++el) {
-						array.push(stream.values[fieldOffset + el]);
+
+					// This is 20% faster in Firefox
+					// for (var el = 0; el < elemCount; ++el) {
+					// 	array.push(values[fieldOffset + el]);
+					// }
+
+					// This is 20% faster in Webkit
+					if (elemCount == 3) {
+						array.push(values[fieldOffset], values[fieldOffset + 1], values[fieldOffset + 2]);
+					}
+					else if (elemCount == 2) {
+						array.push(values[fieldOffset], values[fieldOffset + 1]);
+					}
+					else if (elemCount == 4) {
+						array.push(values[fieldOffset], values[fieldOffset + 1], values[fieldOffset + 2], values[fieldOffset + 3]);
+					}
+					else if (elemCount == 1) {
+						array.push(values[fieldOffset]);
 					}
 				}
 
