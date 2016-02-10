@@ -578,7 +578,7 @@ namespace sd.mesh {
 
 		indexes(baseIndexNr: number, outputCount: number, outputPtr: Uint32Array) {
 			assert(baseIndexNr < this.indexCount_);
-			assert(baseIndexNr + outputCount < this.indexCount_);
+			assert(baseIndexNr + outputCount <= this.indexCount_);
 			assert(outputPtr.length >= outputCount);
 
 			var typedBasePtr = this.typedBasePtr(baseIndexNr, outputCount);
@@ -593,9 +593,9 @@ namespace sd.mesh {
 			return typedBasePtr[0];
 		}
 
-		setIndexes(baseIndexNr: number, sourceCount: number, sourcePtr: Uint32Array) {
+		setIndexes(baseIndexNr: number, sourceCount: number, sourcePtr: ArrayOfNumber) {
 			assert(baseIndexNr < this.indexCount_);
-			assert(baseIndexNr + sourceCount < this.indexCount_);
+			assert(baseIndexNr + sourceCount <= this.indexCount_);
 			assert(sourcePtr.length >= sourceCount);
 
 			var typedBasePtr = this.typedBasePtr(baseIndexNr, sourceCount);
