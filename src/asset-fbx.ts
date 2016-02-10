@@ -395,7 +395,10 @@ namespace sd.asset {
 					}
 					else if (c.name == "MappingInformationType") {
 						let mappingName = <string>c.values[0];
-						if (mappingName == "ByPolygonVertex" || mappingName == "ByVertice") {
+						if (mappingName == "ByVertice") {
+							stream.mapping = mesh.VertexAttributeMapping.Vertex;
+						}
+						else if (mappingName == "ByPolygonVertex") {
 							stream.mapping = mesh.VertexAttributeMapping.PolygonVertex;
 						}
 						else if (mappingName == "ByPolygon") {
@@ -460,28 +463,35 @@ namespace sd.asset {
 					// With all streams and stuff collected, create the mesh
 					var t0 = performance.now();
 					var mb = new mesh.MeshBuilder(sdMesh.positions, sdMesh.streams);
-					var indexCount = polygonIndexes.length;
-					var poly: number[] = []
+					var polygonIndexCount = polygonIndexes.length;
+					var polygonVertexIndexArray: number[] = []
+					var vertexIndexArray: number[] = []
 
 					// Perform linear scan through polygon indexes as tris and quads can
 					// be used arbitrarily, the last index of each polygon is indicated
 					// by a negated index.
-					for (var pvix = 0; pvix < indexCount; ++pvix) {
-						var pvi = polygonIndexes[pvix];
-						if (pvi < 0) {
-							poly.push(-pvi);
-							mb.addPolygon(poly);
-							poly = [];
+					for (var pvi = 0; pvi < polygonIndexCount; ++pvi) {
+						var vi = polygonIndexes[pvi];
+						polygonVertexIndexArray.push(pvi);
+
+						if (vi < 0) {
+							vertexIndexArray.push(~vi);
+							mb.addPolygon(polygonVertexIndexArray, vertexIndexArray);
+
+							// next polygon							
+							polygonVertexIndexArray = [];
+							vertexIndexArray = [];
 						}
 						else {
-							poly.push(pvi);
+							vertexIndexArray.push(vi);
 						}
 					}
-					
-					var md = mb.complete();
-					// console.info("MB", (performance.now() - t0).toFixed(1), mb, md);
-					md.genVertexNormals();
-					sdMesh.meshData = md;
+					var t1 = performance.now();
+					sdMesh.meshData = mb.complete();
+					var t2 = performance.now();
+					console.info("fbx streams build time", (t1 - t0).toFixed(1));
+					console.info("fbx meshdata build time", (t2 - t1).toFixed(1));
+
 					group.addMesh(sdMesh);
 				}
 			}
@@ -520,6 +530,8 @@ namespace sd.asset {
 
 			private assets_: Promise<AssetGroup> = null;
 
+			private parseT0 = 0;
+
 			constructor() {
 				this.doc = new FBXDocumentGraph();
 				this.knownObjects = new Set<string>(["Geometry", "Video", "Texture", "Material", "Model"]);
@@ -527,6 +539,10 @@ namespace sd.asset {
 
 
 			block(name: string, values: parse.FBXValue[]): parse.FBXBlockAction {
+				if (this.parseT0 == 0) {
+					this.parseT0 = performance.now();
+				}
+
 				var skip = false;
 
 				if (this.state == BuilderState.Root) {
@@ -618,6 +634,7 @@ namespace sd.asset {
 
 
 			completed() {
+				console.info("fbx parse time " + (performance.now() - this.parseT0).toFixed(1));
 				this.assets_ = this.doc.resolve();
 			}
 
@@ -646,8 +663,10 @@ namespace sd.asset {
 			parser = new fbx.parse.FBXBinaryParser(source, del);
 		}
 		parser.parse();
-		console.info("took: " + (performance.now() - t0).toFixed(1) + "ms");
-		return del.assets;
+		return del.assets.then(grp => {
+			console.info("fbx total time: " + (performance.now() - t0).toFixed(1) + "ms");
+			return grp;
+		});
 	}
 
 
