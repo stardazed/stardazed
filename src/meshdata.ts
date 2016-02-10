@@ -202,7 +202,8 @@ namespace sd.mesh {
 		Normal,
 		Tangent,
 		Colour,
-		UV
+		UV,
+		Material
 		/*
 		Custom1, etc.?
 		*/
