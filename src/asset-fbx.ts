@@ -387,6 +387,7 @@ namespace sd.asset {
 					indexArrayName = "--UNUSED--";
 					stream.includeInMesh = false;
 					stream.controlsGrouping = true;
+					stream.attr = { role: mesh.VertexAttributeRole.Material, field: mesh.VertexField.SInt32 };
 				}
 				else {
 					assert(false, "Unhandled layer element node");
@@ -422,6 +423,15 @@ namespace sd.asset {
 					}
 				}
 
+
+				// check material stream applicability
+				if (layerElemNode.name == "LayerElementMaterial") {
+					assert(
+						stream.mapping == mesh.VertexAttributeMapping.Polygon || stream.mapping == mesh.VertexAttributeMapping.SingleValue,
+						"A material stream must be a single value or be applied per polygon"
+					);
+				}
+
 				return stream;
 			}
 
@@ -445,13 +455,11 @@ namespace sd.asset {
 						else if (c.name == "PolygonVertexIndex") {
 							polygonIndexes = <Int32Array>c.values[0];
 						}
-						else if (c.name == "LayerElementMaterial") {
-							materialStream = this.makeLayerElementStream(c);
-						}
 						else if (c.name == "LayerElementNormal" ||
+							c.name == "LayerElementTangent" ||
 							c.name == "LayerElementColor" ||
 							c.name == "LayerElementUV" ||
-							c.name == "LayerElementTangent")
+							c.name == "LayerElementMaterial")
 						{
 							let streamIndex = <number>c.values[0];
 							if (streamIndex == 0) {
@@ -492,8 +500,8 @@ namespace sd.asset {
 					var t1 = performance.now();
 					sdMesh.meshData = mb.complete();
 					var t2 = performance.now();
-					console.info("fbx streams build time", (t1 - t0).toFixed(1));
-					console.info("fbx meshdata build time", (t2 - t1).toFixed(1));
+					console.info("fbx streams build time " + (t1 - t0).toFixed(1));
+					console.info("fbx meshdata build time " + (t2 - t1).toFixed(1));
 
 					group.addMesh(sdMesh);
 				}
