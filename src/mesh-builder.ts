@@ -113,7 +113,6 @@ namespace sd.mesh {
 			return res;
 		}
 
-
 		private getVertexIndex(streamIndexes: number[]): number {
 			const key = streamIndexes.join("|");
 			if (this.vertexMapping.has(key)) {
@@ -126,12 +125,18 @@ namespace sd.mesh {
 					var fieldOffset = stream.elementCount * fieldIndex;
 
 					var array = this.vertexData[streamIx];
-					array.push.apply(array, stream.values.subarray(fieldOffset, fieldOffset + stream.elementCount));
+
+					// The loop is sadly a lot faster on all browsers than the commented statement
+					// array.push.apply(array, stream.values.subarray(fieldOffset, fieldOffset + stream.elementCount));
+					for (var el = 0; el < stream.elementCount; ++el) {
+						array.push(stream.values[fieldOffset + el]);
+					}
 				}
 
 				var vertexIndex = this.vertexCount;
 				this.vertexCount++;
 				this.vertexMapping.set(key, vertexIndex);
+
 				return vertexIndex;
 			}
 		}
