@@ -39,6 +39,7 @@
  * - Replace ZStream.read_byte calls with direct z.next_in[] accesses
  * - Removed onprogress callback
  * - Change export method, now uses `global` parameter
+ * - Removed usages of .subarray and .set in the inner loops, increasing performance by ~3x
  */
 
 (function(global) {
@@ -597,7 +598,7 @@
 								if (q >= d) { // offset before dest
 									// just copy
 									r = q - d;
-									if (q - r > 0 && 2 > (q - r)) {
+									// if (q - r > 0 && 2 > (q - r)) {
 										s.window[q++] = s.window[r++]; // minimum
 										// count is
 										// three,
@@ -605,12 +606,12 @@
 										// loop a
 										// little
 										c -= 2;
-									} else {
-										s.window.set(s.window.subarray(r, r + 2), q);
-										q += 2;
-										r += 2;
-										c -= 2;
-									}
+									// } else {
+									// 	s.window.set(s.window.subarray(r, r + 2), q);
+									// 	q += 2;
+									// 	r += 2;
+									// 	c -= 2;
+									// }
 								} else { // else offset after destination
 									r = q - d;
 									do {
@@ -619,32 +620,32 @@
 									e = s.end - r;
 									if (c > e) { // if source crosses,
 										c -= e; // wrapped copy
-										if (q - r > 0 && e > (q - r)) {
+										// if (q - r > 0 && e > (q - r)) {
 											do {
 												s.window[q++] = s.window[r++];
 											} while (--e !== 0);
-										} else {
-											s.window.set(s.window.subarray(r, r + e), q);
-											q += e;
-											r += e;
-											e = 0;
-										}
+										// } else {
+										// 	s.window.set(s.window.subarray(r, r + e), q);
+										// 	q += e;
+										// 	r += e;
+										// 	e = 0;
+										// }
 										r = 0; // copy rest from start of window
 									}
 
 								}
 
 								// copy all or what's left
-								if (q - r > 0 && c > (q - r)) {
+								// if (q - r > 0 && c > (q - r)) {
 									do {
 										s.window[q++] = s.window[r++];
 									} while (--c !== 0);
-								} else {
-									s.window.set(s.window.subarray(r, r + c), q);
-									q += c;
-									r += c;
-									c = 0;
-								}
+								// } else {
+								// 	s.window.set(s.window.subarray(r, r + c), q);
+								// 	q += c;
+								// 	r += c;
+								// 	c = 0;
+								// }
 								break;
 							} else if ((e & 64) === 0) {
 								t += tp[tp_index_t_3 + 2];
