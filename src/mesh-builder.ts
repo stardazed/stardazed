@@ -1,6 +1,6 @@
 // mesh-builder.ts - construct MeshData from normalized sources such as assets
 // Part of Stardazed TX
-// (c) 2015-6 by Arthur Langereis - @zenmumbler
+// (c) 2016 by Arthur Langereis - @zenmumbler
 
 namespace sd.mesh {
 
@@ -18,6 +18,8 @@ namespace sd.mesh {
 		name?: string;
 		attr: VertexAttribute;
 		mapping: VertexAttributeMapping;
+		includeInMesh: boolean;
+		controlsGrouping?: boolean;
 
 		values?: TypedArray;
 		indexes?: TypedArray;
@@ -36,23 +38,51 @@ namespace sd.mesh {
 		private triangleCount = 0;
 		private vertexMapping: Map<string, number>;
 
-		streams: VertexAttributeStream[];
+		private groupIndex = 0;
+		private groupFirstTriangleIndex = 0;
+		private groups: mesh.PrimitiveGroup[] = [];
+
+		private streams: VertexAttributeStream[];
+
 
 		constructor(positions: Float32Array, streams: VertexAttributeStream[]) {
+			// sort attr streams ensuring ones that are not to be included in the mesh
+			// end up at the end. Try to keep the array as stable as possible by not
+			// moving streams if not needed.
+			this.streams = streams.slice(0).sort((sA, sB) => {
+				if (sA.includeInMesh == sB.includeInMesh)
+					return 0;
+				else
+					return sA.includeInMesh ? -1 : 1;
+			});
+
+			// add the positions stream at the beginning to ensure it is always at index 0
 			var positionStream: VertexAttributeStream = {
 				attr: { role: VertexAttributeRole.Position, field: VertexField.Floatx3 },
 				mapping: VertexAttributeMapping.Vertex,
+				includeInMesh: true,
 				values: positions
-			};	
-			this.streams = [positionStream].concat(streams.slice(0));
+			};
+			this.streams.unshift(positionStream);
 
+			// minor optimization as the element count will be requested many times
+			// also check for ambigious or incorrect grouping
+			var groupers = 0;
+			for (var s of this.streams) {
+				s.elementCount = vertexFieldElementCount(s.attr.field);
+				if (s.controlsGrouping === true) {
+					assert(s.elementCount == 1, "A grouping stream must use a single element field");
+					var groupNumType = vertexFieldNumericType(s.attr.field);
+					assert(groupNumType != Float && groupNumType != Double, "A grouping stream must use an integer element");
+					groupers++;
+				}
+			}
+			assert(groupers < 2, "More than 1 attr stream indicates it's the grouping stream");
+
+			// output and de-duplication data
 			this.vertexData = this.streams.map(s => []);
 			this.vertexMapping = new Map<string, number>();
 			this.streamCount = this.streams.length;
-
-			for (var s of this.streams) {
-				s.elementCount = vertexFieldElementCount(s.attr.field);
-			}
 		}
 
 
@@ -145,13 +175,18 @@ namespace sd.mesh {
 
 
 		complete() {
-			var attrs = this.streams.map(s => s.attr);
+			// Create MeshData with a VB with the streams marked for inclusion in the
+			// final mesh data. Because we sorted the non-included streams to the end
+			// of the list the order of this filtered list will still be the same as
+			// of the vertexData arrays, so no need for mapping etc.
+			var meshAttributeStreams = this.streams.filter(s => s.includeInMesh);
+			var attrs = meshAttributeStreams.map(s => s.attr);
 			var meshData = new MeshData();
 
 			var vb = new VertexBuffer(attrs);
 			meshData.vertexBuffers.push(vb);
 			vb.allocate(this.vertexMapping.size);
-			for (var six = 0; six < this.streamCount; ++six) {
+			for (var six = 0; six < meshAttributeStreams.length; ++six) {
 				let streamData = this.vertexData[six];
 				let view = new VertexBufferAttributeView(vb, vb.attrByIndex(six));
 				view.copyValuesFrom(streamData, this.vertexCount);
