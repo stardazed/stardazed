@@ -429,45 +429,100 @@ namespace sd.mesh {
 			var offsetBytes = (this.stride_ * firstIndex) + this.attrOffset_;
 			var buffer = this.buffer_;
 			var stride = this.stride_;
+			var elementSize = vertexFieldNumericType(this.attr_.field).byteSize;
 			var sourceIndex = 0;
 			var arrView: TypedArray;
 
 			if (this.attrElementCount_ == 1) {
-				for (var n = 0; n < valueCount; ++n) {
-					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 1);
-					arrView[0] = source[sourceIndex];
-					sourceIndex += 1;
-					offsetBytes += stride;
+				if (stride % elementSize == 0) {
+					arrView = new (this.typedViewCtor_)(buffer, offsetBytes);
+					let vertexOffset = 0;
+					let strideInElements = (stride / elementSize) | 0;
+					for (var n = 0; n < valueCount; ++n) {
+						arrView[vertexOffset] = source[sourceIndex];
+						sourceIndex += 1;
+						vertexOffset += strideInElements;
+					}
+				}
+				else {
+					for (var n = 0; n < valueCount; ++n) {
+						arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 1);
+						arrView[0] = source[sourceIndex];
+						sourceIndex += 1;
+						offsetBytes += stride;
+					}
 				}
 			}
 			else if (this.attrElementCount_ == 2) {
-				for (var n = 0; n < valueCount; ++n) {
-					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 2);
-					arrView[0] = source[sourceIndex];
-					arrView[1] = source[sourceIndex + 1];
-					sourceIndex += 2;
-					offsetBytes += stride;
+				if (stride % elementSize == 0) {
+					arrView = new (this.typedViewCtor_)(buffer, offsetBytes);
+					let vertexOffset = 0;
+					let strideInElements = (stride / elementSize) | 0;
+					for (var n = 0; n < valueCount; ++n) {
+						arrView[0 + vertexOffset] = source[sourceIndex];
+						arrView[1 + vertexOffset] = source[sourceIndex + 1];
+						sourceIndex += 2;
+						vertexOffset += strideInElements;
+					}
+				}
+				else {
+					for (var n = 0; n < valueCount; ++n) {
+						arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 2);
+						arrView[0] = source[sourceIndex];
+						arrView[1] = source[sourceIndex + 1];
+						sourceIndex += 2;
+						offsetBytes += stride;
+					}
 				}
 			}
 			else if (this.attrElementCount_ == 3) {
-				for (var n = 0; n < valueCount; ++n) {
-					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 3);
-					arrView[0] = source[sourceIndex];
-					arrView[1] = source[sourceIndex + 1];
-					arrView[2] = source[sourceIndex + 2];
-					sourceIndex += 3;
-					offsetBytes += stride;
+				if (stride % elementSize == 0) {
+					arrView = new (this.typedViewCtor_)(buffer, offsetBytes);
+					let vertexOffset = 0;
+					let strideInElements = (stride / elementSize) | 0;
+					for (var n = 0; n < valueCount; ++n) {
+						arrView[0 + vertexOffset] = source[sourceIndex];
+						arrView[1 + vertexOffset] = source[sourceIndex + 1];
+						arrView[2 + vertexOffset] = source[sourceIndex + 2];
+						sourceIndex += 3;
+						vertexOffset += strideInElements;
+					}
+				}
+				else {
+					for (var n = 0; n < valueCount; ++n) {
+						arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 3);
+						arrView[0] = source[sourceIndex];
+						arrView[1] = source[sourceIndex + 1];
+						arrView[2] = source[sourceIndex + 2];
+						sourceIndex += 3;
+						offsetBytes += stride;
+					}
 				}
 			}
 			else if (this.attrElementCount_ == 4) {
-				for (var n = 0; n < valueCount; ++n) {
-					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 4);
-					arrView[0] = source[sourceIndex];
-					arrView[1] = source[sourceIndex + 1];
-					arrView[2] = source[sourceIndex + 2];
-					arrView[3] = source[sourceIndex + 3];
-					sourceIndex += 4;
-					offsetBytes += stride;
+				if (stride % elementSize == 0) {
+					arrView = new (this.typedViewCtor_)(buffer, offsetBytes);
+					let vertexOffset = 0;
+					let strideInElements = (stride / elementSize) | 0;
+					for (var n = 0; n < valueCount; ++n) {
+						arrView[0 + vertexOffset] = source[sourceIndex];
+						arrView[1 + vertexOffset] = source[sourceIndex + 1];
+						arrView[2 + vertexOffset] = source[sourceIndex + 2];
+						arrView[3 + vertexOffset] = source[sourceIndex + 3];
+						sourceIndex += 4;
+						vertexOffset += strideInElements;
+					}
+				}
+				else {
+					for (var n = 0; n < valueCount; ++n) {
+						arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 4);
+						arrView[0] = source[sourceIndex];
+						arrView[1] = source[sourceIndex + 1];
+						arrView[2] = source[sourceIndex + 2];
+						arrView[3] = source[sourceIndex + 3];
+						sourceIndex += 4;
+						offsetBytes += stride;
+					}
 				}
 			}
 		}
