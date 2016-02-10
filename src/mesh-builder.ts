@@ -35,13 +35,21 @@ namespace sd.mesh {
 		private triangleCount = 0;
 		private vertexMapping: Map<string, number>;
 
+		streams: VertexAttributeStream[];
 
-		constructor(positions: Float32Array, private streams: VertexAttributeStream[]) {
-			this.vertexData = streams.map(s => []);
+		constructor(positions: Float32Array, streams: VertexAttributeStream[]) {
+			var positionStream: VertexAttributeStream = {
+				attr: { role: VertexAttributeRole.Position, field: VertexField.Floatx3 },
+				mapping: VertexAttributeMapping.PolygonVertex,
+				values: positions
+			};	
+			this.streams = [positionStream].concat(streams.slice(0));
+
+			this.vertexData = this.streams.map(s => []);
 			this.vertexMapping = new Map<string, number>();
 			this.streamCount = this.streams.length;
 
-			for (var s of streams) {
+			for (var s of this.streams) {
 				s.elementCount = vertexFieldElementCount(s.attr.field);
 			}
 		}
@@ -130,7 +138,15 @@ namespace sd.mesh {
 
 
 		complete() {
-			// this.meshData.indexBuffer.allocate(PrimitiveType.Triangle, IndexElementType.UInt32, 1);
+			var attrs = this.streams.map(s => s.attr);
+			var meshData = new MeshData();
+			var vb = new VertexBuffer(attrs);
+			meshData.vertexBuffers.push(vb);
+			vb.allocate(this.vertexMapping.size);
+			meshData.indexBuffer.allocate(PrimitiveType.Triangle, IndexElementType.UInt32, this.triangleCount);
+			meshData.indexBuffer.setIndexes(0, this.indexes.length, this.indexes);
+			meshData.primitiveGroups.push({ materialIx: 0, fromPrimIx: 0, primCount: this.triangleCount });
+			return meshData;
 		}
 	}
 
