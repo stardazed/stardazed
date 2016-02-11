@@ -31,6 +31,33 @@ namespace sd.asset {
 	}
 
 
+	export function resolveRelativeFilePath(relPath: string, basePath: string) {
+		var normRelPath = relPath.replace(/\\/g, "/").replace(/\/\//g, "/").replace(/^\//, "");
+		var normBasePath = basePath.replace(/\\/g, "/").replace(/\/\//g, "/").replace(/^\//, "");
+
+		var relPathParts = normRelPath.split("/");
+		var basePathParts = normBasePath.split("/");
+
+		// remove trailing filename, which we can only identify by a dot in the name...
+		if (basePathParts.length > 0 && basePathParts[basePathParts.length - 1].indexOf(".") > 0) {
+			basePathParts.pop();
+		}
+
+		for (var entry of relPathParts) {
+			if (entry == ".") {
+			}
+			else if (entry == "..") {
+				basePathParts.pop();
+			}
+			else {
+				basePathParts.push(entry);
+			}
+		}
+
+		return basePathParts.join("/");
+	}
+
+
 	export function fileExtensionOfFilePath(filePath: string): string {
 		var lastDot = filePath.lastIndexOf(".");
 		if (lastDot > -1) {
