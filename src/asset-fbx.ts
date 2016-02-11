@@ -512,7 +512,7 @@ namespace sd.asset {
 
 			private buildModels(group: AssetGroup) {
 				for (var modelID in this.modelNodes) {
-					
+
 				}
 			}
 

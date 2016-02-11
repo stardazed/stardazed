@@ -121,9 +121,6 @@ namespace sd.mesh {
 				if (this.curGroup.primCount > 0) {
 					this.groups.push(this.curGroup);
 				}
-				else {
-					console.warn("Dropped empty group", this.curGroup);
-				}
 			}
 
 			this.curGroup = {
