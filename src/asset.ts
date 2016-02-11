@@ -51,8 +51,8 @@ namespace sd.asset {
 		name: string;
 		userRef?: any;
 
-		positions: Float64Array;
-		streams: mesh.VertexAttributeStream[];
+		positions?: Float64Array;
+		streams?: mesh.VertexAttributeStream[];
 
 		meshData?: mesh.MeshData;
 	}
@@ -66,7 +66,10 @@ namespace sd.asset {
 
 
 	export interface Model {
-		meshIndex: number;
+		name: string;
+		userRef?: any;
+		
+		mesh: Mesh;
 		materialIndexes: number[];
 		transform: Transform;
 	}

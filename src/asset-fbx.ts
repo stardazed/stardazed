@@ -173,7 +173,7 @@ namespace sd.asset {
 			private connections: Connection[];
 			private rootNode: Node;
 
-			constructor() {
+			constructor(private fbxFilePath: string) {
 				this.globals = [];
 
 				this.allObjects = {};
@@ -260,6 +260,7 @@ namespace sd.asset {
 							tex.filePath = <string>c.values[0];
 						}
 						else if (c.name == "Content") {
+							// TODO: handle text-embedded Content entries which are base64-encoded strings
 							fileData = <ArrayBuffer>c.values[0];
 						}
 					}
@@ -283,7 +284,8 @@ namespace sd.asset {
 						}));
 					}
 					else {
-						fileProms.push(loadImage(tex.filePath).then((img) => {
+						let resolvedFilePath = resolveRelativeFilePath(tex.filePath, this.fbxFilePath);
+						fileProms.push(loadImage(resolvedFilePath).then((img) => {
 							tex.descriptor = makeTexDesc(img);
 							return tex;
 						}));
@@ -496,6 +498,7 @@ namespace sd.asset {
 							vertexIndexArray.push(vi);
 						}
 					}
+
 					var t1 = performance.now();
 					sdMesh.meshData = mb.complete();
 					var t2 = performance.now();
@@ -507,11 +510,19 @@ namespace sd.asset {
 			}
 
 
+			private buildModels(group: AssetGroup) {
+				for (var modelID in this.modelNodes) {
+					
+				}
+			}
+
+
 			resolve(): Promise<AssetGroup> {
 				return this.loadTextures(new AssetGroup())
 				.then((group) => {
 					this.buildMaterials(group);
 					this.buildMeshes(group);
+					this.buildModels(group);
 
 					return group;
 				});
@@ -542,8 +553,8 @@ namespace sd.asset {
 
 			private parseT0 = 0;
 
-			constructor() {
-				this.doc = new FBXDocumentGraph();
+			constructor(filePath: string) {
+				this.doc = new FBXDocumentGraph(filePath);
 				this.knownObjects = new Set<string>(["Geometry", "Video", "Texture", "Material", "Model"]);
 			}
 
@@ -662,9 +673,9 @@ namespace sd.asset {
 	} // ns fbx
 
 
-	function parseFBXSource(source: string | ArrayBuffer): Promise<AssetGroup> {
+	function parseFBXSource(filePath: string, source: string | ArrayBuffer): Promise<AssetGroup> {
 		var t0 = performance.now();
- 		var del = new fbx.FBX7DocumentParser();
+ 		var del = new fbx.FBX7DocumentParser(filePath);
 		var parser: fbx.parse.FBXParser;
 		if (typeof source === "string") {
 			parser = new fbx.parse.FBXTextParser(source, del);
@@ -681,12 +692,12 @@ namespace sd.asset {
 
 
 	export function loadFBXTextFile(filePath: string): Promise<AssetGroup> {
-		return loadFile(filePath).then((text: string) => parseFBXSource(text));
+		return loadFile(filePath).then((text: string) => parseFBXSource(filePath, text));
 	}
 
 
 	export function loadFBXBinaryFile(filePath: string): Promise<AssetGroup> {
-		return loadFile(filePath, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => parseFBXSource(data));
+		return loadFile(filePath, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => parseFBXSource(filePath, data));
 	}
 
 } // ns sd.asset
