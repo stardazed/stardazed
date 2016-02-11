@@ -40,6 +40,7 @@ namespace sd.mesh {
 
 		private groupIndex = -1;
 		private groupFirstTriangleIndex = 0;
+		private curGroup: mesh.PrimitiveGroup = null;
 		private groups: mesh.PrimitiveGroup[] = [];
 
 		private streams: VertexAttributeStream[];
@@ -113,6 +114,28 @@ namespace sd.mesh {
 			return res;
 		}
 
+
+		nextGroup(newGroupIndex: number) {
+			if (this.curGroup) {
+				this.curGroup.primCount = this.triangleCount - this.groupFirstTriangleIndex + 1;
+				if (this.curGroup.primCount > 0) {
+					this.groups.push(this.curGroup);
+				}
+				else {
+					console.warn("Dropped empty group", this.curGroup);
+				}
+			}
+
+			this.curGroup = {
+				materialIx: newGroupIndex,
+				fromPrimIx: this.triangleCount,
+				primCount: 0
+			};
+			this.groupIndex = newGroupIndex;
+			this.groupFirstTriangleIndex = this.triangleCount + 1;
+		}
+
+
 		private getVertexIndex(streamIndexes: number[]): number {
 			const key = streamIndexes.join("|");
 			if (this.vertexMapping.has(key)) {
@@ -147,6 +170,13 @@ namespace sd.mesh {
 					}
 					else if (elemCount == 1) {
 						array.push(values[fieldOffset]);
+
+						if (stream.controlsGrouping) {
+							var gi = values[fieldOffset];
+							if (gi != this.groupIndex) {
+								this.nextGroup(gi);
+							}
+						}
 					}
 				}
 
@@ -218,13 +248,8 @@ namespace sd.mesh {
 			meshData.indexBuffer.allocate(PrimitiveType.Triangle, indexElemType, this.triangleCount);
 			meshData.indexBuffer.setIndexes(0, this.indexes.length, this.indexes);
 
-			if (this.groupIndex == -1) {
-				// groupIndex was never set, i.e. no grouping stream, just create a single group with material 0
-				meshData.primitiveGroups.push({ materialIx: 0, fromPrimIx: 0, primCount: this.triangleCount });
-			}
-			else {
-				
-			}
+			this.nextGroup(-1);
+			meshData.primitiveGroups = this.groups.slice(0);
 
 			return meshData;
 		}
