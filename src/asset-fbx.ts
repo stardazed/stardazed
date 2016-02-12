@@ -26,7 +26,8 @@ namespace sd.asset {
 				String,
 				Vector3D,
 				Vector4D,
-				Object
+				Object,
+				Empty
 			}
 
 			const fbxTypeNameMapping: { [type: string]: FBXPropertyType } = {
@@ -64,7 +65,8 @@ namespace sd.asset {
 
 				"colorandalpha": FBXPropertyType.Vector4D,
 
-				"object": FBXPropertyType.Object
+				"object": FBXPropertyType.Object,
+				"compound": FBXPropertyType.Empty
 			};
 
 			export interface FBXProp70Prop {
