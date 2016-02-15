@@ -162,6 +162,11 @@ namespace sd.asset {
 		}
 
 
+		export interface FBXResolveOptions {
+			allowMissingTextures?: boolean;
+		}
+
+
 		class FBXDocumentGraph {
 			private globals: Node[];
 
@@ -241,7 +246,7 @@ namespace sd.asset {
 			}
 
 
-			private loadTextures(group: AssetGroup): Promise<AssetGroup> {
+			private loadTextures(group: AssetGroup, options: FBXResolveOptions): Promise<AssetGroup> {
 				var fileProms: Promise<Texture2D>[] = [];
 
 				Object.keys(this.videoNodes).forEach((idStr) => {
@@ -275,22 +280,47 @@ namespace sd.asset {
 						fileProms.push(new Promise((resolve, reject) => {
 							var mime = mimeTypeForFilePath(tex.filePath);
 							if (! mime) {
-								reject("Cannot create texture, no mime-type found for file path " + tex.filePath);
+								let err = "Cannot create texture, no mime-type found for file path " + tex.filePath;
+								if (options.allowMissingTextures) {
+									console.warn(err);
+									resolve(null);
+								}
+								else {
+									reject(err);
+								}
 							}
 							else {
 								loadImageFromBuffer(fileData, mime).then((img) => {
 									tex.descriptor = makeTexDesc(img);
 									resolve(tex);
-								}, (error) => reject(error));
+								}, (error) => {
+									if (options.allowMissingTextures) {
+										console.warn(error);
+										resolve(null);
+									}
+									else {
+										reject(error);
+									}
+								});
 							}
 						}));
 					}
 					else {
 						let resolvedFilePath = resolveRelativeFilePath(tex.filePath, this.fbxFilePath);
-						fileProms.push(loadImage(resolvedFilePath).then((img) => {
-							tex.descriptor = makeTexDesc(img);
-							return tex;
-						}));
+						fileProms.push(
+							loadImage(resolvedFilePath).then((img) => {
+								tex.descriptor = makeTexDesc(img);
+								return tex;
+							}).catch((error) => {
+								if (options.allowMissingTextures) {
+									console.warn(error);
+									return <Texture2D>null;
+								}
+								else {
+									throw error;
+								}
+							})
+						);
 					}
 				});
 
@@ -303,7 +333,7 @@ namespace sd.asset {
 			}
 
 
-			private buildMaterials(group: AssetGroup) {
+			private buildMaterials(group: AssetGroup, options: FBXResolveOptions) {
 				for (var matID in this.materialNodes) {
 					let fbxMat = this.materialNodes[matID];
 					let mat = makeMaterial();
@@ -332,7 +362,7 @@ namespace sd.asset {
 						// set of UV coordinates in a "Model" used by the material...
 						var texNode = fbxMat.connectionsIn[0].fromNode;
 						var videoNodeID = texNode.connectionsIn[0].fromID;
-						var tex2D = group.textures.find((t) => <number>t.userRef == videoNodeID);
+						var tex2D = group.textures.find((t) => t && <number>t.userRef == videoNodeID);
 
 						if (!(texNode && tex2D)) {
 							console.warn("Could not link texture to material.");
@@ -439,7 +469,7 @@ namespace sd.asset {
 			}
 
 
-			private buildMeshes(group: AssetGroup) {
+			private buildMeshes(group: AssetGroup, options: FBXResolveOptions) {
 				for (var geomID in this.geometryNodes) {
 					var fbxGeom = this.geometryNodes[geomID];
 					var sdMesh: Mesh = {
@@ -512,19 +542,24 @@ namespace sd.asset {
 			}
 
 
-			private buildModels(group: AssetGroup) {
+			private buildModels(group: AssetGroup, options: FBXResolveOptions) {
 				for (var modelID in this.modelNodes) {
 
 				}
 			}
 
 
-			resolve(): Promise<AssetGroup> {
-				return this.loadTextures(new AssetGroup())
+			resolve(options?: FBXResolveOptions): Promise<AssetGroup> {
+				var defaults: FBXResolveOptions = {
+					allowMissingTextures: true
+				};
+				copyValues(defaults, options || {});
+
+				return this.loadTextures(new AssetGroup(), defaults)
 				.then((group) => {
-					this.buildMaterials(group);
-					this.buildMeshes(group);
-					this.buildModels(group);
+					this.buildMaterials(group, defaults);
+					this.buildMeshes(group, defaults);
+					this.buildModels(group, defaults);
 
 					return group;
 				});
