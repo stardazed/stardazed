@@ -470,6 +470,9 @@ namespace sd.asset {
 
 
 			private buildMeshes(group: AssetGroup, options: FBXResolveOptions) {
+				var tStreams = 0;
+				var tMeshData = 0;
+
 				for (var geomID in this.geometryNodes) {
 					var fbxGeom = this.geometryNodes[geomID];
 					var sdMesh: Mesh = {
@@ -534,11 +537,14 @@ namespace sd.asset {
 					var t1 = performance.now();
 					sdMesh.meshData = mb.complete();
 					var t2 = performance.now();
-					console.info("fbx streams build time " + (t1 - t0).toFixed(1));
-					console.info("fbx meshdata build time " + (t2 - t1).toFixed(1));
+					tStreams += (t1 - t0);
+					tMeshData += (t2 - t1);
 
 					group.addMesh(sdMesh);
 				}
+
+				console.info("fbx streams build time " + tStreams.toFixed(1));
+				console.info("fbx meshdata build time " + tMeshData.toFixed(1));
 			}
 
 
