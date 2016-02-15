@@ -70,8 +70,10 @@ namespace sd.asset {
 		userRef?: any;
 		
 		mesh: Mesh;
-		materialIndexes: number[];
+		materials: Material[];
 		transform: Transform;
+
+		children: Model[];
 	}
 
 

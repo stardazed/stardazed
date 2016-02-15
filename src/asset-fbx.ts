@@ -544,7 +544,55 @@ namespace sd.asset {
 
 			private buildModels(group: AssetGroup, options: FBXResolveOptions) {
 				for (var modelID in this.modelNodes) {
+					var fbxModel = this.modelNodes[modelID];
+					var sdModel: Model = {
+						name: fbxModel.objectName(),
+						userRef: <number>fbxModel.values[0],
+						mesh: null,
+						materials: [],
+						transform: {
+							translation: [0, 0, 0],
+							rotationAngles: [0, 0, 0],
+							scale: [1, 1, 1]
+						},
+						children: []
+					};
+					
+					for (var c of fbxModel.children) {
+						if (c.name == "Lcl Translation") {
+							vec3.copy(sdModel.transform.translation, <number[]>c.values);
+						}
+						else if (c.name == "Lcl Rotation") {
+							vec3.copy(sdModel.transform.rotationAngles, <number[]>c.values);
+						}
+						else if (c.name == "Lcl Scaling") {
+							vec3.copy(sdModel.transform.scale, <number[]>c.values);
+						}
+					}
 
+					for (var conn of fbxModel.connectionsIn) {
+						var connType = conn.fromNode.name;
+						if (connType == "Geometry") {
+							let geom = group.meshes.find((t) => t && <number>t.userRef == conn.fromID);
+							if (geom) {
+								sdModel.mesh = geom;
+							}
+							else {
+								console.warn("Could not connect geometry " + conn.fromID + " to model " + modelID);
+							}
+						}
+						else if (connType == "Material") {
+							let mat = group.materials.find((t) => t && <number>t.userRef == conn.fromID);
+							if (mat) {
+								sdModel.materials.push(mat);
+							}
+							else {
+								console.warn("Could not connect material " + conn.fromID + " to model " + modelID);
+							}
+						}
+					}
+
+					group.addModel(sdModel);
 				}
 			}
 
