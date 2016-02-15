@@ -341,7 +341,7 @@ namespace sd.asset {
 					mat.userRef = matID;
 
 					for (let c of fbxMat.children) {
-						if (c.name == "DiffuseColor") {
+						if (c.name == "Diffuse") {
 							vec3.copy(mat.diffuseColour, <number[]>c.values);
 						}
 						else if (c.name == "SpecularColor") {
