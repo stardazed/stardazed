@@ -551,22 +551,27 @@ namespace sd.asset {
 						mesh: null,
 						materials: [],
 						transform: {
-							translation: [0, 0, 0],
-							rotationAngles: [0, 0, 0],
+							position: [0, 0, 0],
+							rotation: [0, 0, 0, 1],
 							scale: [1, 1, 1]
 						},
 						children: []
 					};
-					
+
 					for (var c of fbxModel.children) {
+						let vecVal = <number[]>c.values;
 						if (c.name == "Lcl Translation") {
-							vec3.copy(sdModel.transform.translation, <number[]>c.values);
-						}
-						else if (c.name == "Lcl Rotation") {
-							vec3.copy(sdModel.transform.rotationAngles, <number[]>c.values);
+							vec3.copy(sdModel.transform.position, vecVal);
 						}
 						else if (c.name == "Lcl Scaling") {
-							vec3.copy(sdModel.transform.scale, <number[]>c.values);
+							vec3.copy(sdModel.transform.scale, vecVal);
+						}
+						else if (c.name == "Lcl Rotation") {
+							sdModel.transform.rotation = quat.fromEuler(
+								math.deg2rad(vecVal[2]),
+								math.deg2rad(vecVal[1]),
+								math.deg2rad(vecVal[0])
+							);
 						}
 					}
 

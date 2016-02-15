@@ -59,8 +59,8 @@ namespace sd.asset {
 
 
 	export interface Transform {
-		translation: Float3;	// m
-		rotationAngles: Float3; // rad
+		position: Float3; // m
+		rotation: Float4; // quat
 		scale: Float3;
 	}
 
