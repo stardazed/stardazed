@@ -277,19 +277,18 @@ namespace sd.asset {
 					};
 
 					if (fileData) {
-						fileProms.push(new Promise((resolve, reject) => {
-							var mime = mimeTypeForFilePath(tex.filePath);
-							if (! mime) {
-								let err = "Cannot create texture, no mime-type found for file path " + tex.filePath;
-								if (options.allowMissingTextures) {
-									console.warn(err);
-									resolve(null);
-								}
-								else {
-									reject(err);
-								}
+						var mime = mimeTypeForFilePath(tex.filePath);
+						if (! mime) {
+							let err = "Cannot create texture, no mime-type found for file path " + tex.filePath;
+							if (options.allowMissingTextures) {
+								console.warn(err);
 							}
 							else {
+								fileProms.push(Promise.reject(err));
+							}
+						}
+						else {
+							fileProms.push(new Promise((resolve, reject) => {
 								loadImageFromBuffer(fileData, mime).then((img) => {
 									tex.descriptor = makeTexDesc(img);
 									resolve(tex);
@@ -302,8 +301,8 @@ namespace sd.asset {
 										reject(error);
 									}
 								});
-							}
-						}));
+							}));
+						}
 					}
 					else {
 						let resolvedFilePath = resolveRelativeFilePath(tex.filePath, this.fbxFilePath);
@@ -375,10 +374,11 @@ namespace sd.asset {
 						// with some parameters and may also directly reference a named
 						// set of UV coordinates in a "Model" used by the material...
 						var texNode = texIn.fromNode;
-						var texNodeID = texIn.fromID;
-						var tex2D = group.textures.find((t) => t && <number>t.userRef == texNodeID);
+						var vidTexConn = texNode.connectionsIn[0];
+						var vidNodeID = vidTexConn && vidTexConn.fromID;
+						var tex2D = group.textures.find((t) => t && <number>t.userRef == vidNodeID);
 
-						if (!(texNode && tex2D)) {
+						if (!(texNode && vidTexConn && tex2D)) {
 							console.warn("Could not link texture " + texIn.fromID + " to material prop " + texIn.propName + " because link or texture is invalid.");
 						}
 						else {
