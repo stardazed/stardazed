@@ -1,6 +1,6 @@
 // asset-lwo.ts - Lightwave OBJ mesh file import
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2015-2016 by Arthur Langereis - @zenmumbler
 
 /// <reference path="core.ts" />
 /// <reference path="meshdata.ts" />

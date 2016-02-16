@@ -20,14 +20,23 @@ namespace sd.asset {
 
 		ambientColour: Float3;
 
+		emissiveColour: Float3;
+		emissiveIntensity: number;
+
 		diffuseColour: Float3;
-		diffuseTexture: Texture2D;
-		textureScale: Float2;
-		textureOffset: Float2;
 
 		specularColour: Float3;
 		specularIntensity: number;
 		specularExponent: number;
+
+		textureScale: Float2;
+		textureOffset: Float2;
+		diffuseTexture: Texture2D;	// TODO: change this to array of textures with typed channels
+		specularTexture: Texture2D;
+		normalTexture: Texture2D;
+		heightTexture: Texture2D;
+		
+		transparency: number; // 0: fully opaque, 1: fully transparent
 	}
 
 	export type MaterialSet = { [name: string]: Material };
@@ -37,16 +46,25 @@ namespace sd.asset {
 		return {
 			name: "",
 
-			ambientColour: [0, 0, 0], // this field is ignored by StdModel
+			ambientColour: [0, 0, 0],
+
+			emissiveColour: [0, 0, 0],
+			emissiveIntensity: 0,
 
 			diffuseColour: [0, 0, 0],
-			diffuseTexture: null,
-			textureScale: [1, 1],
-			textureOffset: [0, 0],
 
-			specularColour: [0, 0, 0], // this field is ignored by StdModel
+			specularColour: [0, 0, 0],
 			specularIntensity: 1,
 			specularExponent: 0,
+
+			textureScale: [1, 1],
+			textureOffset: [0, 0],
+			diffuseTexture: null,
+			specularTexture: null,
+			normalTexture: null,
+			heightTexture: null,
+			
+			transparency: 0
 		};
 	}
 

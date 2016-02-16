@@ -342,9 +342,11 @@ namespace sd.asset {
 
 					for (let c of fbxMat.children) {
 						if (c.name == "Ambient") {
+							// the Ambient prop is AmbientColor * AmbientFactor
 							vec3.copy(mat.ambientColour, <number[]>c.values);
 						}
 						else if (c.name == "Diffuse") {
+							// the Diffuse prop is DiffuseColor * DiffuseFactor
 							vec3.copy(mat.diffuseColour, <number[]>c.values);
 						}
 						else if (c.name == "SpecularColor") {
@@ -356,22 +358,47 @@ namespace sd.asset {
 						else if (c.name == "ShininessExponent") {
 							mat.specularExponent = <number>c.values[0];
 						}
+						else if (c.name == "EmissiveColor") {
+							vec3.copy(mat.emissiveColour, <number[]>c.values);
+						}
+						else if (c.name == "EmissiveFactor") {
+							mat.emissiveIntensity = <number>c.values[0];
+						}
+						else if (c.name == "TransparencyFactor") {
+							console.info("Trans", c.values);
+							mat.transparency = math.clamp01(<number>c.values[0]);
+						}
 					}
 
-					// use only first connection for now (if it exists)
-					if (fbxMat.connectionsIn.length > 0) {
+					for (let texIn of fbxMat.connectionsIn) {
 						// An FBX "Texture" connects a "Video" clip to a "Material"
 						// with some parameters and may also directly reference a named
 						// set of UV coordinates in a "Model" used by the material...
-						var texNode = fbxMat.connectionsIn[0].fromNode;
-						var videoNodeID = texNode.connectionsIn[0].fromID;
-						var tex2D = group.textures.find((t) => t && <number>t.userRef == videoNodeID);
+						var texNode = texIn.fromNode;
+						var texNodeID = texIn.fromID;
+						var tex2D = group.textures.find((t) => t && <number>t.userRef == texNodeID);
 
 						if (!(texNode && tex2D)) {
-							console.warn("Could not link texture to material.");
+							console.warn("Could not link texture " + texIn.fromID + " to material prop " + texIn.propName + " because link or texture is invalid.");
 						}
 						else {
-							mat.diffuseTexture = tex2D;
+							console.warn("Linking texture " + texIn.fromID + " to material prop " + texIn.propName);
+							if (texIn.propName == "DiffuseColor") {
+								mat.diffuseTexture = tex2D;
+							}
+							else if (texIn.propName == "SpecularColor") {
+								mat.specularTexture = tex2D;
+							}
+							else if (texIn.propName == "NormalMap") {
+								mat.normalTexture = tex2D;
+							}
+							else if (texIn.propName == "Bump") {
+								mat.heightTexture = tex2D;
+							}
+							else {
+								console.warn("Unsupported texture property link: " + texIn.propName);
+								continue;
+							}
 
 							for (let tc of texNode.children) {
 								if (tc.name == "ModelUVTranslation") {
