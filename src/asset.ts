@@ -18,6 +18,8 @@ namespace sd.asset {
 		name: string;
 		userRef?: any;
 
+		ambientColour: Float3;
+
 		diffuseColour: Float3;
 		diffuseTexture: Texture2D;
 		textureScale: Float2;
@@ -35,13 +37,15 @@ namespace sd.asset {
 		return {
 			name: "",
 
+			ambientColour: [0, 0, 0], // this field is ignored by StdModel
+
 			diffuseColour: [0, 0, 0],
 			diffuseTexture: null,
 			textureScale: [1, 1],
 			textureOffset: [0, 0],
 
-			specularColour: [0, 0, 0], // this field is ignored by StdModels
-			specularIntensity: 0,
+			specularColour: [0, 0, 0], // this field is ignored by StdModel
+			specularIntensity: 1,
 			specularExponent: 0,
 		};
 	}
