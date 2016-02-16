@@ -302,8 +302,15 @@ namespace sd.world {
 
 		// -- internal properties
 
-		colour(inst: LightInstance) {
+		colour(inst: LightInstance): number[] {
 			return container.copyIndexedVec4(this.colourBase_, <number>inst).slice(0, 3);
+		}
+
+		setColour(inst: LightInstance, newColour: Float3) {
+			var offset = <number>inst * 4;
+			this.colourBase_[offset] = newColour[0];
+			this.colourBase_[offset + 1] = newColour[1];
+			this.colourBase_[offset + 2] = newColour[2];
 		}
 
 
