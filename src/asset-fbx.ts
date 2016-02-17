@@ -378,11 +378,10 @@ namespace sd.asset {
 						var vidNodeID = vidTexConn && vidTexConn.fromID;
 						var tex2D = group.textures.find((t) => t && <number>t.userRef == vidNodeID);
 
-						if (!(texNode && vidTexConn && tex2D)) {
+						if (! (texNode && vidTexConn && tex2D)) {
 							console.warn("Could not link texture " + texIn.fromID + " to material prop " + texIn.propName + " because link or texture is invalid.");
 						}
 						else {
-							console.warn("Linking texture " + texIn.fromID + " to material prop " + texIn.propName);
 							if (texIn.propName == "DiffuseColor") {
 								mat.diffuseTexture = tex2D;
 							}
