@@ -147,10 +147,18 @@ namespace sd.asset {
 				var cns = <string>this.values[1];
 				return cns.split("::")[1];
 			}
+
+			objectID() {
+				return <number>this.values[0];
+			}
+
+			objectSubClass() {
+				return <string>this.values[2];
+			}
 		}
 
 
-		type ObjectSet = { [id: number]: Node };
+		type NodeSet = { [id: number]: Node };
 
 
 		interface Connection {
@@ -170,14 +178,18 @@ namespace sd.asset {
 		class FBXDocumentGraph {
 			private globals: Node[];
 
-			private allObjects: ObjectSet; 
-			private geometryNodes: ObjectSet;
-			private videoNodes: ObjectSet;
-			private textureNodes: ObjectSet;
-			private materialNodes: ObjectSet;
-			private modelNodes: ObjectSet;
+			private allObjects: NodeSet; 
+			private geometryNodes: NodeSet;
+			private videoNodes: NodeSet;
+			private textureNodes: NodeSet;
+			private materialNodes: NodeSet;
+			private modelNodes: NodeSet;
+			private poseNodes: NodeSet;
+			private attributeNodes: NodeSet;
 
 			private connections: Connection[];
+			private hierarchyConnections: Connection[];
+			private flattenedModels: Map<number, Model>;
 			private rootNode: Node;
 
 			constructor(private fbxFilePath: string) {
@@ -189,11 +201,17 @@ namespace sd.asset {
 				this.textureNodes = {};
 				this.materialNodes = {};
 				this.modelNodes = {};
+				this.poseNodes = {};
+				this.attributeNodes = {};
 
 				this.connections = [];
+				this.hierarchyConnections = [];
+				this.flattenedModels = new Map<number, Model>();
 
-				this.rootNode = new Node("RootNode", [0, "Model::RootNode", "RootNode"])
+				this.rootNode = new Node("Model", [0, "Model::RootNode", "RootNode"]);
 				this.allObjects[0] = this.rootNode;
+				this.modelNodes[0] = this.rootNode;
+				this.flattenedModels.set(0, makeModel("RootNode", 0));
 			}
 
 
@@ -203,28 +221,41 @@ namespace sd.asset {
 
 
 			addObject(node: Node) {
-				var typeSetMap: { [name: string]: ObjectSet } = {
+				var typeSetMap: { [name: string]: NodeSet } = {
 					"Geometry": this.geometryNodes,
 					"Video": this.videoNodes,
 					"Texture": this.textureNodes,
 					"Material": this.materialNodes,
-					"Model": this.modelNodes
+					"Model": this.modelNodes,
+					"Pose": this.poseNodes,
+					"NodeAttribute": this.attributeNodes
 				};
 
-				var id = <number>node.values[0];
-				var subClass = <string>node.values[2];
+				var id = node.objectID();
+				var subClass = node.objectSubClass();
 				var set = typeSetMap[node.name];
 				assert(set != null, "Unknown object class " + node.name);
 
 				if (node.name == "Model") {
-					if (subClass != "Mesh") {
-						// ignore all non-mesh models for now
+					if (subClass != "Mesh" && subClass != "Root" && subClass != "LimbNode") {
+						// ignore non-mesh, non-skeletal models
 						return;
 					}
 				}
 				else if (node.name == "Video") {
 					if (subClass != "Clip") {
 						// ignore HLSL shaders
+						return;
+					}
+				}
+				else if (node.name == "NodeAttribute") {
+					if (subClass != "Root" && subClass != "LimbNode") {
+						// ignore non-skeleton attr nodes
+						return;
+					}
+				}
+				else if (node.name == "Pose") {
+					if (subClass != "BindPose") {
 						return;
 					}
 				}
@@ -506,7 +537,7 @@ namespace sd.asset {
 					var fbxGeom = this.geometryNodes[geomID];
 					var sdMesh: Mesh = {
 						name: fbxGeom.objectName(),
-						userRef: <number>fbxGeom.values[0],
+						userRef: fbxGeom.objectID(),
 						positions: null,
 						streams: []
 					};
@@ -580,18 +611,7 @@ namespace sd.asset {
 			private buildModels(group: AssetGroup, options: FBXResolveOptions) {
 				for (var modelID in this.modelNodes) {
 					var fbxModel = this.modelNodes[modelID];
-					var sdModel: Model = {
-						name: fbxModel.objectName(),
-						userRef: <number>fbxModel.values[0],
-						mesh: null,
-						materials: [],
-						transform: {
-							position: [0, 0, 0],
-							rotation: [0, 0, 0, 1],
-							scale: [1, 1, 1]
-						},
-						children: []
-					};
+					var sdModel = makeModel(fbxModel.objectName(), fbxModel.objectID());
 
 					for (var c of fbxModel.children) {
 						let vecVal = <number[]>c.values;
@@ -612,6 +632,8 @@ namespace sd.asset {
 
 					for (var conn of fbxModel.connectionsIn) {
 						var connType = conn.fromNode.name;
+						var connSubType = conn.fromNode.objectSubClass();
+
 						if (connType == "Geometry") {
 							let geom = group.meshes.find((t) => t && <number>t.userRef == conn.fromID);
 							if (geom) {
@@ -624,15 +646,82 @@ namespace sd.asset {
 						else if (connType == "Material") {
 							let mat = group.materials.find((t) => t && <number>t.userRef == conn.fromID);
 							if (mat) {
+								if (! sdModel.materials) {
+									sdModel.materials = [];
+								}
 								sdModel.materials.push(mat);
 							}
 							else {
 								console.warn("Could not connect material " + conn.fromID + " to model " + modelID);
 							}
 						}
+						else if (connType == "NodeAttribute") {
+							if (connSubType == "LimbNode" || connSubType == "Root") {
+								let j: Joint = {
+									root: connSubType == "Root",
+									size: 0
+								};
+
+								for (let lc of conn.fromNode.children) {
+									if (lc.name == "Size") {
+										j.size = <number>c.values[0];
+									}
+									// ignore the TypeFlags as they contain irrelevant information:
+									// Null is uninteresting, Skeleton is obvious and Root is already the subClass name
+								}
+
+								sdModel.joint = j;
+							}
+						}
+						else if (connType == "Model") {
+							// model hierarchy is connected in the next step as FBX gives no guarantees that
+							// models are created in a bottom-up manner
+							this.hierarchyConnections.push(conn);
+						}
 					}
 
-					group.addModel(sdModel);
+					this.flattenedModels.set(sdModel.userRef, sdModel);
+				}
+			}
+
+
+			buildHierarchy(group: AssetGroup, options: FBXResolveOptions) {
+				var bindPoseModelIDs = new Set<number>();
+
+				// FBX identifies bind pose models in a non-standard way. BindPose
+				// nodes have PoseNode objects that refer to the pose mesh Model by its id.
+				// We use this to not generate a separate mesh model in the assets.
+				for (var poseID in this.poseNodes) {
+					var pose = this.poseNodes[poseID];
+
+					for (let c of pose.children) {
+						if (c.name == "PoseNode") {
+							for (let pc of c.children) {
+								if (pc.name == "Node") {
+									bindPoseModelIDs.add(<number>pc.values[0]);
+								}
+							}
+						}
+					}
+				}
+
+				for (var conn of this.hierarchyConnections) {
+					if (bindPoseModelIDs.has(conn.fromID)) {
+						continue;
+					}
+
+					var childModel = this.flattenedModels.get(conn.fromID);
+					var parentModel = this.flattenedModels.get(conn.toID);
+
+					if (!childModel || !parentModel) {
+						console.warn("Can't connect model " + conn.fromID + " to " + conn.toID, childModel, parentModel);
+					}
+					else {
+						parentModel.children.push(childModel);
+						if (conn.toID == 0) {
+							group.addModel(childModel);
+						}
+					}
 				}
 			}
 
@@ -648,7 +737,9 @@ namespace sd.asset {
 					this.buildMaterials(group, defaults);
 					this.buildMeshes(group, defaults);
 					this.buildModels(group, defaults);
+					this.buildHierarchy(group, defaults);
 
+					console.info("Doc", this);
 					return group;
 				});
 			}
@@ -680,7 +771,7 @@ namespace sd.asset {
 
 			constructor(filePath: string) {
 				this.doc = new FBXDocumentGraph(filePath);
-				this.knownObjects = new Set<string>(["Geometry", "Video", "Texture", "Material", "Model"]);
+				this.knownObjects = new Set<string>(["Geometry", "Video", "Texture", "Material", "Model", "NodeAttribute", "Pose"]);
 			}
 
 
