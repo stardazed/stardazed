@@ -186,6 +186,8 @@ namespace sd.asset {
 			private modelNodes: NodeSet;
 			private poseNodes: NodeSet;
 			private attributeNodes: NodeSet;
+			private animCurves: NodeSet;
+			private animCurveNodes: NodeSet;
 
 			private connections: Connection[];
 			private hierarchyConnections: Connection[];
@@ -203,6 +205,8 @@ namespace sd.asset {
 				this.modelNodes = {};
 				this.poseNodes = {};
 				this.attributeNodes = {};
+				this.animCurves = {};
+				this.animCurveNodes = {};
 
 				this.connections = [];
 				this.hierarchyConnections = [];
@@ -228,7 +232,9 @@ namespace sd.asset {
 					"Material": this.materialNodes,
 					"Model": this.modelNodes,
 					"Pose": this.poseNodes,
-					"NodeAttribute": this.attributeNodes
+					"NodeAttribute": this.attributeNodes,
+					"AnimationCurveNode": this.animCurveNodes,
+					"AnimationCurve": this.animCurves
 				};
 
 				var id = node.objectID();
@@ -686,7 +692,7 @@ namespace sd.asset {
 			}
 
 
-			buildHierarchy(group: AssetGroup, options: FBXResolveOptions) {
+			private buildHierarchy(group: AssetGroup, options: FBXResolveOptions) {
 				var bindPoseModelIDs = new Set<number>();
 
 				// FBX identifies bind pose models in a non-standard way. BindPose
@@ -727,6 +733,11 @@ namespace sd.asset {
 			}
 
 
+			private buildAnimations(group: AssetGroup, options: FBXResolveOptions) {
+				
+			}
+
+
 			resolve(options?: FBXResolveOptions): Promise<AssetGroup> {
 				var defaults: FBXResolveOptions = {
 					allowMissingTextures: true
@@ -739,6 +750,7 @@ namespace sd.asset {
 					this.buildMeshes(group, defaults);
 					this.buildModels(group, defaults);
 					this.buildHierarchy(group, defaults);
+					this.buildAnimations(group, defaults);
 
 					console.info("Doc", this);
 					return group;
@@ -772,7 +784,10 @@ namespace sd.asset {
 
 			constructor(filePath: string) {
 				this.doc = new FBXDocumentGraph(filePath);
-				this.knownObjects = new Set<string>(["Geometry", "Video", "Texture", "Material", "Model", "NodeAttribute", "Pose"]);
+				this.knownObjects = new Set<string>([
+					"Geometry", "Video", "Texture", "Material", "Model", "NodeAttribute", "Pose",
+					"AnimationCurve", "AnimationCurveNode"
+				]);
 			}
 
 
