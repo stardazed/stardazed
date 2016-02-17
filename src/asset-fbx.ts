@@ -155,6 +155,10 @@ namespace sd.asset {
 			objectSubClass() {
 				return <string>this.values[2];
 			}
+
+			childByName(name: string) {
+				return this.children.find(c => c.name == name);
+			}
 		}
 
 
@@ -744,8 +748,40 @@ namespace sd.asset {
 			private buildAnimations(group: AssetGroup, options: FBXResolveOptions) {
 				for (var curveNodeID in this.animCurveNodes) {
 					var fbxCurveNode = this.animCurveNodes[curveNodeID];
+					if (fbxCurveNode.connectionsIn.length == 0 || fbxCurveNode.connectionsOut.length == 0) {
+						continue;
+					}
 
+					// the number of units of time per second for a KTime value
+					const KTimeUnit = 46186158000;
 
+					var tracks: AnimationTrack[] = [];
+					for (let conn of fbxCurveNode.connectionsIn) {
+						let curve = conn.fromNode;
+						let timesNode = curve.childByName("KeyTime");
+						let valuesNode = curve.childByName("KeyValueFloat");
+
+						if (timesNode && valuesNode) {
+							let times = <TypedArray>timesNode.values[0];
+							let values = <TypedArray>valuesNode.values[0];
+							let count = times.length;
+
+							// convert KTime values to seconds in place
+							for (let t = 0; t < count; ++t) {
+								times[t] /= KTimeUnit;
+							}
+
+							tracks.push({ animationName: "Take 001", property: 0, key: { times: times, values: values } });
+						}
+					}
+
+					// link to first out
+					if (tracks.length) {
+						var model = group.models.find(m => m.userRef == fbxCurveNode.connectionsOut[0].toID);
+						if (model) {
+							model.animations = (model.animations || []).concat(tracks);
+						}
+					}
 				}
 			}
 
