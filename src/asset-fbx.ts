@@ -172,6 +172,7 @@ namespace sd.asset {
 
 		export interface FBXResolveOptions {
 			allowMissingTextures?: boolean;
+			removeUnusedBones: boolean;
 		}
 
 
@@ -619,6 +620,15 @@ namespace sd.asset {
 					var fbxModel = this.modelNodes[modelID];
 					var sdModel = makeModel(fbxModel.objectName(), fbxModel.objectID());
 
+					// skip bones we don't care about if allowed
+					if (options.removeUnusedBones) {
+						let modelName = fbxModel.objectName();
+						if (modelName.length > 3 && modelName.substr(-3) == "Nub") {
+							continue;
+						}
+					}
+
+					// get the local transform
 					for (var c of fbxModel.children) {
 						let vecVal = <number[]>c.values;
 						if (c.name == "Lcl Translation") {
@@ -636,6 +646,7 @@ namespace sd.asset {
 						}
 					}
 
+					// add linked components
 					for (var conn of fbxModel.connectionsIn) {
 						var connType = conn.fromNode.name;
 						var connSubType = conn.fromNode.objectSubClass();
@@ -671,7 +682,7 @@ namespace sd.asset {
 
 								for (let lc of conn.fromNode.children) {
 									if (lc.name == "Size") {
-										j.size = <number>c.values[0];
+										j.size = <number>lc.values[0];
 									}
 									// ignore the TypeFlags as they contain irrelevant information:
 									// Null is uninteresting, Skeleton is obvious and Root is already the subClass name
@@ -720,10 +731,7 @@ namespace sd.asset {
 					var childModel = this.flattenedModels.get(conn.fromID);
 					var parentModel = this.flattenedModels.get(conn.toID);
 
-					if (!childModel || !parentModel) {
-						console.warn("Can't connect model " + conn.fromID + " to " + conn.toID, childModel, parentModel);
-					}
-					else {
+					if (childModel && parentModel) {
 						parentModel.children.push(childModel);
 						if (conn.toID == 0) {
 							group.addModel(childModel);
@@ -734,13 +742,18 @@ namespace sd.asset {
 
 
 			private buildAnimations(group: AssetGroup, options: FBXResolveOptions) {
-				
+				for (var curveNodeID in this.animCurveNodes) {
+					var fbxCurveNode = this.animCurveNodes[curveNodeID];
+
+
+				}
 			}
 
 
 			resolve(options?: FBXResolveOptions): Promise<AssetGroup> {
 				var defaults: FBXResolveOptions = {
-					allowMissingTextures: true
+					allowMissingTextures: true,
+					removeUnusedBones: true
 				};
 				copyValues(defaults, options || {});
 
