@@ -4,20 +4,19 @@
 
 namespace sd.asset {
 
-	export interface Texture2D {
+	export interface Asset {
 		name: string;
 		userRef?: any;
-		
+	}
+
+	export interface Texture2D extends Asset {
 		filePath?: string;
 		useMipMaps: render.UseMipMaps;
 		descriptor?: render.TextureDescriptor;
 	}
 
 
-	export interface Material {
-		name: string;
-		userRef?: any;
-
+	export interface Material extends Asset {
 		ambientColour: Float3;
 
 		emissiveColour: Float3;
@@ -69,10 +68,7 @@ namespace sd.asset {
 	}
 
 
-	export interface Mesh {
-		name: string;
-		userRef?: any;
-
+	export interface Mesh extends Asset {
 		positions?: Float64Array;
 		streams?: mesh.VertexAttributeStream[];
 
@@ -87,15 +83,28 @@ namespace sd.asset {
 	}
 
 
-	export interface Joint {
-		root: boolean;
-		size: number;
+	export interface Skin extends Asset {
+		groups: WeightedVertexGroup[];
 	}
 
 
-	export interface Model {
-		name: string;
-		userRef?: any;
+	export interface WeightedVertexGroup extends Asset {
+		indexes: Int32Array;
+		weights: Float64Array;
+	}
+
+
+	export interface Joint {
+		root: boolean;
+		size: number;
+
+		// Direct link to WVG, later on this should be done indirectly
+		// so a single skeleton can link against many Meshes
+		vertexGroup: WeightedVertexGroup;
+	}
+
+
+	export interface Model extends Asset {
 		transform: Transform;
 		children: Model[];
 

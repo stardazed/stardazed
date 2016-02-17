@@ -659,7 +659,8 @@ namespace sd.asset {
 							if (connSubType == "LimbNode" || connSubType == "Root") {
 								let j: Joint = {
 									root: connSubType == "Root",
-									size: 0
+									size: 0,
+									vertexGroup: null
 								};
 
 								for (let lc of conn.fromNode.children) {
