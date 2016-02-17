@@ -104,6 +104,34 @@ namespace sd.asset {
 	}
 
 
+	export const enum AnimationProperty {
+		None,
+
+		TranslationX,
+		TranslationY,
+		TranslationZ,
+		RotationX,
+		RotationY,
+		RotationZ,
+		ScaleX,
+		ScaleY,
+		ScaleZ
+	}
+
+
+	export interface AnimationKeyData {
+		times: ArrayOfNumber;
+		values: ArrayOfNumber;
+	}
+
+
+	export interface AnimationTrack {
+		animationName: string;
+		property: AnimationProperty;
+		key: AnimationKeyData;
+	}
+
+
 	export interface Model extends Asset {
 		transform: Transform;
 		children: Model[];
@@ -112,6 +140,7 @@ namespace sd.asset {
 		joint?: Joint;
 		mesh?: Mesh;
 		materials?: Material[];
+		animations?: AnimationTrack[];
 	}
 
 
