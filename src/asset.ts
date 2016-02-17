@@ -87,15 +87,36 @@ namespace sd.asset {
 	}
 
 
+	export interface Joint {
+		root: boolean;
+		size: number;
+	}
+
+
 	export interface Model {
 		name: string;
 		userRef?: any;
-		
-		mesh: Mesh;
-		materials: Material[];
 		transform: Transform;
-
 		children: Model[];
+
+		// components		
+		joint?: Joint;
+		mesh?: Mesh;
+		materials?: Material[];
+	}
+
+
+	export function makeModel(name: string, ref?: any): Model {
+		return {
+			name: name,
+			userRef: ref,
+			transform: {
+				position: [0, 0, 0],
+				rotation: [0, 0, 0, 1],
+				scale: [1, 1, 1]
+			},
+			children: []
+		};
 	}
 
 
