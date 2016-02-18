@@ -737,6 +737,8 @@ namespace sd.asset {
 
 					if (childModel && parentModel) {
 						parentModel.children.push(childModel);
+						assert(childModel.parent == null, "Cannot re-parent node " + childModel.userRef);
+						childModel.parent = parentModel;
 						if (conn.toID == 0) {
 							group.addModel(childModel);
 						}

@@ -135,11 +135,12 @@ namespace sd.asset {
 	export interface Model extends Asset {
 		transform: Transform;
 		children: Model[];
+		parent: Model;
 
 		// components		
-		joint?: Joint;
 		mesh?: Mesh;
 		materials?: Material[];
+		joint?: Joint;
 		animations?: AnimationTrack[];
 	}
 
@@ -153,7 +154,8 @@ namespace sd.asset {
 				rotation: [0, 0, 0, 1],
 				scale: [1, 1, 1]
 			},
-			children: []
+			children: [],
+			parent: null
 		};
 	}
 
