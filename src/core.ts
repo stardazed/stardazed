@@ -7,6 +7,7 @@
 
 function assert(cond: any, msg?: string) {
 	if (! cond) {
+		console.error(msg || "assertion failed");
 		throw new Error(msg || "assertion failed");
 	}
 }
