@@ -747,19 +747,50 @@ namespace sd.asset {
 			}
 
 
+			private animPropForConnectionNames(curvePropName: string, modelPropName: string): AnimationProperty {
+				var ap = AnimationProperty.None;
+
+				if (modelPropName == "Lcl Translation") {
+					if (curvePropName == "d|X") { ap = AnimationProperty.TranslationX; }
+					else if (curvePropName == "d|Y") { ap = AnimationProperty.TranslationY; }
+					else if (curvePropName == "d|Z") { ap = AnimationProperty.TranslationZ; }
+				}
+				else if (modelPropName == "Lcl Rotation") {
+					if (curvePropName == "d|X") { ap = AnimationProperty.RotationX; }
+					else if (curvePropName == "d|Y") { ap = AnimationProperty.RotationY; }
+					else if (curvePropName == "d|Z") { ap = AnimationProperty.RotationZ; }
+				}
+				else if (modelPropName == "Lcl Scaling") {
+					if (curvePropName == "d|X") { ap = AnimationProperty.ScaleX; }
+					else if (curvePropName == "d|Y") { ap = AnimationProperty.ScaleY; }
+					else if (curvePropName == "d|Z") { ap = AnimationProperty.ScaleZ; }
+				}
+
+				return ap;	
+			}
+
+
 			private buildAnimations(group: AssetGroup, options: FBXResolveOptions) {
+				// the number of units of time per second for a KTime value
+				const KTimeUnit = 46186158000;
+
 				for (var curveNodeID in this.animCurveNodes) {
 					var fbxCurveNode = this.animCurveNodes[curveNodeID];
 					if (fbxCurveNode.connectionsIn.length == 0 || fbxCurveNode.connectionsOut.length == 0) {
 						continue;
 					}
 
-					// the number of units of time per second for a KTime value
-					const KTimeUnit = 46186158000;
+					// link to first out connection
+					var outConn = fbxCurveNode.connectionsOut[0];
+					var jointModel = this.flattenedModels.get(outConn.toID);
+					if (! jointModel) {
+						// likely a curve for an omitted joint
+						continue;
+					}
 
 					var tracks: AnimationTrack[] = [];
-					for (let conn of fbxCurveNode.connectionsIn) {
-						let curve = conn.fromNode;
+					for (let inConn of fbxCurveNode.connectionsIn) {
+						let curve = inConn.fromNode;
 						let timesNode = curve.childByName("KeyTime");
 						let valuesNode = curve.childByName("KeyValueFloat");
 
@@ -767,22 +798,36 @@ namespace sd.asset {
 							let times = <TypedArray>timesNode.values[0];
 							let values = <TypedArray>valuesNode.values[0];
 							let count = times.length;
+							assert(times.length == values.length, "Invalid animation key data");
+
+							// determine property being animated
+							var animProp = this.animPropForConnectionNames(inConn.propName, outConn.propName);
 
 							// convert KTime values to seconds in place
 							for (let t = 0; t < count; ++t) {
 								times[t] /= KTimeUnit;
 							}
 
-							tracks.push({ animationName: "Take 001", property: 0, key: { times: times, values: values } });
+							// convert rotation angles to radians
+							if (animProp >= AnimationProperty.RotationX && animProp <= AnimationProperty.RotationZ) {
+								for (let t = 0; t < count; ++t) {
+									values[t] = math.deg2rad(values[t]);
+								}
+							}
+
+							tracks.push({
+								animationName: "Take 001",
+								property: animProp,
+								key: {
+									times: times,
+									values: values
+								}
+							});
 						}
 					}
 
-					// link to first out
 					if (tracks.length) {
-						var model = group.models.find(m => m.userRef == fbxCurveNode.connectionsOut[0].toID);
-						if (model) {
-							model.animations = (model.animations || []).concat(tracks);
-						}
+						jointModel.animations = (jointModel.animations || []).concat(tracks);
 					}
 				}
 			}
