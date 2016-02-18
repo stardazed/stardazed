@@ -66,7 +66,8 @@ namespace sd.asset {
 				"colorandalpha": FBXPropertyType.Vector4D,
 
 				"object": FBXPropertyType.Object,
-				"compound": FBXPropertyType.Empty
+				"compound": FBXPropertyType.Empty,
+				"referenceproperty": FBXPropertyType.Empty,
 			};
 
 			export interface FBXProp70Prop {
@@ -189,7 +190,6 @@ namespace sd.asset {
 			private textureNodes: NodeSet;
 			private materialNodes: NodeSet;
 			private modelNodes: NodeSet;
-			private poseNodes: NodeSet;
 			private attributeNodes: NodeSet;
 			private animCurves: NodeSet;
 			private animCurveNodes: NodeSet;
@@ -208,7 +208,6 @@ namespace sd.asset {
 				this.textureNodes = {};
 				this.materialNodes = {};
 				this.modelNodes = {};
-				this.poseNodes = {};
 				this.attributeNodes = {};
 				this.animCurves = {};
 				this.animCurveNodes = {};
@@ -236,7 +235,6 @@ namespace sd.asset {
 					"Texture": this.textureNodes,
 					"Material": this.materialNodes,
 					"Model": this.modelNodes,
-					"Pose": this.poseNodes,
 					"NodeAttribute": this.attributeNodes,
 					"AnimationCurveNode": this.animCurveNodes,
 					"AnimationCurve": this.animCurves
@@ -262,11 +260,6 @@ namespace sd.asset {
 				else if (node.name == "NodeAttribute") {
 					if (subClass != "Root" && subClass != "LimbNode") {
 						// ignore non-skeleton attr nodes
-						return;
-					}
-				}
-				else if (node.name == "Pose") {
-					if (subClass != "BindPose") {
 						return;
 					}
 				}
@@ -381,14 +374,29 @@ namespace sd.asset {
 					mat.name = fbxMat.objectName();
 					mat.userRef = matID;
 
+					let haveFullAmbient = false;
+					let haveFullDiffuse = false;
+
 					for (let c of fbxMat.children) {
 						if (c.name == "Ambient") {
 							// the Ambient prop is AmbientColor * AmbientFactor
 							vec3.copy(mat.ambientColour, <number[]>c.values);
+							haveFullAmbient = true;
+						}
+						else if (c.name == "AmbientColor") {
+							if (!haveFullAmbient) {
+								vec3.copy(mat.ambientColour, <number[]>c.values);
+							}
 						}
 						else if (c.name == "Diffuse") {
 							// the Diffuse prop is DiffuseColor * DiffuseFactor
 							vec3.copy(mat.diffuseColour, <number[]>c.values);
+							haveFullDiffuse = true;
+						}
+						else if (c.name == "DiffuseColor") {
+							if (!haveFullDiffuse) {
+								vec3.copy(mat.diffuseColour, <number[]>c.values);
+							}
 						}
 						else if (c.name == "SpecularColor") {
 							vec3.copy(mat.specularColour, <number[]>c.values);
@@ -406,7 +414,6 @@ namespace sd.asset {
 							mat.emissiveIntensity = <number>c.values[0];
 						}
 						else if (c.name == "TransparencyFactor") {
-							console.info("Trans", c.values);
 							mat.transparency = math.clamp01(<number>c.values[0]);
 						}
 					}
@@ -729,30 +736,7 @@ namespace sd.asset {
 
 
 			private buildHierarchy(group: AssetGroup, options: FBXResolveOptions) {
-				var bindPoseModelIDs = new Set<number>();
-
-				// FBX identifies bind pose models in a non-standard way. BindPose
-				// nodes have PoseNode objects that refer to the pose mesh Model by its id.
-				// We use this to not generate a separate mesh model in the assets.
-				for (var poseID in this.poseNodes) {
-					var pose = this.poseNodes[poseID];
-
-					for (let c of pose.children) {
-						if (c.name == "PoseNode") {
-							for (let pc of c.children) {
-								if (pc.name == "Node") {
-									bindPoseModelIDs.add(<number>pc.values[0]);
-								}
-							}
-						}
-					}
-				}
-
 				for (var conn of this.hierarchyConnections) {
-					if (bindPoseModelIDs.has(conn.fromID)) {
-						continue;
-					}
-
 					var childModel = this.flattenedModels.get(conn.fromID);
 					var parentModel = this.flattenedModels.get(conn.toID);
 
@@ -902,7 +886,7 @@ namespace sd.asset {
 			constructor(filePath: string) {
 				this.doc = new FBXDocumentGraph(filePath);
 				this.knownObjects = new Set<string>([
-					"Geometry", "Video", "Texture", "Material", "Model", "NodeAttribute", "Pose",
+					"Geometry", "Video", "Texture", "Material", "Model", "NodeAttribute",
 					"AnimationCurve", "AnimationCurveNode"
 				]);
 			}

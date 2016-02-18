@@ -313,6 +313,7 @@ namespace sd.asset.fbx.parse {
 				key == "Smoothing" ||
 				key == "Visibility" ||
 				key == "Materials" ||
+				key == "Indexes" ||
 				key == "KeyAttrFlags" ||
 				key == "KeyAttrRefCount")
 			{
@@ -334,7 +335,11 @@ namespace sd.asset.fbx.parse {
 				key == "TangentsW" ||
 				key == "UV" ||
 				key == "Colors" ||
-				key == "KeyTime")
+				key == "Weights" ||
+				key == "KeyTime" ||
+				key == "Transform" ||
+				key == "TransformLink" ||
+				key == "Matrix")
 			{
 				return new Float64Array(elementCount);
 			}
