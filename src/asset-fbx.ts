@@ -633,6 +633,8 @@ namespace sd.asset {
 					}
 
 					// get the local transform
+					var preRot: Float4 = null;
+					var localRot: Float4 = null;
 					for (var c of fbxModel.children) {
 						let vecVal = <number[]>c.values;
 						if (c.name == "Lcl Translation") {
@@ -642,12 +644,31 @@ namespace sd.asset {
 							vec3.copy(sdModel.transform.scale, vecVal);
 						}
 						else if (c.name == "Lcl Rotation") {
-							sdModel.transform.rotation = quat.fromEuler(
+							localRot = quat.fromEuler(
 								math.deg2rad(vecVal[2]),
 								math.deg2rad(vecVal[1]),
 								math.deg2rad(vecVal[0])
 							);
 						}
+						else if (c.name == "PreRotation") {
+							preRot = quat.fromEuler(
+								math.deg2rad(vecVal[2]),
+								math.deg2rad(vecVal[1]),
+								math.deg2rad(vecVal[0])
+							);
+						}
+					}
+
+					if (preRot) {
+						if (localRot) {
+							sdModel.transform.rotation = quat.multiply([], preRot, localRot);
+						}
+						else {
+							sdModel.transform.rotation = preRot;	
+						}
+					}
+					else {
+						sdModel.transform.rotation = localRot;
 					}
 
 					// add linked components
