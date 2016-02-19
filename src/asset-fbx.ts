@@ -851,8 +851,19 @@ namespace sd.asset {
 			private buildSkins(group: AssetGroup, options: FBXResolveOptions) {
 				for (var skinNodeID in this.skinNodes) {
 					var fbxSkin = this.skinNodes[skinNodeID];
+					if (fbxSkin.connectionsIn.length == 0 || fbxSkin.connectionsOut.length == 0) {
+						console.warn("Skin " + skinNodeID + " either has no mesh or no clusters. Skipping.");
+						continue;
+					}
 
+					var meshID = fbxSkin.connectionsOut[0].toID;
+					var mesh = group.meshes.find(m => m.userRef == meshID);
+					if (! mesh) {
+						console.warn("Can't find mesh " + meshID + " referenced by skin " + skinNodeID + ". Skipping.");
+						continue;
+					}
 
+					
 				}
 			}
 
