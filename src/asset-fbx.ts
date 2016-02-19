@@ -193,6 +193,8 @@ namespace sd.asset {
 			private attributeNodes: NodeSet;
 			private animCurves: NodeSet;
 			private animCurveNodes: NodeSet;
+			private skinNodes: NodeSet;
+			private clusterNodes: NodeSet;
 
 			private connections: Connection[];
 			private hierarchyConnections: Connection[];
@@ -211,6 +213,8 @@ namespace sd.asset {
 				this.attributeNodes = {};
 				this.animCurves = {};
 				this.animCurveNodes = {};
+				this.skinNodes = {};
+				this.clusterNodes = {};
 
 				this.connections = [];
 				this.hierarchyConnections = [];
@@ -237,7 +241,8 @@ namespace sd.asset {
 					"Model": this.modelNodes,
 					"NodeAttribute": this.attributeNodes,
 					"AnimationCurveNode": this.animCurveNodes,
-					"AnimationCurve": this.animCurves
+					"AnimationCurve": this.animCurves,
+					"Deformer": this.clusterNodes
 				};
 
 				var id = node.objectID();
@@ -261,6 +266,11 @@ namespace sd.asset {
 					if (subClass != "Root" && subClass != "LimbNode") {
 						// ignore non-skeleton attr nodes
 						return;
+					}
+				}
+				else if (node.name == "Deformer") {
+					if (subClass == "Skin") {
+						set = this.skinNodes;
 					}
 				}
 
@@ -838,6 +848,15 @@ namespace sd.asset {
 			}
 
 
+			private buildSkins(group: AssetGroup, options: FBXResolveOptions) {
+				for (var skinNodeID in this.skinNodes) {
+					var fbxSkin = this.skinNodes[skinNodeID];
+
+
+				}
+			}
+
+
 			resolve(options?: FBXResolveOptions): Promise<AssetGroup> {
 				var defaults: FBXResolveOptions = {
 					allowMissingTextures: true,
@@ -852,6 +871,7 @@ namespace sd.asset {
 					this.buildModels(group, defaults);
 					this.buildHierarchy(group, defaults);
 					this.buildAnimations(group, defaults);
+					this.buildSkins(group, defaults);
 
 					console.info("Doc", this);
 					return group;
@@ -887,7 +907,7 @@ namespace sd.asset {
 				this.doc = new FBXDocumentGraph(filePath);
 				this.knownObjects = new Set<string>([
 					"Geometry", "Video", "Texture", "Material", "Model", "NodeAttribute",
-					"AnimationCurve", "AnimationCurveNode"
+					"AnimationCurve", "AnimationCurveNode", "Deformer"
 				]);
 			}
 
