@@ -28,6 +28,63 @@ namespace sd.mesh {
 	}
 
 
+	export interface VertexIndexMapping {
+		add(from: number, to: number): void;
+		mappedValues(forIndex: number): number[];
+
+		indexCount: number;
+	}
+
+
+	class VertexIndexMappingA implements VertexIndexMapping {
+		private offsets_: number[] = [];
+		private values_: number[] = [];
+		private highest_ = -1;
+
+		get indexCount() { return this.offsets_.length; }
+
+		add(from: number, to: number) {
+			if (from > this.highest_) {
+				container.fill(this.offsets_, this.values_.length, from - this.highest_, this.highest_ + 1);
+				this.highest_ = from;
+			}
+			var fromOff = this.offsets_[from];
+			this.values_.splice(fromOff, 0, to);
+			for (var n = from + 1; n <= this.highest_; ++n) {
+				this.offsets_[n]++;
+			}
+		}
+
+		mappedValues(forIndex: number) {
+			var offA = this.offsets_[forIndex];
+			var offB = (forIndex < this.offsets_.length - 1) ? this.offsets_[forIndex + 1] : this.values_.length;
+			return this.values_.slice(offA, offB);
+		}
+	}
+
+
+	class VertexIndexMappingB implements VertexIndexMapping {
+		private data_ = new Map<number, number[]>();
+
+		get indexCount() { return this.data_.size; }
+
+		add(from: number, to: number) {
+			if (! this.data_.has(from)) {
+				this.data_.set(from, [to]);
+			}
+			else {
+				var mapped = this.data_.get(from);
+				mapped.push(to);
+				this.data_.set(to, mapped);
+			}
+		}
+
+		mappedValues(forIndex: number) {
+			return this.data_.get(forIndex);
+		}
+	}
+
+
 	export class MeshBuilder {
 		private vertexData_: number[][];
 		private indexes_: number[] = [];
@@ -37,6 +94,7 @@ namespace sd.mesh {
 		private vertexCount_ = 0;
 		private triangleCount_ = 0;
 		private vertexMapping_: Map<string, number>;
+		private indexMap_: VertexIndexMapping;
 
 		private groupIndex_ = -1;
 		private groupFirstTriangleIndex_ = 0;
@@ -83,6 +141,7 @@ namespace sd.mesh {
 			// output and de-duplication data
 			this.vertexData_ = this.streams_.map(s => []);
 			this.vertexMapping_ = new Map<string, number>();
+			this.indexMap_ = new VertexIndexMappingB();
 			this.streamCount_ = this.streams_.length;
 		}
 
@@ -195,6 +254,10 @@ namespace sd.mesh {
 			var dstVIxB = this.getVertexIndex(indexesB);
 			var dstVIxC = this.getVertexIndex(indexesC);
 
+			this.indexMap_.add(vertexIndexes[0], dstVIxA);
+			this.indexMap_.add(vertexIndexes[1], dstVIxB);
+			this.indexMap_.add(vertexIndexes[2], dstVIxC);
+
 			this.indexes_.push(dstVIxA, dstVIxB, dstVIxC);
 			this.triangleCount_++;
 		}
@@ -221,6 +284,9 @@ namespace sd.mesh {
 
 			this.sourcePolygonIndex_++;
 		}
+
+
+		get indexMap() { return this.indexMap_; }
 
 
 		complete() {
