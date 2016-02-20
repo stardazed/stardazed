@@ -198,15 +198,22 @@ namespace sd.mesh {
 
 	export const enum VertexAttributeRole {
 		None,
+
+		// standard attributes
 		Position,
 		Normal,
+		Normal0 = Normal,
 		Tangent,
+		Tangent0 = Tangent,
 		Colour,
 		UV,
-		Material
-		/*
-		Custom1, etc.?
-		*/
+		Material,
+
+		// skinned mesh
+		JointIndexes,
+		WeightedPos0, WeightedPos1, WeightedPos2, WeightedPos3,
+		Normal1, Normal2, Normal3,
+		Tangent1, Tangent2, Tangent3
 	}
 
 	// -- A VertexAttribute is a Field with a certain Role inside a VertexBuffer
