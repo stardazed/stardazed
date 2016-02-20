@@ -18,7 +18,8 @@ namespace sd.world {
 		ShadowMap       = 0x01000,
 		SoftShadow      = 0x02000,
 		Fog             = 0x04000,
-		//Instancing      = 0x10000
+		//Instancing      = 0x10000,
+		Skinned         = 0x20000
 	}
 
 
