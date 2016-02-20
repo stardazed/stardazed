@@ -849,6 +849,28 @@ namespace sd.asset {
 			}
 
 
+			private convertWeightedIndexes(sourceIndexes: Int32Array, sourceWeights: Float64Array, indexMap: mesh.VertexIndexMapping) {
+				var outIndexes: number[] = [];
+				var outWeights: number[] = [];
+				var sourceCount = sourceIndexes.length;
+
+				for (var n = 0; n < sourceCount; ++n) {
+					var index = sourceIndexes[n];
+					var weight = sourceWeights[n];
+
+					// expand each source vertex to its mapped equivalent, repeating the source weight for each output index
+					var mappedIndexes = indexMap.mappedValues(index);
+					outIndexes = outIndexes.concat(mappedIndexes);
+					container.fill(outWeights, weight, mappedIndexes.length, outWeights.length);
+				}
+
+				return {
+					indexes: new Int32Array(outIndexes),
+					weights: new Float64Array(outWeights)
+				};
+			}
+
+
 			private buildSkins(group: AssetGroup, options: FBXResolveOptions) {
 				for (var skinNodeID in this.skinNodes) {
 					var fbxSkin = this.skinNodes[skinNodeID];
@@ -863,8 +885,23 @@ namespace sd.asset {
 						console.warn("Can't find mesh " + meshID + " referenced by skin " + skinNodeID + ". Skipping.");
 						continue;
 					}
+					var indexMap = mesh.indexMap;
 
-					
+					for (var clusterConn of fbxSkin.connectionsIn) {
+						var cluster = clusterConn.fromNode;
+						var sourceIndexesNode = cluster.childByName("Indexes");
+						var sourceWeightsNode = cluster.childByName("Weights");
+						var sourceIndexes = sourceIndexesNode && <Int32Array>(sourceIndexesNode.values[0]);
+						var sourceWeights = sourceWeightsNode && <Float64Array>(sourceWeightsNode.values[0]);
+
+						if (! (sourceIndexes && sourceWeights)) {
+							console.warn("Can't find indexes or weights for cluster ", clusterConn.fromID);
+							continue;
+						}
+
+						var convertedWI = this.convertWeightedIndexes(sourceIndexes, sourceWeights, indexMap);
+						
+					}
 				}
 			}
 
