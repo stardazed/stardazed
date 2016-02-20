@@ -73,6 +73,7 @@ namespace sd.asset {
 		streams?: mesh.VertexAttributeStream[];
 
 		meshData?: mesh.MeshData;
+		indexMap?: mesh.VertexIndexMapping;
 	}
 
 

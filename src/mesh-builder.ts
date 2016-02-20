@@ -75,7 +75,7 @@ namespace sd.mesh {
 			else {
 				var mapped = this.data_.get(from);
 				mapped.push(to);
-				this.data_.set(to, mapped);
+				this.data_.set(from, mapped);
 			}
 		}
 

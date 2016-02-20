@@ -624,6 +624,7 @@ namespace sd.asset {
 
 					var t1 = performance.now();
 					sdMesh.meshData = mb.complete();
+					sdMesh.indexMap = mb.indexMap;
 					var t2 = performance.now();
 					tStreams += (t1 - t0);
 					tMeshData += (t2 - t1);
