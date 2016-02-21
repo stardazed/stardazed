@@ -199,21 +199,27 @@ namespace sd.mesh {
 	export const enum VertexAttributeRole {
 		None,
 
-		// standard attributes
+		// basic attributes
 		Position,
-		Normal,
-		Normal0 = Normal,
-		Tangent,
-		Tangent0 = Tangent,
 		Colour,
-		UV,
 		Material,
 
+		// multiple UV sets
+		UV0,
+		UV1,
+		UV2,
+		UV3,
+
 		// skinned mesh
-		JointIndexes,
+		Normal0, Normal1, Normal2, Normal3,
+		Tangent0, Tangent1, Tangent2, Tangent3,
 		WeightedPos0, WeightedPos1, WeightedPos2, WeightedPos3,
-		Normal1, Normal2, Normal3,
-		Tangent1, Tangent2, Tangent3
+		JointIndexes,
+
+		// normal mesh aliases
+		Normal = Normal0,
+		Tangent = Tangent0,
+		UV = UV0
 	}
 
 	// -- A VertexAttribute is a Field with a certain Role inside a VertexBuffer
@@ -231,6 +237,12 @@ namespace sd.mesh {
 	export function attrColour3(): VertexAttribute { return { field: VertexField.Floatx3, role: VertexAttributeRole.Colour }; }
 	export function attrUV2(): VertexAttribute { return { field: VertexField.Floatx2, role: VertexAttributeRole.UV }; }
 	export function attrTangent4(): VertexAttribute { return { field: VertexField.Floatx4, role: VertexAttributeRole.Tangent }; }
+
+	export function attrJointIndexes(): VertexAttribute { return { field: VertexField.SInt32x4, role: VertexAttributeRole.JointIndexes }; }
+	export function attrWeightedPos(index: number) {
+		assert(index >= 0 && index < 4);
+		return { field: VertexField.Floatx4, role: VertexAttributeRole.WeightedPos0 + index };
+	}
 
 
 	// -- Common AttributeList shortcuts
@@ -250,6 +262,10 @@ namespace sd.mesh {
 		}
 		export function Pos3Norm3UV2Tan4(): VertexAttribute[] {
 			return [attrPosition3(), attrNormal3(), attrUV2(), attrTangent4()];
+		}
+
+		export function SkinnedPosNormUV(): VertexAttribute[] {
+			return [];
 		}
 	}
 
