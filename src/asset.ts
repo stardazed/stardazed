@@ -92,6 +92,10 @@ namespace sd.asset {
 	export interface WeightedVertexGroup extends Asset {
 		indexes: Int32Array;
 		weights: Float64Array;
+
+		bindPoseLocalTranslation: Float3;
+		bindPoseLocalRotation: Float4;
+		bindPoseLocalMatrix: ArrayOfNumber;
 	}
 
 
@@ -166,6 +170,7 @@ namespace sd.asset {
 		textures: Texture2D[] = [];
 		materials: Material[] = [];
 		models: Model[] = [];
+		skins: Skin[] = [];
 
 		addMesh(mesh: Mesh): number {
 			this.meshes.push(mesh);
@@ -185,6 +190,11 @@ namespace sd.asset {
 		addModel(model: Model): number {
 			this.models.push(model);
 			return this.models.length - 1;
+		}
+
+		addSkin(skin: Skin): number {
+			this.skins.push(skin);
+			return this.skins.length - 1;
 		}
 	}
 

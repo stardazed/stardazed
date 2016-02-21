@@ -195,7 +195,6 @@ namespace sd.asset {
 			private animCurveNodes: NodeSet;
 			private skinNodes: NodeSet;
 			private clusterNodes: NodeSet;
-			private poseNodes: NodeSet;
 
 			private connections: Connection[];
 			private hierarchyConnections: Connection[];
@@ -216,7 +215,6 @@ namespace sd.asset {
 				this.animCurveNodes = {};
 				this.skinNodes = {};
 				this.clusterNodes = {};
-				this.poseNodes = {};
 
 				this.connections = [];
 				this.hierarchyConnections = [];
@@ -245,7 +243,6 @@ namespace sd.asset {
 					"AnimationCurveNode": this.animCurveNodes,
 					"AnimationCurve": this.animCurves,
 					"Deformer": this.clusterNodes,
-					"Pose": this.poseNodes,
 				};
 
 				var id = node.objectID;
@@ -276,11 +273,6 @@ namespace sd.asset {
 						set = this.skinNodes;
 					}
 					else if (subClass != "Cluster") {
-						return;
-					}
-				}
-				else if (node.name == "Pose") {
-					if (subClass != "BindPose") {
 						return;
 					}
 				}
@@ -860,28 +852,6 @@ namespace sd.asset {
 			}
 
 
-			private convertWeightedIndexes(sourceIndexes: Int32Array, sourceWeights: Float64Array, indexMap: mesh.VertexIndexMapping) {
-				var outIndexes: number[] = [];
-				var outWeights: number[] = [];
-				var sourceCount = sourceIndexes.length;
-
-				for (var n = 0; n < sourceCount; ++n) {
-					var index = sourceIndexes[n];
-					var weight = sourceWeights[n];
-
-					// expand each source vertex to its mapped equivalent, repeating the source weight for each output index
-					var mappedIndexes = indexMap.mappedValues(index);
-					outIndexes = outIndexes.concat(mappedIndexes);
-					container.fill(outWeights, weight, mappedIndexes.length, outWeights.length);
-				}
-
-				return {
-					indexes: new Int32Array(outIndexes),
-					weights: new Float64Array(outWeights)
-				};
-			}
-
-
 			private buildSkins(group: AssetGroup, options: FBXResolveOptions) {
 				for (var skinNodeID in this.skinNodes) {
 					var fbxSkin = this.skinNodes[skinNodeID];
@@ -890,29 +860,71 @@ namespace sd.asset {
 						continue;
 					}
 
-					var meshID = fbxSkin.connectionsOut[0].toID;
-					var mesh = group.meshes.find(m => m.userRef == meshID);
-					if (! mesh) {
-						console.warn("Can't find mesh " + meshID + " referenced by skin " + skinNodeID + ". Skipping.");
-						continue;
-					}
-					var indexMap = mesh.indexMap;
+					var sdSkin: Skin = {
+						name: fbxSkin.objectName,
+						userRef: fbxSkin.objectID,
+						groups: []
+					};
 
 					for (var clusterConn of fbxSkin.connectionsIn) {
 						var cluster = clusterConn.fromNode;
-						var sourceIndexesNode = cluster.childByName("Indexes");
-						var sourceWeightsNode = cluster.childByName("Weights");
-						var sourceIndexes = sourceIndexesNode && <Int32Array>(sourceIndexesNode.values[0]);
-						var sourceWeights = sourceWeightsNode && <Float64Array>(sourceWeightsNode.values[0]);
+						var wvg: WeightedVertexGroup = {
+							name: cluster.objectName,
+							userRef: cluster.objectID,
+							indexes: null,
+							weights: null,
+							bindPoseLocalTranslation: null,
+							bindPoseLocalRotation: null,
+							bindPoseLocalMatrix: null
+						};
 
-						if (! (sourceIndexes && sourceWeights)) {
-							console.warn("Can't find indexes or weights for cluster ", clusterConn.fromID);
-							continue;
+						for (let cc of cluster.children) {
+							if (cc.name == "Indexes") {
+								wvg.indexes = <Int32Array>(cc.values[0]);
+							}
+							else if (cc.name == "Weights") {
+								wvg.weights = <Float64Array>(cc.values[0]);
+							}
+							else if (cc.name == "Transform") {
+								let txmat = <Float64Array>(cc.values[0]);
+								let mat33 = mat3.fromMat4([], txmat);
+								let txq = quat.fromMat3([], mat33);
+								let trans = [txmat[12], txmat[13], txmat[14]];
+
+								wvg.bindPoseLocalTranslation = trans;
+								wvg.bindPoseLocalRotation = txq;
+								wvg.bindPoseLocalMatrix = txmat;
+							}
 						}
 
-						var convertedWI = this.convertWeightedIndexes(sourceIndexes, sourceWeights, indexMap);
+						if (! (wvg.indexes && wvg.weights && wvg.bindPoseLocalTranslation && wvg.bindPoseLocalRotation)) {
+							console.warn("Incomplete cluster " + clusterConn.fromID, cluster, wvg);
+						}
+						else {
+							for (let cinc of cluster.connectionsIn) {
+								var cinNode = cinc.fromNode;
+								if (cinNode.name == "Model") {
+									let sdModel = this.flattenedModels.get(cinNode.objectID);
 
+									if (sdModel) {
+										if (sdModel.joint) {
+											sdModel.joint.vertexGroup = wvg;
+										}
+										else {
+											console.warn("Model " + cinNode.objectID + " has a cluster but no joint?");
+										}
+									}
+									else {
+										console.warn("Can't connect cluster " + cluster.objectID + " to model " + cinNode.objectID);
+									}
+								}
+							}
+
+							sdSkin.groups.push(wvg);
+						}
 					}
+
+					group.addSkin(sdSkin);
 				}
 			}
 
@@ -929,9 +941,9 @@ namespace sd.asset {
 					this.buildMaterials(group, defaults);
 					this.buildModels(group, defaults);
 					this.buildHierarchy(group, defaults);
+					this.buildSkins(group, defaults);
 					this.buildAnimations(group, defaults);
 					this.buildMeshes(group, defaults);
-					this.buildSkins(group, defaults);
 
 					console.info("Doc", this);
 					return group;
@@ -967,7 +979,7 @@ namespace sd.asset {
 				this.doc = new FBXDocumentGraph(filePath);
 				this.knownObjects = new Set<string>([
 					"Geometry", "Video", "Texture", "Material", "Model", "NodeAttribute",
-					"AnimationCurve", "AnimationCurveNode", "Deformer", "Pose"
+					"AnimationCurve", "AnimationCurveNode", "Deformer"
 				]);
 			}
 
