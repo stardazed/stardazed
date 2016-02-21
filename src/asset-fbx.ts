@@ -144,16 +144,16 @@ namespace sd.asset {
 				this.children.push(node);
 			}
 
-			objectName() {
+			get objectName() {
 				var cns = <string>this.values[1];
 				return cns.split("::")[1];
 			}
 
-			objectID() {
+			get objectID() {
 				return <number>this.values[0];
 			}
 
-			objectSubClass() {
+			get objectSubClass() {
 				return <string>this.values[2];
 			}
 
@@ -195,6 +195,7 @@ namespace sd.asset {
 			private animCurveNodes: NodeSet;
 			private skinNodes: NodeSet;
 			private clusterNodes: NodeSet;
+			private poseNodes: NodeSet;
 
 			private connections: Connection[];
 			private hierarchyConnections: Connection[];
@@ -215,6 +216,7 @@ namespace sd.asset {
 				this.animCurveNodes = {};
 				this.skinNodes = {};
 				this.clusterNodes = {};
+				this.poseNodes = {};
 
 				this.connections = [];
 				this.hierarchyConnections = [];
@@ -242,11 +244,12 @@ namespace sd.asset {
 					"NodeAttribute": this.attributeNodes,
 					"AnimationCurveNode": this.animCurveNodes,
 					"AnimationCurve": this.animCurves,
-					"Deformer": this.clusterNodes
+					"Deformer": this.clusterNodes,
+					"Pose": this.poseNodes,
 				};
 
-				var id = node.objectID();
-				var subClass = node.objectSubClass();
+				var id = node.objectID;
+				var subClass = node.objectSubClass;
 				var set = typeSetMap[node.name];
 				assert(set != null, "Unknown object class " + node.name);
 
@@ -271,6 +274,14 @@ namespace sd.asset {
 				else if (node.name == "Deformer") {
 					if (subClass == "Skin") {
 						set = this.skinNodes;
+					}
+					else if (subClass != "Cluster") {
+						return;
+					}
+				}
+				else if (node.name == "Pose") {
+					if (subClass != "BindPose") {
+						return;
 					}
 				}
 
@@ -298,7 +309,7 @@ namespace sd.asset {
 					var vidID = +idStr;
 					var fbxVideo = this.videoNodes[vidID];
 					var tex: Texture2D = {
-						name: fbxVideo.objectName(),
+						name: fbxVideo.objectName,
 						userRef: vidID,
 						useMipMaps: render.UseMipMaps.No
 					};
@@ -381,7 +392,7 @@ namespace sd.asset {
 				for (var matID in this.materialNodes) {
 					let fbxMat = this.materialNodes[matID];
 					let mat = makeMaterial();
-					mat.name = fbxMat.objectName();
+					mat.name = fbxMat.objectName;
 					mat.userRef = matID;
 
 					let haveFullAmbient = false;
@@ -564,8 +575,8 @@ namespace sd.asset {
 				for (var geomID in this.geometryNodes) {
 					var fbxGeom = this.geometryNodes[geomID];
 					var sdMesh: Mesh = {
-						name: fbxGeom.objectName(),
-						userRef: fbxGeom.objectID(),
+						name: fbxGeom.objectName,
+						userRef: fbxGeom.objectID,
 						positions: null,
 						streams: []
 					};
@@ -630,6 +641,15 @@ namespace sd.asset {
 					tMeshData += (t2 - t1);
 
 					group.addMesh(sdMesh);
+
+					// hook up mesh to linked model
+					for (let mco of fbxGeom.connectionsOut) {
+						var model = mco.toNode;
+						if (model.name == "Model") {
+							var sdModel = group.models.find(m => m.userRef == model.objectID);
+							sdModel.mesh = sdMesh;
+						}
+					}
 				}
 
 				console.info("fbx streams build time " + tStreams.toFixed(1));
@@ -640,11 +660,11 @@ namespace sd.asset {
 			private buildModels(group: AssetGroup, options: FBXResolveOptions) {
 				for (var modelID in this.modelNodes) {
 					var fbxModel = this.modelNodes[modelID];
-					var sdModel = makeModel(fbxModel.objectName(), fbxModel.objectID());
+					var sdModel = makeModel(fbxModel.objectName, fbxModel.objectID);
 
 					// skip bones we don't care about if allowed
 					if (options.removeUnusedBones) {
-						let modelName = fbxModel.objectName();
+						let modelName = fbxModel.objectName;
 						if (modelName.length > 3 && modelName.substr(-3) == "Nub") {
 							continue;
 						}
@@ -692,18 +712,9 @@ namespace sd.asset {
 					// add linked components
 					for (var conn of fbxModel.connectionsIn) {
 						var connType = conn.fromNode.name;
-						var connSubType = conn.fromNode.objectSubClass();
+						var connSubType = conn.fromNode.objectSubClass;
 
-						if (connType == "Geometry") {
-							let geom = group.meshes.find((t) => t && <number>t.userRef == conn.fromID);
-							if (geom) {
-								sdModel.mesh = geom;
-							}
-							else {
-								console.warn("Could not connect geometry " + conn.fromID + " to model " + modelID);
-							}
-						}
-						else if (connType == "Material") {
+						if (connType == "Material") {
 							let mat = group.materials.find((t) => t && <number>t.userRef == conn.fromID);
 							if (mat) {
 								if (! sdModel.materials) {
@@ -900,7 +911,7 @@ namespace sd.asset {
 						}
 
 						var convertedWI = this.convertWeightedIndexes(sourceIndexes, sourceWeights, indexMap);
-						
+
 					}
 				}
 			}
@@ -916,10 +927,10 @@ namespace sd.asset {
 				return this.loadTextures(new AssetGroup(), defaults)
 				.then((group) => {
 					this.buildMaterials(group, defaults);
-					this.buildMeshes(group, defaults);
 					this.buildModels(group, defaults);
 					this.buildHierarchy(group, defaults);
 					this.buildAnimations(group, defaults);
+					this.buildMeshes(group, defaults);
 					this.buildSkins(group, defaults);
 
 					console.info("Doc", this);
@@ -956,7 +967,7 @@ namespace sd.asset {
 				this.doc = new FBXDocumentGraph(filePath);
 				this.knownObjects = new Set<string>([
 					"Geometry", "Video", "Texture", "Material", "Model", "NodeAttribute",
-					"AnimationCurve", "AnimationCurveNode", "Deformer"
+					"AnimationCurve", "AnimationCurveNode", "Deformer", "Pose"
 				]);
 			}
 
