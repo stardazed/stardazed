@@ -208,10 +208,17 @@ namespace sd.world {
 			var line = (s: string) => source.push(s);
 			var if_all = (s: string, f: number) => { if ((feat & f) == f) source.push(s) };
 			var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
-
+			
 			// In
-			line  ("attribute vec3 vertexPos_model;");
-			line  ("attribute vec3 vertexNormal;");
+			if (feat & Features.Skinned) {
+				line("attribute ivec4 vertexJointIndexes;");
+				line("attribute vec4 vertexWeightedPos_bone[4];");
+				line("attribute vec3 vertexNormal_bone[4];");
+			}
+			else {
+				line("attribute vec3 vertexPos_model;");
+				line("attribute vec3 vertexNormal;");
+			}
 			if_all("attribute vec2 vertexUV;", Features.VtxUV);
 			if_all("attribute vec3 vertexColour;", Features.VtxColour);
 
@@ -233,6 +240,22 @@ namespace sd.world {
 
 			// main()
 			line  ("void main() {");
+
+			if (feat & Features.Skinned) {
+				line("vec3 vertexPos_model = vec3(0.0, 0.0, 0.0);");
+				line("vec3 vertexNormal = vec3(0.0, 0.0, 0.0);");
+				line("for (int vji = 0; vji < 4; ++vji) {");
+				line("	int jointIndex = vertexJointIndexes[vji];");
+				line("	if (jointIndex > -1) {");
+				line("		vec3 tempPos = joints[jointIndex].rotation * vertexWeightedPos_bone[vji].xyz;"); // FAIL, non constant or loop-index array access
+				line("		vec3 tempNorm = joints[jointIndex].rotation * vertexNormal_bone[vji];"); // FAIL, non constant or loop-index array access
+				line("		vertexPos_model += (joints[jointIndex].position + tempPos) * vertexWeightedPos_bone[vji].w;");
+				line("		vertexNormal += tempNorm * vertexWeightedPos_bone[vji].w;");
+				line("	}");
+				line("	normalize(vertexNormal);");
+				line("}");
+			}
+
 			line  ("	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);");
 			line  ("	vertexPos_world = (modelMatrix * vec4(vertexPos_model, 1.0)).xyz;");
 			line  ("	vertexNormal_intp = normalMatrix * vertexNormal;");
