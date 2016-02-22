@@ -31,6 +31,10 @@ namespace sd.world {
 		normalMatrixUniform?: WebGLUniformLocation;     // mat3
 		lightNormalMatrixUniform?: WebGLUniformLocation;// mat3
 
+		// -- skinning
+		jointDataUniform?: WebGLUniformLocation;        // sampler2D 
+		jointIndexOffsetUniform?: WebGLUniformLocation; // int
+
 		// -- mesh material
 		mainColourUniform: WebGLUniformLocation;        // vec4
 		specularUniform: WebGLUniformLocation;          // vec4
@@ -98,8 +102,18 @@ namespace sd.world {
 			pld.fragmentShader = render.makeShader(this.rc, gl.FRAGMENT_SHADER, fragmentSource);
 
 			// -- mandatory and optional attribute arrays
-			pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
 			pld.attributeNames.set(mesh.VertexAttributeRole.Normal, "vertexNormal");
+			
+			if (feat & Features.Skinned) {
+				pld.attributeNames.set(mesh.VertexAttributeRole.JointIndexes, "vertexJointIndexes");
+				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos0, "vertexWeightedPos0_bone");
+				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos1, "vertexWeightedPos0_bone");
+				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos2, "vertexWeightedPos0_bone");
+				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos3, "vertexWeightedPos0_bone");
+			}
+			else {
+				pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
+			}
 			if (feat & Features.VtxColour) {
 				pld.attributeNames.set(mesh.VertexAttributeRole.Colour, "vertexColour");
 			}
@@ -118,6 +132,10 @@ namespace sd.world {
 			program.mvpMatrixUniform = gl.getUniformLocation(program, "modelViewProjectionMatrix");
 			program.normalMatrixUniform = gl.getUniformLocation(program, "normalMatrix");
 			program.lightNormalMatrixUniform = gl.getUniformLocation(program, "lightNormalMatrix");
+
+			// -- vertex skinning data
+			program.jointDataUniform = gl.getUniformLocation(program, "jointData");
+			program.jointIndexOffsetUniform = gl.getUniformLocation(program, "jointIndexOffset");
 
 			// -- material properties
 			program.mainColourUniform = gl.getUniformLocation(program, "mainColour");
@@ -211,14 +229,16 @@ namespace sd.world {
 			
 			// In
 			if (feat & Features.Skinned) {
-				line("attribute ivec4 vertexJointIndexes;");
-				line("attribute vec4 vertexWeightedPos_bone[4];");
-				line("attribute vec3 vertexNormal_bone[4];");
+				line("attribute vec4 vertexJointIndexes;");
+				line("attribute vec4 vertexWeightedPos0_bone;");
+				line("attribute vec4 vertexWeightedPos1_bone;");
+				line("attribute vec4 vertexWeightedPos2_bone;");
+				line("attribute vec4 vertexWeightedPos3_bone;");
 			}
 			else {
 				line("attribute vec3 vertexPos_model;");
-				line("attribute vec3 vertexNormal;");
 			}
+			line  ("attribute vec3 vertexNormal;");
 			if_all("attribute vec2 vertexUV;", Features.VtxUV);
 			if_all("attribute vec3 vertexColour;", Features.VtxColour);
 
@@ -236,24 +256,61 @@ namespace sd.world {
 			line  ("uniform mat4 modelViewProjectionMatrix;");
 			if_all("uniform mat4 lightViewProjectionMatrix;", Features.ShadowMap);
 			line  ("uniform mat3 normalMatrix;");
+
 			if_all("uniform vec4 texScaleOffset;", Features.VtxUV);
+
+			if_all("uniform sampler2D jointData;", Features.Skinned);
+			if_all("uniform int jointIndexOffset;", Features.Skinned);
+
+
+			// Joint structure and getIndexedJoint() getter
+			if (feat & Features.Skinned) {
+				line("struct Joint {");
+				line("	vec3 position_model;");
+				line("	vec4 rotation_model;");
+				line("	vec4 origRotation_model;");
+				line("	mat4 transform_model;");
+				line("};");
+
+				// The jointData texture is 256x256 xyzw texels.
+				// Each joint takes up 8 texels, 7 of which contain the Joint structure data
+				// The sampler must be set up with nearest neighbour filtering and have no mipmaps
+				line("Joint getIndexedJoint(float jointIndex) {");
+				line("	jointIndex += float(jointIndexOffset);");
+				line("	float row = floor(jointIndex / 32.0) + 0.5;");
+				line("	float col = (mod(jointIndex, 32.0) * 8.0) + 0.5;");
+				line("	Joint j;");
+				line("	j.position_model = texture2DLod(jointData, vec2(col, row), 0.0).xyz;");
+				line("	j.rotation_model = texture2DLod(jointData, vec2(col + 1.0, row), 0.0);");
+				line("	j.origRotation_model = texture2DLod(jointData, vec2(col + 2.0, row), 0.0);");
+				line("	j.transform_model[0] = texture2DLod(jointData, vec2(col + 3.0, row), 0.0);");
+				line("	j.transform_model[1] = texture2DLod(jointData, vec2(col + 4.0, row), 0.0);");
+				line("	j.transform_model[2] = texture2DLod(jointData, vec2(col + 5.0, row), 0.0);");
+				line("	j.transform_model[3] = texture2DLod(jointData, vec2(col + 6.0, row), 0.0);");
+				line("	return j;");
+				line("}");
+			}
 
 			// main()
 			line  ("void main() {");
 
 			if (feat & Features.Skinned) {
-				line("vec3 vertexPos_model = vec3(0.0, 0.0, 0.0);");
-				line("vec3 vertexNormal = vec3(0.0, 0.0, 0.0);");
-				line("for (int vji = 0; vji < 4; ++vji) {");
-				line("	int jointIndex = vertexJointIndexes[vji];");
-				line("	if (jointIndex > -1) {");
-				line("		vec3 tempPos = joints[jointIndex].rotation * vertexWeightedPos_bone[vji].xyz;"); // FAIL, non constant or loop-index array access
-				line("		vec3 tempNorm = joints[jointIndex].rotation * vertexNormal_bone[vji];"); // FAIL, non constant or loop-index array access
-				line("		vertexPos_model += (joints[jointIndex].position + tempPos) * vertexWeightedPos_bone[vji].w;");
-				line("		vertexNormal += tempNorm * vertexWeightedPos_bone[vji].w;");
+				line("	vec3 vertexPos_model = vec3(0.0, 0.0, 0.0);");
+				// line("	vec3 vertexNormal = vec3(0.0, 0.0, 1.0);");
+				line("	vec4 weightedPos_bone[4];");
+				line("	weightedPos_bone[0] = vertexWeightedPos0_bone;");
+				line("	weightedPos_bone[1] = vertexWeightedPos1_bone;");
+				line("	weightedPos_bone[2] = vertexWeightedPos2_bone;");
+				line("	weightedPos_bone[3] = vertexWeightedPos3_bone;");
+				line("	for (int vji = 0; vji < 4; ++vji) {");
+				line("		float jointIndex = vertexJointIndexes[vji];");
+				line("		if (jointIndex > -1.0) {");
+				line("			Joint j = getIndexedJoint(jointIndex);");
+				line("			vec4 weightedPos = weightedPos_bone[vji];");
+				line("			vec3 tempPos = (j.transform_model * vec4(weightedPos.xyz, 1.0)).xyz;");
+				line("			vertexPos_model += tempPos * weightedPos.w;");
+				line("		}");
 				line("	}");
-				line("	normalize(vertexNormal);");
-				line("}");
 			}
 
 			line  ("	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);");
@@ -290,7 +347,7 @@ namespace sd.world {
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
 			// Uniforms
-			line("uniform mat3 lightNormalMatrix;");
+			line  ("uniform mat3 lightNormalMatrix;");
 
 			// -- material
 			line  ("uniform vec4 mainColour;");
