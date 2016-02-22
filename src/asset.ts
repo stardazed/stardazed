@@ -101,11 +101,11 @@ namespace sd.asset {
 
 	export interface Joint {
 		root: boolean;
-		size: number;
+		size?: number;
 
 		// Direct link to WVG, later on this should be done indirectly
 		// so a single skeleton can link against many Meshes
-		vertexGroup: WeightedVertexGroup;
+		vertexGroup?: WeightedVertexGroup;
 	}
 
 

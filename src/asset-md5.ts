@@ -190,18 +190,6 @@ namespace sd.asset {
 			}
 
 
-			function calcQuatW(q: Float4) {
-				var t = 1.0 - (q[0] * q[0]) - (q[1] * q[1]) - (q[2] * q[2]);
-
-				if (t < 0) {
-					q[3] = 0;
-				}
-				else {
-					q[3] = -Math.sqrt(t);
-				}
-			}
-
-
 			export interface MD5MeshDelegate {
 				jointCount(count: number): void;
 				beginJoints(): void;
@@ -410,7 +398,7 @@ namespace sd.asset {
 									if (quatX && quatY && quatZ && this.expectNext(TokenType.CloseVector)) {
 										var pos = [<number>posX.val, <number>posY.val, <number>posZ.val];
 										var rot = [<number>quatX.val, <number>quatY.val, <number>quatZ.val, 0];
-										calcQuatW(rot);
+										quat.calculateW(rot, rot);
 
 										this.delegate_.joint(<string>name.val, this.jointCount_ - jointsLeft, <number>parentIndex.val, pos, rot);
 									}
@@ -480,63 +468,72 @@ namespace sd.asset {
 
 
 		export class MD5MeshBuilder implements parse.MD5MeshDelegate {
-			constructor(filePath: string) {
+			private joints: Model[] = [];
+			private flatJoints = new Map<number, Model>();
+
+			constructor(private filePath: string) {
 			}
 
 			jointCount(count: number) {
-				console.info("Joint Count " + count);
 			}
 
 			beginJoints() {
-				console.info("Joints >>>");
 			}
 
 			joint(name: string, index: number, parentIndex: number, modelPos: Float3, modelRot: Float4) {
-				console.info("Joint", arguments);
+				var jm = makeModel(name, index);
+				jm.joint = { root: parentIndex == -1 };
+				this.flatJoints.set(index, jm);
+
+				jm.transform.position = modelPos;
+				jm.transform.rotation = modelRot;
+				// if (parentIndex > -1) {
+				// 	var pjm = this.flatJoints.get(parentIndex);
+				// 	pjm.children.push(jm);
+				// 	jm.parent = pjm;
+
+				// 	// place joint in parent's local space
+				// 	var inverseParentRot = quat.invert([], pjm.transform.rotation);
+				// 	quat.mul(jm.transform.rotation, inverseParentRot, jm.transform.rotation);
+				// 	vec3.sub(jm.transform.position, jm.transform.position, pjm.transform.position);
+				// 	vec3.transformQuat(jm.transform.position, jm.transform.position, inverseParentRot);
+				// }
+				// else {
+					this.joints.push(jm);
+				// }
 			}
 
 			endJoints() {
-				console.info("<<< /Joints");
 			}
 
 			meshCount(count: number) {
-				console.info("Mesh Count " + count);
 			}
 
 			beginMesh() {
-				console.info("Mesh >>>");
 			}
 
 			materialName(name: string) {
-				console.info("Material " + name);
 			}
 
 			vertexCount(count: number) {
-				console.info("Vertex Count " + count);
 			}
 
 			vertex(index: number, uv: Float2, weightOffset: number, weightCount: number) {
-				// console.info("Vert #" + index, uv, weightOffset, weightCount);
 			}
 
 			triangleCount(count: number) {
-				console.info("Triangle Count " + count);
 			}
 
 			triangle(index: number, indexes: Float3) {
-				// console.info("Tri #" + index, indexes);
 			}
 
 			weightCount(count: number) {
-				console.info("Weight Count " + count);
 			}
 
 			weight(index: number, jointIndex: number, bias: number, jointPos: Float3) {
-				// console.info("Weight #" + index, arguments);
 			}
 
 			endMesh() {
-				console.info("<<< /Mesh");
 			}
 
 			error(msg: string, offset: number, token?: string) {
@@ -544,14 +541,22 @@ namespace sd.asset {
 			}
 
 			completed() {
-				console.info("Done!");
+				console.info("J", this.joints);
+			}
+
+			assets() {
+				var ag = new AssetGroup();
+				for (var m of this.joints) {
+					ag.addModel(m);
+				}
+				return ag;
 			}
 		}
 
 	} // ns md5
 
 
-	function parseMD5MeshSource(filePath: string, source: string) {
+	function parseMD5MeshSource(filePath: string, source: string): AssetGroup {
 		var t0 = performance.now();
 		var del = new md5.MD5MeshBuilder(filePath);
 		var parser = new md5.parse.MD5MeshParser(source, del);
@@ -560,6 +565,7 @@ namespace sd.asset {
 		// 	console.info("fbx total time: " + (performance.now() - t0).toFixed(1) + "ms");
 		// 	return grp;
 		// });
+		return del.assets();
 	}
 	
 
