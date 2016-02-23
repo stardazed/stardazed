@@ -467,11 +467,60 @@ namespace sd.asset {
 		} // ns parse
 
 
+		interface VertexData {
+			uvs: Float32Array;
+			weightOffsetsCounts: Int32Array;
+		}
+
+
+		interface WeightData {
+			joints: Int32Array;
+			biases: Float32Array;
+			positions: Float32Array;
+		}
+
+
+		function constructBindPosePositions(vertexes: VertexData, weights: WeightData, joints: Model[]) {
+			var count = vertexes.uvs.length / 2;
+			var positions = new Float32Array(count * 3);
+
+			for (var vix = 0; vix < count; ++vix) {
+				var vpos = [0, 0, 0];
+				var vOff2 = vix * 2;
+				var vOff3 = vix * 3;
+
+				var weightStart = vertexes.weightOffsetsCounts[vOff2];
+				var weightEnd = weightStart + vertexes.weightOffsetsCounts[vOff2 + 1];
+
+				for (var wix = weightStart; wix < weightEnd; ++wix) {
+					var jix = weights.joints[wix];
+					var joint = joints[jix].transform;
+					var bias = weights.biases[wix];
+					var weightPos = container.copyIndexedVec3(weights.positions, wix);
+
+					var weightRelPos = vec3.transformQuat([], weightPos, joint.rotation);
+					vec3.add(weightRelPos, weightRelPos, joint.position);
+					vec3.scaleAndAdd(vpos, vpos, weightRelPos, bias);
+				}
+
+				container.setIndexedVec3(positions, vix, vpos);
+			}
+
+			return positions;
+		}
+
+
 		export class MD5MeshBuilder implements parse.MD5MeshDelegate {
 			private joints: Model[] = [];
-			private flatJoints = new Map<number, Model>();
+
+			private vertexes: VertexData;
+			private triangles: Int32Array;
+			private weights: WeightData;
+			private assets_: AssetGroup;
+			private curMaterial: Material;
 
 			constructor(private filePath: string) {
+				this.assets_ = new AssetGroup();
 			}
 
 			jointCount(count: number) {
@@ -481,26 +530,23 @@ namespace sd.asset {
 			}
 
 			joint(name: string, index: number, parentIndex: number, modelPos: Float3, modelRot: Float4) {
+				var fullTranslation = (m: Model) => {
+					var trans = [0, 0, 0];
+					while (m) {
+						vec3.add(trans, trans, m.transform.position);
+						m = m.parent;
+					}
+					return trans;
+				};
+
 				var jm = makeModel(name, index);
 				jm.joint = { root: parentIndex == -1 };
-				this.flatJoints.set(index, jm);
 
-				jm.transform.position = modelPos;
-				jm.transform.rotation = modelRot;
-				// if (parentIndex > -1) {
-				// 	var pjm = this.flatJoints.get(parentIndex);
-				// 	pjm.children.push(jm);
-				// 	jm.parent = pjm;
+				vec3.copy(jm.transform.position, modelPos);
+				quat.copy(jm.transform.rotation, modelRot);
 
-				// 	// place joint in parent's local space
-				// 	var inverseParentRot = quat.invert([], pjm.transform.rotation);
-				// 	quat.mul(jm.transform.rotation, inverseParentRot, jm.transform.rotation);
-				// 	vec3.sub(jm.transform.position, jm.transform.position, pjm.transform.position);
-				// 	vec3.transformQuat(jm.transform.position, jm.transform.position, inverseParentRot);
-				// }
-				// else {
-					this.joints.push(jm);
-				// }
+				this.joints.push(jm);
+				this.assets_.addModel(jm);
 			}
 
 			endJoints() {
@@ -510,30 +556,119 @@ namespace sd.asset {
 			}
 
 			beginMesh() {
+				this.vertexes = null;
+				this.triangles = null;
+				this.weights = null;
 			}
 
 			materialName(name: string) {
+				var m = makeMaterial();
+				vec3.set(m.diffuseColour, 0.8, 0.8, 0.8);
+				this.assets_.addMaterial(m);
+				this.curMaterial = m;
 			}
 
 			vertexCount(count: number) {
+				if (count == 0) {
+					this.vertexes = null;
+				}
+				else {
+					this.vertexes = {
+						uvs: new Float32Array(count * 2),
+						weightOffsetsCounts: new Int32Array(count * 2)
+					};
+				}
 			}
 
 			vertex(index: number, uv: Float2, weightOffset: number, weightCount: number) {
+				var io = index * 2;
+				this.vertexes.uvs[io] = uv[0];
+				this.vertexes.uvs[io + 1] = uv[1];
+				this.vertexes.weightOffsetsCounts[io] = weightOffset;
+				this.vertexes.weightOffsetsCounts[io + 1] = weightCount;
 			}
 
 			triangleCount(count: number) {
+				if (count == 0) {
+					this.triangles = null;
+				}
+				else {
+					this.triangles = new Int32Array(count * 3);
+				}
 			}
 
 			triangle(index: number, indexes: Float3) {
+				container.setIndexedVec3(this.triangles, index, indexes);
 			}
 
 			weightCount(count: number) {
+				if (count == 0) {
+					this.weights = null;
+				}
+				else {
+					this.weights = {
+						joints: new Int32Array(count),
+						biases: new Float32Array(count),
+						positions: new Float32Array(count * 3)
+					};
+				}
 			}
 
 			weight(index: number, jointIndex: number, bias: number, jointPos: Float3) {
+				this.weights.joints[index] = jointIndex;
+				this.weights.biases[index] = bias;
+				container.setIndexedVec3(this.weights.positions, index, jointPos);
 			}
 
 			endMesh() {
+				if (this.vertexes && this.triangles && this.weights) {
+					var positions = constructBindPosePositions(this.vertexes, this.weights, this.joints);
+					
+					var streams: mesh.VertexAttributeStream[] = [
+						{
+							name: "normals",
+							attr: { field: mesh.VertexField.Floatx3, role: mesh.VertexAttributeRole.Normal },
+							mapping: mesh.VertexAttributeMapping.Vertex,
+							includeInMesh: true,
+							values: new Float32Array(positions.length)
+						},
+						{
+							name: "uvs",
+							attr: { field: mesh.VertexField.Floatx2, role: mesh.VertexAttributeRole.UV },
+							mapping: mesh.VertexAttributeMapping.Vertex,
+							includeInMesh: true,
+							values: this.vertexes.uvs
+						}
+					];
+
+					var mb = new mesh.MeshBuilder(positions, streams);
+					mb.nextGroup(0);
+					var triCount = this.triangles.length / 3;
+					var pvi = 0;
+					var pi = 0;
+					while (triCount--) {
+						mb.addPolygon([pvi, pvi + 1, pvi + 2], container.copyIndexedVec3(this.triangles, pi));
+						pvi += 3;
+						pi += 1;
+					}
+
+					var md = mb.complete();
+					md.genVertexNormals();
+					var sdMesh: Mesh = {
+						name: "",
+						userRef: 0,
+						meshData: md,
+						indexMap: mb.indexMap,
+						positions: positions,
+						streams: streams
+					};
+					this.assets_.addMesh(sdMesh);
+
+					var mm = makeModel("mesh");
+					mm.mesh = sdMesh;
+					mm.materials = [this.curMaterial];
+					this.assets_.addModel(mm);
+				}
 			}
 
 			error(msg: string, offset: number, token?: string) {
@@ -541,15 +676,10 @@ namespace sd.asset {
 			}
 
 			completed() {
-				console.info("J", this.joints);
 			}
 
 			assets() {
-				var ag = new AssetGroup();
-				for (var m of this.joints) {
-					ag.addModel(m);
-				}
-				return ag;
+				return this.assets_;
 			}
 		}
 
