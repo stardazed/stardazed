@@ -229,7 +229,7 @@ namespace sd.asset {
 
 
 				private unexpected(token: Token, message?: string) {
-					if (! message) {
+					if (!message) {
 						message = (token.type == TokenType.Invalid) ? "Invalid token" : "Unexpected token";
 					}
 					this.delegate_.error(message, token.offset, token.val && token.val.toString());
@@ -377,6 +377,14 @@ namespace sd.asset {
 					}
 				}
 
+				computeW(q: Float4) {
+					var t = 1.0 - (q[0] * q[0]) - (q[1] * q[1]) - (q[2] * q[2]);
+
+					if (t < 0.0)
+						q[3] = 0.0;
+					else
+						q[3] = -Math.sqrt(t);
+				}
 
 				private parseJoints() {
 					var jointsLeft = this.jointCount_;
@@ -398,7 +406,7 @@ namespace sd.asset {
 									if (quatX && quatY && quatZ && this.expectNext(TokenType.CloseVector)) {
 										var pos = [<number>posX.val, <number>posY.val, <number>posZ.val];
 										var rot = [<number>quatX.val, <number>quatY.val, <number>quatZ.val, 0];
-										quat.calculateW(rot, rot);
+										this.computeW(rot);
 
 										this.delegate_.joint(<string>name.val, this.jointCount_ - jointsLeft, <number>parentIndex.val, pos, rot);
 									}
@@ -480,7 +488,7 @@ namespace sd.asset {
 		}
 
 
-		function constructBindPosePositions(vertexes: VertexData, weights: WeightData, joints: Model[]) {
+		function constructBindPosePositions(vertexes: VertexData, weights: WeightData, joints: Transform[]) {
 			var count = vertexes.uvs.length / 2;
 			var positions = new Float32Array(count * 3);
 
@@ -494,7 +502,7 @@ namespace sd.asset {
 
 				for (var wix = weightStart; wix < weightEnd; ++wix) {
 					var jix = weights.joints[wix];
-					var joint = joints[jix].transform;
+					var joint = joints[jix];
 					var bias = weights.biases[wix];
 					var weightPos = container.copyIndexedVec3(weights.positions, wix);
 
@@ -511,13 +519,14 @@ namespace sd.asset {
 
 
 		export class MD5MeshBuilder implements parse.MD5MeshDelegate {
-			private joints: Model[] = [];
-
+			private joints: Transform[] = [];
+			private flatJointModels = new Map<number, Model>();
 			private vertexes: VertexData;
 			private triangles: Int32Array;
 			private weights: WeightData;
 			private assets_: AssetGroup;
 			private curMaterial: Material;
+			private meshCount_ = 0;
 
 			constructor(private filePath: string) {
 				this.assets_ = new AssetGroup();
@@ -530,23 +539,34 @@ namespace sd.asset {
 			}
 
 			joint(name: string, index: number, parentIndex: number, modelPos: Float3, modelRot: Float4) {
-				var fullTranslation = (m: Model) => {
-					var trans = [0, 0, 0];
-					while (m) {
-						vec3.add(trans, trans, m.transform.position);
-						m = m.parent;
-					}
-					return trans;
-				};
-
 				var jm = makeModel(name, index);
 				jm.joint = { root: parentIndex == -1 };
+				this.joints.push({
+					position: modelPos,
+					rotation: modelRot,
+					scale: [1, 1, 1]
+				});
+				this.flatJointModels.set(index, jm);
 
 				vec3.copy(jm.transform.position, modelPos);
 				quat.copy(jm.transform.rotation, modelRot);
+				
+				if (parentIndex > -1) {
+					var pj = this.joints[parentIndex];
+					var pjm = this.flatJointModels.get(parentIndex);
+					pjm.children.push(jm);
+					jm.parent = pjm;
 
-				this.joints.push(jm);
-				this.assets_.addModel(jm);
+					var invParentQuat = quat.invert([], pj.rotation);
+					quat.mul(jm.transform.rotation, invParentQuat, jm.transform.rotation);
+
+					var parentMat = mat4.fromRotationTranslation([], pj.rotation, pj.position);
+					var invParentMat = mat4.invert([], parentMat);
+					vec3.transformMat4(jm.transform.position, jm.transform.position, invParentMat);
+				}
+				else {
+					this.assets_.addModel(jm);
+				}
 			}
 
 			endJoints() {
@@ -656,7 +676,7 @@ namespace sd.asset {
 					md.genVertexNormals();
 					var sdMesh: Mesh = {
 						name: "",
-						userRef: 0,
+						userRef: this.meshCount_++,
 						meshData: md,
 						indexMap: mb.indexMap,
 						positions: positions,
