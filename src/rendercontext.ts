@@ -13,6 +13,8 @@ namespace sd.render {
 		ext32bitIndexes: OESElementIndexUint;
 		extDrawBuffers: WebGLDrawBuffers;
 		extDepthTexture: WebGLDepthTexture;
+		extTextureFloat: OESTextureFloat;
+		extTextureFloatLinear: OESTextureFloatLinear;
 		extS3TC: WebGLCompressedTextureS3TC;
 		extMinMax: EXTBlendMinMax;
 		extTexAnisotropy: EXTTextureFilterAnisotropic;
@@ -113,6 +115,10 @@ namespace sd.render {
 		dte = dte || gl.getExtension("WEBKIT_WEBGL_depth_texture");
 		dte = dte || gl.getExtension("MOZ_WEBGL_depth_texture");
 
+		// float textures
+		var ftx = gl.getExtension("OES_texture_float");
+		var ftl = gl.getExtension("OES_texture_float_linear");
+
 		// enable S3TC (desktop only)
 		var s3tc = gl.getExtension("WEBGL_compressed_texture_s3tc");
 		s3tc = s3tc || gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
@@ -142,6 +148,8 @@ namespace sd.render {
 			ext32bitIndexes: eiu,
 			extDrawBuffers: mdb,
 			extDepthTexture: dte,
+			extTextureFloat: ftx,
+			extTextureFloatLinear: ftl,
 			extS3TC: s3tc,
 			extMinMax: bmm,
 			extTexAnisotropy: txa,
