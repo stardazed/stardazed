@@ -517,6 +517,107 @@ namespace sd.asset {
 		}
 
 
+		function constructJointDataTexture(joints: Transform[]): Texture2D {
+			var texData = new Float32Array(256 * 256 * 4);
+			for (var ji = 0; ji < joints.length; ++ji) {
+				var j = joints[ji];
+				var pos = [j.position[0], j.position[1], j.position[2], 0];
+				var texelBaseIndex = ji * 8;
+
+				var xform = mat4.fromRotationTranslation([], j.rotation, j.position);
+
+				container.setIndexedVec4(texData, texelBaseIndex, pos);
+				container.setIndexedVec4(texData, texelBaseIndex + 1, j.rotation);
+				container.setIndexedVec4(texData, texelBaseIndex + 2, j.rotation);
+				container.setIndexedMat4(texData, (ji * 2) + 1, xform);
+			}
+
+			var td = render.makeTexDesc2D(render.PixelFormat.RGBA32F, 256, 256, render.UseMipMaps.No);
+			td.pixelData = [texData];
+			td.sampling.magFilter = render.TextureSizingFilter.Nearest;
+			td.sampling.minFilter = render.TextureSizingFilter.Nearest;
+			td.sampling.repeatS = render.TextureRepeatMode.ClampToEdge;
+			td.sampling.repeatT = render.TextureRepeatMode.ClampToEdge;
+
+			return {
+				name: "jointData",
+				userRef: 1000,
+				descriptor: td,
+				useMipMaps: render.UseMipMaps.No
+			};
+		}
+
+
+		function constructSkinnedMeshStreams(vertexes: VertexData, weights: WeightData) {
+			var count = vertexes.uvs.length / 2;
+			var jointIndexes = new Float32Array(count * 4);
+			var weightPos0 = new Float32Array(count * 4);
+			var weightPos1 = new Float32Array(count * 4);
+			var weightPos2 = new Float32Array(count * 4);
+			var weightPos3 = new Float32Array(count * 4);
+			var weightPosArray = [weightPos0, weightPos1, weightPos2, weightPos3];
+
+			for (var vix = 0; vix < count; ++vix) {
+				var vOff2 = vix * 2;
+				var vji = [-1, -1, -1, -1];
+
+				var weightStart = vertexes.weightOffsetsCounts[vOff2];
+				var weightCount = vertexes.weightOffsetsCounts[vOff2 + 1];
+
+				for (var wi = 0; wi < 4; ++wi) {
+					if (wi < weightCount) {
+						var jix = weights.joints[wi + weightStart];
+						var weightPos = container.copyIndexedVec3(weights.positions, wi + weightStart);
+						weightPos[3] = weights.biases[wi + weightStart];
+						
+						vji[wi] = jix;
+						container.setIndexedVec4(weightPosArray[wi], vix, weightPos);
+					}
+				}
+				container.setIndexedVec4(jointIndexes, vix, vji);
+			}
+
+			var streams: mesh.VertexAttributeStream[] = [
+				{
+					name: "weightPos0",
+					attr: { field: mesh.VertexField.Floatx4, role: mesh.VertexAttributeRole.WeightedPos0 },
+					mapping: mesh.VertexAttributeMapping.Vertex,
+					includeInMesh: true,
+					values: weightPos0
+				},
+				{
+					name: "weightPos1",
+					attr: { field: mesh.VertexField.Floatx4, role: mesh.VertexAttributeRole.WeightedPos1 },
+					mapping: mesh.VertexAttributeMapping.Vertex,
+					includeInMesh: true,
+					values: weightPos1
+				},
+				{
+					name: "weightPos2",
+					attr: { field: mesh.VertexField.Floatx4, role: mesh.VertexAttributeRole.WeightedPos2 },
+					mapping: mesh.VertexAttributeMapping.Vertex,
+					includeInMesh: true,
+					values: weightPos2
+				},
+				{
+					name: "weightPos3",
+					attr: { field: mesh.VertexField.Floatx4, role: mesh.VertexAttributeRole.WeightedPos3 },
+					mapping: mesh.VertexAttributeMapping.Vertex,
+					includeInMesh: true,
+					values: weightPos3
+				},
+				{
+					name: "jointIndexes",
+					attr: { field: mesh.VertexField.Floatx4, role: mesh.VertexAttributeRole.JointIndexes },
+					mapping: mesh.VertexAttributeMapping.Vertex,
+					includeInMesh: true,
+					values: jointIndexes
+				}
+			];
+			return streams;
+		}
+
+
 		export class MD5MeshBuilder implements parse.MD5MeshDelegate {
 			private joints: Transform[] = [];
 			private flatJointModels = new Map<number, Model>();
@@ -526,6 +627,7 @@ namespace sd.asset {
 			private assets_: AssetGroup;
 			private curMaterial: Material;
 			private meshCount_ = 0;
+			private jointDataTexture_: Texture2D = null;
 
 			constructor(private filePath: string) {
 				this.assets_ = new AssetGroup();
@@ -569,6 +671,7 @@ namespace sd.asset {
 			}
 
 			endJoints() {
+				this.jointDataTexture_ = constructJointDataTexture(this.joints);
 			}
 
 			meshCount(count: number) {
@@ -583,6 +686,8 @@ namespace sd.asset {
 			materialName(name: string) {
 				var m = makeMaterial();
 				vec3.set(m.diffuseColour, 0.8, 0.8, 0.8);
+				m.jointDataTexture = this.jointDataTexture_;
+				
 				this.assets_.addMaterial(m);
 				this.curMaterial = m;
 			}
@@ -642,23 +747,21 @@ namespace sd.asset {
 			endMesh() {
 				if (this.vertexes && this.triangles && this.weights) {
 					var positions = constructBindPosePositions(this.vertexes, this.weights, this.joints);
-					
-					var streams: mesh.VertexAttributeStream[] = [
-						{
-							name: "normals",
-							attr: { field: mesh.VertexField.Floatx3, role: mesh.VertexAttributeRole.Normal },
-							mapping: mesh.VertexAttributeMapping.Vertex,
-							includeInMesh: true,
-							values: new Float32Array(positions.length)
-						},
-						{
-							name: "uvs",
-							attr: { field: mesh.VertexField.Floatx2, role: mesh.VertexAttributeRole.UV },
-							mapping: mesh.VertexAttributeMapping.Vertex,
-							includeInMesh: true,
-							values: this.vertexes.uvs
-						}
-					];
+					var streams = constructSkinnedMeshStreams(this.vertexes, this.weights);
+					streams.push({
+						name: "normals",
+						attr: { field: mesh.VertexField.Floatx3, role: mesh.VertexAttributeRole.Normal },
+						mapping: mesh.VertexAttributeMapping.Vertex,
+						includeInMesh: true,
+						values: new Float32Array(positions.length)
+					});
+					streams.push({
+						name: "uvs",
+						attr: { field: mesh.VertexField.Floatx2, role: mesh.VertexAttributeRole.UV },
+						mapping: mesh.VertexAttributeMapping.Vertex,
+						includeInMesh: true,
+						values: this.vertexes.uvs
+					});
 
 					var mb = new mesh.MeshBuilder(positions, streams);
 					mb.nextGroup(0);

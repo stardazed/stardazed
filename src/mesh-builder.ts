@@ -122,7 +122,8 @@ namespace sd.mesh {
 				includeInMesh: true,
 				values: positions
 			};
-			this.streams_.unshift(positionStream);
+			this.streams_.push(positionStream);
+
 
 			// minor optimization as the element count will be requested many times
 			// also check for ambigious or incorrect grouping
