@@ -313,6 +313,11 @@ namespace sd.asset.fbx.parse {
 				key == "Smoothing" ||
 				key == "Visibility" ||
 				key == "Materials" ||
+				key == "TextureId" ||
+				key == "KnotVectorU" ||
+				key == "KnotVectorV" ||
+				key == "MultiplicityU" ||
+				key == "MultiplicityV" ||
 				key == "Indexes" ||
 				key == "KeyAttrFlags" ||
 				key == "KeyAttrRefCount")
@@ -336,6 +341,7 @@ namespace sd.asset.fbx.parse {
 				key == "UV" ||
 				key == "Colors" ||
 				key == "Weights" ||
+				key == "Points" ||
 				key == "KeyTime" ||
 				key == "Transform" ||
 				key == "TransformLink" ||

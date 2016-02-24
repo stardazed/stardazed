@@ -251,8 +251,14 @@ namespace sd.asset {
 				assert(set != null, "Unknown object class " + node.name);
 
 				if (node.name == "Model") {
-					if (subClass != "Mesh" && subClass != "Root" && subClass != "LimbNode") {
+					if (subClass != "Mesh" && subClass != "Root" && subClass != "LimbNode" && subClass != "Null") {
 						// ignore non-mesh, non-skeletal models
+						return;
+					}
+				}
+				else if (node.name == "Geometry") {
+					if (subClass != "Mesh") {
+						// only interpret mesh geometries for now (no NURBS based ones)
 						return;
 					}
 				}
@@ -638,7 +644,7 @@ namespace sd.asset {
 					for (let mco of fbxGeom.connectionsOut) {
 						var model = mco.toNode;
 						if (model.name == "Model") {
-							var sdModel = group.models.find(m => m.userRef == model.objectID);
+							var sdModel = this.flattenedModels.get(model.objectID);
 							sdModel.mesh = sdMesh;
 						}
 					}
