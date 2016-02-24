@@ -477,7 +477,6 @@ namespace sd.asset.fbx.parse {
 								this.skippingUntilDepth_ = 1000;
 							}
 
-
 							this.expect_ = Expect.Key;
 							if (this.depth_ > 0) {
 								this.expect_ |= Expect.Close;

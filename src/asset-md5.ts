@@ -495,7 +495,6 @@ namespace sd.asset {
 			for (var vix = 0; vix < count; ++vix) {
 				var vpos = [0, 0, 0];
 				var vOff2 = vix * 2;
-				var vOff3 = vix * 3;
 
 				var weightStart = vertexes.weightOffsetsCounts[vOff2];
 				var weightEnd = weightStart + vertexes.weightOffsetsCounts[vOff2 + 1];

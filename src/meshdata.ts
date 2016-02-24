@@ -201,25 +201,21 @@ namespace sd.mesh {
 
 		// basic attributes
 		Position,
+		Normal,
+		Tangent,
 		Colour,
 		Material,
 
-		// multiple UV sets
-		UV0,
+		// UV sets
+		UV,
+		UV0 = UV,
 		UV1,
 		UV2,
 		UV3,
 
 		// skinned mesh
-		Normal0, Normal1, Normal2, Normal3,
-		Tangent0, Tangent1, Tangent2, Tangent3,
 		WeightedPos0, WeightedPos1, WeightedPos2, WeightedPos3,
-		JointIndexes,
-
-		// normal mesh aliases
-		Normal = Normal0,
-		Tangent = Tangent0,
-		UV = UV0
+		JointIndexes
 	}
 
 	// -- A VertexAttribute is a Field with a certain Role inside a VertexBuffer
