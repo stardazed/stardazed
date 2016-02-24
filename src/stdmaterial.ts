@@ -35,6 +35,8 @@ namespace sd.world {
 		albedoMap: render.Texture;      // nullptr means use mainColour only
 		normalMap: render.Texture;      // nullptr means no bump
 
+		jointData: render.Texture;      // joint transforms
+
 		flags: StdMaterialFlags;
 	}
 
@@ -55,6 +57,8 @@ namespace sd.world {
 			albedoMap: null,
 			normalMap: null,
 
+			jointData: null,
+
 			flags: 0
 		};
 	}
@@ -66,6 +70,7 @@ namespace sd.world {
 		texScaleOffsetData: Float32Array;
 		albedoMap: render.Texture;
 		normalMap: render.Texture;
+		jointData: render.Texture;
 		flags: StdMaterialFlags;
 	}
 
@@ -88,6 +93,7 @@ namespace sd.world {
 		private instanceData_: container.MultiArrayBuffer;
 		private albedoMaps_: render.Texture[] = [];
 		private normalMaps_: render.Texture[] = [];
+		private jointDataMaps_: render.Texture[] = [];
 
 		private mainColourBase_: TypedArray;
 		private specularBase_: TypedArray;
@@ -139,6 +145,7 @@ namespace sd.world {
 
 			this.albedoMaps_[matIndex] = desc.albedoMap;
 			this.normalMaps_[matIndex] = desc.normalMap;
+			this.jointDataMaps_[matIndex] = desc.jointData;
 
 			return matIndex;
 		}
@@ -154,6 +161,7 @@ namespace sd.world {
 
 			this.albedoMaps_[matIndex] = null;
 			this.normalMaps_[matIndex] = null;
+			this.jointDataMaps_[matIndex] = null;
 
 			// TODO: track/reuse freed instances etc.
 		}
@@ -274,6 +282,15 @@ namespace sd.world {
 		}
 
 
+		jointData(inst: StdMaterialInstance): render.Texture {
+			return this.jointDataMaps_[<number>inst];
+		}
+
+		setJointData(inst: StdMaterialInstance, newTex: render.Texture) {
+			this.jointDataMaps_[<number>inst] = newTex;
+		}
+
+
 		flags(inst: StdMaterialInstance): StdMaterialFlags {
 			return this.flagsBase_[<number>inst];
 		}
@@ -304,6 +321,7 @@ namespace sd.world {
 
 				albedoMap: this.albedoMaps_[matIndex],
 				normalMap: this.normalMaps_[matIndex],
+				jointData: this.jointDataMaps_[matIndex],
 
 				flags: this.flagsBase_[matIndex]
 			};
@@ -320,6 +338,7 @@ namespace sd.world {
 
 				albedoMap: this.albedoMaps_[matIndex],
 				normalMap: this.normalMaps_[matIndex],
+				jointData: this.jointDataMaps_[matIndex],
 
 				flags: this.flagsBase_[matIndex]
 			};

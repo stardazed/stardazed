@@ -34,6 +34,7 @@ namespace sd.asset {
 		specularTexture: Texture2D;
 		normalTexture: Texture2D;
 		heightTexture: Texture2D;
+		jointDataTexture: Texture2D;
 		
 		transparency: number; // 0: fully opaque, 1: fully transparent
 	}
@@ -62,6 +63,7 @@ namespace sd.asset {
 			specularTexture: null,
 			normalTexture: null,
 			heightTexture: null,
+			jointDataTexture: null,
 			
 			transparency: 0
 		};
