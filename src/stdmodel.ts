@@ -64,7 +64,8 @@ namespace sd.world {
 	const enum TextureBindPoint {
 		Colour = 0, // rgb, (alpha|gloss)?
 		Normal = 1, // xyz, height?
-		Shadow = 2  
+		Shadow = 2,
+		JointData = 3
 	}
 
 
@@ -107,9 +108,9 @@ namespace sd.world {
 			if (feat & Features.Skinned) {
 				pld.attributeNames.set(mesh.VertexAttributeRole.JointIndexes, "vertexJointIndexes");
 				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos0, "vertexWeightedPos0_bone");
-				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos1, "vertexWeightedPos0_bone");
-				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos2, "vertexWeightedPos0_bone");
-				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos3, "vertexWeightedPos0_bone");
+				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos1, "vertexWeightedPos1_bone");
+				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos2, "vertexWeightedPos2_bone");
+				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos3, "vertexWeightedPos3_bone");
 			}
 			else {
 				pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
@@ -133,10 +134,6 @@ namespace sd.world {
 			program.normalMatrixUniform = gl.getUniformLocation(program, "normalMatrix");
 			program.lightNormalMatrixUniform = gl.getUniformLocation(program, "lightNormalMatrix");
 
-			// -- vertex skinning data
-			program.jointDataUniform = gl.getUniformLocation(program, "jointData");
-			program.jointIndexOffsetUniform = gl.getUniformLocation(program, "jointIndexOffset");
-
 			// -- material properties
 			program.mainColourUniform = gl.getUniformLocation(program, "mainColour");
 			program.specularUniform = gl.getUniformLocation(program, "specular");
@@ -154,6 +151,14 @@ namespace sd.world {
 			program.shadowMapUniform = gl.getUniformLocation(program, "shadowSampler");
 			if (program.shadowMapUniform) {
 				gl.uniform1i(program.shadowMapUniform, TextureBindPoint.Shadow);
+			}
+
+			// -- vertex skinning data
+			program.jointDataUniform = gl.getUniformLocation(program, "jointData");
+			program.jointIndexOffsetUniform = gl.getUniformLocation(program, "jointIndexOffset");
+			if (program.jointDataUniform) {
+				gl.uniform1i(program.jointDataUniform, TextureBindPoint.JointData);
+				gl.uniform1i(program.jointIndexOffsetUniform, 0);
 			}
 
 			// -- light property arrays
@@ -229,11 +234,11 @@ namespace sd.world {
 			
 			// In
 			if (feat & Features.Skinned) {
-				line("attribute vec4 vertexJointIndexes;");
 				line("attribute vec4 vertexWeightedPos0_bone;");
 				line("attribute vec4 vertexWeightedPos1_bone;");
 				line("attribute vec4 vertexWeightedPos2_bone;");
 				line("attribute vec4 vertexWeightedPos3_bone;");
+				line("attribute vec4 vertexJointIndexes;");
 			}
 			else {
 				line("attribute vec3 vertexPos_model;");
@@ -276,17 +281,18 @@ namespace sd.world {
 				// Each joint takes up 8 texels, 7 of which contain the Joint structure data
 				// The sampler must be set up with nearest neighbour filtering and have no mipmaps
 				line("Joint getIndexedJoint(float jointIndex) {");
-				line("	jointIndex += float(jointIndexOffset);");
-				line("	float row = floor(jointIndex / 32.0) + 0.5;");
+				// line("	jointIndex += float(jointIndexOffset);");
+				line("	float row = (floor(jointIndex / 32.0) + 0.5) / 256.0;");
 				line("	float col = (mod(jointIndex, 32.0) * 8.0) + 0.5;");
 				line("	Joint j;");
-				line("	j.position_model = texture2DLod(jointData, vec2(col, row), 0.0).xyz;");
-				line("	j.rotation_model = texture2DLod(jointData, vec2(col + 1.0, row), 0.0);");
-				line("	j.origRotation_model = texture2DLod(jointData, vec2(col + 2.0, row), 0.0);");
-				line("	j.transform_model[0] = texture2DLod(jointData, vec2(col + 3.0, row), 0.0);");
-				line("	j.transform_model[1] = texture2DLod(jointData, vec2(col + 4.0, row), 0.0);");
-				line("	j.transform_model[2] = texture2DLod(jointData, vec2(col + 5.0, row), 0.0);");
-				line("	j.transform_model[3] = texture2DLod(jointData, vec2(col + 6.0, row), 0.0);");
+				line("	j.position_model =     texture2D(jointData, vec2(col / 256.0, row)).xyz;");
+				line("	j.rotation_model =     texture2D(jointData, vec2((col + 1.0) / 256.0, row));");
+				line("	j.origRotation_model = texture2D(jointData, vec2((col + 2.0) / 256.0, row));");
+				// row 3 is reserved
+				line("	j.transform_model[0] = texture2D(jointData, vec2((col + 4.0) / 256.0, row));");
+				line("	j.transform_model[1] = texture2D(jointData, vec2((col + 5.0) / 256.0, row));");
+				line("	j.transform_model[2] = texture2D(jointData, vec2((col + 6.0) / 256.0, row));");
+				line("	j.transform_model[3] = texture2D(jointData, vec2((col + 7.0) / 256.0, row));");
 				line("	return j;");
 				line("}");
 			}
@@ -296,7 +302,6 @@ namespace sd.world {
 
 			if (feat & Features.Skinned) {
 				line("	vec3 vertexPos_model = vec3(0.0, 0.0, 0.0);");
-				// line("	vec3 vertexNormal = vec3(0.0, 0.0, 1.0);");
 				line("	vec4 weightedPos_bone[4];");
 				line("	weightedPos_bone[0] = vertexWeightedPos0_bone;");
 				line("	weightedPos_bone[1] = vertexWeightedPos1_bone;");
@@ -304,7 +309,7 @@ namespace sd.world {
 				line("	weightedPos_bone[3] = vertexWeightedPos3_bone;");
 				line("	for (int vji = 0; vji < 4; ++vji) {");
 				line("		float jointIndex = vertexJointIndexes[vji];");
-				line("		if (jointIndex > -1.0) {");
+				line("		if (jointIndex >= 0.0) {");
 				line("			Joint j = getIndexedJoint(jointIndex);");
 				line("			vec4 weightedPos = weightedPos_bone[vji];");
 				line("			vec3 tempPos = (j.transform_model * vec4(weightedPos.xyz, 1.0)).xyz;");
@@ -664,6 +669,7 @@ namespace sd.world {
 			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;
 
 			if (this.materialMgr_.albedoMap(material)) features |= Features.AlbedoMap;
+			if (this.materialMgr_.jointData(material)) features |= Features.Skinned;
 
 			// Bugfix: GL drivers can (and do) remove attributes that are only used in the vertex shader
 			var prePrune = features;
@@ -676,7 +682,6 @@ namespace sd.world {
 			// if (features != prePrune) {
 			// 	console.info("Filtered " + prePrune + " to " + features);
 			// }
-
 			return features;
 		}
 
@@ -871,6 +876,9 @@ namespace sd.world {
 				if (features & Features.AlbedoMap) {
 					rp.setTexture(materialData.albedoMap, TextureBindPoint.Colour);
 					gl.uniform4fv(program.texScaleOffsetUniform, materialData.texScaleOffsetData);
+				}
+				if (features & Features.Skinned) {
+					rp.setTexture(materialData.jointData, TextureBindPoint.JointData);
 				}
 
 				// -- light data FIXME: only update these when local light data was changed -> pos and rot can change as well
