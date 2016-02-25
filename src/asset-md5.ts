@@ -408,7 +408,7 @@ namespace sd.asset {
 			private baseFrame_: Transform[] = [];
 			private joints_: AnimJoint[] = [];
 
-			constructor(filePath: string) {
+			constructor(private filePath: string) {
 			}
 
 			frameCount(count: number) { this.frameCount_ = count; }
@@ -533,6 +533,22 @@ namespace sd.asset {
 			completed() {
 				console.info("DONE", this);
 			}
+
+
+			assets(): AssetGroup {
+				var ag = new AssetGroup();
+				var ja = this.joints_.map(j => j.anim);
+				var sa: SkeletonAnimation2 = {
+					frameCount: this.frameCount_,
+					frameTime: 1 / this.frameRate_,
+					name: this.filePath,
+					jointAnims: ja
+				};
+
+				ag.addSkeletonAnimation(sa);
+
+				return ag;
+			}
 		}
 
 	} // ns md5
@@ -560,8 +576,7 @@ namespace sd.asset {
 		// 	console.info("fbx total time: " + (performance.now() - t0).toFixed(1) + "ms");
 		// 	return grp;
 		// });
-		// return del.assets();
-		return null;
+		return del.assets();
 	}
 	
 
