@@ -371,45 +371,167 @@ namespace sd.asset {
 			}
 		}
 
+		/*
+			export const enum AnimationProperty2 {
+				None,
+				Translation,
+				Rotation
+			}
+
+			export interface JointAnimation2 {
+				jointRef: string | number;
+				properties: AnimationProperty2[];
+				keys: Float32Array[];
+			}
+
+			export interface SkeletonAnimation2 extends Asset {
+				frameTime: number;
+				frameCount: number;
+				jointAnims: JointAnimation2[];
+			}
+		*/
+
+		interface AnimJoint {
+			name: string;
+			parentIndex: number;
+			mask: parse.MD5AnimMask;
+			basePos?: Float3;
+			baseRot?: Float4;
+			anim?: JointAnimation2;
+		}
+
 
 		export class MD5AnimBuilder implements parse.MD5AnimDelegate {
+			private frameCount_ = 0;
+			private frameRate_ = 0;
+			private compCount_ = 0;
+			private baseFrame_: Transform[] = [];
+			private joints_: AnimJoint[] = [];
+
 			constructor(filePath: string) {
-
 			}
 
-			frameCount(count: number) { console.info("frameCount " + count); }
-			jointCount(count: number) { console.info("jointCount " + count); }
-			frameRate(fps: number) { console.info("frameRate " + fps); }
-			frameComponentCount(count: number) { console.info("frameComponentCount " + count); }
+			frameCount(count: number) { this.frameCount_ = count; }
+			jointCount(count: number) { }
+			frameRate(fps: number) { this.frameRate_ = fps; }
+			frameComponentCount(count: number) { this.compCount_ = count; }
 
-			beginHierarchy() { console.info("beginHierarchy"); }
+
+			private animForJoint(j: AnimJoint): JointAnimation2 {
+				if (j.mask == 0) {
+					return null;
+				}
+				var hasPos = (j.mask & 7) != 0;
+				var hasRot = (j.mask & 56) != 0;
+				var comps = 0;
+				if (hasPos) comps += 3;
+				if (hasRot) comps += 4;
+
+				var buffer = new Float32Array(comps * this.frameCount_);
+				var props: AnimationProperty2[] = [];
+				var keys: Float32Array[] = [];
+
+				if (hasPos) {
+					props.push(AnimationProperty2.Translation);
+					keys.push(buffer.subarray(0, 3 * this.frameCount_));
+				}
+				if (hasRot) {
+					props.push(AnimationProperty2.Rotation);
+					keys.push(buffer.subarray(3 * this.frameCount_));
+				}
+
+				return {
+					jointRef: j.name,
+					properties: props,
+					keys: keys
+				};
+			}
+
+
+			beginHierarchy() { }
 			joint(name: string, index: number, parentIndex: number, animMask: parse.MD5AnimMask, componentOffset: number) {
-				console.info("Joint", arguments);
+				var j: AnimJoint = {
+					name: name,
+					parentIndex: parentIndex,
+					mask: animMask
+				};
+				j.anim = this.animForJoint(j);
+				this.joints_.push(j);
 			}
-			endHierarchy() { console.info("endHierarchy"); }
+			endHierarchy() { }
 
-			beginBoundingBoxes() { console.info("beginBounds"); }
+
+			beginBoundingBoxes() { }
 			bounds(frameIndex: number, min: Float3, max: Float3) {
-				console.info("Bounds", min, max);
 			}
-			endBoundingBoxes() { console.info("endBounds"); }
+			endBoundingBoxes() { }
 
-			beginBaseFrame() { console.info("beginBaseFrame"); }
+
+			beginBaseFrame() { }
 			baseJoint(index: number, jointPos: Float3, jointRot: Float4) {
-				console.info("BaseJoint", jointPos, jointRot);
+				this.joints_[index].basePos = jointPos;
+				this.joints_[index].baseRot = jointRot;
+
+				var xf = makeTransform();
+				vec3.copy(xf.position, jointPos);
+				quat.copy(xf.rotation, jointRot);
+				this.baseFrame_.push(xf);
 			}
-			endBaseFrame() { console.info("endBaseFrame"); }
+			endBaseFrame() { }
+
 
 			frame(index: number, components: Float64Array) {
-				console.info("Frame " + index, components);
+				var compIx = 0;
+				
+				for (var jix = 0; jix < this.joints_.length; ++jix) {
+					var j = this.joints_[jix];
+					if (j.mask == 0) {
+						continue;
+					}
+
+					if (j.mask & 7) {
+						let finalPos = vec3.copy([], j.basePos);
+						if (j.mask & parse.MD5AnimMask.PosX) {
+							finalPos[0] = components[compIx++];
+						}
+						if (j.mask & parse.MD5AnimMask.PosY) {
+							finalPos[1] = components[compIx++];
+						}
+						if (j.mask & parse.MD5AnimMask.PosZ) {
+							finalPos[2] = components[compIx++];
+						}
+
+						container.setIndexedVec3(j.anim.keys[0], index, finalPos);						
+					}
+
+					if (j.mask & 56) {
+						let arrIx = ((j.mask & 7) != 0) ? 1 : 0;
+
+						let finalRot = vec3.copy([], j.baseRot); // only need first 3 floats
+						if (j.mask & parse.MD5AnimMask.QuatX) {
+							finalRot[0] = components[compIx++];
+						}
+						if (j.mask & parse.MD5AnimMask.QuatY) {
+							finalRot[1] = components[compIx++];
+						}
+						if (j.mask & parse.MD5AnimMask.QuatZ) {
+							finalRot[2] = components[compIx++];
+						}
+
+						parse.computeQuatW(finalRot);
+						container.setIndexedVec3(j.anim.keys[arrIx], index, finalRot);
+					}
+				}
 			}
+
 
 			error(msg: string, offset: number, token?: string) {
 				console.warn("MD5 Anim parse error @ offset " + offset + ": " + msg, token);
 			}
 
+
 			completed() {
-				console.info("DONE");
+				console.info("DONE", this);
 			}
 		}
 
@@ -427,6 +549,7 @@ namespace sd.asset {
 		// });
 		return del.assets();
 	}
+
 
 	function parseMD5AnimSource(filePath: string, source: string): AssetGroup {
 		var t0 = performance.now();
