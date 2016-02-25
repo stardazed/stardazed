@@ -686,6 +686,13 @@ namespace sd.asset {
 			materialName(name: string) {
 				var m = makeMaterial();
 				vec3.set(m.diffuseColour, 0.8, 0.8, 0.8);
+				if (name) {
+					m.diffuseTexture = {
+						name: name,
+						filePath: name,
+						useMipMaps: render.UseMipMaps.No
+					};
+				}
 				m.jointDataTexture = this.jointDataTexture_;
 				
 				this.assets_.addMaterial(m);
@@ -798,6 +805,34 @@ namespace sd.asset {
 			}
 
 			completed() {
+			}
+
+			private loadTextures() {
+				// var fileProms: Promise<Texture2D>[] = [];
+
+				// this.assets_.materials.forEach(mat => {
+				// 	if (!(mat.diffuseTexture && mat.diffuseTexture.filePath)) {
+				// 		return;
+				// 	}
+
+				// 	let resolvedFilePath = resolveRelativeFilePath(mat.diffuseTexture.filePath, this.filePath);
+				// 	fileProms.push(
+				// 		loadImage(resolvedFilePath).then((img) => {
+				// 			mat.diffuseTexture.descriptor = render.makeTexDesc2DFromImageSource(img, mat.diffuseTexture.useMipMaps);
+				// 			return mat.diffuseTexture;
+				// 		}).catch((error) => {
+				// 			console.warn(error);
+				// 			return <Texture2D>null;
+				// 		})
+				// 	);
+				// });
+
+				// return Promise.all(fileProms).then((textures) => {
+				// 	for (var tex of textures) {
+				// 		this.assets_.addTexture(tex);
+				// 	}
+				// 	return group;
+				// }, () => null);
 			}
 
 			assets() {
