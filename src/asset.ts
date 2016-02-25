@@ -85,6 +85,14 @@ namespace sd.asset {
 		scale: Float3;
 	}
 
+	export function makeTransform(): Transform {
+		return {
+			position: [0, 0, 0],
+			rotation: [0, 0, 0, 1],
+			scale: [1, 1, 1]
+		};
+	}
+
 
 	export interface Skin extends Asset {
 		groups: WeightedVertexGroup[];
@@ -139,6 +147,25 @@ namespace sd.asset {
 	}
 
 
+	export const enum AnimationProperty2 {
+		None,
+		Translation,
+		Rotation
+	}
+
+	export interface JointAnimation2 {
+		jointRef: number | string;
+		properties: AnimationProperty2[];
+		keys: Float32Array[];
+	}
+
+	export interface SkeletonAnimation2 extends Asset {
+		frameTime: number;
+		frameCount: number;
+		jointAnims: JointAnimation2[];
+	}
+
+
 	export interface Model extends Asset {
 		transform: Transform;
 		children: Model[];
@@ -149,6 +176,7 @@ namespace sd.asset {
 		materials?: Material[];
 		joint?: Joint;
 		animations?: AnimationTrack[];
+		jointAnims?: JointAnimation2;
 	}
 
 
@@ -156,11 +184,7 @@ namespace sd.asset {
 		return {
 			name: name,
 			userRef: ref,
-			transform: {
-				position: [0, 0, 0],
-				rotation: [0, 0, 0, 1],
-				scale: [1, 1, 1]
-			},
+			transform: makeTransform(),
 			children: [],
 			parent: null
 		};
@@ -173,6 +197,7 @@ namespace sd.asset {
 		materials: Material[] = [];
 		models: Model[] = [];
 		skins: Skin[] = [];
+		anims: SkeletonAnimation2[] = [];
 
 		addMesh(mesh: Mesh): number {
 			this.meshes.push(mesh);
@@ -197,6 +222,11 @@ namespace sd.asset {
 		addSkin(skin: Skin): number {
 			this.skins.push(skin);
 			return this.skins.length - 1;
+		}
+
+		addSkeletonAnimation(anim: SkeletonAnimation2) {
+			this.anims.push(anim);
+			return this.anims.length;
 		}
 	}
 
