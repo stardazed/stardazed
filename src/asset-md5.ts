@@ -371,6 +371,48 @@ namespace sd.asset {
 			}
 		}
 
+
+		export class MD5AnimBuilder implements parse.MD5AnimDelegate {
+			constructor(filePath: string) {
+
+			}
+
+			frameCount(count: number) { console.info("frameCount " + count); }
+			jointCount(count: number) { console.info("jointCount " + count); }
+			frameRate(fps: number) { console.info("frameRate " + fps); }
+			frameComponentCount(count: number) { console.info("frameComponentCount " + count); }
+
+			beginHierarchy() { console.info("beginHierarchy"); }
+			joint(name: string, index: number, parentIndex: number, animMask: parse.MD5AnimMask, componentOffset: number) {
+				console.info("Joint", arguments);
+			}
+			endHierarchy() { console.info("endHierarchy"); }
+
+			beginBoundingBoxes() { console.info("beginBounds"); }
+			bounds(frameIndex: number, min: Float3, max: Float3) {
+				console.info("Bounds", min, max);
+			}
+			endBoundingBoxes() { console.info("endBounds"); }
+
+			beginBaseFrame() { console.info("beginBaseFrame"); }
+			baseJoint(index: number, jointPos: Float3, jointRot: Float4) {
+				console.info("BaseJoint", jointPos, jointRot);
+			}
+			endBaseFrame() { console.info("endBaseFrame"); }
+
+			frame(index: number, components: Float64Array) {
+				console.info("Frame " + index, components);
+			}
+
+			error(msg: string, offset: number, token?: string) {
+				console.warn("MD5 Anim parse error @ offset " + offset + ": " + msg, token);
+			}
+
+			completed() {
+				console.info("DONE");
+			}
+		}
+
 	} // ns md5
 
 
@@ -385,10 +427,28 @@ namespace sd.asset {
 		// });
 		return del.assets();
 	}
+
+	function parseMD5AnimSource(filePath: string, source: string): AssetGroup {
+		var t0 = performance.now();
+		var del = new md5.MD5AnimBuilder(filePath);
+		var parser = new md5.parse.MD5AnimParser(source, del);
+		parser.parse();
+		// return del.assets.then(grp => {
+		// 	console.info("fbx total time: " + (performance.now() - t0).toFixed(1) + "ms");
+		// 	return grp;
+		// });
+		// return del.assets();
+		return null;
+	}
 	
 
 	export function loadMD5Mesh(filePath: string) {
 		return loadFile(filePath).then((text: string) => parseMD5MeshSource(filePath, text));
+	}
+
+
+	export function loadMD5Anim(filePath: string) {
+		return loadFile(filePath).then((text: string) => parseMD5AnimSource(filePath, text));	
 	}
 
 } // ns sd.asset

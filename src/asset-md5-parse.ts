@@ -502,4 +502,251 @@ namespace sd.asset.md5.parse {
 		}
 	}
 
+
+	export const enum MD5AnimMask {
+		PosX = 1,
+		PosY = 2,
+		PosZ = 4,
+		QuatX = 8,
+		QuatY = 16,
+		QuatZ = 32
+	}
+
+
+	export interface MD5AnimDelegate extends MD5ParserDelegate {
+		frameCount(count: number): void;
+		jointCount(count: number): void;
+		frameRate(fps: number): void;
+		frameComponentCount(count: number): void;
+
+		beginHierarchy(): void;
+		joint(name: string, index: number, parentIndex: number, animMask: MD5AnimMask, componentOffset: number): void;
+		endHierarchy(): void;
+
+		beginBoundingBoxes(): void;
+		bounds(frameIndex: number, min: Float3, max: Float3): void;
+		endBoundingBoxes(): void;
+
+		beginBaseFrame(): void;
+		baseJoint(index: number, jointPos: Float3, jointRot: Float4): void;
+		endBaseFrame(): void;
+
+		frame(index: number, components: Float64Array): void;
+	}
+
+
+	export class MD5AnimParser {
+		private jointCount_ = -1;
+		private baseJointCount_ = -1;
+		private frameCount_ = -1;
+		private boundsCount_ = -1;
+		private frameComponentCount_ = -1;
+		private parser_: MD5Parser;
+
+		constructor(source: string, private delegate_: MD5AnimDelegate) {
+			this.parser_ = new MD5Parser(source, delegate_);
+		}
+
+
+		private parseHierarchy() {
+			var maxParentIndex = this.jointCount_ - 2;
+			var index = 0;
+
+			if (this.parser_.expectNext(TokenType.OpenBlock)) {
+				while (!this.parser_.stop && this.jointCount_ > 0) {
+					var nameTok = this.parser_.expectNext(TokenType.String);
+					var parentTok = this.parser_.expectNext(TokenType.Number);
+					var maskTok = this.parser_.expectNext(TokenType.Number);
+					var offsetTok = this.parser_.expectNext(TokenType.Number);
+
+					if (nameTok && parentTok && maskTok && offsetTok) {
+						var parent = <number>parentTok.val | 0;
+						var mask = <number>maskTok.val | 0;
+						var offset = <number>offsetTok.val | 0;
+
+						if (parent < -1 || parent > maxParentIndex) {
+							this.parser_.unexpected(parentTok, "Invalid parent index");
+						}
+						else if (mask < 0 || mask > 63) {
+							this.parser_.unexpected(parentTok, "Invalid component mask");
+						}
+						else if (offset < 0 || offset >= this.frameComponentCount_) {
+							this.parser_.unexpected(parentTok, "Invalid component offset");
+						}
+						else {
+							this.delegate_.joint(<string>nameTok.val, index, parent, mask, offset);
+							--this.jointCount_;
+							++index;
+						}
+					}
+				}
+
+				if (this.jointCount_ == 0) {
+					this.parser_.expectNext(TokenType.CloseBlock);
+				}
+			}
+		}
+
+
+		private parseVec3() {
+			if (this.parser_.expectNext(TokenType.OpenVector)) {
+				var a = this.parser_.expectNext(TokenType.Number);
+				var b = this.parser_.expectNext(TokenType.Number);
+				var c = this.parser_.expectNext(TokenType.Number);
+
+				if (a && b && c && this.parser_.expectNext(TokenType.CloseVector)) {
+					return [<number>a.val, <number>b.val, <number>c.val];
+				}
+			}
+			return null;
+		}
+
+
+		private parseBounds() {
+			var index = 0;
+
+			if (this.parser_.expectNext(TokenType.OpenBlock)) {
+				while (this.boundsCount_ > 0 && !this.parser_.stop) {
+					var min = this.parseVec3();
+					var max = this.parseVec3();
+
+					if (min && max) {
+						this.delegate_.bounds(index, min, max);
+						++index;
+						--this.boundsCount_;
+					}
+				}
+
+				if (this.boundsCount_ == 0) {
+					this.parser_.expectNext(TokenType.CloseBlock);
+				}
+			}
+		}
+
+
+		private parseBaseFrame() {
+			var index = 0;
+
+			if (this.parser_.expectNext(TokenType.OpenBlock)) {
+				while (this.baseJointCount_ > 0 && !this.parser_.stop) {
+					var pos = this.parseVec3();
+					var rot = this.parseVec3();
+
+					if (pos && rot) {
+						computeQuatW(rot);
+						this.delegate_.baseJoint(index, pos, rot);
+						++index;
+						--this.baseJointCount_;
+					}
+				}
+
+				if (this.baseJointCount_ == 0) {
+					this.parser_.expectNext(TokenType.CloseBlock);
+				}
+			}
+		}
+
+
+		private parseFrame(frameIndex: number) {
+			var index = 0;
+			var data = new Float64Array(this.frameComponentCount_);
+
+			if (this.parser_.expectNext(TokenType.OpenBlock)) {
+				while (index < this.frameComponentCount_ && !this.parser_.stop) {
+					var c = this.parser_.expectNext(TokenType.Number);
+					if (c) {
+						data[index] = <number>c.val;
+						++index;
+					}
+				}
+
+				if (index == this.frameComponentCount_) {
+					if (this.parser_.expectNext(TokenType.CloseBlock)) {
+						this.delegate_.frame(frameIndex, data);
+						--this.frameCount_;
+					}
+				}
+			}
+		}
+
+
+		parse() {
+			while (!this.parser_.stop) {
+				var key = this.parser_.nextToken();
+				if (key.type == TokenType.Key) {
+					if (key.val == "frame") {
+						let frameIndex = this.parser_.expectNext(TokenType.Number);
+						if (frameIndex) {
+							this.parseFrame(<number>frameIndex.val);
+						}
+					}
+					else if (key.val == "hierarchy") {
+						this.delegate_.beginHierarchy();
+						this.parseHierarchy();
+						if (!this.parser_.stop) {
+							this.delegate_.endHierarchy();
+						}
+					}
+					else if (key.val == "bounds") {
+						this.delegate_.beginBoundingBoxes();
+						this.parseBounds();
+						if (!this.parser_.stop) {
+							this.delegate_.endBoundingBoxes();
+						}
+					}
+					else if (key.val == "baseframe") {
+						this.delegate_.beginBaseFrame();
+						this.parseBaseFrame();
+						if (!this.parser_.stop) {
+							this.delegate_.endBaseFrame();
+						}
+					}
+					else if (key.val == "numjoints") {
+						let count = this.parser_.expectNext(TokenType.Number);
+						if (count) {
+							this.jointCount_ = <number>count.val | 0;
+							this.baseJointCount_ = this.jointCount_;
+							this.delegate_.jointCount(this.jointCount_);
+						}
+					}
+					else if (key.val == "numframes") {
+						let count = this.parser_.expectNext(TokenType.Number);
+						if (count) {
+							this.frameCount_ = <number>count.val | 0;
+							this.boundsCount_ = this.frameCount_;
+							this.delegate_.frameCount(this.frameCount_);
+						}
+					}
+					else if (key.val == "framerate") {
+						let fps = this.parser_.expectNext(TokenType.Number);
+						if (fps) {
+							this.delegate_.frameRate(<number>fps.val);
+						}
+					}
+					else if (key.val == "numanimatedcomponents") {
+						let count = this.parser_.expectNext(TokenType.Number);
+						if (count) {
+							this.frameComponentCount_ = <number>count.val | 0;
+							this.delegate_.frameComponentCount(this.frameComponentCount_);
+						}
+					}
+					else if (key.val == "md5version" || key.val == "commandline") {
+						// ignore these directives and their single values
+						this.parser_.nextToken();
+					}
+				}
+				else if (key.type != TokenType.EOF) {
+					this.parser_.unexpected(key);
+				}
+			}
+
+			if (this.parser_.eof && (this.jointCount_ != 0 || this.frameCount_ != 0 || this.boundsCount_ != 0 || this.baseJointCount_ != 0)) {
+				this.parser_.unexpected({ type: TokenType.EOF, offset: this.parser_.offset }, "Unexpected eof or malformed file.");
+			}
+			else {
+				this.delegate_.completed();
+			}
+		}
+	}
+
 } // ns sd.asset.md5.parse
