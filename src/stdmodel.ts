@@ -107,10 +107,10 @@ namespace sd.world {
 			
 			if (feat & Features.Skinned) {
 				pld.attributeNames.set(mesh.VertexAttributeRole.JointIndexes, "vertexJointIndexes");
-				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos0, "vertexWeightedPos0_bone");
-				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos1, "vertexWeightedPos1_bone");
-				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos2, "vertexWeightedPos2_bone");
-				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos3, "vertexWeightedPos3_bone");
+				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos0, "vertexWeightedPos0_joint");
+				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos1, "vertexWeightedPos1_joint");
+				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos2, "vertexWeightedPos2_joint");
+				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos3, "vertexWeightedPos3_joint");
 			}
 			else {
 				pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
@@ -234,10 +234,10 @@ namespace sd.world {
 			
 			// In
 			if (feat & Features.Skinned) {
-				line("attribute vec4 vertexWeightedPos0_bone;");
-				line("attribute vec4 vertexWeightedPos1_bone;");
-				line("attribute vec4 vertexWeightedPos2_bone;");
-				line("attribute vec4 vertexWeightedPos3_bone;");
+				line("attribute vec4 vertexWeightedPos0_joint;");
+				line("attribute vec4 vertexWeightedPos1_joint;");
+				line("attribute vec4 vertexWeightedPos2_joint;");
+				line("attribute vec4 vertexWeightedPos3_joint;");
 				line("attribute vec4 vertexJointIndexes;");
 			}
 			else {
@@ -270,25 +270,34 @@ namespace sd.world {
 
 			// Joint structure and getIndexedJoint() getter
 			if (feat & Features.Skinned) {
+				// transformQuat converted from gl-matrix original
+				line("vec3 transformQuat(vec3 a, vec4 q) {");
+				line("	float ix = q.w * a.x + q.y * a.z - q.z * a.y;");
+				line("	float iy = q.w * a.y + q.z * a.x - q.x * a.z;");
+				line("	float iz = q.w * a.z + q.x * a.y - q.y * a.x;");
+				line("	float iw = -q.x * a.x - q.y * a.y - q.z * a.z;");
+				line("	vec3 result;");
+				line("	result.x = ix * q.w + iw * -q.x + iy * -q.z - iz * -q.y;");
+				line("	result.y = iy * q.w + iw * -q.y + iz * -q.x - ix * -q.z;");
+				line("	result.z = iz * q.w + iw * -q.z + ix * -q.y - iy * -q.x;");
+				line("	return result;");
+				line("}");
+
 				line("struct Joint {");
-				line("	vec3 position_model;");
-				line("	vec4 rotation_model;");
-				line("	vec4 origRotation_model;");
+				line("	vec4 invRotation_joint;");
 				line("	mat4 transform_model;");
 				line("};");
 
 				// The jointData texture is 256x256 xyzw texels.
-				// Each joint takes up 8 texels, 7 of which contain the Joint structure data
+				// Each joint takes up 8 texels that contain the Joint structure data
 				// The sampler must be set up with nearest neighbour filtering and have no mipmaps
 				line("Joint getIndexedJoint(float jointIndex) {");
 				// line("	jointIndex += float(jointIndexOffset);");
 				line("	float row = (floor(jointIndex / 32.0) + 0.5) / 256.0;");
 				line("	float col = (mod(jointIndex, 32.0) * 8.0) + 0.5;");
 				line("	Joint j;");
-				line("	j.position_model =     texture2D(jointData, vec2(col / 256.0, row)).xyz;");
-				line("	j.rotation_model =     texture2D(jointData, vec2((col + 1.0) / 256.0, row));");
-				line("	j.origRotation_model = texture2D(jointData, vec2((col + 2.0) / 256.0, row));");
-				// row 3 is reserved
+				line("	j.invRotation_joint = texture2D(jointData, vec2(col / 256.0, row));");
+				// rows 1,2,3 are reserved
 				line("	j.transform_model[0] = texture2D(jointData, vec2((col + 4.0) / 256.0, row));");
 				line("	j.transform_model[1] = texture2D(jointData, vec2((col + 5.0) / 256.0, row));");
 				line("	j.transform_model[2] = texture2D(jointData, vec2((col + 6.0) / 256.0, row));");
@@ -302,25 +311,35 @@ namespace sd.world {
 
 			if (feat & Features.Skinned) {
 				line("	vec3 vertexPos_model = vec3(0.0, 0.0, 0.0);");
-				line("	vec4 weightedPos_bone[4];");
-				line("	weightedPos_bone[0] = vertexWeightedPos0_bone;");
-				line("	weightedPos_bone[1] = vertexWeightedPos1_bone;");
-				line("	weightedPos_bone[2] = vertexWeightedPos2_bone;");
-				line("	weightedPos_bone[3] = vertexWeightedPos3_bone;");
+				line("	vec3 vertexNormal_final = vec3(0.0, 0.0, 0.0);");
+
+				line("	vec4 weightedPos_joint[4];");
+				line("	weightedPos_joint[0] = vertexWeightedPos0_joint;");
+				line("	weightedPos_joint[1] = vertexWeightedPos1_joint;");
+				line("	weightedPos_joint[2] = vertexWeightedPos2_joint;");
+				line("	weightedPos_joint[3] = vertexWeightedPos3_joint;");
+
 				line("	for (int vji = 0; vji < 4; ++vji) {");
 				line("		float jointIndex = vertexJointIndexes[vji];");
 				line("		if (jointIndex >= 0.0) {");
 				line("			Joint j = getIndexedJoint(jointIndex);");
-				line("			vec4 weightedPos = weightedPos_bone[vji];");
+				line("			vec4 weightedPos = weightedPos_joint[vji];");
 				line("			vec3 tempPos = (j.transform_model * vec4(weightedPos.xyz, 1.0)).xyz;");
 				line("			vertexPos_model += tempPos * weightedPos.w;");
+				line("			vec3 vertexNormal_joint = transformQuat(vertexNormal, j.invRotation_joint);");
+				line("			vertexNormal_final += vertexNormal_joint * weightedPos.w;");
 				line("		}");
 				line("	}");
+				line("	vertexNormal_final = normalize(vertexNormal_final);");
+				// line("	vertexNormal_final = vertexNormal;");
+			}
+			else {
+				line("	vec3 vertexNormal_final = vertexNormal;");
 			}
 
 			line  ("	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);");
 			line  ("	vertexPos_world = (modelMatrix * vec4(vertexPos_model, 1.0)).xyz;");
-			line  ("	vertexNormal_intp = normalMatrix * vertexNormal;");
+			line  ("	vertexNormal_intp = normalMatrix * vertexNormal_final;");
 			if_any("	vertexPos_cam_intp = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;", Features.Specular | Features.Fog);
 			if_all("	vertexPos_light_intp = lightViewProjectionMatrix * modelMatrix * vec4(vertexPos_model, 1.0);", Features.ShadowMap);
 			if_all("	vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;", Features.VtxUV);

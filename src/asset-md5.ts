@@ -52,14 +52,10 @@ namespace sd.asset {
 			var texData = new Float32Array(256 * 256 * 4);
 			for (var ji = 0; ji < joints.length; ++ji) {
 				var j = joints[ji];
-				var pos = [j.position[0], j.position[1], j.position[2], 0];
 				var texelBaseIndex = ji * 8;
 
 				var xform = mat4.fromRotationTranslation([], j.rotation, j.position);
-
-				container.setIndexedVec4(texData, texelBaseIndex, pos);
-				container.setIndexedVec4(texData, texelBaseIndex + 1, j.rotation);
-				container.setIndexedVec4(texData, texelBaseIndex + 2, j.rotation);
+				container.setIndexedVec4(texData, texelBaseIndex, [0,0,0,1]);
 				container.setIndexedMat4(texData, (ji * 2) + 1, xform);
 			}
 
