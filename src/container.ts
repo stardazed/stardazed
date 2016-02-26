@@ -66,6 +66,15 @@ namespace sd.container {
 		data[offset + 1] = v2[1];
 	}
 
+	export function copyVec2FromOffset(data: TypedArray, offset: number): Float2 {
+		return [data[offset], data[offset + 1]];
+	}
+
+	export function setVec2AtOffset(data: TypedArray, offset: number, v2: Float2) {
+		data[offset] = v2[0];
+		data[offset + 1] = v2[1];
+	}
+
 	export function offsetOfIndexedVec2(index: number) { return (index * 2) | 0; }
 
 
@@ -85,6 +94,16 @@ namespace sd.container {
 		data[offset + 2] = v3[2];
 	}
 
+	export function copyVec3FromOffset(data: TypedArray, offset: number): Float3 {
+		return [data[offset], data[offset + 1], data[offset + 2]];
+	}
+
+	export function setVec3AtOffset(data: TypedArray, offset: number, v3: Float3) {
+		data[offset]     = v3[0];
+		data[offset + 1] = v3[1];
+		data[offset + 2] = v3[2];
+	}
+
 	export function offsetOfIndexedVec3(index: number) { return (index * 3) | 0; }
 
 
@@ -99,6 +118,17 @@ namespace sd.container {
 
 	export function setIndexedVec4(data: TypedArray, index: number, v4: Float4) {
 		var offset = (index * 4) | 0;
+		data[offset]     = v4[0];
+		data[offset + 1] = v4[1];
+		data[offset + 2] = v4[2];
+		data[offset + 3] = v4[3];
+	}
+
+	export function copyVec4FromOffset(data: TypedArray, offset: number): Float4 {
+		return [data[offset], data[offset + 1], data[offset + 2], data[offset + 3]];
+	}
+
+	export function setVec4AtOffset(data: TypedArray, offset: number, v4: Float4) {
 		data[offset]     = v4[0];
 		data[offset + 1] = v4[1];
 		data[offset + 2] = v4[2];
