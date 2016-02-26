@@ -326,12 +326,12 @@ namespace sd.world {
 				line("			vec4 weightedPos = weightedPos_joint[vji];");
 				line("			vec3 tempPos = (j.transform_model * vec4(weightedPos.xyz, 1.0)).xyz;");
 				line("			vertexPos_model += tempPos * weightedPos.w;");
-				line("			vec3 vertexNormal_joint = transformQuat(vertexNormal, j.invRotation_joint);");
-				line("			vertexNormal_final += vertexNormal_joint * weightedPos.w;");
+				// line("			vec3 vertexNormal_joint = transformQuat(vertexNormal, j.invRotation_joint);");
+				// line("			vertexNormal_final += vertexNormal_joint * weightedPos.w;");
 				line("		}");
 				line("	}");
-				line("	vertexNormal_final = normalize(vertexNormal_final);");
-				// line("	vertexNormal_final = vertexNormal;");
+				// line("	vertexNormal_final = normalize(vertexNormal_final);");
+				line("	vertexNormal_final = vertexNormal;");
 			}
 			else {
 				line("	vec3 vertexNormal_final = vertexNormal;");
