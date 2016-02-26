@@ -531,7 +531,7 @@ namespace sd.asset.md5.parse {
 		baseJoint(index: number, jointPos: Float3, jointRot: Float4): void;
 		endBaseFrame(): void;
 
-		frame(index: number, components: Float64Array): void;
+		frame(index: number, components: Float32Array): void;
 	}
 
 
@@ -649,7 +649,7 @@ namespace sd.asset.md5.parse {
 
 		private parseFrame(frameIndex: number) {
 			var index = 0;
-			var data = new Float64Array(this.frameComponentCount_);
+			var data = new Float32Array(this.frameComponentCount_);
 
 			if (this.parser_.expectNext(TokenType.OpenBlock)) {
 				while (index < this.frameComponentCount_ && !this.parser_.stop) {

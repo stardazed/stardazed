@@ -371,33 +371,18 @@ namespace sd.asset {
 			}
 		}
 
-		/*
-			export const enum AnimationProperty2 {
-				None,
-				Translation,
-				Rotation
-			}
 
-			export interface JointAnimation2 {
-				jointRef: string | number;
-				properties: AnimationProperty2[];
-				keys: Float32Array[];
-			}
+		// ------------------------------
 
-			export interface SkeletonAnimation2 extends Asset {
-				frameTime: number;
-				frameCount: number;
-				jointAnims: JointAnimation2[];
-			}
-		*/
 
 		interface AnimJoint {
 			name: string;
+			index: number;
 			parentIndex: number;
 			mask: parse.MD5AnimMask;
 			basePos?: Float3;
 			baseRot?: Float4;
-			anim?: JointAnimation2;
+			anim?: JointAnimation;
 		}
 
 
@@ -417,7 +402,7 @@ namespace sd.asset {
 			frameComponentCount(count: number) { this.compCount_ = count; }
 
 
-			private animForJoint(j: AnimJoint): JointAnimation2 {
+			private animForJoint(j: AnimJoint): JointAnimation {
 				if (j.mask == 0) {
 					return null;
 				}
@@ -428,22 +413,27 @@ namespace sd.asset {
 				if (hasRot) comps += 4;
 
 				var buffer = new Float32Array(comps * this.frameCount_);
-				var props: AnimationProperty2[] = [];
-				var keys: Float32Array[] = [];
+				var tracks: TransformAnimationTrack[] = [];
+				var offset = 0;
 
 				if (hasPos) {
-					props.push(AnimationProperty2.Translation);
-					keys.push(buffer.subarray(0, 3 * this.frameCount_));
+					tracks.push({
+						field: TransformAnimationField.Translation,
+						key: buffer.subarray(0, 3 * this.frameCount_)
+					});
+					offset += 3 * this.frameCount_;
 				}
 				if (hasRot) {
-					props.push(AnimationProperty2.Rotation);
-					keys.push(buffer.subarray(3 * this.frameCount_));
+					tracks.push({
+						field: TransformAnimationField.Rotation,
+						key: buffer.subarray(offset)
+					});
 				}
 
 				return {
-					jointRef: j.name,
-					properties: props,
-					keys: keys
+					jointIndex: j.index,
+					jointName: j.name,
+					tracks: tracks
 				};
 			}
 
@@ -452,6 +442,7 @@ namespace sd.asset {
 			joint(name: string, index: number, parentIndex: number, animMask: parse.MD5AnimMask, componentOffset: number) {
 				var j: AnimJoint = {
 					name: name,
+					index: index,
 					parentIndex: parentIndex,
 					mask: animMask
 				};
@@ -480,7 +471,7 @@ namespace sd.asset {
 			endBaseFrame() { }
 
 
-			frame(index: number, components: Float64Array) {
+			frame(index: number, components: Float32Array) {
 				var compIx = 0;
 				
 				for (var jix = 0; jix < this.joints_.length; ++jix) {
@@ -501,7 +492,7 @@ namespace sd.asset {
 							finalPos[2] = components[compIx++];
 						}
 
-						container.setIndexedVec3(j.anim.keys[0], index, finalPos);						
+						container.setIndexedVec3(j.anim.tracks[0].key, index, finalPos);						
 					}
 
 					if (j.mask & 56) {
@@ -519,7 +510,7 @@ namespace sd.asset {
 						}
 
 						parse.computeQuatW(finalRot);
-						container.setIndexedVec3(j.anim.keys[arrIx], index, finalRot);
+						container.setIndexedVec4(j.anim.tracks[arrIx].key, index, finalRot);
 					}
 				}
 			}
@@ -538,7 +529,7 @@ namespace sd.asset {
 			assets(): AssetGroup {
 				var ag = new AssetGroup();
 				var ja = this.joints_.map(j => j.anim);
-				var sa: SkeletonAnimation2 = {
+				var sa: SkeletonAnimation = {
 					frameCount: this.frameCount_,
 					frameTime: 1 / this.frameRate_,
 					name: this.filePath,
