@@ -147,22 +147,31 @@ namespace sd.asset {
 	}
 
 
-	export const enum AnimationProperty2 {
+	export const enum TransformAnimationField {
 		None,
 		Translation,
-		Rotation
+		Rotation,
+		Scale
 	}
 
-	export interface JointAnimation2 {
-		jointRef: number | string;
-		properties: AnimationProperty2[];
-		keys: Float32Array[];
+	export interface TransformAnimationTrack {
+		field: TransformAnimationField;
+		key: Float32Array;
 	}
 
-	export interface SkeletonAnimation2 extends Asset {
+	export interface TransformAnimation {
+		tracks: TransformAnimationTrack[];
+	}
+
+	export interface JointAnimation extends TransformAnimation {
+		jointIndex: number;
+		jointName?: string;
+	}
+
+	export interface SkeletonAnimation extends Asset {
 		frameTime: number;
 		frameCount: number;
-		jointAnims: JointAnimation2[];
+		jointAnims: JointAnimation[];
 	}
 
 
@@ -176,7 +185,7 @@ namespace sd.asset {
 		materials?: Material[];
 		joint?: Joint;
 		animations?: AnimationTrack[];
-		jointAnims?: JointAnimation2;
+		jointAnims?: JointAnimation;
 	}
 
 
@@ -197,7 +206,7 @@ namespace sd.asset {
 		materials: Material[] = [];
 		models: Model[] = [];
 		skins: Skin[] = [];
-		anims: SkeletonAnimation2[] = [];
+		anims: SkeletonAnimation[] = [];
 
 		addMesh(mesh: Mesh): number {
 			this.meshes.push(mesh);
@@ -224,7 +233,7 @@ namespace sd.asset {
 			return this.skins.length - 1;
 		}
 
-		addSkeletonAnimation(anim: SkeletonAnimation2) {
+		addSkeletonAnimation(anim: SkeletonAnimation) {
 			this.anims.push(anim);
 			return this.anims.length;
 		}
