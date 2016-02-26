@@ -265,7 +265,8 @@ namespace sd.asset {
 			}
 
 			triangle(index: number, indexes: Float3) {
-				container.setIndexedVec3(this.triangles, index, indexes);
+				// reverse winding order
+				container.setIndexedVec3(this.triangles, index, [indexes[0], indexes[2], indexes[1]]);
 			}
 
 			weightCount(count: number) {
