@@ -159,6 +159,7 @@ namespace sd.asset {
 			private curMaterial: Material;
 			private meshCount_ = 0;
 			private jointDataTexture_: Texture2D = null;
+			private textures_ = new Map<string, Texture2D>();
 
 			constructor(private filePath: string) {
 				this.assets_ = new AssetGroup();
@@ -216,13 +217,17 @@ namespace sd.asset {
 
 			materialName(name: string) {
 				var m = makeMaterial();
+				m.userRef = this.assets_.materials.length + 1;
 				vec3.set(m.diffuseColour, 0.8, 0.8, 0.8);
 				if (name) {
-					m.diffuseTexture = {
-						name: name,
-						filePath: name,
-						useMipMaps: render.UseMipMaps.No
-					};
+					if (!this.textures_.has(name)) {
+						this.textures_.set(name, {
+							name: name,
+							filePath: name,
+							useMipMaps: render.UseMipMaps.No
+						});
+					}
+					m.diffuseTexture = this.textures_.get(name);
 				}
 				m.jointDataTexture = this.jointDataTexture_;
 				
@@ -339,35 +344,35 @@ namespace sd.asset {
 			}
 
 			private loadTextures() {
-				// var fileProms: Promise<Texture2D>[] = [];
+				var fileProms: Promise<Texture2D>[] = [];
 
-				// this.assets_.materials.forEach(mat => {
-				// 	if (!(mat.diffuseTexture && mat.diffuseTexture.filePath)) {
-				// 		return;
-				// 	}
+				this.textures_.forEach(tex => {
+					if (!tex.filePath || tex.descriptor) {
+						return;
+					}
 
-				// 	let resolvedFilePath = resolveRelativeFilePath(mat.diffuseTexture.filePath, this.filePath);
-				// 	fileProms.push(
-				// 		loadImage(resolvedFilePath).then((img) => {
-				// 			mat.diffuseTexture.descriptor = render.makeTexDesc2DFromImageSource(img, mat.diffuseTexture.useMipMaps);
-				// 			return mat.diffuseTexture;
-				// 		}).catch((error) => {
-				// 			console.warn(error);
-				// 			return <Texture2D>null;
-				// 		})
-				// 	);
-				// });
+					let resolvedFilePath = resolveRelativeFilePath(tex.filePath, this.filePath);
+					fileProms.push(
+						loadImage(resolvedFilePath).then(img => {
+							tex.descriptor = render.makeTexDesc2DFromImageSource(img, tex.useMipMaps);
+							return tex;
+						}).catch(error => {
+							console.warn(error);
+							return <Texture2D>null;
+						})
+					);
+				});
 
-				// return Promise.all(fileProms).then((textures) => {
-				// 	for (var tex of textures) {
-				// 		this.assets_.addTexture(tex);
-				// 	}
-				// 	return group;
-				// }, () => null);
+				return Promise.all(fileProms).then((textures) => {
+					for (var tex of textures) {
+						this.assets_.addTexture(tex);
+					}
+					return this.assets_;
+				}, () => null);
 			}
 
-			assets() {
-				return this.assets_;
+			assets(): Promise<AssetGroup> {
+				return this.loadTextures();
 			}
 		}
 
@@ -528,7 +533,7 @@ namespace sd.asset {
 
 			assets(): AssetGroup {
 				var ag = new AssetGroup();
-				var ja = this.joints_.map(j => j.anim);
+				var ja = this.joints_.map(j => j.anim).filter(a => a != null);
 				var sa: SkeletonAnimation = {
 					frameCount: this.frameCount_,
 					frameTime: 1 / this.frameRate_,
@@ -545,7 +550,7 @@ namespace sd.asset {
 	} // ns md5
 
 
-	function parseMD5MeshSource(filePath: string, source: string): AssetGroup {
+	function parseMD5MeshSource(filePath: string, source: string): Promise<AssetGroup> {
 		var t0 = performance.now();
 		var del = new md5.MD5MeshBuilder(filePath);
 		var parser = new md5.parse.MD5MeshParser(source, del);
