@@ -217,6 +217,9 @@ namespace sd.world {
 		localMatrix(inst: TransformInstance) { return container.refIndexedMat4(this.localMatrixBase_, <number>inst); }
 		worldMatrix(inst: TransformInstance) { return container.refIndexedMat4(this.worldMatrixBase_, <number>inst); }
 
+		copyLocalMatrix(inst: TransformInstance) { return container.copyIndexedMat4(this.localMatrixBase_, <number>inst); }
+		copyWorldMatrix(inst: TransformInstance) { return container.copyIndexedMat4(this.worldMatrixBase_, <number>inst); }
+
 
 		// update the world matrices of inst and all of its children
 		private applyParentTransform(parentMatrix: Float4x4, inst: TransformInstance) {
