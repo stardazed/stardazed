@@ -210,14 +210,6 @@ namespace sd.world {
 			return new InstanceLinearRange<LightManager>(1, this.count);
 		}
 
-		makeSetRange(): LightSet {
-			return new InstanceSet<LightManager>();
-		}
-
-		makeLinearRange(first: LightInstance, last: LightInstance): LightRange {
-			return new InstanceLinearRange<LightManager>(first, last);
-		}
-
 
 		// -- linked objects
 

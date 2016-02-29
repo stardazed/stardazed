@@ -105,14 +105,6 @@ namespace sd.world {
 			return new InstanceLinearRange<ColliderManager>(1, this.count);
 		}
 
-		makeSetRange(): ColliderSet {
-			return new InstanceSet<ColliderManager>();
-		}
-
-		makeLinearRange(first: ColliderInstance, last: ColliderInstance): ColliderRange {
-			return new InstanceLinearRange<ColliderManager>(first, last);
-		}
-
 
 		// -- per instance properties
 

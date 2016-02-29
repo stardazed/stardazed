@@ -118,14 +118,6 @@ namespace sd.world {
 			return new InstanceLinearRange<RigidBodyManager>(1, this.count);
 		}
 
-		makeSetRange(): RigidBodySet {
-			return new InstanceSet<RigidBodyManager>();
-		}
-
-		makeLinearRange(first: RigidBodyInstance, last: RigidBodyInstance): RigidBodyRange {
-			return new InstanceLinearRange<RigidBodyManager>(first, last);
-		}
-
 
 		// -- simulation
 

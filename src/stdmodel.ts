@@ -766,14 +766,6 @@ namespace sd.world {
 			return new InstanceLinearRange<StdModelManager>(1, this.count);
 		}
 
-		makeSetRange(): StdModelSet {
-			return new InstanceSet<StdModelManager>();
-		}
-
-		makeLinearRange(first: StdModelInstance, last: StdModelInstance): StdModelRange {
-			return new InstanceLinearRange<StdModelManager>(first, last);
-		}
-
 
 		entity(inst: StdModelInstance): Entity {
 			return this.entityBase_[<number>inst];
