@@ -9,6 +9,7 @@ namespace sd.asset {
 		userRef?: any;
 	}
 
+
 	export interface Texture2D extends Asset {
 		filePath?: string;
 		useMipMaps: render.UseMipMaps;
