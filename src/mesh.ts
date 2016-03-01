@@ -29,6 +29,10 @@ namespace sd.render {
 			case mesh.PrimitiveType.LineStrip: return rc.gl.LINE_STRIP;
 			case mesh.PrimitiveType.Triangle: return rc.gl.TRIANGLES;
 			case mesh.PrimitiveType.TriangleStrip: return rc.gl.TRIANGLE_STRIP;
+
+			default:
+				assert(false, "Invalid PrimitiveType")
+				return rc.gl.NONE;
 		}
 	}
 

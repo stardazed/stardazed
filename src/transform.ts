@@ -185,7 +185,9 @@ namespace sd.world {
 			var index = entityIndex(ent);
 			if (index > 0 && index <= this.instanceData_.count)
 				return <number>ent;
+
 			assert(false, "No transform for entity " + index);
+			return 0;
 		}
 
 

@@ -15,6 +15,10 @@ namespace sd.render {
 
 			case BlendOperation.Min: return rc.extMinMax ? rc.extMinMax.MIN_EXT : rc.gl.FUNC_SUBTRACT;
 			case BlendOperation.Max: return rc.extMinMax ? rc.extMinMax.MAX_EXT : rc.gl.FUNC_ADD;
+
+			default:
+				assert(false, "Invalid BlendOperation");
+				return rc.gl.NONE;
 		}
 	}
 
@@ -36,6 +40,10 @@ namespace sd.render {
 			case BlendFactor.OneMinusConstantColour: return rc.gl.ONE_MINUS_CONSTANT_COLOR;
 			case BlendFactor.ConstantAlpha: return rc.gl.CONSTANT_ALPHA;
 			case BlendFactor.OneMinusConstantAlpha: return rc.gl.ONE_MINUS_CONSTANT_ALPHA;
+
+			default:
+				assert(false, "Invalid BlendFactor");
+				return rc.gl.NONE;
 		}
 	}
 

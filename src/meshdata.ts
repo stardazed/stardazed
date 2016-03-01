@@ -72,9 +72,6 @@ namespace sd.mesh {
 
 	export function vertexFieldElementCount(vf: VertexField) {
 		switch (vf) {
-			case VertexField.Undefined:
-				return 0;
-
 			case VertexField.UInt32:
 			case VertexField.SInt32:
 			case VertexField.Float:
@@ -118,15 +115,16 @@ namespace sd.mesh {
 			case VertexField.SInt32x4:
 			case VertexField.Floatx4:
 				return 4;
+
+			case VertexField.Undefined:
+			default:
+				return 0;
 		}
 	}
 
 
 	export function vertexFieldNumericType(vf: VertexField): NumericType {
 		switch (vf) {
-			case VertexField.Undefined:
-				return null;
-
 			case VertexField.Float:
 			case VertexField.Floatx2:
 			case VertexField.Floatx3:
@@ -176,6 +174,10 @@ namespace sd.mesh {
 			case VertexField.SInt8x4:
 			case VertexField.Norm_SInt8x4:
 				return SInt8;
+
+			case VertexField.Undefined:
+			default:
+				return null;
 		}
 	}
 
@@ -601,9 +603,15 @@ namespace sd.mesh {
 
 	export function indexElementTypeSizeBytes(iet: IndexElementType): number {
 		switch (iet) {
-			case IndexElementType.UInt8: return Uint8Array.BYTES_PER_ELEMENT;
-			case IndexElementType.UInt16: return Uint16Array.BYTES_PER_ELEMENT;
-			case IndexElementType.UInt32: return Uint32Array.BYTES_PER_ELEMENT;
+			case IndexElementType.UInt8:
+				return Uint8Array.BYTES_PER_ELEMENT;
+			case IndexElementType.UInt16:
+				return Uint16Array.BYTES_PER_ELEMENT;
+			case IndexElementType.UInt32:
+				return Uint32Array.BYTES_PER_ELEMENT;
+			default:
+				assert(false, "Invalid IndexElementType");
+				return 0;
 		}
 	}
 
@@ -633,7 +641,7 @@ namespace sd.mesh {
 
 			default:
 				assert(false, "Unknown primitive type");
-				break;
+				return 0;
 		}
 	}
 
@@ -653,7 +661,7 @@ namespace sd.mesh {
 
 			default:
 				assert(false, "Unknown primitive type");
-				break;
+				return 0;
 		}
 	}
 

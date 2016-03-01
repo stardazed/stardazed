@@ -1,15 +1,18 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
+        "module": "amd",
         "target": "es5",
         "rootDir": "src",
-        "out": "../build/stardazed-tx.js",
+        "outFile": "../build/stardazed-tx.js",
         "noEmitOnError": true,
         "diagnostics": false,
         "listFiles": false,
 
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": false,
+        "noImplicitReturns": true,
+        "forceConsistentCasingInFileNames": true,
+        "noFallthroughCasesInSwitch": true,
 
         "removeComments": true,
         "sourceMap": false,

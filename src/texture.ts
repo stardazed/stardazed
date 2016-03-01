@@ -113,6 +113,10 @@ namespace sd.render {
 			case TextureRepeatMode.Repeat: return rc.gl.REPEAT;
 			case TextureRepeatMode.MirroredRepeat: return rc.gl.MIRRORED_REPEAT;
 			case TextureRepeatMode.ClampToEdge: return rc.gl.CLAMP_TO_EDGE;
+
+			default:
+				assert(false, "Invalid TextureRepeatMode");
+				return rc.gl.NONE;
 		}
 	}
 

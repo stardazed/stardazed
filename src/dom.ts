@@ -3,7 +3,6 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 
 interface Element {
-	matches: (selector: string) => boolean;
 	closest: (selectors: string) => Element;
 }
 
