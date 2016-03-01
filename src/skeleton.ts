@@ -21,11 +21,24 @@ namespace sd.world {
 
 	export class SkeletonManager implements ComponentManager<SkeletonManager> {
 		private instanceData_: container.MultiArrayBuffer;
+		private jointDataTex_: render.Texture;
+		private nextFreeJointIndex_ = 0;
 
-		constructor(private transformMgr_: TransformManager) {
+		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager) {
 			var fields: container.MABField[] = [
-
+				
 			];
+
+			// 
+			var texData = new Float32Array(256 * 256 * 4);
+			var td = render.makeTexDesc2D(render.PixelFormat.RGBA32F, 256, 256, render.UseMipMaps.No);
+			td.pixelData = [texData];
+			td.sampling.magFilter = render.TextureSizingFilter.Nearest;
+			td.sampling.minFilter = render.TextureSizingFilter.Nearest;
+			td.sampling.mipFilter = render.TextureMipFilter.None;
+			td.sampling.repeatS = render.TextureRepeatMode.ClampToEdge;
+			td.sampling.repeatT = render.TextureRepeatMode.ClampToEdge;
+			this.jointDataTex_ = new render.Texture(rc, td);
 		}
 
 
