@@ -11,14 +11,16 @@ namespace sd.world {
 		VtxColour       = 0x00004,
 		Specular        = 0x00008, // Implied true if GlossMap
 		AlbedoMap       = 0x00010,
-		//TranslucencyMap = 0x00020, // \__ Mutually Exclusive
-		//GlossMap        = 0x00040, // /
+		//AlbedoAlphaIsTransparency = 0x00020, // \__ Mutually Exclusive
+		//AlbedoAlphaIsGloss        = 0x00040, // /
 		//NormalMap       = 0x00080, // Requires VtxTangent
 		//HeightMap       = 0x00100,
+
 		ShadowMap       = 0x01000,
 		SoftShadow      = 0x02000,
 		Fog             = 0x04000,
-		//Instancing      = 0x10000,
+
+		//Instanced      = 0x10000,
 		Skinned         = 0x20000
 	}
 
