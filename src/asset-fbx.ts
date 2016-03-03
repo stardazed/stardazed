@@ -115,16 +115,16 @@ namespace sd.asset {
 
 		// -- Document builder
 
-		class Node {
+		class FBXNode {
 			name: string;
 			type: parse.FBXPropertyType;
 			typeName: string;
 			values: parse.FBXValue[];
-			children: Node[];
-			parent: Node;
+			children: FBXNode[];
+			parent: FBXNode;
 
-			connectionsIn: Connection[];
-			connectionsOut: Connection[];
+			connectionsIn: FBXConnection[];
+			connectionsOut: FBXConnection[];
 
 			constructor(name: string, values: parse.FBXValue[], type: parse.FBXPropertyType = parse.FBXPropertyType.Unknown, typeName: string = "") {
 				this.name = name;
@@ -138,7 +138,7 @@ namespace sd.asset {
 				this.connectionsOut = [];
 			}
 
-			appendChild(node: Node) {
+			appendChild(node: FBXNode) {
 				assert(node.parent == null, "Can't re-parent a Node");
 				node.parent = this;
 				this.children.push(node);
@@ -163,14 +163,14 @@ namespace sd.asset {
 		}
 
 
-		type NodeSet = { [id: number]: Node };
+		type FBXNodeSet = { [id: number]: FBXNode };
 
 
-		interface Connection {
+		interface FBXConnection {
 			fromID: number;
-			fromNode?: Node;
+			fromNode?: FBXNode;
 			toID: number;
-			toNode?: Node;
+			toNode?: FBXNode;
 			propName?: string;
 		}
 
@@ -182,24 +182,24 @@ namespace sd.asset {
 
 
 		class FBXDocumentGraph {
-			private globals: Node[];
+			private globals: FBXNode[];
 
-			private allObjects: NodeSet; 
-			private geometryNodes: NodeSet;
-			private videoNodes: NodeSet;
-			private textureNodes: NodeSet;
-			private materialNodes: NodeSet;
-			private modelNodes: NodeSet;
-			private attributeNodes: NodeSet;
-			private animCurves: NodeSet;
-			private animCurveNodes: NodeSet;
-			private skinNodes: NodeSet;
-			private clusterNodes: NodeSet;
+			private allObjects: FBXNodeSet; 
+			private geometryNodes: FBXNodeSet;
+			private videoNodes: FBXNodeSet;
+			private textureNodes: FBXNodeSet;
+			private materialNodes: FBXNodeSet;
+			private modelNodes: FBXNodeSet;
+			private attributeNodes: FBXNodeSet;
+			private animCurves: FBXNodeSet;
+			private animCurveNodes: FBXNodeSet;
+			private skinNodes: FBXNodeSet;
+			private clusterNodes: FBXNodeSet;
 
-			private connections: Connection[];
-			private hierarchyConnections: Connection[];
+			private connections: FBXConnection[];
+			private hierarchyConnections: FBXConnection[];
 			private flattenedModels: Map<number, Model>;
-			private rootNode: Node;
+			private rootNode: FBXNode;
 
 			constructor(private fbxFilePath: string) {
 				this.globals = [];
@@ -220,20 +220,20 @@ namespace sd.asset {
 				this.hierarchyConnections = [];
 				this.flattenedModels = new Map<number, Model>();
 
-				this.rootNode = new Node("Model", [0, "Model::RootNode", "RootNode"]);
+				this.rootNode = new FBXNode("Model", [0, "Model::RootNode", "RootNode"]);
 				this.allObjects[0] = this.rootNode;
 				this.modelNodes[0] = this.rootNode;
 				this.flattenedModels.set(0, makeModel("RootNode", 0));
 			}
 
 
-			globalSetting(node: Node) {
+			globalSetting(node: FBXNode) {
 				this.globals.push(node);
 			}
 
 
-			addObject(node: Node) {
-				var typeSetMap: { [name: string]: NodeSet } = {
+			addObject(node: FBXNode) {
+				var typeSetMap: { [name: string]: FBXNodeSet } = {
 					"Geometry": this.geometryNodes,
 					"Video": this.videoNodes,
 					"Texture": this.textureNodes,
@@ -288,7 +288,7 @@ namespace sd.asset {
 			}
 
 
-			addConnection(conn: Connection) {
+			addConnection(conn: FBXConnection) {
 				conn.fromNode = this.allObjects[conn.fromID];
 				conn.toNode = this.allObjects[conn.toID];
 				
@@ -483,7 +483,7 @@ namespace sd.asset {
 			}
 
 
-			private makeLayerElementStream(layerElemNode: Node): mesh.VertexAttributeStream {
+			private makeLayerElementStream(layerElemNode: FBXNode): mesh.VertexAttributeStream {
 				var valueArrayName: string, indexArrayName: string;
 				var stream: mesh.VertexAttributeStream = {
 					name: "",
@@ -972,8 +972,8 @@ namespace sd.asset {
 			private state = BuilderState.Root;
 
 			private depth = 0;
-			private curObject: Node = null;
-			private curNodeParent: Node = null;
+			private curObject: FBXNode = null;
+			private curNodeParent: FBXNode = null;
 
 			private knownObjects: Set<string>;
 
@@ -1010,7 +1010,7 @@ namespace sd.asset {
 				else if (this.state == BuilderState.Objects) {
 					if (this.knownObjects.has(name)) {
 						this.state = BuilderState.Object;
-						this.curObject = new Node(name, values);
+						this.curObject = new FBXNode(name, values);
 						this.curNodeParent = this.curObject;
 					}
 					else {
@@ -1018,7 +1018,7 @@ namespace sd.asset {
 					}
 				}
 				else if (this.curNodeParent) {
-					var node = new Node(name, values);
+					var node = new FBXNode(name, values);
 					this.curNodeParent.appendChild(node);
 					this.curNodeParent = node;
 				}
@@ -1058,7 +1058,7 @@ namespace sd.asset {
 
 
 			typedProperty(name: string, type: parse.FBXPropertyType, typeName: string, values: parse.FBXValue[]) {
-				var node = new Node(name, values, type, typeName);
+				var node = new FBXNode(name, values, type, typeName);
 
 				if (this.state == BuilderState.GlobalSettings) {
 					this.doc.globalSetting(node);
