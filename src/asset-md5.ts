@@ -161,11 +161,9 @@ namespace sd.asset {
 				this.assets_ = new AssetGroup();
 			}
 
-			jointCount(count: number) {
-			}
+			jointCount(count: number) {}
 
-			beginJoints() {
-			}
+			beginJoints() {}
 
 			joint(name: string, index: number, parentIndex: number, modelPos: Float3, modelRot: Float4) {
 				var jm = makeModel(name, index);
@@ -198,18 +196,21 @@ namespace sd.asset {
 				}
 			}
 
+
 			endJoints() {
 				this.jointDataTexture_ = constructJointDataTexture(this.joints);
 			}
 
-			meshCount(count: number) {
-			}
+
+			meshCount(count: number) {}
+
 
 			beginMesh() {
 				this.vertexes = null;
 				this.triangles = null;
 				this.weights = null;
 			}
+
 
 			materialName(name: string) {
 				var m = makeMaterial();
@@ -231,6 +232,7 @@ namespace sd.asset {
 				this.curMaterial = m;
 			}
 
+
 			vertexCount(count: number) {
 				if (count == 0) {
 					this.vertexes = null;
@@ -243,6 +245,7 @@ namespace sd.asset {
 				}
 			}
 
+
 			vertex(index: number, uv: Float2, weightOffset: number, weightCount: number) {
 				var io = index * 2;
 				this.vertexes.uvs[io] = uv[0];
@@ -250,6 +253,7 @@ namespace sd.asset {
 				this.vertexes.weightOffsetsCounts[io] = weightOffset;
 				this.vertexes.weightOffsetsCounts[io + 1] = weightCount;
 			}
+
 
 			triangleCount(count: number) {
 				if (count == 0) {
@@ -260,10 +264,12 @@ namespace sd.asset {
 				}
 			}
 
+
 			triangle(index: number, indexes: Float3) {
 				// reverse winding order
 				container.setIndexedVec3(this.triangles, index, [indexes[0], indexes[2], indexes[1]]);
 			}
+
 
 			weightCount(count: number) {
 				if (count == 0) {
@@ -278,11 +284,13 @@ namespace sd.asset {
 				}
 			}
 
+
 			weight(index: number, jointIndex: number, bias: number, jointPos: Float3) {
 				this.weights.joints[index] = jointIndex;
 				this.weights.biases[index] = bias;
 				container.setIndexedVec3(this.weights.positions, index, jointPos);
 			}
+
 
 			endMesh() {
 				if (this.vertexes && this.triangles && this.weights) {
@@ -333,12 +341,15 @@ namespace sd.asset {
 				}
 			}
 
+
 			error(msg: string, offset: number, token?: string) {
 				console.warn("MD5 Mesh parse error @ offset " + offset + ": " + msg, token);
 			}
 
+
 			completed() {
 			}
+
 
 			private loadTextures() {
 				var fileProms: Promise<Texture2D>[] = [];
@@ -367,6 +378,7 @@ namespace sd.asset {
 					return this.assets_;
 				}, () => null);
 			}
+
 
 			assets(): Promise<AssetGroup> {
 				return this.loadTextures();

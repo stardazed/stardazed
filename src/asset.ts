@@ -95,11 +95,6 @@ namespace sd.asset {
 	}
 
 
-	export interface Skin extends Asset {
-		groups: WeightedVertexGroup[];
-	}
-
-
 	export interface WeightedVertexGroup extends Asset {
 		indexes: Int32Array;
 		weights: Float64Array;
@@ -109,16 +104,15 @@ namespace sd.asset {
 		bindPoseLocalMatrix: ArrayOfNumber;
 	}
 
-
-	export interface Joint {
-		root: boolean;
-		size?: number;
-
-		// Direct link to WVG, later on this should be done indirectly
-		// so a single skeleton can link against many Meshes
-		vertexGroup?: WeightedVertexGroup;
+	export interface Skin extends Asset {
+		groups: WeightedVertexGroup[];
 	}
 
+
+	// -- DEPRECATED
+	export interface Joint {
+		root: boolean;
+	}
 
 	export const enum AnimationProperty {
 		None,
@@ -146,6 +140,8 @@ namespace sd.asset {
 		property: AnimationProperty;
 		key: AnimationKeyData;
 	}
+	// -- /DEPRECATED
+
 
 
 	export const enum TransformAnimationField {
@@ -187,6 +183,7 @@ namespace sd.asset {
 		joint?: Joint;
 		animations?: AnimationTrack[];
 		jointAnims?: JointAnimation;
+		vertexGroup?: WeightedVertexGroup;
 	}
 
 

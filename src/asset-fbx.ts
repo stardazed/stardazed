@@ -726,21 +726,9 @@ namespace sd.asset {
 						}
 						else if (connType == "NodeAttribute") {
 							if (connSubType == "LimbNode" || connSubType == "Root") {
-								let j: Joint = {
-									root: connSubType == "Root",
-									size: 0,
-									vertexGroup: null
+								sdModel.joint = {
+									root: connSubType == "Root"
 								};
-
-								for (let lc of conn.fromNode.children) {
-									if (lc.name == "Size") {
-										j.size = <number>lc.values[0];
-									}
-									// ignore the TypeFlags as they contain irrelevant information:
-									// Null is uninteresting, Skeleton is obvious and Root is already the subClass name
-								}
-
-								sdModel.joint = j;
 							}
 						}
 						else if (connType == "Model") {
@@ -914,7 +902,7 @@ namespace sd.asset {
 
 									if (sdModel) {
 										if (sdModel.joint) {
-											sdModel.joint.vertexGroup = wvg;
+											sdModel.vertexGroup = wvg;
 										}
 										else {
 											console.warn("Model " + cinNode.objectID + " has a cluster but no joint?");
