@@ -180,7 +180,7 @@ namespace sd.asset {
 			removeUnusedBones: boolean;
 		}
 
-
+/*
 		class FBXDocumentGraph {
 			private globals: FBXNode[];
 
@@ -1088,10 +1088,10 @@ namespace sd.asset {
 				return this.assets_;
 			}
 		}
-
+*/
 	} // ns fbx
 
-
+/*
 	function parseFBXSource(filePath: string, source: string | ArrayBuffer): Promise<AssetGroup> {
 		var t0 = performance.now();
  		var del = new fbx.FBX7DocumentParser(filePath);
@@ -1132,5 +1132,5 @@ namespace sd.asset {
 			}
 		});
 	}
-
+*/
 } // ns sd.asset

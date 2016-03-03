@@ -42,6 +42,11 @@ namespace sd.world {
 		}
 
 
+		registerSkeleton(name: string, bindPose: asset.Model) {
+
+		}
+
+
 		create(rootTX: TransformInstance) {
 
 		}

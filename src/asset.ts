@@ -14,6 +14,7 @@ namespace sd.asset {
 		filePath?: string;
 		useMipMaps: render.UseMipMaps;
 		descriptor?: render.TextureDescriptor;
+		texture?: render.Texture;
 	}
 
 
@@ -64,6 +65,7 @@ namespace sd.asset {
 			specularTexture: null,
 			normalTexture: null,
 			heightTexture: null,
+
 			jointDataTexture: null,
 			
 			transparency: 0
@@ -77,6 +79,8 @@ namespace sd.asset {
 
 		meshData?: mesh.MeshData;
 		indexMap?: mesh.VertexIndexMapping;
+
+		mesh?: render.Mesh;
 	}
 
 
@@ -177,13 +181,15 @@ namespace sd.asset {
 		children: Model[];
 		parent: Model;
 
-		// components		
+		// components
 		mesh?: Mesh;
 		materials?: Material[];
+
+		// DEPRECATED (FBX)
 		joint?: Joint;
-		animations?: AnimationTrack[];
-		jointAnims?: JointAnimation;
 		vertexGroup?: WeightedVertexGroup;
+		animations?: AnimationTrack[];
+		// /DEPRECATED
 	}
 
 
@@ -195,46 +201,6 @@ namespace sd.asset {
 			children: [],
 			parent: null
 		};
-	}
-
-
-	export class AssetGroup {
-		meshes: Mesh[] = [];
-		textures: Texture2D[] = [];
-		materials: Material[] = [];
-		models: Model[] = [];
-		skins: Skin[] = [];
-		anims: SkeletonAnimation[] = [];
-
-		addMesh(mesh: Mesh): number {
-			this.meshes.push(mesh);
-			return this.meshes.length - 1;
-		}
-
-		addTexture(tex: Texture2D): number {
-			this.textures.push(tex);
-			return this.textures.length - 1;
-		}
-
-		addMaterial(mat: Material): number {
-			this.materials.push(mat);
-			return this.materials.length - 1;
-		}
-
-		addModel(model: Model): number {
-			this.models.push(model);
-			return this.models.length - 1;
-		}
-
-		addSkin(skin: Skin): number {
-			this.skins.push(skin);
-			return this.skins.length - 1;
-		}
-
-		addSkeletonAnimation(anim: SkeletonAnimation) {
-			this.anims.push(anim);
-			return this.anims.length;
-		}
 	}
 
 } // ns sd.asset

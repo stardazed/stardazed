@@ -42,17 +42,15 @@ namespace sd.world {
 
 
 	export function makeStdMaterialDescriptor(): StdMaterialDescriptor {
-		var vecs = new Float32Array(7);
-
 		return {
-			mainColour: vec3.copy(vecs.subarray(0, 3), math.Vec3.one),
+			mainColour: vec3.copy([], math.Vec3.one),
 
 			specularIntensity: 0,
 			specularExponent: 0,
 			specularColourMix: 0.8,
 
-			textureScale: vec2.copy(vecs.subarray(3, 5), math.Vec2.one),
-			textureOffset: vec2.copy(vecs.subarray(5, 7), math.Vec2.zero),
+			textureScale: vec2.copy([], math.Vec2.one),
+			textureOffset: vec2.copy([], math.Vec2.zero),
 
 			albedoMap: null,
 			normalMap: null,
