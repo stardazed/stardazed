@@ -26,7 +26,7 @@ namespace sd.world {
 		private instanceData_: container.MultiArrayBuffer;
 
 		private typeBase_: Int32Array;
-		private entityBase_: Int32Array;
+		private entityBase_: EntityArrayView;
 		private physMatBase_: PhysicsMaterialArrayView;
 
 		private entityMap_: Map<Entity, ColliderInstance>;
@@ -50,8 +50,8 @@ namespace sd.world {
 
 		private rebase() {
 			this.typeBase_ = <Int32Array>this.instanceData_.indexedFieldView(0);
-			this.entityBase_ = <Int32Array>this.instanceData_.indexedFieldView(1);
-			this.physMatBase_ = <PhysicsMaterialArrayView>this.instanceData_.indexedFieldView(2);
+			this.entityBase_ = this.instanceData_.indexedFieldView(1);
+			this.physMatBase_ = this.instanceData_.indexedFieldView(2);
 		}
 
 

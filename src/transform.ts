@@ -229,7 +229,7 @@ namespace sd.world {
 		}
 
 
-		// two overloads: one with new matrix, one with tranform components
+		// two overloads: one with new matrix, one with transform components
 		setLocalMatrix(inst: TransformInstance, newLocalMatrix: Float4x4): void;
 		setLocalMatrix(inst: TransformInstance, newRotation: Float4, newPosition: Float3, newScale: Float3): void;
 		setLocalMatrix(inst: TransformInstance, localMatOrRot: ArrayOfNumber, newPosition?: Float3, newScale?: Float3) {
@@ -332,6 +332,13 @@ namespace sd.world {
 		setScale(inst: TransformInstance, newScale: Float3) {
 			this.scaleBase_.set(newScale, <number>inst * math.Vec3.elementCount);
 			this.setLocalMatrix(inst, this.localRotation(inst), this.localPosition(inst), newScale);
+		}
+
+		setPositionAndRotationAndScale(inst: TransformInstance, newPosition: Float3, newRotation: Float4, newScale: Float3) {
+			this.positionBase_.set(newPosition, <number>inst * math.Vec3.elementCount);
+			this.rotationBase_.set(newRotation, <number>inst * math.Quat.elementCount);
+			this.scaleBase_.set(newScale, <number>inst * math.Vec3.elementCount);
+			this.setLocalMatrix(inst, newRotation, newPosition, newScale);
 		}
 
 
