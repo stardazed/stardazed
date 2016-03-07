@@ -74,7 +74,9 @@ namespace sd.mesh {
 			}
 			else {
 				var mapped = this.data_.get(from);
-				mapped.push(to);
+				if (mapped.indexOf(to) == -1) {
+					mapped.push(to);
+				}
 				this.data_.set(from, mapped);
 			}
 		}
@@ -87,7 +89,6 @@ namespace sd.mesh {
 
 	export class MeshBuilder {
 		private vertexData_: number[][];
-		private indexes_: number[] = [];
 
 		private sourcePolygonIndex_ = 0;
 		private streamCount_ = 0;
@@ -96,33 +97,42 @@ namespace sd.mesh {
 		private vertexMapping_: Map<string, number>;
 		private indexMap_: VertexIndexMapping;
 
-		private groupIndex_ = -1;
-		private groupFirstTriangleIndex_ = 0;
-		private curGroup_: mesh.PrimitiveGroup = null;
-		private groups_: mesh.PrimitiveGroup[] = [];
+		private groupIndex_: number;
+		private groupIndexStreams_: Map<number, number[]>;
+		private groupIndexesRef_: number[];
 
 		private streams_: VertexAttributeStream[];
 
 
 		constructor(positions: Float32Array, streams: VertexAttributeStream[]) {
-			// sort attr streams ensuring ones that are not to be included in the mesh
-			// end up at the end. Try to keep the array as stable as possible by not
-			// moving streams if not needed.
-			this.streams_ = streams.slice(0).sort((sA, sB) => {
-				if (sA.includeInMesh == sB.includeInMesh)
-					return 0;
-				else
-					return sA.includeInMesh ? -1 : 1;
-			});
+			// create a local copy of the streams array so we can modify it
+			this.streams_ = streams.slice(0);
 
-			// add the positions stream at the beginning to ensure it is always at index 0
+			// create the positions stream, which is needed for both simple and rigged models
 			var positionStream: VertexAttributeStream = {
 				attr: { role: VertexAttributeRole.Position, field: VertexField.Floatx3 },
 				mapping: VertexAttributeMapping.Vertex,
 				includeInMesh: true,
 				values: positions
 			};
-			this.streams_.unshift(positionStream);
+
+			// add positions stream at the beginning for simple models and at end for rigged models
+			if (this.streams_.find(s => s.attr.role == VertexAttributeRole.JointIndexes)) {
+				this.streams_.push(positionStream);
+			}
+			else {
+				this.streams_.unshift(positionStream);	
+			}
+
+			// sort attr streams ensuring ones that are not to be included in the mesh
+			// end up at the end. Try to keep the array as stable as possible by not
+			// moving streams if not needed.
+			this.streams_.sort((sA, sB) => {
+				if (sA.includeInMesh == sB.includeInMesh)
+					return 0;
+				else
+					return sA.includeInMesh ? -1 : 1;
+			});
 
 
 			// minor optimization as the element count will be requested many times
@@ -138,6 +148,12 @@ namespace sd.mesh {
 				}
 			}
 			assert(groupers < 2, "More than 1 attr stream indicates it's the grouping stream");
+
+			// start at group 0 in case there is no explicit initial group set
+			this.groupIndexStreams_ = new Map<number, number[]>();
+			this.groupIndexStreams_.set(0, []);
+			this.groupIndex_ = 0;
+			this.groupIndexesRef_ = this.groupIndexStreams_.get(0);
 
 			// output and de-duplication data
 			this.vertexData_ = this.streams_.map(s => []);
@@ -175,21 +191,13 @@ namespace sd.mesh {
 		}
 
 
-		nextGroup(newGroupIndex: number) {
-			if (this.curGroup_) {
-				this.curGroup_.primCount = this.triangleCount_ - this.groupFirstTriangleIndex_ + 1;
-				if (this.curGroup_.primCount > 0) {
-					this.groups_.push(this.curGroup_);
-				}
+		setGroup(newGroupIndex: number) {
+			this.groupIndex_ = newGroupIndex;
+			if (!this.groupIndexStreams_.has(newGroupIndex)) {
+				this.groupIndexStreams_.set(newGroupIndex, []);
 			}
 
-			this.curGroup_ = {
-				materialIx: newGroupIndex,
-				fromPrimIx: this.triangleCount_,
-				primCount: 0
-			};
-			this.groupIndex_ = newGroupIndex;
-			this.groupFirstTriangleIndex_ = this.triangleCount_ + 1;
+			this.groupIndexesRef_ = this.groupIndexStreams_.get(newGroupIndex);
 		}
 
 
@@ -231,7 +239,7 @@ namespace sd.mesh {
 						if (stream.controlsGrouping) {
 							var gi = values[fieldOffset];
 							if (gi != this.groupIndex_) {
-								this.nextGroup(gi);
+								this.setGroup(gi);
 							}
 						}
 					}
@@ -259,7 +267,7 @@ namespace sd.mesh {
 			this.indexMap_.add(vertexIndexes[1], dstVIxB);
 			this.indexMap_.add(vertexIndexes[2], dstVIxC);
 
-			this.indexes_.push(dstVIxA, dstVIxB, dstVIxC);
+			this.groupIndexesRef_.push(dstVIxA, dstVIxB, dstVIxC);
 			this.triangleCount_++;
 		}
 
@@ -308,12 +316,30 @@ namespace sd.mesh {
 				view.copyValuesFrom(streamData, this.vertexCount_);
 			}
 
+			// All triangles with the same material were merged, create full index buffer
+			// and primitive groups
 			var indexElemType = mesh.minimumIndexElementTypeForVertexCount(this.vertexCount_);
 			meshData.indexBuffer.allocate(PrimitiveType.Triangle, indexElemType, this.triangleCount_);
-			meshData.indexBuffer.setIndexes(0, this.indexes_.length, this.indexes_);
 
-			this.nextGroup(-1);
-			meshData.primitiveGroups = this.groups_.slice(0);
+			var mergedIndexes: number[] = [];
+			var nextTriangleIndex = 0;
+
+			this.groupIndexStreams_.forEach((indexes, group) => {
+				if (indexes.length) {
+					mergedIndexes = mergedIndexes.concat(indexes);
+					var groupTriCount = indexes.length / 3;
+
+					meshData.primitiveGroups.push({
+						fromPrimIx: nextTriangleIndex,
+						primCount: groupTriCount,
+						materialIx: group
+					});
+
+					nextTriangleIndex += groupTriCount;
+				}
+			});
+
+			meshData.indexBuffer.setIndexes(0, mergedIndexes.length, mergedIndexes);
 
 			return meshData;
 		}

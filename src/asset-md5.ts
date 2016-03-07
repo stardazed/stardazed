@@ -312,7 +312,7 @@ namespace sd.asset {
 					});
 
 					var mb = new mesh.MeshBuilder(positions, streams);
-					mb.nextGroup(0);
+					mb.setGroup(0);
 					var triCount = this.triangles.length / 3;
 					var pvi = 0;
 					var pi = 0;
