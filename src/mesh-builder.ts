@@ -192,6 +192,8 @@ namespace sd.mesh {
 
 
 		setGroup(newGroupIndex: number) {
+			assert(newGroupIndex >= 0, "group index must be >= 0");
+
 			this.groupIndex_ = newGroupIndex;
 			if (!this.groupIndexStreams_.has(newGroupIndex)) {
 				this.groupIndexStreams_.set(newGroupIndex, []);
