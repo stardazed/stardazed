@@ -187,7 +187,7 @@ namespace sd.mesh {
 		return nt ? nt.byteSize : 0;
 	}
 
-	
+
 	export function vertexFieldSizeBytes(vf: VertexField) {
 		return vertexFieldElementSizeBytes(vf) * vertexFieldElementCount(vf);
 	}
@@ -250,7 +250,7 @@ namespace sd.mesh {
 			return [attrPosition3(), attrNormal3()];
 		}
 		export function Pos3Norm3Colour3() {
-			return [attrPosition3(), attrNormal3(), attrColour3()];	
+			return [attrPosition3(), attrNormal3(), attrColour3()];
 		}
 		export function Pos3Norm3UV2(): VertexAttribute[] {
 			return [attrPosition3(), attrNormal3(), attrUV2()];
@@ -339,11 +339,11 @@ namespace sd.mesh {
 
 		get attributeCount() { return this.attributeCount_; }
 		get vertexSizeBytes() { return this.vertexSizeBytes_; }
-	
+
 		bytesRequiredForVertexCount(vertexCount: number): number {
 			return vertexCount * this.vertexSizeBytes_;
 		}
-	
+
 		attrByRole(role: VertexAttributeRole): PositionedAttribute {
 			return this.attrs_.find((pa) => pa.role == role);
 		}
@@ -363,7 +363,7 @@ namespace sd.mesh {
 	// | (__| | / -_) ' \  _| _ \ || |  _|  _/ -_) '_|
 	//  \___|_|_\___|_||_\__|___/\_,_|_| |_| \___|_|  
 	//                                                
-	
+
 	export interface ClientBuffer {
 		bufferSizeBytes: number;
 		buffer: ArrayBuffer;
@@ -403,7 +403,7 @@ namespace sd.mesh {
 		}
 
 		// -- attribute access pass-through
-	
+
 		hasAttributeWithRole(role: VertexAttributeRole) {
 			return this.layout_.hasAttributeWithRole(role);
 		}
@@ -869,6 +869,115 @@ namespace sd.mesh {
 			vec3.normalize(norm, norm);
 		});
 	}
+
+
+	export function calcVertexTangents(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer, uvSet = VertexAttributeRole.UV0) {
+		var posAttr = vertexBuffer.attrByRole(VertexAttributeRole.Position);
+		var normAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
+		var uvAttr = vertexBuffer.attrByRole(uvSet);
+		var tanAttr = vertexBuffer.attrByRole(VertexAttributeRole.Tangent);
+
+		assert(posAttr && normAttr && uvAttr && tanAttr);
+
+		var posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
+		var normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
+		var uvView = new VertexBufferAttributeView(vertexBuffer, uvAttr);
+		var tanView = new VertexBufferAttributeView(vertexBuffer, tanAttr);
+		var triView = new IndexBufferTriangleView(indexBuffer);
+
+		calcVertexTangentsViews(posView, normView, uvView, tanView, triView);
+	}
+
+
+	export function calcVertexTangentsViews(
+		posView: VertexBufferAttributeView,
+		normView: VertexBufferAttributeView,
+		uvView: VertexBufferAttributeView,
+		tanView: VertexBufferAttributeView,
+		triView: IndexBufferTriangleView
+	) {
+		// adaptation of http://www.terathon.com/code/tangent.html
+		// by Eric Lengyel
+
+		const vertexCount = posView.count;
+		assert(vertexCount <= normView.count);
+		assert(vertexCount <= uvView.count);
+		assert(vertexCount <= tanView.count);
+
+		var tanBuf = new Float32Array(vertexCount * 3 * 2);
+		var tan1 = tanBuf.subarray(0, vertexCount);
+		var tan2 = tanBuf.subarray(vertexCount);
+
+		triView.forEach(face => {
+			var a = face.a(),
+				b = face.b(),
+				c = face.c();
+
+			var v1 = posView.item(a),
+				v2 = posView.item(b),
+				v3 = posView.item(c);
+
+			var w1 = uvView.item(a),
+				w2 = uvView.item(b),
+				w3 = uvView.item(c);
+
+			var x1 = v2[0] - v1[0];
+			var x2 = v3[0] - v1[0];
+			var y1 = v2[1] - v1[1];
+			var y2 = v3[1] - v1[1];
+			var z1 = v2[2] - v1[2];
+			var z2 = v3[2] - v1[2];
+
+			var s1 = w2[0] - w1[0];
+			var s2 = w3[0] - w1[0];
+			var t1 = w2[1] - w1[1];
+			var t2 = w3[1] - w1[1];
+
+			var r = 1.0 / (s1 * t2 - s2 * t1);
+			var sdir = [
+				(t2 * x1 - t1 * x2) * r,
+				(t2 * y1 - t1 * y2) * r,
+				(t2 * z1 - t1 * z2) * r
+			];
+			var tdir = [
+				(s1 * x2 - s2 * x1) * r,
+				(s1 * y2 - s2 * y1) * r,
+				(s1 * z2 - s2 * z1) * r
+			];
+
+			// tan1[a] += sdir;
+			// tan1[b] += sdir;
+			// tan1[c] += sdir;
+			var tan1a = container.copyIndexedVec3(tan1, a);
+			var tan1b = container.copyIndexedVec3(tan1, b);
+			var tan1c = container.copyIndexedVec3(tan1, c);
+			container.setIndexedVec3(tan1, a, vec3.add(tan1a, tan1a, sdir));
+			container.setIndexedVec3(tan1, b, vec3.add(tan1b, tan1b, sdir));
+			container.setIndexedVec3(tan1, c, vec3.add(tan1c, tan1c, sdir));
+
+			// tan2[a] += tdir;
+			// tan2[b] += tdir;
+			// tan2[c] += tdir;
+			var tan2a = container.copyIndexedVec3(tan2, a);
+			var tan2b = container.copyIndexedVec3(tan2, b);
+			var tan2c = container.copyIndexedVec3(tan2, c);
+			container.setIndexedVec3(tan2, a, vec3.add(tan2a, tan2a, tdir));
+			container.setIndexedVec3(tan2, b, vec3.add(tan2b, tan2b, tdir));
+			container.setIndexedVec3(tan2, c, vec3.add(tan2c, tan2c, tdir));
+		});
+
+		for (var ix = 0; ix < vertexCount; ++ix) {
+			var n = normView.item(ix);
+			var t = container.copyIndexedVec3(tan1, ix);
+			var t2 = container.copyIndexedVec3(tan2, ix);
+
+			// Gram-Schmidt orthogonalize, w component is handedness
+			var tangent = vec3.normalize([], vec3.sub([], t, vec3.scale([], n, vec3.dot(n, t))));
+			tangent[3] = (vec3.dot(vec3.cross([], n, t), t2) < 0) ? -1 : 1;
+			vec4.copy(tanView.item(ix), tangent);
+		}
+	}
+
 
 
 	//  __  __        _    ___       _        

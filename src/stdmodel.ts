@@ -6,7 +6,7 @@ namespace sd.world {
 
 	const enum Features {
 		// VtxPosition and VtxNormal are required
-		//VtxTangent      = 0x0001,
+		VtxTangent      = 0x00001,
 		VtxUV           = 0x00002,
 		VtxColour       = 0x00004,
 		Specular        = 0x00008, // Implied true if GlossMap
