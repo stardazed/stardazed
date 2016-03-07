@@ -8,6 +8,7 @@
 interface Array<T> {
 	// ES6 extensions
 	find(callback: (element: T, index: number, array: Array<T>) => boolean, thisArg?: any): T;
+	findIndex(callback: (element: T, index: number, array: Array<T>) => boolean, thisArg?: any): number;
 }
 
 
