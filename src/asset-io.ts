@@ -73,6 +73,7 @@ namespace sd.asset {
 		"png": "image/png",
 		"jpg": "image/jpeg",
 		"jpeg": "image/jpeg",
+		"tga": "image/tga",
 		"gif": "image/gif"
 	};
 
