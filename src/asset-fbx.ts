@@ -199,6 +199,7 @@ namespace sd.asset {
 			private connections: FBXConnection[];
 			private hierarchyConnections: FBXConnection[];
 			private flattenedModels: Map<number, Model>;
+			private bumpedMaterials: Material[];
 			private rootNode: FBXNode;
 
 			constructor(private fbxFilePath: string) {
@@ -219,6 +220,7 @@ namespace sd.asset {
 				this.connections = [];
 				this.hierarchyConnections = [];
 				this.flattenedModels = new Map<number, Model>();
+				this.bumpedMaterials = [];
 
 				this.rootNode = new FBXNode("Model", [0, "Model::RootNode", "RootNode"]);
 				this.allObjects[0] = this.rootNode;
@@ -481,6 +483,10 @@ namespace sd.asset {
 						}
 					}
 
+					if (mat.normalTexture) {
+						this.bumpedMaterials.push(mat);
+					}
+
 					group.addMaterial(mat);
 				}
 			}
@@ -514,7 +520,7 @@ namespace sd.asset {
 				else if (layerElemNode.name == "LayerElementTangent") {
 					valueArrayName = "Tangents";
 					indexArrayName = "TangentsIndex";
-					stream.attr = { role: mesh.VertexAttributeRole.Tangent, field: mesh.VertexField.Floatx4 };
+					stream.attr = { role: mesh.VertexAttributeRole.Tangent, field: mesh.VertexField.Floatx3 };
 				}
 				else if (layerElemNode.name == "LayerElementMaterial") {
 					valueArrayName = "Materials";
@@ -565,6 +571,16 @@ namespace sd.asset {
 					);
 				}
 
+				// convert UV coordinates now (V-coord => 1 - V-coord)
+				if (layerElemNode.name == "LayerElementUV") {
+					let uvElements = stream.values.length;
+					let uvOffset = 0;
+					while (uvOffset < uvElements) {
+						stream.values[uvOffset + 1] = 1.0 - stream.values[uvOffset + 1];
+						uvOffset += 2;
+					}
+				}
+
 				return stream;
 			}
 
@@ -574,6 +590,9 @@ namespace sd.asset {
 				var tMeshData = 0;
 
 				for (var geomID in this.geometryNodes) {
+					let hasTangents = false;
+					let needsTangentGen = false;
+
 					var fbxGeom = this.geometryNodes[geomID];
 					var sdMesh: Mesh = {
 						name: fbxGeom.objectName,
@@ -582,7 +601,6 @@ namespace sd.asset {
 						streams: []
 					};
 					var polygonIndexes: Int32Array = null;
-					var materialStream: mesh.VertexAttributeStream = null;
 
 					for (var c of fbxGeom.children) {
 						if (c.name == "Vertices") {
@@ -599,11 +617,34 @@ namespace sd.asset {
 						{
 							let streamIndex = <number>c.values[0];
 							if (streamIndex == 0) {
-								sdMesh.streams.push(this.makeLayerElementStream(c));
+								let strm = this.makeLayerElementStream(c);
+								sdMesh.streams.push(strm);
+
+								if (c.name == "LayerElementTangent") {
+									hasTangents = true;
+								}
 							}
 							else {
 								console.warn("Skipping Geometry LayerElement with index > 0", c);
 							}
+						}
+					}
+
+					// check if we need to add a tangent attribute
+					if (! hasTangents) {
+						let geomModel = this.flattenedModels.get(fbxGeom.connectionsOut[0].toID);
+						let hasBumpedMaterials = geomModel.materials.some(m => m.normalTexture != null);
+
+						if (hasBumpedMaterials) {
+							sdMesh.streams.push({
+								name: "tangents",
+								attr: { field: mesh.VertexField.Floatx3, role: mesh.VertexAttributeRole.Tangent },
+								mapping: mesh.VertexAttributeMapping.Vertex,
+								includeInMesh: true,
+								values: new Float32Array(sdMesh.positions.length)
+							});
+
+							needsTangentGen = true;
 						}
 					}
 
@@ -635,8 +676,13 @@ namespace sd.asset {
 					}
 
 					var t1 = performance.now();
+
 					sdMesh.meshData = mb.complete();
 					sdMesh.indexMap = mb.indexMap;
+					if (needsTangentGen) {
+						mesh.calcVertexTangents(sdMesh.meshData.primaryVertexBuffer, sdMesh.meshData.indexBuffer);
+					}
+
 					var t2 = performance.now();
 					tStreams += (t1 - t0);
 					tMeshData += (t2 - t1);
