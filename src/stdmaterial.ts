@@ -14,7 +14,7 @@ namespace sd.world {
 	export const enum StdMaterialFlags {
 		usesSpecular              = 0x00000001,
 
-		albedoAlphaIsTranslucency = 0x00000100,
+		albedoAlphaIsTransparency = 0x00000100,
 		albedoAlphaIsGloss        = 0x00000200,
 		normalAlphaIsHeight       = 0x00000400,
 	}
@@ -136,7 +136,7 @@ namespace sd.world {
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
-			if ((desc.flags & StdMaterialFlags.albedoAlphaIsGloss) && (desc.flags & StdMaterialFlags.albedoAlphaIsTranslucency)) {
+			if ((desc.flags & StdMaterialFlags.albedoAlphaIsGloss) && (desc.flags & StdMaterialFlags.albedoAlphaIsTransparency)) {
 				assert(false, "invalid material flags")
 			}
 			this.flagsBase_[matIndex] = desc.flags;

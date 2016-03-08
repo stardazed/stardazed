@@ -11,7 +11,7 @@ namespace sd.world {
 		VtxColour       = 0x00004,
 		Specular        = 0x00008, // Implied true if GlossMap
 		AlbedoMap       = 0x00010,
-		//AlbedoAlphaIsTransparency = 0x00020, // \__ Mutually Exclusive
+		AlbedoAlphaIsTransparency = 0x00020, // \__ Mutually Exclusive
 		//AlbedoAlphaIsGloss        = 0x00040, // /
 		//NormalMap       = 0x00080, // Requires VtxTangent
 		//HeightMap       = 0x00100,
@@ -508,7 +508,16 @@ namespace sd.world {
 
 			// -- material colour at point
 			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
-				line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
+				if (feat & Features.AlbedoAlphaIsTransparency) {
+					line("	vec4 texColourA = texture2D(albedoSampler, vertexUV_intp);");
+					line("	if (texColourA.a < 0.1) {");
+					line("		discard;")
+					line("	}");
+					line("	vec3 texColour = texColourA.xyz;");
+				}
+				else {
+					line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
+				}
 
 				if (feat & Features.VtxColour) {
 					line("	vec3 matColour = vertexColour_intp * texColour * mainColour.rgb;");
@@ -688,9 +697,11 @@ namespace sd.world {
 
 			var matFlags = this.materialMgr_.flags(material);
 			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;
+			if (matFlags & StdMaterialFlags.albedoAlphaIsTransparency) features |= Features.AlbedoAlphaIsTransparency;
 
 			if (this.materialMgr_.albedoMap(material)) features |= Features.AlbedoMap;
 			if (this.materialMgr_.jointData(material)) features |= Features.Skinned;
+
 
 			// Bugfix: GL drivers can (and do) remove attributes that are only used in the vertex shader
 			var prePrune = features;
@@ -698,6 +709,11 @@ namespace sd.world {
 			// disable UV attr and AlbedoMap unless both are provided (TODO: also take other maps into account when added later)
 			if ((features & (Features.VtxUV | Features.AlbedoMap)) != (Features.VtxUV | Features.AlbedoMap)) {
 				features &= ~(Features.VtxUV | Features.AlbedoMap);
+			}
+
+			// disable albedomap-dependent features if there is no albedomap
+			if (!(features & Features.AlbedoMap)) {
+				features &= ~Features.AlbedoAlphaIsTransparency;
 			}
 
 			// if (features != prePrune) {
