@@ -462,6 +462,9 @@ namespace sd.asset {
 							else if (texIn.propName == "Bump") {
 								mat.heightTexture = tex2D;
 							}
+							else if (texIn.propName == "TransparentColor") {
+								mat.transparencyTexture = tex2D;
+							}
 							else {
 								console.warn("Unsupported texture property link: " + texIn.propName);
 								continue;
