@@ -234,7 +234,7 @@ namespace sd.mesh {
 	export function attrNormal3(): VertexAttribute { return { field: VertexField.Floatx3, role: VertexAttributeRole.Normal }; }
 	export function attrColour3(): VertexAttribute { return { field: VertexField.Floatx3, role: VertexAttributeRole.Colour }; }
 	export function attrUV2(): VertexAttribute { return { field: VertexField.Floatx2, role: VertexAttributeRole.UV }; }
-	export function attrTangent4(): VertexAttribute { return { field: VertexField.Floatx4, role: VertexAttributeRole.Tangent }; }
+	export function attrTangent3(): VertexAttribute { return { field: VertexField.Floatx3, role: VertexAttributeRole.Tangent }; }
 
 	export function attrJointIndexes(): VertexAttribute { return { field: VertexField.SInt32x4, role: VertexAttributeRole.JointIndexes }; }
 	export function attrWeightedPos(index: number) {
@@ -258,8 +258,8 @@ namespace sd.mesh {
 		export function Pos3Norm3Colour3UV2() {
 			return [attrPosition3(), attrNormal3(), attrColour3(), attrUV2()];
 		}
-		export function Pos3Norm3UV2Tan4(): VertexAttribute[] {
-			return [attrPosition3(), attrNormal3(), attrUV2(), attrTangent4()];
+		export function Pos3Norm3UV2Tan3(): VertexAttribute[] {
+			return [attrPosition3(), attrNormal3(), attrUV2(), attrTangent3()];
 		}
 
 		export function SkinnedPosNormUV(): VertexAttribute[] {
@@ -971,10 +971,15 @@ namespace sd.mesh {
 			var t = container.copyIndexedVec3(tan1, ix);
 			var t2 = container.copyIndexedVec3(tan2, ix);
 
-			// Gram-Schmidt orthogonalize, w component is handedness
+			// Gram-Schmidt orthogonalize
 			var tangent = vec3.normalize([], vec3.sub([], t, vec3.scale([], n, vec3.dot(n, t))));
-			tangent[3] = (vec3.dot(vec3.cross([], n, t), t2) < 0) ? -1 : 1;
-			vec4.copy(tanView.item(ix), tangent);
+
+			// Reverse tangent to conform to GL handedness if needed
+			if (vec3.dot(vec3.cross([], n, t), t2) < 0) {
+				vec3.scale(tangent, tangent, -1);
+			}
+
+			vec3.copy(tanView.item(ix), tangent);
 		}
 	}
 
