@@ -10,11 +10,11 @@ namespace sd.world {
 		VtxUV           = 0x00002,
 		VtxColour       = 0x00004,
 		Specular        = 0x00008, // Implied true if GlossMap
-		AlbedoMap       = 0x00010,
-		AlbedoAlphaIsTransparency = 0x00020, // \__ Mutually Exclusive
-		//AlbedoAlphaIsGloss        = 0x00040, // /
-		//NormalMap       = 0x00080, // Requires VtxTangent
-		//HeightMap       = 0x00100,
+		DiffuseMap       = 0x00010,
+		DiffuseAlphaIsTransparency = 0x00020, // \__ Mutually Exclusive
+		//DiffuseAlphaIsGloss        = 0x00040, // /
+		NormalMap       = 0x00080, // Requires VtxTangent
+		//NormalAlphaIsHeight       = 0x00100,
 
 		ShadowMap       = 0x01000,
 		SoftShadow      = 0x02000,
@@ -142,7 +142,7 @@ namespace sd.world {
 			program.texScaleOffsetUniform = gl.getUniformLocation(program, "texScaleOffset");
 
 			// -- texture samplers and their fixed binding indexes
-			program.colourMapUniform = gl.getUniformLocation(program, "albedoSampler");
+			program.colourMapUniform = gl.getUniformLocation(program, "diffuseSampler");
 			if (program.colourMapUniform) {
 				gl.uniform1i(program.colourMapUniform, TextureBindPoint.Colour);
 			}
@@ -248,6 +248,7 @@ namespace sd.world {
 			line  ("attribute vec3 vertexNormal;");
 			if_all("attribute vec2 vertexUV;", Features.VtxUV);
 			if_all("attribute vec3 vertexColour;", Features.VtxColour);
+			if_all("attribute vec3 vertexTangent;", Features.VtxTangent);
 
 			// Out
 			line  ("varying vec3 vertexNormal_intp;");
@@ -378,7 +379,8 @@ namespace sd.world {
 			// -- material
 			line  ("uniform vec4 mainColour;");
 			if_all("uniform vec4 specular;", Features.Specular);
-			if_all("uniform sampler2D albedoSampler;", Features.AlbedoMap);
+			if_all("uniform sampler2D diffuseSampler;", Features.DiffuseMap);
+			if_all("uniform sampler2D normalSampler;", Features.NormalMap);
 			if_all("uniform sampler2D shadowSampler;", Features.ShadowMap);
 			if_all("uniform int shadowCastingLightIndex;", Features.ShadowMap);
 
@@ -448,7 +450,7 @@ namespace sd.world {
 			line  ("	float distance = length(lightDirection);");
 			line  ("	lightDirection = normalize(lightDirection);");
 			line  ("	float attenuation = 1.0 - pow(clamp(distance / param[LPARAM_RANGE], 0.0, 1.0), 2.0);");
-			line  ("    attenuation *= dot(normal_cam, lightNormalMatrix * -lightDirection.xyz);"); // I need to reject light back-facing polies, but this is too strong
+			line  ("    attenuation *= dot(normal_cam, lightNormalMatrix * -lightDirection.xyz);");
 			line  ("	return calcLightShared(matColour, colour, param, attenuation, lightDirection, normal_cam);");
 			line  ("}");
 
@@ -507,16 +509,16 @@ namespace sd.world {
 			line  ("void main() {");
 
 			// -- material colour at point
-			if ((feat & (Features.VtxUV | Features.AlbedoMap)) == (Features.VtxUV | Features.AlbedoMap)) {
-				if (feat & Features.AlbedoAlphaIsTransparency) {
-					line("	vec4 texColourA = texture2D(albedoSampler, vertexUV_intp);");
+			if ((feat & (Features.VtxUV | Features.DiffuseMap)) == (Features.VtxUV | Features.DiffuseMap)) {
+				if (feat & Features.DiffuseAlphaIsTransparency) {
+					line("	vec4 texColourA = texture2D(diffuseSampler, vertexUV_intp);");
 					line("	if (texColourA.a < 0.1) {");
 					line("		discard;")
 					line("	}");
 					line("	vec3 texColour = texColourA.xyz;");
 				}
 				else {
-					line("	vec3 texColour = texture2D(albedoSampler, vertexUV_intp).xyz;");
+					line("	vec3 texColour = texture2D(diffuseSampler, vertexUV_intp).xyz;");
 				}
 
 				if (feat & Features.VtxColour) {
@@ -534,7 +536,7 @@ namespace sd.world {
 			}
 
 			if (feat & Features.SoftShadow) {
-				// -- init global poisson sample array (GLSL ES 2 does not support vector array initializers)
+				// -- init global poisson sample array (GLSL ES 2 does not support array initializers)
 				line("	poissonDisk[0] = vec2(-0.94201624, -0.39906216);");
 				line("	poissonDisk[1] = vec2(0.94558609, -0.76890725);");
 				line("	poissonDisk[2] = vec2(-0.094184101, -0.92938870);");
@@ -697,23 +699,23 @@ namespace sd.world {
 
 			var matFlags = this.materialMgr_.flags(material);
 			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;
-			if (matFlags & StdMaterialFlags.albedoAlphaIsTransparency) features |= Features.AlbedoAlphaIsTransparency;
+			if (matFlags & StdMaterialFlags.diffuseAlphaIsTransparency) features |= Features.DiffuseAlphaIsTransparency;
 
-			if (this.materialMgr_.albedoMap(material)) features |= Features.AlbedoMap;
+			if (this.materialMgr_.diffuseMap(material)) features |= Features.DiffuseMap;
 			if (this.materialMgr_.jointData(material)) features |= Features.Skinned;
 
 
 			// Bugfix: GL drivers can (and do) remove attributes that are only used in the vertex shader
 			var prePrune = features;
 
-			// disable UV attr and AlbedoMap unless both are provided (TODO: also take other maps into account when added later)
-			if ((features & (Features.VtxUV | Features.AlbedoMap)) != (Features.VtxUV | Features.AlbedoMap)) {
-				features &= ~(Features.VtxUV | Features.AlbedoMap);
+			// disable UV attr and DiffuseMap unless both are provided (TODO: also take other maps into account when added later)
+			if ((features & (Features.VtxUV | Features.DiffuseMap)) != (Features.VtxUV | Features.DiffuseMap)) {
+				features &= ~(Features.VtxUV | Features.DiffuseMap);
 			}
 
-			// disable albedomap-dependent features if there is no albedomap
-			if (!(features & Features.AlbedoMap)) {
-				features &= ~Features.AlbedoAlphaIsTransparency;
+			// disable diffusemap-dependent features if there is no diffusemap
+			if (!(features & Features.DiffuseMap)) {
+				features &= ~Features.DiffuseAlphaIsTransparency;
 			}
 
 			// if (features != prePrune) {
@@ -902,8 +904,8 @@ namespace sd.world {
 				if (features & Features.Specular) {
 					gl.uniform4fv(program.specularUniform, materialData.specularData);
 				}
-				if (features & Features.AlbedoMap) {
-					rp.setTexture(materialData.albedoMap, TextureBindPoint.Colour);
+				if (features & Features.DiffuseMap) {
+					rp.setTexture(materialData.diffuseMap, TextureBindPoint.Colour);
 					gl.uniform4fv(program.texScaleOffsetUniform, materialData.texScaleOffsetData);
 				}
 				if (features & Features.Skinned) {

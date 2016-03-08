@@ -14,15 +14,15 @@ namespace sd.world {
 	export const enum StdMaterialFlags {
 		usesSpecular              = 0x00000001,
 
-		albedoAlphaIsTransparency = 0x00000100,
-		albedoAlphaIsGloss        = 0x00000200,
+		diffuseAlphaIsTransparency = 0x00000100,
+		diffuseAlphaIsGloss        = 0x00000200,
 		normalAlphaIsHeight       = 0x00000400,
 	}
 
 
 	export interface StdMaterialDescriptor {
 		// colours
-		mainColour: Float3;             // v3, single colour or tint for albedo
+		mainColour: Float3;             // v3, single colour or tint for diffuse
 
 		specularIntensity: number;      // 0..1
 		specularExponent: number;       // 0+
@@ -32,7 +32,7 @@ namespace sd.world {
 		textureScale: Float2;           // [0..1, 0..1], scale and offset apply to all textures, u and v clamped to 0..1
 		textureOffset: Float2;
 
-		albedoMap: render.Texture;      // nullptr means use mainColour only
+		diffuseMap: render.Texture;      // nullptr means use mainColour only
 		normalMap: render.Texture;      // nullptr means no bump
 
 		jointData: render.Texture;      // joint transforms
@@ -52,7 +52,7 @@ namespace sd.world {
 			textureScale: vec2.copy([], math.Vec2.one),
 			textureOffset: vec2.copy([], math.Vec2.zero),
 
-			albedoMap: null,
+			diffuseMap: null,
 			normalMap: null,
 
 			jointData: null,
@@ -66,7 +66,7 @@ namespace sd.world {
 		colourData: Float32Array;
 		specularData: Float32Array;
 		texScaleOffsetData: Float32Array;
-		albedoMap: render.Texture;
+		diffuseMap: render.Texture;
 		normalMap: render.Texture;
 		jointData: render.Texture;
 		flags: StdMaterialFlags;
@@ -89,7 +89,7 @@ namespace sd.world {
 
 	export class StdMaterialManager implements ComponentManager<StdMaterialManager> {
 		private instanceData_: container.MultiArrayBuffer;
-		private albedoMaps_: render.Texture[] = [];
+		private diffuseMaps_: render.Texture[] = [];
 		private normalMaps_: render.Texture[] = [];
 		private jointDataMaps_: render.Texture[] = [];
 
@@ -136,12 +136,12 @@ namespace sd.world {
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
-			if ((desc.flags & StdMaterialFlags.albedoAlphaIsGloss) && (desc.flags & StdMaterialFlags.albedoAlphaIsTransparency)) {
+			if ((desc.flags & StdMaterialFlags.diffuseAlphaIsGloss) && (desc.flags & StdMaterialFlags.diffuseAlphaIsTransparency)) {
 				assert(false, "invalid material flags")
 			}
 			this.flagsBase_[matIndex] = desc.flags;
 
-			this.albedoMaps_[matIndex] = desc.albedoMap;
+			this.diffuseMaps_[matIndex] = desc.diffuseMap;
 			this.normalMaps_[matIndex] = desc.normalMap;
 			this.jointDataMaps_[matIndex] = desc.jointData;
 
@@ -157,7 +157,7 @@ namespace sd.world {
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, math.Vec4.zero);
 			this.flagsBase_[matIndex] = 0;
 
-			this.albedoMaps_[matIndex] = null;
+			this.diffuseMaps_[matIndex] = null;
 			this.normalMaps_[matIndex] = null;
 			this.jointDataMaps_[matIndex] = null;
 
@@ -254,12 +254,12 @@ namespace sd.world {
 		}
 
 
-		albedoMap(inst: StdMaterialInstance): render.Texture {
-			return this.albedoMaps_[<number>inst];
+		diffuseMap(inst: StdMaterialInstance): render.Texture {
+			return this.diffuseMaps_[<number>inst];
 		}
 
-		setAlbedoMap(inst: StdMaterialInstance, newTex: render.Texture) {
-			this.albedoMaps_[<number>inst] = newTex;
+		setDiffuseMap(inst: StdMaterialInstance, newTex: render.Texture) {
+			this.diffuseMaps_[<number>inst] = newTex;
 		}
 
 
@@ -309,7 +309,7 @@ namespace sd.world {
 				textureScale: this.textureScale(inst),
 				textureOffset: this.textureOffset(inst),
 
-				albedoMap: this.albedoMaps_[matIndex],
+				diffuseMap: this.diffuseMaps_[matIndex],
 				normalMap: this.normalMaps_[matIndex],
 				jointData: this.jointDataMaps_[matIndex],
 
@@ -326,7 +326,7 @@ namespace sd.world {
 				specularData: <Float32Array>container.refIndexedVec4(this.specularBase_, matIndex),
 				texScaleOffsetData: <Float32Array>container.refIndexedVec4(this.texScaleOffsetBase_, matIndex),
 
-				albedoMap: this.albedoMaps_[matIndex],
+				diffuseMap: this.diffuseMaps_[matIndex],
 				normalMap: this.normalMaps_[matIndex],
 				jointData: this.jointDataMaps_[matIndex],
 
