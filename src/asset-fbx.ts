@@ -432,8 +432,8 @@ namespace sd.asset {
 						else if (c.name == "EmissiveFactor") {
 							mat.emissiveIntensity = <number>c.values[0];
 						}
-						else if (c.name == "TransparencyFactor") {
-							mat.transparency = math.clamp01(<number>c.values[0]);
+						else if (c.name == "Opacity") {
+							mat.opacity = math.clamp01(<number>c.values[0]);
 						}
 					}
 

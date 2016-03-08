@@ -40,7 +40,7 @@ namespace sd.asset {
 
 		jointDataTexture: Texture2D;
 		
-		transparency: number; // 0: fully opaque, 1: fully transparent
+		opacity: number; // 0: fully transparent, 1: fully opaque
 	}
 
 	export type MaterialSet = { [name: string]: Material };
@@ -72,7 +72,7 @@ namespace sd.asset {
 
 			jointDataTexture: null,
 			
-			transparency: 0
+			opacity: 0
 		};
 	}
 
