@@ -16,6 +16,7 @@ namespace sd.render {
 		RGB_5_6_5,
 		RGBA_4_4_4_4,
 		RGBA_5_5_5_1,
+		RGBA16F,
 
 		// 32-bit component
 		RGBA32F,
@@ -80,6 +81,9 @@ namespace sd.render {
 			case PixelFormat.Stencil8:
 				return 1;
 
+			case PixelFormat.RGB_5_6_5:
+			case PixelFormat.RGBA_4_4_4_4:
+			case PixelFormat.RGBA_5_5_5_1:
 			case PixelFormat.Depth16I:
 				return 2;
 
@@ -90,6 +94,9 @@ namespace sd.render {
 			case PixelFormat.Depth24I:
 			case PixelFormat.Depth24_Stencil8:
 				return 4;
+
+			case PixelFormat.RGBA16F:
+				return 8;
 
 			case PixelFormat.RGBA32F:
 				return 16;

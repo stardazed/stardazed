@@ -1,6 +1,6 @@
 // texture - texture objects
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2015-2016 by Arthur Langereis - @zenmumbler
 
 /// <reference path="texture-desc.ts"/>
 /// <reference path="rendercontext.ts"/>
@@ -22,6 +22,9 @@ namespace sd.render {
 			case PixelFormat.RGBA_4_4_4_4:
 			case PixelFormat.RGBA_5_5_5_1:
 				return gl.RGBA;
+
+			case PixelFormat.RGBA16F:
+				return rc.extTextureHalfFloat ? gl.RGBA : gl.NONE;
 
 			case PixelFormat.RGBA32F:
 				return gl.RGBA;
@@ -66,6 +69,9 @@ namespace sd.render {
 				return gl.UNSIGNED_SHORT_4_4_4_4;
 			case PixelFormat.RGBA_5_5_5_1:
 				return gl.UNSIGNED_SHORT_5_5_5_1;
+
+			case PixelFormat.RGBA16F:
+				return rc.extTextureHalfFloat ? rc.extTextureHalfFloat.HALF_FLOAT_OES : gl.NONE;
 
 			case PixelFormat.RGBA32F:
 				return gl.FLOAT;
