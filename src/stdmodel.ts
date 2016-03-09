@@ -490,8 +490,8 @@ namespace sd.world {
 
 			if (feat & Features.ShadowMap) {
 				line("		if (lightIx == shadowCastingLightIndex) {");
-				line("			float shadowBias = lightDirection[LDIR_BIAS];"); // shadow bias stores in light direction
-				line("			float fragZ = (vertexPos_light.z - shadowBias) / vertexPos_light.w;");
+				line("			float shadowBias = lightDirection[LDIR_BIAS];"); // shadow bias stored in light direction
+				line("			float fragZ = (vertexPos_light_intp.z - shadowBias) / vertexPos_light_intp.w;");
 
 				if (feat & Features.SoftShadow) {
 					// well, soft-ish
