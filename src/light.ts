@@ -51,7 +51,8 @@ namespace sd.world {
 		type: number;
 		colourData: Float4;    // colour[3], amplitude
 		parameterData: Float4; // ambIntensity, diffIntensity, range, cutoff
-		position: Float4;      // position[3], shadowStrength
+		position_cam: Float4;      // position[3], shadowStrength
+		position_world: Float4;      // position[3], 0
 		direction: Float4;     // direction[3], shadowBias
 	}
 
@@ -413,7 +414,8 @@ namespace sd.world {
 				type: this.typeBase_[<number>inst],
 				colourData: container.refIndexedVec4(this.colourBase_, <number>inst),
 				parameterData: container.refIndexedVec4(this.parameterBase_, <number>inst),
-				position: posAndStrength,
+				position_cam: posAndStrength,
+				position_world: lightPos_world.concat(0),
 				direction: dirAndBias
 			};
 		}

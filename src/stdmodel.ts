@@ -47,7 +47,8 @@ namespace sd.world {
 
 		// -- lights
 		lightTypeArrayUniform?: WebGLUniformLocation;      // int[MAX_FRAGMENT_LIGHTS]
-		lightPositionArrayUniform?: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
+		lightCamPositionArrayUniform?: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
+		lightWorldPositionArrayUniform?: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
 		lightDirectionArrayUniform?: WebGLUniformLocation; // vec4[MAX_FRAGMENT_LIGHTS]
 		lightColourArrayUniform?: WebGLUniformLocation;    // vec4[MAX_FRAGMENT_LIGHTS]
 		lightParamArrayUniform?: WebGLUniformLocation;     // vec4[MAX_FRAGMENT_LIGHTS]
@@ -165,7 +166,8 @@ namespace sd.world {
 
 			// -- light property arrays
 			program.lightTypeArrayUniform = gl.getUniformLocation(program, "lightTypes");
-			program.lightPositionArrayUniform = gl.getUniformLocation(program, "lightPositions");
+			program.lightCamPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_cam");
+			program.lightWorldPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_world");
 			program.lightDirectionArrayUniform = gl.getUniformLocation(program, "lightDirections");
 			program.lightColourArrayUniform = gl.getUniformLocation(program, "lightColours");
 			program.lightParamArrayUniform = gl.getUniformLocation(program, "lightParams");
@@ -251,12 +253,13 @@ namespace sd.world {
 			if_all("attribute vec3 vertexTangent;", Features.VtxTangent);
 
 			// Out
-			line  ("varying vec3 vertexNormal_intp;");
-			// line  ("varying vec3 vertexPos_world;");
+			line  ("varying vec3 vertexNormal_cam;");
+			line  ("varying vec3 vertexPos_world;");
 			line  ("varying vec3 vertexPos_cam;");
 			if_all("varying vec4 vertexPos_light;", Features.ShadowMap);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
+			if_all("varying vec3 vertexTangent_cam;", Features.VtxTangent);
 
 			// Uniforms
 			line  ("uniform mat4 modelMatrix;");
@@ -341,12 +344,13 @@ namespace sd.world {
 			}
 
 			line  ("	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);");
-			// line  ("	vertexPos_world = (modelMatrix * vec4(vertexPos_model, 1.0)).xyz;");
-			line  ("	vertexNormal_intp = normalMatrix * vertexNormal_final;");
+			line  ("	vertexPos_world = (modelMatrix * vec4(vertexPos_model, 1.0)).xyz;");
+			line  ("	vertexNormal_cam = normalMatrix * vertexNormal_final;");
 			line  ("	vertexPos_cam = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;");
 			if_all("	vertexPos_light = lightViewProjectionMatrix * modelMatrix * vec4(vertexPos_model, 1.0);", Features.ShadowMap);
 			if_all("	vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;", Features.VtxUV);
 			if_all("	vertexColour_intp = vertexColour;", Features.VtxColour);
+			if_all("	vertexTangent_cam = (modelViewMatrix * vec4(vertexTangent, 1.0)).xyz;", Features.VtxTangent);
 			line  ("}");
 
 			// console.info("------ VERTEX");
@@ -366,12 +370,13 @@ namespace sd.world {
 			line  ("precision highp float;");
 
 			// In
-			// line  ("varying vec3 vertexPos_world;");
-			line  ("varying vec3 vertexNormal_intp;");
+			line  ("varying vec3 vertexPos_world;");
+			line  ("varying vec3 vertexNormal_cam;");
 			line  ("varying vec3 vertexPos_cam;");
 			if_all("varying vec4 vertexPos_light;", Features.ShadowMap);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
+			if_all("varying vec3 vertexTangent_cam;", Features.VtxTangent);
 
 			// Uniforms
 			line  ("uniform mat3 lightNormalMatrix;");
@@ -399,7 +404,8 @@ namespace sd.world {
 
 			// -- lights (with 4 lights, this will take up 20 frag vector uniforms)
 			line  ("uniform int lightTypes[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightPositions[MAX_FRAGMENT_LIGHTS];");
+			line  ("uniform vec4 lightPositions_cam[MAX_FRAGMENT_LIGHTS];");
+			line  ("uniform vec4 lightPositions_world[MAX_FRAGMENT_LIGHTS];");
 			line  ("uniform vec4 lightDirections[MAX_FRAGMENT_LIGHTS];");
 			line  ("uniform vec4 lightColours[MAX_FRAGMENT_LIGHTS];");
 			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
@@ -429,10 +435,10 @@ namespace sd.world {
 				line("	vec3 specularContrib = vec3(0.0);");
 				line("	vec3 viewVec = normalize(-vertexPos_cam);");
 				line("	vec3 reflectVec = reflect(lightDirection, normal_cam);");
-				line("	float specularStrength = dot(reflectVec, viewVec);");
+				line("	float specularStrength = dot(viewVec, reflectVec);");
 				line("	if (specularStrength > 0.0) {");
 				line("		vec3 specularColour = mix(matColour, colour.rgb, specular[SPEC_COLOURMIX]);");
-				line("		specularStrength = pow(specularStrength, specular[SPEC_EXPONENT]);");
+				line("		specularStrength = pow(specularStrength, specular[SPEC_EXPONENT]) * diffuseStrength;"); // FIXME: not too sure about this (* diffuseStrength)
 				line("		specularContrib = specularColour * specularStrength * specular[SPEC_INTENSITY];");
 				line("	}");
 				line("	return (ambientContrib + (diffuseContrib + specularContrib)) * colour.w;"); // lightColour.w = lightAmplitude
@@ -444,19 +450,18 @@ namespace sd.world {
 
 
 			// -- calcPointLight()
-			line  ("vec3 calcPointLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 normal_cam) {");
+			line  ("vec3 calcPointLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 lightPos_world, vec3 normal_cam) {");
 
-			line  ("	vec3 lightDirection = vertexPos_cam - lightPos_cam.xyz;");
-			line  ("	float distance = length(lightDirection);");
-			line  ("	lightDirection = normalize(lightDirection);");
+			line  ("	float distance = length(vertexPos_world - lightPos_world);"); // use world positions for distance as cam will warp coords
+			line  ("	vec3 lightDirection = normalize(vertexPos_cam - lightPos_cam.xyz);");
 			line  ("	float attenuation = 1.0 - pow(clamp(distance / param[LPARAM_RANGE], 0.0, 1.0), 2.0);");
-			line  ("    attenuation *= dot(normal_cam, -lightDirection.xyz);");
+			line  ("    attenuation *= dot(normal_cam, -lightDirection);");
 			line  ("	return calcLightShared(matColour, colour, param, attenuation, lightDirection, normal_cam);");
 			line  ("}");
 
 
 			// -- calcSpotLight()
-			line  ("vec3 calcSpotLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec4 lightDirection, vec3 normal_cam) {");
+			line  ("vec3 calcSpotLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 lightPos_world, vec4 lightDirection, vec3 normal_cam) {");
 			line  ("	vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam.xyz);");
 			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection.xyz);");
 			line  ("	float cutoff = param[LPARAM_CUTOFF];");
@@ -491,7 +496,7 @@ namespace sd.world {
 				line("		}"); // lightIx == shadowCastingLightIndex
 			}
 
-			line  ("		vec3 light = shadowFactor * calcPointLight(lightIx, matColour, colour, param, lightPos_cam, normal_cam);");
+			line  ("		vec3 light = shadowFactor * calcPointLight(lightIx, matColour, colour, param, lightPos_cam, lightPos_world, normal_cam);");
 			line  ("		return light * (1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff));");
 			line  ("	}");
 			line  ("	return vec3(0.0);");
@@ -509,10 +514,7 @@ namespace sd.world {
 			line  ("void main() {");
 
 			// -- material colour at point
-			if (feat & Features.NormalMap) {
-				line("	vec3 matColour = texture2D(normalSampler, vertexUV_intp).xyz;");
-			}
-			else if (feat & Features.DiffuseMap) {
+			if (feat & Features.DiffuseMap) {
 				if (feat & Features.DiffuseAlphaIsTransparency) {
 					line("	vec4 texColourA = texture2D(diffuseSampler, vertexUV_intp);");
 					line("	if (texColourA.a < 0.1) {");
@@ -546,15 +548,28 @@ namespace sd.world {
 				line("	poissonDisk[3] = vec2(0.34495938, 0.29387760);");
 			}
 
-			line  ("	vec3 normal_cam = normalize(vertexNormal_intp);");
-			line  ("	vec3 totalLight = vec3(0.0);");
+			// -- normal in camera space, convert from tangent space -> FIXME: reverse and place TBN calc in vert shader, use tan space calcs for light
+			if (feat & Features.NormalMap) {
+				line("	vec3 normal_cam = normalize(vertexNormal_cam);");
+				line("	vec3 tangent_cam = normalize(vertexTangent_cam);");
+				line("	vec3 bitangent_cam = cross(tangent_cam, normal_cam);");
+				line("	vec3 bumpNormal_tan = texture2D(normalSampler, vertexUV_intp).xyz * 2.0 - 1.0;");
+				line("	mat3 TBN = mat3(tangent_cam, bitangent_cam, normal_cam);");
+				line("	normal_cam = normalize(TBN * bumpNormal_tan);");
+			}
+			else {
+				line("	vec3 normal_cam = normalize(vertexNormal_cam);");
+			}
 
 			// -- calculate light arriving at the fragment
+			line  ("	vec3 totalLight = vec3(0.0);");
+
 			line  ("	for (int lightIx = 0; lightIx < MAX_FRAGMENT_LIGHTS; ++lightIx) {");
 			line  ("		int type = lightTypes[lightIx];");
 			line  ("		if (type == 0) break;");
 
-			line  ("		vec4 lightPos_cam = lightPositions[lightIx];");     // all array accesses must be constant or a loop index
+			line  ("		vec4 lightPos_cam = lightPositions_cam[lightIx];");     // all array accesses must be constant or a loop index
+			line  ("		vec3 lightPos_world = lightPositions_world[lightIx].xyz;");
 			line  ("		vec4 lightDir_cam = lightDirections[lightIx];");        // keep w component (LDIR_BIAS)
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
@@ -563,10 +578,10 @@ namespace sd.world {
 			line  ("			totalLight += calcDirectionalLight(lightIx, matColour, lightColour, lightParam, lightDir_cam, normal_cam);");
 			line  ("		}");
 			line  ("		else if (type == 2) {")
-			line  ("			totalLight += calcPointLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, normal_cam);");
+			line  ("			totalLight += calcPointLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, normal_cam);");
 			line  ("		}");
 			line  ("		else if (type == 3) {")
-			line  ("			totalLight += calcSpotLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightDir_cam, normal_cam);");
+			line  ("			totalLight += calcSpotLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, normal_cam);");
 			line  ("		}");
 			line  ("	}");
 
@@ -635,7 +650,8 @@ namespace sd.world {
 
 		// -- for light uniform updates
 		private lightTypeArray_ = new Int32Array(MAX_FRAGMENT_LIGHTS);
-		private lightPositionArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
+		private lightCamPositionArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
+		private lightWorldPositionArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
 		private lightDirectionArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
 		private lightColourArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
 		private lightParamArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
@@ -903,7 +919,8 @@ namespace sd.world {
 
 				// -- light data FIXME: only update these when local light data was changed -> pos and rot can change as well
 				gl.uniform1iv(program.lightTypeArrayUniform, this.lightTypeArray_);
-				gl.uniform4fv(program.lightPositionArrayUniform, this.lightPositionArray_);
+				gl.uniform4fv(program.lightCamPositionArrayUniform, this.lightCamPositionArray_);
+				gl.uniform4fv(program.lightWorldPositionArrayUniform, this.lightWorldPositionArray_);
 				gl.uniform4fv(program.lightDirectionArrayUniform, this.lightDirectionArray_);
 				gl.uniform4fv(program.lightColourArrayUniform, this.lightColourArray_);
 				gl.uniform4fv(program.lightParamArrayUniform, this.lightParamArray_);
@@ -976,7 +993,8 @@ namespace sd.world {
 						container.setIndexedVec4(this.lightDirectionArray_, lix, lightData.direction);
 					}
 					if (lightData.type != LightType.Directional) {
-						container.setIndexedVec4(this.lightPositionArray_, lix, lightData.position);
+						container.setIndexedVec4(this.lightCamPositionArray_, lix, lightData.position_cam);
+						container.setIndexedVec4(this.lightWorldPositionArray_, lix, lightData.position_world);
 					}
 				}
 				else {
