@@ -391,7 +391,7 @@ namespace sd.world {
 
 		// -- shader data
 
-		getData(inst: LightInstance): LightData {
+		getData(inst: LightInstance, viewMatrix: Float4x4, viewNormalMatrix: Float3x3): LightData {
 			var transform = this.transformBase_[<number>inst];
 
 			var paramData = container.copyIndexedVec2(this.shadowParamBase_, <number>inst);
@@ -399,9 +399,14 @@ namespace sd.world {
 			var dirAndBias = new Float32Array(4);
 			var rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(transform));
 
-			posAndStrength.set(this.transformMgr_.worldPosition(transform), 0);
+			var lightPos_world = this.transformMgr_.worldPosition(transform);
+			var lightPos_cam = vec3.transformMat4([], lightPos_world, viewMatrix);
+			var lightDir_world = vec3.transformMat3([], this.nullVec3_, rotMat);
+			var lightDir_cam = vec3.transformMat3([], lightDir_world, viewNormalMatrix);
+
+			posAndStrength.set(lightPos_cam, 0);
 			posAndStrength[3] = paramData[ShadowParam.Strength];
-			dirAndBias.set(vec3.normalize([], vec3.transformMat3([], this.nullVec3_, rotMat)), 0);
+			dirAndBias.set(vec3.normalize([], lightDir_cam), 0);
 			dirAndBias[3] = paramData[ShadowParam.Bias];
 
 			return {
