@@ -176,7 +176,8 @@ namespace sd.asset {
 
 
 		export interface FBXResolveOptions {
-			allowMissingTextures?: boolean;
+			allowMissingTextures: boolean;
+			forceMipMapsOn: boolean;
 			removeUnusedBones: boolean;
 		}
 
@@ -311,13 +312,15 @@ namespace sd.asset {
 					var tex: Texture2D = {
 						name: fbxVideo.objectName,
 						userRef: vidID,
-						useMipMaps: render.UseMipMaps.No
+						useMipMaps: options.forceMipMapsOn ? render.UseMipMaps.Yes : render.UseMipMaps.No
 					};
 					var fileData: ArrayBuffer = null;
 
 					for (let c of fbxVideo.children) {
 						if (c.name == "UseMipMap") {
-							tex.useMipMaps = (<number>c.values[0] != 0) ? render.UseMipMaps.Yes : render.UseMipMaps.No;
+							if (! options.forceMipMapsOn) {
+								tex.useMipMaps = (<number>c.values[0] != 0) ? render.UseMipMaps.Yes : render.UseMipMaps.No;
+							}
 						}
 						else if (c.name == "RelativeFilename") {
 							tex.filePath = <string>c.values[0];
@@ -975,6 +978,7 @@ namespace sd.asset {
 			resolve(options?: FBXResolveOptions): Promise<AssetGroup> {
 				var defaults: FBXResolveOptions = {
 					allowMissingTextures: true,
+					forceMipMapsOn: true,
 					removeUnusedBones: true
 				};
 				copyValues(defaults, options || {});
