@@ -571,7 +571,7 @@ namespace sd.asset {
 					);
 				}
 
-				// convert UV coordinates now (V-coord => 1 - V-coord)
+				// invert V coordinates for direct usage in GL
 				if (layerElemNode.name == "LayerElementUV") {
 					let uvElements = stream.values.length;
 					let uvOffset = 0;

@@ -509,7 +509,10 @@ namespace sd.world {
 			line  ("void main() {");
 
 			// -- material colour at point
-			if ((feat & (Features.VtxUV | Features.DiffuseMap)) == (Features.VtxUV | Features.DiffuseMap)) {
+			if (feat & Features.NormalMap) {
+				line("	vec3 matColour = texture2D(normalSampler, vertexUV_intp).xyz;");
+			}
+			else if (feat & Features.DiffuseMap) {
 				if (feat & Features.DiffuseAlphaIsTransparency) {
 					line("	vec4 texColourA = texture2D(diffuseSampler, vertexUV_intp);");
 					line("	if (texColourA.a < 0.1) {");
@@ -696,21 +699,27 @@ namespace sd.world {
 
 			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.Colour)) features |= Features.VtxColour;
 			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.UV)) features |= Features.VtxUV;
+			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.Tangent)) features |= Features.VtxTangent;
 
 			var matFlags = this.materialMgr_.flags(material);
 			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;
 			if (matFlags & StdMaterialFlags.diffuseAlphaIsTransparency) features |= Features.DiffuseAlphaIsTransparency;
 
 			if (this.materialMgr_.diffuseMap(material)) features |= Features.DiffuseMap;
+			if (this.materialMgr_.normalMap(material)) features |= Features.NormalMap;
 			if (this.materialMgr_.jointData(material)) features |= Features.Skinned;
 
-
-			// Bugfix: GL drivers can (and do) remove attributes that are only used in the vertex shader
+			// Remove redundant or unused features as GL drivers can and will remove attributes that are only used in the vertex shader
 			var prePrune = features;
 
 			// disable UV attr and DiffuseMap unless both are provided (TODO: also take other maps into account when added later)
 			if ((features & (Features.VtxUV | Features.DiffuseMap)) != (Features.VtxUV | Features.DiffuseMap)) {
 				features &= ~(Features.VtxUV | Features.DiffuseMap);
+			}
+
+			// disable Tangent attr and NormalMap unless both are provided
+			if ((features & (Features.VtxTangent | Features.NormalMap)) != (Features.VtxTangent | Features.NormalMap)) {
+				features &= ~(Features.VtxTangent | Features.NormalMap);
 			}
 
 			// disable diffusemap-dependent features if there is no diffusemap
@@ -907,6 +916,9 @@ namespace sd.world {
 				if (features & Features.DiffuseMap) {
 					rp.setTexture(materialData.diffuseMap, TextureBindPoint.Colour);
 					gl.uniform4fv(program.texScaleOffsetUniform, materialData.texScaleOffsetData);
+				}
+				if (features & Features.NormalMap) {
+					rp.setTexture(materialData.normalMap, TextureBindPoint.Normal);
 				}
 				if (features & Features.Skinned) {
 					rp.setTexture(materialData.jointData, TextureBindPoint.JointData);
