@@ -85,12 +85,30 @@ namespace sd.world {
 	class StdPipeline {
 		private cachedPipelines_ = new Map<number, render.Pipeline>();
 		private shadowPipeline_: render.Pipeline = null;
+		private featureMask_: Features = 0x7fffffff;
 
 		constructor(private rc: render.RenderContext) {
 		}
 
 
+		disableFeatures(disableMask: Features) {
+			this.featureMask_ &= ~disableMask;
+		}
+
+
+		enableFeatures(disableMask: Features) {
+			this.featureMask_ |= disableMask;
+		}
+
+
+		enableAllFeatures() {
+			this.featureMask_ = 0x7fffffff;
+		}
+
+
 		pipelineForFeatures(feat: number) {
+			feat &= this.featureMask_;
+
 			var cached = this.cachedPipelines_.get(feat);
 			if (cached)
 				return cached;
@@ -632,6 +650,11 @@ namespace sd.world {
 	}
 
 
+	export const enum RenderFeature {
+		NormalMaps
+	}
+
+
 	export class StdModelManager implements ComponentManager<StdModelManager> {
 		private stdPipeline_: StdPipeline;
 
@@ -843,6 +866,20 @@ namespace sd.world {
 				shadowCasterIndex = -1;
 			}
 			this.shadowCastingLightIndex_ = shadowCasterIndex;
+		}
+
+
+		disableRenderFeature(f: RenderFeature) {
+			if (f == RenderFeature.NormalMaps) {
+				this.stdPipeline_.disableFeatures(Features.VtxTangent | Features.NormalMap);
+			}
+		}
+
+
+		enableRenderFeature(f: RenderFeature) {
+			if (f == RenderFeature.NormalMaps) {
+				this.stdPipeline_.enableFeatures(Features.VtxTangent | Features.NormalMap);
+			}
 		}
 
 
