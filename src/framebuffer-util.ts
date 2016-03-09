@@ -5,11 +5,19 @@
 namespace sd.render {
 
 	// Util functions to create a Framebuffer object with standard configuration:
-	// RGBA8 colour attachments and default depth and stencil formats when requested.
+	// RGBA8/16F/32F colour attachments and default depth and stencil formats when requested.
 	// Width/Height, Square and Screen dimension versions are available.
 	
+	export const enum FBOPixelComponent {
+		Integer,
+		HalfFloat,
+		Float
+	}
+
+
 	export interface DefaultFBODesc {
 		colourCount: number;
+		pixelComponent?: FBOPixelComponent;
 		useDepth?: boolean;
 		useStencil?: boolean;
 		depthReadback?: boolean;
@@ -20,7 +28,19 @@ namespace sd.render {
 		var fbad = render.makeFrameBufferAllocationDescriptor(desc.colourCount);
 		fbad.width = width;
 		fbad.height = height;
-		container.fill(fbad.colourPixelFormats, PixelFormat.RGBA8, desc.colourCount);
+
+		var pixFmt: PixelFormat;
+		if (desc.pixelComponent == FBOPixelComponent.HalfFloat) {
+			pixFmt = PixelFormat.RGBA16F;
+		}
+		else if (desc.pixelComponent == FBOPixelComponent.Float) {
+			pixFmt = PixelFormat.RGBA32F;
+		}
+		else {
+			pixFmt = PixelFormat.RGB8;
+		}
+
+		container.fill(fbad.colourPixelFormats, pixFmt, desc.colourCount);
 		if (desc.useDepth) {
 			if (rc.extDepthTexture) {
 				fbad.depthPixelFormat = render.PixelFormat.Depth24I;
