@@ -515,7 +515,8 @@ namespace sd.world {
 			}
 
 			line  ("		vec3 light = shadowFactor * calcPointLight(lightIx, matColour, colour, param, lightPos_cam, lightPos_world, normal_cam);");
-			line  ("		return light * (1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff));");
+			// line  ("		return light * (1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff));");
+			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);")
 			line  ("	}");
 			line  ("	return vec3(0.0);");
 			line  ("}");
