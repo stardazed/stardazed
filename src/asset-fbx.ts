@@ -782,8 +782,9 @@ namespace sd.asset {
 					}
 
 					// get the local transform
-					var preRot: Float4 = null;
-					var localRot: Float4 = null;
+					var preRot: Float4 = [0, 0, 0, 1];
+					var postRot: Float4 = [0, 0, 0, 1];
+					var localRot: Float4 = [0, 0, 0, 1];
 					for (var c of fbxModel.children) {
 						let vecVal = <number[]>c.values;
 						if (c.name == "Lcl Translation") {
@@ -793,32 +794,18 @@ namespace sd.asset {
 							vec3.copy(sdModel.transform.scale, vecVal);
 						}
 						else if (c.name == "Lcl Rotation") {
-							localRot = quat.fromEuler(
-								math.deg2rad(vecVal[2]),
-								math.deg2rad(vecVal[1]),
-								math.deg2rad(vecVal[0])
-							);
+							localRot = quat.fromEuler(math.deg2rad(vecVal[2]), math.deg2rad(vecVal[1]),	math.deg2rad(vecVal[0]));
 						}
 						else if (c.name == "PreRotation") {
-							preRot = quat.fromEuler(
-								math.deg2rad(vecVal[2]),
-								math.deg2rad(vecVal[1]),
-								math.deg2rad(vecVal[0])
-							);
+							preRot = quat.fromEuler(math.deg2rad(vecVal[2]), math.deg2rad(vecVal[1]), math.deg2rad(vecVal[0]));
+						}
+						else if (c.name == "PostRotation") {
+							postRot = quat.fromEuler(math.deg2rad(vecVal[2]), math.deg2rad(vecVal[1]), math.deg2rad(vecVal[0]));
 						}
 					}
 
-					if (preRot) {
-						if (localRot) {
-							sdModel.transform.rotation = quat.multiply([], preRot, localRot);
-						}
-						else {
-							sdModel.transform.rotation = preRot;	
-						}
-					}
-					else {
-						sdModel.transform.rotation = localRot;
-					}
+					sdModel.transform.rotation = quat.mul([], quat.mul([], preRot, localRot), postRot);
+
 
 					// add linked components
 					for (var conn of fbxModel.connectionsIn) {
