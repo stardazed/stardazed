@@ -254,8 +254,8 @@ namespace sd.asset {
 				assert(set != null, "Unknown object class " + node.name);
 
 				if (node.name == "Model") {
-					if (subClass != "Mesh" && subClass != "Root" && subClass != "LimbNode" && subClass != "Null") {
-						// ignore non-mesh, non-skeletal models
+					if (subClass != "Mesh" && subClass != "Root" && subClass != "LimbNode" && subClass != "Null" && subClass != "Light") {
+						// ignore non-mesh, non-light, non-skeletal models
 						return;
 					}
 				}
@@ -272,8 +272,8 @@ namespace sd.asset {
 					}
 				}
 				else if (node.name == "NodeAttribute") {
-					if (subClass != "Root" && subClass != "LimbNode") {
-						// ignore non-skeleton attr nodes
+					if (subClass != "Root" && subClass != "LimbNode" && subClass != "Light") {
+						// ignore non-skeleton, non-light attr nodes
 						return;
 					}
 				}
@@ -707,6 +707,67 @@ namespace sd.asset {
 			}
 
 
+			private makeLightDescriptorFromFBXLight(lightAttrNode: FBXNode): world.LightDescriptor {
+				// fbx defaults
+				var ld: world.LightDescriptor = {
+					type: world.LightType.Point,
+					colour: [1, 1, 1],
+
+					ambientIntensity: 0,
+					diffuseIntensity: 1,
+
+					range: 1,
+					cutoff: math.deg2rad(45 / 2),
+					
+					shadowType: world.ShadowType.None,
+					shadowQuality: world.ShadowQuality.Auto,
+					shadowStrength: 1
+				};
+
+				var fbxIntensity = 100;
+
+				for (var c of lightAttrNode.children) {
+					if (c.name == "LightType") {
+						let fbxLightType = <number>c.values[0];
+						if (fbxLightType == 0) {
+							ld.type = world.LightType.Point;
+						}
+						else if (fbxLightType == 1) {
+							ld.type = world.LightType.Directional;
+						}
+						else if (fbxLightType == 2) {
+							ld.type = world.LightType.Spot;
+						}
+						else {
+							console.warn("Invalid FBX light type: " + fbxLightType);
+						}
+					}
+					else if (c.name == "Color") {
+						vec3.copy(ld.colour, <number[]>c.values);
+					}
+					else if (c.name == "Intensity") {
+						fbxIntensity = <number>c.values[0];
+					}
+					else if (c.name == "OuterAngle") {
+						ld.cutoff = math.deg2rad(<number>c.values[0] / 2);
+					}
+					else if (c.name == "CastShadows") {
+						ld.shadowType = world.ShadowType.Soft;
+					}
+				}
+
+				// convert FBX intensity to something we can work with
+				if (ld.type == world.LightType.Directional) {
+					ld.diffuseIntensity = math.clamp01(fbxIntensity / 100);
+				}
+				else {
+					ld.range = fbxIntensity / 100;
+				}
+
+				return ld;
+			}
+
+
 			private buildModels(group: AssetGroup, options: FBXResolveOptions) {
 				for (var modelID in this.modelNodes) {
 					var fbxModel = this.modelNodes[modelID];
@@ -780,6 +841,11 @@ namespace sd.asset {
 							if (connSubType == "LimbNode" || connSubType == "Root") {
 								sdModel.joint = {
 									root: connSubType == "Root"
+								};
+							}
+							else if (connSubType == "Light") {
+								sdModel.light = {
+									descriptor: this.makeLightDescriptorFromFBXLight(conn.fromNode)
 								};
 							}
 						}
