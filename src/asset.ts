@@ -18,6 +18,11 @@ namespace sd.asset {
 	}
 
 
+	export interface Light {
+		descriptor: world.LightDescriptor;
+	}
+
+
 	export interface Material extends Asset {
 		ambientColour: Float3;
 
@@ -188,6 +193,7 @@ namespace sd.asset {
 		// components
 		mesh?: Mesh;
 		materials?: Material[];
+		light?: Light;
 
 		// DEPRECATED (FBX)
 		joint?: Joint;
