@@ -12,11 +12,14 @@ namespace sd.world {
 
 	// FIXME: these flags are bad, replace with texture usage type or eqv.
 	export const enum StdMaterialFlags {
-		usesSpecular              = 0x00000001,
+		usesSpecular               = 0x00000001,
+		isTranslucent              = 0x00000002,
 
 		diffuseAlphaIsTransparency = 0x00000100,
-		diffuseAlphaIsGloss        = 0x00000200,
-		normalAlphaIsHeight       = 0x00000400,
+		diffuseAlphaIsOpacity      = 0x00000200,
+		// diffuseAlphaIsGloss        = 0x00000400,
+
+		normalAlphaIsHeight        = 0x00000800,
 	}
 
 
@@ -34,6 +37,8 @@ namespace sd.world {
 
 		diffuseMap: render.Texture;      // nullptr means use mainColour only
 		normalMap: render.Texture;      // nullptr means no bump
+
+		opacity: number;                // 0..1, only used if flags has `isTranslucent` set
 
 		jointData: render.Texture;      // joint transforms
 
@@ -54,6 +59,8 @@ namespace sd.world {
 
 			diffuseMap: null,
 			normalMap: null,
+
+			opacity: 1,
 
 			jointData: null,
 
@@ -96,6 +103,7 @@ namespace sd.world {
 		private mainColourBase_: TypedArray;
 		private specularBase_: TypedArray;
 		private texScaleOffsetBase_: TypedArray;
+		private opacityBase_: TypedArray;
 		private flagsBase_: TypedArray;
 
 		private tempVec4 = new Float32Array(4);
@@ -107,6 +115,7 @@ namespace sd.world {
 				{ type: Float, count: 4 },  // mainColour[3], 0
 				{ type: Float, count: 4 },  // specularIntensity, specularExponent, specularColourMix, 0
 				{ type: Float, count: 4 },  // textureScale[2], textureOffset[2]
+				{ type: Float, count: 1 },  // opacity
 				{ type: SInt32, count: 1 }, // flags
 			];
 
@@ -119,7 +128,8 @@ namespace sd.world {
 			this.mainColourBase_ = this.instanceData_.indexedFieldView(0);
 			this.specularBase_ = this.instanceData_.indexedFieldView(1);
 			this.texScaleOffsetBase_ = this.instanceData_.indexedFieldView(2);
-			this.flagsBase_ = this.instanceData_.indexedFieldView(3);
+			this.opacityBase_ = this.instanceData_.indexedFieldView(3);
+			this.flagsBase_ = this.instanceData_.indexedFieldView(4);
 		}
 
 
@@ -136,14 +146,16 @@ namespace sd.world {
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
-			if ((desc.flags & StdMaterialFlags.diffuseAlphaIsGloss) && (desc.flags & StdMaterialFlags.diffuseAlphaIsTransparency)) {
-				assert(false, "invalid material flags")
+			if ((desc.flags & StdMaterialFlags.diffuseAlphaIsOpacity) && (desc.flags & StdMaterialFlags.diffuseAlphaIsTransparency)) {
+				assert(false, "Diffuse Alpha can't be both opacity and transparency");
 			}
 			this.flagsBase_[matIndex] = desc.flags;
 
 			this.diffuseMaps_[matIndex] = desc.diffuseMap;
 			this.normalMaps_[matIndex] = desc.normalMap;
 			this.jointDataMaps_[matIndex] = desc.jointData;
+
+			this.opacityBase_[matIndex] = desc.opacity;
 
 			return matIndex;
 		}
@@ -281,6 +293,15 @@ namespace sd.world {
 		}
 
 
+		opacity(inst: StdMaterialInstance): number {
+			return this.opacityBase_[<number>inst];
+		}
+
+		setOpacity(inst: StdMaterialInstance, newOpacity: number) {
+			this.opacityBase_[<number>inst] = newOpacity;
+		}
+
+
 		flags(inst: StdMaterialInstance): StdMaterialFlags {
 			return this.flagsBase_[<number>inst];
 		}
@@ -313,6 +334,8 @@ namespace sd.world {
 				normalMap: this.normalMaps_[matIndex],
 				jointData: this.jointDataMaps_[matIndex],
 
+				opacity: this.opacityBase_[matIndex],
+
 				flags: this.flagsBase_[matIndex]
 			};
 		}
@@ -321,8 +344,12 @@ namespace sd.world {
 		// direct data views to set uniforms with in StdModelMgr
 		getData(inst: StdMaterialInstance): StdMaterialData {
 			var matIndex = <number>inst;
+
+			var colourOpacity = new Float32Array(container.copyIndexedVec4(this.mainColourBase_, matIndex));
+			colourOpacity[3] = this.opacityBase_[matIndex];
+
 			return {
-				colourData: <Float32Array>container.refIndexedVec4(this.mainColourBase_, matIndex),
+				colourData: colourOpacity,
 				specularData: <Float32Array>container.refIndexedVec4(this.specularBase_, matIndex),
 				texScaleOffsetData: <Float32Array>container.refIndexedVec4(this.texScaleOffsetBase_, matIndex),
 

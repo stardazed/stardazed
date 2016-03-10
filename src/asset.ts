@@ -77,7 +77,7 @@ namespace sd.asset {
 
 			jointDataTexture: null,
 			
-			opacity: 0
+			opacity: 1
 		};
 	}
 

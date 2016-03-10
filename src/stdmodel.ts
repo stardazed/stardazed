@@ -6,22 +6,29 @@ namespace sd.world {
 
 	const enum Features {
 		// VtxPosition and VtxNormal are required
-		VtxTangent      = 0x00001,
-		VtxUV           = 0x00002,
-		VtxColour       = 0x00004,
-		Specular        = 0x00008, // Implied true if GlossMap
-		DiffuseMap      = 0x00010,
-		DiffuseAlphaIsTransparency = 0x00020, // \__ Mutually Exclusive
-		//DiffuseAlphaIsGloss        = 0x00040, // /
-		NormalMap       = 0x00080, // Requires VtxTangent
-		//NormalAlphaIsHeight       = 0x00100,
+		VtxTangent                 = 0x000001,
+		VtxUV                      = 0x000002,
+		VtxColour                  = 0x000004,
 
-		ShadowMap       = 0x01000,
-		SoftShadow      = 0x02000,
-		Fog             = 0x04000,
+		Specular                   = 0x000008, // Implied true if GlossMap
+		// SpecularMap                = 0x000010,
 
-		//Instanced      = 0x10000,
-		Skinned         = 0x20000
+		DiffuseMap                 = 0x000020,
+		DiffuseAlphaIsTransparency = 0x000040, // \__ 
+		DiffuseAlphaIsOpacity      = 0x000080, // =__ Mutually Exclusive
+		// DiffuseAlphaIsGloss        = 0x000100, // /
+
+		NormalMap                  = 0x000200, // Requires VtxTangent
+		// NormalAlphaIsHeight        = 0x00400,
+		// HeightMap                  = 0x00800, // Either this or NormalMap + NormalAlphaIsHeight
+
+		ShadowMap       = 0x001000,
+		SoftShadow      = 0x002000,
+		Fog             = 0x004000,
+		Translucency    = 0x008000,
+
+		//Instanced      = 0x010000,
+		Skinned         = 0x020000
 	}
 
 
