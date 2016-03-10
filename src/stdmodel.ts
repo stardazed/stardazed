@@ -10,7 +10,7 @@ namespace sd.world {
 		VtxUV           = 0x00002,
 		VtxColour       = 0x00004,
 		Specular        = 0x00008, // Implied true if GlossMap
-		DiffuseMap       = 0x00010,
+		DiffuseMap      = 0x00010,
 		DiffuseAlphaIsTransparency = 0x00020, // \__ Mutually Exclusive
 		//DiffuseAlphaIsGloss        = 0x00040, // /
 		NormalMap       = 0x00080, // Requires VtxTangent
@@ -1049,7 +1049,7 @@ namespace sd.world {
 
 			if (mode == RenderMode.Forward) {
 				rp.setDepthTest(render.DepthTest.Less);
-				// rp.setFaceCulling(render.FaceCulling.Back);
+				rp.setFaceCulling(render.FaceCulling.Back);
 
 				this.updateLightData(proj);
 
