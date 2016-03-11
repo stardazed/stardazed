@@ -83,26 +83,6 @@ namespace sd.asset {
 	}
 
 
-	var hasNativeTGASupport: boolean = null;
-	export function nativeTGASupport(): Promise<boolean> {
-		if (hasNativeTGASupport === null) {
-			var testTGA = new Uint8Array([0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 24, 0, 255, 255, 255]);
-			return loadImageFromBuffer(testTGA.buffer, "image/tga").then(
-				succes => {
-					hasNativeTGASupport = true;
-					return true;
-				},
-				failure => {
-					hasNativeTGASupport = false;
-					return false;
-				}
-			);
-		}
-
-		return Promise.resolve(hasNativeTGASupport);
-	}
-
-
 	export function loadFile(filePath: string, opts?: FileLoadOptions) {
 		return new Promise(function(resolve, reject) {
 			opts = opts || {};
@@ -134,26 +114,80 @@ namespace sd.asset {
 	}
 
 
-	export function loadImage(src: string): Promise<HTMLImageElement> {
+	export function loadImage(srcPath: string): Promise<ImageData | HTMLImageElement> {
 		return new Promise(function(resolve, reject) {
-			var image = new Image();
-			image.onload = function() { resolve(image); };
-			image.onerror = function() { reject(src + " doesn't exist or is not supported"); };
-			image.src = src;
+			var nativeLoader = () => {
+				var image = new Image();
+				image.onload = function() { resolve(image); };
+				image.onerror = function() { reject(srcPath + " doesn't exist or is not supported"); };
+				image.src = srcPath;
+			};
+
+			if (fileExtensionOfFilePath(srcPath) == "tga") {
+				hasNativeTGASupport().then(nativeTGA => {
+					if (nativeTGA) {
+						nativeLoader();
+					}
+					else {
+						loadFile(srcPath, { responseType: FileLoadType.ArrayBuffer }).then(
+							(buffer: ArrayBuffer) => {
+								var tga: ImageData = null;
+								if (buffer && buffer.byteLength > 0) {
+									tga = loadTGAImageBuffer(buffer);
+									if (tga) {
+										resolve(tga);
+									}
+								}
+								if (! tga) {
+									reject("File not found or unsupported TGA format.");
+								}
+							},
+							(error) => {
+								reject(error);
+							}
+						);
+					}
+				});
+			}
+			else {
+				nativeLoader();
+			}
 		});
 	}
 
 
-	export function loadImageFromBuffer(buffer: ArrayBuffer, mimeType: string): Promise<render.TextureImageSource> {
+	export function loadImageFromBuffer(buffer: ArrayBuffer, mimeType: string): Promise<ImageData | HTMLImageElement> {
 		return new Promise((resolve, reject) => {
-			// Create an image in a most convolated manner. Hurrah for the web.
-			var str = convertBytesToString(new Uint8Array(buffer));
-			var b64 = btoa(str);
-			str = "data:" + mimeType + ";base64," + b64;
-			var img = new Image();
-			img.onload = () => { resolve(img); };
-			img.onerror = () => { reject("Bad image data."); };
-			img.src = str;
+			var nativeImageLoader = () => {
+				// Create an image in a most convolated manner. Hurrah for the web.
+				var str = convertBytesToString(new Uint8Array(buffer));
+				var b64 = btoa(str);
+				str = "data:" + mimeType + ";base64," + b64;
+				var img = new Image();
+				img.onload = () => { resolve(img); };
+				img.onerror = () => { reject("Bad or unsupported image data."); };
+				img.src = str;
+			};
+
+			if (mimeType == "image/tga") {
+				hasNativeTGASupport().then(nativeTGA => {
+					if (nativeTGA) {
+						nativeImageLoader();
+					}
+					else {
+						let tga = loadTGAImageBuffer(buffer);
+						if (tga) {
+							resolve(tga);
+						}
+						else {
+							reject("Unsupported TGA format.");
+						}
+					}
+				});
+			}
+			else {
+				nativeImageLoader();
+			}
 		});
 	}
 
@@ -170,8 +204,13 @@ namespace sd.asset {
 
 
 	export function loadImageData(src: string): Promise<ImageData> {
-		return loadImage(src).then(function(image) {
-			return imageData(image);
+		return loadImage(src).then(function(imageOrData) {
+			if ("data" in imageOrData) {
+				return <ImageData>imageOrData
+			}
+			else {
+				return imageData(<HTMLImageElement>imageOrData);
+			}
 		});
 	}
 
