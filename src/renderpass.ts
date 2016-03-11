@@ -107,12 +107,11 @@ namespace sd.render {
 			if (pipeline === this.pipeline_)
 				return;
 
-			if (! pipeline) {
-				// only need to explicitly unbind if there is no replacement pipeline
-				if (this.mesh_) {
-					this.mesh_.unbind(this.pipeline_);
-					this.mesh_ = null;
-				}
+			if (this.mesh_) {
+				this.mesh_.unbind(this.pipeline_);
+				this.mesh_ = null;
+			}
+			if (this.pipeline_) {
 				this.pipeline_.unbind();
 			}
 
