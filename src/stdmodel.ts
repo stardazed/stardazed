@@ -153,6 +153,30 @@ namespace sd.world {
 				pld.attributeNames.set(mesh.VertexAttributeRole.Tangent, "vertexTangent");
 			}
 
+			if (feat & Features.Translucency) {
+				pld.depthMask = false;
+				pld.blending.enabled = true;
+
+				pld.blending.rgbBlendOp = render.BlendOperation.Add;
+				pld.blending.alphaBlendOp = render.BlendOperation.Add;
+
+				if (feat & Features.DiffuseAlphaIsOpacity) {
+					pld.blending.sourceRGBFactor = render.BlendFactor.SourceAlpha;
+					pld.blending.sourceAlphaFactor = render.BlendFactor.SourceAlpha;
+					pld.blending.destRGBFactor = render.BlendFactor.OneMinusSourceAlpha;
+					pld.blending.destAlphaFactor = render.BlendFactor.OneMinusSourceAlpha;
+				}
+				else {
+					// fixed alpha value from Material
+					pld.blending.sourceRGBFactor = render.BlendFactor.ConstantAlpha;
+					pld.blending.sourceAlphaFactor = render.BlendFactor.ConstantAlpha;
+					pld.blending.destRGBFactor = render.BlendFactor.OneMinusConstantAlpha;
+					pld.blending.destAlphaFactor = render.BlendFactor.OneMinusConstantAlpha;
+
+					pld.blending.constantColour[3] = 0.35;
+				}
+			}
+
 			var pipeline = new render.Pipeline(this.rc, pld);
 			var program = <StdGLProgram>pipeline.program;
 			
@@ -545,12 +569,18 @@ namespace sd.world {
 
 			// -- material colour at point
 			if (feat & Features.DiffuseMap) {
-				if (feat & Features.DiffuseAlphaIsTransparency) {
+				if (feat & (Features.DiffuseAlphaIsTransparency | Features.DiffuseAlphaIsOpacity)) {
 					line("	vec4 texColourA = texture2D(diffuseSampler, vertexUV_intp);");
-					line("	if (texColourA.a < 0.1) {");
-					line("		discard;")
-					line("	}");
-					line("	vec3 texColour = texColourA.xyz;");
+					line("	vec3 texColour = texColourA.rgb;");
+
+					if (feat & Features.DiffuseAlphaIsTransparency) {
+						line("	if (texColourA.a < 0.1) {");
+						line("		discard;")
+						line("	}");
+					}
+					else {
+						line("	fragOpacity = texColourA.a;")
+					}
 				}
 				else {
 					line("	vec3 texColour = texture2D(diffuseSampler, vertexUV_intp).xyz;");
@@ -618,10 +648,10 @@ namespace sd.world {
 			// -- final colour result
 			if (feat & Features.Fog) {
 				line("	float fogDensity = clamp((length(vertexPos_cam) - fogParams[FOGPARAM_START]) / fogParams[FOGPARAM_DEPTH], 0.0, fogParams[FOGPARAM_DENSITY]);");
-				line("	gl_FragColor = vec4(mix(totalLight * matColour, fogColour.rgb, fogDensity), 1.0);");
+				line("	gl_FragColor = vec4(mix(totalLight * matColour, fogColour.rgb, fogDensity), 1.0);"); // TODO: make Fog and translucency mut.ex.
 			}
 			else {
-				line("	gl_FragColor = vec4(totalLight * matColour, 1.0);");	
+				line("	gl_FragColor = vec4(totalLight * matColour, fragOpacity);");
 			}
 
 			line  ("}");
@@ -756,13 +786,13 @@ namespace sd.world {
 			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;
 			if (matFlags & StdMaterialFlags.diffuseAlphaIsTransparency) features |= Features.DiffuseAlphaIsTransparency;
 
-			// if (matFlags & StdMaterialFlags.isTranslucent) {
-			// 	features |= Features.Translucency;
+			if (matFlags & StdMaterialFlags.isTranslucent) {
+				features |= Features.Translucency;
 
-			// 	if (matFlags & StdMaterialFlags.diffuseAlphaIsOpacity) {
-			// 		features |= Features.DiffuseAlphaIsOpacity;
-			// 	}
-			// }
+				if (matFlags & StdMaterialFlags.diffuseAlphaIsOpacity) {
+					features |= Features.DiffuseAlphaIsOpacity;
+				}
+			}
 
 			if (this.materialMgr_.diffuseMap(material)) features |= Features.DiffuseMap;
 			if (this.materialMgr_.normalMap(material)) features |= Features.NormalMap;
@@ -1064,21 +1094,69 @@ namespace sd.world {
 		}
 
 
+		private splitModelRange(range: StdModelRange, triggerFeature: Features, cullDisabled: boolean = false) {
+			var withFeature = new InstanceSet<StdModelManager>();
+			var withoutFeature = new InstanceSet<StdModelManager>();
+
+			var iter = range.makeIterator();
+			while (iter.next()) {
+				let modelIx = <number>iter.current;
+				var enabled = this.enabledBase_[modelIx];
+				if (!enabled && cullDisabled) {
+					continue;
+				}
+
+				var primGroupBase = this.primGroupOffsetBase_[modelIx];
+				var firstPGFeatures: Features = this.primGroupFeatureBase_[primGroupBase];
+
+				if ((firstPGFeatures & triggerFeature) == triggerFeature) {
+					withFeature.add(iter.current);
+				}
+				else {
+					withoutFeature.add(iter.current);
+				}
+			}
+
+			return {
+				with: withFeature,
+				without: withoutFeature
+			};
+		}
+
+
 		draw(range: StdModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, fogSpec: world.FogDescriptor, mode: RenderMode) {
 			var gl = this.rc.gl;
 			var count = this.instanceData_.count;
-			var iter = range.makeIterator();
+
+			// TODO: this splitting of model types will likely move to main render driver
+			var opaqueAndTranslucent = this.splitModelRange(range, Features.Translucency, true);
 
 			if (mode == RenderMode.Forward) {
-				rp.setDepthTest(render.DepthTest.Less);
-				rp.setFaceCulling(render.FaceCulling.Back);
+				this.updateLightData(proj); // FIXME: make this explicit by moving into scene drawing code
 
-				this.updateLightData(proj);
+				let opaqueRange = opaqueAndTranslucent.without;
+				let translucentRange = opaqueAndTranslucent.with;
+				let opaqueIter = opaqueRange.makeIterator();
+				let translucentIter = translucentRange.makeIterator();
 
-				while (iter.next()) {
-					let inst = <number>iter.current;
-					if (this.enabledBase_[inst]) {
+				if (opaqueRange.count > 0) {
+					rp.setDepthTest(render.DepthTest.Less);
+					rp.setFaceCulling(render.FaceCulling.Back);
+
+					while (opaqueIter.next()) {
+						let inst = <number>opaqueIter.current;
 						this.drawSingleForward(rp, proj, shadow, fogSpec, inst);
+					}
+				}
+
+				if (translucentRange.count > 0) {
+					// TODO: sort translucent items back to front
+					rp.setDepthTest(render.DepthTest.Less);
+					rp.setFaceCulling(render.FaceCulling.Disabled);
+
+					while (translucentIter.next()) {
+						let inst = <number>translucentIter.current;
+						this.drawSingleForward(rp, proj, null, null, inst);
 					}
 				}
 			}
@@ -1088,6 +1166,8 @@ namespace sd.world {
 				rp.setDepthTest(render.DepthTest.Less);
 				rp.setFaceCulling(render.FaceCulling.Front);
 
+				// only draw solid items
+				let iter = opaqueAndTranslucent.without.makeIterator();
 				while (iter.next()) {
 					let inst = <number>iter.current;
 					if (this.enabledBase_[inst]) {
