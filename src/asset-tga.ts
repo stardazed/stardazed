@@ -89,7 +89,8 @@ namespace sd.asset {
 			return null;
 		}
 
-		var imageData = new ImageData(width, height);
+		var tempCanvas = document.createElement("canvas");
+		var imageData = tempCanvas.getContext("2d").createImageData(width, height);
 		var sourcePixels = new Uint8ClampedArray(buffer, 18);
 		var destPixels = imageData.data;
 		var pixelCount = width * height;
