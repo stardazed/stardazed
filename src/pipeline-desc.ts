@@ -44,6 +44,8 @@ namespace sd.render {
 		sourceAlphaFactor: BlendFactor;
 		destRGBFactor: BlendFactor;
 		destAlphaFactor: BlendFactor;
+
+		constantColour: Float4;
 	}
 
 
@@ -62,6 +64,7 @@ namespace sd.render {
 		colourPixelFormats: PixelFormat[];
 
 		writeMask: ColourWriteMask;
+		depthMask: boolean;
 		blending: ColourBlendingDescriptor;
 
 		depthPixelFormat: PixelFormat;
@@ -84,7 +87,9 @@ namespace sd.render {
 			sourceRGBFactor: BlendFactor.One,
 			sourceAlphaFactor: BlendFactor.One,
 			destRGBFactor: BlendFactor.Zero,
-			destAlphaFactor: BlendFactor.Zero
+			destAlphaFactor: BlendFactor.Zero,
+
+			constantColour: [0, 0, 0, 1]
 		};
 	}
 
@@ -112,6 +117,7 @@ namespace sd.render {
 			stencilPixelFormat: PixelFormat.None,
 
 			writeMask: makeColourWriteMask(),
+			depthMask: true,
 			blending: makeColourBlendingDescriptor(),
 
 			vertexShader: null,

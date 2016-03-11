@@ -53,6 +53,7 @@ namespace sd.render {
 		private depthPixelFormat_: PixelFormat;
 		private stencilPixelFormat_: PixelFormat;
 		private writeMask_: ColourWriteMask;
+		private depthMask_: boolean;
 		private blending_: ColourBlendingDescriptor;
 		private program_: WebGLProgram;
 		private attrRoleIndexMap_: Map<mesh.VertexAttributeRole, number>;
@@ -62,6 +63,7 @@ namespace sd.render {
 			this.depthPixelFormat_ = desc.depthPixelFormat;
 			this.stencilPixelFormat_ = desc.stencilPixelFormat;
 			this.writeMask_ = cloneStruct(desc.writeMask);
+			this.depthMask_ = desc.depthMask;
 			this.blending_ = cloneStruct(desc.blending);
 
 			// -- check if the colour mask does anything and, if not, disable it
@@ -99,6 +101,11 @@ namespace sd.render {
 				gl.colorMask(this.writeMask_.red, this.writeMask_.green, this.writeMask_.blue, this.writeMask_.alpha);
 			}
 
+			// -- default state of depth writes is true
+			if (! this.depthMask_) {
+				gl.depthMask(this.depthMask_);
+			}
+
 			if (this.blending_.enabled) {
 				gl.enable(gl.BLEND);
 
@@ -111,6 +118,8 @@ namespace sd.render {
 				var rgbDestFn = glBlendFuncForBlendFactor(this.rc, this.blending_.destRGBFactor);
 				var alphaDestFn = glBlendFuncForBlendFactor(this.rc, this.blending_.destAlphaFactor);
 				gl.blendFuncSeparate(rgbSrcFn, rgbDestFn, alphaSrcFn, alphaDestFn);
+
+				gl.blendColor(this.blending_.constantColour[0], this.blending_.constantColour[1], this.blending_.constantColour[2], this.blending_.constantColour[3])
 			}
 		}
 
@@ -121,6 +130,10 @@ namespace sd.render {
 
 			if (this.writeMask_) {
 				gl.colorMask(true, true, true, true);
+			}
+
+			if (! this.depthMask_) {
+				gl.depthMask(true);
 			}
 
 			if (this.blending_.enabled) {
