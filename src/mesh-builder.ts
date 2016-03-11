@@ -211,11 +211,11 @@ namespace sd.mesh {
 			else {
 				for (var streamIx = 0; streamIx < this.streamCount_; ++streamIx) {
 					var stream = this.streams_[streamIx];
-					var fieldIndex = streamIndexes[streamIx];
 					var elemCount = stream.elementCount;
-					var fieldOffset = elemCount * fieldIndex;
-					var values = stream.values;
+					var values: ArrayOfNumber = stream.values;
 					var array = this.vertexData_[streamIx];
+					var fieldIndex = streamIndexes[streamIx];
+					var fieldOffset = elemCount * fieldIndex;
 
 					// This is slowest on all browsers (by a mile)
 					// array.push.apply(array, stream.values.subarray(fieldOffset, fieldOffset + stream.elementCount));
@@ -224,6 +224,13 @@ namespace sd.mesh {
 					// for (var el = 0; el < elemCount; ++el) {
 					// 	array.push(values[fieldOffset + el]);
 					// }
+
+					// in FBX it is apparently valid to have -1 indexes to indicate absence of a value
+					// we replace that with a 0-filled value
+					if (fieldOffset < 0) {
+						values = [0, 0, 0, 0];
+						fieldOffset = 0;
+					}
 
 					// This is 20% faster in Webkit
 					if (elemCount == 3) {
