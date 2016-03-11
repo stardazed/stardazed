@@ -933,7 +933,8 @@ namespace sd.mesh {
 			var t1 = w2[1] - w1[1];
 			var t2 = w3[1] - w1[1];
 
-			var r = 1.0 / (s1 * t2 - s2 * t1);
+			var rd = (s1 * t2 - s2 * t1);
+			var r = rd == 0 ? 0.0 : 1.0 / rd;
 			var sdir = [
 				(t2 * x1 - t1 * x2) * r,
 				(t2 * y1 - t1 * y2) * r,
@@ -971,8 +972,8 @@ namespace sd.mesh {
 			var t = container.copyIndexedVec3(tan1, ix);
 			var t2 = container.copyIndexedVec3(tan2, ix);
 
-			// Gram-Schmidt orthogonalize
-			var tangent = vec3.normalize([], vec3.sub([], t, vec3.scale([], n, vec3.dot(n, t))));
+			// Gram-Schmidt orthogonalize, specify standard normal in case n or t = 0
+			var tangent = vec3.normalize([0, 0, 1], vec3.sub([], t, vec3.scale([], n, vec3.dot(n, t))));
 
 			// Reverse tangent to conform to GL handedness if needed
 			if (vec3.dot(vec3.cross([], n, t), t2) < 0) {

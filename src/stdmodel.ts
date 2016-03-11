@@ -541,7 +541,6 @@ namespace sd.world {
 
 			// main()
 			line  ("void main() {");
-			line  ("float fragOpacity = 1.0;");
 
 			// -- material colour at point
 			if (feat & Features.DiffuseMap) {
