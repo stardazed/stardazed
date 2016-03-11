@@ -83,6 +83,26 @@ namespace sd.asset {
 	}
 
 
+	var hasNativeTGASupport: boolean = null;
+	export function nativeTGASupport(): Promise<boolean> {
+		if (hasNativeTGASupport === null) {
+			var testTGA = new Uint8Array([0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 24, 0, 255, 255, 255]);
+			return loadImageFromBuffer(testTGA.buffer, "image/tga").then(
+				succes => {
+					hasNativeTGASupport = true;
+					return true;
+				},
+				failure => {
+					hasNativeTGASupport = false;
+					return false;
+				}
+			);
+		}
+
+		return Promise.resolve(hasNativeTGASupport);
+	}
+
+
 	export function loadFile(filePath: string, opts?: FileLoadOptions) {
 		return new Promise(function(resolve, reject) {
 			opts = opts || {};
@@ -118,7 +138,7 @@ namespace sd.asset {
 		return new Promise(function(resolve, reject) {
 			var image = new Image();
 			image.onload = function() { resolve(image); };
-			image.onerror = function() { reject(src + " doesn't exist"); };
+			image.onerror = function() { reject(src + " doesn't exist or is not supported"); };
 			image.src = src;
 		});
 	}
