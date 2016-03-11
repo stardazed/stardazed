@@ -94,9 +94,10 @@ namespace sd.asset {
 		var destPixels = imageData.data;
 		var pixelCount = width * height;
 		var sourceOffset = 0;
-		var destOffset = 0;
+		var destOffset = (height - 1) * width * 4;
 		var pixelRunLeft = imageType & TGAImageType.TGAIT_RLEBit ? 0 : pixelCount;
 		var pixelRunRaw = true;
+		var linePixelsLeft = width;
 
 		if (bytesPerPixel == 1) {
 			// 8-bit Grayscale pixels
@@ -120,6 +121,11 @@ namespace sd.asset {
 					sourceOffset += 1;
 				}
 				destOffset += 4;
+				linePixelsLeft -= 1;
+				if (linePixelsLeft == 0) {
+					destOffset -= 2 * width * 4;
+					linePixelsLeft = width;
+				}
 			}
 		}
 		else if (bytesPerPixel == 3) {
@@ -143,6 +149,11 @@ namespace sd.asset {
 					sourceOffset += 3;
 				}
 				destOffset += 4;
+				linePixelsLeft -= 1;
+				if (linePixelsLeft == 0) {
+					destOffset -= 2 * width * 4;
+					linePixelsLeft = width;
+				}
 			}
 		}
 		else if (bytesPerPixel == 4) {
@@ -166,6 +177,11 @@ namespace sd.asset {
 					sourceOffset += 4;
 				}
 				destOffset += 4;
+				linePixelsLeft -= 1;
+				if (linePixelsLeft == 0) {
+					destOffset -= 2 * width * 4;
+					linePixelsLeft = width;
+				}
 			}
 		}
 
