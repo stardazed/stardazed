@@ -19,8 +19,8 @@ namespace sd.world {
 		// DiffuseAlphaIsGloss        = 0x000100, // /
 
 		NormalMap                  = 0x000200, // Requires VtxTangent
-		// NormalAlphaIsHeight        = 0x00400,
-		// HeightMap                  = 0x00800, // Either this or NormalMap + NormalAlphaIsHeight
+		// NormalAlphaIsHeight        = 0x000400,
+		// HeightMap                  = 0x000800, // Either this or NormalMap + NormalAlphaIsHeight
 
 		ShadowMap       = 0x001000,
 		SoftShadow      = 0x002000,
@@ -538,6 +538,7 @@ namespace sd.world {
 
 			// main()
 			line  ("void main() {");
+			line  ("float fragOpacity = 1.0;");
 
 			// -- material colour at point
 			if (feat & Features.DiffuseMap) {
@@ -622,7 +623,7 @@ namespace sd.world {
 
 			line  ("}");
 
-			// console.info("------ FRAGMENT");
+			// console.info("------ FRAGMENT " + feat);
 			// source.forEach((s) => console.info(s));
 
 			return source.join("\n") + "\n";
@@ -752,12 +753,20 @@ namespace sd.world {
 			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;
 			if (matFlags & StdMaterialFlags.diffuseAlphaIsTransparency) features |= Features.DiffuseAlphaIsTransparency;
 
+			if (matFlags & StdMaterialFlags.isTranslucent) {
+				features |= Features.Translucency;
+
+				if (matFlags & StdMaterialFlags.diffuseAlphaIsOpacity) {
+					features |= Features.DiffuseAlphaIsOpacity;
+				}
+			}
+
 			if (this.materialMgr_.diffuseMap(material)) features |= Features.DiffuseMap;
 			if (this.materialMgr_.normalMap(material)) features |= Features.NormalMap;
 			if (this.materialMgr_.jointData(material)) features |= Features.Skinned;
 
 			// Remove redundant or unused features as GL drivers can and will remove attributes that are only used in the vertex shader
-			var prePrune = features;
+			// var prePrune = features;
 
 			// disable UV attr and DiffuseMap unless both are provided (TODO: also take other maps into account when added later)
 			if ((features & (Features.VtxUV | Features.DiffuseMap)) != (Features.VtxUV | Features.DiffuseMap)) {
@@ -772,6 +781,7 @@ namespace sd.world {
 			// disable diffusemap-dependent features if there is no diffusemap
 			if (!(features & Features.DiffuseMap)) {
 				features &= ~Features.DiffuseAlphaIsTransparency;
+				features &= ~Features.DiffuseAlphaIsOpacity;
 			}
 
 			// if (features != prePrune) {
