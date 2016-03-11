@@ -149,6 +149,9 @@ namespace sd.world {
 			if (feat & Features.VtxUV) {
 				pld.attributeNames.set(mesh.VertexAttributeRole.UV, "vertexUV");
 			}
+			if (feat & Features.VtxTangent) {
+				pld.attributeNames.set(mesh.VertexAttributeRole.Tangent, "vertexTangent");
+			}
 
 			var pipeline = new render.Pipeline(this.rc, pld);
 			var program = <StdGLProgram>pipeline.program;
