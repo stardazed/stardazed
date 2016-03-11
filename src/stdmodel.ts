@@ -541,13 +541,10 @@ namespace sd.world {
 
 			// main()
 			line  ("void main() {");
-			// line  ("	float fragOpacity = 1.0;");
+			line  ("	float fragOpacity = 1.0;");
 
 			// -- material colour at point
-			if (feat & Features.NormalMap) {
-				line("	vec3 matColour = texture2D(normalSampler, vertexUV_intp).xyz;");
-			}
-			else if (feat & Features.DiffuseMap) {
+			if (feat & Features.DiffuseMap) {
 				if (feat & Features.DiffuseAlphaIsTransparency) {
 					line("	vec4 texColourA = texture2D(diffuseSampler, vertexUV_intp);");
 					line("	if (texColourA.a < 0.1) {");
@@ -582,17 +579,17 @@ namespace sd.world {
 			}
 
 			// -- normal in camera space, convert from tangent space -> FIXME: reverse and place TBN calc in vert shader, use tan space calcs for light
-			// if (feat & Features.NormalMap) {
-			// 	line("	vec3 normal_cam = normalize(vertexNormal_cam);");
-			// 	line("	vec3 tangent_cam = normalize(vertexTangent_cam);");
-			// 	line("	vec3 bitangent_cam = cross(tangent_cam, normal_cam);");
-			// 	line("	vec3 bumpNormal_tan = texture2D(normalSampler, vertexUV_intp).xyz * 2.0 - 1.0;");
-			// 	line("	mat3 TBN = mat3(tangent_cam, bitangent_cam, normal_cam);");
-			// 	line("	normal_cam = normalize(TBN * bumpNormal_tan);");
-			// }
-			// else {
+			if (feat & Features.NormalMap) {
 				line("	vec3 normal_cam = normalize(vertexNormal_cam);");
-			// }
+				line("	vec3 tangent_cam = normalize(vertexTangent_cam);");
+				line("	vec3 bitangent_cam = cross(tangent_cam, normal_cam);");
+				line("	vec3 bumpNormal_tan = texture2D(normalSampler, vertexUV_intp).xyz * 2.0 - 1.0;");
+				line("	mat3 TBN = mat3(tangent_cam, bitangent_cam, normal_cam);");
+				line("	normal_cam = normalize(TBN * bumpNormal_tan);");
+			}
+			else {
+				line("	vec3 normal_cam = normalize(vertexNormal_cam);");
+			}
 
 			// -- calculate light arriving at the fragment
 			line  ("	vec3 totalLight = vec3(0.0);");
@@ -1074,7 +1071,7 @@ namespace sd.world {
 
 			if (mode == RenderMode.Forward) {
 				rp.setDepthTest(render.DepthTest.Less);
-				// rp.setFaceCulling(render.FaceCulling.Back);
+				rp.setFaceCulling(render.FaceCulling.Back);
 
 				this.updateLightData(proj);
 
