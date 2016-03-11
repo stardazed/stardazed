@@ -979,6 +979,9 @@ namespace sd.mesh {
 				vec3.scale(tangent, tangent, -1);
 			}
 
+			if (isNaN(tangent[0]) || isNaN(tangent[1]) || isNaN(tangent[2])) {
+				assert(false, "BLAATGH");
+			}
 			vec3.copy(tanView.item(ix), tangent);
 		}
 	}
