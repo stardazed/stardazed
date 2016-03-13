@@ -518,37 +518,7 @@ namespace sd.world {
 			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection.xyz);");
 			line  ("	float cutoff = param[LPARAM_CUTOFF];");
 			line  ("	if (spotCosAngle > cutoff) {");
-
-			// shadow intensity
-			line("		float shadowFactor = 1.0;");
-
-			if (feat & Features.ShadowMap) {
-				line("		if (lightIx == shadowCastingLightIndex) {");
-				line("			float shadowBias = lightDirection[LDIR_BIAS];"); // shadow bias stored in light direction
-				line("			float fragZ = (vertexPos_light_intp.z - shadowBias) / vertexPos_light_intp.w;");
-
-				if (feat & Features.SoftShadow) {
-					// well, soft-ish
-					line("			float strengthIncrement = lightPos_cam[LPOS_STRENGTH] / 4.0;");
-					line("			for (int ssi = 0; ssi < 4; ++ssi) {");
-					line("				vec2 shadowSampleCoord = (vertexPos_light.xy / vertexPos_light.w) + (poissonDisk[ssi] / 550.0);");
-					line("				float shadowZ = texture2D(shadowSampler, shadowSampleCoord).z;");
-					line("				if (shadowZ < fragZ) {");
-					line("					shadowFactor -= strengthIncrement;");
-					line("				}");
-					line("			}");
-				}
-				else {
-					line("			float shadowZ = texture2DProj(shadowSampler, vertexPos_light.xyw).z;");
-					line("			if (shadowZ < fragZ) {");
-					line("				shadowFactor = 1.0 - lightPos_cam[LPOS_STRENGTH];"); // shadow strength stored in light world pos
-					line("			}");
-				}
-
-				line("		}"); // lightIx == shadowCastingLightIndex
-			}
-
-			line  ("		vec3 light = shadowFactor * calcPointLight(lightIx, matColour, colour, param, lightPos_cam, lightPos_world, normal_cam);");
+			line  ("		vec3 light = calcPointLight(lightIx, matColour, colour, param, lightPos_cam, lightPos_world, normal_cam);");
 			// line  ("		return light * (1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff));");
 			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);")
 			line  ("	}");
@@ -634,14 +604,43 @@ namespace sd.world {
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
 
+			// shadow intensity
+			line  ("		float shadowFactor = 1.0;");
+
+			if (feat & Features.ShadowMap) {
+				line("		if (lightIx == shadowCastingLightIndex) {");
+				line("			float shadowBias = lightDir_cam[LDIR_BIAS];"); // shadow bias stored in light direction
+				line("			float fragZ = (vertexPos_light.z - shadowBias) / vertexPos_light.w;");
+
+				if (feat & Features.SoftShadow) {
+					// well, soft-ish
+					line("			float strengthIncrement = lightPos_cam[LPOS_STRENGTH] / 4.0;");
+					line("			for (int ssi = 0; ssi < 4; ++ssi) {");
+					line("				vec2 shadowSampleCoord = (vertexPos_light.xy / vertexPos_light.w) + (poissonDisk[ssi] / 550.0);");
+					line("				float shadowZ = texture2D(shadowSampler, shadowSampleCoord).z;");
+					line("				if (shadowZ < fragZ) {");
+					line("					shadowFactor -= strengthIncrement;");
+					line("				}");
+					line("			}");
+				}
+				else {
+					line("			float shadowZ = texture2DProj(shadowSampler, vertexPos_light.xyw).z;");
+					line("			if (shadowZ < fragZ) {");
+					line("				shadowFactor = 1.0 - lightPos_cam[LPOS_STRENGTH];"); // shadow strength stored in light world pos
+					line("			}");
+				}
+
+				line("		}"); // lightIx == shadowCastingLightIndex
+			}
+
 			line  ("		if (type == 1) {")
-			line  ("			totalLight += calcDirectionalLight(lightIx, matColour, lightColour, lightParam, lightDir_cam, normal_cam);");
+			line  ("			totalLight += shadowFactor * calcDirectionalLight(lightIx, matColour, lightColour, lightParam, lightDir_cam, normal_cam);");
 			line  ("		}");
 			line  ("		else if (type == 2) {")
-			line  ("			totalLight += calcPointLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, normal_cam);");
+			line  ("			totalLight += shadowFactor * calcPointLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, normal_cam);");
 			line  ("		}");
 			line  ("		else if (type == 3) {")
-			line  ("			totalLight += calcSpotLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, normal_cam);");
+			line  ("			totalLight += shadowFactor * calcSpotLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, normal_cam);");
 			line  ("		}");
 			line  ("	}");
 
@@ -1063,7 +1062,7 @@ namespace sd.world {
 		}
 
 
-		private updateLightData(proj: ProjectionSetup) {
+		updateLightData(proj: ProjectionSetup) {
 			var lights = this.activeLights_;
 
 			var viewNormalMatrix = mat3.normalFromMat4([], proj.viewMatrix);
@@ -1124,59 +1123,34 @@ namespace sd.world {
 		}
 
 
+		splitModelRangeByTranslucency(range: StdModelRange) {
+			var split = this.splitModelRange(range, Features.Translucency, true);
+			return {
+				opaque: split.without,
+				translucent: split.with
+			};
+		}
+
+
 		draw(range: StdModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, fogSpec: world.FogDescriptor, mode: RenderMode) {
 			var gl = this.rc.gl;
 			var count = this.instanceData_.count;
 
-			// TODO: this splitting of model types will likely move to main render driver
-			var opaqueAndTranslucent = this.splitModelRange(range, Features.Translucency, true);
-
 			if (mode == RenderMode.Forward) {
-				this.updateLightData(proj); // FIXME: make this explicit by moving into scene drawing code
-
-				let opaqueRange = opaqueAndTranslucent.without;
-				let translucentRange = opaqueAndTranslucent.with;
-				let opaqueIter = opaqueRange.makeIterator();
-				let translucentIter = translucentRange.makeIterator();
-
-				if (opaqueRange.count > 0) {
-					rp.setDepthTest(render.DepthTest.Less);
-					rp.setFaceCulling(render.FaceCulling.Back);
-
-					while (opaqueIter.next()) {
-						let inst = <number>opaqueIter.current;
-						this.drawSingleForward(rp, proj, shadow, fogSpec, inst);
-					}
-				}
-
-				if (translucentRange.count > 0) {
-					// TODO: sort translucent items back to front
-					rp.setDepthTest(render.DepthTest.Less);
-					rp.setFaceCulling(render.FaceCulling.Disabled);
-
-					while (translucentIter.next()) {
-						let inst = <number>translucentIter.current;
-						this.drawSingleForward(rp, proj, null, null, inst);
-					}
+				let iter = range.makeIterator();
+				while (iter.next()) {
+					this.drawSingleForward(rp, proj, shadow, fogSpec, <number>iter.current);
 				}
 			}
 			else if (mode == RenderMode.Shadow) {
 				var shadowPipeline = this.stdPipeline_.shadowPipeline();
 				rp.setPipeline(shadowPipeline);
-				rp.setDepthTest(render.DepthTest.Less);
-				rp.setFaceCulling(render.FaceCulling.Front);
 
-				// only draw solid items
-				let iter = opaqueAndTranslucent.without.makeIterator();
+				let iter = range.makeIterator();
 				while (iter.next()) {
-					let inst = <number>iter.current;
-					if (this.enabledBase_[inst]) {
-						this.drawSingleShadow(rp, proj, shadowPipeline, inst);
-					}
+					this.drawSingleShadow(rp, proj, shadowPipeline, <number>iter.current);
 				}
 			}
-
-			rp.setFaceCulling(render.FaceCulling.Disabled);
 		}
 	}
 

@@ -250,9 +250,10 @@ namespace sd.world {
 		projectionSetupForLight(inst: LightInstance, viewportWidth: number, viewportHeight: number): ProjectionSetup {
 			var transform = this.transformBase_[<number>inst];
 			var worldPos = this.transformMgr_.worldPosition(transform);
-			var worldTarget = vec3.add([], worldPos, this.direction(inst));
+			var worldDirection = this.direction(inst);
+			var worldTarget = vec3.add([], worldPos, worldDirection);
 
-			var viewMatrix = mat4.lookAt([], worldPos, worldTarget, [0, 1, 0]); // FIXME: this can likely be done cheaper
+			var viewMatrix: Float4x4 = null;
 			var projectionMatrix: Float4x4 = null;
 
 			const nearZ = 2; // fixed near-z
@@ -261,8 +262,13 @@ namespace sd.world {
 			if (type == LightType.Spot) {
 				var farZ = this.range(inst);
 				var fov = this.cutoff(inst) * 2; // cutoff is half-angle
+				viewMatrix = mat4.lookAt([], worldPos, worldTarget, [0, 1, 0]); // FIXME: this can likely be done cheaper
 				projectionMatrix = mat4.perspective([], fov, viewportWidth / viewportHeight, nearZ, farZ);
 				// TODO: cache this matrix?
+			}
+			else if (type == LightType.Directional) {
+				viewMatrix = mat4.lookAt([], [0, 0, 0], worldDirection, [0, 1, 0]); // FIXME: this can likely be done cheaper
+				projectionMatrix = mat4.ortho([], -40, 40, -40, 40, -40, 40);
 			}
 
 			return {
