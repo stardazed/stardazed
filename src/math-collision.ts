@@ -17,12 +17,6 @@ namespace sd.math {
 	}
 
 
-	export interface BoundedPlane extends Plane {
-		center: Float3;
-		size: Float2;   // 2 dimensions!
-	}
-
-
 	// a, b, c must be in CCW order
 	export function makePlaneFromPoints(a: Float3, b: Float3, c: Float3): Plane {
 		var normal = vec3.normalize([], vec3.cross([], vec3.sub([], b, a), vec3.sub([], c, a)));
@@ -40,6 +34,20 @@ namespace sd.math {
 		var c = vec3.add([], p, vec3.cross([], normal, orthoNormal));
 
 		return makePlaneFromPoints(p, b, c);
+	}
+
+
+	export function pointDistanceToPlane(point: Float3, plane: Plane) {
+		return vec3.dot(plane.normal, point) + plane.d;
+	}
+
+
+
+	// this whole BoundedPlane business is experimental and possibly a load of shite
+
+	export interface BoundedPlane extends Plane {
+		center: Float3;
+		size: Float2;   // 2 dimensions!
 	}
 
 
@@ -72,6 +80,9 @@ namespace sd.math {
 
 		return makeBoundedPlane(newCenter, newNormal, bp.size);
 	}
+
+
+	// -- end experimental BoundedPlane
 
 
 	export interface SpherePlaneIntersection {
@@ -128,5 +139,6 @@ namespace sd.math {
 
 		return result;
 	}
+
 
 } // ns sd.math

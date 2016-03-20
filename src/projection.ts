@@ -11,4 +11,16 @@ namespace sd.world {
 		viewMatrix: Float4x4;
 	}
 
+
+	interface Projection {
+		matrix: Float4x4;
+		planes: math.Plane[];
+	}
+
+
+	class PerspectiveProjection {
+		matrix: Float4x4;
+
+	}
+
 } // sd.world
