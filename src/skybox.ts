@@ -91,6 +91,9 @@ namespace sd.world {
 			this.rc.gl.uniformMatrix4fv(this.mvpMatrixUniform_, false, this.modelViewProjectionMatrix_);
 
 			rp.drawIndexedPrimitives(0, this.primitiveCount_);
+
+			// -- draw call count
+			return 1;
 		}
 	}
 

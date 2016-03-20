@@ -935,6 +935,7 @@ namespace sd.world {
 
 		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, fogSpec: world.FogDescriptor, modelIx: number) {
 			var gl = this.rc.gl;
+			var drawCalls = 0;
 
 			var mesh = this.meshes_[modelIx];
 
@@ -1038,7 +1039,11 @@ namespace sd.world {
 					rp.drawIndexedPrimitives(primGroup.fromPrimIx, primGroup.primCount);
 				else
 					rp.drawPrimitives(primGroup.fromPrimIx, primGroup.primCount);
+
+				drawCalls += 1;
 			}
+
+			return drawCalls;
 		}
 
 
@@ -1059,6 +1064,9 @@ namespace sd.world {
 				rp.drawIndexedPrimitives(0, mesh.totalPrimitiveCount);
 			else
 				rp.drawPrimitives(0, mesh.totalPrimitiveCount);
+
+			// -- drawcall count, always 1
+			return 1;
 		}
 
 
@@ -1135,11 +1143,12 @@ namespace sd.world {
 		draw(range: StdModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, fogSpec: world.FogDescriptor, mode: RenderMode) {
 			var gl = this.rc.gl;
 			var count = this.instanceData_.count;
+			var drawCalls = 0;
 
 			if (mode == RenderMode.Forward) {
 				let iter = range.makeIterator();
 				while (iter.next()) {
-					this.drawSingleForward(rp, proj, shadow, fogSpec, <number>iter.current);
+					drawCalls += this.drawSingleForward(rp, proj, shadow, fogSpec, <number>iter.current);
 				}
 			}
 			else if (mode == RenderMode.Shadow) {
@@ -1148,9 +1157,11 @@ namespace sd.world {
 
 				let iter = range.makeIterator();
 				while (iter.next()) {
-					this.drawSingleShadow(rp, proj, shadowPipeline, <number>iter.current);
+					drawCalls += this.drawSingleShadow(rp, proj, shadowPipeline, <number>iter.current);
 				}
 			}
+
+			return drawCalls;
 		}
 	}
 
