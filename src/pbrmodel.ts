@@ -346,7 +346,7 @@ namespace sd.world {
 			line("	float HdV = max(0.001, dot(H, V));");
 
 			line("	vec3 specfresnel = fresnel_factor(specularColour, HdV);");
-			line("	vec3 specref = cooktorrance_specular(NdL, NdV, NdH, specfresnel, roughness, 0.0);");
+			line("	vec3 specref = cooktorrance_specular(NdL, NdV, NdH, specfresnel, roughness, 1.0);");
 			line("	specref *= vec3(NdL);");
 
 			// diffuse is common for all lighting models
