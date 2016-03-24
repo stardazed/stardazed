@@ -11,7 +11,7 @@ namespace sd.world {
 	//                                                                    |___/         
 
 	export interface PBRMaterialDescriptor {
-		mainColour: Float3;             // v3, single colour or tint for diffuse
+		baseColour: Float3;             // v3, single colour or tint for diffuse
 		metallic: number;               // 0..1
 		roughness: number;              // 0..1
 	}
@@ -19,7 +19,7 @@ namespace sd.world {
 
 	export function makePBRMaterialDescriptor(): PBRMaterialDescriptor {
 		return {
-			mainColour: vec3.copy([], math.Vec3.one),
+			baseColour: vec3.copy([], math.Vec3.one),
 			metallic: 0,
 			roughness: 0
 		};
@@ -43,12 +43,12 @@ namespace sd.world {
 	export type PBRMaterialSet = InstanceSet<PBRMaterialManager>;
 	export type PBRMaterialIterator = InstanceIterator<PBRMaterialManager>;
 	export type PBRMaterialArrayView = InstanceArrayView<PBRMaterialManager>;
-
+ 
 
 	export class PBRMaterialManager implements ComponentManager<PBRMaterialManager> {
 		private instanceData_: container.MultiArrayBuffer;
 
-		private mainColourBase_: TypedArray;
+		private baseColourBase_: TypedArray;
 		private metallicBase_: TypedArray;
 
 		private tempVec4 = new Float32Array(4);
@@ -57,7 +57,7 @@ namespace sd.world {
 			const initialCapacity = 256;
 
 			var fields: container.MABField[] = [
-				{ type: Float, count: 4 },  // mainColour[3], 0
+				{ type: Float, count: 4 },  // baseColour[3], 0
 				{ type: Float, count: 4 },  // metallic, roughness, 0, 0
 			];
 
@@ -67,7 +67,7 @@ namespace sd.world {
 
 
 		private rebase() {
-			this.mainColourBase_ = this.instanceData_.indexedFieldView(0);
+			this.baseColourBase_ = this.instanceData_.indexedFieldView(0);
 			this.metallicBase_ = this.instanceData_.indexedFieldView(1);
 		}
 
@@ -78,8 +78,8 @@ namespace sd.world {
 			}
 			var matIndex = this.instanceData_.count; // entry 0 is reserved as nullptr-like
 
-			vec4.set(this.tempVec4, desc.mainColour[0], desc.mainColour[1], desc.mainColour[2], 0);
-			container.setIndexedVec4(this.mainColourBase_, matIndex, this.tempVec4);
+			vec4.set(this.tempVec4, desc.baseColour[0], desc.baseColour[1], desc.baseColour[2], 0);
+			container.setIndexedVec4(this.baseColourBase_, matIndex, this.tempVec4);
 			vec4.set(this.tempVec4, desc.metallic, desc.roughness, 0, 0);
 			container.setIndexedVec4(this.metallicBase_, matIndex, this.tempVec4);
 
@@ -90,7 +90,7 @@ namespace sd.world {
 		destroy(inst: PBRMaterialInstance) {
 			var matIndex = <number>inst;
 
-			container.setIndexedVec4(this.mainColourBase_, matIndex, math.Vec4.zero);
+			container.setIndexedVec4(this.baseColourBase_, matIndex, math.Vec4.zero);
 			container.setIndexedVec4(this.metallicBase_, matIndex, math.Vec4.zero);
 		}
 
@@ -116,20 +116,20 @@ namespace sd.world {
 
 
 		// -- individual element field accessors
-		mainColour(inst: PBRMaterialInstance): Float3 {
+		baseColour(inst: PBRMaterialInstance): Float3 {
 			var offset = <number>inst * 4;
 			return [
-				this.mainColourBase_[offset],
-				this.mainColourBase_[offset + 1],
-				this.mainColourBase_[offset + 2]
+				this.baseColourBase_[offset],
+				this.baseColourBase_[offset + 1],
+				this.baseColourBase_[offset + 2]
 			];
 		}
 
-		setMainColour(inst: PBRMaterialInstance, newColour: Float3) {
+		setBaseColour(inst: PBRMaterialInstance, newColour: Float3) {
 			var offset = <number>inst * 4;
-			this.mainColourBase_[offset]     = newColour[0];
-			this.mainColourBase_[offset + 1] = newColour[1];
-			this.mainColourBase_[offset + 2] = newColour[2];
+			this.baseColourBase_[offset]     = newColour[0];
+			this.baseColourBase_[offset + 1] = newColour[1];
+			this.baseColourBase_[offset + 2] = newColour[2];
 		}
 
 
@@ -156,7 +156,7 @@ namespace sd.world {
 			var matIndex = <number>inst;
 
 			return {
-				colourData: <Float32Array>container.refIndexedVec4(this.mainColourBase_, matIndex),
+				colourData: <Float32Array>container.refIndexedVec4(this.baseColourBase_, matIndex),
 				metallicData: <Float32Array>container.refIndexedVec4(this.metallicBase_, matIndex),
 			};
 		}
