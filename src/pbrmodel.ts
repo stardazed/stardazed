@@ -2,6 +2,11 @@
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 
+// Implementation based off:
+// https://gist.github.com/galek/53557375251e1a942dfa by Nick Galko
+// Which has taken certain functions from the Unreal 4 Engine Source
+// as indicated by comments.
+
 namespace sd.world {
 
 	const enum Features {
@@ -38,7 +43,7 @@ namespace sd.world {
 		Albedo = 0, // rgb, (alpha|gloss)?
 		Metallic = 1, // metallic
 		Roughness = 2, // roughness
-		Normal = 3, // xyz, height?
+		NormalHeight = 3, // xyz, height?
 	}
 
 
@@ -153,14 +158,12 @@ namespace sd.world {
 			line  ("attribute vec3 vertexPos_model;");
 			line  ("attribute vec3 vertexNormal;");
 			if_all("attribute vec2 vertexUV;", Features.VtxUV);
-			if_all("attribute vec3 vertexColour;", Features.VtxColour);
 
 			// Out
 			line  ("varying vec3 vertexNormal_cam;");
 			line  ("varying vec3 vertexPos_world;");
 			line  ("varying vec3 vertexPos_cam;");
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
-			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
 			// Uniforms
 			line  ("uniform mat4 modelMatrix;");
@@ -179,7 +182,6 @@ namespace sd.world {
 			line  ("	vertexNormal_cam = normalMatrix * vertexNormal_final;");
 			line  ("	vertexPos_cam = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;");
 			if_all("	vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;", Features.VtxUV);
-			if_all("	vertexColour_intp = vertexColour;", Features.VtxColour);
 			line  ("}");
 
 			// console.info("------ VERTEX");
@@ -203,7 +205,6 @@ namespace sd.world {
 			line  ("varying vec3 vertexNormal_cam;");
 			line  ("varying vec3 vertexPos_cam;");
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
-			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
 			// Uniforms
 			line  ("uniform mat3 lightNormalMatrix;");
@@ -217,8 +218,7 @@ namespace sd.world {
 
 			// -- light param constants
 			line  ("const int MAX_FRAGMENT_LIGHTS = " + MAX_FRAGMENT_LIGHTS + ";");
-			line  ("const int LPARAM_AMBIENT_INTENSITY = 0;");
-			line  ("const int LPARAM_DIFFUSE_INTENSITY = 1;");
+			line  ("const int LPARAM_INTENSITY = 1;");
 			line  ("const int LPARAM_RANGE = 2;");
 			line  ("const int LPARAM_CUTOFF = 3;");
 			line  ("const int LPOS_STRENGTH = 3;");
@@ -234,11 +234,10 @@ namespace sd.world {
 
 			// -- calcLightShared()
 			line  ("vec3 calcLightShared(vec3 matColour, vec4 colour, vec4 param, float diffuseStrength, vec3 lightDirection, vec3 normal_cam) {");
-			line  ("	vec3 ambientContrib = colour.rgb * param[LPARAM_AMBIENT_INTENSITY];");
 			line  ("	if (diffuseStrength <= 0.0) {");
-			line  ("		return ambientContrib;");
+			line  ("		return vec3(0.0);");
 			line  ("	}");
-			line  ("	vec3 diffuseContrib = colour.rgb * diffuseStrength * param[LPARAM_DIFFUSE_INTENSITY];");
+			line  ("	vec3 diffuseContrib = colour.rgb * diffuseStrength * param[LPARAM_INTENSITY];");
 
 			line  ("	vec3 specularContrib = vec3(0.0);");
 			line  ("	vec3 viewVec = normalize(-vertexPos_cam);");
@@ -249,13 +248,12 @@ namespace sd.world {
 			line  ("		specularStrength = pow(specularStrength, 8.0) * diffuseStrength;"); // FIXME: not too sure about this (* diffuseStrength)
 			line  ("		specularContrib = specularColour * specularStrength * (1.0 - metallicData[METAL_ROUGHNESS]);");
 			line  ("	}");
-			line  ("	return (ambientContrib + (diffuseContrib + specularContrib)) * colour.w;"); // lightColour.w = lightAmplitude
+			line  ("	return (diffuseContrib + specularContrib) * colour.w;"); // lightColour.w = lightAmplitude
 			line  ("}");
 
 
 			// -- calcPointLight()
 			line  ("vec3 calcPointLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 lightPos_world, vec3 normal_cam) {");
-
 			line  ("	float distance = length(vertexPos_world - lightPos_world);"); // use world positions for distance as cam will warp coords
 			line  ("	vec3 lightDirection = normalize(vertexPos_cam - lightPos_cam.xyz);");
 			line  ("	float attenuation = 1.0 - pow(clamp(distance / param[LPARAM_RANGE], 0.0, 1.0), 2.0);");
@@ -271,7 +269,6 @@ namespace sd.world {
 			line  ("	float cutoff = param[LPARAM_CUTOFF];");
 			line  ("	if (spotCosAngle > cutoff) {");
 			line  ("		vec3 light = calcPointLight(lightIx, matColour, colour, param, lightPos_cam, lightPos_world, normal_cam);");
-			// line  ("		return light * (1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff));");
 			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);")
 			line  ("	}");
 			line  ("	return vec3(0.0);");
@@ -285,18 +282,72 @@ namespace sd.world {
 			line  ("}");
 
 
+			// compute fresnel specular factor for given base specular and product
+			// product could be NdV or VdH depending on used technique
+			line("vec3 fresnel_factor(vec3 f0, float product) {");
+			line("	return mix(f0, vec3(1.0), pow(1.01 - product, 5.0));");
+			line("}");
+
+			// following functions are copies of UE4
+			// for computing cook-torrance specular lighting terms
+			line("float D_blinn(float roughness, float NdH) {");
+			line("	float m = roughness * roughness;");
+			line("	float m2 = m * m;");
+			line("	float n = 2.0 / m2 - 2.0;");
+			line("	return (n + 2.0) / (2.0 * PI) * pow(NdH, n);");
+			line("}");
+
+			line("float D_beckmann(float roughness, float NdH) {");
+			line("	float m = roughness * roughness;");
+			line("	float m2 = m * m;");
+			line("	float NdH2 = NdH * NdH;");
+			line("	return exp((NdH2 - 1.0) / (m2 * NdH2)) / (PI * m2 * NdH2 * NdH2);");
+			line("}");
+
+			line("float D_GGX(float roughness, float NdH) {");
+			line("	float m = roughness * roughness;");
+			line("	float m2 = m * m;");
+			line("	float d = (NdH * m2 - NdH) * NdH + 1.0;");
+			line("	return m2 / (PI * d * d);");
+			line("}");
+
+			line("float G_schlick(float roughness, float NdV, float NdL) {");
+			line("	float k = roughness * roughness * 0.5;");
+			line("	float V = NdV * (1.0 - k) + k;");
+			line("	float L = NdL * (1.0 - k) + k;");
+			line("	return 0.25 / (V * L);");
+			line("}");
+
+			// simple phong specular calculation with normalization
+			line("vec3 phong_specular(vec3 V, vec3 L, vec3 N, vec3 specular, float roughness) {");
+			line("	vec3 R = reflect(-L, N);");
+			line("	float spec = max(0.0, dot(V, R));");
+			line("	float k = 1.999 / (roughness * roughness);");
+			line("	return min(1.0, 3.0 * 0.0398 * k) * pow(spec, min(10000.0, k)) * specular;");
+			line("}");
+
+			// simple blinn specular calculation with normalization
+			line("vec3 blinn_specular(float NdH, vec3 specular, float roughness) {");
+			line("	float k = 1.999 / (roughness * roughness);");
+			line("	return min(1.0, 3.0 * 0.0398 * k) * pow(NdH, min(10000.0, k)) * specular;");
+			line("}");
+
+			// cook-torrance specular calculation
+			line("vec3 cooktorrance_specular(float NdL, float NdV, float NdH, vec3 specular, float roughness) {");
+			line("	// float D = D_blinn(roughness, NdH);");
+			line("	// float D = D_beckmann(roughness, NdH);");
+			line("	float D = D_GGX(roughness, NdH);");
+			line("	float G = G_schlick(roughness, NdV, NdL);");
+			line("	float rim = mix(1.0 - roughness * material.w * 0.9, 1.0, NdV);");
+			line("	return (1.0 / rim) * specular * G * D;");
+			line("}");
+
+
 			// main()
 			line  ("void main() {");
-			line  ("	float fragOpacity = 1.0;");
 
 			// -- material colour at point
-			if (feat & Features.VtxColour) {
-				line("	vec3 matColour = vertexColour_intp * mainColour.rgb;");
-			}
-			else {
-				line("	vec3 matColour = mainColour.rgb;");
-			}
-
+			line  ("	vec3 matColour = mainColour.rgb;");
 			line  ("	vec3 normal_cam = normalize(vertexNormal_cam);");
 
 			// -- calculate light arriving at the fragment
@@ -312,26 +363,20 @@ namespace sd.world {
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
 
-			// shadow intensity
-			line  ("		float shadowFactor = 1.0;");
 			line  ("		if (type == 1) {")
-			line  ("			totalLight += shadowFactor * calcDirectionalLight(lightIx, matColour, lightColour, lightParam, lightDir_cam, normal_cam);");
+			line  ("			totalLight += calcDirectionalLight(lightIx, matColour, lightColour, lightParam, lightDir_cam, normal_cam);");
 			line  ("		}");
 			line  ("		else if (type == 2) {")
-			line  ("			totalLight += shadowFactor * calcPointLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, normal_cam);");
+			line  ("			totalLight += calcPointLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, normal_cam);");
 			line  ("		}");
 			line  ("		else if (type == 3) {")
-			line  ("			totalLight += shadowFactor * calcSpotLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, normal_cam);");
+			line  ("			totalLight += calcSpotLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, normal_cam);");
 			line  ("		}");
 			line  ("	}");
 
 			// -- final colour result
-			line  ("	gl_FragColor = vec4(totalLight * matColour, fragOpacity);");
-
+			line  ("	gl_FragColor = vec4(totalLight * matColour, 1.0);");
 			line  ("}");
-
-			// console.info("------ FRAGMENT " + feat);
-			// source.forEach((s) => console.info(s));
 
 			return source.join("\n") + "\n";
 		}
