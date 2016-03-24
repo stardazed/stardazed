@@ -4,7 +4,7 @@
 
 // Implementation based off:
 // https://gist.github.com/galek/53557375251e1a942dfa by Nick Galko
-// Which has taken certain functions from the Unreal 4 Engine Source
+// which in turn used certain functions from the Unreal 4 Engine Source
 // as indicated by comments.
 
 namespace sd.world {
@@ -28,6 +28,10 @@ namespace sd.world {
 		mainColourUniform: WebGLUniformLocation;        // vec4
 		metallicUniform: WebGLUniformLocation;          // vec4
 
+		// -- textures
+		environmentMapUniform: WebGLUniformLocation;
+		brdfLookupMapUniform: WebGLUniformLocation;
+
 		// -- lights
 		lightTypeArrayUniform?: WebGLUniformLocation;      // int[MAX_FRAGMENT_LIGHTS]
 		lightCamPositionArrayUniform?: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
@@ -41,9 +45,8 @@ namespace sd.world {
 
 	const enum TextureBindPoint {
 		Albedo = 0, // rgb, (alpha|gloss)?
-		Metallic = 1, // metallic
-		Roughness = 2, // roughness
-		NormalHeight = 3, // xyz, height?
+		Environment = 1,
+		BRDFLookup = 2
 	}
 
 
@@ -124,7 +127,16 @@ namespace sd.world {
 			// -- material properties
 			program.mainColourUniform = gl.getUniformLocation(program, "mainColour");
 			program.metallicUniform = gl.getUniformLocation(program, "metallicData");
-			
+
+			program.environmentMapUniform = gl.getUniformLocation(program, "environmentMap");
+			if (program.environmentMapUniform) {
+				gl.uniform1i(program.environmentMapUniform, TextureBindPoint.Environment);
+			}
+			program.brdfLookupMapUniform = gl.getUniformLocation(program, "brdfLookupMap");
+			if (program.brdfLookupMapUniform) {
+				gl.uniform1i(program.brdfLookupMapUniform, TextureBindPoint.BRDFLookup);
+			}
+
 			// -- light property arrays
 			program.lightTypeArrayUniform = gl.getUniformLocation(program, "lightTypes");
 			program.lightCamPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_cam");
@@ -176,10 +188,9 @@ namespace sd.world {
 
 			// main()
 			line  ("void main() {");
-			line  ("	vec3 vertexNormal_final = vertexNormal;");
 			line  ("	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);");
 			line  ("	vertexPos_world = (modelMatrix * vec4(vertexPos_model, 1.0)).xyz;");
-			line  ("	vertexNormal_cam = normalMatrix * vertexNormal_final;");
+			line  ("	vertexNormal_cam = normalMatrix * vertexNormal;");
 			line  ("	vertexPos_cam = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;");
 			if_all("	vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;", Features.VtxUV);
 			line  ("}");
@@ -207,11 +218,15 @@ namespace sd.world {
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 
 			// Uniforms
+			line  ("uniform mat3 normalMatrix;");
 			line  ("uniform mat3 lightNormalMatrix;");
 
 			// -- material
 			line  ("uniform vec4 mainColour;");
 			line  ("uniform vec4 metallicData;");
+
+			line  ("uniform sampler2D brdfLookupMap;");
+			line  ("uniform samplerCube environmentMap;");
 
 			line  ("const int METAL_METALLIC = 0;");
 			line  ("const int METAL_ROUGHNESS = 1;");
@@ -232,60 +247,21 @@ namespace sd.world {
 			line  ("uniform vec4 lightColours[MAX_FRAGMENT_LIGHTS];");
 			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
 
-			// -- calcLightShared()
-			line  ("vec3 calcLightShared(vec3 matColour, vec4 colour, vec4 param, float diffuseStrength, vec3 lightDirection, vec3 normal_cam) {");
-			line  ("	if (diffuseStrength <= 0.0) {");
-			line  ("		return vec3(0.0);");
-			line  ("	}");
-			line  ("	vec3 diffuseContrib = colour.rgb * diffuseStrength * param[LPARAM_INTENSITY];");
+			line("const float PI = 3.141592654;");
+			line("const float PHONG_DIFFUSE = 1.0 / PI;");
 
-			line  ("	vec3 specularContrib = vec3(0.0);");
-			line  ("	vec3 viewVec = normalize(-vertexPos_cam);");
-			line  ("	vec3 reflectVec = reflect(lightDirection, normal_cam);");
-			line  ("	float specularStrength = dot(viewVec, reflectVec);");
-			line  ("	if (specularStrength > 0.0) {");
-			line  ("		vec3 specularColour = matColour * colour.rgb;");
-			line  ("		specularStrength = pow(specularStrength, 8.0) * diffuseStrength;"); // FIXME: not too sure about this (* diffuseStrength)
-			line  ("		specularContrib = specularColour * specularStrength * (1.0 - metallicData[METAL_ROUGHNESS]);");
-			line  ("	}");
-			line  ("	return (diffuseContrib + specularContrib) * colour.w;"); // lightColour.w = lightAmplitude
-			line  ("}");
-
-
-			// -- calcPointLight()
-			line  ("vec3 calcPointLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 lightPos_world, vec3 normal_cam) {");
-			line  ("	float distance = length(vertexPos_world - lightPos_world);"); // use world positions for distance as cam will warp coords
-			line  ("	vec3 lightDirection = normalize(vertexPos_cam - lightPos_cam.xyz);");
-			line  ("	float attenuation = 1.0 - pow(clamp(distance / param[LPARAM_RANGE], 0.0, 1.0), 2.0);");
-			line  ("    attenuation *= dot(normal_cam, -lightDirection);");
-			line  ("	return calcLightShared(matColour, colour, param, attenuation, lightDirection, normal_cam);");
-			line  ("}");
-
-
-			// -- calcSpotLight()
-			line  ("vec3 calcSpotLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 lightPos_world, vec4 lightDirection, vec3 normal_cam) {");
-			line  ("	vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam.xyz);");
-			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection.xyz);");
-			line  ("	float cutoff = param[LPARAM_CUTOFF];");
-			line  ("	if (spotCosAngle > cutoff) {");
-			line  ("		vec3 light = calcPointLight(lightIx, matColour, colour, param, lightPos_cam, lightPos_world, normal_cam);");
-			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);")
-			line  ("	}");
-			line  ("	return vec3(0.0);");
-			line  ("}");
-
-
-			// -- calcDirectionalLight()
-			line  ("vec3 calcDirectionalLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightDirection, vec3 normal_cam) {");
-			line  ("	float diffuseStrength = dot(normal_cam, -lightDirection.xyz);");
-			line  ("	return calcLightShared(matColour, colour, param, diffuseStrength, lightDirection.xyz, normal_cam);");
-			line  ("}");
-
+			line("mat3 transpose(mat3 m) {");
+			line("	vec3 c0 = m[0];");
+			line("	vec3 c1 = m[1];");
+			line("	vec3 c2 = m[2];");
+			line("	return mat3(vec3(c0.x, c1.x, c2.x), vec3(c0.y, c1.y, c2.y), vec3(c0.z, c1.z, c2.z));");
+			line("}");
 
 			// compute fresnel specular factor for given base specular and product
 			// product could be NdV or VdH depending on used technique
 			line("vec3 fresnel_factor(vec3 f0, float product) {");
-			line("	return mix(f0, vec3(1.0), pow(1.01 - product, 5.0));");
+			// line("	return mix(f0, vec3(1.0), pow(1.01 - product, 5.0));");
+			line("	return f0 + (vec3(1.0) - f0) * pow(2.0, (-5.55473 * product - 6.98316) * product);");
 			line("}");
 
 			// following functions are copies of UE4
@@ -333,14 +309,97 @@ namespace sd.world {
 			line("}");
 
 			// cook-torrance specular calculation
-			line("vec3 cooktorrance_specular(float NdL, float NdV, float NdH, vec3 specular, float roughness) {");
+			line("vec3 cooktorrance_specular(float NdL, float NdV, float NdH, vec3 specular, float roughness, float rimlight) {");
 			line("	// float D = D_blinn(roughness, NdH);");
 			line("	// float D = D_beckmann(roughness, NdH);");
 			line("	float D = D_GGX(roughness, NdH);");
 			line("	float G = G_schlick(roughness, NdV, NdL);");
-			line("	float rim = mix(1.0 - roughness * material.w * 0.9, 1.0, NdV);");
+			line("	float rim = mix(1.0 - roughness * rimlight * 0.9, 1.0, NdV);");
 			line("	return (1.0 / rim) * specular * G * D;");
 			line("}");
+
+
+
+			// -- calcLightShared()
+			line("vec3 calcLightShared(vec3 matColour, vec4 colour, vec4 param, float diffuseStrength, vec3 lightDirection, vec3 normal_cam) {");
+			line("	vec3 L = -lightDirection;");
+			line("	vec3 V = normalize(-vertexPos_cam);");
+			line("	vec3 H = normalize(L + V);");
+			line("	vec3 N = normal_cam;");
+
+			// material properties
+			line("	float metallic = metallicData[METAL_METALLIC];");
+			line("	float roughness = metallicData[METAL_ROUGHNESS];");
+			line("	vec3 specularColour = mix(vec3(0.04), matColour, metallic);");
+
+			// diffuse IBL term
+			line("	mat3 tnrm = transpose(normalMatrix);");
+			line("	vec3 envdiff = textureCube(environmentMap, tnrm * N).xyz;");
+
+			// specular IBL term
+			line("	vec3 refl = tnrm * reflect(-V, N);");
+			line("	vec3 envspec = textureCube(environmentMap, refl).xyz;");
+
+			line("	float NdL = max(0.0, dot(N, L));");
+			line("	float NdV = max(0.001, dot(N, V));");
+			line("	float NdH = max(0.001, dot(N, H));");
+			line("	float HdV = max(0.001, dot(H, V));");
+
+			line("	vec3 specfresnel = fresnel_factor(specularColour, HdV);");
+			line("	vec3 specref = cooktorrance_specular(NdL, NdV, NdH, specfresnel, roughness, 0.0);");
+			line("	specref *= vec3(NdL);");
+
+			// diffuse is common for all lighting models
+			line("	vec3 diffref = (vec3(1.0) - specfresnel) * PHONG_DIFFUSE * NdL;");
+
+			// compute lighting
+			line("	vec3 reflected_light = vec3(0.0);");
+			line("	vec3 diffuse_light = vec3(0.0);"); // initial value == constant ambient light
+
+			// direct light
+			line("	vec3 light_color = colour.rgb * diffuseStrength * 3.0;");
+			line("	reflected_light += specref * light_color;");
+			line("	diffuse_light += diffref * light_color;");
+
+			// environment light
+			line("	vec2 brdf = texture2D(brdfLookupMap, vec2(roughness, 1.0 - NdV)).xy;");
+			line("	vec3 iblspec = min(vec3(0.99), fresnel_factor(specularColour, NdV) * brdf.x + brdf.y);");
+			line("	reflected_light += iblspec * envspec;");
+			line("	diffuse_light += envdiff * PHONG_DIFFUSE;");
+
+			// final result
+			line("	return diffuse_light * mix(matColour, vec3(0.0), metallic) + reflected_light;");
+			line("}");
+
+
+			// -- calcPointLight()
+			line  ("vec3 calcPointLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 lightPos_world, vec3 normal_cam) {");
+			line  ("	float distance = length(vertexPos_world - lightPos_world);"); // use world positions for distance as cam will warp coords
+			line  ("	vec3 lightDirection = normalize(vertexPos_cam - lightPos_cam.xyz);");
+			line  ("	float attenuation = 1.0 - pow(clamp(distance / param[LPARAM_RANGE], 0.0, 1.0), 2.0);");
+			line  ("    attenuation *= dot(normal_cam, -lightDirection);");
+			line  ("	return calcLightShared(matColour, colour, param, attenuation, lightDirection, normal_cam);");
+			line  ("}");
+
+
+			// -- calcSpotLight()
+			line  ("vec3 calcSpotLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 lightPos_world, vec4 lightDirection, vec3 normal_cam) {");
+			line  ("	vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam.xyz);");
+			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection.xyz);");
+			line  ("	float cutoff = param[LPARAM_CUTOFF];");
+			line  ("	if (spotCosAngle > cutoff) {");
+			line  ("		vec3 light = calcPointLight(lightIx, matColour, colour, param, lightPos_cam, lightPos_world, normal_cam);");
+			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);")
+			line  ("	}");
+			line  ("	return vec3(0.0);");
+			line  ("}");
+
+
+			// -- calcDirectionalLight()
+			line  ("vec3 calcDirectionalLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightDirection, vec3 normal_cam) {");
+			line  ("	float diffuseStrength = dot(normal_cam, -lightDirection.xyz);");
+			line  ("	return calcLightShared(matColour, colour, param, diffuseStrength, lightDirection.xyz, normal_cam);");
+			line  ("}");
 
 
 			// main()
@@ -375,7 +434,7 @@ namespace sd.world {
 			line  ("	}");
 
 			// -- final colour result
-			line  ("	gl_FragColor = vec4(totalLight * matColour, 1.0);");
+			line  ("	gl_FragColor = vec4(totalLight, 1.0);");
 			line  ("}");
 
 			return source.join("\n") + "\n";
@@ -419,6 +478,7 @@ namespace sd.world {
 		private primGroupFeatureBase_: TypedArray;
 
 		private meshes_: render.Mesh[] = [];
+		private brdfLookupTex_: render.Texture = null;
 
 		// -- for light uniform updates
 		private lightTypeArray_ = new Int32Array(MAX_FRAGMENT_LIGHTS);
@@ -585,6 +645,11 @@ namespace sd.world {
 		}
 
 
+		setBRDFLookupTexture(newLUT: render.Texture) {
+			this.brdfLookupTex_ = newLUT;
+		}
+
+
 		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, modelIx: number) {
 			var gl = this.rc.gl;
 			var drawCalls = 0;
@@ -685,10 +750,17 @@ namespace sd.world {
 		}
 
 
-		draw(range: PBRModelRange, rp: render.RenderPass, proj: ProjectionSetup) {
+		draw(range: PBRModelRange, rp: render.RenderPass, proj: ProjectionSetup, environmentMap: render.Texture) {
+			if (! this.brdfLookupTex_) {
+				return;
+			}
+
 			var gl = this.rc.gl;
 			var count = this.instanceData_.count;
 			var drawCalls = 0;
+
+			rp.setTexture(environmentMap, TextureBindPoint.Environment);
+			rp.setTexture(this.brdfLookupTex_, TextureBindPoint.BRDFLookup);
 
 			let iter = range.makeIterator();
 			while (iter.next()) {
