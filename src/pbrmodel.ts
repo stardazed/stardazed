@@ -358,7 +358,7 @@ namespace sd.world {
 			line("	vec3 diffuse_light = vec3(0.0);"); // initial value == constant ambient light
 
 			// direct light
-			line("	vec3 light_color = colour.rgb * diffuseStrength * 3.0;");
+			line("	vec3 light_color = colour.rgb * diffuseStrength * 2.0;");
 			line("	reflected_light += specref * light_color;");
 			line("	diffuse_light += diffref * light_color;");
 

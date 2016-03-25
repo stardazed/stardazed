@@ -146,7 +146,7 @@ namespace sd.render {
 		var rpd = makeRenderPassDescriptor();
 		rpd.clearMask = ClearMask.None;
 
-		const baseWidth = 256;
+		const baseWidth = 256; // this basewidth gives max 9 mip levels, 7 of which are used in pbrmodel.ts
 
 		var resultMapDesc = makeTexDescCube(PixelFormat.RGBA8, baseWidth, UseMipMaps.Yes);
 		var resultEnvMap = new render.Texture(rc, resultMapDesc);
