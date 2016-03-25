@@ -8,7 +8,7 @@
 
 namespace sd.render {
 
-	function glImageFormatForPixelFormat(rc: RenderContext, format: PixelFormat) {
+	export function glImageFormatForPixelFormat(rc: RenderContext, format: PixelFormat) {
 		var gl = rc.gl;
 
 		switch (format) {
@@ -50,7 +50,7 @@ namespace sd.render {
 	}
 
 
-	function glPixelDataTypeForPixelFormat(rc: RenderContext, format: PixelFormat) {
+	export function glPixelDataTypeForPixelFormat(rc: RenderContext, format: PixelFormat) {
 		var gl = rc.gl;
 
 		if (pixelFormatIsCompressed(format))
@@ -300,7 +300,7 @@ namespace sd.render {
 			}
 			else {
 				for (let layer = 0; layer < 6; ++layer) {
-					var texPixelData = pixelData && pixelData[layer];
+					var texPixelData = (pixelData && pixelData[layer]) || null;
 
 					if ((texPixelData == null) || ("byteLength" in texPixelData)) {
 						// either no data or raw pixel data
