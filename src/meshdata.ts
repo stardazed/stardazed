@@ -230,6 +230,7 @@ namespace sd.mesh {
 
 	// -- VertexAttribute shortcuts for common types
 
+	export function attrPosition2(): VertexAttribute { return { field: VertexField.Floatx2, role: VertexAttributeRole.Position }; }
 	export function attrPosition3(): VertexAttribute { return { field: VertexField.Floatx3, role: VertexAttributeRole.Position }; }
 	export function attrNormal3(): VertexAttribute { return { field: VertexField.Floatx3, role: VertexAttributeRole.Normal }; }
 	export function attrColour3(): VertexAttribute { return { field: VertexField.Floatx3, role: VertexAttributeRole.Colour }; }
@@ -556,6 +557,10 @@ namespace sd.mesh {
 
 		get count() {
 			return this.viewItemCount_;
+		}
+
+		get elementCount() {
+			return this.attrElementCount_;
 		}
 
 		get baseVertex() {

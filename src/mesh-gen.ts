@@ -72,11 +72,19 @@ namespace sd.mesh.gen {
 		// -- data add functions for the generators
 		var posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;
 
-		var pos: Vec3AddFn = (x: number, y: number, z: number) => {
+		var pos2: Vec3AddFn = (x: number, y: number, z: number) => {
+			var v2 = posView.item(posIx);
+			v2[0] = x; v2[1] = y;
+			posIx++;
+		};
+
+		var pos3: Vec3AddFn = (x: number, y: number, z: number) => {
 			var v3 = posView.item(posIx);
 			v3[0] = x; v3[1] = y; v3[2] = z;
 			posIx++;
 		};
+
+		var pos = posView.elementCount == 2 ? pos2 : pos3;
 
 		var face: IndexesAddFn = (a: number, b: number, c: number) => {
 			var i3 = triView.item(faceIx);
