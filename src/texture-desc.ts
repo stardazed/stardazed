@@ -163,11 +163,16 @@ namespace sd.render {
 
 
 	export function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
+		var sampler = makeSamplerDescriptor();
+		sampler.mipFilter = TextureMipFilter.Linear;
+		sampler.repeatS = TextureRepeatMode.ClampToEdge;
+		sampler.repeatT = TextureRepeatMode.ClampToEdge;
+
 		return {
 			textureClass: TextureClass.TexCube,
 			pixelFormat: pixelFormat,
 			usageHint: TextureUsageHint.Normal,
-			sampling: makeSamplerDescriptor(),
+			sampling: sampler,
 			dim: makePixelDimensions(dimension, dimension),
 			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(dimension) : 1
 		};
