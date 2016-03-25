@@ -209,6 +209,7 @@ namespace sd.world {
 			var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
 			var if_not = (s: string, f: number) => { if ((feat & f) == 0) source.push(s) };
 
+			line  ("#extension GL_EXT_shader_texture_lod : require");
 			line  ("precision highp float;");
 
 			// In
@@ -309,12 +310,12 @@ namespace sd.world {
 			line("}");
 
 			// cook-torrance specular calculation
-			line("vec3 cooktorrance_specular(float NdL, float NdV, float NdH, vec3 specular, float roughness, float rimlight) {");
+			line("vec3 cooktorrance_specular(float NdL, float NdV, float NdH, vec3 specular, float roughness) {");
 			line("	// float D = D_blinn(roughness, NdH);");
 			line("	// float D = D_beckmann(roughness, NdH);");
 			line("	float D = D_GGX(roughness, NdH);");
 			line("	float G = G_schlick(roughness, NdV, NdL);");
-			line("	float rim = mix(1.0 - roughness * rimlight * 0.9, 1.0, NdV);");
+			line("	float rim = mix(1.0 - roughness * 0.9, 1.0, NdV);");
 			line("	return (1.0 / rim) * specular * G * D;");
 			line("}");
 
@@ -334,11 +335,11 @@ namespace sd.world {
 
 			// diffuse IBL term
 			line("	mat3 tnrm = transpose(normalMatrix);");
-			line("	vec3 envdiff = textureCube(environmentMap, tnrm * N).xyz;");
+			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, tnrm * N, roughness * 6.0).xyz;");
 
 			// specular IBL term
 			line("	vec3 refl = tnrm * reflect(-V, N);");
-			line("	vec3 envspec = textureCube(environmentMap, refl).xyz;");
+			line("	vec3 envspec = textureCubeLodEXT(environmentMap, refl, roughness * 6.0).xyz;");
 
 			line("	float NdL = max(0.0, dot(N, L));");
 			line("	float NdV = max(0.001, dot(N, V));");
@@ -346,7 +347,7 @@ namespace sd.world {
 			line("	float HdV = max(0.001, dot(H, V));");
 
 			line("	vec3 specfresnel = fresnel_factor(specularColour, HdV);");
-			line("	vec3 specref = cooktorrance_specular(NdL, NdV, NdH, specfresnel, roughness, 1.0);");
+			line("	vec3 specref = cooktorrance_specular(NdL, NdV, NdH, specfresnel, roughness);");
 			line("	specref *= vec3(NdL);");
 
 			// diffuse is common for all lighting models
