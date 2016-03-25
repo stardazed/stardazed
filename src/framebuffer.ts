@@ -157,13 +157,14 @@ namespace sd.render {
 			var gl = this.rc.gl;
 
 			if (attachment.texture.target == gl.RENDERBUFFER) {
-				assert(attachment.level == 0);
-				assert(attachment.layer == 0);
+				assert(attachment.level == 0, "renderbuffers do not have mipmaps");
+				assert(attachment.layer == 0, "renderbuffers do not have layers");
 
 				gl.framebufferRenderbuffer(gl.FRAMEBUFFER, glAttachment, gl.RENDERBUFFER, <WebGLRenderbuffer>attachment.texture.resource);
 			}
 			else {
 				var tex = <WebGLTexture>attachment.texture.resource;
+				assert(attachment.level == 0, "WebGL 1 does not allow mapping of texture level > 0");
 				assert(attachment.level < attachment.texture.mipmaps);
 
 				var glTarget = gl.TEXTURE_2D;
