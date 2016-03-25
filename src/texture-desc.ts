@@ -117,7 +117,7 @@ namespace sd.render {
 
 
 	export function maxMipLevelsForDimension(dim: number) {
-		return 1 + Math.floor(Math.log(dim | 0) / Math.LOG2E);
+		return 1 + Math.floor(Math.log(dim | 0) / Math.LN2);
 	}
 
 
