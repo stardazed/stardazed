@@ -22,7 +22,7 @@ namespace sd.render {
 			rc.extFragmentLOD ? "#extension GL_EXT_shader_texture_lod : require" : "",
 			"precision highp float;",
 			"varying vec2 vertexUV_intp;",
-			"uniform vec4 params; // face (0..5), roughness (0..1), 0, 0",
+			"uniform vec4 params;", // face (0..5), roughness (0..1), dim, 0
 			"uniform samplerCube envMapSampler;",
 			"const int numSamples = 1024;",
 			"const float PI = 3.141592654;",
@@ -69,9 +69,11 @@ namespace sd.render {
 			"	return prefilteredColor / totalWeight;",
 			"}",
 			"void main() {",
-			"	vec2 st = vertexUV_intp * 2.0 - 1.0;",
 			"	float face = params.x;",
 			"	float roughness = params.y;",
+			"	float dim = params.z;",
+			"	vec2 st = vertexUV_intp * 2.0 - 1.0;",
+			// "	vec2 st = 2.0 * floor(gl_FragCoord.xy) / (dim - 1.0) - 1.0",
 			"	vec3 R;",
 			"	if (face == 0.0) {",
 			"		R = vec3(1, -st.y, -st.x);",
@@ -126,33 +128,85 @@ namespace sd.render {
 	}
 
 
+	function dumpPixelData(pixels: Uint8Array, dim: number) {
+		var cvs = document.createElement("canvas");
+		cvs.width = dim;
+		cvs.height = dim;
+		var ctx = cvs.getContext("2d");
+		var id = ctx.createImageData(dim, dim);
+		id.data.set(pixels);
+		ctx.putImageData(id, 0, 0);
+		document.body.appendChild(cvs);
+	}
+
+
 	export function prefilteredEnvMap(rc: RenderContext, sourceEnvMap: Texture) {
 		var pipeline = getPipeline(rc);
 
 		var rpd = makeRenderPassDescriptor();
 		rpd.clearMask = ClearMask.None;
 
-		var destMapDesc = makeTexDescCube(PixelFormat.RGBA8, 128, UseMipMaps.Yes);
-		var destEnvMap = new render.Texture(rc, destMapDesc);
+		const baseWidth = 256;
 
-		for (var face = 0; face < 6; ++face) {
-			var fbd = makeFrameBufferDescriptor();
-			fbd.colourAttachments[0].texture = destEnvMap;
-			fbd.colourAttachments[0].layer = face;
+		var resultMapDesc = makeTexDescCube(PixelFormat.RGBA8, baseWidth, UseMipMaps.Yes);
+		var resultEnvMap = new render.Texture(rc, resultMapDesc);
+		var mipCount = resultEnvMap.mipmaps;
+		var resultGLPixelFormat = glImageFormatForPixelFormat(rc, resultEnvMap.pixelFormat);
 
-			var fb = new FrameBuffer(rc, fbd);
-
-			runRenderPass(rc, rpd, fb, (rp) => {
-				rp.setPipeline(pipeline.pipeline);
-				rp.setTexture(sourceEnvMap, 0);
-				// rp.setMesh(mesh_);
-				rp.setDepthTest(render.DepthTest.LessOrEqual);
-
-				// rp.drawIndexedPrimitives(0, quadPrimCount);
-			});
+		var roughnessTable: number[] = [];
+		for (let ml = 0; ml < mipCount; ++ml) {
+			let roughAtLevel = (1.0 / (mipCount - 1)) * ml;
+			roughnessTable.push(roughAtLevel);
 		}
 
-		return destEnvMap;
+		var quad = mesh.gen.generate(new mesh.gen.Quad(2, 2), [mesh.attrPosition2(), mesh.attrUV2()]);
+		var quadMesh = new render.Mesh(rc, makeMeshDescriptor(quad));
+		var levelWidth = baseWidth;
+
+		for (var mip = 0; mip < mipCount; ++mip) {
+			let levelMapDesc = makeTexDesc2D(PixelFormat.RGBA8, levelWidth, levelWidth, UseMipMaps.No);
+			let levelEnvMap = new render.Texture(rc, levelMapDesc);
+			let pixels = new Uint8Array(levelWidth * levelWidth * 4);
+
+			for (var face = 0; face < 6; ++face) {
+				var fbd = makeFrameBufferDescriptor();
+				fbd.colourAttachments[0].texture = levelEnvMap;
+				var fb = new FrameBuffer(rc, fbd);
+
+				runRenderPass(rc, rpd, fb, (rp) => {
+					rp.setPipeline(pipeline.pipeline);
+					rp.setTexture(sourceEnvMap, 0);
+					rp.setMesh(quadMesh);
+					rp.setDepthTest(render.DepthTest.LessOrEqual);
+
+					rc.gl.uniform4fv(preFilterPipeline.paramsUniform, new Float32Array([face, roughnessTable[mip], 0, 0]));
+
+					rp.drawIndexedPrimitives(0, quad.primitiveGroups[0].primCount);
+
+					rc.gl.readPixels(0, 0, levelWidth, levelWidth, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, pixels);
+
+					let err = rc.gl.getError();
+					if (err) {
+						assert(false, "Cannot read pixels, gl error " + err);
+					}
+					else {
+						// dumpPixelData(pixels, levelWidth);
+
+						resultEnvMap.bind();
+						rc.gl.texImage2D(rc.gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, resultGLPixelFormat, levelWidth, levelWidth, 0, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, pixels);
+						let err = rc.gl.getError();
+						if (err) {
+							assert(false, "Cannot write pixels, gl error " + err);
+						}
+						resultEnvMap.unbind();
+					}
+				});
+			}
+
+			levelWidth = Math.max(1, levelWidth >> 1);
+		}
+
+		return resultEnvMap;
 	}
 
 } // ns sd.render
