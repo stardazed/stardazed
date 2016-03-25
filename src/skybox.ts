@@ -79,6 +79,12 @@ namespace sd.world {
 		}
 
 
+		setTexture(newTexture: render.Texture) {
+			assert(newTexture && newTexture.textureClass == render.TextureClass.TexCube);
+			this.texture_ = newTexture;
+		}
+
+
 		draw(rp: render.RenderPass, proj: ProjectionSetup) {
 			rp.setPipeline(this.pipeline_);
 			rp.setTexture(this.texture_, 0);
