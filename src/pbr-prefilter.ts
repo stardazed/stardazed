@@ -17,14 +17,14 @@ namespace sd.render {
 	// http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
 	// and code from PlayCanvas by Arthur Rakhteenko
 	// https://github.com/playcanvas/engine/blob/28100541996a74112b8d8cda4e0b653076e255a2/src/graphics/programlib/chunks/prefilterCubemap.ps
-	function fragmentSource(rc: RenderContext) {
+	function fragmentSource(rc: RenderContext, numSamples: number) {
 		return [
 			rc.extFragmentLOD ? "#extension GL_EXT_shader_texture_lod : require" : "",
 			"precision highp float;",
 			"varying vec2 vertexUV_intp;",
 			"uniform vec4 params;", // face (0..5), roughness (0..1), dim, 0
 			"uniform samplerCube envMapSampler;",
-			"const int numSamples = 1024;",
+			"const int numSamples = " + numSamples + ";",
 			"const float PI = 3.141592654;",
 			"float rnd(vec2 uv) {",
 			"	return fract(sin(dot(uv, vec2(12.9898, 78.233) * 2.0)) * 43758.5453);",
@@ -100,31 +100,34 @@ namespace sd.render {
 		envMapSamplerUniform: WebGLUniformLocation;
 	}
 
-	var preFilterPipeline: PreFilterPipeline = null;
+	var preFilterPipelines_s = new Map<number, PreFilterPipeline>();
 
-	function getPipeline(rc: RenderContext) {
-		if (preFilterPipeline == null) {
-			preFilterPipeline = <PreFilterPipeline>{};
+	function getPipeline(rc: RenderContext, numSamples: number) {
+		var pfp = preFilterPipelines_s.get(numSamples);
+		if (! pfp) {
+			pfp = <PreFilterPipeline>{};
 
 			// -- pipeline
 			var pld = makePipelineDescriptor();
 			pld.colourPixelFormats[0] = PixelFormat.RGBA8;
 			pld.vertexShader = makeShader(rc, rc.gl.VERTEX_SHADER, vertexSource);
-			pld.fragmentShader = makeShader(rc, rc.gl.FRAGMENT_SHADER, fragmentSource(rc));
+			pld.fragmentShader = makeShader(rc, rc.gl.FRAGMENT_SHADER, fragmentSource(rc, numSamples));
 			pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
 
-			preFilterPipeline.pipeline = new Pipeline(rc, pld);
+			pfp.pipeline = new Pipeline(rc, pld);
 
-			preFilterPipeline.paramsUniform = rc.gl.getUniformLocation(preFilterPipeline.pipeline.program, "params");
-			preFilterPipeline.envMapSamplerUniform = rc.gl.getUniformLocation(preFilterPipeline.pipeline.program, "envMapSampler");
+			pfp.paramsUniform = rc.gl.getUniformLocation(pfp.pipeline.program, "params");
+			pfp.envMapSamplerUniform = rc.gl.getUniformLocation(pfp.pipeline.program, "envMapSampler");
 
 			// -- invariant uniform
-			preFilterPipeline.pipeline.bind();
-			rc.gl.uniform1i(preFilterPipeline.envMapSamplerUniform, 0);
-			preFilterPipeline.pipeline.unbind();
+			pfp.pipeline.bind();
+			rc.gl.uniform1i(pfp.envMapSamplerUniform, 0);
+			pfp.pipeline.unbind();
+
+			preFilterPipelines_s.set(numSamples, pfp);
 		}
 
-		return preFilterPipeline;
+		return pfp;
 	}
 
 
@@ -140,8 +143,8 @@ namespace sd.render {
 	}
 
 
-	export function prefilteredEnvMap(rc: RenderContext, sourceEnvMap: Texture) {
-		var pipeline = getPipeline(rc);
+	export function prefilteredEnvMap(rc: RenderContext, sourceEnvMap: Texture, numSamples: number) {
+		var pipeline = getPipeline(rc, numSamples);
 
 		var rpd = makeRenderPassDescriptor();
 		rpd.clearMask = ClearMask.None;
@@ -162,11 +165,11 @@ namespace sd.render {
 		var quad = mesh.gen.generate(new mesh.gen.Quad(2, 2), [mesh.attrPosition2(), mesh.attrUV2()]);
 		var quadMesh = new render.Mesh(rc, makeMeshDescriptor(quad));
 		var levelWidth = baseWidth;
+		let pixels = new Uint8Array(levelWidth * levelWidth * 4); // large enough for all levels, will be reused
 
 		for (var mip = 0; mip < mipCount; ++mip) {
 			let levelMapDesc = makeTexDesc2D(PixelFormat.RGBA8, levelWidth, levelWidth, UseMipMaps.No);
 			let levelEnvMap = new render.Texture(rc, levelMapDesc);
-			let pixels = new Uint8Array(levelWidth * levelWidth * 4);
 
 			for (var face = 0; face < 6; ++face) {
 				var fbd = makeFrameBufferDescriptor();
@@ -179,10 +182,13 @@ namespace sd.render {
 					rp.setMesh(quadMesh);
 					rp.setDepthTest(render.DepthTest.LessOrEqual);
 
-					rc.gl.uniform4fv(preFilterPipeline.paramsUniform, new Float32Array([face, roughnessTable[mip], 0, 0]));
+					// supply filtering params
+					rc.gl.uniform4fv(pipeline.paramsUniform, new Float32Array([face, roughnessTable[mip], levelWidth, 0]));
 
+					// render quad without any transforms, filling full FB
 					rp.drawIndexedPrimitives(0, quad.primitiveGroups[0].primCount);
 
+					// implicit glFinish, read back generated texture
 					rc.gl.readPixels(0, 0, levelWidth, levelWidth, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, pixels);
 
 					let err = rc.gl.getError();
@@ -192,6 +198,7 @@ namespace sd.render {
 					else {
 						// dumpPixelData(pixels, levelWidth);
 
+						// write generated pixels into result envmap at proper face/mip level
 						resultEnvMap.bind();
 						rc.gl.texImage2D(rc.gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, resultGLPixelFormat, levelWidth, levelWidth, 0, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, pixels);
 						let err = rc.gl.getError();
