@@ -97,4 +97,22 @@ namespace sd {
 		});
 	}
 
+
+	// helper class for easy logged timing of multi-step processes
+	export class PerfTimer {
+		private lastT_ = performance.now();
+
+		constructor(private name_: string) {
+		}
+
+		step(stepName?: string) {
+			const curT = performance.now();
+			const diffT = curT - this.lastT_;
+			this.lastT_ = curT;
+
+			console.info("Perf [" + this.name_ + "] " + (stepName || "") + ": " + diffT.toFixed(1));
+		}
+	}
+
+
 } // ns sd
