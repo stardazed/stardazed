@@ -240,7 +240,7 @@ namespace sd.world {
 			line  ("uniform samplerCube environmentMap;");
 
 			line  ("const int MAT_METALLIC = 0;");
-			line  ("const int MAT_ROUGHNESS = 1;");
+			line  ("const int MAT_ROUGHNESS = 3;");
 
 			// -- light param constants
 			line  ("const int MAX_FRAGMENT_LIGHTS = " + MAX_FRAGMENT_LIGHTS + ";");

@@ -28,13 +28,13 @@ namespace sd.world {
 
 	export interface PBRMaterialData {
 		colourData: Float32Array;     // rgb, 0
-		materialParam: Float32Array;  // metallic, roughness, 0, 0
+		materialParam: Float32Array;  // metallic, 0, 0, roughness
 	}
 
 
-	const enum MetallicElem {
+	const enum PBRMaterialParam {
 		Metallic = 0,
-		Roughness = 1
+		Roughness = 3
 	}
 
 
@@ -49,7 +49,7 @@ namespace sd.world {
 		private instanceData_: container.MultiArrayBuffer;
 
 		private baseColourBase_: TypedArray;
-		private metallicBase_: TypedArray;
+		private paramBase_: TypedArray;
 
 		private tempVec4 = new Float32Array(4);
 
@@ -58,7 +58,7 @@ namespace sd.world {
 
 			var fields: container.MABField[] = [
 				{ type: Float, count: 4 },  // baseColour[3], 0
-				{ type: Float, count: 4 },  // metallic, roughness, 0, 0
+				{ type: Float, count: 4 },  // metallic, 0, 0, roughness
 			];
 
 			this.instanceData_ = new container.MultiArrayBuffer(initialCapacity, fields);
@@ -68,7 +68,7 @@ namespace sd.world {
 
 		private rebase() {
 			this.baseColourBase_ = this.instanceData_.indexedFieldView(0);
-			this.metallicBase_ = this.instanceData_.indexedFieldView(1);
+			this.paramBase_ = this.instanceData_.indexedFieldView(1);
 		}
 
 
@@ -80,8 +80,8 @@ namespace sd.world {
 
 			vec4.set(this.tempVec4, desc.baseColour[0], desc.baseColour[1], desc.baseColour[2], 0);
 			container.setIndexedVec4(this.baseColourBase_, matIndex, this.tempVec4);
-			vec4.set(this.tempVec4, desc.metallic, desc.roughness, 0, 0);
-			container.setIndexedVec4(this.metallicBase_, matIndex, this.tempVec4);
+			vec4.set(this.tempVec4, desc.metallic, 0, 0, desc.roughness);
+			container.setIndexedVec4(this.paramBase_, matIndex, this.tempVec4);
 
 			return matIndex;
 		}
@@ -91,7 +91,7 @@ namespace sd.world {
 			var matIndex = <number>inst;
 
 			container.setIndexedVec4(this.baseColourBase_, matIndex, math.Vec4.zero);
-			container.setIndexedVec4(this.metallicBase_, matIndex, math.Vec4.zero);
+			container.setIndexedVec4(this.paramBase_, matIndex, math.Vec4.zero);
 		}
 
 
@@ -134,20 +134,20 @@ namespace sd.world {
 
 
 		metallic(inst: PBRMaterialInstance): number {
-			return this.metallicBase_[(<number>inst * 4) + MetallicElem.Metallic];
+			return this.paramBase_[(<number>inst * 4) + PBRMaterialParam.Metallic];
 		}
 
 		setMetallic(inst: PBRMaterialInstance, newMetallic: number) {
-			this.metallicBase_[(<number>inst * 4) + MetallicElem.Metallic] = newMetallic;
+			this.paramBase_[(<number>inst * 4) + PBRMaterialParam.Metallic] = newMetallic;
 		}
 
 
 		roughness(inst: PBRMaterialInstance): number {
-			return this.metallicBase_[(<number>inst * 4) + MetallicElem.Roughness];
+			return this.paramBase_[(<number>inst * 4) + PBRMaterialParam.Roughness];
 		}
 
 		setRoughness(inst: PBRMaterialInstance, newRoughness: number) {
-			this.metallicBase_[(<number>inst * 4) + MetallicElem.Roughness] = newRoughness;
+			this.paramBase_[(<number>inst * 4) + PBRMaterialParam.Roughness] = newRoughness;
 		}
 
 
@@ -157,7 +157,7 @@ namespace sd.world {
 
 			return {
 				colourData: <Float32Array>container.refIndexedVec4(this.baseColourBase_, matIndex),
-				materialParam: <Float32Array>container.refIndexedVec4(this.metallicBase_, matIndex),
+				materialParam: <Float32Array>container.refIndexedVec4(this.paramBase_, matIndex),
 			};
 		}
 	}
