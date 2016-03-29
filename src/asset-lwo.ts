@@ -66,7 +66,6 @@ namespace sd.asset {
 
 
 	function parseLWObjectSource(text: string): LWMeshData {
-		var t0 = performance.now();
 		var lines = text.split("\n");
 		var vv: number[][] = [], nn: number[][] = [], tt: number[][] = [];
 
@@ -163,10 +162,6 @@ namespace sd.asset {
 
 		// single primitive group
 		meshData.primitiveGroups.push({ fromPrimIx: 0, primCount: vertexIx / 3, materialIx: 0 });
-
-		var t1 = performance.now();
-		// console.info("obj v:", vv.length / 3, "t:", tt.length / 2, "took:", (t1-t0).toFixed(2), "ms");
-		// console.info("mats:", materialGroups);
 	
 		return {
 			mtlFileName: mtlFileName,
@@ -178,11 +173,9 @@ namespace sd.asset {
 
 
 	function loadLWMaterialFile(filePath: string): Promise<MaterialSet> {
-		return loadFile(filePath).then(
-			function(text: string) {
-				return parseLWMaterialSource(text);
-			}
-		);
+		return loadFile(filePath).then((text: string) => {
+			return parseLWMaterialSource(text);
+		});
 	}
 
 
@@ -192,34 +185,28 @@ namespace sd.asset {
 			mtlResolve = resolve;
 		});
 
-		var objProm = loadFile(filePath).then(
-			function(text: string) {
+		var objProm = loadFile(filePath).then((text: string) => {
 				return parseLWObjectSource(text);
-			}
-		).then(
-			function(objData: LWMeshData) {
-				assert(objData.mtlFileName.length > 0, "no MTL file?");
-				var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
-				loadLWMaterialFile(mtlFilePath).then(
-					function(materials: MaterialSet) {
-						mtlResolve(materials);
-					}
-				);
-				return objData;
-			}
+		}).then((objData: LWMeshData) => {
+			assert(objData.mtlFileName.length > 0, "no MTL file?");
+			var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
+			loadLWMaterialFile(mtlFilePath).then(
+				function(materials: MaterialSet) {
+					mtlResolve(materials);
+				}
 			);
+			return objData;
+		});
 
-		return Promise.all<any>([mtlProm, objProm]).then(
-			function(values) {
-				var materials: MaterialSet = values[0];
-				var obj: LWMeshData = values[1];
-				obj.materials = materials;
-				var colourAttr = obj.mesh.primaryVertexBuffer.attrByRole(mesh.VertexAttributeRole.Colour);
-				var colourView = new mesh.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer, colourAttr);
-				genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
-				return obj;
-			}
-		);
+		return Promise.all<any>([mtlProm, objProm]).then(values => {
+			var materials: MaterialSet = values[0];
+			var obj: LWMeshData = values[1];
+			obj.materials = materials;
+			var colourAttr = obj.mesh.primaryVertexBuffer.attrByRole(mesh.VertexAttributeRole.Colour);
+			var colourView = new mesh.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer, colourAttr);
+			genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
+			return obj;
+		});
 	}
 
 } // ns sd.asset
