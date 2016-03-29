@@ -1,4 +1,4 @@
-// pbr-prefilter - generate prefiltered environmental cube maps
+// pbr-prefilter - generate prefiltered environmental/reflective cube maps
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 

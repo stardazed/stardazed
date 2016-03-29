@@ -21,8 +21,6 @@ namespace sd.world {
 
 		NormalMap                  = 1 << 6,
 		HeightMap                  = 1 << 7,
-
-
 	}
 
 
@@ -39,6 +37,11 @@ namespace sd.world {
 		materialUniform: WebGLUniformLocation;           // vec4
 
 		// -- textures
+		albedoMapUniform: WebGLUniformLocation;
+		materialMapUniform: WebGLUniformLocation;
+		normalHeightMapUniform: WebGLUniformLocation;
+		ambientOcclusionMapUniform: WebGLUniformLocation;
+
 		environmentMapUniform: WebGLUniformLocation;
 		brdfLookupMapUniform: WebGLUniformLocation;
 
@@ -54,9 +57,12 @@ namespace sd.world {
 
 
 	const enum TextureBindPoint {
-		Albedo = 0, // rgb, (alpha|gloss)?
-		Environment = 1,
-		BRDFLookup = 2
+		Albedo = 0,
+		Material = 1,
+		NormalHeight = 2,
+		AmbientOcclusion = 3,
+		Environment = 4,
+		BRDFLookup = 5
 	}
 
 
@@ -138,6 +144,33 @@ namespace sd.world {
 			program.baseColourUniform = gl.getUniformLocation(program, "baseColour");
 			program.materialUniform = gl.getUniformLocation(program, "materialParam");
 
+			// -- material textures
+			if (feat & Features.AlbedoMap) {
+				program.albedoMapUniform = gl.getUniformLocation(program, "albedoMap");
+				if (program.albedoMapUniform) {
+					gl.uniform1i(program.albedoMapUniform, TextureBindPoint.Albedo);
+				}
+			}
+			if (feat & (Features.MetallicMap | Features.RoughnessMap)) {
+				program.materialMapUniform = gl.getUniformLocation(program, "materialMap");
+				if (program.materialMapUniform) {
+					gl.uniform1i(program.materialMapUniform, TextureBindPoint.Material);
+				}
+			}
+			if (feat & (Features.NormalMap | Features.HeightMap)) {
+				program.normalHeightMapUniform = gl.getUniformLocation(program, "normalHeightMap");
+				if (program.normalHeightMapUniform) {
+					gl.uniform1i(program.normalHeightMapUniform, TextureBindPoint.NormalHeight);
+				}
+			}
+			if (feat & Features.AOMap) {
+				program.ambientOcclusionMapUniform = gl.getUniformLocation(program, "ambientOcclusionMap");
+				if (program.ambientOcclusionMapUniform) {
+					gl.uniform1i(program.ambientOcclusionMapUniform, TextureBindPoint.AmbientOcclusion);
+				}
+			}
+
+			// -- reflection & LUT textures
 			program.environmentMapUniform = gl.getUniformLocation(program, "environmentMap");
 			if (program.environmentMapUniform) {
 				gl.uniform1i(program.environmentMapUniform, TextureBindPoint.Environment);
@@ -236,6 +269,10 @@ namespace sd.world {
 			line  ("uniform vec4 baseColour;");
 			line  ("uniform vec4 materialParam;");
 
+			if_all("uniform sampler2D albedoMap;", Features.AlbedoMap);
+			if_any("uniform sampler2D materialMap;", Features.MetallicMap | Features.RoughnessMap);
+			if_any("uniform sampler2D normalHeightMap;", Features.NormalMap | Features.HeightMap);
+			if_all("uniform sampler2D ambientOcclusionMap;", Features.AOMap);
 			line  ("uniform sampler2D brdfLookupMap;");
 			line  ("uniform samplerCube environmentMap;");
 
@@ -411,7 +448,7 @@ namespace sd.world {
 
 
 			// -- calcPointLight()
-			line  ("vec3 calcPointLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec3 lightPos_cam, vec3 lightPos_world, SurfaceInfo si) {");
+			line  ("vec3 calcPointLight(vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec3 lightPos_cam, vec3 lightPos_world, SurfaceInfo si) {");
 			line  ("	float distance = length(vertexPos_world - lightPos_world);"); // use world positions for distance as cam will warp coords
 			line  ("	vec3 lightDirection_cam = normalize(vertexPos_cam - lightPos_cam);");
 			line  ("	float attenuation = 1.0 - pow(clamp(distance / lightParam[LPARAM_RANGE], 0.0, 1.0), 2.0);");
@@ -422,12 +459,12 @@ namespace sd.world {
 
 
 			// -- calcSpotLight()
-			line  ("vec3 calcSpotLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec3 lightPos_cam, vec3 lightPos_world, vec3 lightDirection, SurfaceInfo si) {");
+			line  ("vec3 calcSpotLight(vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec3 lightPos_cam, vec3 lightPos_world, vec3 lightDirection, SurfaceInfo si) {");
 			line  ("	vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam);");
 			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection);");
 			line  ("	float cutoff = lightParam[LPARAM_CUTOFF];");
 			line  ("	if (spotCosAngle > cutoff) {");
-			line  ("		vec3 light = calcPointLight(lightIx, baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, si);");
+			line  ("		vec3 light = calcPointLight(baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, si);");
 			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);")
 			line  ("	}");
 			line  ("	return vec3(0.0);");
@@ -435,7 +472,7 @@ namespace sd.world {
 
 
 			// -- calcDirectionalLight()
-			line  ("vec3 calcDirectionalLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec3 lightDirection, SurfaceInfo si) {");
+			line  ("vec3 calcDirectionalLight(vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec3 lightDirection, SurfaceInfo si) {");
 			line  ("	float diffuseStrength = lightParam[LPARAM_INTENSITY] * dot(si.N, -lightDirection);");
 			line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection, si);");
 			line  ("}");
@@ -446,18 +483,23 @@ namespace sd.world {
 			line  ("void main() {");
 
 			if (feat & Features.AlbedoMap) {
-				line("	vec3 baseColour = texture2D(albedoSampler, vertexUV_intp);");
+				line("	vec3 baseColour = texture2D(albedoMap, vertexUV_intp);");
 			}
 			else {
 				line("	vec3 baseColour = baseColour.rgb;");
 			}
 
-			line("	vec4 matParam = materialParam;");
-			if (feat & Features.MetallicMap) {
-				line("	matParam[MAT_METALLIC] = texture2D(metallicSampler, vertexUV_intp)[MAT_METALLIC];");
+			if ((feat & (Features.MetallicMap | Features.RoughnessMap)) == (Features.MetallicMap | Features.RoughnessMap)) {
+				line("	vec4 matParam = texture2D(materialMap, vertexUV_intp);");
 			}
-			if (feat & Features.RoughnessMap) {
-				line("	matParam[MAT_ROUGHNESS] = texture2D(roughnessSampler, vertexUV_intp)[MAT_ROUGHNESS];");
+			else {
+				line("	vec4 matParam = materialParam;");
+				if (feat & Features.MetallicMap) {
+					line("	matParam[MAT_METALLIC] = texture2D(materialMap, vertexUV_intp)[MAT_METALLIC];");
+				}
+				if (feat & Features.RoughnessMap) {
+					line("	matParam[MAT_ROUGHNESS] = texture2D(materialMap, vertexUV_intp)[MAT_ROUGHNESS];");
+				}
 			}
 
 
@@ -471,20 +513,20 @@ namespace sd.world {
 			line  ("		int type = lightTypes[lightIx];");
 			line  ("		if (type == 0) break;");
 
-			line  ("		vec3 lightPos_cam = lightPositions_cam[lightIx].xyz;");     // all array accesses must be constant or a loop index
+			line  ("		vec3 lightPos_cam = lightPositions_cam[lightIx].xyz;");
 			line  ("		vec3 lightPos_world = lightPositions_world[lightIx].xyz;");
-			line  ("		vec3 lightDir_cam = lightDirections[lightIx].xyz;");        // keep w component (LDIR_BIAS)
+			line  ("		vec3 lightDir_cam = lightDirections[lightIx].xyz;");
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
 
 			line  ("		if (type == 1) {")
-			line  ("			totalLight += calcDirectionalLight(lightIx, baseColour, matParam, lightColour, lightParam, lightDir_cam, si);");
+			line  ("			totalLight += calcDirectionalLight(baseColour, matParam, lightColour, lightParam, lightDir_cam, si);");
 			line  ("		}");
 			line  ("		else if (type == 2) {")
-			line  ("			totalLight += calcPointLight(lightIx, baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, si);");
+			line  ("			totalLight += calcPointLight(baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, si);");
 			line  ("		}");
 			line  ("		else if (type == 3) {")
-			line  ("			totalLight += calcSpotLight(lightIx, baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, si);");
+			line  ("			totalLight += calcSpotLight(baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, si);");
 			line  ("		}");
 			line  ("	}");
 
