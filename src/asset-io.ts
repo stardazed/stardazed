@@ -223,4 +223,17 @@ namespace sd.asset {
 		});
 	}
 
+
+	export function debugDumpPixelData(pixels: Uint8Array, width: number, height: number) {
+		var cvs = document.createElement("canvas");
+		cvs.width = width;
+		cvs.height = height;
+		var ctx = cvs.getContext("2d");
+		var id = ctx.createImageData(width, height);
+		id.data.set(pixels);
+		ctx.putImageData(id, 0, 0);
+		document.body.appendChild(cvs);
+	}
+
+
 } // ns sd.asset

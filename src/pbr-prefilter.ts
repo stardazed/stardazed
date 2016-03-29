@@ -131,18 +131,6 @@ namespace sd.render {
 	}
 
 
-	function dumpPixelData(pixels: Uint8Array, dim: number) {
-		var cvs = document.createElement("canvas");
-		cvs.width = dim;
-		cvs.height = dim;
-		var ctx = cvs.getContext("2d");
-		var id = ctx.createImageData(dim, dim);
-		id.data.set(pixels);
-		ctx.putImageData(id, 0, 0);
-		document.body.appendChild(cvs);
-	}
-
-
 	export function prefilteredEnvMap(rc: RenderContext, sourceEnvMap: Texture, numSamples: number) {
 		var pipeline = getPipeline(rc, numSamples);
 
@@ -196,7 +184,7 @@ namespace sd.render {
 						assert(false, "Cannot read pixels, gl error " + err);
 					}
 					else {
-						// dumpPixelData(pixels, levelWidth);
+						// asset.debugDumpPixelData(pixels, levelWidth, levelWidth);
 
 						// write generated pixels into result envmap at proper face/mip level
 						resultEnvMap.bind();
