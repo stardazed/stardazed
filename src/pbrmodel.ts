@@ -10,36 +10,44 @@
 namespace sd.world {
 
 	const enum Features {
-		// VtxPosition and VtxNormal are required
-		VtxUV                      = 0x000002,
-		VtxColour                  = 0x000004,
+		// VtxPosition and VtxNormal are required and implied
+		VtxUV                      = 1 << 0,
+		VtxColour                  = 1 << 1,
+
+		AlbedoMap                  = 1 << 2,
+		MetallicMap                = 1 << 3,
+		RoughnessMap               = 1 << 4,
+		AOMap                      = 1 << 5,
+
+		NormalMap                  = 1 << 6,
+		HeightMap                  = 1 << 7,
 	}
 
 
 	interface PBRGLProgram extends WebGLProgram {
 		// -- transform
-		modelMatrixUniform?: WebGLUniformLocation;      // mat4
-		mvMatrixUniform?: WebGLUniformLocation;         // mat4
-		mvpMatrixUniform?: WebGLUniformLocation;        // mat4
-		normalMatrixUniform?: WebGLUniformLocation;     // mat3
-		lightNormalMatrixUniform?: WebGLUniformLocation;// mat3
+		modelMatrixUniform?: WebGLUniformLocation;       // mat4
+		mvMatrixUniform?: WebGLUniformLocation;          // mat4
+		mvpMatrixUniform?: WebGLUniformLocation;         // mat4
+		normalMatrixUniform?: WebGLUniformLocation;      // mat3
+		lightNormalMatrixUniform?: WebGLUniformLocation; // mat3
 
 		// -- mesh material
-		mainColourUniform: WebGLUniformLocation;        // vec4
-		metallicUniform: WebGLUniformLocation;          // vec4
+		mainColourUniform: WebGLUniformLocation;         // vec4
+		metallicUniform: WebGLUniformLocation;           // vec4
 
 		// -- textures
 		environmentMapUniform: WebGLUniformLocation;
 		brdfLookupMapUniform: WebGLUniformLocation;
 
 		// -- lights
-		lightTypeArrayUniform?: WebGLUniformLocation;      // int[MAX_FRAGMENT_LIGHTS]
-		lightCamPositionArrayUniform?: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
-		lightWorldPositionArrayUniform?: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
-		lightDirectionArrayUniform?: WebGLUniformLocation; // vec4[MAX_FRAGMENT_LIGHTS]
-		lightColourArrayUniform?: WebGLUniformLocation;    // vec4[MAX_FRAGMENT_LIGHTS]
-		lightParamArrayUniform?: WebGLUniformLocation;     // vec4[MAX_FRAGMENT_LIGHTS]
-		shadowCastingLightIndexUniform: WebGLUniformLocation; // int (-1..MAX_FRAGMENT_LIGHTS - 1)
+		lightTypeArrayUniform?: WebGLUniformLocation;          // int[MAX_FRAGMENT_LIGHTS]
+		lightCamPositionArrayUniform?: WebGLUniformLocation;   // vec4[MAX_FRAGMENT_LIGHTS]
+		lightWorldPositionArrayUniform?: WebGLUniformLocation; // vec4[MAX_FRAGMENT_LIGHTS]
+		lightDirectionArrayUniform?: WebGLUniformLocation;     // vec4[MAX_FRAGMENT_LIGHTS]
+		lightColourArrayUniform?: WebGLUniformLocation;        // vec4[MAX_FRAGMENT_LIGHTS]
+		lightParamArrayUniform?: WebGLUniformLocation;         // vec4[MAX_FRAGMENT_LIGHTS]
+		shadowCastingLightIndexUniform: WebGLUniformLocation;  // int (-1..MAX_FRAGMENT_LIGHTS - 1)
 	}
 
 
