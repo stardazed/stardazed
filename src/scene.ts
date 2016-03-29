@@ -6,7 +6,8 @@ namespace sd.world {
 
 	export interface EntityDescriptor {
 		transform?: TransformDescriptor;
-		model?: StdModelDescriptor;
+		stdModel?: StdModelDescriptor;
+		pbrModel?: PBRModelDescriptor;
 		rigidBody?: RigidBodyDescriptor;
 		collider?: ColliderDescriptor;
 		light?: LightDescriptor;
@@ -16,7 +17,8 @@ namespace sd.world {
 	export interface EntityInfo {
 		entity: Entity;
 		transform: TransformInstance;
-		model?: StdModelInstance;
+		stdModel?: StdModelInstance;
+		pbrModel?: PBRModelInstance;
 		rigidBody?: RigidBodyInstance;
 		collider?: ColliderInstance;
 		light?: LightInstance;
@@ -25,17 +27,20 @@ namespace sd.world {
 
 	export class Scene {
 		stdMaterialMgr: StdMaterialManager;
+		pbrMaterialMgr: PBRMaterialManager;
 		physMatMgr: PhysicsMaterialManager;
 
 		entityMgr: EntityManager;
 		transformMgr: TransformManager;
 		lightMgr: LightManager;
 		stdModelMgr: StdModelManager;
+		pbrModelMgr: PBRModelManager;
 		rigidBodyMgr: RigidBodyManager;
 		colliderMgr: ColliderManager;
 
 		constructor(rc: render.RenderContext) {
 			this.stdMaterialMgr = new StdMaterialManager();
+			this.pbrMaterialMgr = new PBRMaterialManager();
 			this.physMatMgr = new PhysicsMaterialManager();
 
 			this.entityMgr = new EntityManager();
@@ -43,6 +48,7 @@ namespace sd.world {
 
 			this.lightMgr = new LightManager(this.transformMgr);
 			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.stdMaterialMgr, this.lightMgr);
+			this.pbrModelMgr = new PBRModelManager(rc, this.transformMgr, this.pbrMaterialMgr, this.lightMgr);
 
 			this.colliderMgr = new ColliderManager(this.physMatMgr);
 			this.rigidBodyMgr = new RigidBodyManager(this.transformMgr, this.colliderMgr);
@@ -55,7 +61,8 @@ namespace sd.world {
 			return {
 				entity: ent,
 				transform: this.transformMgr.create(ent, desc && desc.transform),
-				model: desc && desc.model ? this.stdModelMgr.create(ent, desc.model) : null,
+				stdModel: desc && desc.stdModel ? this.stdModelMgr.create(ent, desc.stdModel) : null,
+				pbrModel: desc && desc.pbrModel ? this.pbrModelMgr.create(ent, desc.pbrModel) : null,
 				rigidBody: desc && desc.rigidBody ? this.rigidBodyMgr.create(ent, desc.rigidBody) : null,
 				collider: desc && desc.collider ? this.colliderMgr.create(ent, desc.collider) : null,
 				light: desc && desc.light ? this.lightMgr.create(ent, desc.light) : null
