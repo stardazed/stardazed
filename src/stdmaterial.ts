@@ -168,6 +168,7 @@ namespace sd.world {
 			container.setIndexedVec4(this.specularBase_, matIndex, math.Vec4.zero);
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, math.Vec4.zero);
 			this.flagsBase_[matIndex] = 0;
+			this.opacityBase_[matIndex] = 0;
 
 			this.diffuseMaps_[matIndex] = null;
 			this.normalMaps_[matIndex] = null;
