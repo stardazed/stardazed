@@ -359,8 +359,8 @@ namespace sd.world {
 
 
 			// -- calcLightShared()
-			line("vec3 calcLightShared(vec3 baseColour, vec4 matParam, vec4 lightColour, float diffuseStrength, vec3 lightDirection, SurfaceInfo si) {");
-			line("	vec3 L = -lightDirection;");
+			line("vec3 calcLightShared(vec3 baseColour, vec4 matParam, vec4 lightColour, float diffuseStrength, vec3 lightDirection_cam, SurfaceInfo si) {");
+			line("	vec3 L = -lightDirection_cam;");
 			line("	vec3 V = si.V;");
 			line("	vec3 H = normalize(L + V);");
 			line("	vec3 N = si.N;");
@@ -411,20 +411,20 @@ namespace sd.world {
 
 
 			// -- calcPointLight()
-			line  ("vec3 calcPointLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec4 lightPos_cam, vec3 lightPos_world, SurfaceInfo si) {");
+			line  ("vec3 calcPointLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec3 lightPos_cam, vec3 lightPos_world, SurfaceInfo si) {");
 			line  ("	float distance = length(vertexPos_world - lightPos_world);"); // use world positions for distance as cam will warp coords
-			line  ("	vec3 lightDirection = normalize(vertexPos_cam - lightPos_cam.xyz);");
+			line  ("	vec3 lightDirection_cam = normalize(vertexPos_cam - lightPos_cam);");
 			line  ("	float attenuation = 1.0 - pow(clamp(distance / lightParam[LPARAM_RANGE], 0.0, 1.0), 2.0);");
-			line  ("    attenuation *= dot(si.N, -lightDirection);");
+			line  ("    attenuation *= dot(si.N, -lightDirection_cam);");
 			line  ("    float diffuseStrength = lightParam[LPARAM_INTENSITY] * attenuation;");
-			line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection, si);");
+			line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection_cam, si);");
 			line  ("}");
 
 
 			// -- calcSpotLight()
-			line  ("vec3 calcSpotLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec4 lightPos_cam, vec3 lightPos_world, vec4 lightDirection, SurfaceInfo si) {");
-			line  ("	vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam.xyz);");
-			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection.xyz);");
+			line  ("vec3 calcSpotLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec3 lightPos_cam, vec3 lightPos_world, vec3 lightDirection, SurfaceInfo si) {");
+			line  ("	vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam);");
+			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection);");
 			line  ("	float cutoff = lightParam[LPARAM_CUTOFF];");
 			line  ("	if (spotCosAngle > cutoff) {");
 			line  ("		vec3 light = calcPointLight(lightIx, baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, si);");
@@ -435,9 +435,9 @@ namespace sd.world {
 
 
 			// -- calcDirectionalLight()
-			line  ("vec3 calcDirectionalLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec4 lightDirection, SurfaceInfo si) {");
-			line  ("	float diffuseStrength = lightParam[LPARAM_INTENSITY] * dot(si.N, -lightDirection.xyz);");
-			line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection.xyz, si);");
+			line  ("vec3 calcDirectionalLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec3 lightDirection, SurfaceInfo si) {");
+			line  ("	float diffuseStrength = lightParam[LPARAM_INTENSITY] * dot(si.N, -lightDirection);");
+			line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection, si);");
 			line  ("}");
 
 
@@ -471,9 +471,9 @@ namespace sd.world {
 			line  ("		int type = lightTypes[lightIx];");
 			line  ("		if (type == 0) break;");
 
-			line  ("		vec4 lightPos_cam = lightPositions_cam[lightIx];");     // all array accesses must be constant or a loop index
+			line  ("		vec3 lightPos_cam = lightPositions_cam[lightIx].xyz;");     // all array accesses must be constant or a loop index
 			line  ("		vec3 lightPos_world = lightPositions_world[lightIx].xyz;");
-			line  ("		vec4 lightDir_cam = lightDirections[lightIx];");        // keep w component (LDIR_BIAS)
+			line  ("		vec3 lightDir_cam = lightDirections[lightIx].xyz;");        // keep w component (LDIR_BIAS)
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
 
