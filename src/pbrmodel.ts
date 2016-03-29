@@ -263,6 +263,39 @@ namespace sd.world {
 			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
 
 
+			line  ("struct SurfaceInfo {");
+			line  ("	vec3 V;"); // vertex dir (cam)
+			line  ("	vec3 N;"); // surface normal (cam)
+			line  ("	float NdV;");
+			line  ("};");
+
+			line  ("struct LightRayInfo {");
+			line  ("	vec3 L;"); // light dir (cam)
+			line  ("	vec3 H;"); // rel dir l to v
+			line  ("	float NdL;");
+			line  ("	float NdH;");
+			line  ("	float HdV;");
+			line  ("};");
+
+			line  ("SurfaceInfo calcSurfaceInfo() {");
+			line  ("	SurfaceInfo si;");
+			line  ("	si.V = normalize(-vertexPos_cam);");
+			line  ("	si.N = normalize(vertexNormal_cam);");
+			line  ("	si.NdV = max(0.001, dot(si.N, si.V));");
+			line  ("	return si;");
+			line  ("}");
+
+			line  ("LightRayInfo calcLightRayInfo(SurfaceInfo si, vec3 lightDirection_cam) {");
+			line  ("	LightRayInfo lri;");
+			line  ("	lri.L = -lightDirection_cam;");
+			line  ("	lri.H = normalize(lri.L + si.V);");
+			line  ("	lri.NdL = max(0.0, dot(si.N, lri.L));");
+			line  ("	lri.NdH = max(0.001, dot(si.N, lri.H));");
+			line  ("	lri.HdV = max(0.001, dot(lri.H, si.V));");
+			line  ("	return lri;");
+			line  ("}")
+
+
 			line  ("mat3 transpose(mat3 m) {");
 			line  ("	vec3 c0 = m[0];");
 			line  ("	vec3 c1 = m[1];");
@@ -326,11 +359,11 @@ namespace sd.world {
 
 
 			// -- calcLightShared()
-			line("vec3 calcLightShared(vec3 baseColour, vec4 matParam, vec4 lightColour, float diffuseStrength, vec3 lightDirection, vec3 normal_cam) {");
+			line("vec3 calcLightShared(vec3 baseColour, vec4 matParam, vec4 lightColour, float diffuseStrength, vec3 lightDirection, SurfaceInfo si) {");
 			line("	vec3 L = -lightDirection;");
-			line("	vec3 V = normalize(-vertexPos_cam);");
+			line("	vec3 V = si.V;");
 			line("	vec3 H = normalize(L + V);");
-			line("	vec3 N = normal_cam;");
+			line("	vec3 N = si.N;");
 
 			// material properties
 			line("	float metallic = matParam[MAT_METALLIC];");
@@ -378,23 +411,23 @@ namespace sd.world {
 
 
 			// -- calcPointLight()
-			line  ("vec3 calcPointLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec4 lightPos_cam, vec3 lightPos_world, vec3 normal_cam) {");
+			line  ("vec3 calcPointLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec4 lightPos_cam, vec3 lightPos_world, SurfaceInfo si) {");
 			line  ("	float distance = length(vertexPos_world - lightPos_world);"); // use world positions for distance as cam will warp coords
 			line  ("	vec3 lightDirection = normalize(vertexPos_cam - lightPos_cam.xyz);");
 			line  ("	float attenuation = 1.0 - pow(clamp(distance / lightParam[LPARAM_RANGE], 0.0, 1.0), 2.0);");
-			line  ("    attenuation *= dot(normal_cam, -lightDirection);");
+			line  ("    attenuation *= dot(si.N, -lightDirection);");
 			line  ("    float diffuseStrength = lightParam[LPARAM_INTENSITY] * attenuation;");
-			line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection, normal_cam);");
+			line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection, si);");
 			line  ("}");
 
 
 			// -- calcSpotLight()
-			line  ("vec3 calcSpotLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec4 lightPos_cam, vec3 lightPos_world, vec4 lightDirection, vec3 normal_cam) {");
+			line  ("vec3 calcSpotLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec4 lightPos_cam, vec3 lightPos_world, vec4 lightDirection, SurfaceInfo si) {");
 			line  ("	vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam.xyz);");
 			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection.xyz);");
 			line  ("	float cutoff = lightParam[LPARAM_CUTOFF];");
 			line  ("	if (spotCosAngle > cutoff) {");
-			line  ("		vec3 light = calcPointLight(lightIx, baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, normal_cam);");
+			line  ("		vec3 light = calcPointLight(lightIx, baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, si);");
 			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);")
 			line  ("	}");
 			line  ("	return vec3(0.0);");
@@ -402,9 +435,9 @@ namespace sd.world {
 
 
 			// -- calcDirectionalLight()
-			line  ("vec3 calcDirectionalLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec4 lightDirection, vec3 normal_cam) {");
-			line  ("	float diffuseStrength = lightParam[LPARAM_INTENSITY] * dot(normal_cam, -lightDirection.xyz);");
-			line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection.xyz, normal_cam);");
+			line  ("vec3 calcDirectionalLight(int lightIx, vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec4 lightDirection, SurfaceInfo si) {");
+			line  ("	float diffuseStrength = lightParam[LPARAM_INTENSITY] * dot(si.N, -lightDirection.xyz);");
+			line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection.xyz, si);");
 			line  ("}");
 
 
@@ -428,8 +461,8 @@ namespace sd.world {
 			}
 
 
-			line  ("	vec3 normal_cam = normalize(vertexNormal_cam);");
-
+			line  ("	SurfaceInfo si = calcSurfaceInfo();");
+			
 
 			// -- calculate light arriving at the fragment
 			line  ("	vec3 totalLight = vec3(0.0);");
@@ -445,13 +478,13 @@ namespace sd.world {
 			line  ("		vec4 lightParam = lightParams[lightIx];");
 
 			line  ("		if (type == 1) {")
-			line  ("			totalLight += calcDirectionalLight(lightIx, baseColour, matParam, lightColour, lightParam, lightDir_cam, normal_cam);");
+			line  ("			totalLight += calcDirectionalLight(lightIx, baseColour, matParam, lightColour, lightParam, lightDir_cam, si);");
 			line  ("		}");
 			line  ("		else if (type == 2) {")
-			line  ("			totalLight += calcPointLight(lightIx, baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, normal_cam);");
+			line  ("			totalLight += calcPointLight(lightIx, baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, si);");
 			line  ("		}");
 			line  ("		else if (type == 3) {")
-			line  ("			totalLight += calcSpotLight(lightIx, baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, normal_cam);");
+			line  ("			totalLight += calcSpotLight(lightIx, baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, si);");
 			line  ("		}");
 			line  ("	}");
 
