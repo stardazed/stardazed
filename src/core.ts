@@ -100,17 +100,32 @@ namespace sd {
 
 	// helper class for easy logged timing of multi-step processes
 	export class PerfTimer {
-		private lastT_ = performance.now();
+		private t0_: number;
+		private lastT_: number;
+		private stepSums_ = new Map<string, number>();
 
 		constructor(private name_: string) {
+			this.t0_ = this.lastT_ = performance.now();
 		}
 
-		step(stepName?: string) {
+		step(stepName: string) {
 			const curT = performance.now();
 			const diffT = curT - this.lastT_;
 			this.lastT_ = curT;
 
-			console.info("Perf [" + this.name_ + "] " + (stepName || "") + ": " + diffT.toFixed(1));
+			this.stepSums_.set(name, diffT + (this.stepSums_.get(stepName) || 0));
+
+			console.info("Perf [" + this.name_ + "] " + stepName + ": " + diffT.toFixed(1));
+		}
+
+		end() {
+			const curT = performance.now();
+			const diffT = curT - this.t0_;
+
+			this.stepSums_.forEach((totalStepT, stepName) => {
+				console.info("Perf TOTAL [" + this.name_ + "] " + stepName + ": " + totalStepT.toFixed(1));
+			});
+			console.info("Perf TOTAL: " + diffT.toFixed(1));
 		}
 	}
 
