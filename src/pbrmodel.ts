@@ -21,6 +21,8 @@ namespace sd.world {
 
 		NormalMap                  = 1 << 6,
 		HeightMap                  = 1 << 7,
+
+
 	}
 
 
@@ -33,8 +35,8 @@ namespace sd.world {
 		lightNormalMatrixUniform?: WebGLUniformLocation; // mat3
 
 		// -- mesh material
-		mainColourUniform: WebGLUniformLocation;         // vec4
-		metallicUniform: WebGLUniformLocation;           // vec4
+		baseColourUniform: WebGLUniformLocation;         // vec4
+		materialUniform: WebGLUniformLocation;           // vec4
 
 		// -- textures
 		environmentMapUniform: WebGLUniformLocation;
@@ -133,8 +135,8 @@ namespace sd.world {
 			program.lightNormalMatrixUniform = gl.getUniformLocation(program, "lightNormalMatrix");
 
 			// -- material properties
-			program.mainColourUniform = gl.getUniformLocation(program, "mainColour");
-			program.metallicUniform = gl.getUniformLocation(program, "metallicData");
+			program.baseColourUniform = gl.getUniformLocation(program, "baseColour");
+			program.materialUniform = gl.getUniformLocation(program, "materialParam");
 
 			program.environmentMapUniform = gl.getUniformLocation(program, "environmentMap");
 			if (program.environmentMapUniform) {
@@ -231,14 +233,14 @@ namespace sd.world {
 			line  ("uniform mat3 lightNormalMatrix;");
 
 			// -- material
-			line  ("uniform vec4 mainColour;");
-			line  ("uniform vec4 metallicData;");
+			line  ("uniform vec4 baseColour;");
+			line  ("uniform vec4 materialParam;");
 
 			line  ("uniform sampler2D brdfLookupMap;");
 			line  ("uniform samplerCube environmentMap;");
 
-			line  ("const int METAL_METALLIC = 0;");
-			line  ("const int METAL_ROUGHNESS = 1;");
+			line  ("const int MAT_METALLIC = 0;");
+			line  ("const int MAT_ROUGHNESS = 1;");
 
 			// -- light param constants
 			line  ("const int MAX_FRAGMENT_LIGHTS = " + MAX_FRAGMENT_LIGHTS + ";");
@@ -282,13 +284,6 @@ namespace sd.world {
 			line("	return (n + 2.0) / (2.0 * PI) * pow(NdH, n);");
 			line("}");
 
-			line("float D_beckmann(float roughness, float NdH) {");
-			line("	float m = roughness * roughness;");
-			line("	float m2 = m * m;");
-			line("	float NdH2 = NdH * NdH;");
-			line("	return exp((NdH2 - 1.0) / (m2 * NdH2)) / (PI * m2 * NdH2 * NdH2);");
-			line("}");
-
 			line("float D_GGX(float roughness, float NdH) {");
 			line("	float m = roughness * roughness;");
 			line("	float m2 = m * m;");
@@ -319,8 +314,7 @@ namespace sd.world {
 
 			// cook-torrance specular calculation
 			line("vec3 cooktorrance_specular(float NdL, float NdV, float NdH, vec3 specular, float roughness) {");
-			line("	// float D = D_blinn(roughness, NdH);");
-			line("	// float D = D_beckmann(roughness, NdH);");
+			// line("	float D = D_blinn(roughness, NdH);");
 			line("	float D = D_GGX(roughness, NdH);");
 			line("	float G = G_schlick(roughness, NdV, NdL);");
 			line("	float rim = mix(1.0 - roughness * 0.9, 1.0, NdV);");
@@ -337,8 +331,8 @@ namespace sd.world {
 			line("	vec3 N = normal_cam;");
 
 			// material properties
-			line("	float metallic = metallicData[METAL_METALLIC];");
-			line("	float roughness = metallicData[METAL_ROUGHNESS];");
+			line("	float metallic = materialParam[MAT_METALLIC];");
+			line("	float roughness = materialParam[MAT_ROUGHNESS];");
 			line("	vec3 specularColour = mix(vec3(0.04), matColour, metallic);");
 
 			// diffuse IBL term
@@ -415,7 +409,7 @@ namespace sd.world {
 			line  ("void main() {");
 
 			// -- material colour at point
-			line  ("	vec3 matColour = mainColour.rgb;");
+			line  ("	vec3 matColour = baseColour.rgb;");
 			line  ("	vec3 normal_cam = normalize(vertexNormal_cam);");
 
 			// -- calculate light arriving at the fragment
@@ -704,8 +698,8 @@ namespace sd.world {
 				}
 
 				// -- set material uniforms
-				gl.uniform4fv(program.mainColourUniform, materialData.colourData);
-				gl.uniform4fv(program.metallicUniform, materialData.metallicData);
+				gl.uniform4fv(program.baseColourUniform, materialData.colourData);
+				gl.uniform4fv(program.materialUniform, materialData.materialParam);
 
 				// -- light data FIXME: only update these when local light data was changed -> pos and rot can change as well
 				gl.uniform1iv(program.lightTypeArrayUniform, this.lightTypeArray_);

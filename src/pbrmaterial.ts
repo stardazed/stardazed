@@ -27,8 +27,8 @@ namespace sd.world {
 
 
 	export interface PBRMaterialData {
-		colourData: Float32Array;
-		metallicData: Float32Array;
+		colourData: Float32Array;     // rgb, 0
+		materialParam: Float32Array;  // metallic, roughness, 0, 0
 	}
 
 
@@ -157,7 +157,7 @@ namespace sd.world {
 
 			return {
 				colourData: <Float32Array>container.refIndexedVec4(this.baseColourBase_, matIndex),
-				metallicData: <Float32Array>container.refIndexedVec4(this.metallicBase_, matIndex),
+				materialParam: <Float32Array>container.refIndexedVec4(this.metallicBase_, matIndex),
 			};
 		}
 	}
