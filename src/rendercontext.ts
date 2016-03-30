@@ -1,6 +1,6 @@
 // rendercontext - gl interfaces
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2015-2016 by Arthur Langereis - @zenmumbler
 
 /// <reference path="../defs/webgl-ext.d.ts"/>
 /// <reference path="pixelformat.ts"/>
@@ -24,6 +24,7 @@ namespace sd.render {
 		extInstancedArrays: ANGLEInstancedArrays;
 		extDerivatives: OESStandardDerivatives;
 		extFragmentLOD: EXTShaderTextureLOD;
+		extSRGB: EXTsRGB;
 	}
 
 
@@ -145,6 +146,9 @@ namespace sd.render {
 		var drv = gl.getExtension("OES_standard_derivatives");
 		var fsl = gl.getExtension("EXT_shader_texture_lod");
 
+		// enable sRGB textures and renderbuffers
+		var srgb = gl.getExtension("EXT_sRGB");
+
 
 		return {
 			gl: gl,
@@ -162,7 +166,8 @@ namespace sd.render {
 			extVAO: vao,
 			extInstancedArrays: aia,
 			extDerivatives: drv,
-			extFragmentLOD: fsl
+			extFragmentLOD: fsl,
+			extSRGB: srgb
 		};
 	}
 

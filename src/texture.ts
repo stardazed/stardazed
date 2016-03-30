@@ -8,93 +8,15 @@
 
 namespace sd.render {
 
-	export function glImageFormatForPixelFormat(rc: RenderContext, format: PixelFormat) {
-		var gl = rc.gl;
-
-		switch (format) {
-			case PixelFormat.Alpha: return gl.ALPHA;
-
-			case PixelFormat.RGB8: return gl.RGB;
-			case PixelFormat.RGBA8: return gl.RGBA;
-
-			case PixelFormat.RGB_5_6_5:
-				return gl.RGB;
-			case PixelFormat.RGBA_4_4_4_4:
-			case PixelFormat.RGBA_5_5_5_1:
-				return gl.RGBA;
-
-			case PixelFormat.RGBA16F:
-				return rc.extTextureHalfFloat ? gl.RGBA : gl.NONE;
-
-			case PixelFormat.RGBA32F:
-				return gl.RGBA;
-
-			case PixelFormat.DXT1: return rc.extS3TC ? rc.extS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT : gl.NONE;
-			case PixelFormat.DXT3: return rc.extS3TC ? rc.extS3TC.COMPRESSED_RGBA_S3TC_DXT3_EXT : gl.NONE;
-			case PixelFormat.DXT5: return rc.extS3TC ? rc.extS3TC.COMPRESSED_RGBA_S3TC_DXT5_EXT : gl.NONE;
-
-			case PixelFormat.Depth16I:
-			case PixelFormat.Depth24I:
-				return gl.DEPTH_COMPONENT;
-
-			case PixelFormat.Stencil8:
-				return gl.STENCIL_INDEX;
-
-			case PixelFormat.Depth24_Stencil8:
-				return gl.DEPTH_STENCIL;
-
-			default:
-				assert(false, "unhandled pixel format");
-				return gl.NONE;
-		}
-	}
-
-
-	export function glPixelDataTypeForPixelFormat(rc: RenderContext, format: PixelFormat) {
-		var gl = rc.gl;
-
-		if (pixelFormatIsCompressed(format))
-			return gl.NONE;
-
-		switch (format) {
-			case PixelFormat.Alpha:
-			case PixelFormat.RGB8:
-			case PixelFormat.Stencil8:
-			case PixelFormat.RGBA8:
-				return gl.UNSIGNED_BYTE;
-
-			case PixelFormat.RGB_5_6_5:
-				return gl.UNSIGNED_SHORT_5_6_5;
-			case PixelFormat.RGBA_4_4_4_4:
-				return gl.UNSIGNED_SHORT_4_4_4_4;
-			case PixelFormat.RGBA_5_5_5_1:
-				return gl.UNSIGNED_SHORT_5_5_5_1;
-
-			case PixelFormat.RGBA16F:
-				return rc.extTextureHalfFloat ? rc.extTextureHalfFloat.HALF_FLOAT_OES : gl.NONE;
-
-			case PixelFormat.RGBA32F:
-				return gl.FLOAT;
-
-			case PixelFormat.Depth16I:
-				return gl.UNSIGNED_SHORT;
-			case PixelFormat.Depth24I:
-				return gl.UNSIGNED_INT;
-
-			case PixelFormat.Depth24_Stencil8:
-				return rc.extDepthTexture ? rc.extDepthTexture.UNSIGNED_INT_24_8_WEBGL : gl.NONE;
-
-			default:
-				assert(false, "unhandled pixel format");
-				return gl.NONE;
-		}
-	}
-
-
 	function glRenderBufferInternalFormatForPixelFormat(rc: RenderContext, format: PixelFormat) {
 		var gl = rc.gl;
 
 		switch (format) {
+			// sRGB
+			case PixelFormat.SRGB8_Alpha8:
+				return rc.extSRGB ? rc.extSRGB.SRGB8_ALPHA8_EXT : gl.NONE;
+
+			// Packed
 			case PixelFormat.RGB_5_6_5:
 				return gl.RGB565;
 			case PixelFormat.RGBA_4_4_4_4:
@@ -102,6 +24,7 @@ namespace sd.render {
 			case PixelFormat.RGBA_5_5_5_1:
 				return gl.RGB5_A1;
 
+			// Depth / Stencil
 			case PixelFormat.Depth16I:
 				return gl.DEPTH_COMPONENT16;
 			case PixelFormat.Stencil8:
