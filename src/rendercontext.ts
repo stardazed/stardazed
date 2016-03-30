@@ -24,6 +24,7 @@ namespace sd.render {
 		extInstancedArrays: ANGLEInstancedArrays;
 		extDerivatives: OESStandardDerivatives;
 		extFragmentLOD: EXTShaderTextureLOD;
+		extFragDepth: EXTFragDepth;
 		extSRGB: EXTsRGB;
 	}
 
@@ -146,6 +147,9 @@ namespace sd.render {
 		var drv = gl.getExtension("OES_standard_derivatives");
 		var fsl = gl.getExtension("EXT_shader_texture_lod");
 
+		// enable explicit setting of fragment depth
+		var fgz = gl.getExtension("EXT_frag_depth");
+
 		// enable sRGB textures and renderbuffers
 		var srgb = gl.getExtension("EXT_sRGB");
 
@@ -167,6 +171,7 @@ namespace sd.render {
 			extInstancedArrays: aia,
 			extDerivatives: drv,
 			extFragmentLOD: fsl,
+			extFragDepth: fgz,
 			extSRGB: srgb
 		};
 	}
