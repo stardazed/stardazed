@@ -300,18 +300,22 @@ namespace sd.world {
 			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
 
 
+			// -- utility
+			line("mat3 transpose(mat3 m) {");
+			line("	vec3 c0 = m[0];");
+			line("	vec3 c1 = m[1];");
+			line("	vec3 c2 = m[2];");
+			line("	return mat3(vec3(c0.x, c1.x, c2.x), vec3(c0.y, c1.y, c2.y), vec3(c0.z, c1.z, c2.z));");
+			line("}");
+
+
+			// -- commonly needed info
 			line  ("struct SurfaceInfo {");
 			line  ("	vec3 V;"); // vertex dir (cam)
 			line  ("	vec3 N;"); // surface normal (cam)
+			line  ("	mat3 transNormalMatrix;");
+			line  ("	vec3 reflectedV;");
 			line  ("	float NdV;");
-			line  ("};");
-
-			line  ("struct LightRayInfo {");
-			line  ("	vec3 L;"); // light dir (cam)
-			line  ("	vec3 H;"); // rel dir l to v
-			line  ("	float NdL;");
-			line  ("	float NdH;");
-			line  ("	float HdV;");
 			line  ("};");
 
 			line  ("SurfaceInfo calcSurfaceInfo() {");
@@ -319,8 +323,18 @@ namespace sd.world {
 			line  ("	si.V = normalize(-vertexPos_cam);");
 			line  ("	si.N = normalize(vertexNormal_cam);");
 			line  ("	si.NdV = max(0.001, dot(si.N, si.V));");
+			line  ("	si.transNormalMatrix = transpose(normalMatrix);");
+			line  ("	si.reflectedV = si.transNormalMatrix * reflect(-si.V, si.N);");
 			line  ("	return si;");
 			line  ("}");
+
+			line("struct LightRayInfo {");
+			line  ("	vec3 L;"); // light dir (cam)
+			line  ("	vec3 H;"); // rel dir l to v
+			line  ("	float NdL;");
+			line  ("	float NdH;");
+			line  ("	float HdV;");
+			line  ("};");
 
 			line  ("LightRayInfo calcLightRayInfo(SurfaceInfo si, vec3 lightDirection_cam) {");
 			line  ("	LightRayInfo lri;");
@@ -332,13 +346,6 @@ namespace sd.world {
 			line  ("	return lri;");
 			line  ("}")
 
-
-			line  ("mat3 transpose(mat3 m) {");
-			line  ("	vec3 c0 = m[0];");
-			line  ("	vec3 c1 = m[1];");
-			line  ("	vec3 c2 = m[2];");
-			line  ("	return mat3(vec3(c0.x, c1.x, c2.x), vec3(c0.y, c1.y, c2.y), vec3(c0.z, c1.z, c2.z));");
-			line  ("}");
 
 			// compute fresnel specular factor for given base specular and product
 			// product could be NdV or VdH depending on used technique
@@ -394,6 +401,27 @@ namespace sd.world {
 			line("}");
 
 
+			// -- calcLightIBL()
+			line("vec3 calcLightIBL(vec3 baseColour, vec4 matParam, SurfaceInfo si) {");
+
+			// material properties
+			line("	float metallic = matParam[MAT_METALLIC];");
+			line("	float roughness = matParam[MAT_ROUGHNESS];");
+			line("	vec3 specularColour = mix(vec3(0.04), baseColour, metallic);");
+
+			// lookup brdf, diffuse and specular terms
+			line("	vec2 brdf = texture2D(brdfLookupMap, vec2(roughness, 1.0 - si.NdV)).xy;");
+			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, roughness * 6.0).xyz;");
+			line("	vec3 envspec = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 6.0).xyz;");
+
+			// terms
+			line("	vec3 iblspec = min(vec3(0.99), fresnel_factor(specularColour, si.NdV) * brdf.x + brdf.y);");
+			line("	vec3 reflected_light = iblspec * envspec;");
+			line("	vec3 diffuse_light = envdiff * PHONG_DIFFUSE;");
+
+			line("	return diffuse_light * mix(baseColour, vec3(0.0), metallic) + reflected_light;");
+			line("}");
+
 
 			// -- calcLightShared()
 			line("vec3 calcLightShared(vec3 baseColour, vec4 matParam, vec4 lightColour, float diffuseStrength, vec3 lightDirection_cam, SurfaceInfo si) {");
@@ -407,40 +435,24 @@ namespace sd.world {
 			line("	float roughness = matParam[MAT_ROUGHNESS];");
 			line("	vec3 specularColour = mix(vec3(0.04), baseColour, metallic);");
 
-			// diffuse IBL term
-			line("	mat3 tnrm = transpose(normalMatrix);");
-			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, tnrm * N, roughness * 6.0).xyz;");
-
-			// specular IBL term
-			line("	vec3 refl = tnrm * reflect(-V, N);");
-			line("	vec3 envspec = textureCubeLodEXT(environmentMap, refl, roughness * 6.0).xyz;");
-
 			line("	float NdL = max(0.0, dot(N, L));");
 			line("	float NdV = max(0.001, dot(N, V));");
 			line("	float NdH = max(0.001, dot(N, H));");
 			line("	float HdV = max(0.001, dot(H, V));");
 
 			line("	vec3 specfresnel = fresnel_factor(specularColour, HdV);");
+			// line("	vec3 specref = phong_specular(V, L, N, specfresnel, roughness);");
+			// line("	vec3 specref = blinn_specular(NdH, specfresnel, roughness);");
 			line("	vec3 specref = cooktorrance_specular(NdL, NdV, NdH, specfresnel, roughness);");
 			line("	specref *= vec3(NdL);");
 
 			// diffuse is common for all lighting models
 			line("	vec3 diffref = (vec3(1.0) - specfresnel) * PHONG_DIFFUSE * NdL;");
 
-			// compute lighting
-			line("	vec3 reflected_light = vec3(0.0);");
-			line("	vec3 diffuse_light = vec3(0.0);"); // initial value == constant ambient light
-
 			// direct light
 			line("	vec3 light_color = lightColour.rgb * diffuseStrength * 2.0;");
-			line("	reflected_light += specref * light_color;");
-			line("	diffuse_light += diffref * light_color;");
-
-			// environment light
-			line("	vec2 brdf = texture2D(brdfLookupMap, vec2(roughness, 1.0 - NdV)).xy;");
-			line("	vec3 iblspec = min(vec3(0.99), fresnel_factor(specularColour, NdV) * brdf.x + brdf.y);");
-			line("	reflected_light += iblspec * envspec;");
-			line("	diffuse_light += envdiff * PHONG_DIFFUSE;");
+			line("	vec3 reflected_light = specref * light_color;");
+			line("	vec3 diffuse_light = diffref * light_color;");
 
 			// final result
 			line("	return diffuse_light * mix(baseColour, vec3(0.0), metallic) + reflected_light;");
@@ -502,12 +514,9 @@ namespace sd.world {
 				}
 			}
 
-
-			line  ("	SurfaceInfo si = calcSurfaceInfo();");
-			
-
 			// -- calculate light arriving at the fragment
-			line  ("	vec3 totalLight = vec3(0.0);");
+			line  ("	SurfaceInfo si = calcSurfaceInfo();");
+			line  ("	vec3 totalLight = calcLightIBL(baseColour, matParam, si);");
 
 			line  ("	for (int lightIx = 0; lightIx < MAX_FRAGMENT_LIGHTS; ++lightIx) {");
 			line  ("		int type = lightTypes[lightIx];");
@@ -626,8 +635,6 @@ namespace sd.world {
 
 
 		private loadBRDFLUTTexture() {
-			var brdfLUT = new Image();
-
 			var img = new Image();
 			img.onload = () => {
 				var td = render.makeTexDesc2DFromImageSource(img, render.UseMipMaps.No);
