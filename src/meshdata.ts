@@ -423,6 +423,7 @@ namespace sd.mesh {
 		private attrElementCount_: number;
 		private typedViewCtor_: TypedArrayConstructor;
 		private buffer_: ArrayBuffer;
+		private dataView_: DataView;
 		private viewItemCount_: number;
 
 		constructor(private vertexBuffer_: VertexBuffer, private attr_: PositionedAttribute, private firstItem_ = 0, itemCount = -1) {
@@ -431,6 +432,7 @@ namespace sd.mesh {
 			this.attrElementCount_ = vertexFieldElementCount(attr_.field);
 			this.typedViewCtor_ = vertexFieldNumericType(attr_.field).arrayType;
 			this.buffer_ = this.vertexBuffer_.buffer;
+			this.dataView_ = new DataView(this.buffer_);
 			this.viewItemCount_ = itemCount < 0 ? (this.vertexBuffer_.itemCount - this.firstItem_) : itemCount;
 
 			assert(this.firstItem_ + this.viewItemCount_ <= this.vertexBuffer_.itemCount, "view item range is bigger than buffer");
@@ -439,7 +441,7 @@ namespace sd.mesh {
 		forEach(callback: (item: TypedArray) => void) {
 			var max = this.count;
 			for (let ix = 0; ix < max; ++ix) {
-				callback(this.item(ix));
+				callback(this.refItem(ix));
 			}
 		}
 
@@ -549,10 +551,37 @@ namespace sd.mesh {
 			}
 		}
 
-		item(index: number): TypedArray {
+		refItem(index: number): TypedArray {
 			index += this.firstItem_;
 			var offsetBytes = (this.stride_ * index) + this.attrOffset_;
 			return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.attrElementCount_);
+		}
+
+		copyItem(index: number): number[] {
+			index += this.firstItem_;
+			var offsetBytes = (this.stride_ * index) + this.attrOffset_;
+			var result: number[] = [];
+
+			switch (this.attr_.field) {
+				case VertexField.Floatx4:
+					result.push(this.dataView_.getFloat32(offsetBytes, true));
+					offsetBytes += 4;
+				case VertexField.Floatx3:
+					result.push(this.dataView_.getFloat32(offsetBytes, true));
+					offsetBytes += 4;
+				case VertexField.Floatx2:
+					result.push(this.dataView_.getFloat32(offsetBytes, true));
+					offsetBytes += 4;
+				case VertexField.Float:
+					result.push(this.dataView_.getFloat32(offsetBytes, true));
+					break;
+
+				default:
+					assert(false, "no");
+					break;
+			}
+
+			return result;
 		}
 
 		get count() {
@@ -844,9 +873,9 @@ namespace sd.mesh {
 		var faceNormal = vec3.create(), temp = vec3.create();
 
 		triView.forEach((face: TriangleProxy) => {
-			var posA = posView.item(face.a() - baseVertex);
-			var posB = posView.item(face.b() - baseVertex);
-			var posC = posView.item(face.c() - baseVertex);
+			var posA = posView.copyItem(face.a() - baseVertex);
+			var posB = posView.copyItem(face.b() - baseVertex);
+			var posC = posView.copyItem(face.c() - baseVertex);
 
 			vec3.subtract(lineA, posB, posA);
 			vec3.subtract(lineB, posC, posB);
@@ -860,7 +889,7 @@ namespace sd.mesh {
 
 			for (let fi = 0; fi < 3; ++fi) {
 				let fvi = face.index(fi) - baseVertex;
-				let norm = normView.item(fvi);
+				let norm = normView.refItem(fvi);
 
 				// normBegin[fvi] = (normBegin[fvi] * usages[fvi] + faceNormal) / (usages[fvi] + 1.0f);
 				vec3.scaleAndAdd(temp, faceNormal, norm, usages[fvi]);
@@ -918,13 +947,13 @@ namespace sd.mesh {
 				b = face.b(),
 				c = face.c();
 
-			var v1 = posView.item(a),
-				v2 = posView.item(b),
-				v3 = posView.item(c);
+			var v1 = posView.copyItem(a),
+				v2 = posView.copyItem(b),
+				v3 = posView.copyItem(c);
 
-			var w1 = uvView.item(a),
-				w2 = uvView.item(b),
-				w3 = uvView.item(c);
+			var w1 = uvView.copyItem(a),
+				w2 = uvView.copyItem(b),
+				w3 = uvView.copyItem(c);
 
 			var x1 = v2[0] - v1[0];
 			var x2 = v3[0] - v1[0];
@@ -973,7 +1002,7 @@ namespace sd.mesh {
 		});
 
 		for (var ix = 0; ix < vertexCount; ++ix) {
-			var n = normView.item(ix);
+			var n = normView.copyItem(ix);
 			var t = container.copyIndexedVec3(tan1, ix);
 			var t2 = container.copyIndexedVec3(tan2, ix);
 
@@ -988,7 +1017,7 @@ namespace sd.mesh {
 			if (isNaN(tangent[0]) || isNaN(tangent[1]) || isNaN(tangent[2])) {
 				assert(false, "BLAATGH");
 			}
-			vec3.copy(tanView.item(ix), tangent);
+			vec3.copy(tanView.refItem(ix), tangent);
 		}
 	}
 

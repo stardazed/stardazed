@@ -58,7 +58,7 @@ namespace sd.asset {
 			assert(mat, "material " + group.materialName + " not found");
 
 			while (curIndex < maxIndex) {
-				vec3.copy(colourView.item(curIndex), mat.diffuseColour);
+				vec3.copy(colourView.refItem(curIndex), mat.diffuseColour);
 				curIndex++;
 			}
 		});
@@ -88,16 +88,16 @@ namespace sd.asset {
 				n = nx > -1 ? nn[nx] : null,
 				t = tx > -1 ? tt[tx] : null;
 
-			vec3.set(posView.item(vertexIx), v[0], v[1], v[2]);
+			vec3.set(posView.refItem(vertexIx), v[0], v[1], v[2]);
 
 			if (n) {
 				assert(nx < nn.length, "nx out of bounds " + nx);
-				vec3.set(normView.item(vertexIx), n[0], n[1], n[2]);
+				vec3.set(normView.refItem(vertexIx), n[0], n[1], n[2]);
 			}
 
 			if (t) {
 				assert(tx < tt.length, "tx out of bounds " + tx);
-				vec2.set(uvView.item(vertexIx), t[0], t[1]);
+				vec2.set(uvView.refItem(vertexIx), t[0], t[1]);
 			}
 
 			++vertexIx;

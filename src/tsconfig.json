@@ -12,7 +12,7 @@
         "suppressImplicitAnyIndexErrors": false,
         "noImplicitReturns": true,
         "forceConsistentCasingInFileNames": true,
-        "noFallthroughCasesInSwitch": true,
+        "noFallthroughCasesInSwitch": false,
 
         "removeComments": true,
         "sourceMap": false,
