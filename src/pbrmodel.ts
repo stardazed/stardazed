@@ -411,7 +411,7 @@ namespace sd.world {
 
 			// lookup brdf, diffuse and specular terms
 			line("	vec2 brdf = texture2D(brdfLookupMap, vec2(roughness, 1.0 - si.NdV)).xy;");
-			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, roughness * 6.0).xyz;");
+			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, 5.0).xyz;");
 			line("	vec3 envspec = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 6.0).xyz;");
 
 			// terms
@@ -450,7 +450,7 @@ namespace sd.world {
 			line("	vec3 diffref = (vec3(1.0) - specfresnel) * PHONG_DIFFUSE * NdL;");
 
 			// direct light
-			line("	vec3 light_color = lightColour.rgb * diffuseStrength * 2.0;");
+			line("	vec3 light_color = lightColour.rgb * diffuseStrength;");
 			line("	vec3 reflected_light = specref * light_color;");
 			line("	vec3 diffuse_light = diffref * light_color;");
 
