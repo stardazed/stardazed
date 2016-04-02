@@ -503,6 +503,18 @@ namespace sd.asset {
 					includeInMesh: true,
 					mapping: mesh.VertexAttributeMapping.Undefined
 				};
+
+				const layerElemIndex = <number>layerElemNode.values[0];
+				if (layerElemIndex > 0) {
+					if (layerElemNode.name != "LayerElementUV") {
+						console.warn("FBX: ignoring non-UV geometry LayerElement with index > 0", layerElemNode);
+						return null;
+					}
+					else if (layerElemIndex > 3) {
+						console.warn("FBX: ignoring UV geometry LayerElement with index > 3", layerElemNode);
+						return null;
+					}
+				}
 		
 				// Determine array key names as they are obviously not consistent
 				if (layerElemNode.name == "LayerElementNormal") {
@@ -518,7 +530,7 @@ namespace sd.asset {
 				else if (layerElemNode.name == "LayerElementUV") {
 					valueArrayName = "UV";
 					indexArrayName = "UVIndex";
-					stream.attr = { role: mesh.VertexAttributeRole.UV, field: mesh.VertexField.Floatx2 };
+					stream.attr = { role: mesh.VertexAttributeRole.UV0 + layerElemIndex, field: mesh.VertexField.Floatx2 };
 				}
 				else if (layerElemNode.name == "LayerElementTangent") {
 					valueArrayName = "Tangents";
@@ -615,13 +627,9 @@ namespace sd.asset {
 							c.name == "LayerElementUV" ||
 							c.name == "LayerElementMaterial")
 						{
-							let streamIndex = <number>c.values[0];
-							if (streamIndex == 0) {
-								let strm = this.makeLayerElementStream(c);
+							let strm = this.makeLayerElementStream(c);
+							if (strm) {
 								sdMesh.streams.push(strm);
-							}
-							else {
-								console.warn("Skipping Geometry LayerElement with index > 0", c);
 							}
 						}
 					}
