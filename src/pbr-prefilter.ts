@@ -137,12 +137,17 @@ namespace sd.render {
 		var rpd = makeRenderPassDescriptor();
 		rpd.clearMask = ClearMask.None;
 
-		const baseWidth = 256; // this basewidth gives max 9 mip levels, 7 of which are used in pbrmodel.ts
+		const baseWidth = 128; // this basewidth gives max 8 mip levels, 6 of which are used in pbrmodel.ts
 
 		var resultMapDesc = makeTexDescCube(PixelFormat.RGBA8, baseWidth, UseMipMaps.Yes);
 		var resultEnvMap = new render.Texture(rc, resultMapDesc);
-		var mipCount = resultEnvMap.mipmaps;
+		var mipCount = resultEnvMap.mipmaps - 2; // ignore the 1x1 and 2x2 levels
 		var resultGLPixelFormat = glImageFormatForPixelFormat(rc, resultEnvMap.pixelFormat);
+
+		var levelWidths: number[] = [];
+		for (let lmip = 0; lmip < mipCount; ++lmip) {
+			levelWidths[lmip] = baseWidth >> lmip;
+		}
 
 		var roughnessTable: number[] = [];
 		for (let ml = 0; ml < mipCount; ++ml) {
@@ -152,16 +157,23 @@ namespace sd.render {
 
 		var quad = mesh.gen.generate(new mesh.gen.Quad(2, 2), [mesh.attrPosition2(), mesh.attrUV2()]);
 		var quadMesh = new render.Mesh(rc, makeMeshDescriptor(quad));
-		var levelWidth = baseWidth;
-		let pixels = new Uint8Array(levelWidth * levelWidth * 4); // large enough for all levels, will be reused
+
+		var levelPixels: Uint8Array[] = [];
+		var levelTextures: render.Texture[] = [];
+		for (var mip = 0; mip < mipCount; ++mip) {
+			let levelWidth = levelWidths[mip];
+			let levelMapDesc = makeTexDesc2D(PixelFormat.RGBA8, levelWidth, levelWidth, UseMipMaps.No);
+			levelTextures[mip] = new render.Texture(rc, levelMapDesc);
+			levelPixels[mip] = new Uint8Array(levelWidth * levelWidth * 4);
+		}
 
 		for (var mip = 0; mip < mipCount; ++mip) {
+			let levelWidth = levelWidths[mip];
 			let levelMapDesc = makeTexDesc2D(PixelFormat.RGBA8, levelWidth, levelWidth, UseMipMaps.No);
-			let levelEnvMap = new render.Texture(rc, levelMapDesc);
 
 			for (var face = 0; face < 6; ++face) {
 				var fbd = makeFrameBufferDescriptor();
-				fbd.colourAttachments[0].texture = levelEnvMap;
+				fbd.colourAttachments[0].texture = levelTextures[mip];
 				var fb = new FrameBuffer(rc, fbd);
 
 				runRenderPass(rc, rpd, fb, (rp) => {
@@ -177,18 +189,16 @@ namespace sd.render {
 					rp.drawIndexedPrimitives(0, quad.primitiveGroups[0].primCount);
 
 					// implicit glFinish, read back generated texture
-					rc.gl.readPixels(0, 0, levelWidth, levelWidth, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, pixels);
+					rc.gl.readPixels(0, 0, levelWidth, levelWidth, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, levelPixels[mip]);
 
 					let err = rc.gl.getError();
 					if (err) {
 						assert(false, "Cannot read pixels, gl error " + err);
 					}
 					else {
-						// asset.debugDumpPixelData(pixels, levelWidth, levelWidth);
-
 						// write generated pixels into result envmap at proper face/mip level
 						resultEnvMap.bind();
-						rc.gl.texImage2D(rc.gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, resultGLPixelFormat, levelWidth, levelWidth, 0, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, pixels);
+						rc.gl.texImage2D(rc.gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, resultGLPixelFormat, levelWidth, levelWidth, 0, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, levelPixels[mip]);
 						let err = rc.gl.getError();
 						if (err) {
 							assert(false, "Cannot write pixels, gl error " + err);
@@ -197,8 +207,6 @@ namespace sd.render {
 					}
 				});
 			}
-
-			levelWidth = Math.max(1, levelWidth >> 1);
 		}
 
 		return resultEnvMap;

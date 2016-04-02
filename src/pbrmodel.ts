@@ -411,8 +411,8 @@ namespace sd.world {
 
 			// lookup brdf, diffuse and specular terms
 			line("	vec2 brdf = texture2D(brdfLookupMap, vec2(roughness, 1.0 - si.NdV)).xy;");
-			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, 5.0).xyz;");
-			line("	vec3 envspec = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 6.0).xyz;");
+			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, 4.0).xyz;");
+			line("	vec3 envspec = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 5.0).xyz;");
 
 			// terms
 			line("	vec3 iblspec = min(vec3(0.99), fresnel_factor(specularColour, si.NdV) * brdf.x + brdf.y);");
