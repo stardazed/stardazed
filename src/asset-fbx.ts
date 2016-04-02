@@ -593,9 +593,6 @@ namespace sd.asset {
 				var tMeshData = 0;
 
 				for (var geomID in this.geometryNodes) {
-					let hasTangents = false;
-					let needsTangentGen = false;
-
 					var fbxGeom = this.geometryNodes[geomID];
 					var sdMesh: Mesh = {
 						name: fbxGeom.objectName,
@@ -622,32 +619,10 @@ namespace sd.asset {
 							if (streamIndex == 0) {
 								let strm = this.makeLayerElementStream(c);
 								sdMesh.streams.push(strm);
-
-								if (c.name == "LayerElementTangent") {
-									hasTangents = true;
-								}
 							}
 							else {
 								console.warn("Skipping Geometry LayerElement with index > 0", c);
 							}
-						}
-					}
-
-					// check if we need to add a tangent attribute
-					if (! hasTangents) {
-						let geomModel = this.flattenedModels.get(fbxGeom.connectionsOut[0].toID);
-						let hasBumpedMaterials = geomModel.materials.some(m => m.normalTexture != null);
-
-						if (hasBumpedMaterials) {
-							sdMesh.streams.push({
-								name: "tangents",
-								attr: { field: mesh.VertexField.Floatx3, role: mesh.VertexAttributeRole.Tangent },
-								mapping: mesh.VertexAttributeMapping.Vertex,
-								includeInMesh: true,
-								values: new Float32Array(sdMesh.positions.length)
-							});
-
-							needsTangentGen = true;
 						}
 					}
 
@@ -682,9 +657,6 @@ namespace sd.asset {
 
 					sdMesh.meshData = mb.complete();
 					sdMesh.indexMap = mb.indexMap;
-					if (needsTangentGen) {
-						mesh.calcVertexTangents(sdMesh.meshData.primaryVertexBuffer, sdMesh.meshData.indexBuffer);
-					}
 
 					var t2 = performance.now();
 					tStreams += (t1 - t0);
