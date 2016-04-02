@@ -6,7 +6,6 @@ namespace sd.world {
 
 	const enum Features {
 		// VtxPosition and VtxNormal are required
-		VtxTangent                 = 0x000001,
 		VtxUV                      = 0x000002,
 		VtxColour                  = 0x000004,
 
@@ -18,7 +17,7 @@ namespace sd.world {
 		DiffuseAlphaIsOpacity      = 0x000080, // =__ Mutually Exclusive
 		// DiffuseAlphaIsGloss        = 0x000100, // /
 
-		NormalMap                  = 0x000200, // Requires VtxTangent
+		NormalMap                  = 0x000200,
 		// NormalAlphaIsHeight        = 0x000400,
 		// HeightMap                  = 0x000800, // Either this or NormalMap + NormalAlphaIsHeight
 
@@ -148,9 +147,6 @@ namespace sd.world {
 			}
 			if (feat & Features.VtxUV) {
 				pld.attributeNames.set(mesh.VertexAttributeRole.UV, "vertexUV");
-			}
-			if (feat & Features.VtxTangent) {
-				pld.attributeNames.set(mesh.VertexAttributeRole.Tangent, "vertexTangent");
 			}
 
 			if (feat & Features.Translucency) {
@@ -302,7 +298,6 @@ namespace sd.world {
 			line  ("attribute vec3 vertexNormal;");
 			if_all("attribute vec2 vertexUV;", Features.VtxUV);
 			if_all("attribute vec3 vertexColour;", Features.VtxColour);
-			if_all("attribute vec3 vertexTangent;", Features.VtxTangent);
 
 			// Out
 			line  ("varying vec3 vertexNormal_cam;");
@@ -311,7 +306,6 @@ namespace sd.world {
 			if_all("varying vec4 vertexPos_light;", Features.ShadowMap);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
-			if_all("varying vec3 vertexTangent_cam;", Features.VtxTangent);
 
 			// Uniforms
 			line  ("uniform mat4 modelMatrix;");
@@ -402,7 +396,6 @@ namespace sd.world {
 			if_all("	vertexPos_light = lightViewProjectionMatrix * modelMatrix * vec4(vertexPos_model, 1.0);", Features.ShadowMap);
 			if_all("	vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;", Features.VtxUV);
 			if_all("	vertexColour_intp = vertexColour;", Features.VtxColour);
-			if_all("	vertexTangent_cam = (modelViewMatrix * vec4(vertexTangent, 1.0)).xyz;", Features.VtxTangent);
 			line  ("}");
 
 			// console.info("------ VERTEX");
@@ -419,6 +412,9 @@ namespace sd.world {
 			var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
 			var if_not = (s: string, f: number) => { if ((feat & f) == 0) source.push(s) };
 
+			if (feat & Features.NormalMap) {
+				line("#extension GL_OES_standard_derivatives : require");
+			}
 			line  ("precision highp float;");
 
 			// In
@@ -428,7 +424,6 @@ namespace sd.world {
 			if_all("varying vec4 vertexPos_light;", Features.ShadowMap);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
-			if_all("varying vec3 vertexTangent_cam;", Features.VtxTangent);
 
 			// Uniforms
 			line  ("uniform mat3 lightNormalMatrix;");
@@ -503,7 +498,6 @@ namespace sd.world {
 
 			// -- calcPointLight()
 			line  ("vec3 calcPointLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 lightPos_world, vec3 normal_cam) {");
-
 			line  ("	float distance = length(vertexPos_world - lightPos_world);"); // use world positions for distance as cam will warp coords
 			line  ("	vec3 lightDirection = normalize(vertexPos_cam - lightPos_cam.xyz);");
 			line  ("	float attenuation = 1.0 - pow(clamp(distance / param[LPARAM_RANGE], 0.0, 1.0), 2.0);");
@@ -531,6 +525,35 @@ namespace sd.world {
 			line  ("	float diffuseStrength = dot(normal_cam, -lightDirection.xyz);");
 			line  ("	return calcLightShared(matColour, colour, param, diffuseStrength, lightDirection.xyz, normal_cam);");
 			line  ("}");
+
+
+			// -- 
+			if (feat & Features.NormalMap) {
+				line("mat3 cotangentFrame(vec3 N, vec3 p, vec2 uv) {");
+				line("	// get edge vectors of the pixel triangle");
+				line("	vec3 dp1 = dFdx(p);");
+				line("	vec3 dp2 = dFdy(p);");
+				line("	vec2 duv1 = dFdx(uv);");
+				line("	vec2 duv2 = dFdy(uv);");
+				line("	// solve the linear system");
+				line("	vec3 dp2perp = cross(dp2, N);");
+				line("	vec3 dp1perp = cross(N, dp1);");
+				line("	vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;");
+				line("	vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;");
+				line("	// construct a scale-invariant frame ");
+				line("	float invmax = inversesqrt(max(dot(T, T), dot(B, B)));");
+				line("	return mat3(T * invmax, B * invmax, N);");
+				line("}");
+
+				line("vec3 perturbNormal(vec3 N, vec3 V, vec2 uv) {");
+				line("	// assume N, the interpolated vertex normal and ");
+				line("	// V, the view vector (vertex to eye)");
+				line("	vec3 map = texture2D(normalSampler, uv).xyz * 2.0 - 1.0;");
+				line("	map.y = -map.y;");
+				line("	mat3 TBN = cotangentFrame(N, -V, uv);");
+				line("	return normalize(TBN * map);");
+				line("}");
+			}
 
 
 			// main()
@@ -578,18 +601,9 @@ namespace sd.world {
 				line("	poissonDisk[3] = vec2(0.34495938, 0.29387760);");
 			}
 
-			// -- normal in camera space, convert from tangent space -> FIXME: reverse and place TBN calc in vert shader, use tan space calcs for light
-			if (feat & Features.NormalMap) {
-				line("	vec3 normal_cam = normalize(vertexNormal_cam);");
-				line("	vec3 tangent_cam = normalize(vertexTangent_cam);");
-				line("	vec3 bitangent_cam = cross(tangent_cam, normal_cam);");
-				line("	vec3 bumpNormal_tan = texture2D(normalSampler, vertexUV_intp).xyz * 2.0 - 1.0;");
-				line("	mat3 TBN = mat3(tangent_cam, bitangent_cam, normal_cam);");
-				line("	normal_cam = normalize(TBN * bumpNormal_tan);");
-			}
-			else {
-				line("	vec3 normal_cam = normalize(vertexNormal_cam);");
-			}
+			// -- normal in camera space, convert from tangent space
+			line  ("	vec3 normal_cam = normalize(vertexNormal_cam);");
+			if_all("	normal_cam = perturbNormal(normal_cam, -vertexPos_cam, vertexUV_intp);", Features.NormalMap);
 
 			// -- calculate light arriving at the fragment
 			line  ("	vec3 totalLight = vec3(0.0);");
@@ -779,7 +793,6 @@ namespace sd.world {
 
 			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.Colour)) features |= Features.VtxColour;
 			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.UV)) features |= Features.VtxUV;
-			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.Tangent)) features |= Features.VtxTangent;
 
 			var matFlags = this.materialMgr_.flags(material);
 			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;
@@ -803,11 +816,6 @@ namespace sd.world {
 			// disable UV attr and DiffuseMap unless both are provided (TODO: also take other maps into account when added later)
 			if ((features & (Features.VtxUV | Features.DiffuseMap)) != (Features.VtxUV | Features.DiffuseMap)) {
 				features &= ~(Features.VtxUV | Features.DiffuseMap);
-			}
-
-			// disable Tangent attr and NormalMap unless both are provided
-			if ((features & (Features.VtxTangent | Features.NormalMap)) != (Features.VtxTangent | Features.NormalMap)) {
-				features &= ~(Features.VtxTangent | Features.NormalMap);
 			}
 
 			// disable diffusemap-dependent features if there is no diffusemap
@@ -921,14 +929,14 @@ namespace sd.world {
 
 		disableRenderFeature(f: RenderFeature) {
 			if (f == RenderFeature.NormalMaps) {
-				this.stdPipeline_.disableFeatures(Features.VtxTangent | Features.NormalMap);
+				this.stdPipeline_.disableFeatures(Features.NormalMap);
 			}
 		}
 
 
 		enableRenderFeature(f: RenderFeature) {
 			if (f == RenderFeature.NormalMaps) {
-				this.stdPipeline_.enableFeatures(Features.VtxTangent | Features.NormalMap);
+				this.stdPipeline_.enableFeatures(Features.NormalMap);
 			}
 		}
 
