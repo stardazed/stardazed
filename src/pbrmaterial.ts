@@ -72,8 +72,8 @@ namespace sd.world {
 
 	const enum PBRMaterialParam {
 		Metallic = 0,
-		SpecularRGB = 0,
-		Roughness = 3
+		Roughness = 1,
+		// AmbientOcclusion = 2 // only in a texture
 	}
 
 
@@ -132,7 +132,7 @@ namespace sd.world {
 
 			vec4.set(this.tempVec4, desc.baseColour[0], desc.baseColour[1], desc.baseColour[2], 0);
 			container.setIndexedVec4(this.baseColourBase_, matIndex, this.tempVec4);
-			vec4.set(this.tempVec4, math.clamp01(desc.metallic), 0, 0, math.clamp01(desc.roughness));
+			vec4.set(this.tempVec4, math.clamp01(desc.metallic), math.clamp01(desc.roughness), 0, 0);
 			container.setIndexedVec4(this.materialBase_, matIndex, this.tempVec4);
 
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);

@@ -14,13 +14,13 @@ namespace sd.world {
 		VtxUV                      = 1 << 0,
 		VtxColour                  = 1 << 1,
 
-		AlbedoMap                  = 1 << 2,
-		MetallicMap                = 1 << 3,
-		RoughnessMap               = 1 << 4,
-		AOMap                      = 1 << 5,
+		AlbedoMap                  = 1 << 2,  // RGB channels of Albedo
+		MetallicMap                = 1 << 3,  // R channel of RMA
+		RoughnessMap               = 1 << 4,  // G channel of RMA
+		AOMap                      = 1 << 5,  // B channel of RMA
 
-		NormalMap                  = 1 << 6,
-		HeightMap                  = 1 << 7,
+		NormalMap                  = 1 << 6,  // RGB channels of NormalHeight
+		HeightMap                  = 1 << 7,  // A channel of NormalHeight
 	}
 
 
@@ -39,9 +39,8 @@ namespace sd.world {
 
 		// -- textures
 		albedoMapUniform: WebGLUniformLocation;
-		materialMapUniform: WebGLUniformLocation;
+		rmaMapUniform: WebGLUniformLocation;
 		normalHeightMapUniform: WebGLUniformLocation;
-		ambientOcclusionMapUniform: WebGLUniformLocation;
 
 		environmentMapUniform: WebGLUniformLocation;
 		brdfLookupMapUniform: WebGLUniformLocation;
@@ -59,9 +58,9 @@ namespace sd.world {
 
 	const enum TextureBindPoint {
 		Albedo = 0,
-		Material = 1,
-		NormalHeight = 2,
-		AmbientOcclusion = 3,
+		Specular = 1,
+		RMA = 2,
+		NormalHeight = 3,
 		Environment = 4,
 		BRDFLookup = 5
 	}
@@ -154,21 +153,15 @@ namespace sd.world {
 				}
 			}
 			if (feat & (Features.MetallicMap | Features.RoughnessMap)) {
-				program.materialMapUniform = gl.getUniformLocation(program, "materialMap");
-				if (program.materialMapUniform) {
-					gl.uniform1i(program.materialMapUniform, TextureBindPoint.Material);
+				program.rmaMapUniform = gl.getUniformLocation(program, "rmaMap");
+				if (program.rmaMapUniform) {
+					gl.uniform1i(program.rmaMapUniform, TextureBindPoint.RMA);
 				}
 			}
-			if (feat & (Features.NormalMap | Features.HeightMap)) {
+			if (feat & (Features.NormalMap | Features.HeightMap | feat & Features.AOMap)) {
 				program.normalHeightMapUniform = gl.getUniformLocation(program, "normalHeightMap");
 				if (program.normalHeightMapUniform) {
 					gl.uniform1i(program.normalHeightMapUniform, TextureBindPoint.NormalHeight);
-				}
-			}
-			if (feat & Features.AOMap) {
-				program.ambientOcclusionMapUniform = gl.getUniformLocation(program, "ambientOcclusionMap");
-				if (program.ambientOcclusionMapUniform) {
-					gl.uniform1i(program.ambientOcclusionMapUniform, TextureBindPoint.AmbientOcclusion);
 				}
 			}
 
@@ -273,14 +266,15 @@ namespace sd.world {
 			line  ("uniform vec4 materialParam;");
 
 			if_all("uniform sampler2D albedoMap;", Features.AlbedoMap);
-			if_any("uniform sampler2D materialMap;", Features.MetallicMap | Features.RoughnessMap);
+			if_any("uniform sampler2D rmaMap;", Features.MetallicMap | Features.RoughnessMap | Features.AOMap);
 			if_any("uniform sampler2D normalHeightMap;", Features.NormalMap | Features.HeightMap);
 			if_all("uniform sampler2D ambientOcclusionMap;", Features.AOMap);
 			line  ("uniform sampler2D brdfLookupMap;");
 			line  ("uniform samplerCube environmentMap;");
 
 			line  ("const int MAT_METALLIC = 0;");
-			line  ("const int MAT_ROUGHNESS = 3;");
+			line  ("const int MAT_ROUGHNESS = 1;");
+			line  ("const int MAT_AMBIENT_OCCLUSION = 2;");
 
 			// -- light param constants
 			line  ("const int MAX_FRAGMENT_LIGHTS = " + MAX_FRAGMENT_LIGHTS + ";");
@@ -428,8 +422,9 @@ namespace sd.world {
 			// line("	float D = D_blinn(roughness, NdH);");
 			line("	float D = D_GGX(roughness, NdH);");
 			line("	float G = G_schlick(roughness, NdV, NdL);");
-			line("	float rim = mix(1.0 - roughness * 0.9, 1.0, NdV);");
-			line("	return (1.0 / rim) * specular * G * D;");
+			// line("	float rim = mix(1.0 - roughness * 0.9, 1.0, NdV);"); // I cannot tell if this does anything at all
+			// line("	return (1.0 / rim) * specular * G * D;");
+			line("	return specular * G * D;");
 			line("}");
 
 
@@ -443,7 +438,7 @@ namespace sd.world {
 
 			// lookup brdf, diffuse and specular terms
 			line("	vec2 brdf = texture2D(brdfLookupMap, vec2(roughness, 1.0 - si.NdV)).xy;");
-			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, 4.0).xyz;");
+			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, roughness * 5.0).xyz;");
 			line("	vec3 envspec = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 5.0).xyz;");
 
 			// terms
@@ -473,8 +468,8 @@ namespace sd.world {
 
 			line("	vec3 specfresnel = fresnel_factor(specularColour, HdV);");
 			// line("	vec3 specref = phong_specular(V, L, N, specfresnel, roughness);");
-			line("	vec3 specref = blinn_specular(NdH, specfresnel, roughness);");
-			// line("	vec3 specref = cooktorrance_specular(NdL, si.NdV, NdH, specfresnel, roughness);");
+			// line("	vec3 specref = blinn_specular(NdH, specfresnel, roughness);");
+			line("	vec3 specref = cooktorrance_specular(NdL, si.NdV, NdH, specfresnel, roughness);");
 			line("	specref *= vec3(NdL);");
 
 			// diffuse is common for all lighting models
@@ -531,17 +526,20 @@ namespace sd.world {
 				line("	vec3 baseColour = baseColour.rgb;");
 			}
 
-			if ((feat & (Features.MetallicMap | Features.RoughnessMap)) == (Features.MetallicMap | Features.RoughnessMap)) {
-				line("	vec4 matParam = texture2D(materialMap, vertexUV_intp);");
+			var hasRMAMap = false;
+			if (feat & (Features.MetallicMap | Features.RoughnessMap | Features.AOMap)) {
+				line("	vec4 matParam = texture2D(rmaMap, vertexUV_intp);");
+				hasRMAMap = true;
 			}
 			else {
 				line("	vec4 matParam = materialParam;");
-				if (feat & Features.MetallicMap) {
-					line("	matParam[MAT_METALLIC] = texture2D(materialMap, vertexUV_intp)[MAT_METALLIC];");
-				}
-				if (feat & Features.RoughnessMap) {
-					line("	matParam[MAT_ROUGHNESS] = texture2D(materialMap, vertexUV_intp)[MAT_ROUGHNESS];");
-				}
+			}
+
+			if (hasRMAMap && (feat & Features.MetallicMap) == 0) {
+				line("	matParam[MAT_METALLIC] = materialParam[MAT_METALLIC];");
+			}
+			if (hasRMAMap && (feat & Features.RoughnessMap) == 0) {
+				line("	matParam[MAT_ROUGHNESS] = materialParam[MAT_ROUGHNESS];");
 			}
 
 			// -- calculate light arriving at the fragment
