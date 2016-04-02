@@ -668,6 +668,8 @@ namespace sd.world {
 			var img = new Image();
 			img.onload = () => {
 				var td = render.makeTexDesc2DFromImageSource(img, render.UseMipMaps.No);
+				td.sampling.repeatS = render.TextureRepeatMode.ClampToEdge;
+				td.sampling.repeatT = render.TextureRepeatMode.ClampToEdge;
 				this.brdfLookupTex_ = new render.Texture(this.rc, td);
 			};
 			img.onerror = (ev) => {
