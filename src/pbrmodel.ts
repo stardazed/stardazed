@@ -35,6 +35,7 @@ namespace sd.world {
 		// -- mesh material
 		baseColourUniform: WebGLUniformLocation;         // vec4
 		materialUniform: WebGLUniformLocation;           // vec4
+		texScaleOffsetUniform: WebGLUniformLocation;     // vec4
 
 		// -- textures
 		albedoMapUniform: WebGLUniformLocation;
@@ -143,6 +144,7 @@ namespace sd.world {
 			// -- material properties
 			program.baseColourUniform = gl.getUniformLocation(program, "baseColour");
 			program.materialUniform = gl.getUniformLocation(program, "materialParam");
+			program.texScaleOffsetUniform = gl.getUniformLocation(program, "texScaleOffset");
 
 			// -- material textures
 			if (feat & Features.AlbedoMap) {
@@ -253,6 +255,7 @@ namespace sd.world {
 			var if_not = (s: string, f: number) => { if ((feat & f) == 0) source.push(s) };
 
 			line  ("#extension GL_EXT_shader_texture_lod : require");
+			if_all("#extension GL_OES_standard_derivatives : require", Features.NormalMap);
 			line  ("precision highp float;");
 
 			// In
@@ -318,10 +321,39 @@ namespace sd.world {
 			line  ("	float NdV;");
 			line  ("};");
 
+			// -- normal perturbation
+			if (feat & Features.NormalMap) {
+				line("mat3 cotangentFrame(vec3 N, vec3 p, vec2 uv) {");
+				line("	// get edge vectors of the pixel triangle");
+				line("	vec3 dp1 = dFdx(p);");
+				line("	vec3 dp2 = dFdy(p);");
+				line("	vec2 duv1 = dFdx(uv);");
+				line("	vec2 duv2 = dFdy(uv);");
+				line("	// solve the linear system");
+				line("	vec3 dp2perp = cross(dp2, N);");
+				line("	vec3 dp1perp = cross(N, dp1);");
+				line("	vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;");
+				line("	vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;");
+				line("	// construct a scale-invariant frame ");
+				line("	float invmax = inversesqrt(max(dot(T, T), dot(B, B)));");
+				line("	return mat3(T * invmax, B * invmax, N);");
+				line("}");
+
+				line("vec3 perturbNormal(vec3 N, vec3 V, vec2 uv) {");
+				line("	// assume N, the interpolated vertex normal and ");
+				line("	// V, the view vector (vertex to eye)");
+				line("	vec3 map = texture2D(normalHeightMap, uv).xyz * 2.0 - 1.0;");
+				// line("	map.y = -map.y;");
+				line("	mat3 TBN = cotangentFrame(N, -V, uv);");
+				line("	return normalize(TBN * map);");
+				line("}");
+			}
+
 			line  ("SurfaceInfo calcSurfaceInfo() {");
 			line  ("	SurfaceInfo si;");
 			line  ("	si.V = normalize(-vertexPos_cam);");
 			line  ("	si.N = normalize(vertexNormal_cam);");
+			if_any("	si.N = perturbNormal(si.N, -vertexPos_cam, vertexUV_intp);", Features.NormalMap);
 			line  ("	si.NdV = max(0.001, dot(si.N, si.V));");
 			line  ("	si.transNormalMatrix = transpose(normalMatrix);");
 			line  ("	si.reflectedV = si.transNormalMatrix * reflect(-si.V, si.N);");
@@ -436,14 +468,13 @@ namespace sd.world {
 			line("	vec3 specularColour = mix(vec3(0.04), baseColour, metallic);");
 
 			line("	float NdL = max(0.0, dot(N, L));");
-			line("	float NdV = max(0.001, dot(N, V));");
 			line("	float NdH = max(0.001, dot(N, H));");
 			line("	float HdV = max(0.001, dot(H, V));");
 
 			line("	vec3 specfresnel = fresnel_factor(specularColour, HdV);");
 			// line("	vec3 specref = phong_specular(V, L, N, specfresnel, roughness);");
-			// line("	vec3 specref = blinn_specular(NdH, specfresnel, roughness);");
-			line("	vec3 specref = cooktorrance_specular(NdL, NdV, NdH, specfresnel, roughness);");
+			line("	vec3 specref = blinn_specular(NdH, specfresnel, roughness);");
+			// line("	vec3 specref = cooktorrance_specular(NdL, si.NdV, NdH, specfresnel, roughness);");
 			line("	specref *= vec3(NdL);");
 
 			// diffuse is common for all lighting models
@@ -490,12 +521,11 @@ namespace sd.world {
 			line  ("}");
 
 
-
 			// -- main()
 			line  ("void main() {");
 
 			if (feat & Features.AlbedoMap) {
-				line("	vec3 baseColour = texture2D(albedoMap, vertexUV_intp);");
+				line("	vec3 baseColour = texture2D(albedoMap, vertexUV_intp).rgb * baseColour.rgb;");
 			}
 			else {
 				line("	vec3 baseColour = baseColour.rgb;");
@@ -667,6 +697,16 @@ namespace sd.world {
 			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.Colour)) features |= Features.VtxColour;
 			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.UV)) features |= Features.VtxUV;
 
+			var matFlags = this.materialMgr_.flags(material);
+
+			if (this.materialMgr_.albedoMap(material)) {
+				features |= Features.AlbedoMap;
+			}
+
+			if ((matFlags & PBRMaterialFlags.NormalMap) && this.materialMgr_.normalHeightMap(material)) {
+				features |= Features.NormalMap;
+			}
+
 			return features;
 		}
 
@@ -813,6 +853,16 @@ namespace sd.world {
 				// -- set material uniforms
 				gl.uniform4fv(program.baseColourUniform, materialData.colourData);
 				gl.uniform4fv(program.materialUniform, materialData.materialParam);
+
+				if (features & Features.VtxUV) {
+					gl.uniform4fv(program.texScaleOffsetUniform, materialData.texScaleOffsetData);
+				}
+				if (features & Features.AlbedoMap) {
+					rp.setTexture(materialData.albedoMap, TextureBindPoint.Albedo);
+				}
+				if (features & Features.NormalMap) {
+					rp.setTexture(materialData.normalHeightMap, TextureBindPoint.NormalHeight);
+				}
 
 				// -- light data FIXME: only update these when local light data was changed -> pos and rot can change as well
 				gl.uniform1iv(program.lightTypeArrayUniform, this.lightTypeArray_);

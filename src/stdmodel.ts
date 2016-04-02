@@ -412,9 +412,7 @@ namespace sd.world {
 			var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
 			var if_not = (s: string, f: number) => { if ((feat & f) == 0) source.push(s) };
 
-			if (feat & Features.NormalMap) {
-				line("#extension GL_OES_standard_derivatives : require");
-			}
+			if_all("#extension GL_OES_standard_derivatives : require", Features.NormalMap);
 			line  ("precision highp float;");
 
 			// In
@@ -527,7 +525,7 @@ namespace sd.world {
 			line  ("}");
 
 
-			// -- 
+			// -- normal perturbation
 			if (feat & Features.NormalMap) {
 				line("mat3 cotangentFrame(vec3 N, vec3 p, vec2 uv) {");
 				line("	// get edge vectors of the pixel triangle");
