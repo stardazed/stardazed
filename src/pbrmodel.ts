@@ -378,6 +378,8 @@ namespace sd.world {
 			line("vec3 fresnel_factor(vec3 f0, float product) {");
 			// line("	return mix(f0, vec3(1.0), pow(1.01 - product, 5.0));");
 			line("	return f0 + (vec3(1.0) - f0) * pow(2.0, (-5.55473 * product - 6.98316) * product);");
+			// line("	float Fc = pow(1.0 - product, 5.0);");
+			// line("	return clamp(50.0 * f0.g, 0.0, 1.0) * Fc + (1.0 - Fc) * f0;");
 			line("}");
 
 			// following functions are copies of UE4
@@ -438,7 +440,7 @@ namespace sd.world {
 
 			// lookup brdf, diffuse and specular terms
 			line("	vec2 brdf = texture2D(brdfLookupMap, vec2(roughness, 1.0 - si.NdV)).xy;");
-			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, roughness * 5.0).xyz;");
+			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, 4.0).xyz;");
 			line("	vec3 envspec = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 5.0).xyz;");
 
 			// terms
