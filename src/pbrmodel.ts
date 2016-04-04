@@ -1,4 +1,4 @@
-// pbrmodel - PBR model component
+// pbrmodel - PBR model component and Pipeline
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 
@@ -6,6 +6,8 @@
 // https://gist.github.com/galek/53557375251e1a942dfa by Nick Galko
 // which in turn used certain functions from the Unreal 4 Engine Source
 // as indicated by comments.
+// Normal perturbation method by Christian Schüler
+// http://www.thetenthplanet.de/archives/1180
 
 namespace sd.world {
 
@@ -14,13 +16,23 @@ namespace sd.world {
 		VtxUV                      = 1 << 0,
 		VtxColour                  = 1 << 1,
 
-		AlbedoMap                  = 1 << 2,  // RGB channels of Albedo
-		MetallicMap                = 1 << 3,  // R channel of RMA
-		RoughnessMap               = 1 << 4,  // G channel of RMA
-		AOMap                      = 1 << 5,  // B channel of RMA
+		LightingQuality            = 1 << 2 | 1 << 3,  // 2-bit number, higher is better
 
-		NormalMap                  = 1 << 6,  // RGB channels of NormalHeight
-		HeightMap                  = 1 << 7,  // A channel of NormalHeight
+		AlbedoMap                  = 1 << 4,  // RGB channels of Albedo
+		RoughnessMap               = 1 << 5,  // R channel of RMA
+		MetallicMap                = 1 << 6,  // G channel of RMA
+		AOMap                      = 1 << 7,  // B channel of RMA
+
+		NormalMap                  = 1 << 8,  // RGB channels of NormalHeight
+		HeightMap                  = 1 << 9,  // A channel of NormalHeight
+	}
+
+	const LightingQualityBitShift = 2;
+
+	export const enum PBRLightingQuality {
+		Phong,
+		Blinn,
+		CookTorrance
 	}
 
 
@@ -90,8 +102,8 @@ namespace sd.world {
 		}
 
 
-		enableFeatures(disableMask: Features) {
-			this.featureMask_ |= disableMask;
+		enableFeatures(enableMask: Features) {
+			this.featureMask_ |= enableMask;
 		}
 
 
@@ -247,6 +259,8 @@ namespace sd.world {
 			var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
 			var if_not = (s: string, f: number) => { if ((feat & f) == 0) source.push(s) };
 
+			var lightingQuality = (feat & Features.LightingQuality) >> LightingQualityBitShift;
+
 			line  ("#extension GL_EXT_shader_texture_lod : require");
 			if_all("#extension GL_OES_standard_derivatives : require", Features.NormalMap);
 			line  ("precision highp float;");
@@ -272,8 +286,8 @@ namespace sd.world {
 			line  ("uniform sampler2D brdfLookupMap;");
 			line  ("uniform samplerCube environmentMap;");
 
-			line  ("const int MAT_METALLIC = 0;");
-			line  ("const int MAT_ROUGHNESS = 1;");
+			line  ("const int MAT_ROUGHNESS = 0;");
+			line  ("const int MAT_METALLIC = 1;");
 			line  ("const int MAT_AMBIENT_OCCLUSION = 2;");
 
 			// -- light param constants
@@ -354,80 +368,75 @@ namespace sd.world {
 			line  ("	return si;");
 			line  ("}");
 
-			line("struct LightRayInfo {");
-			line  ("	vec3 L;"); // light dir (cam)
-			line  ("	vec3 H;"); // rel dir l to v
-			line  ("	float NdL;");
-			line  ("	float NdH;");
-			line  ("	float HdV;");
-			line  ("};");
-
-			line  ("LightRayInfo calcLightRayInfo(SurfaceInfo si, vec3 lightDirection_cam) {");
-			line  ("	LightRayInfo lri;");
-			line  ("	lri.L = -lightDirection_cam;");
-			line  ("	lri.H = normalize(lri.L + si.V);");
-			line  ("	lri.NdL = max(0.0, dot(si.N, lri.L));");
-			line  ("	lri.NdH = max(0.001, dot(si.N, lri.H));");
-			line  ("	lri.HdV = max(0.001, dot(lri.H, si.V));");
-			line  ("	return lri;");
-			line  ("}")
-
 
 			// compute fresnel specular factor for given base specular and product
 			// product could be NdV or VdH depending on used technique
 			line("vec3 fresnel_factor(vec3 f0, float product) {");
+
+			// method A
 			// line("	return mix(f0, vec3(1.0), pow(1.01 - product, 5.0));");
+
+			// method B (from Brian Karis' paper)
 			line("	return f0 + (vec3(1.0) - f0) * pow(2.0, (-5.55473 * product - 6.98316) * product);");
+
+			// method C (UE4)
 			// line("	float Fc = pow(1.0 - product, 5.0);");
 			// line("	return clamp(50.0 * f0.g, 0.0, 1.0) * Fc + (1.0 - Fc) * f0;");
 			line("}");
 
-			// following functions are copies of UE4
-			// for computing cook-torrance specular lighting terms
-			line("float D_blinn(float roughness, float NdH) {");
-			line("	float m = roughness * roughness;");
-			line("	float m2 = m * m;");
-			line("	float n = 2.0 / m2 - 2.0;");
-			line("	return (n + 2.0) / (2.0 * PI) * pow(NdH, n);");
-			line("}");
 
-			line("float D_GGX(float roughness, float NdH) {");
-			line("	float m = roughness * roughness;");
-			line("	float m2 = m * m;");
-			line("	float d = (NdH * m2 - NdH) * NdH + 1.0;");
-			line("	return m2 / (PI * d * d);");
-			line("}");
+			if (lightingQuality >= PBRLightingQuality.CookTorrance) {
+				// following functions are copies of UE4
+				// for computing cook-torrance specular lighting terms
+				line("float D_blinn(float roughness, float NdH) {");
+				line("	float m = roughness * roughness;");
+				line("	float m2 = m * m;");
+				line("	float n = 2.0 / m2 - 2.0;");
+				line("	return (n + 2.0) / (2.0 * PI) * pow(NdH, n);");
+				line("}");
 
-			line("float G_schlick(float roughness, float NdV, float NdL) {");
-			line("	float k = roughness * roughness * 0.5;");
-			line("	float V = NdV * (1.0 - k) + k;");
-			line("	float L = NdL * (1.0 - k) + k;");
-			line("	return 0.25 / (V * L);");
-			line("}");
+				line("float D_GGX(float roughness, float NdH) {");
+				line("	float m = roughness * roughness;");
+				line("	float m2 = m * m;");
+				line("	float d = (NdH * m2 - NdH) * NdH + 1.0;");
+				line("	return m2 / (PI * d * d);");
+				line("}");
 
-			// simple phong specular calculation with normalization
-			line("vec3 phong_specular(vec3 V, vec3 L, vec3 N, vec3 specular, float roughness) {");
-			line("	vec3 R = reflect(-L, N);");
-			line("	float spec = max(0.0, dot(V, R));");
-			line("	float k = 1.999 / (roughness * roughness);");
-			line("	return min(1.0, 3.0 * 0.0398 * k) * pow(spec, min(10000.0, k)) * specular;");
-			line("}");
+				line("float G_schlick(float roughness, float NdV, float NdL) {");
+				line("	float k = roughness * roughness * 0.5;");
+				line("	float V = NdV * (1.0 - k) + k;");
+				line("	float L = NdL * (1.0 - k) + k;");
+				line("	return 0.25 / (V * L);");
+				line("}");
+			}
 
-			// simple blinn specular calculation with normalization
-			line("vec3 blinn_specular(float NdH, vec3 specular, float roughness) {");
-			line("	float k = 1.999 / (roughness * roughness);");
-			line("	return min(1.0, 3.0 * 0.0398 * k) * pow(NdH, min(10000.0, k)) * specular;");
-			line("}");
-
-			// cook-torrance specular calculation
-			line("vec3 cooktorrance_specular(float NdL, float NdV, float NdH, vec3 specular, float roughness) {");
-			// line("	float D = D_blinn(roughness, NdH);");
-			line("	float D = D_GGX(roughness, NdH);");
-			line("	float G = G_schlick(roughness, NdV, NdL);");
-			// line("	float rim = mix(1.0 - roughness * 0.9, 1.0, NdV);"); // I cannot tell if this does anything at all
-			// line("	return (1.0 / rim) * specular * G * D;");
-			line("	return specular * G * D;");
-			line("}");
+			if (lightingQuality == PBRLightingQuality.Phong) {
+				// simple phong specular calculation with normalization
+				line("vec3 phong_specular(vec3 V, vec3 L, vec3 N, vec3 specular, float roughness) {");
+				line("	vec3 R = reflect(-L, N);");
+				line("	float spec = max(0.0, dot(V, R));");
+				line("	float k = 1.999 / (roughness * roughness);");
+				line("	return min(1.0, 3.0 * 0.0398 * k) * pow(spec, min(10000.0, k)) * specular;");
+				line("}");
+			}
+			else if (lightingQuality == PBRLightingQuality.Blinn) {
+				// simple blinn specular calculation with normalization
+				line("vec3 blinn_specular(float NdH, vec3 specular, float roughness) {");
+				line("	float k = 1.999 / (roughness * roughness);");
+				line("	return min(1.0, 3.0 * 0.0398 * k) * pow(NdH, min(10000.0, k)) * specular;");
+				line("}");
+			}
+			else {
+				// cook-torrance specular calculation
+				line("vec3 cooktorrance_specular(float NdL, float NdV, float NdH, vec3 specular, float roughness) {");
+				// line("	float D = D_blinn(roughness, NdH);");
+				line("	float D = D_GGX(roughness, NdH);");
+				line("	float G = G_schlick(roughness, NdV, NdL);");
+				// line("	float rim = mix(1.0 - roughness * 0.9, 1.0, NdV);"); // I cannot tell if this does anything at all
+				// line("	return (1.0 / rim) * specular * G * D;");
+				line("	return specular * G * D;");
+				line("}");
+			}
 
 
 			// -- calcLightIBL()
@@ -454,10 +463,12 @@ namespace sd.world {
 
 			// -- calcLightShared()
 			line("vec3 calcLightShared(vec3 baseColour, vec4 matParam, vec4 lightColour, float diffuseStrength, vec3 lightDirection_cam, SurfaceInfo si) {");
-			line("	vec3 L = -lightDirection_cam;");
 			line("	vec3 V = si.V;");
-			line("	vec3 H = normalize(L + V);");
 			line("	vec3 N = si.N;");
+			line("	vec3 L = -lightDirection_cam;");
+			if (lightingQuality > PBRLightingQuality.Phong) {
+				line("	vec3 H = normalize(L + V);");
+			}
 
 			// material properties
 			line("	float metallic = matParam[MAT_METALLIC];");
@@ -465,16 +476,30 @@ namespace sd.world {
 			line("	vec3 specularColour = mix(vec3(0.04), baseColour, metallic);");
 
 			line("	float NdL = max(0.0, dot(N, L));");
-			line("	float NdH = max(0.001, dot(N, H));");
-			line("	float HdV = max(0.001, dot(H, V));");
+			if (lightingQuality > PBRLightingQuality.Phong) {
+				line("	float NdH = max(0.001, dot(N, H));");
+				line("	float HdV = max(0.001, dot(H, V));");
+			}
 
-			line("	vec3 specfresnel = fresnel_factor(specularColour, HdV);");
-			// line("	vec3 specref = phong_specular(V, L, N, specfresnel, roughness);");
-			// line("	vec3 specref = blinn_specular(NdH, specfresnel, roughness);");
-			line("	vec3 specref = cooktorrance_specular(NdL, si.NdV, NdH, specfresnel, roughness);");
+			// specular contribution
+			if (lightingQuality == PBRLightingQuality.Phong) {
+				line("	vec3 specfresnel = fresnel_factor(specularColour, si.NdV);");
+				line("	vec3 specref = phong_specular(V, L, N, specfresnel, roughness);");
+			}
+			else {
+				line("	vec3 specfresnel = fresnel_factor(specularColour, HdV);");
+
+				if (lightingQuality == PBRLightingQuality.Blinn) {
+					line("	vec3 specref = blinn_specular(NdH, specfresnel, roughness);");
+				}
+				else {
+					line("	vec3 specref = cooktorrance_specular(NdL, si.NdV, NdH, specfresnel, roughness);");
+				}
+			}
+			
 			line("	specref *= vec3(NdL);");
 
-			// diffuse is common for all lighting models
+			// diffuse contribition is common for all lighting models
 			line("	vec3 diffref = (vec3(1.0) - specfresnel) * PHONG_DIFFUSE * NdL;");
 
 			// direct light
@@ -713,6 +738,22 @@ namespace sd.world {
 		}
 
 
+		setRenderFeatureEnabled(feature: RenderFeature, enable: boolean) {
+			var mask: Features = 0;
+
+			if (feature == RenderFeature.NormalMaps) {
+				mask |= Features.NormalMap;
+			}
+
+			if (enable) {
+				this.pbrPipeline_.enableFeatures(mask);
+			}
+			else {
+				this.pbrPipeline_.disableFeatures(mask);
+			}
+		}
+
+
 		create(entity: Entity, desc: PBRModelDescriptor): PBRModelInstance {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
@@ -808,7 +849,7 @@ namespace sd.world {
 		}
 
 
-		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, modelIx: number) {
+		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, lightingQuality: PBRLightingQuality, modelIx: number) {
 			var gl = this.rc.gl;
 			var drawCalls = 0;
 
@@ -830,6 +871,7 @@ namespace sd.world {
 
 				// -- features are a combo of Material features and optional shadow
 				var features: Features = this.primGroupFeatureBase_[primGroupBase + pgIx];
+				features |= lightingQuality << LightingQualityBitShift;
 				var pipeline = this.pbrPipeline_.pipelineForFeatures(features);
 				rp.setPipeline(pipeline);
 				rp.setMesh(mesh);
@@ -918,7 +960,7 @@ namespace sd.world {
 		}
 
 
-		draw(range: PBRModelRange, rp: render.RenderPass, proj: ProjectionSetup, environmentMap: render.Texture) {
+		draw(range: PBRModelRange, rp: render.RenderPass, proj: ProjectionSetup, lightingQuality: PBRLightingQuality, environmentMap: render.Texture) {
 			if (! this.brdfLookupTex_) {
 				return;
 			}
@@ -932,7 +974,7 @@ namespace sd.world {
 
 			let iter = range.makeIterator();
 			while (iter.next()) {
-				drawCalls += this.drawSingleForward(rp, proj, <number>iter.current);
+				drawCalls += this.drawSingleForward(rp, proj, lightingQuality, < number > iter.current);
 			}
 
 			return drawCalls;
