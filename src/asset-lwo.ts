@@ -73,7 +73,7 @@ namespace sd.asset {
 		var materialGroups: LWDrawGroup[] = [];
 		var curMaterialGroup: LWDrawGroup = null;
 
-		var meshData = new mesh.MeshData(mesh.AttrList.Pos3Norm3Colour3UV2());
+		var meshData = new mesh.MeshData(mesh.AttrList.Pos3Norm3UV2());
 		var vb = meshData.primaryVertexBuffer;
 
 		var posView: mesh.VertexBufferAttributeView;
@@ -132,7 +132,7 @@ namespace sd.asset {
 					nn.push([parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
 					break;
 				case "vt":
-					tt.push([parseFloat(tokens[1]), parseFloat(tokens[2])]);
+					tt.push([parseFloat(tokens[1]), -parseFloat(tokens[2])]);
 					break;
 				case "f":
 					vtx.apply(null, tokens[1].split("/").map(fxtoi));
@@ -186,15 +186,19 @@ namespace sd.asset {
 		});
 
 		var objProm = loadFile(filePath).then((text: string) => {
-				return parseLWObjectSource(text);
+			return parseLWObjectSource(text);
 		}).then((objData: LWMeshData) => {
-			assert(objData.mtlFileName.length > 0, "no MTL file?");
-			var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
-			loadLWMaterialFile(mtlFilePath).then(
-				function(materials: MaterialSet) {
-					mtlResolve(materials);
-				}
-			);
+			if (objData.mtlFileName) {
+				var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
+				loadLWMaterialFile(mtlFilePath).then(
+					function(materials: MaterialSet) {
+						mtlResolve(materials);
+					}
+				);
+			}
+			else {
+				mtlResolve(null);
+			}
 			return objData;
 		});
 
@@ -202,9 +206,9 @@ namespace sd.asset {
 			var materials: MaterialSet = values[0];
 			var obj: LWMeshData = values[1];
 			obj.materials = materials;
-			var colourAttr = obj.mesh.primaryVertexBuffer.attrByRole(mesh.VertexAttributeRole.Colour);
-			var colourView = new mesh.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer, colourAttr);
-			genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
+			// var colourAttr = obj.mesh.primaryVertexBuffer.attrByRole(mesh.VertexAttributeRole.Colour);
+			// var colourView = new mesh.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer, colourAttr);
+			// genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
 			return obj;
 		});
 	}
