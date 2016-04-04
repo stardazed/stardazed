@@ -337,7 +337,7 @@ namespace sd.world {
 				line("	// assume N, the interpolated vertex normal and ");
 				line("	// V, the view vector (vertex to eye)");
 				line("	vec3 map = texture2D(normalHeightMap, uv).xyz * 2.0 - 1.0;");
-				// line("	map.y = -map.y;");
+				line("	map.y = -map.y;");
 				line("	mat3 TBN = cotangentFrame(N, -V, uv);");
 				line("	return normalize(TBN * map);");
 				line("}");
