@@ -13,10 +13,12 @@ namespace sd.world {
 	export const enum PBRMaterialFlags {
 		SpecularSetup = 1 << 0,  // Metallic/Roughness if clear, Specular/Smoothness if set
 
-		MetallicMap = 1 << 1,
-		SpecularMap = MetallicMap,
-		RoughnessMap = 1 << 2,
+		// RMA components
+		RoughnessMap = 1 << 1,
+		MetallicMap = 1 << 2,
+		AmbientOcclusionMap = 1 << 3,
 
+		// NormalHeight components
 		NormalMap = 1 << 4,
 		HeightMap = 1 << 5
 	}
@@ -31,9 +33,8 @@ namespace sd.world {
 		textureOffset: Float2;
 
 		albedoMap: render.Texture;
-		materialMap: render.Texture;
+		rmaMap: render.Texture;
 		normalHeightMap: render.Texture;
-		ambientOcclusionMap: render.Texture;
 
 		flags: PBRMaterialFlags;
 	}
@@ -49,9 +50,8 @@ namespace sd.world {
 			textureOffset: vec2.copy([], math.Vec2.zero),
 
 			albedoMap: null,
-			materialMap: null,
+			rmaMap: null,
 			normalHeightMap: null,
-			ambientOcclusionMap: null,
 
 			flags: 0
 		};
@@ -60,19 +60,18 @@ namespace sd.world {
 
 	export interface PBRMaterialData {
 		colourData: Float32Array;     // baseColour(rgb), opacity
-		materialParam: Float32Array;  // metallic, 0, 0, roughness | specularColour(rgb), smoothness
+		materialParam: Float32Array;  // roughness, metallic, 0, 0 | specular(rgb), roughness
 		texScaleOffsetData: Float32Array; // scale(xy), offset(xy)
 		albedoMap: render.Texture;
 		materialMap: render.Texture;
 		normalHeightMap: render.Texture;
-		ambientOcclusionMap: render.Texture;
 		flags: PBRMaterialFlags;
 	}
 
 
 	const enum PBRMaterialParam {
-		Metallic = 0,
-		Roughness = 1,
+		Roughness = 0,
+		Metallic = 1,
 		// AmbientOcclusion = 2 // only in a texture
 	}
 
@@ -89,7 +88,6 @@ namespace sd.world {
 		private albedoMaps_: render.Texture[] = [];
 		private materialMaps_: render.Texture[] = [];
 		private normalHeightMaps_: render.Texture[] = [];
-		private ambientOcclusionMaps_: render.Texture[] = [];
 
 		private baseColourBase_: TypedArray;
 		private materialBase_: TypedArray;
@@ -104,7 +102,7 @@ namespace sd.world {
 
 			var fields: container.MABField[] = [
 				{ type: Float, count: 4 },  // baseColour[3], 0
-				{ type: Float, count: 4 },  // metallic, 0, 0, roughness | specular(rgb), smoothness
+				{ type: Float, count: 4 },  // roughness, metallic, 0, 0
 				{ type: Float, count: 4 },  // textureScale[2], textureOffset[2]
 				{ type: Float, count: 1 },  // opacity
 				{ type: SInt32, count: 1 }, // flags
@@ -130,20 +128,21 @@ namespace sd.world {
 			}
 			var matIndex = this.instanceData_.count; // entry 0 is reserved as nullptr-like
 
+			// compile baseColour and RMA fixed vars
 			vec4.set(this.tempVec4, desc.baseColour[0], desc.baseColour[1], desc.baseColour[2], 0);
 			container.setIndexedVec4(this.baseColourBase_, matIndex, this.tempVec4);
-			vec4.set(this.tempVec4, math.clamp01(desc.metallic), math.clamp01(desc.roughness), 0, 0);
+			vec4.set(this.tempVec4, math.clamp01(desc.roughness), math.clamp01(desc.metallic), 0, 0);
 			container.setIndexedVec4(this.materialBase_, matIndex, this.tempVec4);
 
+			// pack texture scale and offset into 4-comp float
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
 			this.flagsBase_[matIndex] = desc.flags;
 
 			this.albedoMaps_[matIndex] = desc.albedoMap;
-			this.materialMaps_[matIndex] = desc.materialMap;
+			this.materialMaps_[matIndex] = desc.rmaMap;
 			this.normalHeightMaps_[matIndex] = desc.normalHeightMap;
-			this.ambientOcclusionMaps_[matIndex] = desc.ambientOcclusionMap;
 
 			this.opacityBase_[matIndex] = 1.0;
 
@@ -163,7 +162,6 @@ namespace sd.world {
 			this.albedoMaps_[matIndex] = null;
 			this.materialMaps_[matIndex] = null;
 			this.normalHeightMaps_[matIndex] = null;
-			this.ambientOcclusionMaps_[matIndex] = null;
 
 			// TODO: track/reuse freed instances etc.
 		}
@@ -235,27 +233,6 @@ namespace sd.world {
 		}
 
 
-		specularColour(inst: PBRMaterialInstance): Float3 {
-			assert(this.flagsBase_[<number>inst] & PBRMaterialFlags.SpecularSetup, "Material must be in specular setup");
-
-			var offset = <number>inst * 4;
-			return [
-				this.materialBase_[offset],
-				this.materialBase_[offset + 1],
-				this.materialBase_[offset + 2]
-			];
-		}
-
-		setSpecularColour(inst: PBRMaterialInstance, newColour: Float3) {
-			assert(this.flagsBase_[<number>inst] & PBRMaterialFlags.SpecularSetup, "Material must be in specular setup");
-
-			var offset = <number>inst * 4;
-			this.materialBase_[offset] = newColour[0];
-			this.materialBase_[offset + 1] = newColour[1];
-			this.materialBase_[offset + 2] = newColour[2];
-		}
-
-
 		opacity(inst: PBRMaterialInstance): number {
 			return this.opacityBase_[<number>inst];
 		}
@@ -305,10 +282,6 @@ namespace sd.world {
 			return this.normalHeightMaps_[<number>inst];
 		}
 
-		ambientOcclusionMap(inst: PBRMaterialInstance): render.Texture {
-			return this.ambientOcclusionMaps_[<number>inst];
-		}
-
 
 		flags(inst: PBRMaterialInstance): PBRMaterialFlags {
 			return this.flagsBase_[<number>inst];
@@ -330,7 +303,6 @@ namespace sd.world {
 				albedoMap: this.albedoMaps_[matIndex],
 				materialMap: this.materialMaps_[matIndex],
 				normalHeightMap: this.normalHeightMaps_[matIndex],
-				ambientOcclusionMap: this.ambientOcclusionMaps_[matIndex],
 
 				flags: this.flagsBase_[matIndex]
 			};
