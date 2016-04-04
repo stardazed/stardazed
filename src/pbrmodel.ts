@@ -51,7 +51,7 @@ namespace sd.world {
 
 		// -- textures
 		albedoMapUniform: WebGLUniformLocation;
-		rmaMapUniform: WebGLUniformLocation;
+		materialMapUniform: WebGLUniformLocation;
 		normalHeightMapUniform: WebGLUniformLocation;
 
 		environmentMapUniform: WebGLUniformLocation;
@@ -70,11 +70,10 @@ namespace sd.world {
 
 	const enum TextureBindPoint {
 		Albedo = 0,
-		Specular = 1,
-		RMA = 2,
-		NormalHeight = 3,
-		Environment = 4,
-		BRDFLookup = 5
+		Material = 1,
+		NormalHeight = 2,
+		Environment = 3,
+		BRDFLookup = 4,
 	}
 
 
@@ -165,9 +164,9 @@ namespace sd.world {
 				}
 			}
 			if (feat & (Features.MetallicMap | Features.RoughnessMap)) {
-				program.rmaMapUniform = gl.getUniformLocation(program, "rmaMap");
-				if (program.rmaMapUniform) {
-					gl.uniform1i(program.rmaMapUniform, TextureBindPoint.RMA);
+				program.materialMapUniform = gl.getUniformLocation(program, "materialMap");
+				if (program.materialMapUniform) {
+					gl.uniform1i(program.materialMapUniform, TextureBindPoint.Material);
 				}
 			}
 			if (feat & (Features.NormalMap | Features.HeightMap | feat & Features.AOMap)) {
@@ -280,7 +279,7 @@ namespace sd.world {
 			line  ("uniform vec4 materialParam;");
 
 			if_all("uniform sampler2D albedoMap;", Features.AlbedoMap);
-			if_any("uniform sampler2D rmaMap;", Features.MetallicMap | Features.RoughnessMap | Features.AOMap);
+			if_any("uniform sampler2D materialMap;", Features.MetallicMap | Features.RoughnessMap | Features.AOMap);
 			if_any("uniform sampler2D normalHeightMap;", Features.NormalMap | Features.HeightMap);
 			if_all("uniform sampler2D ambientOcclusionMap;", Features.AOMap);
 			line  ("uniform sampler2D brdfLookupMap;");
@@ -555,7 +554,8 @@ namespace sd.world {
 
 			var hasRMAMap = false;
 			if (feat & (Features.MetallicMap | Features.RoughnessMap | Features.AOMap)) {
-				line("	vec4 matParam = texture2D(rmaMap, vertexUV_intp);");
+				line("	vec4 matParam = texture2D(materialMap, vertexUV_intp);");
+				// line("  baseColour = vec3(matParam.r, 0.0, 0.0);");
 				hasRMAMap = true;
 			}
 			else {
@@ -593,6 +593,8 @@ namespace sd.world {
 			line  ("			totalLight += calcSpotLight(baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, si);");
 			line  ("		}");
 			line  ("	}");
+
+			// if_all("	totalLight *= matParam[MAT_AMBIENT_OCCLUSION];", Features.AOMap);
 
 			// -- final lightColour result
 			line  ("	gl_FragColor = vec4(totalLight, 1.0);");
@@ -734,6 +736,18 @@ namespace sd.world {
 				features |= Features.NormalMap;
 			}
 
+			if (this.materialMgr_.materialMap(material)) {
+				if (matFlags & PBRMaterialFlags.RoughnessMap) {
+					features |= Features.RoughnessMap;
+				}
+				if (matFlags & PBRMaterialFlags.MetallicMap) {
+					features |= Features.MetallicMap;
+				}
+				if (matFlags & PBRMaterialFlags.AmbientOcclusionMap) {
+					features |= Features.AOMap;
+				}
+			}
+
 			return features;
 		}
 
@@ -741,7 +755,10 @@ namespace sd.world {
 		setRenderFeatureEnabled(feature: RenderFeature, enable: boolean) {
 			var mask: Features = 0;
 
-			if (feature == RenderFeature.NormalMaps) {
+			if (feature == RenderFeature.AlbedoMaps) {
+				mask |= Features.AlbedoMap;
+			}
+			else if (feature == RenderFeature.NormalMaps) {
 				mask |= Features.NormalMap;
 			}
 
@@ -903,6 +920,9 @@ namespace sd.world {
 				}
 				if (features & Features.AlbedoMap) {
 					rp.setTexture(materialData.albedoMap, TextureBindPoint.Albedo);
+				}
+				if (features & (Features.RoughnessMap | Features.MetallicMap | Features.AOMap)) {
+					rp.setTexture(materialData.materialMap, TextureBindPoint.Material);
 				}
 				if (features & Features.NormalMap) {
 					rp.setTexture(materialData.normalHeightMap, TextureBindPoint.NormalHeight);

@@ -33,7 +33,7 @@ namespace sd.world {
 		textureOffset: Float2;
 
 		albedoMap: render.Texture;
-		rmaMap: render.Texture;
+		materialMap: render.Texture;
 		normalHeightMap: render.Texture;
 
 		flags: PBRMaterialFlags;
@@ -50,7 +50,7 @@ namespace sd.world {
 			textureOffset: vec2.copy([], math.Vec2.zero),
 
 			albedoMap: null,
-			rmaMap: null,
+			materialMap: null,
 			normalHeightMap: null,
 
 			flags: 0
@@ -141,7 +141,7 @@ namespace sd.world {
 			this.flagsBase_[matIndex] = desc.flags;
 
 			this.albedoMaps_[matIndex] = desc.albedoMap;
-			this.materialMaps_[matIndex] = desc.rmaMap;
+			this.materialMaps_[matIndex] = desc.materialMap;
 			this.normalHeightMaps_[matIndex] = desc.normalHeightMap;
 
 			this.opacityBase_[matIndex] = 1.0;
