@@ -402,17 +402,7 @@ namespace sd.asset {
 					let haveFullDiffuse = false;
 
 					for (let c of fbxMat.children) {
-						if (c.name == "Ambient") {
-							// the Ambient prop is AmbientColor * AmbientFactor
-							vec3.copy(mat.ambientColour, <number[]>c.values);
-							haveFullAmbient = true;
-						}
-						else if (c.name == "AmbientColor") {
-							if (!haveFullAmbient) {
-								vec3.copy(mat.ambientColour, <number[]>c.values);
-							}
-						}
-						else if (c.name == "Diffuse") {
+						if (c.name == "Diffuse") {
 							// the Diffuse prop is DiffuseColor * DiffuseFactor
 							vec3.copy(mat.diffuseColour, <number[]>c.values);
 							haveFullDiffuse = true;

@@ -24,8 +24,6 @@ namespace sd.asset {
 
 
 	export interface Material extends Asset {
-		ambientColour: Float3;
-
 		emissiveColour: Float3;
 		emissiveIntensity: number;
 
@@ -54,8 +52,6 @@ namespace sd.asset {
 	export function makeMaterial(): Material {
 		return {
 			name: "",
-
-			ambientColour: [0, 0, 0],
 
 			emissiveColour: [0, 0, 0],
 			emissiveIntensity: 0,
