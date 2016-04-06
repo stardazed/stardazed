@@ -594,7 +594,7 @@ namespace sd.world {
 			line  ("		}");
 			line  ("	}");
 
-			// if_all("	totalLight *= matParam[MAT_AMBIENT_OCCLUSION];", Features.AOMap);
+			if_all("	totalLight *= matParam[MAT_AMBIENT_OCCLUSION];", Features.AOMap);
 
 			// -- final lightColour result
 			line  ("	gl_FragColor = vec4(totalLight, 1.0);");
