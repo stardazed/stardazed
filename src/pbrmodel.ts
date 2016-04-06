@@ -219,12 +219,14 @@ namespace sd.world {
 			line  ("attribute vec3 vertexPos_model;");
 			line  ("attribute vec3 vertexNormal;");
 			if_all("attribute vec2 vertexUV;", Features.VtxUV);
+			if_all("attribute vec3 vertexColour;", Features.VtxColour);
 
 			// Out
 			line  ("varying vec3 vertexNormal_cam;");
 			line  ("varying vec3 vertexPos_world;");
 			line  ("varying vec3 vertexPos_cam;");
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
+			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
 			// Uniforms
 			line  ("uniform mat4 modelMatrix;");
@@ -242,6 +244,7 @@ namespace sd.world {
 			line  ("	vertexNormal_cam = normalMatrix * vertexNormal;");
 			line  ("	vertexPos_cam = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;");
 			if_all("	vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;", Features.VtxUV);
+			if_all("	vertexColour_intp = vertexColour;", Features.VtxColour);
 			line  ("}");
 
 			// console.info("------ VERTEX");
@@ -269,6 +272,7 @@ namespace sd.world {
 			line  ("varying vec3 vertexNormal_cam;");
 			line  ("varying vec3 vertexPos_cam;");
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
+			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
 			// Uniforms
 			line  ("uniform mat3 normalMatrix;");
@@ -551,6 +555,8 @@ namespace sd.world {
 			else {
 				line("	vec3 baseColour = baseColour.rgb;");
 			}
+			if_all("	baseColour *= vertexColour_intp;", Features.VtxColour);
+
 
 			var hasRMAMap = false;
 			if (feat & (Features.MetallicMap | Features.RoughnessMap | Features.AOMap)) {
