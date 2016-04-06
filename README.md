@@ -2,7 +2,7 @@ Stardazed TX
 ============
 
 A library to enable quick development of custom 3D games in the browser.<br>
-Sibling of [Stardazed](https://github.com/stardazed/stardazed), my native C++ game library.
+All code runs in the browser, the library does *not* have or need a server component.
 
 Built in TypeScript, builds against TS 1.8 or newer, just run `tsc` somewhere inside the project dir.
 
@@ -20,11 +20,10 @@ succesfully for small projects. For the foreseeable future the library will requ
 technical expertise to use.
 
 ### Sub goals
-
 - Learn about all aspects of game programming by implementing them. This is an educational project for myself.
-- Compact library code size (currently the minified js is ~150KiB vs 25MiB+ for Unity webgl)
+- Compact library code size (currently the minified js incl. all dependencies is ~330KiB vs 25MiB+ for Unity webgl)
 - Fast and scalable (a lot of the data is kept in linear typed arrays, not in millions of tiny objects)
-- Powerful renderer (getting to a level of at least Unity 4 — pre-PBR — is the current goal)
+- Powerful renderer (Metallic and Specular setup PBR support, limited GI)
 - Solid physics engine (good even for demanding sitations)
 - Scalable and compatible (works well with all modern browsers, desktop and mobile)
 
@@ -40,7 +39,7 @@ Features
   - TGA file support for Chrome and Firefox (Safari has a built-in loader)
 
 ### Renderer
-- Metallic-setup PBR material support with RMA, normal and albedo map support
+- Metallic-setup PBR materials with RMA, normal and albedo map support
 - Forward shader with multiple fragment lights and shadowmap-based shadows
 - Hardware vertex skinning for skinned models
 - Optimized generation of shaders for models with different features
@@ -55,11 +54,12 @@ Features
 
 
 Development is ongoing continuously, check the
-[blog](http://blog.stardazed.club/) and the
+[blog](http://blog.stardazed.club/) and our
+[twitter](https://twitter.com/clubstardazed) and the
 [issues page](https://github.com/stardazed/stardazed-tx/issues)
 to see what we're working on.
 
 ---
 
 License: MIT License<br>
-(c) 2015-6 by Arthur Langereis ([@zenmumbler](https://twitter.com/zenmumbler))
+(c) 2015-2016 by Arthur Langereis ([@zenmumbler](https://twitter.com/zenmumbler))
