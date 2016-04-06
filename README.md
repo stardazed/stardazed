@@ -37,8 +37,10 @@ Features
 - LWO asset support (meshes, materials)
 - TMX (Tiled Map Editor) support (basic tilemaps)
 - Of course all browser-supported image and sound file formats
+  - TGA file support for Chrome and Firefox (Safari has a built-in loader)
 
 ### Renderer
+- Metallic-setup PBR material support with RMA, normal and albedo map support
 - Forward shader with multiple fragment lights and shadowmap-based shadows
 - Hardware vertex skinning for skinned models
 - Optimized generation of shaders for models with different features
