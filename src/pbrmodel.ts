@@ -561,7 +561,6 @@ namespace sd.world {
 			var hasRMAMap = false;
 			if (feat & (Features.MetallicMap | Features.RoughnessMap | Features.AOMap)) {
 				line("	vec4 matParam = texture2D(materialMap, vertexUV_intp);");
-				// line("  baseColour = vec3(matParam.r, 0.0, 0.0);");
 				hasRMAMap = true;
 			}
 			else {
