@@ -310,22 +310,26 @@ namespace sd.mesh.gen {
 		height: number; // float, dimension in Y
 		depth: number;  // float, dimension in Z
 
+		inward: boolean;
+
 		// subdivU, subdivV: number
 	}
 
-	export function cubeDescriptor(diam: number): BoxDescriptor {
-		return { width: diam, height: diam, depth: diam };
+	export function cubeDescriptor(diam: number, inward = false): BoxDescriptor {
+		return { width: diam, height: diam, depth: diam, inward: inward };
 	}
 
 	export class Box implements MeshGenerator {
 		private xDiam_: number;
 		private yDiam_: number;
 		private zDiam_: number;
+		private inward_: boolean;
 
 		constructor(desc: BoxDescriptor) {
 			this.xDiam_ = desc.width;
 			this.yDiam_ = desc.height;
 			this.zDiam_ = desc.depth;
+			this.inward_ = desc.inward || false;
 
 			assert(this.xDiam_ > 0);
 			assert(this.yDiam_ > 0);
@@ -364,7 +368,11 @@ namespace sd.mesh.gen {
 			];
 
 			// topleft, topright, botright, botleft
-			var quad = function(a: number, b: number, c: number, d: number, norm: Float3) {
+			var quad = (a: number, b: number, c: number, d: number, norm: Float3) => {
+				if (this.inward_) {
+					vec3.negate(norm, norm);
+				}
+
 				position(p[a][0], p[a][1], p[a][2]);
 				position(p[b][0], p[b][1], p[b][2]);
 				position(p[c][0], p[c][1], p[c][2]);
@@ -383,8 +391,14 @@ namespace sd.mesh.gen {
 				uv(1, 1);
 
 				// ccw faces
-				face(curVtx, curVtx + 1, curVtx + 2);
-				face(curVtx + 2, curVtx + 3, curVtx);
+				if (this.inward_) {
+					face(curVtx, curVtx + 2, curVtx + 1);
+					face(curVtx + 2, curVtx, curVtx + 3);
+				}
+				else {
+					face(curVtx, curVtx + 1, curVtx + 2);
+					face(curVtx + 2, curVtx + 3, curVtx);
+				}
 
 				curVtx += 4;
 			};
