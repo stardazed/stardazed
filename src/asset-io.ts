@@ -206,7 +206,7 @@ namespace sd.asset {
 	export function loadImageData(src: string): Promise<ImageData> {
 		return loadImage(src).then(function(imageOrData) {
 			if ("data" in imageOrData) {
-				return <ImageData>imageOrData
+				return <ImageData>imageOrData;
 			}
 			else {
 				return imageData(<HTMLImageElement>imageOrData);

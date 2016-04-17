@@ -256,7 +256,7 @@ namespace sd.world {
 			var viewMatrix: Float4x4 = null;
 			var projectionMatrix: Float4x4 = null;
 
-			const nearZ = 2; // fixed near-z
+			const nearZ = .1; // fixed near-z
 
 			var type = this.typeBase_[<number>inst];
 			if (type == LightType.Spot) {
