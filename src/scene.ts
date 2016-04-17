@@ -6,6 +6,7 @@ namespace sd.world {
 
 	export interface EntityDescriptor {
 		transform?: TransformDescriptor;
+		parent?: TransformInstance;
 		stdModel?: StdModelDescriptor;
 		pbrModel?: PBRModelDescriptor;
 		rigidBody?: RigidBodyDescriptor;
@@ -60,7 +61,7 @@ namespace sd.world {
 
 			return {
 				entity: ent,
-				transform: this.transformMgr.create(ent, desc && desc.transform),
+				transform: this.transformMgr.create(ent, desc && desc.transform, desc && desc.parent),
 				stdModel: desc && desc.stdModel ? this.stdModelMgr.create(ent, desc.stdModel) : null,
 				pbrModel: desc && desc.pbrModel ? this.pbrModelMgr.create(ent, desc.pbrModel) : null,
 				rigidBody: desc && desc.rigidBody ? this.rigidBodyMgr.create(ent, desc.rigidBody) : null,
