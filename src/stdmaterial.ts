@@ -36,6 +36,7 @@ namespace sd.world {
 		textureOffset: Float2;
 
 		diffuseMap: render.Texture;      // nullptr means use mainColour only
+		specularMap: render.Texture;
 		normalMap: render.Texture;      // nullptr means no bump
 
 		opacity: number;                // 0..1, only used if flags has `isTranslucent` set
@@ -58,6 +59,7 @@ namespace sd.world {
 			textureOffset: vec2.copy([], math.Vec2.zero),
 
 			diffuseMap: null,
+			specularMap: null,
 			normalMap: null,
 
 			opacity: 1,
@@ -74,6 +76,7 @@ namespace sd.world {
 		specularData: Float32Array;
 		texScaleOffsetData: Float32Array;
 		diffuseMap: render.Texture;
+		specularMap: render.Texture;
 		normalMap: render.Texture;
 		jointData: render.Texture;
 		flags: StdMaterialFlags;
@@ -97,6 +100,7 @@ namespace sd.world {
 	export class StdMaterialManager implements ComponentManager<StdMaterialManager> {
 		private instanceData_: container.MultiArrayBuffer;
 		private diffuseMaps_: render.Texture[] = [];
+		private specularMaps_: render.Texture[] = [];
 		private normalMaps_: render.Texture[] = [];
 		private jointDataMaps_: render.Texture[] = [];
 
@@ -152,6 +156,7 @@ namespace sd.world {
 			this.flagsBase_[matIndex] = desc.flags;
 
 			this.diffuseMaps_[matIndex] = desc.diffuseMap;
+			this.specularMaps_[matIndex] = desc.specularMap;
 			this.normalMaps_[matIndex] = desc.normalMap;
 			this.jointDataMaps_[matIndex] = desc.jointData;
 
@@ -171,6 +176,7 @@ namespace sd.world {
 			this.opacityBase_[matIndex] = 0;
 
 			this.diffuseMaps_[matIndex] = null;
+			this.specularMaps_[matIndex] = null;
 			this.normalMaps_[matIndex] = null;
 			this.jointDataMaps_[matIndex] = null;
 
@@ -276,6 +282,15 @@ namespace sd.world {
 		}
 
 
+		specularMap(inst: StdMaterialInstance): render.Texture {
+			return this.specularMaps_[<number>inst];
+		}
+
+		setSpecularMap(inst: StdMaterialInstance, newTex: render.Texture) {
+			this.specularMaps_[<number>inst] = newTex;
+		}
+
+
 		normalMap(inst: StdMaterialInstance): render.Texture {
 			return this.normalMaps_[<number>inst];
 		}
@@ -332,6 +347,7 @@ namespace sd.world {
 				textureOffset: this.textureOffset(inst),
 
 				diffuseMap: this.diffuseMaps_[matIndex],
+				specularMap: this.specularMaps_[matIndex],
 				normalMap: this.normalMaps_[matIndex],
 				jointData: this.jointDataMaps_[matIndex],
 
@@ -355,6 +371,7 @@ namespace sd.world {
 				texScaleOffsetData: <Float32Array>container.refIndexedVec4(this.texScaleOffsetBase_, matIndex),
 
 				diffuseMap: this.diffuseMaps_[matIndex],
+				specularMap: this.specularMaps_[matIndex],
 				normalMap: this.normalMaps_[matIndex],
 				jointData: this.jointDataMaps_[matIndex],
 

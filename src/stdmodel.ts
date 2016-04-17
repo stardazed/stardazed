@@ -10,7 +10,7 @@ namespace sd.world {
 		VtxColour                  = 0x000004,
 
 		Specular                   = 0x000008, // Implied true if GlossMap
-		// SpecularMap                = 0x000010,
+		SpecularMap                = 0x000010,
 
 		DiffuseMap                 = 0x000020,
 		DiffuseAlphaIsTransparency = 0x000040, // \__ 
@@ -50,6 +50,7 @@ namespace sd.world {
 
 		colourMapUniform?: WebGLUniformLocation;        // sampler2D
 		normalMapUniform?: WebGLUniformLocation;        // sampler2D
+		specularMapUniform?: WebGLUniformLocation;        // sampler2D
 
 		// -- lights
 		lightTypeArrayUniform?: WebGLUniformLocation;      // int[MAX_FRAGMENT_LIGHTS]
@@ -73,8 +74,9 @@ namespace sd.world {
 	const enum TextureBindPoint {
 		Colour = 0, // rgb, (alpha|gloss)?
 		Normal = 1, // xyz, height?
-		Shadow = 2,
-		JointData = 3
+		Specular = 2,
+		Shadow = 3,
+		JointData = 4
 	}
 
 
@@ -198,6 +200,10 @@ namespace sd.world {
 			program.normalMapUniform = gl.getUniformLocation(program, "normalSampler");
 			if (program.normalMapUniform) {
 				gl.uniform1i(program.normalMapUniform, TextureBindPoint.Normal);
+			}
+			program.specularMapUniform = gl.getUniformLocation(program, "specularSampler");
+			if (program.specularMapUniform) {
+				gl.uniform1i(program.specularMapUniform, TextureBindPoint.Specular);
 			}
 			program.shadowMapUniform = gl.getUniformLocation(program, "shadowSampler");
 			if (program.shadowMapUniform) {
@@ -431,6 +437,7 @@ namespace sd.world {
 			if_all("uniform vec4 specular;", Features.Specular);
 			if_all("uniform sampler2D diffuseSampler;", Features.DiffuseMap);
 			if_all("uniform sampler2D normalSampler;", Features.NormalMap);
+			if_all("uniform sampler2D specularSampler;", Features.SpecularMap);
 			if_all("uniform sampler2D shadowSampler;", Features.ShadowMap);
 			if_all("uniform int shadowCastingLightIndex;", Features.ShadowMap);
 
@@ -466,7 +473,7 @@ namespace sd.world {
 			}
 
 			// initialized in main() as GLSL ES 2 does not support array initializers
-			if_all("vec2 poissonDisk[4];", Features.SoftShadow);
+			if_all("vec2 poissonDisk[16];", Features.SoftShadow);
 
 			// -- calcLightShared()
 			line  ("vec3 calcLightShared(vec3 matColour, vec4 colour, vec4 param, float diffuseStrength, vec3 lightDirection, vec3 normal_cam) {");
@@ -482,7 +489,12 @@ namespace sd.world {
 				line("	vec3 reflectVec = reflect(lightDirection, normal_cam);");
 				line("	float specularStrength = dot(viewVec, reflectVec);");
 				line("	if (specularStrength > 0.0) {");
-				line("		vec3 specularColour = mix(matColour, colour.rgb, specular[SPEC_COLOURMIX]);");
+				if (feat & Features.SpecularMap) {
+					line("		vec3 specularColour = texture2D(specularSampler, vertexUV_intp).xyz;");
+				}
+				else {
+					line("		vec3 specularColour = mix(matColour, colour.rgb, specular[SPEC_COLOURMIX]);");
+				}
 				line("		specularStrength = pow(specularStrength, specular[SPEC_EXPONENT]) * diffuseStrength;"); // FIXME: not too sure about this (* diffuseStrength)
 				line("		specularContrib = specularColour * specularStrength * specular[SPEC_INTENSITY];");
 				line("	}");
@@ -498,8 +510,9 @@ namespace sd.world {
 			line  ("vec3 calcPointLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 lightPos_world, vec3 normal_cam) {");
 			line  ("	float distance = length(vertexPos_world - lightPos_world);"); // use world positions for distance as cam will warp coords
 			line  ("	vec3 lightDirection = normalize(vertexPos_cam - lightPos_cam.xyz);");
-			line  ("	float attenuation = 1.0 - pow(clamp(distance / param[LPARAM_RANGE], 0.0, 1.0), 2.0);");
-			line  ("    attenuation *= dot(normal_cam, -lightDirection);");
+			line  ("	float range = param[LPARAM_RANGE];");
+			line  ("	float attenuation = clamp(1.0 - distance * distance / (range * range), 0.0, 1.0);");
+			line  ("	attenuation *= attenuation;");
 			line  ("	return calcLightShared(matColour, colour, param, attenuation, lightDirection, normal_cam);");
 			line  ("}");
 
@@ -597,6 +610,18 @@ namespace sd.world {
 				line("	poissonDisk[1] = vec2(0.94558609, -0.76890725);");
 				line("	poissonDisk[2] = vec2(-0.094184101, -0.92938870);");
 				line("	poissonDisk[3] = vec2(0.34495938, 0.29387760);");
+				line("	poissonDisk[4] = vec2( -0.91588581, 0.45771432 );")
+				line("	poissonDisk[5] = vec2( -0.81544232, -0.87912464 );")
+				line("	poissonDisk[6] = vec2( -0.38277543, 0.27676845 );")
+				line("	poissonDisk[7] = vec2( 0.97484398, 0.75648379 );")
+				line("	poissonDisk[8] = vec2( 0.44323325, -0.97511554 );")
+				line("	poissonDisk[9] = vec2( 0.53742981, -0.47373420 );")
+				line("	poissonDisk[10] = vec2( -0.26496911, -0.41893023 );")
+				line("	poissonDisk[11] = vec2( 0.79197514, 0.19090188 );")
+				line("	poissonDisk[12] = vec2( -0.24188840, 0.99706507 ); ")
+				line("	poissonDisk[13] = vec2( -0.81409955, 0.91437590 );")
+				line("	poissonDisk[14] = vec2( 0.19984126, 0.78641367 );")
+				line("	poissonDisk[15] = vec2( 0.14383161, -0.14100790 );")
 			}
 
 			// -- normal in camera space, convert from tangent space
@@ -626,8 +651,8 @@ namespace sd.world {
 
 				if (feat & Features.SoftShadow) {
 					// well, soft-ish
-					line("			float strengthIncrement = lightPos_cam[LPOS_STRENGTH] / 4.0;");
-					line("			for (int ssi = 0; ssi < 4; ++ssi) {");
+					line("			float strengthIncrement = lightPos_cam[LPOS_STRENGTH] / 16.0;");
+					line("			for (int ssi = 0; ssi < 16; ++ssi) {");
 					line("				vec2 shadowSampleCoord = (vertexPos_light.xy / vertexPos_light.w) + (poissonDisk[ssi] / 550.0);");
 					line("				float shadowZ = texture2D(shadowSampler, shadowSampleCoord).z;");
 					line("				if (shadowZ < fragZ) {");
@@ -807,6 +832,7 @@ namespace sd.world {
 
 			if (this.materialMgr_.diffuseMap(material)) features |= Features.DiffuseMap;
 			if (this.materialMgr_.normalMap(material)) features |= Features.NormalMap;
+			if (this.materialMgr_.specularMap(material)) features |= Features.SpecularMap | Features.Specular;
 			if (this.materialMgr_.jointData(material)) features |= Features.Skinned;
 
 			// Remove redundant or unused features as GL drivers can and will remove attributes that are only used in the vertex shader
@@ -1001,11 +1027,14 @@ namespace sd.world {
 				if (features & Features.Specular) {
 					gl.uniform4fv(program.specularUniform, materialData.specularData);
 				}
-				if (features & (Features.DiffuseMap | Features.NormalMap)) {
+				if (features & (Features.DiffuseMap | Features.NormalMap | Features.SpecularMap)) {
 					gl.uniform4fv(program.texScaleOffsetUniform, materialData.texScaleOffsetData);
 				}
 				if (features & Features.DiffuseMap) {
 					rp.setTexture(materialData.diffuseMap, TextureBindPoint.Colour);
+				}
+				if (features & Features.SpecularMap) {
+					rp.setTexture(materialData.specularMap, TextureBindPoint.Specular);
 				}
 				if (features & Features.NormalMap) {
 					rp.setTexture(materialData.normalMap, TextureBindPoint.Normal);
