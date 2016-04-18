@@ -14,6 +14,7 @@ namespace sd.world {
 	export const enum StdMaterialFlags {
 		usesSpecular               = 0x00000001,
 		isTranslucent              = 0x00000002,
+		usesEmissive               = 0x00000004,
 
 		diffuseAlphaIsTransparency = 0x00000100,
 		diffuseAlphaIsOpacity      = 0x00000200,
@@ -30,6 +31,9 @@ namespace sd.world {
 		specularIntensity: number;      // 0..1
 		specularExponent: number;       // 0+
 		specularColourMix: number;      // 0..1: mix between material colour and light colour for specular (0: all material, 1: all light)
+
+		emissiveColour: Float3;
+		emissiveIntensity: number;
 
 		// textures
 		textureScale: Float2;           // [0..1, 0..1], scale and offset apply to all textures, u and v clamped to 0..1
@@ -55,6 +59,9 @@ namespace sd.world {
 			specularExponent: 0,
 			specularColourMix: 0.8,
 
+			emissiveColour: math.Vec3.zero,
+			emissiveIntensity: 0,
+
 			textureScale: vec2.copy([], math.Vec2.one),
 			textureOffset: vec2.copy([], math.Vec2.zero),
 
@@ -74,6 +81,7 @@ namespace sd.world {
 	export interface StdMaterialData {
 		colourData: Float32Array;
 		specularData: Float32Array;
+		emissiveData: Float32Array;
 		texScaleOffsetData: Float32Array;
 		diffuseMap: render.Texture;
 		specularMap: render.Texture;
@@ -106,6 +114,7 @@ namespace sd.world {
 
 		private mainColourBase_: TypedArray;
 		private specularBase_: TypedArray;
+		private emissiveBase_: TypedArray;
 		private texScaleOffsetBase_: TypedArray;
 		private opacityBase_: TypedArray;
 		private flagsBase_: TypedArray;
@@ -118,6 +127,7 @@ namespace sd.world {
 			var fields: container.MABField[] = [
 				{ type: Float, count: 4 },  // mainColour[3], 0
 				{ type: Float, count: 4 },  // specularIntensity, specularExponent, specularColourMix, 0
+				{ type: Float, count: 4 },  // emissiveColour[3], emissiveIntensity
 				{ type: Float, count: 4 },  // textureScale[2], textureOffset[2]
 				{ type: Float, count: 1 },  // opacity
 				{ type: SInt32, count: 1 }, // flags
@@ -131,9 +141,10 @@ namespace sd.world {
 		private rebase() {
 			this.mainColourBase_ = this.instanceData_.indexedFieldView(0);
 			this.specularBase_ = this.instanceData_.indexedFieldView(1);
-			this.texScaleOffsetBase_ = this.instanceData_.indexedFieldView(2);
-			this.opacityBase_ = this.instanceData_.indexedFieldView(3);
-			this.flagsBase_ = this.instanceData_.indexedFieldView(4);
+			this.emissiveBase_ = this.instanceData_.indexedFieldView(2);
+			this.texScaleOffsetBase_ = this.instanceData_.indexedFieldView(3);
+			this.opacityBase_ = this.instanceData_.indexedFieldView(4);
+			this.flagsBase_ = this.instanceData_.indexedFieldView(5);
 		}
 
 
@@ -147,6 +158,8 @@ namespace sd.world {
 			container.setIndexedVec4(this.mainColourBase_, matIndex, this.tempVec4);
 			vec4.set(this.tempVec4, desc.specularIntensity, desc.specularExponent, desc.specularColourMix, 0);
 			container.setIndexedVec4(this.specularBase_, matIndex, this.tempVec4);
+			vec4.set(this.tempVec4, desc.emissiveColour[0], desc.emissiveColour[1], desc.emissiveColour[2], desc.emissiveIntensity);
+			container.setIndexedVec4(this.emissiveBase_, matIndex, this.tempVec4);
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
@@ -171,6 +184,7 @@ namespace sd.world {
 
 			container.setIndexedVec4(this.mainColourBase_, matIndex, math.Vec4.zero);
 			container.setIndexedVec4(this.specularBase_, matIndex, math.Vec4.zero);
+			container.setIndexedVec4(this.emissiveBase_, matIndex, math.Vec4.zero);
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, math.Vec4.zero);
 			this.flagsBase_[matIndex] = 0;
 			this.opacityBase_[matIndex] = 0;
@@ -219,6 +233,33 @@ namespace sd.world {
 			this.mainColourBase_[offset]     = newColour[0];
 			this.mainColourBase_[offset + 1] = newColour[1];
 			this.mainColourBase_[offset + 2] = newColour[2];
+		}
+
+
+		// -- individual element field accessors
+		emissiveColour(inst: StdMaterialInstance): Float3 {
+			var offset = <number>inst * 4;
+			return [
+				this.emissiveBase_[offset],
+				this.emissiveBase_[offset + 1],
+				this.emissiveBase_[offset + 2]
+			];
+		}
+
+		setEmissiveColour(inst: StdMaterialInstance, newColour: Float3) {
+			var offset = <number>inst * 4;
+			this.emissiveBase_[offset]     = newColour[0];
+			this.emissiveBase_[offset + 1] = newColour[1];
+			this.emissiveBase_[offset + 2] = newColour[2];
+		}
+
+
+		emissiveIntensity(inst: StdMaterialInstance): number {
+			return this.emissiveBase_[(<number>inst * 4) + 3];
+		}
+
+		setEmissiveIntensity(inst: StdMaterialInstance, newIntensity: number) {
+			this.emissiveBase_[(<number>inst * 4) + 3] = newIntensity;
 		}
 
 
@@ -335,6 +376,7 @@ namespace sd.world {
 
 			var mainColourArr = container.copyIndexedVec4(this.mainColourBase_, matIndex);
 			var specularArr = container.copyIndexedVec4(this.specularBase_, matIndex);
+			var emissiveColourArr = container.copyIndexedVec4(this.emissiveBase_, matIndex);
 
 			return {
 				mainColour: Array.prototype.slice.call(mainColourArr, 0, 3),
@@ -342,6 +384,9 @@ namespace sd.world {
 				specularIntensity: specularArr[0],
 				specularExponent: specularArr[1],
 				specularColourMix: specularArr[2],
+
+				emissiveColour: Array.prototype.slice.call(emissiveColourArr, 0, 3),
+				emissiveIntensity: emissiveColourArr[3],
 
 				textureScale: this.textureScale(inst),
 				textureOffset: this.textureOffset(inst),
@@ -368,6 +413,7 @@ namespace sd.world {
 			return {
 				colourData: colourOpacity,
 				specularData: <Float32Array>container.refIndexedVec4(this.specularBase_, matIndex),
+				emissiveData: <Float32Array>container.refIndexedVec4(this.emissiveBase_, matIndex),
 				texScaleOffsetData: <Float32Array>container.refIndexedVec4(this.texScaleOffsetBase_, matIndex),
 
 				diffuseMap: this.diffuseMaps_[matIndex],

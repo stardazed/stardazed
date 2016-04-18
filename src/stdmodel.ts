@@ -6,9 +6,10 @@ namespace sd.world {
 
 	const enum Features {
 		// VtxPosition and VtxNormal are required
-		VtxUV                      = 0x000002,
-		VtxColour                  = 0x000004,
+		VtxUV                      = 0x000001,
+		VtxColour                  = 0x000002,
 
+		Emissive                   = 0x000004,
 		Specular                   = 0x000008, // Implied true if GlossMap
 		SpecularMap                = 0x000010,
 
@@ -46,6 +47,7 @@ namespace sd.world {
 		// -- mesh material
 		mainColourUniform: WebGLUniformLocation;        // vec4
 		specularUniform: WebGLUniformLocation;          // vec4
+		emissiveDataUniform: WebGLUniformLocation;          // vec4
 		texScaleOffsetUniform: WebGLUniformLocation;    // vec4
 
 		colourMapUniform?: WebGLUniformLocation;        // sampler2D
@@ -190,6 +192,7 @@ namespace sd.world {
 			// -- material properties
 			program.mainColourUniform = gl.getUniformLocation(program, "mainColour");
 			program.specularUniform = gl.getUniformLocation(program, "specular");
+			program.emissiveDataUniform = gl.getUniformLocation(program, "emissiveData");
 			program.texScaleOffsetUniform = gl.getUniformLocation(program, "texScaleOffset");
 
 			// -- texture samplers and their fixed binding indexes
@@ -435,6 +438,7 @@ namespace sd.world {
 			// -- material
 			line  ("uniform vec4 mainColour;");
 			if_all("uniform vec4 specular;", Features.Specular);
+			if_all("uniform vec4 emissiveData;", Features.Emissive);
 			if_all("uniform sampler2D diffuseSampler;", Features.DiffuseMap);
 			if_all("uniform sampler2D normalSampler;", Features.NormalMap);
 			if_all("uniform sampler2D specularSampler;", Features.SpecularMap);
@@ -478,6 +482,8 @@ namespace sd.world {
 			// -- calcLightShared()
 			line  ("vec3 calcLightShared(vec3 matColour, vec4 colour, vec4 param, float diffuseStrength, vec3 lightDirection, vec3 normal_cam) {");
 			line  ("	vec3 ambientContrib = colour.rgb * param[LPARAM_AMBIENT_INTENSITY];");
+			if_all("	vec3 emissiveContrib = emissiveData.rgb * emissiveData.w;", Features.Emissive);
+			if_all("	ambientContrib += emissiveContrib;", Features.Emissive);
 			line  ("	if (diffuseStrength <= 0.0) {");
 			line  ("		return ambientContrib;");
 			line  ("	}");
@@ -820,6 +826,7 @@ namespace sd.world {
 
 			var matFlags = this.materialMgr_.flags(material);
 			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;
+			if (matFlags & StdMaterialFlags.usesEmissive) features |= Features.Emissive;
 			if (matFlags & StdMaterialFlags.diffuseAlphaIsTransparency) features |= Features.DiffuseAlphaIsTransparency;
 
 			if (matFlags & StdMaterialFlags.isTranslucent) {
@@ -1026,6 +1033,9 @@ namespace sd.world {
 				gl.uniform4fv(program.mainColourUniform, materialData.colourData);
 				if (features & Features.Specular) {
 					gl.uniform4fv(program.specularUniform, materialData.specularData);
+				}
+				if (features & Features.Emissive) {
+					gl.uniform4fv(program.emissiveDataUniform, materialData.emissiveData);
 				}
 				if (features & (Features.DiffuseMap | Features.NormalMap | Features.SpecularMap)) {
 					gl.uniform4fv(program.texScaleOffsetUniform, materialData.texScaleOffsetData);
