@@ -1194,7 +1194,9 @@ namespace sd.world {
 			if (mode == RenderMode.Forward) {
 				let iter = range.makeIterator();
 				while (iter.next()) {
-					drawCalls += this.drawSingleForward(rp, proj, shadow, fogSpec, <number>iter.current);
+					if (this.enabledBase_[<number>iter.current]) {
+						drawCalls += this.drawSingleForward(rp, proj, shadow, fogSpec, <number>iter.current);
+					}
 				}
 			}
 			else if (mode == RenderMode.Shadow) {
@@ -1203,7 +1205,9 @@ namespace sd.world {
 
 				let iter = range.makeIterator();
 				while (iter.next()) {
-					drawCalls += this.drawSingleShadow(rp, proj, shadowPipeline, <number>iter.current);
+					if (this.enabledBase_[<number>iter.current]) {
+						drawCalls += this.drawSingleShadow(rp, proj, shadowPipeline, <number>iter.current);
+					}
 				}
 			}
 
