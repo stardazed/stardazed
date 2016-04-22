@@ -1187,8 +1187,6 @@ namespace sd.world {
 
 
 		draw(range: StdModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, fogSpec: world.FogDescriptor, mode: RenderMode) {
-			var gl = this.rc.gl;
-			var count = this.instanceData_.count;
 			var drawCalls = 0;
 
 			if (mode == RenderMode.Forward) {

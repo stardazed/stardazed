@@ -106,22 +106,4 @@ namespace sd {
 	});
 
 
-	export function makeTypedArray(nt: NumericType) {
-		// this function returns an overloaded function that mimics the TypedArrayConstructor new interface
-		// so you use it like:     makeTypedArray(UInt16)(...);
-		// which is equivalent to: new (UInt16.arrayType)(...);
-		// use whichever feels better
-
-		var makeFn: {
-			(length: number): TypedArray;
-			(array: ArrayLike<number>): TypedArray;
-			(buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
-		} = function newArray(src: number | ArrayLike<number> | ArrayBuffer, byteOffset?: number, length?: number): TypedArray {
-			return new (nt.arrayType)(<any>src, byteOffset, length);
-		}
-
-		return makeFn;
-	}
-
-
 } // ns sd

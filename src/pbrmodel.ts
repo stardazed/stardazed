@@ -993,8 +993,6 @@ namespace sd.world {
 				return;
 			}
 
-			var gl = this.rc.gl;
-			var count = this.instanceData_.count;
 			var drawCalls = 0;
 
 			rp.setTexture(environmentMap, TextureBindPoint.Environment);
@@ -1002,7 +1000,7 @@ namespace sd.world {
 
 			let iter = range.makeIterator();
 			while (iter.next()) {
-				drawCalls += this.drawSingleForward(rp, proj, lightingQuality, < number > iter.current);
+				drawCalls += this.drawSingleForward(rp, proj, lightingQuality, <number>iter.current);
 			}
 
 			return drawCalls;

@@ -4,13 +4,13 @@
 
 namespace sd.asset {
 
-	class AssetImport {
-		addMesh(mesh: Mesh) {}
-		addTexture(tex: Texture2D) {}
-		addMaterial(mat: Material) {}
-		addModel(model: Model) {}
-		addSkeletonAnimation(anim: SkeletonAnimation) {}
-	}
+	// class AssetImport {
+	// 	addMesh(mesh: Mesh) {}
+	// 	addTexture(tex: Texture2D) {}
+	// 	addMaterial(mat: Material) {}
+	// 	addModel(model: Model) {}
+	// 	addSkeletonAnimation(anim: SkeletonAnimation) {}
+	// }
 
 	export class AssetGroup {
 		meshes: Mesh[] = [];

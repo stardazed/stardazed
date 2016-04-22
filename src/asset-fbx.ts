@@ -393,15 +393,14 @@ namespace sd.asset {
 
 			private buildMaterials(group: AssetGroup, options: FBXResolveOptions) {
 				for (var matID in this.materialNodes) {
-					let fbxMat = this.materialNodes[matID];
-					let mat = makeMaterial();
+					var fbxMat = this.materialNodes[matID];
+					var mat = makeMaterial();
 					mat.name = fbxMat.objectName;
 					mat.userRef = matID;
 
-					let haveFullAmbient = false;
-					let haveFullDiffuse = false;
+					var haveFullDiffuse = false;
 
-					for (let c of fbxMat.children) {
+					for (const c of fbxMat.children) {
 						if (c.name == "Diffuse") {
 							// the Diffuse prop is DiffuseColor * DiffuseFactor
 							vec3.copy(mat.diffuseColour, <number[]>c.values);
@@ -432,7 +431,7 @@ namespace sd.asset {
 						}
 					}
 
-					for (let texIn of fbxMat.connectionsIn) {
+					for (const texIn of fbxMat.connectionsIn) {
 						// An FBX "Texture" connects a "Video" clip to a "Material"
 						// with some parameters and may also directly reference a named
 						// set of UV coordinates in a "Model" used by the material...

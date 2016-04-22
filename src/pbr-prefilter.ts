@@ -145,13 +145,13 @@ namespace sd.render {
 		var resultGLPixelFormat = glImageFormatForPixelFormat(rc, resultEnvMap.pixelFormat);
 
 		var levelWidths: number[] = [];
-		for (let lmip = 0; lmip < mipCount; ++lmip) {
+		for (var lmip = 0; lmip < mipCount; ++lmip) {
 			levelWidths[lmip] = baseWidth >> lmip;
 		}
 
 		var roughnessTable: number[] = [];
-		for (let ml = 0; ml < mipCount; ++ml) {
-			let roughAtLevel = (1.0 / (mipCount - 1)) * ml;
+		for (var ml = 0; ml < mipCount; ++ml) {
+			var roughAtLevel = (1.0 / (mipCount - 1)) * ml;
 			roughnessTable.push(roughAtLevel);
 		}
 
@@ -161,15 +161,14 @@ namespace sd.render {
 		var levelPixels: Uint8Array[] = [];
 		var levelTextures: render.Texture[] = [];
 		for (var mip = 0; mip < mipCount; ++mip) {
-			let levelWidth = levelWidths[mip];
-			let levelMapDesc = makeTexDesc2D(PixelFormat.RGBA8, levelWidth, levelWidth, UseMipMaps.No);
+			var levelWidth = levelWidths[mip];
+			var levelMapDesc = makeTexDesc2D(PixelFormat.RGBA8, levelWidth, levelWidth, UseMipMaps.No);
 			levelTextures[mip] = new render.Texture(rc, levelMapDesc);
 			levelPixels[mip] = new Uint8Array(levelWidth * levelWidth * 4);
 		}
 
 		for (var mip = 0; mip < mipCount; ++mip) {
-			let levelWidth = levelWidths[mip];
-			let levelMapDesc = makeTexDesc2D(PixelFormat.RGBA8, levelWidth, levelWidth, UseMipMaps.No);
+			var levelWidth = levelWidths[mip];
 
 			for (var face = 0; face < 6; ++face) {
 				var fbd = makeFrameBufferDescriptor();
@@ -191,7 +190,7 @@ namespace sd.render {
 					// implicit glFinish, read back generated texture
 					rc.gl.readPixels(0, 0, levelWidth, levelWidth, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, levelPixels[mip]);
 
-					let err = rc.gl.getError();
+					var err = rc.gl.getError();
 					if (err) {
 						assert(false, "Cannot read pixels, gl error " + err);
 					}
@@ -199,7 +198,7 @@ namespace sd.render {
 						// write generated pixels into result envmap at proper face/mip level
 						resultEnvMap.bind();
 						rc.gl.texImage2D(rc.gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, resultGLPixelFormat, levelWidth, levelWidth, 0, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, levelPixels[mip]);
-						let err = rc.gl.getError();
+						err = rc.gl.getError();
 						if (err) {
 							assert(false, "Cannot write pixels, gl error " + err);
 						}

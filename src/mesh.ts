@@ -132,8 +132,6 @@ namespace sd.render {
 
 
 		constructor(private rc: RenderContext, desc: MeshDescriptor) {
-			var gl = rc.gl;
-
 			if (rc.extVAO) {
 				this.pipelineVAOMap_ = new WeakMap<Pipeline, WebGLVertexArrayObjectOES>();
 			}

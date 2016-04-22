@@ -86,7 +86,6 @@ namespace sd.asset {
 					});
 
 					for (var ix = 0; ix < tileDoc.childNodes.length; ++ix) {
-						var q: NamedNodeMap;
 						var node = tileDoc.childNodes[ix];
 
 						if (node.nodeName == "layer") {

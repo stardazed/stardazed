@@ -48,9 +48,6 @@ namespace sd.asset {
 
 
 	function genColorEntriesFromDrawGroups(drawGroups: LWDrawGroup[], materials: MaterialSet, colourView: mesh.VertexBufferAttributeView) {
-		var lastGroup = drawGroups[drawGroups.length - 1];
-		var totalIndexes = lastGroup.indexCount + lastGroup.fromIndex;
-
 		drawGroups.forEach((group: LWDrawGroup) => {
 			var curIndex = group.fromIndex;
 			var maxIndex = group.fromIndex + group.indexCount;
