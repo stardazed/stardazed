@@ -6,7 +6,7 @@ namespace sd.asset {
 
 	var nativeTGASupport: boolean = null;
 
-	export function hasNativeTGASupport(): Promise<boolean> {
+	export function checkNativeTGASupport(): Promise<boolean> {
 		if (nativeTGASupport === null) {
 			return new Promise((resolve, reject) => {
 				var img = new Image();

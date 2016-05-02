@@ -19,6 +19,25 @@ namespace sd.asset {
 	}
 
 
+	export const enum CORSMode {
+		Disabled,
+		Anonymous,
+		WithCredentials
+	}
+
+
+	function crossOriginForCORSMode(cm: CORSMode) {
+		if (cm == CORSMode.Disabled) {
+			return null;
+		}
+		if (cm == CORSMode.WithCredentials) {
+			return "with-credentials";
+		}
+
+		return "anonymous";
+	}
+
+
 	function responseTypeForFileLoadType(flt: FileLoadType) {
 		switch (flt) {
 			case FileLoadType.ArrayBuffer: return "arraybuffer";
@@ -114,17 +133,21 @@ namespace sd.asset {
 	}
 
 
-	export function loadImage(srcPath: string): Promise<ImageData | HTMLImageElement> {
+	export function loadImage(srcPath: string, cors: CORSMode = CORSMode.Disabled): Promise<ImageData | HTMLImageElement> {
 		return new Promise(function(resolve, reject) {
 			var nativeLoader = () => {
 				var image = new Image();
 				image.onload = function() { resolve(image); };
 				image.onerror = function() { reject(srcPath + " doesn't exist or is not supported"); };
+				var co = crossOriginForCORSMode(cors);
+				if (co != null) {
+					image.crossOrigin = co;
+				}
 				image.src = srcPath;
 			};
 
 			if (fileExtensionOfFilePath(srcPath) == "tga") {
-				hasNativeTGASupport().then(nativeTGA => {
+				checkNativeTGASupport().then(nativeTGA => {
 					if (nativeTGA) {
 						nativeLoader();
 					}
@@ -159,7 +182,7 @@ namespace sd.asset {
 	export function loadImageFromBuffer(buffer: ArrayBuffer, mimeType: string): Promise<ImageData | HTMLImageElement> {
 		return new Promise((resolve, reject) => {
 			var nativeImageLoader = () => {
-				// Create an image in a most convolated manner. Hurrah for the web.
+				// Create an image in a most convoluted manner. Hurrah for the web.
 				var str = convertBytesToString(new Uint8Array(buffer));
 				var b64 = btoa(str);
 				str = "data:" + mimeType + ";base64," + b64;
@@ -170,8 +193,8 @@ namespace sd.asset {
 			};
 
 			if (mimeType == "image/tga") {
-				hasNativeTGASupport().then(nativeTGA => {
-					if (nativeTGA) {
+				checkNativeTGASupport().then(hasNativeTGA => {
+					if (hasNativeTGA) {
 						nativeImageLoader();
 					}
 					else {
@@ -203,8 +226,8 @@ namespace sd.asset {
 	}
 
 
-	export function loadImageData(src: string): Promise<ImageData> {
-		return loadImage(src).then(function(imageOrData) {
+	export function loadImageData(src: string, cors: CORSMode = CORSMode.Disabled): Promise<ImageData> {
+		return loadImage(src, cors).then(function(imageOrData) {
 			if ("data" in imageOrData) {
 				return <ImageData>imageOrData;
 			}
