@@ -247,7 +247,7 @@ namespace sd.world {
 
 		// -- derived properties
 
-		projectionSetupForLight(inst: LightInstance, viewportWidth: number, viewportHeight: number): ProjectionSetup {
+		projectionSetupForLight(inst: LightInstance, viewportWidth: number, viewportHeight: number, nearZ: number): ProjectionSetup {
 			var transform = this.transformBase_[<number>inst];
 			var worldPos = this.transformMgr_.worldPosition(transform);
 			var worldDirection = this.direction(inst);
@@ -255,8 +255,6 @@ namespace sd.world {
 
 			var viewMatrix: Float4x4 = null;
 			var projectionMatrix: Float4x4 = null;
-
-			const nearZ = .1; // fixed near-z
 
 			var type = this.typeBase_[<number>inst];
 			if (type == LightType.Spot) {
@@ -288,12 +286,12 @@ namespace sd.world {
 		}
 
 
-		shadowViewForLight(inst: LightInstance, rc: render.RenderContext): ShadowView {
+		shadowViewForLight(rc: render.RenderContext, inst: LightInstance, nearZ: number): ShadowView {
 			var fbo = this.shadowFrameBufferOfQuality(rc, this.shadowQualityBase_[<number>inst]);
 
 			return {
 				light: inst,
-				lightProjection: this.projectionSetupForLight(inst, fbo.width, fbo.height), 
+				lightProjection: this.projectionSetupForLight(inst, fbo.width, fbo.height, nearZ), 
 				shadowFBO: fbo
 			};
 		}
