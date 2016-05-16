@@ -487,7 +487,8 @@ namespace sd.world {
 			line  ("	if (diffuseStrength <= 0.0) {");
 			line  ("		return ambientContrib;");
 			line  ("	}");
-			line  ("	vec3 diffuseContrib = colour.rgb * diffuseStrength * param[LPARAM_DIFFUSE_INTENSITY];");
+			line  ("	float NdL = max(0.0, dot(normal_cam, -lightDirection));");
+			line  ("	vec3 diffuseContrib = colour.rgb * diffuseStrength * NdL * param[LPARAM_DIFFUSE_INTENSITY];");
 
 			if (feat & Features.Specular) {
 				line("	vec3 specularContrib = vec3(0.0);");
@@ -530,7 +531,6 @@ namespace sd.world {
 			line  ("	float cutoff = param[LPARAM_CUTOFF];");
 			line  ("	if (spotCosAngle > cutoff) {");
 			line  ("		vec3 light = calcPointLight(lightIx, matColour, colour, param, lightPos_cam, lightPos_world, normal_cam);");
-			// line  ("		return light * (1.0 - (1.0 - spotCosAngle) * 1.0/(1.0 - cutoff));");
 			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);")
 			line  ("	}");
 			line  ("	return vec3(0.0);");
@@ -539,8 +539,7 @@ namespace sd.world {
 
 			// -- calcDirectionalLight()
 			line  ("vec3 calcDirectionalLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightDirection, vec3 normal_cam) {");
-			line  ("	float diffuseStrength = dot(normal_cam, -lightDirection.xyz);");
-			line  ("	return calcLightShared(matColour, colour, param, diffuseStrength, lightDirection.xyz, normal_cam);");
+			line  ("	return calcLightShared(matColour, colour, param, 1.0, lightDirection.xyz, normal_cam);");
 			line  ("}");
 
 
