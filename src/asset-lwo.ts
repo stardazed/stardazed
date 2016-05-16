@@ -62,7 +62,7 @@ namespace sd.asset {
 	}
 
 
-	function parseLWObjectSource(text: string): LWMeshData {
+	function parseLWObjectSource(text: string, hasColourAttr: boolean): LWMeshData {
 		var lines = text.split("\n");
 		var vv: number[][] = [], nn: number[][] = [], tt: number[][] = [];
 
@@ -70,7 +70,7 @@ namespace sd.asset {
 		var materialGroups: LWDrawGroup[] = [];
 		var curMaterialGroup: LWDrawGroup = null;
 
-		var meshData = new mesh.MeshData(mesh.AttrList.Pos3Norm3UV2());
+		var meshData = new mesh.MeshData(hasColourAttr ? mesh.AttrList.Pos3Norm3Colour3UV2() : mesh.AttrList.Pos3Norm3UV2());
 		var vb = meshData.primaryVertexBuffer;
 
 		var posView: mesh.VertexBufferAttributeView;
@@ -176,14 +176,14 @@ namespace sd.asset {
 	}
 
 
-	export function loadLWObjectFile(filePath: string): Promise<LWMeshData> {
+	export function loadLWObjectFile(filePath: string, materialsAsColours = false): Promise<LWMeshData> {
 		var mtlResolve: any = null;
 		var mtlProm = new Promise<MaterialSet>(function(resolve) {
 			mtlResolve = resolve;
 		});
 
 		var objProm = loadFile(filePath).then((text: string) => {
-			return parseLWObjectSource(text);
+			return parseLWObjectSource(text, materialsAsColours);
 		}).then((objData: LWMeshData) => {
 			if (objData.mtlFileName) {
 				var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
@@ -203,9 +203,12 @@ namespace sd.asset {
 			var materials: MaterialSet = values[0];
 			var obj: LWMeshData = values[1];
 			obj.materials = materials;
-			// var colourAttr = obj.mesh.primaryVertexBuffer.attrByRole(mesh.VertexAttributeRole.Colour);
-			// var colourView = new mesh.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer, colourAttr);
-			// genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
+
+			if (materialsAsColours) {
+				var colourAttr = obj.mesh.primaryVertexBuffer.attrByRole(mesh.VertexAttributeRole.Colour);
+				var colourView = new mesh.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer, colourAttr);
+				genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
+			}
 			return obj;
 		});
 	}
