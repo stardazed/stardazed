@@ -37,7 +37,7 @@ namespace sd.world {
 
 		next() {
 			var res = this.es6Iter.next();
-			this.current = res.value;
+			this.current = res.value || 0;
 			return !res.done;
 		}
 	}
