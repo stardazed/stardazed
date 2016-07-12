@@ -15,8 +15,8 @@
         "noFallthroughCasesInSwitch": false,
         "strictNullChecks": true,
         "noImplicitThis": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
+        // "noUnusedLocals": true,
+        // "noUnusedParameters": true,
 
         "skipDefaultLibCheck": true,
  
