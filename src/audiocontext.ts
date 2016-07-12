@@ -36,7 +36,7 @@ namespace sd.audio {
 	}
 
 
-	export function makeAudioContext(): audio.AudioContext {
+	export function makeAudioContext(): audio.AudioContext | null {
 		var ac = window.AudioContext ? new (window.AudioContext)() : (window.webkitAudioContext ? new webkitAudioContext() : null);
 
 		if (ac) {
