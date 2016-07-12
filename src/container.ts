@@ -364,7 +364,7 @@ namespace sd.container {
 		private capacity_ = 0;
 		private count_ = 0;
 		private elementSumSize_ = 0;
-		private data_: ArrayBuffer = null;
+		private data_: ArrayBuffer | null = null;
 
 
 		constructor(initialCapacity: number, fields: MABField[]) {
@@ -432,7 +432,7 @@ namespace sd.container {
 				// millisecond-order time, so avoid resizes when possible.
 
 				this.fields_.forEach((f, ix) => {
-					var oldView = this.fieldArrayView(f, this.data_, this.count_);
+					var oldView = this.fieldArrayView(f, this.data_!, this.count_);
 					var newView = this.fieldArrayView(f, newData, newCapacity);
 					newView.set(oldView);
 				});
@@ -449,14 +449,15 @@ namespace sd.container {
 
 		clear() {
 			this.count_ = 0;
+			var data = this.data_!;
 
-			var numDoubles = (this.data_.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
+			var numDoubles = (data.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
 			var doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
-			var remainingBytes = this.data_.byteLength - doublesByteSize;
+			var remainingBytes = data.byteLength - doublesByteSize;
 
 			// As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
-			var doubleView = new Float64Array(this.data_);
-			var remainderView = new Uint8Array(this.data_, doublesByteSize);
+			var doubleView = new Float64Array(data);
+			var remainderView = new Uint8Array(data, doublesByteSize);
 			for (var d = 0; d < numDoubles; ++d) {
 				doubleView[d] = 0;
 			}
