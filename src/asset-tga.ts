@@ -4,7 +4,7 @@
 
 namespace sd.asset {
 
-	var nativeTGASupport: boolean = null;
+	var nativeTGASupport: boolean | null = null;
 
 	export function checkNativeTGASupport(): Promise<boolean> {
 		if (nativeTGASupport === null) {
@@ -47,7 +47,7 @@ namespace sd.asset {
 	} __attribute__((__packed__));
 	*/
 	
-	export function loadTGAImageBuffer(buffer: ArrayBuffer): ImageData {
+	export function loadTGAImageBuffer(buffer: ArrayBuffer): ImageData | null {
 		var headerView = new DataView(buffer, 0, 18);
 		var supported = true;
 		var bytesPerPixel = 0;
@@ -90,7 +90,7 @@ namespace sd.asset {
 		}
 
 		var tempCanvas = document.createElement("canvas");
-		var imageData = tempCanvas.getContext("2d").createImageData(width, height);
+		var imageData = tempCanvas.getContext("2d")!.createImageData(width, height);
 		var sourcePixels = new Uint8ClampedArray(buffer, 18);
 		var destPixels = imageData.data;
 		var pixelCount = width * height;
