@@ -66,12 +66,12 @@ namespace sd.render {
 
 	export class Buffer {
 		private target_: number;
-		private resource_: WebGLBuffer = null;
+		private resource_: WebGLBuffer | null = null;
 		private byteSize_ = 0;
 
 		constructor(private rc: RenderContext, private role_: BufferRole, private updateFrequency_: BufferUpdateFrequency) {
 			this.target_ = glTargetForBufferRole(rc, this.role_);
-			this.resource_ = rc.gl.createBuffer();
+			this.resource_ = rc.gl.createBuffer()!;
 		}
 
 	
@@ -122,7 +122,7 @@ namespace sd.render {
 
 
 		// -- GL state cache
-		private static boundBuffers_s: { [role: number]: Buffer; } = {};
+		private static boundBuffers_s: { [role: number]: Buffer | null; } = {};
 
 		static bindIfNotBound(buffer: Buffer): boolean {
 			var curBound = Buffer.boundBuffers_s[buffer.role_];
