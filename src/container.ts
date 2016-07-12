@@ -35,14 +35,14 @@ if (! ArrayBuffer.transfer) {
 
 namespace sd.container {
 
-	export function copyElementRange<T>(src: ArrayLike<T>, srcOffset: number, srcCount: number, dest: ArrayLike<T>, destOffset: number) {
+	export function copyElementRange<T>(src: ArrayLike<T>, srcOffset: number, srcCount: number, dest: MutableArrayLike<T>, destOffset: number) {
 		for (var ix = 0; ix < srcCount; ++ix) {
 			dest[destOffset++] = src[srcOffset++];
 		}
 	}
 
 
-	export function fill<T>(dest: ArrayLike<T>, value: T, count: number, offset: number = 0) {
+	export function fill<T>(dest: MutableArrayLike<T>, value: T, count: number, offset: number = 0) {
 		for (var ix = 0; ix < count; ++ix) {
 			dest[ix + offset] = value;
 		}

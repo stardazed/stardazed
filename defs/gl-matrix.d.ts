@@ -14,10 +14,13 @@ interface glMatrix {
 declare var glMatrix: glMatrix;
 
 
-interface ArrayOfNumber {
+interface MutableArrayLike<T> {
     readonly length: number;
-    [n: number]: number;
+    [n: number]: T;
 }
+
+
+declare type ArrayOfNumber = MutableArrayLike<number>;
 
 
 

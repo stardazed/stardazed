@@ -990,7 +990,7 @@ namespace sd.world {
 
 		draw(range: PBRModelRange, rp: render.RenderPass, proj: ProjectionSetup, lightingQuality: PBRLightingQuality, environmentMap: render.Texture) {
 			if (! this.brdfLookupTex_) {
-				return;
+				return 0;
 			}
 
 			var drawCalls = 0;
