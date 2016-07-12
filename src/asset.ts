@@ -35,13 +35,13 @@ namespace sd.asset {
 
 		textureScale: Float2;
 		textureOffset: Float2;
-		diffuseTexture: Texture2D;	// TODO: change this to array of textures with typed channels
-		specularTexture: Texture2D;
-		normalTexture: Texture2D;
-		heightTexture: Texture2D;
-		transparencyTexture: Texture2D;
+		diffuseTexture?: Texture2D;	// TODO: change this to array of textures with typed channels
+		specularTexture?: Texture2D;
+		normalTexture?: Texture2D;
+		heightTexture?: Texture2D;
+		transparencyTexture?: Texture2D;
 
-		jointDataTexture: Texture2D;
+		jointDataTexture?: Texture2D;
 		
 		opacity: number; // 0: fully transparent, 1: fully opaque
 	}
@@ -64,15 +64,7 @@ namespace sd.asset {
 
 			textureScale: [1, 1],
 			textureOffset: [0, 0],
-			diffuseTexture: null,
-			specularTexture: null,
-			normalTexture: null,
-			transparencyTexture: null,
 
-			heightTexture: null,
-
-			jointDataTexture: null,
-			
 			opacity: 1
 		};
 	}
@@ -184,7 +176,7 @@ namespace sd.asset {
 	export interface Model extends Asset {
 		transform: Transform;
 		children: Model[];
-		parent: Model;
+		parent: Model | null;
 
 		// components
 		mesh?: Mesh;
