@@ -94,7 +94,7 @@ namespace sd.mesh.gen {
 
 		var normal: Vec3AddFn = normalView ?
 			(x: number, y: number, z: number) => {
-				var v3 = normalView.refItem(normalIx);
+				var v3 = normalView!.refItem(normalIx);
 				v3[0] = x; v3[1] = y; v3[2] = z;
 				normalIx++;
 			}
@@ -102,7 +102,7 @@ namespace sd.mesh.gen {
 
 		var uv: Vec2AddFn = texView ?
 			(u: number, v: number) => {
-				var v2 = texView.refItem(uvIx);
+				var v2 = texView!.refItem(uvIx);
 				v2[0] = u; v2[1] = v;
 				uvIx++;
 			}
