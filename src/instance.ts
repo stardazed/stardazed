@@ -125,7 +125,7 @@ namespace sd.world {
 
 			return {
 				current: <Instance<Component>>(<number>this.first - 1),
-				next: function() {
+				next: function(this: InstanceIterator<Component>) {
 					this.current = <Instance<Component>>(<number>this.current + 1);
 					return this.current > 0 && this.current <= end;
 				}

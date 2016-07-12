@@ -78,12 +78,12 @@ namespace sd.math {
 
 
 		export function extents(min: Float3, max: Float3): Float3 {
-			return vec3.scale([], this.size(min, max), 0.5);
+			return vec3.scale([], size(min, max), 0.5);
 		}
 
 
 		export function center(min: Float3, max: Float3): Float3 {
-			return vec3.add([], min, this.extents(min, max));
+			return vec3.add([], min, extents(min, max));
 		}
 
 
