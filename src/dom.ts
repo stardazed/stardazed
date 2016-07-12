@@ -24,7 +24,7 @@ namespace sd.dom {
 	export function enable(sel: ElemSelector) { setDisabled(sel, false); }
 	export function disable(sel: ElemSelector) { setDisabled(sel, true); }
 
-	export function closest(sourceSel: ElemSelector, sel: string): HTMLElement {
+	export function closest(sourceSel: ElemSelector, sel: string): HTMLElement | null {
 		var source = <Node>($1(sourceSel));
 
 		if ((<Element>source).closest) {
@@ -43,7 +43,7 @@ namespace sd.dom {
 		return null;
 	}
 
-	export function nextElementSibling(elem: HTMLElement): HTMLElement {
+	export function nextElementSibling(elem: HTMLElement): HTMLElement | null {
 		while (elem) {
 			elem = <HTMLElement>(elem.nextSibling);
 			if (elem && elem.nodeType == Node.ELEMENT_NODE)
