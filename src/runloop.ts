@@ -33,7 +33,7 @@ namespace sd {
 		private rafID_ = 0;
 		private nextFrameFn_: FrameRequestCallback;
 
-		private sceneCtrl_: SceneController = null;
+		private sceneCtrl_: SceneController | null = null;
 
 
 		constructor() {
@@ -106,7 +106,7 @@ namespace sd {
 			return this.sceneCtrl_;
 		}
 
-		set sceneController(newCtrl: SceneController) {
+		set sceneController(newCtrl: SceneController | null) {
 			if (this.sceneCtrl_) {
 				if (this.runState_ == RunLoopState.Running) {
 					this.sceneCtrl_.suspend && this.sceneCtrl_.suspend();
