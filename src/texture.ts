@@ -161,7 +161,7 @@ namespace sd.render {
 				assert(texPixelData && ("byteLength" in texPixelData), "Compressed textures MUST provide pixelData");
 
 			// -- create resource
-			var tex = this.resource_ = gl.createTexture();
+			var tex = this.resource_ = gl.createTexture()!; // TODO: handle resource allocation failure
 			this.glTarget_ = gl.TEXTURE_2D;
 			gl.bindTexture(this.glTarget_, tex);
 
@@ -204,7 +204,7 @@ namespace sd.render {
 			var glPixelType = glPixelDataTypeForPixelFormat(this.rc, this.pixelFormat_);
 
 			// -- create resource
-			var tex = this.resource_ = gl.createTexture();
+			var tex = this.resource_ = gl.createTexture()!; // TODO: handle resource allocation failure
 			this.glTarget_ = gl.TEXTURE_CUBE_MAP;
 			gl.bindTexture(this.glTarget_, tex);
 
@@ -217,8 +217,9 @@ namespace sd.render {
 				assert(pixelData && (pixelData.length == 6), "Compressed textures MUST provide pixelData");
 
 				for (let layer = 0; layer < 6; ++layer) {
-					assert(pixelData[layer] && ("byteLength" in pixelData[layer]), "pixelData source " + layer + " for compressed TexCube is not an ArrayBufferView");
-					gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer, 0, glPixelFormat, w, h, 0, <ArrayBufferView>pixelData[layer]);
+					let layerPixels = pixelData![layer];
+					assert(layerPixels && ("byteLength" in layerPixels), "pixelData source " + layer + " for compressed TexCube is not an ArrayBufferView");
+					gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer, 0, glPixelFormat, w, h, 0, <ArrayBufferView>layerPixels);
 				}
 			}
 			else {
