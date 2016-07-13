@@ -70,8 +70,8 @@ namespace sd.render {
 		depthPixelFormat: PixelFormat;
 		stencilPixelFormat: PixelFormat;
 
-		vertexShader: WebGLShader;
-		fragmentShader: WebGLShader;
+		vertexShader?: WebGLShader;
+		fragmentShader?: WebGLShader;
 
 		attributeNames: AttributeNameMap;
 	}
@@ -119,9 +119,6 @@ namespace sd.render {
 			writeMask: makeColourWriteMask(),
 			depthMask: true,
 			blending: makeColourBlendingDescriptor(),
-
-			vertexShader: null,
-			fragmentShader: null,
 
 			attributeNames: new Map<mesh.VertexAttributeRole, string>()
 		};

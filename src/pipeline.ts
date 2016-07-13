@@ -52,7 +52,7 @@ namespace sd.render {
 		private colourPixelFormats_: PixelFormat[];
 		private depthPixelFormat_: PixelFormat;
 		private stencilPixelFormat_: PixelFormat;
-		private writeMask_: ColourWriteMask;
+		private writeMask_: ColourWriteMask | null;
 		private depthMask_: boolean;
 		private blending_: ColourBlendingDescriptor;
 		private program_: WebGLProgram;
@@ -119,7 +119,7 @@ namespace sd.render {
 				var alphaDestFn = glBlendFuncForBlendFactor(this.rc, this.blending_.destAlphaFactor);
 				gl.blendFuncSeparate(rgbSrcFn, rgbDestFn, alphaSrcFn, alphaDestFn);
 
-				gl.blendColor(this.blending_.constantColour[0], this.blending_.constantColour[1], this.blending_.constantColour[2], this.blending_.constantColour[3])
+				gl.blendColor(this.blending_.constantColour[0], this.blending_.constantColour[1], this.blending_.constantColour[2], this.blending_.constantColour[3]);
 			}
 		}
 
