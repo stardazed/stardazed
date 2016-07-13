@@ -481,7 +481,7 @@ namespace sd.container {
 				var elementsToClear = this.count_ - newCount;
 
 				this.fields_.forEach((f, ix) => {
-					var array = this.fieldArrayView(f, this.data_, this.count_);
+					var array = this.fieldArrayView(f, this.data_!, this.count_);
 					var zeroes = new (f.type.arrayType)(elementsToClear * f.count);
 					array.set(zeroes, newCount * f.count);
 				});
@@ -505,7 +505,7 @@ namespace sd.container {
 
 
 		indexedFieldView(index: number) {
-			return this.fieldArrayView(this.fields_[index], this.data_, this.capacity_);
+			return this.fieldArrayView(this.fields_[index], this.data_!, this.capacity_);
 		}
 	}
 
