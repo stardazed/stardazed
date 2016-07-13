@@ -54,7 +54,7 @@ namespace sd.render {
 
 
 	export function makeShader(rc: RenderContext, type: number, sourceText: string) {
-		var shader = rc.gl.createShader(type);
+		var shader = rc.gl.createShader(type)!; // TODO: handle resource allocation failure
 		rc.gl.shaderSource(shader, sourceText);
 		rc.gl.compileShader(shader);
 
@@ -70,8 +70,8 @@ namespace sd.render {
 	}
 
 
-	export function makeProgram(rc: RenderContext, vertexShader: WebGLShader, fragmentShader: WebGLShader) {
-		var program = rc.gl.createProgram();
+	export function makeProgram(rc: RenderContext, vertexShader?: WebGLShader, fragmentShader?: WebGLShader) {
+		var program = rc.gl.createProgram()!; // TODO: handle resource allocation failure
 		if (vertexShader)
 			rc.gl.attachShader(program, vertexShader);
 		if (fragmentShader)
@@ -89,8 +89,8 @@ namespace sd.render {
 	}
 	
 
-	export function makeRenderContext(canvas: HTMLCanvasElement): RenderContext {
-		var gl: WebGLRenderingContext;
+	export function makeRenderContext(canvas: HTMLCanvasElement): RenderContext | null {
+		var gl: WebGLRenderingContext | null;
 
 		// try and create the 3D context
 		var contextAttrs: WebGLContextAttributes = {
@@ -98,12 +98,13 @@ namespace sd.render {
 		};
 		try {
 			gl = canvas.getContext("webgl", contextAttrs);
-			if (!gl)
+			if (! gl) {
 				gl = canvas.getContext("experimental-webgl", contextAttrs);
+			}
 		} catch (e) {
 			gl = null;
 		}
-		if (!gl) {
+		if (! gl) {
 			return null;
 		}
 
