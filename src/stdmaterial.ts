@@ -39,13 +39,13 @@ namespace sd.world {
 		textureScale: Float2;           // [0..1, 0..1], scale and offset apply to all textures, u and v clamped to 0..1
 		textureOffset: Float2;
 
-		diffuseMap: render.Texture;      // nullptr means use mainColour only
-		specularMap: render.Texture;
-		normalMap: render.Texture;      // nullptr means no bump
+		diffuseMap: render.Texture | null;      // nullptr means use mainColour only
+		specularMap: render.Texture | null;
+		normalMap: render.Texture | null;      // nullptr means no bump
 
 		opacity: number;                // 0..1, only used if flags has `isTranslucent` set
 
-		jointData: render.Texture;      // joint transforms
+		jointData: render.Texture | null;      // joint transforms
 
 		flags: StdMaterialFlags;
 	}
@@ -83,10 +83,10 @@ namespace sd.world {
 		specularData: Float32Array;
 		emissiveData: Float32Array;
 		texScaleOffsetData: Float32Array;
-		diffuseMap: render.Texture;
-		specularMap: render.Texture;
-		normalMap: render.Texture;
-		jointData: render.Texture;
+		diffuseMap: render.Texture | null;
+		specularMap: render.Texture | null;
+		normalMap: render.Texture | null;
+		jointData: render.Texture | null;
 		flags: StdMaterialFlags;
 	}
 
@@ -107,10 +107,10 @@ namespace sd.world {
 
 	export class StdMaterialManager implements ComponentManager<StdMaterialManager> {
 		private instanceData_: container.MultiArrayBuffer;
-		private diffuseMaps_: render.Texture[] = [];
-		private specularMaps_: render.Texture[] = [];
-		private normalMaps_: render.Texture[] = [];
-		private jointDataMaps_: render.Texture[] = [];
+		private diffuseMaps_: (render.Texture | null)[] = [];
+		private specularMaps_: (render.Texture | null)[] = [];
+		private normalMaps_: (render.Texture | null)[] = [];
+		private jointDataMaps_: (render.Texture | null)[] = [];
 
 		private mainColourBase_: TypedArray;
 		private specularBase_: TypedArray;
@@ -314,7 +314,7 @@ namespace sd.world {
 		}
 
 
-		diffuseMap(inst: StdMaterialInstance): render.Texture {
+		diffuseMap(inst: StdMaterialInstance): render.Texture | null {
 			return this.diffuseMaps_[<number>inst];
 		}
 
@@ -323,7 +323,7 @@ namespace sd.world {
 		}
 
 
-		specularMap(inst: StdMaterialInstance): render.Texture {
+		specularMap(inst: StdMaterialInstance): render.Texture | null {
 			return this.specularMaps_[<number>inst];
 		}
 
@@ -332,7 +332,7 @@ namespace sd.world {
 		}
 
 
-		normalMap(inst: StdMaterialInstance): render.Texture {
+		normalMap(inst: StdMaterialInstance): render.Texture | null {
 			return this.normalMaps_[<number>inst];
 		}
 
@@ -341,7 +341,7 @@ namespace sd.world {
 		}
 
 
-		jointData(inst: StdMaterialInstance): render.Texture {
+		jointData(inst: StdMaterialInstance): render.Texture | null {
 			return this.jointDataMaps_[<number>inst];
 		}
 
