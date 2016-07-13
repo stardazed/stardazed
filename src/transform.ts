@@ -79,7 +79,7 @@ namespace sd.world {
 
 		create(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
 		create(linkedEntity: Entity, desc: TransformDescriptor, parent?: TransformInstance): TransformInstance;
-		create(linkedEntity: Entity, descOrParent: TransformDescriptor | TransformInstance, parent?: TransformInstance): TransformInstance {
+		create(linkedEntity: Entity, descOrParent?: TransformDescriptor | TransformInstance, parent?: TransformInstance): TransformInstance {
 			var entIndex = entityIndex(linkedEntity);
 
 			if (this.instanceData_.count < entIndex) {
@@ -90,7 +90,7 @@ namespace sd.world {
 
 			var thisInstance = entIndex;
 			var parentInstance = 0;
-			var descriptor: TransformDescriptor = null;
+			var descriptor: TransformDescriptor | null = null;
 
 			this.entityBase_[thisInstance] = <number>linkedEntity;
 
@@ -235,7 +235,7 @@ namespace sd.world {
 		setLocalMatrix(inst: TransformInstance, localMatOrRot: ArrayOfNumber, newPosition?: Float3, newScale?: Float3) {
 			var localMat = container.refIndexedMat4(this.localMatrixBase_, <number>inst);
 			if (arguments.length == 4) {
-				mat4.fromRotationTranslationScale(localMat, localMatOrRot, newPosition, newScale);
+				mat4.fromRotationTranslationScale(localMat, localMatOrRot, newPosition!, newScale!);
 			}
 			else {
 				localMat.set(localMatOrRot); // 4x4 mat
