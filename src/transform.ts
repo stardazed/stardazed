@@ -78,7 +78,7 @@ namespace sd.world {
 
 
 		create(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
-		create(linkedEntity: Entity, desc: TransformDescriptor, parent?: TransformInstance): TransformInstance;
+		create(linkedEntity: Entity, desc?: TransformDescriptor, parent?: TransformInstance): TransformInstance;
 		create(linkedEntity: Entity, descOrParent?: TransformDescriptor | TransformInstance, parent?: TransformInstance): TransformInstance {
 			var entIndex = entityIndex(linkedEntity);
 

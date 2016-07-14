@@ -62,11 +62,11 @@ namespace sd.world {
 			return {
 				entity: ent,
 				transform: this.transformMgr.create(ent, desc && desc.transform, desc && desc.parent),
-				stdModel: desc && desc.stdModel ? this.stdModelMgr.create(ent, desc.stdModel) : null,
-				pbrModel: desc && desc.pbrModel ? this.pbrModelMgr.create(ent, desc.pbrModel) : null,
-				rigidBody: desc && desc.rigidBody ? this.rigidBodyMgr.create(ent, desc.rigidBody) : null,
-				collider: desc && desc.collider ? this.colliderMgr.create(ent, desc.collider) : null,
-				light: desc && desc.light ? this.lightMgr.create(ent, desc.light) : null
+				stdModel: desc && desc.stdModel ? this.stdModelMgr.create(ent, desc.stdModel) : undefined,
+				pbrModel: desc && desc.pbrModel ? this.pbrModelMgr.create(ent, desc.pbrModel) : undefined,
+				rigidBody: desc && desc.rigidBody ? this.rigidBodyMgr.create(ent, desc.rigidBody) : undefined,
+				collider: desc && desc.collider ? this.colliderMgr.create(ent, desc.collider) : undefined,
+				light: desc && desc.light ? this.lightMgr.create(ent, desc.light) : undefined
 			};
 		}
 	}
