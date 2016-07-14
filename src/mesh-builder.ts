@@ -212,7 +212,7 @@ namespace sd.mesh {
 				for (var streamIx = 0; streamIx < this.streamCount_; ++streamIx) {
 					var stream = this.streams_[streamIx];
 					var elemCount = stream.elementCount;
-					var values: ArrayOfNumber = stream.values;
+					var values: ArrayOfNumber = stream.values!; // TODO: is this guaranteed to exist in this loop?
 					var array = this.vertexData_[streamIx];
 					var fieldIndex = streamIndexes[streamIx];
 					var fieldOffset = elemCount * fieldIndex;
