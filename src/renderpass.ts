@@ -44,10 +44,10 @@ namespace sd.render {
 
 
 	export class RenderPass {
-		private pipeline_: Pipeline = null;
-		private mesh_: Mesh = null;
+		private pipeline_: Pipeline | null = null;
+		private mesh_: Mesh | null = null;
 
-		constructor(private rc: RenderContext, private desc_: RenderPassDescriptor, private frameBuffer_: FrameBuffer = null) {
+		constructor(private rc: RenderContext, private desc_: RenderPassDescriptor, private frameBuffer_: FrameBuffer | null = null) {
 			assert(desc_.clearColour.length >= 4);
 		}
 
@@ -103,12 +103,14 @@ namespace sd.render {
 
 
 		// -- render state
-		setPipeline(pipeline: Pipeline) {
+		setPipeline(pipeline: Pipeline | null) {
 			if (pipeline === this.pipeline_)
 				return;
 
 			if (this.mesh_) {
-				this.mesh_.unbind(this.pipeline_);
+				if (this.pipeline_) {
+					this.mesh_.unbind(this.pipeline_);
+				}
 				this.mesh_ = null;
 			}
 			if (this.pipeline_) {
@@ -123,12 +125,16 @@ namespace sd.render {
 		}
 
 
-		setMesh(mesh: Mesh) {
-			assert(this.pipeline_, "You must set the Pipeline before setting the Mesh");
+		setMesh(mesh: Mesh | null) {
+			if (! this.pipeline_) {
+				assert(false, "You must set the Pipeline before setting the Mesh");
+				return;
+			}
+
 			if (this.mesh_ === mesh)
 				return;
 
-			if (this.mesh_ && !mesh) {
+			if (this.mesh_ && ! mesh) {
 				// only need to explicitly unbind if there is no replacement mesh
 				this.mesh_.unbind(this.pipeline_);
 			}
@@ -223,9 +229,10 @@ namespace sd.render {
 
 		// -- drawing
 		drawPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
-			var glPrimitiveType = this.mesh_.primitiveType;
-			var startVertex = mesh.indexOffsetForPrimitiveCount(this.mesh_.primitiveType, startPrimitive);
-			var vertexCount = mesh.indexCountForPrimitiveCount(this.mesh_.primitiveType, primitiveCount);
+			var activeMesh = this.mesh_!;
+			var glPrimitiveType = activeMesh.primitiveType;
+			var startVertex = mesh.indexOffsetForPrimitiveCount(activeMesh.primitiveType, startPrimitive);
+			var vertexCount = mesh.indexCountForPrimitiveCount(activeMesh.primitiveType, primitiveCount);
 
 			if (instanceCount == 1) {
 				this.rc.gl.drawArrays(glPrimitiveType, startVertex, vertexCount);
@@ -237,16 +244,17 @@ namespace sd.render {
 
 
 		drawIndexedPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
-			var glPrimitiveType = this.mesh_.glPrimitiveType;
-			var startIndex = mesh.indexOffsetForPrimitiveCount(this.mesh_.primitiveType, startPrimitive);
-			var indexCount = mesh.indexCountForPrimitiveCount(this.mesh_.primitiveType, primitiveCount);
-			var offsetBytes = startIndex * this.mesh_.indexElementSizeBytes;
+			var activeMesh = this.mesh_!;
+			var glPrimitiveType = activeMesh.glPrimitiveType;
+			var startIndex = mesh.indexOffsetForPrimitiveCount(activeMesh.primitiveType, startPrimitive);
+			var indexCount = mesh.indexCountForPrimitiveCount(activeMesh.primitiveType, primitiveCount);
+			var offsetBytes = startIndex * activeMesh.indexElementSizeBytes;
 
 			if (instanceCount == 1) {
-				this.rc.gl.drawElements(glPrimitiveType, indexCount, this.mesh_.glIndexElementType, offsetBytes);
+				this.rc.gl.drawElements(glPrimitiveType, indexCount, activeMesh.glIndexElementType, offsetBytes);
 			}
 			else {
-				this.rc.extInstancedArrays.drawElementsInstancedANGLE(glPrimitiveType, indexCount, this.mesh_.glIndexElementType, offsetBytes, instanceCount);
+				this.rc.extInstancedArrays.drawElementsInstancedANGLE(glPrimitiveType, indexCount, activeMesh.glIndexElementType, offsetBytes, instanceCount);
 			}
 		}
 	}
