@@ -100,7 +100,7 @@ namespace sd.render {
 		}
 		else {
 			// if depth is not a DS format, then stencil cannot be a DS format either
-			assert(!pixelFormatIsDepthStencilFormat(desc.stencilPixelFormat));
+			assert(! pixelFormatIsDepthStencilFormat(desc.stencilPixelFormat));
 
 			// in order to be combined, the usage hints must be the same
 			if (desc.depthUsageHint == desc.stencilUsageHint) {

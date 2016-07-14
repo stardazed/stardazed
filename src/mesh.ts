@@ -219,7 +219,7 @@ namespace sd.render {
 				var roleIndexes = usingPipeline.attributePairs();
 				var pair = roleIndexes.next();
 
-				while (!pair.done) {
+				while (! pair.done) {
 					var attrRole = pair.value[0];
 					var attrIndex = pair.value[1];
 
@@ -252,7 +252,7 @@ namespace sd.render {
 				var roleIndexes = fromPipeline.attributePairs();
 				var pair = roleIndexes.next();
 
-				while (!pair.done) {
+				while (! pair.done) {
 					var attrIndex = pair.value[1];
 					this.rc.gl.disableVertexAttribArray(attrIndex);
 					pair = roleIndexes.next();

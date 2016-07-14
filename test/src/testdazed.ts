@@ -108,7 +108,7 @@ namespace testdazed {
 	}
 
 	export function checkFalse(expr: boolean) {
-		return checkImpl(() => !expr, "expression was expected to be false");
+		return checkImpl(() => ! expr, "expression was expected to be false");
 	}
 
 	export function checkNull(tp: any) {

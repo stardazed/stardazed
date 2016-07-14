@@ -47,7 +47,7 @@ namespace sd.render {
 				fbad.depthUsageHint = render.TextureUsageHint.Normal;
 			}
 			else {
-				assert(!desc.depthReadback, "depth textures not supported on this device");
+				assert(! desc.depthReadback, "depth textures not supported on this device");
 				fbad.depthPixelFormat = render.PixelFormat.Depth16I;
 				fbad.depthUsageHint = render.TextureUsageHint.RenderTargetOnly;
 			}

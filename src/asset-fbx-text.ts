@@ -505,7 +505,7 @@ namespace sd.asset.fbx.parse {
 						break;
 				}
 
-			} while (!this.eof_);
+			} while (! this.eof_);
 
 			if (this.depth_ > 0) {
 				this.delegate_.error("Unexpected EOF at nesting depth " + this.depth_, this.tokenizer_.offset);

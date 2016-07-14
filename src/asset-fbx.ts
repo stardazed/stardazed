@@ -407,7 +407,7 @@ namespace sd.asset {
 							haveFullDiffuse = true;
 						}
 						else if (c.name == "DiffuseColor") {
-							if (!haveFullDiffuse) {
+							if (! haveFullDiffuse) {
 								vec3.copy(mat.diffuseColour, <number[]>c.values);
 							}
 						}

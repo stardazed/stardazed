@@ -202,7 +202,7 @@ namespace sd.asset.md5.parse {
 
 
 		unexpected(token: Token, message?: string) {
-			if (!message) {
+			if (! message) {
 				message = (token.type == TokenType.Invalid) ? "Invalid token" : "Unexpected token";
 			}
 			this.delegate_.error(message, token.offset, token.val && token.val.toString());
@@ -287,7 +287,7 @@ namespace sd.asset.md5.parse {
 
 
 		private parseMeshVertices(count: number) {
-			while (!this.parser_.stop && count > 0) {
+			while (! this.parser_.stop && count > 0) {
 				if (this.parser_.expectNext(TokenType.Key, "vert")) {
 					var index = this.parser_.expectNext(TokenType.Number);
 
@@ -313,7 +313,7 @@ namespace sd.asset.md5.parse {
 
 
 		private parseMeshTriangles(count: number) {
-			while (!this.parser_.stop && count > 0) {
+			while (! this.parser_.stop && count > 0) {
 				if (this.parser_.expectNext(TokenType.Key, "tri")) {
 					var index = this.parser_.expectNext(TokenType.Number);
 					var a = this.parser_.expectNext(TokenType.Number);
@@ -332,7 +332,7 @@ namespace sd.asset.md5.parse {
 
 
 		private parseMeshWeights(count: number) {
-			while (!this.parser_.stop && count > 0) {
+			while (! this.parser_.stop && count > 0) {
 				if (this.parser_.expectNext(TokenType.Key, "weight")) {
 					var index = this.parser_.expectNext(TokenType.Number);
 					var jointIndex = this.parser_.expectNext(TokenType.Number);
@@ -406,7 +406,7 @@ namespace sd.asset.md5.parse {
 					else if (cmdN && cmdN.type != TokenType.CloseBlock) {
 						this.parser_.unexpected(cmdN);
 					}
-				} while (!this.parser_.stop && cmdN.type != TokenType.CloseBlock);
+				} while (! this.parser_.stop && cmdN.type != TokenType.CloseBlock);
 			}
 		}
 
@@ -415,7 +415,7 @@ namespace sd.asset.md5.parse {
 			var index = 0;
 
 			if (this.parser_.expectNext(TokenType.OpenBlock)) {
-				while (this.jointCount_ > 0 && !this.parser_.stop) {
+				while (this.jointCount_ > 0 && ! this.parser_.stop) {
 					var name = this.parser_.expectNext(TokenType.String);
 					var parentIndex = this.parser_.expectNext(TokenType.Number);
 
@@ -456,20 +456,20 @@ namespace sd.asset.md5.parse {
 
 
 		parse() {
-			while (!this.parser_.stop) {
+			while (! this.parser_.stop) {
 				var key = this.parser_.nextToken();
 				if (key.type == TokenType.Key) {
 					if (key.val == "mesh") {
 						this.delegate_.beginMesh();
 						this.parseMesh();
-						if (!this.parser_.stop) {
+						if (! this.parser_.stop) {
 							this.delegate_.endMesh();
 						}
 					}
 					else if (key.val == "joints") {
 						this.delegate_.beginJoints();
 						this.parseJoints();
-						if (!this.parser_.stop) {
+						if (! this.parser_.stop) {
 							this.delegate_.endJoints();
 						}
 					}
@@ -553,7 +553,7 @@ namespace sd.asset.md5.parse {
 			var index = 0;
 
 			if (this.parser_.expectNext(TokenType.OpenBlock)) {
-				while (!this.parser_.stop && this.jointCount_ > 0) {
+				while (! this.parser_.stop && this.jointCount_ > 0) {
 					var nameTok = this.parser_.expectNext(TokenType.String);
 					var parentTok = this.parser_.expectNext(TokenType.Number);
 					var maskTok = this.parser_.expectNext(TokenType.Number);
@@ -606,7 +606,7 @@ namespace sd.asset.md5.parse {
 			var index = 0;
 
 			if (this.parser_.expectNext(TokenType.OpenBlock)) {
-				while (this.boundsCount_ > 0 && !this.parser_.stop) {
+				while (this.boundsCount_ > 0 && ! this.parser_.stop) {
 					var min = this.parseVec3();
 					var max = this.parseVec3();
 
@@ -628,7 +628,7 @@ namespace sd.asset.md5.parse {
 			var index = 0;
 
 			if (this.parser_.expectNext(TokenType.OpenBlock)) {
-				while (this.baseJointCount_ > 0 && !this.parser_.stop) {
+				while (this.baseJointCount_ > 0 && ! this.parser_.stop) {
 					var pos = this.parseVec3();
 					var rot = this.parseVec3();
 
@@ -652,7 +652,7 @@ namespace sd.asset.md5.parse {
 			var data = new Float32Array(this.frameComponentCount_);
 
 			if (this.parser_.expectNext(TokenType.OpenBlock)) {
-				while (index < this.frameComponentCount_ && !this.parser_.stop) {
+				while (index < this.frameComponentCount_ && ! this.parser_.stop) {
 					var c = this.parser_.expectNext(TokenType.Number);
 					if (c) {
 						data[index] = <number>c.val;
@@ -671,7 +671,7 @@ namespace sd.asset.md5.parse {
 
 
 		parse() {
-			while (!this.parser_.stop) {
+			while (! this.parser_.stop) {
 				var key = this.parser_.nextToken();
 				if (key.type == TokenType.Key) {
 					if (key.val == "frame") {
@@ -683,21 +683,21 @@ namespace sd.asset.md5.parse {
 					else if (key.val == "hierarchy") {
 						this.delegate_.beginHierarchy();
 						this.parseHierarchy();
-						if (!this.parser_.stop) {
+						if (! this.parser_.stop) {
 							this.delegate_.endHierarchy();
 						}
 					}
 					else if (key.val == "bounds") {
 						this.delegate_.beginBoundingBoxes();
 						this.parseBounds();
-						if (!this.parser_.stop) {
+						if (! this.parser_.stop) {
 							this.delegate_.endBoundingBoxes();
 						}
 					}
 					else if (key.val == "baseframe") {
 						this.delegate_.beginBaseFrame();
 						this.parseBaseFrame();
-						if (!this.parser_.stop) {
+						if (! this.parser_.stop) {
 							this.delegate_.endBaseFrame();
 						}
 					}

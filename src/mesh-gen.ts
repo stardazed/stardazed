@@ -122,7 +122,7 @@ namespace sd.mesh.gen {
 			var subNormalView = normalView ? normalView.subView(baseVertex, subVtxCount) : null;
 
 			// -- if the generator does not supply normals but the mesh has a Normal attribute, we calculate them
-			if (subNormalView && !generator.explicitNormals) {
+			if (subNormalView && ! generator.explicitNormals) {
 				let subFaceView = triView.subView(faceIx - subFaceCount, subFaceCount);
 				calcVertexNormalsViews(subPosView, subNormalView, subFaceView);
 

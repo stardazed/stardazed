@@ -217,7 +217,7 @@ namespace sd.asset {
 				m.userRef = this.assets_.materials.length + 1;
 				vec3.set(m.diffuseColour, 0.8, 0.8, 0.8);
 				if (name) {
-					if (!this.textures_.has(name)) {
+					if (! this.textures_.has(name)) {
 						this.textures_.set(name, {
 							name: name,
 							filePath: name,
@@ -355,7 +355,7 @@ namespace sd.asset {
 				var fileProms: Promise<Texture2D>[] = [];
 
 				this.textures_.forEach(tex => {
-					if (!tex.filePath || tex.descriptor) {
+					if (! tex.filePath || tex.descriptor) {
 						return;
 					}
 

@@ -15,7 +15,7 @@ interface Array<T> {
 namespace sd {
 
 	export function assert(cond: any, msg?: string) {
-		if (!cond) {
+		if (! cond) {
 			console.error(msg || "assertion failed");
 			throw new Error(msg || "assertion failed");
 		}

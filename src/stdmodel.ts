@@ -1154,7 +1154,7 @@ namespace sd.world {
 			while (iter.next()) {
 				let modelIx = <number>iter.current;
 				var enabled = this.enabledBase_[modelIx];
-				if (!enabled && cullDisabled) {
+				if (! enabled && cullDisabled) {
 					continue;
 				}
 
