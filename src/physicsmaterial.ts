@@ -15,13 +15,13 @@ namespace sd.world {
 
 
 	export class PhysicsMaterialManager {
-		private instanceData_: PhysicsMaterialData[] = [null];
+		private instanceData_: (PhysicsMaterialData | null)[] = [null];
 		private freed_ = new Set<PhysicsMaterialRef>();
 
 		create(desc: PhysicsMaterialData): PhysicsMaterialRef {
 			var nextRef: PhysicsMaterialRef = 0;
 			if (this.freed_.size > 0) {
-				nextRef = this.freed_.values().next().value;
+				nextRef = this.freed_.values().next().value!;
 				this.freed_.delete(nextRef);
 			}
 			else {
@@ -61,7 +61,7 @@ namespace sd.world {
 
 		item(ref: PhysicsMaterialRef): PhysicsMaterialData {
 			assert(this.valid(ref));
-			return this.instanceData_[<number>ref];
+			return this.instanceData_[<number>ref]!; // the above assert validates the index
 		}
 	}
 
