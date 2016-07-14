@@ -7,7 +7,7 @@
 namespace sd.render {
 
 	export interface AttachmentDescriptor {
-		texture: Texture;
+		texture: Texture | null;
 		level: number; // mipmap
 		layer: number | CubeMapFace; // TexCube only: 0..5
 	}
