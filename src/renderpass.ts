@@ -196,7 +196,7 @@ namespace sd.render {
 			}
 			else {
 				renderWidth = this.rc.gl.drawingBufferWidth;
-				renderWidth = this.rc.gl.drawingBufferHeight;
+				renderHeight = this.rc.gl.drawingBufferHeight;
 			}
 
 			if (rect.originX > 0 || rect.originY > 0 || rect.width < renderWidth || rect.height < renderHeight)
