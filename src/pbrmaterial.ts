@@ -32,9 +32,9 @@ namespace sd.world {
 		textureScale: Float2;           // [0..1, 0..1], scale and offset apply to all textures, u and v clamped to 0..1
 		textureOffset: Float2;
 
-		albedoMap: render.Texture;
-		materialMap: render.Texture;
-		normalHeightMap: render.Texture;
+		albedoMap: render.Texture | null;
+		materialMap: render.Texture | null;
+		normalHeightMap: render.Texture | null;
 
 		flags: PBRMaterialFlags;
 	}
