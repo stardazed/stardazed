@@ -50,8 +50,9 @@ namespace sd.world {
 
 			this.pipeline_ = new render.Pipeline(rc, pld);
 
-			this.mvpMatrixUniform_ = rc.gl.getUniformLocation(this.pipeline_.program, "modelViewProjectionMatrix");
-			this.textureCubeUniform_ = rc.gl.getUniformLocation(this.pipeline_.program, "skyboxMap");
+			this.mvpMatrixUniform_ = rc.gl.getUniformLocation(this.pipeline_.program, "modelViewProjectionMatrix")!;
+			this.textureCubeUniform_ = rc.gl.getUniformLocation(this.pipeline_.program, "skyboxMap")!;
+			assert(this.mvpMatrixUniform_ && this.textureCubeUniform_, "invalid skybox program");
 
 			// -- invariant uniform
 			this.pipeline_.bind();
