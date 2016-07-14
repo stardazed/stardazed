@@ -12,14 +12,17 @@ namespace sd.asset {
 		tileData: Uint32Array;
 
 		constructor(layerNode: Node) {
-			var byteView = new Uint8Array(atob(layerNode.textContent.trim()).split("").map(c => { return c.charCodeAt(0); }));
+			var layerText = (layerNode.textContent || "").trim();
+			var byteView = new Uint8Array(atob(layerText).split("").map(c => { return c.charCodeAt(0); }));
 			this.tileData = new Uint32Array(byteView.buffer);
 
 			seq(layerNode.attributes).forEach((attr, ix) => {
-				if (attr.nodeName == "width")
-					this.width = parseInt(attr.textContent);
-				if (attr.nodeName == "height")
-					this.height = parseInt(attr.textContent);
+				if (attr.nodeName == "width") {
+					this.width = parseInt(attr.textContent || "0");
+				}
+				if (attr.nodeName == "height") {
+					this.height = parseInt(attr.textContent || "0");
+				}
 			});
 		}
 
@@ -80,9 +83,9 @@ namespace sd.asset {
 
 					seq(tileDoc.attributes).forEach((attr, ix) => {
 						if (attr.nodeName == "width")
-							this.width_ = parseInt(attr.textContent);
+							this.width_ = parseInt(attr.textContent || "0");
 						if (attr.nodeName == "height")
-							this.height_ = parseInt(attr.textContent);
+							this.height_ = parseInt(attr.textContent || "0");
 					});
 
 					for (var ix = 0; ix < tileDoc.childNodes.length; ++ix) {

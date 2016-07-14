@@ -2,11 +2,6 @@
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 
-// interface Element {
-// 	closest: (selectors: string) => Element;
-// }
-
-
 namespace sd.dom {
 
 	// -- Elements
