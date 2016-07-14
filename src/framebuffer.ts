@@ -9,7 +9,7 @@
 namespace sd.render {
 
 	var fboBugs = {
-		mustHaveAColourAtt: <boolean>null
+		mustHaveAColourAtt: <(boolean | null)>null
 	};
 
 	function fboMustHaveAColourAttachment(rc: RenderContext) {
@@ -180,7 +180,7 @@ namespace sd.render {
 
 		constructor(private rc: RenderContext, desc: FrameBufferDescriptor) {
 			var gl = rc.gl;
-			var fbo = this.fbo_ = gl.createFramebuffer();
+			var fbo = this.fbo_ = gl.createFramebuffer()!; // FIXME: verify resource creation
 			gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
 			// -- deep copy of descriptor
@@ -190,7 +190,7 @@ namespace sd.render {
 				stencilAttachment: cloneStruct(desc.stencilAttachment)
 			};
 
-			var anyTexture: Texture = null;
+			var anyTexture: (Texture | null) = null;
 
 			// -- colour
 			var drawBuffers = desc.colourAttachments.map((attachment, attIndex) => {
