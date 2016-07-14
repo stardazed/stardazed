@@ -116,8 +116,9 @@ namespace sd.render {
 
 			pfp.pipeline = new Pipeline(rc, pld);
 
-			pfp.paramsUniform = rc.gl.getUniformLocation(pfp.pipeline.program, "params");
-			pfp.envMapSamplerUniform = rc.gl.getUniformLocation(pfp.pipeline.program, "envMapSampler");
+			pfp.paramsUniform = rc.gl.getUniformLocation(pfp.pipeline.program, "params")!;
+			pfp.envMapSamplerUniform = rc.gl.getUniformLocation(pfp.pipeline.program, "envMapSampler")!;
+			assert(pfp.paramsUniform && pfp.envMapSamplerUniform, "invalid prefilter pipeline");
 
 			// -- invariant uniform
 			pfp.pipeline.bind();
