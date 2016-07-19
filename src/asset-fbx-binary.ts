@@ -111,13 +111,13 @@ namespace sd.asset.fbx.parse {
 		}
 
 
-		private readArrayProperty(element: NumericType): TypedArray {
+		private readArrayProperty(element: NumericType): TypedArray | null {
 			const arrayLength = this.dataView_.getUint32(this.offset_, true);
 			const encoding = this.dataView_.getUint32(this.offset_ + 4, true);
 			const compressedSizeBytes = this.dataView_.getUint32(this.offset_ + 8, true);
 			this.offset_ += 12;
 
-			var array: TypedArray = null;
+			var array: TypedArray | null = null;
 			var dataSizeBytes = 0;
 
 			if (encoding == 0) { 
@@ -164,7 +164,7 @@ namespace sd.asset.fbx.parse {
 			var firstPropOffset = this.offset_;
 
 			while (count--) {
-				let val: FBXValue;
+				let val: FBXValue | null;
 				let type = String.fromCharCode(this.bytes_[this.offset_]);
 				let propLen: number;
 				this.offset_ += 1;
@@ -237,11 +237,13 @@ namespace sd.asset.fbx.parse {
 							// read array as doubles for proper size and alignment
 							let doubles = this.readArrayProperty(Double);
 
-							// reinterpret array as a double-length list of int32s and convert in-place
-							let view = new DataView(doubles.buffer);
-							for (let di = 0; di < doubles.length; ++di) {
-								let v = this.convertInt64ToDouble(view, di * 8);
-								doubles[di] = v;
+							if (doubles) {
+								// reinterpret array as a double-length list of int32s and convert in-place
+								let view = new DataView(doubles.buffer);
+								for (let di = 0; di < doubles.length; ++di) {
+									let v = this.convertInt64ToDouble(view, di * 8);
+									doubles[di] = v;
+								}
 							}
 
 							val = doubles;
@@ -258,11 +260,14 @@ namespace sd.asset.fbx.parse {
 					default:
 						console.warn("Unknown property type: " + type + ". Skipping further properties for this field.");
 						count = 0;
+						val = 0;
 						this.offset_ = firstPropOffset + header.valuesSizeBytes;
 						break;
 				}
 
-				values.push(val);
+				if (val !== null) {
+					values.push(val);
+				}
 			}
 
 			assert(this.offset_ - header.valuesSizeBytes == firstPropOffset);
@@ -280,7 +285,7 @@ namespace sd.asset.fbx.parse {
 				if (hdr.endOffset == 0) {
 					// end of scope marker
 					if (this.stack_.length > 0) {
-						var closing = this.stack_.pop();
+						var closing = this.stack_.pop()!; // above check asserts succesful pop()
 						assert(closing.endOffset == this.offset_, "Offset mismatch at end of scope");
 						if (this.inProp70Block_) {
 							assert(closing.name == "Properties70", "Invalid parser state, assumed closing a Prop70 but was closing a " + closing.name);

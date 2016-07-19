@@ -29,7 +29,7 @@ namespace sd.asset.fbx.parse {
 	class FBXTextTokenizer {
 		private offset_ = -1;
 		private length_ = 0;
-		private lastChar_ = "";
+		private lastChar_: string | null = "";
 
 		constructor(private source: string) {
 			this.length_ = source.length;
@@ -49,7 +49,7 @@ namespace sd.asset.fbx.parse {
 
 
 		private skipWS() {
-			var c: string;
+			var c: string | null;
 			while (c = this.nextChar()) {
 				if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
 					break;
@@ -58,7 +58,7 @@ namespace sd.asset.fbx.parse {
 
 
 		private skipToLineEnd() {
-			var c: string;
+			var c: string | null;
 			while (c = this.nextChar()) {
 				if (c == '\r' || c == '\n')
 					break;
@@ -222,14 +222,14 @@ namespace sd.asset.fbx.parse {
 		private tokenizer_: FBXTextTokenizer;
 
 		private expect_ = Expect.Key;
-		private expectNextKey_: string = null;
+		private expectNextKey_: string | null = null;
 
 		private eof_ = false;
 		private depth_ = 0;
 		private inProp70Block_ = false;
 		private skippingUntilDepth_ = 1000;
 
-		private array_: TypedArray = null;
+		private array_: TypedArray | null = null;
 		private arrayLength_ = 0;
 		private arrayIndex_ = 0;
 
@@ -247,10 +247,10 @@ namespace sd.asset.fbx.parse {
 
 		private unexpected(t: Token) {
 			if (t.type == TokenType.Invalid) {
-				this.delegate_.error("Invalid token", t.offset, t.val.toString());
+				this.delegate_.error("Invalid token", t.offset, t.val && t.val.toString());
 			}
 			else {
-				this.delegate_.error("Unexpected token", t.offset, t.val.toString());
+				this.delegate_.error("Unexpected token", t.offset, t.val && t.val.toString());
 			}
 			
 			this.eof_ = true;
@@ -370,7 +370,7 @@ namespace sd.asset.fbx.parse {
 										this.reportProperty();
 									}
 
-									this.values_.push(token.val);
+									this.values_.push(token.val!);
 								}
 
 								this.expect_ = Expect.ValueOrOpen;
@@ -392,7 +392,7 @@ namespace sd.asset.fbx.parse {
 							if (this.array_) {
 								// in Array mode, fill delegate-provided array with numbers
 								if (token.type != TokenType.Number) {
-									this.delegate_.error("Only numbers are allowed in arrays", token.offset, token.val.toString());
+									this.delegate_.error("Only numbers are allowed in arrays", token.offset, token.val && token.val.toString());
 									return;
 								}
 
@@ -407,7 +407,7 @@ namespace sd.asset.fbx.parse {
 								}
 							}
 							else {
-								this.values_.push(token.val);
+								this.values_.push(token.val!);
 								this.expect_ = Expect.CommaOrOpenOrKey;
 							}
 

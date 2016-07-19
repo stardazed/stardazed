@@ -542,7 +542,8 @@ namespace sd.asset {
 
 			assets(): AssetGroup {
 				var ag = new AssetGroup();
-				var ja = this.joints_.map(j => j.anim).filter(a => a != null);
+				// the non-null assertion is necessary as the null filtering does not register
+				var ja = this.joints_.map(j => j.anim!).filter(a => a != null);
 				var sa: SkeletonAnimation = {
 					frameCount: this.frameCount_,
 					frameTime: 1 / this.frameRate_,
