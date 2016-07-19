@@ -89,13 +89,23 @@ namespace sd.asset {
 					});
 
 					for (var ix = 0; ix < tileDoc.childNodes.length; ++ix) {
-						var node = tileDoc.childNodes[ix];
+						let node = tileDoc.childNodes[ix];
+						let nameAttr: Attr;
+						let name: string | null;
 
 						if (node.nodeName == "layer") {
-							this.layers[node.attributes.getNamedItem("name").textContent] = new TMXLayer(node);
+							nameAttr = node.attributes.getNamedItem("name");
+							name = nameAttr && nameAttr.textContent;
+							if (name) {
+								this.layers[name] = new TMXLayer(node);
+							}
 						}
 						else if (node.nodeName == "objectgroup") {
-							this.objectGroups[node.attributes.getNamedItem("name").textContent] = new TMXObjectGroup(node);
+							nameAttr = node.attributes.getNamedItem("name");
+							name = nameAttr && nameAttr.textContent;
+							if (name) {
+								this.objectGroups[name] = new TMXObjectGroup(node);
+							}
 						}
 					}
 
