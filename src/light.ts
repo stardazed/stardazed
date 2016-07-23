@@ -106,7 +106,7 @@ namespace sd.world {
 		private tempVec4_ = new Float32Array(4);
 		private nullVec3_ = new Float32Array(3); // used to convert directions to rotations
 
-		private shadowFBO_: render.FrameBuffer = null;
+		private shadowFBO_: render.FrameBuffer | null = null;
 
 		constructor(private transformMgr_: TransformManager) {
 			const initialCapacity = 256;
@@ -247,14 +247,14 @@ namespace sd.world {
 
 		// -- derived properties
 
-		projectionSetupForLight(inst: LightInstance, viewportWidth: number, viewportHeight: number, nearZ: number): ProjectionSetup {
+		projectionSetupForLight(inst: LightInstance, viewportWidth: number, viewportHeight: number, nearZ: number): ProjectionSetup | null {
 			var transform = this.transformBase_[<number>inst];
 			var worldPos = this.transformMgr_.worldPosition(transform);
 			var worldDirection = this.direction(inst);
 			var worldTarget = vec3.add([], worldPos, worldDirection);
 
-			var viewMatrix: Float4x4 = null;
-			var projectionMatrix: Float4x4 = null;
+			var viewMatrix: Float4x4;
+			var projectionMatrix: Float4x4;
 
 			var type = this.typeBase_[<number>inst];
 			if (type == LightType.Spot) {
@@ -267,6 +267,9 @@ namespace sd.world {
 			else if (type == LightType.Directional) {
 				viewMatrix = mat4.lookAt([], [0, 0, 0], worldDirection, [0, 1, 0]); // FIXME: this can likely be done cheaper
 				projectionMatrix = mat4.ortho([], -40, 40, -40, 40, -40, 40);
+			}
+			else {
+				return null;
 			}
 
 			return {
@@ -286,12 +289,13 @@ namespace sd.world {
 		}
 
 
-		shadowViewForLight(rc: render.RenderContext, inst: LightInstance, nearZ: number): ShadowView {
+		shadowViewForLight(rc: render.RenderContext, inst: LightInstance, nearZ: number): ShadowView | null {
 			var fbo = this.shadowFrameBufferOfQuality(rc, this.shadowQualityBase_[<number>inst]);
+			var projection = this.projectionSetupForLight(inst, fbo.width, fbo.height, nearZ);
 
-			return {
+			return projection && {
 				light: inst,
-				lightProjection: this.projectionSetupForLight(inst, fbo.width, fbo.height, nearZ), 
+				lightProjection: projection,
 				shadowFBO: fbo
 			};
 		}
