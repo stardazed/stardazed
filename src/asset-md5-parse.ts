@@ -29,7 +29,7 @@ namespace sd.asset.md5.parse {
 	class MD5Tokenizer {
 		private offset_ = -1;
 		private length_ = 0;
-		private lastChar_ = "";
+		private lastChar_: string | null = "";
 
 		constructor(private source: string) {
 			this.length_ = source.length;
@@ -49,16 +49,16 @@ namespace sd.asset.md5.parse {
 
 
 		private skipWS() {
-			var c: string;
+			var c: string | null;
 			while (c = this.nextChar()) {
-				if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
+				if (c != ' ' && c != '\t' && c != '\r' && c != '\n') 
 					break;
 			}
 		}
 
 
 		private skipToLineEnd() {
-			var c: string;
+			var c: string | null;
 			while (c = this.nextChar()) {
 				if (c == '\r' || c == '\n')
 					break;
@@ -210,7 +210,7 @@ namespace sd.asset.md5.parse {
 		}
 
 
-		expectNext(tokenType: TokenType, tokenVal?: number | string): Token {
+		expectNext(tokenType: TokenType, tokenVal?: number | string): Token | null {
 			var token = this.tokenizer_.nextToken();
 			if (token.type == TokenType.EOF) {
 				this.stop_ = true;
@@ -474,14 +474,18 @@ namespace sd.asset.md5.parse {
 						}
 					}
 					else if (key.val == "numjoints") {
-						let count = this.parser_.expectNext(TokenType.Number);
-						this.jointCount_ = <number>count.val | 0;
-						this.delegate_.jointCount(this.jointCount_);
+						const count = this.parser_.expectNext(TokenType.Number);
+						if (count) {
+							this.jointCount_ = <number>count.val | 0;
+							this.delegate_.jointCount(this.jointCount_);
+						}
 					}
 					else if (key.val == "nummeshes") {
-						let count = this.parser_.expectNext(TokenType.Number);
-						this.meshCount_ = <number>count.val | 0;
-						this.delegate_.meshCount(this.meshCount_);
+						const count = this.parser_.expectNext(TokenType.Number);
+						if (count) {
+							this.meshCount_ = <number>count.val | 0;
+							this.delegate_.meshCount(this.meshCount_);
+						}
 					}
 					else if (key.val == "md5version" || key.val == "commandline") {
 						// ignore these directives
