@@ -62,9 +62,9 @@ namespace sd.world {
 		colourData: Float32Array;     // baseColour(rgb), opacity
 		materialParam: Float32Array;  // roughness, metallic, 0, 0 | specular(rgb), roughness
 		texScaleOffsetData: Float32Array; // scale(xy), offset(xy)
-		albedoMap: render.Texture;
-		materialMap: render.Texture;
-		normalHeightMap: render.Texture;
+		albedoMap: render.Texture | null;
+		materialMap: render.Texture | null;
+		normalHeightMap: render.Texture | null;
 		flags: PBRMaterialFlags;
 	}
 
@@ -85,9 +85,9 @@ namespace sd.world {
 
 	export class PBRMaterialManager implements ComponentManager<PBRMaterialManager> {
 		private instanceData_: container.MultiArrayBuffer;
-		private albedoMaps_: render.Texture[] = [];
-		private materialMaps_: render.Texture[] = [];
-		private normalHeightMaps_: render.Texture[] = [];
+		private albedoMaps_: (render.Texture | null)[] = [];
+		private materialMaps_: (render.Texture | null)[] = [];
+		private normalHeightMaps_: (render.Texture | null)[] = [];
 
 		private baseColourBase_: TypedArray;
 		private materialBase_: TypedArray;
@@ -266,19 +266,19 @@ namespace sd.world {
 		}
 
 
-		albedoMap(inst: PBRMaterialInstance): render.Texture {
+		albedoMap(inst: PBRMaterialInstance): render.Texture | null {
 			return this.albedoMaps_[<number>inst];
 		}
 
-		setAlbedoMap(inst: PBRMaterialInstance, newTex: render.Texture) {
+		setAlbedoMap(inst: PBRMaterialInstance, newTex: render.Texture | null) {
 			this.albedoMaps_[<number>inst] = newTex;
 		}
 
-		materialMap(inst: PBRMaterialInstance): render.Texture {
+		materialMap(inst: PBRMaterialInstance): render.Texture | null {
 			return this.materialMaps_[<number>inst];
 		}
 
-		normalHeightMap(inst: PBRMaterialInstance): render.Texture {
+		normalHeightMap(inst: PBRMaterialInstance): render.Texture | null {
 			return this.normalHeightMaps_[<number>inst];
 		}
 
