@@ -155,20 +155,22 @@ namespace sd.render {
 
 		private attachTexture(glAttachment: number, attachment: AttachmentDescriptor) {
 			var gl = this.rc.gl;
+			var texture = attachment.texture!;
+			assert(texture, "Tried to attach a null texture");
 
-			if (attachment.texture.target == gl.RENDERBUFFER) {
+			if (texture.target == gl.RENDERBUFFER) {
 				assert(attachment.level == 0, "renderbuffers do not have mipmaps");
 				assert(attachment.layer == 0, "renderbuffers do not have layers");
 
-				gl.framebufferRenderbuffer(gl.FRAMEBUFFER, glAttachment, gl.RENDERBUFFER, <WebGLRenderbuffer>attachment.texture.resource);
+				gl.framebufferRenderbuffer(gl.FRAMEBUFFER, glAttachment, gl.RENDERBUFFER, <WebGLRenderbuffer>texture.resource);
 			}
 			else {
-				var tex = <WebGLTexture>attachment.texture.resource;
+				var tex = <WebGLTexture>texture.resource;
 				assert(attachment.level == 0, "WebGL 1 does not allow mapping of texture level > 0");
-				assert(attachment.level < attachment.texture.mipmaps);
+				assert(attachment.level < texture.mipmaps);
 
 				var glTarget = gl.TEXTURE_2D;
-				if (attachment.texture.textureClass == TextureClass.TexCube) {
+				if (texture.textureClass == TextureClass.TexCube) {
 					assert(attachment.layer >= 0 && attachment.layer <= 5, "layer is not a valid CubeMapFace index");
 					glTarget = gl.TEXTURE_CUBE_MAP_POSITIVE_X + attachment.layer;
 				}
