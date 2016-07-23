@@ -10,7 +10,7 @@ namespace sd.asset {
 	function parseLWMaterialSource(text: string): MaterialSet {
 		var lines = text.split("\n");
 		var materials: MaterialSet = {};
-		var curMat: Material = null;
+		var curMat: Material | null = null;
 
 		lines.forEach(function(line) {
 			var tokens = line.split(" ");
@@ -19,10 +19,16 @@ namespace sd.asset {
 					curMat = materials[tokens[1]] = makeMaterial();
 					break;
 				case "Kd":
-					curMat.diffuseColour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+					if (curMat) {
+						curMat.diffuseColour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+					}
+					// FIXME: else unexpected()
 					break;
 				case "Ks":
-					curMat.specularColour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+					if (curMat) {
+						curMat.specularColour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+					}
+					// FIXME: else unexpected()
 					break;
 				default:
 					break;
@@ -42,7 +48,7 @@ namespace sd.asset {
 	export interface LWMeshData {
 		mtlFileName: string;
 		mesh: mesh.MeshData;
-		materials: MaterialSet;
+		materials: MaterialSet | null;
 		drawGroups: LWDrawGroup[];
 	}
 
@@ -68,7 +74,7 @@ namespace sd.asset {
 
 		var mtlFileName = "";
 		var materialGroups: LWDrawGroup[] = [];
-		var curMaterialGroup: LWDrawGroup = null;
+		var curMaterialGroup: LWDrawGroup | null = null;
 
 		var meshData = new mesh.MeshData(hasColourAttr ? mesh.AttrList.Pos3Norm3Colour3UV2() : mesh.AttrList.Pos3Norm3UV2());
 		var vb = meshData.primaryVertexBuffer;
