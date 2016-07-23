@@ -145,11 +145,11 @@ namespace sd.world {
 			// -- validate parameters
 			assert(desc.type != LightType.None);
 			if (desc.type == LightType.Point) {
-				assert((desc.range != undefined) && (desc.range >= 0), "Point lights require a valid range");
+				assert((desc.range !== undefined) && (desc.range >= 0), "Point lights require a valid range");
 			}
 			else if (desc.type == LightType.Spot) {
-				assert((desc.range != undefined) && (desc.range >= 0), "Spot lights require a valid range (0+)");
-				assert((desc.cutoff != undefined) && (desc.cutoff >= 0), "Spot lights require a valid cutoff arc (0+)");
+				assert((desc.range !== undefined) && (desc.range >= 0), "Spot lights require a valid range (0+)");
+				assert((desc.cutoff !== undefined) && (desc.cutoff >= 0), "Spot lights require a valid cutoff arc (0+)");
 			}
 
 			// -- create instance
@@ -168,8 +168,8 @@ namespace sd.world {
 			container.setIndexedVec4(this.colourBase_, instanceIx, this.tempVec4_);
 
 			// -- parameters, force 0 for unused fields for specified type
-			var range = (desc.type == LightType.Directional) ? 0 : desc.range;
-			var cutoff = (desc.type != LightType.Spot) ? 0 : desc.cutoff;
+			var range = (desc.range === undefined || desc.type == LightType.Directional) ? 0 : desc.range;
+			var cutoff = (desc.cutoff === undefined || desc.type != LightType.Spot) ? 0 : desc.cutoff;
 			vec4.set(this.tempVec4_, desc.ambientIntensity || 0, desc.diffuseIntensity, range, Math.cos(cutoff));
 			container.setIndexedVec4(this.parameterBase_, instanceIx, this.tempVec4_);
 
