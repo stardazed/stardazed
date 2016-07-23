@@ -123,7 +123,7 @@ namespace sd.mesh {
 	}
 
 
-	export function vertexFieldNumericType(vf: VertexField): NumericType {
+	export function vertexFieldNumericType(vf: VertexField): NumericType | null {
 		switch (vf) {
 			case VertexField.Float:
 			case VertexField.Floatx2:
@@ -276,20 +276,19 @@ namespace sd.mesh {
 
 	export function makePositionedAttr(vf: VertexField, ar: VertexAttributeRole, offset: number): PositionedAttribute;
 	export function makePositionedAttr(attr: VertexAttribute, offset: number): PositionedAttribute;
-	export function makePositionedAttr(fieldOrAttr: VertexField | VertexAttribute, roleOrOffset: VertexAttribute | number, offset?: number): PositionedAttribute {
-		if ("field" in <any>fieldOrAttr) {
-			var attr = <VertexAttribute>fieldOrAttr;
+	export function makePositionedAttr(fieldOrAttr: VertexField | VertexAttribute, roleOrOffset: VertexAttributeRole | number, offset?: number): PositionedAttribute {
+		if (typeof fieldOrAttr === "number") {
 			return {
-				field: attr.field,
-				role: attr.role,
-				offset: <number>roleOrOffset
+				field: fieldOrAttr,
+				role: roleOrOffset,
+				offset: offset | 0
 			};
 		}
 		else {
 			return {
-				field: <VertexField>fieldOrAttr,
-				role: <VertexAttributeRole>roleOrOffset,
-				offset: offset
+				field: fieldOrAttr.field,
+				role: fieldOrAttr.role,
+				offset: roleOrOffset | 0
 			};
 		}
 	}
@@ -345,12 +344,13 @@ namespace sd.mesh {
 			return vertexCount * this.vertexSizeBytes_;
 		}
 
-		attrByRole(role: VertexAttributeRole): PositionedAttribute {
-			return this.attrs_.find((pa) => pa.role == role);
+		attrByRole(role: VertexAttributeRole): PositionedAttribute | null {
+			var attr = this.attrs_.find((pa) => pa.role == role);
+			return attr || null;
 		}
 
-		attrByIndex(index: number): PositionedAttribute {
-			return this.attrs_[index];
+		attrByIndex(index: number): PositionedAttribute | null {
+			return this.attrs_[index] || null;
 		}
 
 		hasAttributeWithRole(role: VertexAttributeRole): boolean {
@@ -366,8 +366,8 @@ namespace sd.mesh {
 	//                                                
 
 	export interface ClientBuffer {
-		bufferSizeBytes: number;
-		buffer: ArrayBuffer;
+		readonly bufferSizeBytes: number;
+		readonly buffer: ArrayBuffer | null;
 	}
 
 
@@ -380,7 +380,7 @@ namespace sd.mesh {
 	export class VertexBuffer implements ClientBuffer {
 		private layout_: VertexLayout;
 		private itemCount_ = 0;
-		private storage_: ArrayBuffer = null;
+		private storage_: ArrayBuffer | null = null;
 
 		constructor(attrs: VertexAttribute[] | VertexLayout) {
 			if (attrs instanceof VertexLayout)
@@ -421,6 +421,7 @@ namespace sd.mesh {
 		private stride_: number;
 		private attrOffset_: number;
 		private attrElementCount_: number;
+		private fieldNumType_: NumericType;
 		private typedViewCtor_: TypedArrayConstructor;
 		private buffer_: ArrayBuffer;
 		private dataView_: DataView;
@@ -430,8 +431,15 @@ namespace sd.mesh {
 			this.stride_ = this.vertexBuffer_.layout.vertexSizeBytes;
 			this.attrOffset_ = attr_.offset;
 			this.attrElementCount_ = vertexFieldElementCount(attr_.field);
-			this.typedViewCtor_ = vertexFieldNumericType(attr_.field).arrayType;
-			this.buffer_ = this.vertexBuffer_.buffer;
+
+			// FIXME: error refactoring
+			this.fieldNumType_ = vertexFieldNumericType(attr_.field)!;
+			assert(this.fieldNumType_, "Unknown attribute field type");
+			this.typedViewCtor_ = this.fieldNumType_.arrayType;
+
+			this.buffer_ = this.vertexBuffer_.buffer!;
+			assert(this.buffer_, "Tried to create a view on an unallocated buffer");
+
 			this.dataView_ = new DataView(this.buffer_);
 			this.viewItemCount_ = itemCount < 0 ? (this.vertexBuffer_.itemCount - this.firstItem_) : itemCount;
 
@@ -453,7 +461,7 @@ namespace sd.mesh {
 			var offsetBytes = (this.stride_ * firstIndex) + this.attrOffset_;
 			var buffer = this.buffer_;
 			var stride = this.stride_;
-			var elementSize = vertexFieldNumericType(this.attr_.field).byteSize;
+			var elementSize = this.fieldNumType_.byteSize;
 			var sourceIndex = 0;
 			var arrView: TypedArray;
 
@@ -577,7 +585,7 @@ namespace sd.mesh {
 					break;
 
 				default:
-					assert(false, "no");
+					assert(false, "copyItem not implemented for this fieldtype");
 					break;
 			}
 
@@ -706,7 +714,7 @@ namespace sd.mesh {
 		private indexCount_ = 0;
 		private primitiveCount_ = 0;
 		private indexElementSizeBytes_ = 0;
-		private storage_: ArrayBuffer = null;
+		private storage_: ArrayBuffer | null = null;
 
 		allocate(primitiveType: PrimitiveType, elementType: IndexElementType, primitiveCount: number) {
 			this.primitiveType_ = primitiveType;
@@ -731,16 +739,17 @@ namespace sd.mesh {
 
 		// -- read/write indexes
 		typedBasePtr(baseIndexNr: number, elementCount: number): TypedIndexArray {
+			assert(this.storage_, "No storage allocated yet!");
 			var offsetBytes = this.indexElementSizeBytes_ * baseIndexNr;
 
 			if (this.indexElementType_ == IndexElementType.UInt32) {
-				return new Uint32Array(this.storage_, offsetBytes, elementCount);
+				return new Uint32Array(this.storage_!, offsetBytes, elementCount);
 			}
 			else if (this.indexElementType_ == IndexElementType.UInt16) {
-				return new Uint16Array(this.storage_, offsetBytes, elementCount);
+				return new Uint16Array(this.storage_!, offsetBytes, elementCount);
 			}
 			else {
-				return new Uint8Array(this.storage_, offsetBytes, elementCount);
+				return new Uint8Array(this.storage_!, offsetBytes, elementCount);
 			}
 		}
 
@@ -801,6 +810,8 @@ namespace sd.mesh {
 	}
 
 
+	// FIXME: extract out interface of triangleview and implement triview for non-indexed meshes
+
 	export class IndexBufferTriangleView {
 		constructor(private indexBuffer_: IndexBuffer, private fromTriangle_ = -1, private toTriangle_ = -1) {
 			assert(this.indexBuffer_.primitiveType == PrimitiveType.Triangle);
@@ -844,17 +855,19 @@ namespace sd.mesh {
 	// |___/\___|_| |_|\_/\___\__,_| |___/\__,_|\__\__,_|
 	//                                                   
 
+	// FIXME: once we have triview for non-indexed meshes, make param optional and create proper view
 	export function calcVertexNormals(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer) {
 		var posAttr = vertexBuffer.attrByRole(VertexAttributeRole.Position);
 		var normAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
 
-		assert(posAttr && normAttr);
+		if (posAttr && normAttr) {
+			var posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
+			var normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
+			var triView = new IndexBufferTriangleView(indexBuffer);
 
-		var posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
-		var normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
-		var triView = new IndexBufferTriangleView(indexBuffer);
-
-		calcVertexNormalsViews(posView, normView, triView);
+			calcVertexNormalsViews(posView, normView, triView);
+		}
+		// TODO: else warn?
 	}
 
 
@@ -911,15 +924,16 @@ namespace sd.mesh {
 		var uvAttr = vertexBuffer.attrByRole(uvSet);
 		var tanAttr = vertexBuffer.attrByRole(VertexAttributeRole.Tangent);
 
-		assert(posAttr && normAttr && uvAttr && tanAttr);
+		if (posAttr && normAttr && uvAttr && tanAttr) {
+			var posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
+			var normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
+			var uvView = new VertexBufferAttributeView(vertexBuffer, uvAttr);
+			var tanView = new VertexBufferAttributeView(vertexBuffer, tanAttr);
+			var triView = new IndexBufferTriangleView(indexBuffer);
 
-		var posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
-		var normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
-		var uvView = new VertexBufferAttributeView(vertexBuffer, uvAttr);
-		var tanView = new VertexBufferAttributeView(vertexBuffer, tanAttr);
-		var triView = new IndexBufferTriangleView(indexBuffer);
-
-		calcVertexTangentsViews(posView, normView, uvView, tanView, triView);
+			calcVertexTangentsViews(posView, normView, uvView, tanView, triView);
+		}
+		// TODO: else warn?
 	}
 
 
@@ -1038,7 +1052,7 @@ namespace sd.mesh {
 
 	export class MeshData {
 		vertexBuffers: Array<VertexBuffer> = [];
-		indexBuffer: IndexBuffer;
+		indexBuffer: IndexBuffer | null; // FIXME: the implicit indexbuffer is wrong
 		primitiveGroups: Array<PrimitiveGroup> = [];
 
 		constructor(attrs?: VertexAttribute[]) {
@@ -1048,19 +1062,20 @@ namespace sd.mesh {
 			this.indexBuffer = new IndexBuffer();
 		}
 
-		findFirstAttributeWithRole(role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } {
-			var pa: PositionedAttribute = null;
-			var avb: VertexBuffer = null;
+		findFirstAttributeWithRole(role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | null {
+			var pa: PositionedAttribute | null = null;
+			var avb: VertexBuffer | null = null;
 
 			this.vertexBuffers.forEach((vb) => {
 				if (! pa) {
 					pa = vb.attrByRole(role);
-					if (pa)
+					if (pa) {
 						avb = vb;
+					}
 				}
 			});
 
-			if (pa)
+			if (pa && avb)
 				return { vertexBuffer: avb, attr: pa };
 			else
 				return null;
@@ -1074,10 +1089,7 @@ namespace sd.mesh {
 		// derived vertex data generation
 		genVertexNormals() {
 			this.vertexBuffers.forEach((vertexBuffer) => {
-				var posAttr = vertexBuffer.attrByRole(VertexAttributeRole.Position),
-					normAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
-
-				if (posAttr && normAttr) {
+				if (this.indexBuffer) {
 					calcVertexNormals(vertexBuffer, this.indexBuffer);
 				}
 			});
