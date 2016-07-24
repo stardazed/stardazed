@@ -114,9 +114,9 @@ namespace sd.asset {
 		});
 
 		vb.allocate(triCount * 3);
-		posView = new mesh.VertexBufferAttributeView(vb, vb.attrByRole(mesh.VertexAttributeRole.Position));
-		normView = new mesh.VertexBufferAttributeView(vb, vb.attrByRole(mesh.VertexAttributeRole.Normal));
-		uvView = new mesh.VertexBufferAttributeView(vb, vb.attrByRole(mesh.VertexAttributeRole.UV));
+		posView = new mesh.VertexBufferAttributeView(vb, vb.attrByRole(mesh.VertexAttributeRole.Position)!);
+		normView = new mesh.VertexBufferAttributeView(vb, vb.attrByRole(mesh.VertexAttributeRole.Normal)!);
+		uvView = new mesh.VertexBufferAttributeView(vb, vb.attrByRole(mesh.VertexAttributeRole.UV)!);
 		meshData.indexBuffer = null;
 
 		// convert a face index to zero-based int or -1 for empty index	
@@ -212,8 +212,10 @@ namespace sd.asset {
 
 			if (materialsAsColours) {
 				var colourAttr = obj.mesh.primaryVertexBuffer.attrByRole(mesh.VertexAttributeRole.Colour);
-				var colourView = new mesh.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer, colourAttr);
-				genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
+				if (colourAttr) {
+					var colourView = new mesh.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer, colourAttr);
+					genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
+				}
 			}
 			return obj;
 		});
