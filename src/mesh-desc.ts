@@ -14,7 +14,7 @@ namespace sd.render {
 
 
 	export interface IndexBufferBinding {
-		indexBuffer: mesh.IndexBuffer;
+		indexBuffer: mesh.IndexBuffer | null;
 		updateFrequency: BufferUpdateFrequency;
 	}
 

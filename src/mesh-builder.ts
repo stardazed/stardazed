@@ -32,7 +32,7 @@ namespace sd.mesh {
 		add(from: number, to: number): void;
 		mappedValues(forIndex: number): number[];
 
-		indexCount: number;
+		readonly indexCount: number;
 	}
 
 
@@ -321,14 +321,18 @@ namespace sd.mesh {
 			vb.allocate(this.vertexMapping_.size);
 			for (var six = 0; six < meshAttributeStreams.length; ++six) {
 				let streamData = this.vertexData_[six];
-				let view = new VertexBufferAttributeView(vb, vb.attrByIndex(six));
-				view.copyValuesFrom(streamData, this.vertexCount_);
+				let attribute = vb.attrByIndex(six);
+				if (attribute) {
+					let view = new VertexBufferAttributeView(vb, attribute);
+					view.copyValuesFrom(streamData, this.vertexCount_);
+				}
+				// FIXME else unexpected()
 			}
 
 			// All triangles with the same material were merged, create full index buffer
 			// and primitive groups
 			var indexElemType = mesh.minimumIndexElementTypeForVertexCount(this.vertexCount_);
-			meshData.indexBuffer.allocate(PrimitiveType.Triangle, indexElemType, this.triangleCount_);
+			meshData.indexBuffer!.allocate(PrimitiveType.Triangle, indexElemType, this.triangleCount_); // FIXME implicit indexbuffer
 
 			var mergedIndexes: number[] = [];
 			var nextTriangleIndex = 0;
@@ -348,7 +352,7 @@ namespace sd.mesh {
 				}
 			});
 
-			meshData.indexBuffer.setIndexes(0, mergedIndexes.length, mergedIndexes);
+			meshData.indexBuffer!.setIndexes(0, mergedIndexes.length, mergedIndexes);
 
 			return meshData;
 		}
