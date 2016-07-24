@@ -1,6 +1,6 @@
 // mesh.ts - Mesh objects
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2015-6 by Arthur Langereis - @zenmumbler
 
 /// <reference path="buffer.ts"/>
 /// <reference path="rendercontext.ts"/>
@@ -117,9 +117,9 @@ namespace sd.render {
 
 
 	export class Mesh {
-		private pipelineVAOMap_: WeakMap<Pipeline, WebGLVertexArrayObjectOES> = null;
+		private pipelineVAOMap_: WeakMap<Pipeline, WebGLVertexArrayObjectOES> | null = null;
 		private attributes_ = new Map<mesh.VertexAttributeRole, AttributeLocation>();
-		private clientIndexBuffer_: mesh.IndexBuffer = null;
+		private clientIndexBuffer_: mesh.IndexBuffer | null = null;
 
 		private buffers_: Buffer[] = [];
 		private primitiveGroups_: mesh.PrimitiveGroup[];
@@ -141,14 +141,14 @@ namespace sd.render {
 
 				// -- allocate and fill attribute data buffer
 				let buffer = new Buffer(rc, BufferRole.VertexAttribute, vertexBinding.updateFrequency);
-				buffer.allocateWithContents(vertexBinding.vertexBuffer.buffer);
+				buffer.allocateWithContents(vertexBinding.vertexBuffer.buffer!); // TODO could be unallocated
 				this.buffers_.push(buffer);
 
 				// -- build role/attribute info map
 				for (var aix = 0; aix < vertexBinding.vertexBuffer.attributeCount; ++aix) {
-					var posAttr = vertexBinding.vertexBuffer.attrByIndex(aix);
-					this.attributes_.set(posAttr.role, {
-						attribute: posAttr,
+					var attr = vertexBinding.vertexBuffer.attrByIndex(aix)!;
+					this.attributes_.set(attr.role, {
+						attribute: attr,
 						clientBuffer: vertexBinding.vertexBuffer,
 						buffer: buffer
 					});
@@ -158,7 +158,7 @@ namespace sd.render {
 			if (desc.indexBinding.indexBuffer) {
 				// -- allocate sized index buffer
 				var indexBuffer = new Buffer(rc, BufferRole.VertexIndex, desc.indexBinding.updateFrequency);
-				indexBuffer.allocateWithContents(desc.indexBinding.indexBuffer.buffer);
+				indexBuffer.allocateWithContents(desc.indexBinding.indexBuffer.buffer!); // TODO could be unallocated
 				this.buffers_.push(indexBuffer);
 			
 				// -- precompute some info required for draw calls
@@ -194,7 +194,7 @@ namespace sd.render {
 
 
 		bind(usingPipeline: Pipeline) {
-			var plVAO: WebGLVertexArrayObjectOES = null;
+			var plVAO: WebGLVertexArrayObjectOES | null = null;
 			var needBinding = true;
 
 			if (this.pipelineVAOMap_) {
@@ -220,8 +220,8 @@ namespace sd.render {
 				var pair = roleIndexes.next();
 
 				while (! pair.done) {
-					var attrRole = pair.value[0];
-					var attrIndex = pair.value[1];
+					var attrRole = pair.value![0];
+					var attrIndex = pair.value![1];
 
 					var meshAttr = this.attributes_.get(attrRole);
 					if (meshAttr) {
@@ -237,7 +237,7 @@ namespace sd.render {
 				}
 
 				if (this.hasIndexBuffer) {
-					this.indexBuffer().bind();
+					this.indexBuffer()!.bind();
 				}
 			}
 		}
@@ -253,7 +253,7 @@ namespace sd.render {
 				var pair = roleIndexes.next();
 
 				while (! pair.done) {
-					var attrIndex = pair.value[1];
+					var attrIndex = pair.value![1];
 					this.rc.gl.disableVertexAttribArray(attrIndex);
 					pair = roleIndexes.next();
 				}

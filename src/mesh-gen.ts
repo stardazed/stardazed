@@ -57,17 +57,17 @@ namespace sd.mesh.gen {
 
 		vertexBuffer.allocate(totalVertexCount);
 		var indexElementType = minimumIndexElementTypeForVertexCount(totalVertexCount);
-		mesh.indexBuffer.allocate(PrimitiveType.Triangle, indexElementType, totalFaceCount);
+		mesh.indexBuffer!.allocate(PrimitiveType.Triangle, indexElementType, totalFaceCount); // FIXME implicit indexbuffer
 
 		// -- views into various attributes and the index buffer
 		var normalAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
 		var texAttr = vertexBuffer.attrByRole(VertexAttributeRole.UV);
 
-		var posView = new VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(VertexAttributeRole.Position));
+		var posView = new VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(VertexAttributeRole.Position)!);
 		var normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
 		var texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
 
-		var triView = new IndexBufferTriangleView(mesh.indexBuffer);
+		var triView = new IndexBufferTriangleView(mesh.indexBuffer!);
 
 		// -- data add functions for the generators
 		var posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;

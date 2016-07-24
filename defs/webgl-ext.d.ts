@@ -153,7 +153,7 @@ interface OESVertexArrayObject {
 	createVertexArrayOES(): WebGLVertexArrayObjectOES;
 	deleteVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES): void;
 	isVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES): boolean;
-	bindVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES): void;
+	bindVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES | null): void;
 }
 
 interface WebGLColorBufferFloat {
