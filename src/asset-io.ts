@@ -96,7 +96,7 @@ namespace sd.asset {
 		"gif": "image/gif"
 	};
 
-	export function mimeTypeForFilePath(filePath: string): string {
+	export function mimeTypeForFilePath(filePath: string): string | null {
 		var ext = fileExtensionOfFilePath(filePath);
 		return mimeTypeMapping[ext] || null;
 	}
@@ -154,7 +154,7 @@ namespace sd.asset {
 					else {
 						loadFile(srcPath, { responseType: FileLoadType.ArrayBuffer }).then(
 							(buffer: ArrayBuffer) => {
-								var tga: ImageData = null;
+								var tga: ImageData | null = null;
 								if (buffer && buffer.byteLength > 0) {
 									tga = loadTGAImageBuffer(buffer);
 									if (tga) {
@@ -219,7 +219,7 @@ namespace sd.asset {
 		var cvs = document.createElement("canvas");
 		cvs.width = image.width;
 		cvs.height = image.height;
-		var tc = cvs.getContext("2d");
+		var tc = cvs.getContext("2d")!;
 		tc.drawImage(image, 0, 0);
 
 		return tc.getImageData(0, 0, image.width, image.height);
@@ -251,7 +251,7 @@ namespace sd.asset {
 		var cvs = document.createElement("canvas");
 		cvs.width = width;
 		cvs.height = height;
-		var ctx = cvs.getContext("2d");
+		var ctx = cvs.getContext("2d")!;
 		var id = ctx.createImageData(width, height);
 		id.data.set(pixels);
 		ctx.putImageData(id, 0, 0);
