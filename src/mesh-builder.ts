@@ -16,7 +16,7 @@ namespace sd.mesh {
 
 	export interface VertexAttributeStream {
 		name?: string;
-		attr: VertexAttribute;
+		attr?: VertexAttribute;
 		mapping: VertexAttributeMapping;
 		includeInMesh: boolean;
 		controlsGrouping?: boolean;

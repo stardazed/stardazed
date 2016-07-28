@@ -72,7 +72,7 @@ namespace sd.asset {
 
 	export interface Mesh extends Asset {
 		positions?: Float64Array;
-		streams?: mesh.VertexAttributeStream[];
+		streams: mesh.VertexAttributeStream[];
 
 		meshData?: mesh.MeshData;
 		indexMap?: mesh.VertexIndexMapping;
@@ -97,12 +97,12 @@ namespace sd.asset {
 
 
 	export interface WeightedVertexGroup extends Asset {
-		indexes: Int32Array;
-		weights: Float64Array;
+		indexes: Int32Array | null;
+		weights: Float64Array | null;
 
-		bindPoseLocalTranslation: Float3;
-		bindPoseLocalRotation: Float4;
-		bindPoseLocalMatrix: ArrayOfNumber;
+		bindPoseLocalTranslation: Float3 | null;
+		bindPoseLocalRotation: Float4 | null;
+		bindPoseLocalMatrix: ArrayOfNumber | null;
 	}
 
 	export interface Skin extends Asset {

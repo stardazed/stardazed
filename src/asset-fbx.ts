@@ -121,7 +121,7 @@ namespace sd.asset {
 			typeName: string;
 			values: parse.FBXValue[];
 			children: FBXNode[];
-			parent: FBXNode;
+			parent: FBXNode | null;
 
 			connectionsIn: FBXConnection[];
 			connectionsOut: FBXConnection[];
@@ -314,7 +314,7 @@ namespace sd.asset {
 						userRef: vidID,
 						useMipMaps: options.forceMipMapsOn ? render.UseMipMaps.Yes : render.UseMipMaps.No
 					};
-					var fileData: ArrayBuffer = null;
+					var fileData: ArrayBuffer | null = null;
 
 					for (let c of fbxVideo.children) {
 						if (c.name == "UseMipMap") {
@@ -336,7 +336,7 @@ namespace sd.asset {
 					};
 
 					if (fileData) {
-						var mime = mimeTypeForFilePath(tex.filePath);
+						var mime = mimeTypeForFilePath(tex.filePath!);
 						if (! mime) {
 							let err = "Cannot create texture, no mime-type found for file path " + tex.filePath;
 							if (options.allowMissingTextures) {
@@ -435,7 +435,7 @@ namespace sd.asset {
 						// An FBX "Texture" connects a "Video" clip to a "Material"
 						// with some parameters and may also directly reference a named
 						// set of UV coordinates in a "Model" used by the material...
-						var texNode = texIn.fromNode;
+						var texNode = texIn.fromNode!;
 						var vidTexConn = texNode.connectionsIn[0];
 						var vidNodeID = vidTexConn && vidTexConn.fromID;
 						var tex2D = group.textures.find((t) => t && <number>t.userRef == vidNodeID);
@@ -484,11 +484,10 @@ namespace sd.asset {
 			}
 
 
-			private makeLayerElementStream(layerElemNode: FBXNode): mesh.VertexAttributeStream {
+			private makeLayerElementStream(layerElemNode: FBXNode): mesh.VertexAttributeStream | null {
 				var valueArrayName: string, indexArrayName: string;
 				var stream: mesh.VertexAttributeStream = {
 					name: "",
-					attr: null,
 					includeInMesh: true,
 					mapping: mesh.VertexAttributeMapping.Undefined
 				};
@@ -535,6 +534,8 @@ namespace sd.asset {
 				}
 				else {
 					assert(false, "Unhandled layer element node");
+					valueArrayName = "--UNHANDLED--";
+					indexArrayName = "--UNHANDLED--";
 				}
 
 				for (var c of layerElemNode.children) {
@@ -577,10 +578,12 @@ namespace sd.asset {
 
 				// invert V coordinates for direct usage in GL
 				if (layerElemNode.name == "LayerElementUV") {
-					let uvElements = stream.values.length;
+					let uvElements = stream.values!;
+					assert(uvElements, "LayerElementUV without values is invalid!"); // FIXME: change error handling
+					let uvElementCount = uvElements.length;
 					let uvOffset = 0;
-					while (uvOffset < uvElements) {
-						stream.values[uvOffset + 1] = 1.0 - stream.values[uvOffset + 1];
+					while (uvOffset < uvElementCount) {
+						uvElements[uvOffset + 1] = 1.0 - uvElements[uvOffset + 1];
 						uvOffset += 2;
 					}
 				}
@@ -598,10 +601,9 @@ namespace sd.asset {
 					var sdMesh: Mesh = {
 						name: fbxGeom.objectName,
 						userRef: fbxGeom.objectID,
-						positions: null,
 						streams: []
 					};
-					var polygonIndexes: Int32Array = null;
+					var polygonIndexes: Int32Array | null = null;
 
 					for (var c of fbxGeom.children) {
 						if (c.name == "Vertices") {
@@ -621,6 +623,12 @@ namespace sd.asset {
 								sdMesh.streams.push(strm);
 							}
 						}
+					}
+
+					// sanity check mesh pre-requisites
+					if (! (sdMesh.positions && polygonIndexes)) {
+						console.warn("FBGeom ", fbxGeom, "is unsuitable for use.");
+						continue;
 					}
 
 					// With all streams and stuff collected, create the mesh
@@ -664,7 +672,7 @@ namespace sd.asset {
 					// hook up mesh to linked model
 					for (let mco of fbxGeom.connectionsOut) {
 						var model = mco.toNode;
-						if (model.name == "Model") {
+						if (model && model.name == "Model") {
 							var sdModel = this.flattenedModels.get(model.objectID);
 							sdModel.mesh = sdMesh;
 						}
@@ -778,6 +786,11 @@ namespace sd.asset {
 
 					// add linked components
 					for (var conn of fbxModel.connectionsIn) {
+						if (! conn.fromNode) {
+							console.error("Invalid model in-connection", conn);
+							continue;
+						}
+
 						var connType = conn.fromNode.name;
 						var connSubType = conn.fromNode.objectSubClass;
 
@@ -869,6 +882,10 @@ namespace sd.asset {
 
 					// link to first out connection
 					var outConn = fbxCurveNode.connectionsOut[0];
+					if (! (outConn && outConn.propName)) {
+						continue;
+					}
+
 					var jointModel = this.flattenedModels.get(outConn.toID);
 					if (! jointModel) {
 						// likely a curve for an omitted joint
@@ -878,6 +895,11 @@ namespace sd.asset {
 					var tracks: AnimationTrack[] = [];
 					for (let inConn of fbxCurveNode.connectionsIn) {
 						let curve = inConn.fromNode;
+						if (! (curve && inConn.propName)) {
+							console.error("AnimationCurve in-connection is invalid!", inConn);
+							continue;
+						}
+
 						let timesNode = curve.childByName("KeyTime");
 						let valuesNode = curve.childByName("KeyValueFloat");
 
@@ -936,6 +958,11 @@ namespace sd.asset {
 
 					for (var clusterConn of fbxSkin.connectionsIn) {
 						var cluster = clusterConn.fromNode;
+						if (! cluster) {
+							console.error("Skin cluster connection is invalid", fbxSkin);
+							continue;
+						}
+
 						var wvg: WeightedVertexGroup = {
 							name: cluster.objectName,
 							userRef: cluster.objectID,
@@ -971,6 +998,11 @@ namespace sd.asset {
 						else {
 							for (let cinc of cluster.connectionsIn) {
 								var cinNode = cinc.fromNode;
+								if (! cinNode) {
+									console.error("Cluster in-connection Model is invalid", cluster);
+									continue;
+								}
+
 								if (cinNode.name == "Model") {
 									let sdModel = this.flattenedModels.get(cinNode.objectID);
 
@@ -1035,12 +1067,12 @@ namespace sd.asset {
 			private state = BuilderState.Root;
 
 			private depth = 0;
-			private curObject: FBXNode = null;
-			private curNodeParent: FBXNode = null;
+			private curObject: FBXNode | null = null;
+			private curNodeParent: FBXNode | null = null;
 
 			private knownObjects: Set<string>;
 
-			private assets_: Promise<AssetGroup> = null;
+			private assets_: Promise<AssetGroup> | null = null;
 
 			private parseT0 = 0;
 
@@ -1097,8 +1129,8 @@ namespace sd.asset {
 			endBlock() {
 				this.depth--;
 				if (this.depth == 1) {
-					if (this.state = BuilderState.Object) {
-						this.doc.addObject(this.curObject);
+					if (this.state == BuilderState.Object) {
+						this.doc.addObject(this.curObject!);
 
 						this.curObject = null;
 						this.curNodeParent = null;
@@ -1127,7 +1159,7 @@ namespace sd.asset {
 					this.doc.globalSetting(node);
 				}
 				else if (this.state == BuilderState.Object) {
-					this.curNodeParent.appendChild(node);
+					this.curNodeParent!.appendChild(node);
 				}
 				else if (this.state == BuilderState.Connections) {
 					assert(name == "C", "Only C properties are allowed inside Connections");
@@ -1160,7 +1192,7 @@ namespace sd.asset {
 
 
 			get assets(): Promise<AssetGroup> {
-				return this.assets_;
+				return this.assets_ || Promise.reject("No assets have been created yet.");
 			}
 		}
 
