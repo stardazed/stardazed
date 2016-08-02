@@ -348,7 +348,7 @@ namespace sd.asset {
 						}
 						else {
 							fileProms.push(new Promise((resolve, reject) => {
-								loadImageFromBuffer(fileData, mime).then((img) => {
+								loadImageFromBuffer(fileData!, mime!).then((img) => {
 									tex.descriptor = makeTexDesc(img);
 									resolve(tex);
 								}, (error) => {

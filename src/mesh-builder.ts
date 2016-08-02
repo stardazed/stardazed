@@ -117,7 +117,7 @@ namespace sd.mesh {
 			};
 
 			// add positions stream at the beginning for simple models and at end for rigged models
-			if (this.streams_.find(s => s.attr.role == VertexAttributeRole.JointIndexes)) {
+			if (this.streams_.find(s => s.attr!.role == VertexAttributeRole.JointIndexes)) {
 				this.streams_.push(positionStream);
 			}
 			else {
@@ -139,10 +139,10 @@ namespace sd.mesh {
 			// also check for ambigious or incorrect grouping
 			var groupers = 0;
 			for (var s of this.streams_) {
-				s.elementCount = vertexFieldElementCount(s.attr.field);
+				s.elementCount = vertexFieldElementCount(s.attr!.field);
 				if (s.controlsGrouping === true) {
 					assert(s.elementCount == 1, "A grouping stream must use a single element field");
-					var groupNumType = vertexFieldNumericType(s.attr.field);
+					var groupNumType = vertexFieldNumericType(s.attr!.field);
 					assert(groupNumType != Float && groupNumType != Double, "A grouping stream must use an integer element");
 					groupers++;
 				}
@@ -313,7 +313,7 @@ namespace sd.mesh {
 			// of the list the order of this filtered list will still be the same as
 			// of the vertexData arrays, so no need for mapping etc.
 			var meshAttributeStreams = this.streams_.filter(s => s.includeInMesh);
-			var attrs = meshAttributeStreams.map(s => s.attr);
+			var attrs = meshAttributeStreams.map(s => s.attr!);
 			var meshData = new MeshData();
 
 			var vb = new VertexBuffer(attrs);
