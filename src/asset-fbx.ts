@@ -304,7 +304,7 @@ namespace sd.asset {
 
 
 			private loadTextures(group: AssetGroup, options: FBXResolveOptions): Promise<AssetGroup> {
-				var fileProms: Promise<Texture2D>[] = [];
+				var fileProms: Promise<Texture2D | null>[] = [];
 
 				Object.keys(this.videoNodes).forEach((idStr) => {
 					var vidID = +idStr;
@@ -347,7 +347,7 @@ namespace sd.asset {
 							}
 						}
 						else {
-							fileProms.push(new Promise((resolve, reject) => {
+							fileProms.push(new Promise<Texture2D | null>((resolve, reject) => {
 								loadImageFromBuffer(fileData!, mime!).then((img) => {
 									tex.descriptor = makeTexDesc(img);
 									resolve(tex);
@@ -364,7 +364,7 @@ namespace sd.asset {
 						}
 					}
 					else {
-						let resolvedFilePath = resolveRelativeFilePath(tex.filePath, this.fbxFilePath);
+						let resolvedFilePath = resolveRelativeFilePath(tex.filePath!, this.fbxFilePath);
 						fileProms.push(
 							loadImage(resolvedFilePath).then((img) => {
 								tex.descriptor = makeTexDesc(img);
@@ -372,7 +372,7 @@ namespace sd.asset {
 							}).catch((error) => {
 								if (options.allowMissingTextures) {
 									console.warn(error);
-									return <Texture2D>null;
+									return null;
 								}
 								else {
 									throw error;
