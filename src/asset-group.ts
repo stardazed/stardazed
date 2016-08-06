@@ -4,17 +4,9 @@
 
 namespace sd.asset {
 
-	// class AssetImport {
-	// 	addMesh(mesh: Mesh) {}
-	// 	addTexture(tex: Texture2D) {}
-	// 	addMaterial(mat: Material) {}
-	// 	addModel(model: Model) {}
-	// 	addSkeletonAnimation(anim: SkeletonAnimation) {}
-	// }
-
 	export class AssetGroup {
 		meshes: Mesh[] = [];
-		textures: Texture2D[] = [];
+		textures: (Texture2D | null)[] = []; // FIXME: handling of optional textures
 		materials: Material[] = [];
 		models: Model[] = [];
 		anims: SkeletonAnimation[] = [];
@@ -24,7 +16,7 @@ namespace sd.asset {
 			return this.meshes.length - 1;
 		}
 
-		addTexture(tex: Texture2D): number {
+		addTexture(tex: Texture2D | null): number { // FIXME: handling of optional textures
 			this.textures.push(tex);
 			return this.textures.length - 1;
 		}

@@ -438,7 +438,7 @@ namespace sd.asset {
 						var texNode = texIn.fromNode!;
 						var vidTexConn = texNode.connectionsIn[0];
 						var vidNodeID = vidTexConn && vidTexConn.fromID;
-						var tex2D = group.textures.find((t) => t && <number>t.userRef == vidNodeID);
+						var tex2D = group.textures.find((t) => !!t && <number>t.userRef == vidNodeID);
 
 						if (! (texNode && vidTexConn && tex2D)) {
 							console.warn("Could not link texture " + texIn.fromID + " to material prop " + texIn.propName + " because link or texture is invalid.");

@@ -148,13 +148,13 @@ namespace sd.asset {
 		export class MD5MeshBuilder implements parse.MD5MeshDelegate {
 			private joints: Transform[] = [];
 			private flatJointModels = new Map<number, Model>();
-			private vertexes: VertexData;
-			private triangles: Int32Array;
-			private weights: WeightData;
+			private vertexes: VertexData | null;
+			private triangles: Int32Array | null;
+			private weights: WeightData | null;
 			private assets_: AssetGroup;
 			private curMaterial: Material;
 			private meshCount_ = 0;
-			private jointDataTexture_: Texture2D = null;
+			private jointDataTexture_: Texture2D;
 			private textures_ = new Map<string, Texture2D>();
 
 			constructor(private filePath: string) {
@@ -247,11 +247,12 @@ namespace sd.asset {
 
 
 			vertex(index: number, uv: Float2, weightOffset: number, weightCount: number) {
+				// precondition: this.vertexes was set (vertexCount was called with non-zero count)
 				var io = index * 2;
-				this.vertexes.uvs[io] = uv[0];
-				this.vertexes.uvs[io + 1] = uv[1];
-				this.vertexes.weightOffsetsCounts[io] = weightOffset;
-				this.vertexes.weightOffsetsCounts[io + 1] = weightCount;
+				this.vertexes!.uvs[io] = uv[0];
+				this.vertexes!.uvs[io + 1] = uv[1];
+				this.vertexes!.weightOffsetsCounts[io] = weightOffset;
+				this.vertexes!.weightOffsetsCounts[io + 1] = weightCount;
 			}
 
 
@@ -266,8 +267,9 @@ namespace sd.asset {
 
 
 			triangle(index: number, indexes: Float3) {
+				// precondition: this.triangles was set (triangleCount was called with non-zero count)
 				// reverse winding order
-				container.setIndexedVec3(this.triangles, index, [indexes[0], indexes[2], indexes[1]]);
+				container.setIndexedVec3(this.triangles!, index, [indexes[0], indexes[2], indexes[1]]);
 			}
 
 
@@ -286,9 +288,10 @@ namespace sd.asset {
 
 
 			weight(index: number, jointIndex: number, bias: number, jointPos: Float3) {
-				this.weights.joints[index] = jointIndex;
-				this.weights.biases[index] = bias;
-				container.setIndexedVec3(this.weights.positions, index, jointPos);
+				// precondition: this.weights was set (weightCount was called with non-zero count)
+				this.weights!.joints[index] = jointIndex;
+				this.weights!.biases[index] = bias;
+				container.setIndexedVec3(this.weights!.positions, index, jointPos);
 			}
 
 
@@ -352,7 +355,7 @@ namespace sd.asset {
 
 
 			private loadTextures() {
-				var fileProms: Promise<Texture2D>[] = [];
+				var fileProms: Promise<Texture2D | null>[] = [];
 
 				this.textures_.forEach(tex => {
 					if (! tex.filePath || tex.descriptor) {
@@ -366,7 +369,7 @@ namespace sd.asset {
 							return tex;
 						}).catch(error => {
 							console.warn(error);
-							return <Texture2D>null;
+							return null;
 						})
 					);
 				});
@@ -416,9 +419,9 @@ namespace sd.asset {
 			frameComponentCount(count: number) { this.compCount_ = count; }
 
 
-			private animForJoint(j: AnimJoint): JointAnimation {
+			private animForJoint(j: AnimJoint): JointAnimation | undefined { // FIXME: null/undef consistency
 				if (j.mask == 0) {
-					return null;
+					return undefined;
 				}
 				var hasPos = (j.mask & 7) != 0;
 				var hasRot = (j.mask & 56) != 0;
@@ -495,7 +498,7 @@ namespace sd.asset {
 					}
 
 					if (j.mask & 7) {
-						let finalPos = vec3.copy([], j.basePos);
+						let finalPos = vec3.copy([], j.basePos!);
 						if (j.mask & parse.MD5AnimMask.PosX) {
 							finalPos[0] = components[compIx++];
 						}
@@ -506,13 +509,13 @@ namespace sd.asset {
 							finalPos[2] = components[compIx++];
 						}
 
-						container.setIndexedVec3(j.anim.tracks[0].key, index, finalPos);						
+						container.setIndexedVec3(j.anim!.tracks[0].key, index, finalPos);						
 					}
 
 					if (j.mask & 56) {
 						let arrIx = ((j.mask & 7) != 0) ? 1 : 0;
 
-						let finalRot = vec3.copy([], j.baseRot); // only need first 3 floats
+						let finalRot = vec3.copy([], j.baseRot!); // only need first 3 floats
 						if (j.mask & parse.MD5AnimMask.QuatX) {
 							finalRot[0] = components[compIx++];
 						}
@@ -524,7 +527,7 @@ namespace sd.asset {
 						}
 
 						parse.computeQuatW(finalRot);
-						container.setIndexedVec4(j.anim.tracks[arrIx].key, index, finalRot);
+						container.setIndexedVec4(j.anim!.tracks[arrIx].key, index, finalRot);
 					}
 				}
 			}
