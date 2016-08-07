@@ -38,11 +38,11 @@ namespace sd.world {
 
 	interface PBRGLProgram extends WebGLProgram {
 		// -- transform
-		modelMatrixUniform?: WebGLUniformLocation;       // mat4
-		mvMatrixUniform?: WebGLUniformLocation;          // mat4
-		mvpMatrixUniform?: WebGLUniformLocation;         // mat4
-		normalMatrixUniform?: WebGLUniformLocation;      // mat3
-		lightNormalMatrixUniform?: WebGLUniformLocation; // mat3
+		modelMatrixUniform: WebGLUniformLocation;       // mat4
+		mvMatrixUniform: WebGLUniformLocation | null;   // mat4
+		mvpMatrixUniform: WebGLUniformLocation;         // mat4
+		normalMatrixUniform: WebGLUniformLocation;      // mat3
+		lightNormalMatrixUniform: WebGLUniformLocation | null; // mat3
 
 		// -- mesh material
 		baseColourUniform: WebGLUniformLocation;         // vec4
@@ -58,13 +58,13 @@ namespace sd.world {
 		brdfLookupMapUniform: WebGLUniformLocation;
 
 		// -- lights
-		lightTypeArrayUniform?: WebGLUniformLocation;          // int[MAX_FRAGMENT_LIGHTS]
-		lightCamPositionArrayUniform?: WebGLUniformLocation;   // vec4[MAX_FRAGMENT_LIGHTS]
-		lightWorldPositionArrayUniform?: WebGLUniformLocation; // vec4[MAX_FRAGMENT_LIGHTS]
-		lightDirectionArrayUniform?: WebGLUniformLocation;     // vec4[MAX_FRAGMENT_LIGHTS]
-		lightColourArrayUniform?: WebGLUniformLocation;        // vec4[MAX_FRAGMENT_LIGHTS]
-		lightParamArrayUniform?: WebGLUniformLocation;         // vec4[MAX_FRAGMENT_LIGHTS]
-		shadowCastingLightIndexUniform: WebGLUniformLocation;  // int (-1..MAX_FRAGMENT_LIGHTS - 1)
+		lightTypeArrayUniform: WebGLUniformLocation;          // int[MAX_FRAGMENT_LIGHTS]
+		lightCamPositionArrayUniform: WebGLUniformLocation;   // vec4[MAX_FRAGMENT_LIGHTS]
+		lightWorldPositionArrayUniform: WebGLUniformLocation; // vec4[MAX_FRAGMENT_LIGHTS]
+		lightDirectionArrayUniform: WebGLUniformLocation;     // vec4[MAX_FRAGMENT_LIGHTS]
+		lightColourArrayUniform: WebGLUniformLocation;        // vec4[MAX_FRAGMENT_LIGHTS]
+		lightParamArrayUniform: WebGLUniformLocation;         // vec4[MAX_FRAGMENT_LIGHTS]
+		shadowCastingLightIndexUniform: WebGLUniformLocation | null;   // int (-1..MAX_FRAGMENT_LIGHTS - 1)
 	}
 
 
@@ -89,7 +89,7 @@ namespace sd.world {
 
 	class PBRPipeline {
 		private cachedPipelines_ = new Map<number, render.Pipeline>();
-		private shadowPipeline_: render.Pipeline = null;
+		private shadowPipeline_: render.Pipeline | null = null;
 		private featureMask_: Features = 0x7fffffff;
 
 		constructor(private rc: render.RenderContext) {
@@ -145,54 +145,59 @@ namespace sd.world {
 			gl.useProgram(program);
 
 			// -- transformation matrices
-			program.modelMatrixUniform = gl.getUniformLocation(program, "modelMatrix");
+			program.modelMatrixUniform = gl.getUniformLocation(program, "modelMatrix")!;
 			program.mvMatrixUniform = gl.getUniformLocation(program, "modelViewMatrix");
-			program.mvpMatrixUniform = gl.getUniformLocation(program, "modelViewProjectionMatrix");
-			program.normalMatrixUniform = gl.getUniformLocation(program, "normalMatrix");
+			program.mvpMatrixUniform = gl.getUniformLocation(program, "modelViewProjectionMatrix")!;
+			program.normalMatrixUniform = gl.getUniformLocation(program, "normalMatrix")!;
 			program.lightNormalMatrixUniform = gl.getUniformLocation(program, "lightNormalMatrix");
 
-			// -- material properties
-			program.baseColourUniform = gl.getUniformLocation(program, "baseColour");
-			program.materialUniform = gl.getUniformLocation(program, "materialParam");
-			program.texScaleOffsetUniform = gl.getUniformLocation(program, "texScaleOffset");
+			// -- material properties (assert presence for now)
+			program.baseColourUniform = gl.getUniformLocation(program, "baseColour")!;
+			program.materialUniform = gl.getUniformLocation(program, "materialParam")!;
+			program.texScaleOffsetUniform = gl.getUniformLocation(program, "texScaleOffset")!;
 
 			// -- material textures
 			if (feat & Features.AlbedoMap) {
-				program.albedoMapUniform = gl.getUniformLocation(program, "albedoMap");
-				if (program.albedoMapUniform) {
+				let albedo = gl.getUniformLocation(program, "albedoMap");
+				if (albedo) {
+					program.albedoMapUniform = albedo;
 					gl.uniform1i(program.albedoMapUniform, TextureBindPoint.Albedo);
 				}
 			}
 			if (feat & (Features.MetallicMap | Features.RoughnessMap)) {
-				program.materialMapUniform = gl.getUniformLocation(program, "materialMap");
-				if (program.materialMapUniform) {
+				let material = gl.getUniformLocation(program, "materialMap");
+				if (material) {
+					program.materialMapUniform = material;
 					gl.uniform1i(program.materialMapUniform, TextureBindPoint.Material);
 				}
 			}
 			if (feat & (Features.NormalMap | Features.HeightMap | feat & Features.AOMap)) {
-				program.normalHeightMapUniform = gl.getUniformLocation(program, "normalHeightMap");
-				if (program.normalHeightMapUniform) {
+				let normalHeight = gl.getUniformLocation(program, "normalHeightMap");
+				if (normalHeight) {
+					program.normalHeightMapUniform = normalHeight;
 					gl.uniform1i(program.normalHeightMapUniform, TextureBindPoint.NormalHeight);
 				}
 			}
 
 			// -- reflection & LUT textures
-			program.environmentMapUniform = gl.getUniformLocation(program, "environmentMap");
-			if (program.environmentMapUniform) {
+			var environment = gl.getUniformLocation(program, "environmentMap");
+			if (environment) {
+				program.environmentMapUniform = environment;
 				gl.uniform1i(program.environmentMapUniform, TextureBindPoint.Environment);
 			}
-			program.brdfLookupMapUniform = gl.getUniformLocation(program, "brdfLookupMap");
-			if (program.brdfLookupMapUniform) {
+			var brdfLookup = gl.getUniformLocation(program, "brdfLookupMap");
+			if (brdfLookup) {
+				program.brdfLookupMapUniform = brdfLookup;
 				gl.uniform1i(program.brdfLookupMapUniform, TextureBindPoint.BRDFLookup);
 			}
 
 			// -- light property arrays
-			program.lightTypeArrayUniform = gl.getUniformLocation(program, "lightTypes");
-			program.lightCamPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_cam");
-			program.lightWorldPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_world");
-			program.lightDirectionArrayUniform = gl.getUniformLocation(program, "lightDirections");
-			program.lightColourArrayUniform = gl.getUniformLocation(program, "lightColours");
-			program.lightParamArrayUniform = gl.getUniformLocation(program, "lightParams");
+			program.lightTypeArrayUniform = gl.getUniformLocation(program, "lightTypes")!;
+			program.lightCamPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_cam")!;
+			program.lightWorldPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_world")!;
+			program.lightDirectionArrayUniform = gl.getUniformLocation(program, "lightDirections")!;
+			program.lightColourArrayUniform = gl.getUniformLocation(program, "lightColours")!;
+			program.lightParamArrayUniform = gl.getUniformLocation(program, "lightParams")!;
 			program.shadowCastingLightIndexUniform = gl.getUniformLocation(program, "shadowCastingLightIndex");
 			if (program.shadowCastingLightIndexUniform) {
 				// if this exists, init to -1 to signify no shadow caster
@@ -649,7 +654,7 @@ namespace sd.world {
 		private primGroupFeatureBase_: TypedArray;
 
 		private meshes_: render.Mesh[] = [];
-		private brdfLookupTex_: render.Texture = null;
+		private brdfLookupTex_: render.Texture | null = null;
 
 		// -- for light uniform updates
 		private lightTypeArray_ = new Int32Array(MAX_FRAGMENT_LIGHTS);
@@ -926,14 +931,17 @@ namespace sd.world {
 				if (features & Features.VtxUV) {
 					gl.uniform4fv(program.texScaleOffsetUniform, materialData.texScaleOffsetData);
 				}
+
+				// these texture arguments are assumed to exist if the feature flag is set
+				// TODO: check every time?
 				if (features & Features.AlbedoMap) {
-					rp.setTexture(materialData.albedoMap, TextureBindPoint.Albedo);
+					rp.setTexture(materialData.albedoMap!, TextureBindPoint.Albedo);
 				}
 				if (features & (Features.RoughnessMap | Features.MetallicMap | Features.AOMap)) {
-					rp.setTexture(materialData.materialMap, TextureBindPoint.Material);
+					rp.setTexture(materialData.materialMap!, TextureBindPoint.Material);
 				}
 				if (features & Features.NormalMap) {
-					rp.setTexture(materialData.normalHeightMap, TextureBindPoint.NormalHeight);
+					rp.setTexture(materialData.normalHeightMap!, TextureBindPoint.NormalHeight);
 				}
 
 				// -- light data FIXME: only update these when local light data was changed -> pos and rot can change as well
