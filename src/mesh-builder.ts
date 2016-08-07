@@ -156,7 +156,7 @@ namespace sd.mesh {
 			this.groupIndexesRef_ = this.groupIndexStreams_.get(0);
 
 			// output and de-duplication data
-			this.vertexData_ = this.streams_.map(s => []);
+			this.vertexData_ = this.streams_.map(_ => []);
 			this.vertexMapping_ = new Map<string, number>();
 			this.indexMap_ = new VertexIndexMappingB();
 			this.streamCount_ = this.streams_.length;

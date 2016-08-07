@@ -126,6 +126,7 @@ namespace sd.asset {
 
 			xhr.onerror = function() {
 				assert(false, filePath + " doesn't exist");
+				reject(filePath + " doesn't exist");
 			};
 
 			xhr.send();

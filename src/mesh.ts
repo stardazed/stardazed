@@ -119,7 +119,6 @@ namespace sd.render {
 	export class Mesh {
 		private pipelineVAOMap_: WeakMap<Pipeline, WebGLVertexArrayObjectOES> | null = null;
 		private attributes_ = new Map<mesh.VertexAttributeRole, AttributeLocation>();
-		private clientIndexBuffer_: mesh.IndexBuffer | null = null;
 
 		private buffers_: Buffer[] = [];
 		private primitiveGroups_: mesh.PrimitiveGroup[];

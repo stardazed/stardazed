@@ -98,7 +98,7 @@ namespace sd.mesh.gen {
 				v3[0] = x; v3[1] = y; v3[2] = z;
 				normalIx++;
 			}
-			: (x: number, y: number, z: number) => { };
+			: (_x: number, _y: number, _z: number) => { };
 
 		var uv: Vec2AddFn = texView ?
 			(u: number, v: number) => {
@@ -106,7 +106,7 @@ namespace sd.mesh.gen {
 				v2[0] = u; v2[1] = v;
 				uvIx++;
 			}
-			: (u: number, v: number) => { };
+			: (_u: number, _v: number) => { };
 
 		// -- generate and optionally transform each mesh part
 		var posTransMatrix = mat4.create();
@@ -237,7 +237,7 @@ namespace sd.mesh.gen {
 			this.depth_ = desc.depth;
 			this.rows_ = desc.rows | 0;
 			this.segs_ = desc.segs | 0;
-			this.yGen_ = desc.yGen || ((x, z) => 0);
+			this.yGen_ = desc.yGen || ((_x, _z) => 0);
 
 			assert(this.width_ > 0);
 			assert(this.depth_ > 0);
@@ -257,7 +257,7 @@ namespace sd.mesh.gen {
 			return false;
 		}
 
-		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
+		generate(position: Vec3AddFn, face: IndexesAddFn, _normal: Vec3AddFn, uv: Vec2AddFn) {
 			var halfWidth = this.width_ / 2;
 			var halfDepth = this.depth_ / 2;
 			var tileDimX = this.width_ / this.segs_;
@@ -668,7 +668,6 @@ namespace sd.mesh.gen {
 		}
 
 		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
-			var Pi = Math.PI;
 			var Tau = Math.PI * 2;
 
 			var slice = this.sliceTo_ - this.sliceFrom_;

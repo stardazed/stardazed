@@ -89,7 +89,7 @@ namespace sd.world {
 
 	class PBRPipeline {
 		private cachedPipelines_ = new Map<number, render.Pipeline>();
-		private shadowPipeline_: render.Pipeline | null = null;
+		// private shadowPipeline_: render.Pipeline | null = null;
 		private featureMask_: Features = 0x7fffffff;
 
 		constructor(private rc: render.RenderContext) {
@@ -671,7 +671,7 @@ namespace sd.world {
 		private modelViewProjectionMatrix_ = mat4.create();
 		private normalMatrix_ = mat3.create();
 		private lightNormalMatrix_ = mat3.create();
-		private lightViewProjectionMatrix_ = mat4.create();
+		// private lightViewProjectionMatrix_ = mat4.create();
 
 
 		constructor(
@@ -810,7 +810,7 @@ namespace sd.world {
 			}
 
 			// -- append metadata for each primGroup
-			groups.forEach((group, gix) => {
+			groups.forEach(group => {
 				this.primGroupFeatureBase_[primGroupCount] = this.featuresForMeshAndMaterial(desc.mesh, desc.materials[group.materialIx]);
 				this.primGroupMaterialBase_[primGroupCount] = <number>desc.materials[group.materialIx];
 				++primGroupCount;

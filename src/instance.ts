@@ -138,7 +138,7 @@ namespace sd.world {
 
 			if (index > 0) {
 				while (index <= end) {
-					fn(<Instance<Component>>index);
+					fn.call(thisObj, <Instance<Component>>index);
 					++index;
 				}
 			}
