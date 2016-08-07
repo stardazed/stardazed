@@ -34,42 +34,42 @@ namespace sd.world {
 
 	interface StdGLProgram extends WebGLProgram {
 		// -- transform
-		modelMatrixUniform?: WebGLUniformLocation;      // mat4
-		mvMatrixUniform?: WebGLUniformLocation;         // mat4
-		mvpMatrixUniform?: WebGLUniformLocation;        // mat4
-		normalMatrixUniform?: WebGLUniformLocation;     // mat3
-		lightNormalMatrixUniform?: WebGLUniformLocation;// mat3
+		modelMatrixUniform: WebGLUniformLocation;      // mat4
+		mvMatrixUniform: WebGLUniformLocation | null;  // mat4
+		mvpMatrixUniform: WebGLUniformLocation;        // mat4
+		normalMatrixUniform: WebGLUniformLocation;     // mat3
+		lightNormalMatrixUniform: WebGLUniformLocation | null;// mat3
 
 		// -- skinning
-		jointDataUniform?: WebGLUniformLocation;        // sampler2D 
-		jointIndexOffsetUniform?: WebGLUniformLocation; // int
+		jointDataUniform: WebGLUniformLocation | null;        // sampler2D 
+		jointIndexOffsetUniform: WebGLUniformLocation | null; // int
 
 		// -- mesh material
 		mainColourUniform: WebGLUniformLocation;        // vec4
 		specularUniform: WebGLUniformLocation;          // vec4
-		emissiveDataUniform: WebGLUniformLocation;          // vec4
+		emissiveDataUniform: WebGLUniformLocation;      // vec4
 		texScaleOffsetUniform: WebGLUniformLocation;    // vec4
 
-		colourMapUniform?: WebGLUniformLocation;        // sampler2D
-		normalMapUniform?: WebGLUniformLocation;        // sampler2D
-		specularMapUniform?: WebGLUniformLocation;        // sampler2D
+		colourMapUniform: WebGLUniformLocation | null;        // sampler2D
+		normalMapUniform: WebGLUniformLocation | null;        // sampler2D
+		specularMapUniform: WebGLUniformLocation | null;      // sampler2D
 
 		// -- lights
-		lightTypeArrayUniform?: WebGLUniformLocation;      // int[MAX_FRAGMENT_LIGHTS]
-		lightCamPositionArrayUniform?: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
-		lightWorldPositionArrayUniform?: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
-		lightDirectionArrayUniform?: WebGLUniformLocation; // vec4[MAX_FRAGMENT_LIGHTS]
-		lightColourArrayUniform?: WebGLUniformLocation;    // vec4[MAX_FRAGMENT_LIGHTS]
-		lightParamArrayUniform?: WebGLUniformLocation;     // vec4[MAX_FRAGMENT_LIGHTS]
-		shadowCastingLightIndexUniform: WebGLUniformLocation; // int (-1..MAX_FRAGMENT_LIGHTS - 1)
+		lightTypeArrayUniform: WebGLUniformLocation;      // int[MAX_FRAGMENT_LIGHTS]
+		lightCamPositionArrayUniform: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
+		lightWorldPositionArrayUniform: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
+		lightDirectionArrayUniform: WebGLUniformLocation; // vec4[MAX_FRAGMENT_LIGHTS]
+		lightColourArrayUniform: WebGLUniformLocation;    // vec4[MAX_FRAGMENT_LIGHTS]
+		lightParamArrayUniform: WebGLUniformLocation;     // vec4[MAX_FRAGMENT_LIGHTS]
+		shadowCastingLightIndexUniform: WebGLUniformLocation | null; // int (-1..MAX_FRAGMENT_LIGHTS - 1)
 
 		// -- shadow
-		lightViewProjectionMatrixUniform?: WebGLUniformLocation; // mat4
-		shadowMapUniform?: WebGLUniformLocation;        // sampler2D/Cube
+		lightViewProjectionMatrixUniform: WebGLUniformLocation | null; // mat4
+		shadowMapUniform: WebGLUniformLocation | null;        // sampler2D/Cube
 
 		// -- fog
-		fogColourUniform?: WebGLUniformLocation;        // vec4 (rgb, 0)
-		fogParamsUniform?: WebGLUniformLocation;        // vec4 (start, depth, density, 0)
+		fogColourUniform: WebGLUniformLocation | null;        // vec4 (rgb, 0)
+		fogParamsUniform: WebGLUniformLocation | null;        // vec4 (start, depth, density, 0)
 	}
 
 
@@ -94,7 +94,7 @@ namespace sd.world {
 
 	class StdPipeline {
 		private cachedPipelines_ = new Map<number, render.Pipeline>();
-		private shadowPipeline_: render.Pipeline = null;
+		private shadowPipeline_: render.Pipeline | null = null;
 		private featureMask_: Features = 0x7fffffff;
 
 		constructor(private rc: render.RenderContext) {
@@ -183,17 +183,17 @@ namespace sd.world {
 			gl.useProgram(program);
 
 			// -- transformation matrices
-			program.modelMatrixUniform = gl.getUniformLocation(program, "modelMatrix");
+			program.modelMatrixUniform = gl.getUniformLocation(program, "modelMatrix")!;
 			program.mvMatrixUniform = gl.getUniformLocation(program, "modelViewMatrix");
-			program.mvpMatrixUniform = gl.getUniformLocation(program, "modelViewProjectionMatrix");
-			program.normalMatrixUniform = gl.getUniformLocation(program, "normalMatrix");
+			program.mvpMatrixUniform = gl.getUniformLocation(program, "modelViewProjectionMatrix")!;
+			program.normalMatrixUniform = gl.getUniformLocation(program, "normalMatrix")!;
 			program.lightNormalMatrixUniform = gl.getUniformLocation(program, "lightNormalMatrix");
 
 			// -- material properties
-			program.mainColourUniform = gl.getUniformLocation(program, "mainColour");
-			program.specularUniform = gl.getUniformLocation(program, "specular");
-			program.emissiveDataUniform = gl.getUniformLocation(program, "emissiveData");
-			program.texScaleOffsetUniform = gl.getUniformLocation(program, "texScaleOffset");
+			program.mainColourUniform = gl.getUniformLocation(program, "mainColour")!;
+			program.specularUniform = gl.getUniformLocation(program, "specular")!;
+			program.emissiveDataUniform = gl.getUniformLocation(program, "emissiveData")!;
+			program.texScaleOffsetUniform = gl.getUniformLocation(program, "texScaleOffset")!;
 
 			// -- texture samplers and their fixed binding indexes
 			program.colourMapUniform = gl.getUniformLocation(program, "diffuseSampler");
@@ -222,12 +222,12 @@ namespace sd.world {
 			}
 
 			// -- light property arrays
-			program.lightTypeArrayUniform = gl.getUniformLocation(program, "lightTypes");
-			program.lightCamPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_cam");
-			program.lightWorldPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_world");
-			program.lightDirectionArrayUniform = gl.getUniformLocation(program, "lightDirections");
-			program.lightColourArrayUniform = gl.getUniformLocation(program, "lightColours");
-			program.lightParamArrayUniform = gl.getUniformLocation(program, "lightParams");
+			program.lightTypeArrayUniform = gl.getUniformLocation(program, "lightTypes")!;
+			program.lightCamPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_cam")!;
+			program.lightWorldPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_world")!;
+			program.lightDirectionArrayUniform = gl.getUniformLocation(program, "lightDirections")!;
+			program.lightColourArrayUniform = gl.getUniformLocation(program, "lightColours")!;
+			program.lightParamArrayUniform = gl.getUniformLocation(program, "lightParams")!;
 			program.shadowCastingLightIndexUniform = gl.getUniformLocation(program, "shadowCastingLightIndex");
 			if (program.shadowCastingLightIndexUniform) {
 				// if this exists, init to -1 to signify no shadow caster
@@ -263,7 +263,7 @@ namespace sd.world {
 				this.shadowPipeline_ = new render.Pipeline(this.rc, pld);
 
 				var program = <StdGLProgram>this.shadowPipeline_.program;
-				program.mvpMatrixUniform = this.rc.gl.getUniformLocation(program, "modelViewProjectionMatrix");
+				program.mvpMatrixUniform = this.rc.gl.getUniformLocation(program, "modelViewProjectionMatrix")!;
 			}
 
 			return this.shadowPipeline_;
@@ -1039,17 +1039,20 @@ namespace sd.world {
 				if (features & (Features.DiffuseMap | Features.NormalMap | Features.SpecularMap)) {
 					gl.uniform4fv(program.texScaleOffsetUniform, materialData.texScaleOffsetData);
 				}
+
+				// these textures are assumed to exist if their feature flag is set
+				// TODO: check every time?
 				if (features & Features.DiffuseMap) {
-					rp.setTexture(materialData.diffuseMap, TextureBindPoint.Colour);
+					rp.setTexture(materialData.diffuseMap!, TextureBindPoint.Colour);
 				}
 				if (features & Features.SpecularMap) {
-					rp.setTexture(materialData.specularMap, TextureBindPoint.Specular);
+					rp.setTexture(materialData.specularMap!, TextureBindPoint.Specular);
 				}
 				if (features & Features.NormalMap) {
-					rp.setTexture(materialData.normalMap, TextureBindPoint.Normal);
+					rp.setTexture(materialData.normalMap!, TextureBindPoint.Normal);
 				}
 				if (features & Features.Skinned) {
-					rp.setTexture(materialData.jointData, TextureBindPoint.JointData);
+					rp.setTexture(materialData.jointData!, TextureBindPoint.JointData);
 				}
 
 				// -- light data FIXME: only update these when local light data was changed -> pos and rot can change as well
@@ -1062,21 +1065,21 @@ namespace sd.world {
 
 				// -- fog data (TODO: directly using descriptor)
 				if (features & Features.Fog) {
-					gl.uniform4fv(program.fogColourUniform, new Float32Array([fogSpec.colour[0], fogSpec.colour[1], fogSpec.colour[2], 0]));
-					gl.uniform4fv(program.fogParamsUniform, new Float32Array([fogSpec.offset, fogSpec.depth, fogSpec.density, 0]));
+					gl.uniform4fv(program.fogColourUniform!, new Float32Array([fogSpec.colour[0], fogSpec.colour[1], fogSpec.colour[2], 0]));
+					gl.uniform4fv(program.fogParamsUniform!, new Float32Array([fogSpec.offset, fogSpec.depth, fogSpec.density, 0]));
 				}
 
 				// -- shadow map and metadata
 				if (features & Features.ShadowMap) {
 					gl.uniform1i(program.shadowCastingLightIndexUniform, this.shadowCastingLightIndex_);
 
-					rp.setTexture(shadow.shadowFBO.depthAttachmentTexture(), TextureBindPoint.Shadow);
+					rp.setTexture(shadow.shadowFBO.depthAttachmentTexture()!, TextureBindPoint.Shadow);
 
 					mat4.multiply(this.lightViewProjectionMatrix_, shadow.lightProjection.projectionMatrix, shadow.lightProjection.viewMatrix);
 					var lightBiasMat = mat4.multiply([], mat4.fromTranslation([], [.5, .5, .5]), mat4.fromScaling([], [.5, .5, .5]));
 					mat4.multiply(this.lightViewProjectionMatrix_, lightBiasMat, this.lightViewProjectionMatrix_);
 
-					gl.uniformMatrix4fv(program.lightViewProjectionMatrixUniform, false, this.lightViewProjectionMatrix_);
+					gl.uniformMatrix4fv(program.lightViewProjectionMatrixUniform!, false, this.lightViewProjectionMatrix_);
 				}
 
 				// -- draw
