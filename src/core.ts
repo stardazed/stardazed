@@ -12,6 +12,11 @@ interface Array<T> {
 }
 
 
+interface Console {
+	takeHeapSnapshot(): void;
+}
+
+
 namespace sd {
 
 	export function assert(cond: any, msg?: string) {
