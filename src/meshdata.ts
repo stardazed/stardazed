@@ -294,7 +294,6 @@ namespace sd.mesh {
 	}
 
 
-
 	function alignFieldOnSize(size: number, offset: number) {
 		var mask = math.roundUpPowerOf2(size) - 1;
 		return (offset + mask) & ~mask;
