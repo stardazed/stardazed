@@ -109,8 +109,10 @@ namespace sd.asset {
 		// preflight
 		var triCount = 0;
 		lines.forEach((line) => {
-			if (line.slice(0, 2) == "f ")
-				triCount++;
+			if (line.slice(0, 2) == "f ") {
+				var parts = line.trim().split(/ +/);
+				triCount += parts.length - 3;
+			}
 		});
 
 		vb.allocate(triCount * 3);
@@ -123,7 +125,7 @@ namespace sd.asset {
 		function fxtoi(fx: string) { return (+fx) - 1; }
 
 		lines.forEach((line) => {
-			var tokens = line.split(" ");
+			var tokens = line.trim().split(/ +/);
 			switch (tokens[0]) {
 				case "mtllib":
 					mtlFileName = tokens[1];
@@ -137,11 +139,22 @@ namespace sd.asset {
 				case "vt":
 					tt.push([parseFloat(tokens[1]), -parseFloat(tokens[2])]);
 					break;
-				case "f":
-					vtx.apply(null, tokens[1].split("/").map(fxtoi));
-					vtx.apply(null, tokens[2].split("/").map(fxtoi));
-					vtx.apply(null, tokens[3].split("/").map(fxtoi));
+				case "f": {
+					var vaf = tokens[1].split("/").map(fxtoi);
+					var vbf = tokens[2].split("/").map(fxtoi);
+					var vcf = tokens[3].split("/").map(fxtoi);
+
+					vtx.apply(null, vaf);
+					vtx.apply(null, vbf);
+					vtx.apply(null, vcf);
+
+					if (tokens.length == 5) {
+						vtx.apply(null, vaf);
+						vtx.apply(null, vcf);
+						vtx.apply(null, tokens[4].split("/").map(fxtoi));
+					}
 					break;
+				}
 				case "usemtl":
 					if (curMaterialGroup) {
 						curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
