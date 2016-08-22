@@ -33,6 +33,8 @@ namespace sd.asset {
 		specularIntensity: number;
 		specularExponent: number;
 
+		opacity: number; // 0: fully transparent, 1: fully opaque (default)
+
 		textureScale: Float2;
 		textureOffset: Float2;
 		diffuseTexture?: Texture2D;	// TODO: change this to array of textures with typed channels
@@ -41,9 +43,8 @@ namespace sd.asset {
 		heightTexture?: Texture2D;
 		transparencyTexture?: Texture2D;
 
+		// DEPRECATED: this will be removed as this obvs does not belong here
 		jointDataTexture?: Texture2D;
-		
-		opacity: number; // 0: fully transparent, 1: fully opaque
 	}
 
 	export type MaterialSet = { [name: string]: Material };

@@ -1,32 +1,57 @@
-// asset-lwo.ts - Lightwave OBJ mesh file import
+// asset-lwo.ts - Wavefront OBJ mesh file import
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 
-/// <reference path="core.ts" />
-/// <reference path="meshdata.ts" />
-
 namespace sd.asset {
 
-	function parseLWMaterialSource(text: string): MaterialSet {
+	function parseLWMaterialSource(group: AssetGroup, text: string): AssetGroup {
 		var lines = text.split("\n");
 		var materials: MaterialSet = {};
 		var curMat: Material | null = null;
 
 		lines.forEach(function(line) {
-			var tokens = line.split(" ");
+			var tokens = line.trim().split(/ +/);
 			switch (tokens[0]) {
 				case "newmtl":
-					curMat = materials[tokens[1]] = makeMaterial();
+					if (tokens.length === 2) {
+						var matName = tokens[1];
+						curMat = materials[matName] = makeMaterial();
+						curMat.name = matName;
+					}
+					// FIXME: else unexpected()
 					break;
 				case "Kd":
-					if (curMat) {
-						curMat.diffuseColour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+					if (curMat && tokens.length === 4) {
+						vec3.copy(curMat.diffuseColour, [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
 					}
 					// FIXME: else unexpected()
 					break;
 				case "Ks":
-					if (curMat) {
-						curMat.specularColour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+					if (curMat && tokens.length === 4) {
+						vec3.copy(curMat.specularColour, [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
+					}
+					// FIXME: else unexpected()
+					break;
+				case "Ke": // custom Clara.io extension
+					if (curMat && tokens.length === 4) {
+						vec3.copy(curMat.emissiveColour, [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
+					}
+					// FIXME: else unexpected()
+					break;
+				case "Ns":
+					if (curMat && tokens.length === 2) {
+						curMat.specularExponent = parseFloat(tokens[1]);
+					}
+					// FIXME: else unexpected()
+					break;
+				case "d":
+				case "Tr":
+					if (curMat && tokens.length === 2) {
+						var opacity = parseFloat(tokens[1]);
+						if (tokens[0] === "Tr") {
+							opacity = 1.0 - opacity;
+						}
+						curMat.opacity = math.clamp01(opacity);
 					}
 					// FIXME: else unexpected()
 					break;
@@ -35,7 +60,7 @@ namespace sd.asset {
 			}
 		});
 
-		return materials;
+		return group;
 	}
 
 
@@ -188,16 +213,18 @@ namespace sd.asset {
 	}
 
 
-	function loadLWMaterialFile(filePath: string): Promise<MaterialSet> {
+	function loadLWMaterialFile(group: AssetGroup, filePath: string): Promise<AssetGroup> {
 		return loadFile(filePath).then((text: string) => {
-			return parseLWMaterialSource(text);
+			return parseLWMaterialSource(group, text);
 		});
 	}
 
 
-	export function loadLWObjectFile(filePath: string, materialsAsColours = false): Promise<LWMeshData> {
+	export function loadLWObjectFile(filePath: string, materialsAsColours = false): Promise<AssetGroup> {
+		var group = new AssetGroup();
+
 		var mtlResolve: any = null;
-		var mtlProm = new Promise<MaterialSet>(function(resolve) {
+		var mtlProm = new Promise<AssetGroup>(function(resolve) {
 			mtlResolve = resolve;
 		});
 
@@ -206,11 +233,7 @@ namespace sd.asset {
 		}).then((objData: LWMeshData) => {
 			if (objData.mtlFileName) {
 				var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
-				loadLWMaterialFile(mtlFilePath).then(
-					function(materials: MaterialSet) {
-						mtlResolve(materials);
-					}
-				);
+				loadLWMaterialFile(group, mtlFilePath).then(mtlResolve);
 			}
 			else {
 				mtlResolve(null);
@@ -230,7 +253,8 @@ namespace sd.asset {
 					genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
 				}
 			}
-			return obj;
+
+			return group;
 		});
 	}
 
