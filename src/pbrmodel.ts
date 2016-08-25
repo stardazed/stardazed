@@ -164,14 +164,14 @@ namespace sd.world {
 					gl.uniform1i(program.albedoMapUniform, TextureBindPoint.Albedo);
 				}
 			}
-			if (feat & (Features.MetallicMap | Features.RoughnessMap)) {
+			if (feat & (Features.MetallicMap | Features.RoughnessMap | Features.AOMap)) {
 				let material = gl.getUniformLocation(program, "materialMap");
 				if (material) {
 					program.materialMapUniform = material;
 					gl.uniform1i(program.materialMapUniform, TextureBindPoint.Material);
 				}
 			}
-			if (feat & (Features.NormalMap | Features.HeightMap | feat & Features.AOMap)) {
+			if (feat & (Features.NormalMap | Features.HeightMap)) {
 				let normalHeight = gl.getUniformLocation(program, "normalHeightMap");
 				if (normalHeight) {
 					program.normalHeightMapUniform = normalHeight;
@@ -269,7 +269,7 @@ namespace sd.world {
 			var lightingQuality = (feat & Features.LightingQuality) >> LightingQualityBitShift;
 
 			line  ("#extension GL_EXT_shader_texture_lod : require");
-			if_all("#extension GL_OES_standard_derivatives : require", Features.NormalMap);
+			if_any("#extension GL_OES_standard_derivatives : require", Features.NormalMap | Features.HeightMap);
 			line  ("precision highp float;");
 
 			// In
@@ -290,7 +290,6 @@ namespace sd.world {
 			if_all("uniform sampler2D albedoMap;", Features.AlbedoMap);
 			if_any("uniform sampler2D materialMap;", Features.MetallicMap | Features.RoughnessMap | Features.AOMap);
 			if_any("uniform sampler2D normalHeightMap;", Features.NormalMap | Features.HeightMap);
-			if_all("uniform sampler2D ambientOcclusionMap;", Features.AOMap);
 			line  ("uniform sampler2D brdfLookupMap;");
 			line  ("uniform samplerCube environmentMap;");
 
@@ -328,17 +327,31 @@ namespace sd.world {
 			line("}");
 
 
+			line("mat3 inverse(mat3 m) {");
+			line("	float a00 = m[0][0], a01 = m[0][1], a02 = m[0][2];");
+			line("	float a10 = m[1][0], a11 = m[1][1], a12 = m[1][2];");
+			line("	float a20 = m[2][0], a21 = m[2][1], a22 = m[2][2];");
+			line("	float b01 = a22 * a11 - a12 * a21;");
+			line("	float b11 = -a22 * a10 + a12 * a20;");
+			line("	float b21 = a21 * a10 - a11 * a20;");
+			line("	float det = a00 * b01 + a01 * b11 + a02 * b21;");
+			line("	return mat3(b01, (-a22 * a01 + a02 * a21), (a12 * a01 - a02 * a11),");
+			line("	            b11, (a22 * a00 - a02 * a20), (-a12 * a00 + a02 * a10),");
+			line("	            b21, (-a21 * a00 + a01 * a20), (a11 * a00 - a01 * a10)) / det;");
+			line("}");
+
 			// -- commonly needed info
 			line  ("struct SurfaceInfo {");
 			line  ("	vec3 V;"); // vertex dir (cam)
 			line  ("	vec3 N;"); // surface normal (cam)
 			line  ("	mat3 transNormalMatrix;");
 			line  ("	vec3 reflectedV;");
+			line  ("	vec2 UV;"); // (adjusted) main UV
 			line  ("	float NdV;");
 			line  ("};");
 
 			// -- normal perturbation
-			if (feat & Features.NormalMap) {
+			if (feat & (Features.NormalMap | Features.HeightMap)) {
 				line("mat3 cotangentFrame(vec3 N, vec3 p, vec2 uv) {");
 				line("	// get edge vectors of the pixel triangle");
 				line("	vec3 dp1 = dFdx(p);");
@@ -365,11 +378,80 @@ namespace sd.world {
 				line("}");
 			}
 
+			if (feat & Features.HeightMap) {
+				line("vec2 parallaxMapping(in vec3 V, in vec2 T, out float parallaxHeight) {");
+				line("	// determine optimal number of layers");
+				line("	const float minLayers = 15.0;");
+				line("	const float maxLayers = 25.0;");
+				line("	float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0, 0, 1), V)));");
+
+				line("	// height of each layer");
+				line("	float layerHeight = 1.0 / numLayers;");
+				line("	// current depth of the layer");
+				line("	float curLayerHeight = 0.0;");
+				line("	// shift of texture coordinates for each layer");
+				line("	vec2 dtex = -0.08 * V.xy / V.z / numLayers;");
+
+				line("	// current texture coordinates");
+				line("	vec2 currentTextureCoords = T + (0.04 * V.xy / V.z / numLayers);");
+
+				line("	// depth from heightmap");
+				line("	float heightFromTexture = texture2D(normalHeightMap, currentTextureCoords).a;");
+
+				line("	// while point is above the surface");
+				// line("   while(heightFromTexture > curLayerHeight) {");
+				line("	for (int layerIx = 0; layerIx < 25; ++layerIx) {");
+				line("		// to the next layer");
+				line("		curLayerHeight += layerHeight;");
+				line("		// shift of texture coordinates");
+				line("		currentTextureCoords -= dtex;");
+				line("		// new depth from heightmap");
+				line("		heightFromTexture = texture2D(normalHeightMap, currentTextureCoords).a;");
+				
+				line("		if (heightFromTexture <= curLayerHeight) break;");
+				line("	}");
+
+				line("	///////////////////////////////////////////////////////////");
+
+				line("	// previous texture coordinates");
+				line("	vec2 prevTCoords = currentTextureCoords + dtex;");
+
+				line("	// heights for linear interpolation");
+				line("	float nextH = heightFromTexture - curLayerHeight;");
+				line("	float prevH = texture2D(normalHeightMap, prevTCoords).a - curLayerHeight + layerHeight;");
+
+				line("	// proportions for linear interpolation");
+				line("	float weight = nextH / (nextH - prevH);");
+
+				line("	// interpolation of texture coordinates");
+				line("	vec2 finalTexCoords = prevTCoords * weight + currentTextureCoords * (1.0-weight);");
+
+				line("	// interpolation of depth values");
+				line("	parallaxHeight = curLayerHeight + prevH * weight + nextH * (1.0 - weight);");
+
+				line("	// return result");
+				line("	return finalTexCoords;");
+				line("}");
+			}
+
 			line  ("SurfaceInfo calcSurfaceInfo() {");
 			line  ("	SurfaceInfo si;");
 			line  ("	si.V = normalize(-vertexPos_cam);");
 			line  ("	si.N = normalize(vertexNormal_cam);");
-			if_any("	si.N = perturbNormal(si.N, -vertexPos_cam, vertexUV_intp);", Features.NormalMap);
+			if_not("	si.UV = vertexUV_intp;", Features.HeightMap);
+			if_any("	mat3 TBN = cotangentFrame(si.N, vertexPos_cam, vertexUV_intp);", Features.NormalMap | Features.HeightMap);
+			if (feat & Features.HeightMap) {
+				// line("	float h = texture2D(normalHeightMap, vertexUV_intp).a;");
+				// line("	h = h * 0.04 - 0.02;");
+				line("	vec3 eyeTan = normalize(inverse(TBN) * si.V);");
+				line("	float finalH = 0.0;")
+				// line("	si.UV = vertexUV_intp + (eyeTan.xy * h);");
+				line("	si.UV = parallaxMapping(eyeTan, vertexUV_intp, finalH);");
+			}
+			if (feat & Features.NormalMap) {
+				line("	vec3 map = texture2D(normalHeightMap, si.UV).xyz * 2.0 - 1.0;");
+				line("	si.N = normalize(TBN * map);");
+			}
 			line  ("	si.NdV = max(0.001, dot(si.N, si.V));");
 			line  ("	si.transNormalMatrix = transpose(normalMatrix);");
 			line  ("	si.reflectedV = si.transNormalMatrix * reflect(-si.V, si.N);");
@@ -556,9 +638,11 @@ namespace sd.world {
 
 			// -- main()
 			line  ("void main() {");
+			line  ("	SurfaceInfo si = calcSurfaceInfo();");
+
 
 			if (feat & Features.AlbedoMap) {
-				line("	vec3 baseColour = texture2D(albedoMap, vertexUV_intp).rgb * baseColour.rgb;");
+				line("	vec3 baseColour = texture2D(albedoMap, si.UV).rgb * baseColour.rgb;");
 			}
 			else {
 				line("	vec3 baseColour = baseColour.rgb;");
@@ -568,7 +652,7 @@ namespace sd.world {
 
 			var hasRMAMap = false;
 			if (feat & (Features.MetallicMap | Features.RoughnessMap | Features.AOMap)) {
-				line("	vec4 matParam = texture2D(materialMap, vertexUV_intp);");
+				line("	vec4 matParam = texture2D(materialMap, si.UV);");
 				hasRMAMap = true;
 			}
 			else {
@@ -583,7 +667,6 @@ namespace sd.world {
 			}
 
 			// -- calculate light arriving at the fragment
-			line  ("	SurfaceInfo si = calcSurfaceInfo();");
 			line  ("	vec3 totalLight = calcLightIBL(baseColour, matParam, si);");
 
 			line  ("	for (int lightIx = 0; lightIx < MAX_FRAGMENT_LIGHTS; ++lightIx) {");
@@ -745,8 +828,13 @@ namespace sd.world {
 				features |= Features.AlbedoMap;
 			}
 
-			if ((matFlags & PBRMaterialFlags.NormalMap) && this.materialMgr_.normalHeightMap(material)) {
-				features |= Features.NormalMap;
+			if (this.materialMgr_.normalHeightMap(material)) {
+				if (matFlags & PBRMaterialFlags.NormalMap) {
+					features |= Features.NormalMap;
+				}
+				if (matFlags & PBRMaterialFlags.HeightMap) {
+					features |= Features.HeightMap;
+				}
 			}
 
 			if (this.materialMgr_.materialMap(material)) {
@@ -773,6 +861,9 @@ namespace sd.world {
 			}
 			else if (feature == RenderFeature.NormalMaps) {
 				mask |= Features.NormalMap;
+			}
+			else if (feature == RenderFeature.HeightMaps) {
+				mask |= Features.HeightMap;
 			}
 
 			if (enable) {
