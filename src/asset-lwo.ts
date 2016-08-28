@@ -4,7 +4,7 @@
 
 namespace sd.asset {
 
-	function parseLWMaterialSource(group: AssetGroup, text: string): AssetGroup {
+	function parseLWMaterialSource(text: string): MaterialSet {
 		var lines = text.split("\n");
 		var materials: MaterialSet = {};
 		var curMat: Material | null = null;
@@ -60,7 +60,7 @@ namespace sd.asset {
 			}
 		});
 
-		return group;
+		return materials;
 	}
 
 
@@ -213,18 +213,18 @@ namespace sd.asset {
 	}
 
 
-	function loadLWMaterialFile(group: AssetGroup, filePath: string): Promise<AssetGroup> {
+	function loadLWMaterialFile(filePath: string): Promise<MaterialSet> {
 		return loadFile(filePath).then((text: string) => {
-			return parseLWMaterialSource(group, text);
+			return parseLWMaterialSource(text);
 		});
 	}
 
 
-	export function loadLWObjectFile(filePath: string, materialsAsColours = false): Promise<AssetGroup> {
-		var group = new AssetGroup();
+	export function loadLWObjectFile(filePath: string, materialsAsColours = false): Promise<LWMeshData> {
+//		var group = new AssetGroup();
 
 		var mtlResolve: any = null;
-		var mtlProm = new Promise<AssetGroup>(function(resolve) {
+		var mtlProm = new Promise<MaterialSet>(function(resolve) {
 			mtlResolve = resolve;
 		});
 
@@ -233,7 +233,7 @@ namespace sd.asset {
 		}).then((objData: LWMeshData) => {
 			if (objData.mtlFileName) {
 				var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
-				loadLWMaterialFile(group, mtlFilePath).then(mtlResolve);
+				loadLWMaterialFile(mtlFilePath).then(mtlResolve);
 			}
 			else {
 				mtlResolve(null);
@@ -254,7 +254,7 @@ namespace sd.asset {
 				}
 			}
 
-			return group;
+			return obj;
 		});
 	}
 

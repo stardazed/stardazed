@@ -381,7 +381,7 @@ namespace sd.world {
 			if (feat & Features.HeightMap) {
 				line("vec2 parallaxMapping(in vec3 V, in vec2 T, out float parallaxHeight) {");
 				line("	// determine optimal number of layers");
-				line("	const float minLayers = 15.0;");
+				line("	const float minLayers = 20.0;");
 				line("	const float maxLayers = 25.0;");
 				line("	float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0, 0, 1), V)));");
 
