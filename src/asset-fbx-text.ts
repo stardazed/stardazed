@@ -247,10 +247,10 @@ namespace sd.asset.fbx.parse {
 
 		private unexpected(t: Token) {
 			if (t.type == TokenType.Invalid) {
-				this.delegate_.error("Invalid token", t.offset, t.val && t.val.toString());
+				this.delegate_.error("Invalid token", t.offset, t.val !== undefined ? t.val.toString() : undefined);
 			}
 			else {
-				this.delegate_.error("Unexpected token", t.offset, t.val && t.val.toString());
+				this.delegate_.error("Unexpected token", t.offset, t.val !== undefined ? t.val.toString() : undefined);
 			}
 			
 			this.eof_ = true;
@@ -392,7 +392,7 @@ namespace sd.asset.fbx.parse {
 							if (this.array_) {
 								// in Array mode, fill delegate-provided array with numbers
 								if (token.type != TokenType.Number) {
-									this.delegate_.error("Only numbers are allowed in arrays", token.offset, token.val && token.val.toString());
+									this.delegate_.error("Only numbers are allowed in arrays", token.offset, token.val !== undefined ? token.val.toString() : undefined);
 									return;
 								}
 

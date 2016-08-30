@@ -205,7 +205,7 @@ namespace sd.asset.md5.parse {
 			if (! message) {
 				message = (token.type == TokenType.Invalid) ? "Invalid token" : "Unexpected token";
 			}
-			this.delegate_.error(message, token.offset, token.val && token.val.toString());
+			this.delegate_.error(message, token.offset, token.val !== undefined ? token.val.toString() : undefined);
 			this.stop_ = true;
 		}
 

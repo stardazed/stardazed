@@ -149,7 +149,7 @@ namespace sd.asset {
 		// convert a face index to zero-based int or -1 for empty index	
 		function fxtoi(fx: string) { return (+fx) - 1; }
 
-		lines.forEach((line) => {
+		for (const line of lines) {
 			var tokens = line.trim().split(/ +/);
 			switch (tokens[0]) {
 				case "mtllib":
@@ -194,7 +194,7 @@ namespace sd.asset {
 
 				default: break;
 			}
-		});
+		}
 
 		// finalise last draw group
 		if (curMaterialGroup) {

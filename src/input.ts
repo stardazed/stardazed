@@ -122,7 +122,7 @@ namespace sd.io {
 		}
 
 		pressed(kc: Key): boolean {
-			return this.downBase_[kc] && (this.halfTransBase_[kc] > 0);
+			return this.downBase_[kc] ? (this.halfTransBase_[kc] > 0) : false;
 		}
 
 		resetHalfTransitions() {

@@ -18,7 +18,8 @@
         // "noUnusedLocals": true,
         // "noUnusedParameters": true,
 
-        "skipDefaultLibCheck": true,
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": false,
  
         "removeComments": true,
         "sourceMap": false,
