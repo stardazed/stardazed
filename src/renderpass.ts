@@ -10,7 +10,7 @@
 
 namespace sd.render {
 
-	export function runRenderPass(rc: RenderContext, rpDesc: RenderPassDescriptor, frameBuffer: FrameBuffer, passFunc: (rp: RenderPass) => void) {
+	export function runRenderPass(rc: RenderContext, rpDesc: RenderPassDescriptor, frameBuffer: FrameBuffer | null, passFunc: (rp: RenderPass) => void) {
 		var rp = new RenderPass(rc, rpDesc, frameBuffer);
 		rp.setup();
 		passFunc(rp);

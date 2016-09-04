@@ -973,7 +973,7 @@ namespace sd.world {
 		}
 
 
-		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, fogSpec: world.FogDescriptor, modelIx: number) {
+		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, fogSpec: world.FogDescriptor | null, modelIx: number) {
 			var gl = this.rc.gl;
 			var drawCalls = 0;
 
@@ -1065,13 +1065,13 @@ namespace sd.world {
 				gl.uniform4fv(program.lightParamArrayUniform, this.lightParamArray_);
 
 				// -- fog data (TODO: directly using descriptor)
-				if (features & Features.Fog) {
+				if (fogSpec) {
 					gl.uniform4fv(program.fogColourUniform!, new Float32Array([fogSpec.colour[0], fogSpec.colour[1], fogSpec.colour[2], 0]));
 					gl.uniform4fv(program.fogParamsUniform!, new Float32Array([fogSpec.offset, fogSpec.depth, fogSpec.density, 0]));
 				}
 
 				// -- shadow map and metadata
-				if (features & Features.ShadowMap) {
+				if (shadow) {
 					gl.uniform1i(program.shadowCastingLightIndexUniform, this.shadowCastingLightIndex_);
 
 					rp.setTexture(shadow.shadowFBO.depthAttachmentTexture()!, TextureBindPoint.Shadow);
@@ -1189,7 +1189,7 @@ namespace sd.world {
 		}
 
 
-		draw(range: StdModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView, fogSpec: world.FogDescriptor, mode: RenderMode) {
+		draw(range: StdModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, fogSpec: world.FogDescriptor | null, mode: RenderMode) {
 			var drawCalls = 0;
 
 			if (mode == RenderMode.Forward) {
