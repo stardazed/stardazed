@@ -18,9 +18,6 @@ namespace sd.asset {
 	}
 
 
-	export interface Light {
-		descriptor: world.LightDescriptor;
-	}
 
 
 	export interface Material extends Asset {
@@ -171,6 +168,15 @@ namespace sd.asset {
 		frameTime: number;
 		frameCount: number;
 		jointAnims: JointAnimation[];
+	}
+
+
+	// TODO: models, lights, cameras and generic nodes do not belong in Asset
+	// Full scene formats like FBX, OpenGEX, etc. export assets and scene data together
+	// but in SD these are handled separately
+
+	export interface Light {
+		descriptor: world.LightDescriptor;
 	}
 
 
