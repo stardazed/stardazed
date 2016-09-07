@@ -86,7 +86,17 @@ namespace sd.asset {
 		return "";
 	}
 
-	const mimeTypeMapping: { [extension: string]: string } = {
+
+	export type ImageMimeType =
+		"image/bmp" |
+		"image/png" |
+		"image/jpeg" |
+		"image/jpeg" |
+		"image/tga" |
+		"image/gif";
+
+
+	const mimeTypeMapping: { [extension: string]: ImageMimeType } = {
 		"bm": "image/bmp",
 		"bmp": "image/bmp",
 		"png": "image/png",
@@ -96,9 +106,9 @@ namespace sd.asset {
 		"gif": "image/gif"
 	};
 
-	export function mimeTypeForFilePath(filePath: string): string | null {
+	export function mimeTypeForFilePath(filePath: string): ImageMimeType | undefined {
 		var ext = fileExtensionOfFilePath(filePath);
-		return mimeTypeMapping[ext] || null;
+		return mimeTypeMapping[ext];
 	}
 
 
@@ -180,7 +190,7 @@ namespace sd.asset {
 	}
 
 
-	export function loadImageFromBuffer(buffer: ArrayBuffer, mimeType: string): Promise<ImageData | HTMLImageElement> {
+	export function loadImageFromBuffer(buffer: ArrayBuffer, mimeType: ImageMimeType): Promise<ImageData | HTMLImageElement> {
 		return new Promise((resolve, reject) => {
 			var nativeImageLoader = () => {
 				// Create an image in a most convoluted manner. Hurrah for the web.
