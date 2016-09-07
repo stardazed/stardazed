@@ -50,9 +50,9 @@ namespace sd.asset {
 	export type MaterialSet = { [name: string]: Material };
 
 
-	export function makeMaterial(): Material {
+	export function makeMaterial(name?: string): Material {
 		return {
-			name: "",
+			name: name || "",
 
 			emissiveColour: [0, 0, 0],
 			emissiveIntensity: 0,

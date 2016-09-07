@@ -4,19 +4,20 @@
 
 namespace sd.asset {
 
-	function parseLWMaterialSource(text: string): MaterialSet {
-		var lines = text.split("\n");
-		var materials: MaterialSet = {};
+	function parseLWMaterialSource(group: AssetGroup, text: string) {
+		const lines = text.split("\n");
 		var curMat: Material | null = null;
 
-		lines.forEach(function(line) {
+		for (const line of lines) {
 			var tokens = line.trim().split(/ +/);
 			switch (tokens[0]) {
 				case "newmtl":
 					if (tokens.length === 2) {
+						if (curMat) {
+							group.addMaterial(curMat);
+						}
 						var matName = tokens[1];
-						curMat = materials[matName] = makeMaterial();
-						curMat.name = matName;
+						curMat = makeMaterial(matName);
 					}
 					// FIXME: else unexpected()
 					break;
@@ -58,27 +59,28 @@ namespace sd.asset {
 				default:
 					break;
 			}
-		});
+		}
 
-		return materials;
+		if (curMat) {
+			group.addMaterial(curMat);
+		}
 	}
 
 
-	export interface LWDrawGroup {
+	interface LWDrawGroup {
 		materialName: string;
 		fromIndex: number;
 		indexCount: number;
 	}
 
-	export interface LWMeshData {
+	interface LWMetaData {
 		mtlFileName: string;
-		mesh: mesh.MeshData;
-		materials: MaterialSet | null;
 		drawGroups: LWDrawGroup[];
 	}
 
 
-	function genColorEntriesFromDrawGroups(drawGroups: LWDrawGroup[], materials: MaterialSet, colourView: mesh.VertexBufferAttributeView) {
+	function genColorEntriesFromDrawGroups(group: AssetGroup, drawGroups: LWDrawGroup[]) {
+		/*
 		drawGroups.forEach((group: LWDrawGroup) => {
 			var curIndex = group.fromIndex;
 			var maxIndex = group.fromIndex + group.indexCount;
@@ -90,10 +92,11 @@ namespace sd.asset {
 				curIndex++;
 			}
 		});
+		*/
 	}
 
 
-	function parseLWObjectSource(text: string, hasColourAttr: boolean): LWMeshData {
+	function parseLWObjectSource(group: AssetGroup, text: string, hasColourAttr: boolean): LWMetaData {
 		var lines = text.split("\n");
 		var vv: number[][] = [], nn: number[][] = [], tt: number[][] = [];
 
@@ -203,37 +206,37 @@ namespace sd.asset {
 
 		// single primitive group
 		meshData.primitiveGroups.push({ fromPrimIx: 0, primCount: vertexIx / 3, materialIx: 0 });
+
+		group.addMesh({ name: "obj1", streams: [], meshData: meshData });
 	
 		return {
 			mtlFileName: mtlFileName,
-			mesh: meshData,
-			drawGroups: materialGroups,
-			materials: null
+			drawGroups: materialGroups
 		};
 	}
 
 
-	function loadLWMaterialFile(filePath: string): Promise<MaterialSet> {
+	function loadLWMaterialFile(group: AssetGroup, filePath: string): Promise<void> {
 		return loadFile(filePath).then((text: string) => {
-			return parseLWMaterialSource(text);
+			return parseLWMaterialSource(group, text);
 		});
 	}
 
 
-	export function loadLWObjectFile(filePath: string, materialsAsColours = false): Promise<LWMeshData> {
-//		var group = new AssetGroup();
+	export function loadLWObjectFile(filePath: string, materialsAsColours = false): Promise<AssetGroup> {
+		var group = new AssetGroup();
 
 		var mtlResolve: any = null;
-		var mtlProm = new Promise<MaterialSet>(function(resolve) {
+		var mtlProm = new Promise<void>(function(resolve) {
 			mtlResolve = resolve;
 		});
 
 		var objProm = loadFile(filePath).then((text: string) => {
-			return parseLWObjectSource(text, materialsAsColours);
-		}).then((objData: LWMeshData) => {
+			return parseLWObjectSource(group, text, materialsAsColours);
+		}).then((objData: LWMetaData) => {
 			if (objData.mtlFileName) {
 				var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
-				loadLWMaterialFile(mtlFilePath).then(mtlResolve);
+				loadLWMaterialFile(group, mtlFilePath).then(mtlResolve);
 			}
 			else {
 				mtlResolve(null);
@@ -241,20 +244,14 @@ namespace sd.asset {
 			return objData;
 		});
 
-		return Promise.all<any>([mtlProm, objProm]).then(values => {
-			var materials: MaterialSet = values[0];
-			var obj: LWMeshData = values[1];
-			obj.materials = materials;
+		return Promise.all<any>([objProm, mtlProm]).then(values => {
+			var meta: LWMetaData = values[0];
 
 			if (materialsAsColours) {
-				var colourAttr = obj.mesh.primaryVertexBuffer.attrByRole(mesh.VertexAttributeRole.Colour);
-				if (colourAttr) {
-					var colourView = new mesh.VertexBufferAttributeView(obj.mesh.primaryVertexBuffer, colourAttr);
-					genColorEntriesFromDrawGroups(obj.drawGroups, materials, colourView);
-				}
+				genColorEntriesFromDrawGroups(group, meta.drawGroups);
 			}
 
-			return obj;
+			return group;
 		});
 	}
 
