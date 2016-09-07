@@ -2,17 +2,8 @@
 // Part of Stardazed TX
 // (c) 2015-6 by Arthur Langereis - @zenmumbler
 
-/// <reference path="../defs/es6-promise.d.ts" />
-/// <reference path="../defs/es6-collections.d.ts" />
-
-interface Array<T> {
-	// ES6 extensions
-	find(callback: (element: T, index: number, array: Array<T>) => boolean, thisArg?: any): T | undefined;
-	findIndex(callback: (element: T, index: number, array: Array<T>) => boolean, thisArg?: any): number;
-}
-
-
 interface Console {
+	// Safari-specific
 	takeHeapSnapshot(): void;
 }
 

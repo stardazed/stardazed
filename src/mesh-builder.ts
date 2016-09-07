@@ -73,7 +73,7 @@ namespace sd.mesh {
 				this.data_.set(from, [to]);
 			}
 			else {
-				var mapped = this.data_.get(from);
+				var mapped = this.data_.get(from)!;
 				if (mapped.indexOf(to) == -1) {
 					mapped.push(to);
 				}
@@ -82,7 +82,7 @@ namespace sd.mesh {
 		}
 
 		mappedValues(forIndex: number) {
-			return this.data_.get(forIndex);
+			return this.data_.get(forIndex)!;
 		}
 	}
 
@@ -153,7 +153,7 @@ namespace sd.mesh {
 			this.groupIndexStreams_ = new Map<number, number[]>();
 			this.groupIndexStreams_.set(0, []);
 			this.groupIndex_ = 0;
-			this.groupIndexesRef_ = this.groupIndexStreams_.get(0);
+			this.groupIndexesRef_ = this.groupIndexStreams_.get(0)!;
 
 			// output and de-duplication data
 			this.vertexData_ = this.streams_.map(_ => []);
@@ -199,14 +199,14 @@ namespace sd.mesh {
 				this.groupIndexStreams_.set(newGroupIndex, []);
 			}
 
-			this.groupIndexesRef_ = this.groupIndexStreams_.get(newGroupIndex);
+			this.groupIndexesRef_ = this.groupIndexStreams_.get(newGroupIndex)!;
 		}
 
 
 		private getVertexIndex(streamIndexes: number[]): number {
 			const key = streamIndexes.join("|");
 			if (this.vertexMapping_.has(key)) {
-				return this.vertexMapping_.get(key);
+				return this.vertexMapping_.get(key)!;
 			}
 			else {
 				for (var streamIx = 0; streamIx < this.streamCount_; ++streamIx) {

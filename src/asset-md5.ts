@@ -180,7 +180,7 @@ namespace sd.asset {
 				
 				if (parentIndex > -1) {
 					var pj = this.joints[parentIndex];
-					var pjm = this.flatJointModels.get(parentIndex);
+					var pjm = this.flatJointModels.get(parentIndex)!;
 					pjm.children.push(jm);
 					jm.parent = pjm;
 

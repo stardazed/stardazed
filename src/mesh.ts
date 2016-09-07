@@ -193,7 +193,7 @@ namespace sd.render {
 
 
 		bind(usingPipeline: Pipeline) {
-			var plVAO: WebGLVertexArrayObjectOES | null = null;
+			var plVAO: WebGLVertexArrayObjectOES | undefined;
 			var needBinding = true;
 
 			if (this.pipelineVAOMap_) {

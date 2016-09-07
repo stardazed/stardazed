@@ -122,7 +122,7 @@ namespace sd.world {
 		}
 
 		sphereData(inst: ColliderInstance): math.Sphere {
-			return this.sphereData_.get(inst);
+			return this.sphereData_.get(inst)!;
 		}
 	}
 

@@ -673,7 +673,7 @@ namespace sd.asset {
 					for (let mco of fbxGeom.connectionsOut) {
 						var model = mco.toNode;
 						if (model && model.name == "Model") {
-							var sdModel = this.flattenedModels.get(model.objectID);
+							var sdModel = this.flattenedModels.get(model.objectID)!; // TODO: verify
 							sdModel.mesh = sdMesh;
 						}
 					}
