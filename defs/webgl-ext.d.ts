@@ -3,7 +3,7 @@
 // Definitions by: Arthur Langereis <https://github.com/zenmumbler/>
 // Definitions: https://github.com/borisyankov/DefinitelyTyped/webgl-ext
 
-// These definitions go beyond those already defined in TS 1.6.2 stdlib
+// These definitions go beyond those already defined in TS 2.0.2 stdlib
 // All non-draft WebGL 1.0 extensions and prefixed extension names are
 // covered.
 // Some missing parameters for getContext and attributes for
@@ -13,12 +13,12 @@
 /// <reference path="webgl-branding.d.ts" />
 
 interface WebGLContextAttributes {
-	// The following attributes are missing from TypeScript 1.6.2's lib.d.ts
+	// The following attribute is missing from TypeScript 2.0.2's lib.d.ts
 	preferLowPowerToHighPerformance?: boolean;
-	failIfMajorPerformanceCaveat?: boolean;
 
 	// All others duplicated here for reference
 	/*
+	failIfMajorPerformanceCaveat?: boolean;
 	alpha?: boolean;
     depth?: boolean;
     stencil?: boolean;
@@ -29,11 +29,6 @@ interface WebGLContextAttributes {
 
 	// For the meanings and default values of these attributes, see the full spec at:
 	// https://www.khronos.org/registry/webgl/specs/latest/1.0/index.html#5.2
-}
-
-interface HTMLCanvasElement {
-	getContext(contextId: "experimental-webgl", attributes?: WebGLContextAttributes): WebGLRenderingContext;
-	getContext(contextId: "webgl", attributes?: WebGLContextAttributes): WebGLRenderingContext;
 }
 
 interface WebGLRenderingContext {
@@ -80,7 +75,7 @@ interface WebGLRenderingContext {
 }
 
 interface ANGLEInstancedArrays {
-	VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE: number;
+	readonly VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE: number;
 
 	drawArraysInstancedANGLE(mode: number, first: number, count: number, primcount: number): void;
 	drawElementsInstancedANGLE(mode: number, count: number, type: number, offset: number, primcount: number): void;
@@ -88,67 +83,67 @@ interface ANGLEInstancedArrays {
 }
 
 interface EXTBlendMinMax {
-	MIN_EXT: number;
-	MAX_EXT: number;
+	readonly MIN_EXT: number;
+	readonly MAX_EXT: number;
 }
 
 interface EXTColorBufferHalfFloat {
-	RGBA16F_EXT: number;
-	RGB16F_EXT: number;
-	FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT: number;
-	UNSIGNED_NORMALIZED_EXT: number;
+	readonly RGBA16F_EXT: number;
+	readonly RGB16F_EXT: number;
+	readonly FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT: number;
+	readonly UNSIGNED_NORMALIZED_EXT: number;
 }
 
 interface EXTFragDepth {
-	__EXTFragDepth: void;
+	readonly __EXTFragDepth: void;
 }
 
 interface EXTsRGB {
-	SRGB_EXT: number;
-	SRGB_ALPHA_EXT: number;
-	SRGB8_ALPHA8_EXT: number;
-	FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING_EXT: number;
+	readonly SRGB_EXT: number;
+	readonly SRGB_ALPHA_EXT: number;
+	readonly SRGB8_ALPHA8_EXT: number;
+	readonly FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING_EXT: number;
 }
 
 interface EXTShaderTextureLOD {
-	__EXTShaderTextureLOD: void;
+	readonly __EXTShaderTextureLOD: void;
 }
 
 interface EXTTextureFilterAnisotropic {
-	TEXTURE_MAX_ANISOTROPY_EXT: number;
-	MAX_TEXTURE_MAX_ANISOTROPY_EXT: number;
+	readonly TEXTURE_MAX_ANISOTROPY_EXT: number;
+	readonly MAX_TEXTURE_MAX_ANISOTROPY_EXT: number;
 }
 
 interface OESElementIndexUint {
-	__OESElementIndexUint: void;
+	readonly __OESElementIndexUint: void;
 }
 
 interface OESStandardDerivatives {
-	FRAGMENT_SHADER_DERIVATIVE_HINT_OES: number;
+	readonly FRAGMENT_SHADER_DERIVATIVE_HINT_OES: number;
 }
 
 interface OESTextureFloat {
-	__OESTextureFloat: void;
+	readonly __OESTextureFloat: void;
 }
 
 interface OESTextureFloatLinear {
-	__OESTextureFloatLinear: void;
+	readonly __OESTextureFloatLinear: void;
 }
 
 interface OESTextureHalfFloat {
-	HALF_FLOAT_OES: number;
+	readonly HALF_FLOAT_OES: number;
 }
 
 interface OESTextureHalfFloatLinear {
-	__OESTextureHalfFloatLinear: void;
+	readonly __OESTextureHalfFloatLinear: void;
 }
 
 interface WebGLVertexArrayObjectOES extends WebGLObject {
-	__WebGLVertexArrayObjectOES: void;
+	readonly __WebGLVertexArrayObjectOES: void;
 }
 
 interface OESVertexArrayObject {
-	VERTEX_ARRAY_BINDING_OES: number;
+	readonly VERTEX_ARRAY_BINDING_OES: number;
 
 	createVertexArrayOES(): WebGLVertexArrayObjectOES;
 	deleteVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES): void;
@@ -157,38 +152,38 @@ interface OESVertexArrayObject {
 }
 
 interface WebGLColorBufferFloat {
-	RGBA32F_EXT: number;
-	FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT: number;
-	UNSIGNED_NORMALIZED_EXT: number;
+	readonly RGBA32F_EXT: number;
+	readonly FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT: number;
+	readonly UNSIGNED_NORMALIZED_EXT: number;
 }
 
 interface WebGLCompressedTextureATC {
-	COMPRESSED_RGB_ATC_WEBGL: number;
-	COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL: number;
-	COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL: number;
+	readonly COMPRESSED_RGB_ATC_WEBGL: number;
+	readonly COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL: number;
+	readonly COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL: number;
 }
 
 interface WebGLCompressedTextureETC1 {
-	COMPRESSED_RGB_ETC1_WEBGL: number;
+	readonly COMPRESSED_RGB_ETC1_WEBGL: number;
 }
 
 interface WebGLCompressedTexturePVRTC {
-	COMPRESSED_RGB_PVRTC_4BPPV1_IMG: number;
-	COMPRESSED_RGB_PVRTC_2BPPV1_IMG: number;
-	COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: number;
-	COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: number;
+	readonly COMPRESSED_RGB_PVRTC_4BPPV1_IMG: number;
+	readonly COMPRESSED_RGB_PVRTC_2BPPV1_IMG: number;
+	readonly COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: number;
+	readonly COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: number;
 }
 
 interface WebGLCompressedTextureS3TC {
-	COMPRESSED_RGB_S3TC_DXT1_EXT: number;
-	COMPRESSED_RGBA_S3TC_DXT1_EXT: number;
-	COMPRESSED_RGBA_S3TC_DXT3_EXT: number;
-	COMPRESSED_RGBA_S3TC_DXT5_EXT: number;
+	readonly COMPRESSED_RGB_S3TC_DXT1_EXT: number;
+	readonly COMPRESSED_RGBA_S3TC_DXT1_EXT: number;
+	readonly COMPRESSED_RGBA_S3TC_DXT3_EXT: number;
+	readonly COMPRESSED_RGBA_S3TC_DXT5_EXT: number;
 }
 
 interface WebGLDebugRendererInfo {
-	UNMASKED_VENDOR_WEBGL: number;
-	UNMASKED_RENDERER_WEBGL: number;
+	readonly UNMASKED_VENDOR_WEBGL: number;
+	readonly UNMASKED_RENDERER_WEBGL: number;
 }
 
 interface WebGLDebugShaders {
@@ -196,46 +191,46 @@ interface WebGLDebugShaders {
 }
 
 interface WebGLDepthTexture {
-	UNSIGNED_INT_24_8_WEBGL: number;
+	readonly UNSIGNED_INT_24_8_WEBGL: number;
 }
 
 interface WebGLDrawBuffers {
-	COLOR_ATTACHMENT0_WEBGL: number;
-	COLOR_ATTACHMENT1_WEBGL: number;
-	COLOR_ATTACHMENT2_WEBGL: number;
-	COLOR_ATTACHMENT3_WEBGL: number;
-	COLOR_ATTACHMENT4_WEBGL: number;
-	COLOR_ATTACHMENT5_WEBGL: number;
-	COLOR_ATTACHMENT6_WEBGL: number;
-	COLOR_ATTACHMENT7_WEBGL: number;
-	COLOR_ATTACHMENT8_WEBGL: number;
-	COLOR_ATTACHMENT9_WEBGL: number;
-	COLOR_ATTACHMENT10_WEBGL: number;
-	COLOR_ATTACHMENT11_WEBGL: number;
-	COLOR_ATTACHMENT12_WEBGL: number;
-	COLOR_ATTACHMENT13_WEBGL: number;
-	COLOR_ATTACHMENT14_WEBGL: number;
-	COLOR_ATTACHMENT15_WEBGL: number;
+	readonly COLOR_ATTACHMENT0_WEBGL: number;
+	readonly COLOR_ATTACHMENT1_WEBGL: number;
+	readonly COLOR_ATTACHMENT2_WEBGL: number;
+	readonly COLOR_ATTACHMENT3_WEBGL: number;
+	readonly COLOR_ATTACHMENT4_WEBGL: number;
+	readonly COLOR_ATTACHMENT5_WEBGL: number;
+	readonly COLOR_ATTACHMENT6_WEBGL: number;
+	readonly COLOR_ATTACHMENT7_WEBGL: number;
+	readonly COLOR_ATTACHMENT8_WEBGL: number;
+	readonly COLOR_ATTACHMENT9_WEBGL: number;
+	readonly COLOR_ATTACHMENT10_WEBGL: number;
+	readonly COLOR_ATTACHMENT11_WEBGL: number;
+	readonly COLOR_ATTACHMENT12_WEBGL: number;
+	readonly COLOR_ATTACHMENT13_WEBGL: number;
+	readonly COLOR_ATTACHMENT14_WEBGL: number;
+	readonly COLOR_ATTACHMENT15_WEBGL: number;
 
-	DRAW_BUFFER0_WEBGL: number;
-	DRAW_BUFFER1_WEBGL: number;
-	DRAW_BUFFER2_WEBGL: number;
-	DRAW_BUFFER3_WEBGL: number;
-	DRAW_BUFFER4_WEBGL: number;
-	DRAW_BUFFER5_WEBGL: number;
-	DRAW_BUFFER6_WEBGL: number;
-	DRAW_BUFFER7_WEBGL: number;
-	DRAW_BUFFER8_WEBGL: number;
-	DRAW_BUFFER9_WEBGL: number;
-	DRAW_BUFFER10_WEBGL: number;
-	DRAW_BUFFER11_WEBGL: number;
-	DRAW_BUFFER12_WEBGL: number;
-	DRAW_BUFFER13_WEBGL: number;
-	DRAW_BUFFER14_WEBGL: number;
-	DRAW_BUFFER15_WEBGL: number;
+	readonly DRAW_BUFFER0_WEBGL: number;
+	readonly DRAW_BUFFER1_WEBGL: number;
+	readonly DRAW_BUFFER2_WEBGL: number;
+	readonly DRAW_BUFFER3_WEBGL: number;
+	readonly DRAW_BUFFER4_WEBGL: number;
+	readonly DRAW_BUFFER5_WEBGL: number;
+	readonly DRAW_BUFFER6_WEBGL: number;
+	readonly DRAW_BUFFER7_WEBGL: number;
+	readonly DRAW_BUFFER8_WEBGL: number;
+	readonly DRAW_BUFFER9_WEBGL: number;
+	readonly DRAW_BUFFER10_WEBGL: number;
+	readonly DRAW_BUFFER11_WEBGL: number;
+	readonly DRAW_BUFFER12_WEBGL: number;
+	readonly DRAW_BUFFER13_WEBGL: number;
+	readonly DRAW_BUFFER14_WEBGL: number;
+	readonly DRAW_BUFFER15_WEBGL: number;
 
-	MAX_COLOR_ATTACHMENTS_WEBGL: number;
-	MAX_DRAW_BUFFERS_WEBGL: number;
+	readonly MAX_COLOR_ATTACHMENTS_WEBGL: number;
+	readonly MAX_DRAW_BUFFERS_WEBGL: number;
 
 	drawBuffersWEBGL(buffers: number[]): void;
 }

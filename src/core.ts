@@ -3,7 +3,7 @@
 // (c) 2015-6 by Arthur Langereis - @zenmumbler
 
 interface Console {
-	// Safari-specific
+	// Safari-specific debugging extension
 	takeHeapSnapshot(): void;
 }
 
@@ -124,6 +124,5 @@ namespace sd {
 			console.info("Perf TOTAL: " + diffT.toFixed(1));
 		}
 	}
-
 
 } // ns sd
