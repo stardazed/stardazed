@@ -226,27 +226,19 @@ namespace sd.asset {
 	export function loadLWObjectFile(filePath: string, materialsAsColours = false): Promise<AssetGroup> {
 		var group = new AssetGroup();
 
-		var mtlResolve: any = null;
-		var mtlProm = new Promise<void>(function(resolve) {
-			mtlResolve = resolve;
-		});
-
-		var objProm = loadFile(filePath).then((text: string) => {
+		return loadFile(filePath).then((text: string) => {
 			return parseLWObjectSource(group, text, materialsAsColours);
-		}).then((objData: LWMetaData) => {
-			if (objData.mtlFileName) {
-				var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + objData.mtlFileName;
-				loadLWMaterialFile(group, mtlFilePath).then(mtlResolve);
+		})
+		.then(meta => {
+			if (meta.mtlFileName) {
+				var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + meta.mtlFileName;
+				return loadLWMaterialFile(group, mtlFilePath).then(() => {
+					return meta;
+				});
 			}
-			else {
-				mtlResolve(null);
-			}
-			return objData;
-		});
-
-		return Promise.all<any>([objProm, mtlProm]).then(values => {
-			var meta: LWMetaData = values[0];
-
+			return meta;
+		})
+		.then(meta => {
 			if (materialsAsColours) {
 				genColorEntriesFromDrawGroups(group, meta.drawGroups);
 			}
