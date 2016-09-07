@@ -445,7 +445,7 @@ namespace sd.asset {
 						}
 						else {
 							if (texIn.propName == "DiffuseColor") {
-								mat.diffuseTexture = tex2D;
+								mat.albedoTexture = tex2D;
 							}
 							else if (texIn.propName == "SpecularColor") {
 								mat.specularTexture = tex2D;

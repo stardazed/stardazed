@@ -26,24 +26,29 @@ namespace sd.asset {
 
 
 	export interface Material extends Asset {
-		emissiveColour: Float3;
-		emissiveIntensity: number;
-
 		diffuseColour: Float3;
 
 		specularColour: Float3;
 		specularIntensity: number;
 		specularExponent: number;
 
+		emissiveColour: Float3;
+		emissiveIntensity: number;
+
 		opacity: number; // 0: fully transparent, 1: fully opaque (default)
 
 		textureScale: Float2;
 		textureOffset: Float2;
-		diffuseTexture?: Texture2D;	// TODO: change this to array of textures with typed channels
+
+		albedoTexture?: Texture2D;	// TODO: change this to array of textures with typed channels
 		specularTexture?: Texture2D;
 		normalTexture?: Texture2D;
 		heightTexture?: Texture2D;
 		transparencyTexture?: Texture2D;
+		emissiveTexture?: Texture2D;
+		roughnessTexture?: Texture2D;
+		metallicTexture?: Texture2D;
+		ambientOcclusionTexture?: Texture2D;
 
 		// DEPRECATED: this will be removed as this obvs does not belong here
 		jointDataTexture?: Texture2D;

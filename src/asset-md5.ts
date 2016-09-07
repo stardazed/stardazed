@@ -224,7 +224,7 @@ namespace sd.asset {
 							useMipMaps: render.UseMipMaps.No
 						});
 					}
-					m.diffuseTexture = this.textures_.get(name);
+					m.albedoTexture = this.textures_.get(name);
 				}
 				m.jointDataTexture = this.jointDataTexture_;
 				
