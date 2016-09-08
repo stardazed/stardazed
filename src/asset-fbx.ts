@@ -403,12 +403,12 @@ namespace sd.asset {
 					for (const c of fbxMat.children) {
 						if (c.name == "Diffuse") {
 							// the Diffuse prop is DiffuseColor * DiffuseFactor
-							vec3.copy(mat.diffuseColour, <number[]>c.values);
+							vec3.copy(mat.baseColour, <number[]>c.values);
 							haveFullDiffuse = true;
 						}
 						else if (c.name == "DiffuseColor") {
 							if (! haveFullDiffuse) {
-								vec3.copy(mat.diffuseColour, <number[]>c.values);
+								vec3.copy(mat.baseColour, <number[]>c.values);
 							}
 						}
 						else if (c.name == "SpecularColor") {

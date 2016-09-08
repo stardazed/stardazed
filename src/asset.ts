@@ -26,7 +26,7 @@ namespace sd.asset {
 
 
 	export interface Material extends Asset {
-		diffuseColour: Float3;
+		baseColour: Float3;
 
 		specularColour: Float3;
 		specularIntensity: number;
@@ -36,6 +36,9 @@ namespace sd.asset {
 		emissiveIntensity: number;
 
 		opacity: number; // 0: fully transparent, 1: fully opaque (default)
+		metallic: number; // 0: fully di-electric (default), 1: fully metallic
+		roughness: number; // 0: fully smooth (default), 1: fully rough
+		anisotropy: number; // 1..16
 
 		textureScale: Float2;
 		textureOffset: Float2;
@@ -64,7 +67,7 @@ namespace sd.asset {
 			emissiveColour: [0, 0, 0],
 			emissiveIntensity: 0,
 
-			diffuseColour: [0, 0, 0],
+			baseColour: [0, 0, 0],
 
 			specularColour: [0, 0, 0],
 			specularIntensity: 1,
@@ -73,7 +76,10 @@ namespace sd.asset {
 			textureScale: [1, 1],
 			textureOffset: [0, 0],
 
-			opacity: 1
+			opacity: 1,
+			anisotropy: 1,
+			metallic: 0,
+			roughness: 0
 		};
 	}
 

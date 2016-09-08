@@ -1028,7 +1028,7 @@ namespace sd.mesh {
 			}
 
 			if (isNaN(tangent[0]) || isNaN(tangent[1]) || isNaN(tangent[2])) {
-				assert(false, "BLAATGH");
+				assert(false, "Failure during tangent calculation");
 			}
 			vec3.copy(tanView.refItem(ix), tangent);
 		}

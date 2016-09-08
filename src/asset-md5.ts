@@ -215,7 +215,7 @@ namespace sd.asset {
 			materialName(name: string) {
 				var m = makeMaterial();
 				m.userRef = this.assets_.materials.length + 1;
-				vec3.set(m.diffuseColour, 0.8, 0.8, 0.8);
+				vec3.set(m.baseColour, 0.8, 0.8, 0.8);
 				if (name) {
 					if (! this.textures_.has(name)) {
 						this.textures_.set(name, {
