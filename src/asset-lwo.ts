@@ -4,60 +4,101 @@
 
 namespace sd.asset {
 
-	function parseLWMaterialSource(group: AssetGroup, text: string) {
+	function parseLWMaterialSource(group: AssetGroup, filePath: string, text: string) {
 		const lines = text.split("\n");
 		var curMat: Material | null = null;
+		var tokens: string[] = [];
+
+		const checkArgCount = function(c: number) {
+			var ok = c === tokens.length - 1;
+			if (! ok) {
+				// TODO: emit warning in asset loader
+			}
+			return ok;
+		};
 
 		for (const line of lines) {
-			var tokens = line.trim().split(/ +/);
-			switch (tokens[0]) {
-				case "newmtl":
-					if (tokens.length === 2) {
-						if (curMat) {
-							group.addMaterial(curMat);
-						}
-						var matName = tokens[1];
-						curMat = makeMaterial(matName);
+			tokens = line.trim().split(/ +/);
+			var directive = tokens[0];
+
+			if (directive === "newmtl") {
+				if (checkArgCount(1)) {
+					if (curMat) {
+						group.addMaterial(curMat);
 					}
-					// FIXME: else unexpected()
-					break;
-				case "Kd":
-					if (curMat && tokens.length === 4) {
-						vec3.copy(curMat.diffuseColour, [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
+					var matName = tokens[1];
+					curMat = makeMaterial(matName);
+				}
+			}
+			else {
+				if (! curMat) {
+					// TODO: emit warning in asset loader
+				}
+				else {
+					switch (directive) {
+						// Single colour directives
+						case "Kd":
+						case "Ks":
+						case "Ke": // custom Clara.io extension
+							if (checkArgCount(3)) {
+								var colour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+								vec3.copy((<{[s:string]:Float3}>{
+									"Kd": curMat.baseColour,
+									"Ks": curMat.specularColour,
+									"Ke": curMat.emissiveColour
+								})[directive], colour);
+							}
+							break;
+
+						// Single value directives
+						case "Pr":
+						case "Pm":
+						case "aniso":
+						case "d":
+						case "Tr":
+							if (checkArgCount(1)) {
+								var value = parseFloat(tokens[1]);
+								if (directive === "Pr") { curMat.roughness = value; }
+								else if (directive === "Pm") { curMat.metallic = value; }
+								else if (directive === "aniso") { curMat.anisotropy = value; }
+								else if (directive === "d") { curMat.opacity = value; }
+								else if (directive === "Tr") { curMat.opacity = 1.0 - value; }
+							}
+							break;
+
+						// Texture map directives (only file paths, options not supported)
+						case "map_Kd":
+						case "map_Ks":
+						case "map_Ke":
+						case "map_Pr":
+						case "map_Pm":
+						case "map_d":
+						case "map_Tr":
+						case "norm":
+						case "bump":
+						case "disp":
+							if (checkArgCount(1)) {
+								var texAsset: Texture2D = {
+									name: curMat.name + "_" + directive,
+									filePath: tokens[1],
+									useMipMaps: render.UseMipMaps.Yes
+								};
+								if (directive === "map_Kd") { curMat.albedoTexture = texAsset; }
+								else if (directive === "map_Ks") { curMat.specularTexture = texAsset; }
+								else if (directive === "map_Ke") { curMat.emissiveTexture = texAsset; }
+								else if (directive === "map_Pr") { curMat.roughnessTexture = texAsset; }
+								else if (directive === "map_Pm") { curMat.metallicTexture = texAsset; }
+								else if (directive === "norm") { curMat.normalTexture = texAsset; }
+								else if (directive === "map_d" || directive === "map_Tr") { curMat.transparencyTexture = texAsset; }
+								else if (directive === "bump" || directive === "disp") { curMat.heightTexture = texAsset; }
+							}
+							break;
+
+						default:
+							// other fields are either esoteric or filled with nonsense data
+							break;
 					}
-					// FIXME: else unexpected()
-					break;
-				case "Ks":
-					if (curMat && tokens.length === 4) {
-						vec3.copy(curMat.specularColour, [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
-					}
-					// FIXME: else unexpected()
-					break;
-				case "Ke": // custom Clara.io extension
-					if (curMat && tokens.length === 4) {
-						vec3.copy(curMat.emissiveColour, [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
-					}
-					// FIXME: else unexpected()
-					break;
-				case "Ns":
-					if (curMat && tokens.length === 2) {
-						curMat.specularExponent = parseFloat(tokens[1]);
-					}
-					// FIXME: else unexpected()
-					break;
-				case "d":
-				case "Tr":
-					if (curMat && tokens.length === 2) {
-						var opacity = parseFloat(tokens[1]);
-						if (tokens[0] === "Tr") {
-							opacity = 1.0 - opacity;
-						}
-						curMat.opacity = math.clamp01(opacity);
-					}
-					// FIXME: else unexpected()
-					break;
-				default:
-					break;
+				}
 			}
 		}
 
@@ -218,7 +259,7 @@ namespace sd.asset {
 
 	function loadLWMaterialFile(group: AssetGroup, filePath: string): Promise<void> {
 		return loadFile(filePath).then((text: string) => {
-			return parseLWMaterialSource(group, text);
+			return parseLWMaterialSource(group, filePath, text);
 		});
 	}
 
