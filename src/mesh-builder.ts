@@ -104,7 +104,7 @@ namespace sd.mesh {
 		private streams_: VertexAttributeStream[];
 
 
-		constructor(positions: Float32Array, streams: VertexAttributeStream[]) {
+		constructor(positions: Float32Array, positionIndexes: Uint32Array | null, streams: VertexAttributeStream[]) {
 			// create a local copy of the streams array so we can modify it
 			this.streams_ = streams.slice(0);
 
@@ -113,7 +113,8 @@ namespace sd.mesh {
 				attr: { role: VertexAttributeRole.Position, field: VertexField.Floatx3 },
 				mapping: VertexAttributeMapping.Vertex,
 				includeInMesh: true,
-				values: positions
+				values: positions,
+				indexes: positionIndexes === null ? undefined : positionIndexes
 			};
 
 			// add positions stream at the beginning for simple models and at end for rigged models
@@ -303,6 +304,7 @@ namespace sd.mesh {
 			this.sourcePolygonIndex_++;
 		}
 
+		get curPolygonIndex() { return this.sourcePolygonIndex_; }
 
 		get indexMap() { return this.indexMap_; }
 

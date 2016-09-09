@@ -314,7 +314,7 @@ namespace sd.asset {
 						values: this.vertexes.uvs
 					});
 
-					var mb = new mesh.MeshBuilder(positions, streams);
+					var mb = new mesh.MeshBuilder(positions, null, streams);
 					mb.setGroup(0);
 					var triCount = this.triangles.length / 3;
 					var pvi = 0;

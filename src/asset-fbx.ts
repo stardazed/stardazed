@@ -633,7 +633,7 @@ namespace sd.asset {
 
 					// With all streams and stuff collected, create the mesh
 					var t0 = performance.now();
-					var mb = new mesh.MeshBuilder(sdMesh.positions, sdMesh.streams);
+					var mb = new mesh.MeshBuilder(sdMesh.positions, null, sdMesh.streams);
 					var polygonIndexCount = polygonIndexes.length;
 					var polygonVertexIndexArray: number[] = []
 					var vertexIndexArray: number[] = []
