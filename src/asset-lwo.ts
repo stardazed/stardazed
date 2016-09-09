@@ -108,155 +108,6 @@ namespace sd.asset {
 	}
 
 
-	interface LWDrawGroup {
-		materialName: string;
-		fromIndex: number;
-		indexCount: number;
-	}
-
-	interface LWMetaData {
-		mtlFileName: string;
-		drawGroups: LWDrawGroup[];
-	}
-
-
-	function genColorEntriesFromDrawGroups(group: AssetGroup, drawGroups: LWDrawGroup[]) {
-		/*
-		drawGroups.forEach((group: LWDrawGroup) => {
-			var curIndex = group.fromIndex;
-			var maxIndex = group.fromIndex + group.indexCount;
-			var mat = materials[group.materialName];
-			assert(mat, "material " + group.materialName + " not found");
-
-			while (curIndex < maxIndex) {
-				vec3.copy(colourView.refItem(curIndex), mat.diffuseColour);
-				curIndex++;
-			}
-		});
-		*/
-	}
-
-
-	function parseLWObjectSource(group: AssetGroup, text: string, hasColourAttr: boolean): LWMetaData {
-		var lines = text.split("\n");
-		var vv: number[][] = [], nn: number[][] = [], tt: number[][] = [];
-
-		var mtlFileName = "";
-		var materialGroups: LWDrawGroup[] = [];
-		var curMaterialGroup: LWDrawGroup | null = null;
-
-		var meshData = new mesh.MeshData(hasColourAttr ? mesh.AttrList.Pos3Norm3Colour3UV2() : mesh.AttrList.Pos3Norm3UV2());
-		var vb = meshData.primaryVertexBuffer;
-
-		var posView: mesh.VertexBufferAttributeView;
-		var normView: mesh.VertexBufferAttributeView;
-		var uvView: mesh.VertexBufferAttributeView;
-		var vertexIx = 0;
-
-		function vtx(vx: number, tx: number, nx: number) {
-			assert(vx < vv.length, "vx out of bounds " + vx);
-
-			var v = vv[vx],
-				n = nx > -1 ? nn[nx] : null,
-				t = tx > -1 ? tt[tx] : null;
-
-			vec3.set(posView.refItem(vertexIx), v[0], v[1], v[2]);
-
-			if (n) {
-				assert(nx < nn.length, "nx out of bounds " + nx);
-				vec3.set(normView.refItem(vertexIx), n[0], n[1], n[2]);
-			}
-
-			if (t) {
-				assert(tx < tt.length, "tx out of bounds " + tx);
-				vec2.set(uvView.refItem(vertexIx), t[0], t[1]);
-			}
-
-			++vertexIx;
-		}
-
-		// preflight
-		var triCount = 0;
-		lines.forEach((line) => {
-			if (line.slice(0, 2) == "f ") {
-				var parts = line.trim().split(/ +/);
-				triCount += parts.length - 3;
-			}
-		});
-
-		vb.allocate(triCount * 3);
-		posView = new mesh.VertexBufferAttributeView(vb, vb.attrByRole(mesh.VertexAttributeRole.Position)!);
-		normView = new mesh.VertexBufferAttributeView(vb, vb.attrByRole(mesh.VertexAttributeRole.Normal)!);
-		uvView = new mesh.VertexBufferAttributeView(vb, vb.attrByRole(mesh.VertexAttributeRole.UV)!);
-		meshData.indexBuffer = null;
-
-		// convert a face index to zero-based int or -1 for empty index	
-		function fxtoi(fx: string) { return (+fx) - 1; }
-
-		for (const line of lines) {
-			var tokens = line.trim().split(/ +/);
-			switch (tokens[0]) {
-				case "mtllib":
-					mtlFileName = tokens[1];
-					break;
-				case "v":
-					vv.push([parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
-					break;
-				case "vn":
-					nn.push([parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])]);
-					break;
-				case "vt":
-					tt.push([parseFloat(tokens[1]), -parseFloat(tokens[2])]);
-					break;
-				case "f": {
-					var vaf = tokens[1].split("/").map(fxtoi);
-					var vbf = tokens[2].split("/").map(fxtoi);
-					var vcf = tokens[3].split("/").map(fxtoi);
-
-					vtx.apply(null, vaf);
-					vtx.apply(null, vbf);
-					vtx.apply(null, vcf);
-
-					if (tokens.length == 5) {
-						vtx.apply(null, vaf);
-						vtx.apply(null, vcf);
-						vtx.apply(null, tokens[4].split("/").map(fxtoi));
-					}
-					break;
-				}
-				case "usemtl":
-					if (curMaterialGroup) {
-						curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
-					}
-					curMaterialGroup = {
-						materialName: tokens[1],
-						fromIndex: vertexIx,
-						indexCount: 0
-					};
-					materialGroups.push(curMaterialGroup);
-					break;
-
-				default: break;
-			}
-		}
-
-		// finalise last draw group
-		if (curMaterialGroup) {
-			curMaterialGroup.indexCount = vertexIx - curMaterialGroup.fromIndex;
-		}
-
-		// single primitive group
-		meshData.primitiveGroups.push({ fromPrimIx: 0, primCount: vertexIx / 3, materialIx: 0 });
-
-		group.addMesh({ name: "obj1", streams: [], meshData: meshData });
-	
-		return {
-			mtlFileName: mtlFileName,
-			drawGroups: materialGroups
-		};
-	}
-
-
 	function loadLWMaterialFile(group: AssetGroup, filePath: string): Promise<void> {
 		return loadFile(filePath).then((text: string) => {
 			return parseLWMaterialSource(group, filePath, text);
@@ -264,26 +115,207 @@ namespace sd.asset {
 	}
 
 
+	interface LWPreProcSource {
+		lines: string[];
+
+		positionCount: number;
+		normalCount: number;
+		uvCount: number;
+
+		polyCount: number;
+		vertexCount: number;
+	}
+
+
+	function preflightLWObjectSource(group: AssetGroup, filePath: string, text: string, hasColourAttr: boolean) {
+		var mtlFileName = "";
+		var preproc: LWPreProcSource = {
+			lines: [],
+			positionCount: 0,
+			normalCount: 0,
+			uvCount: 0,
+			polyCount: 0,
+			vertexCount: 0
+		};
+
+		// split text into lines and remove trailing/leading whitespace and empty lines
+		preproc.lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+
+		// scan for the mtllib declaration (if any) and do a counting preflight
+		for (const line of preproc.lines) {
+			const tokens = line.split(/ +/);
+			var directive = tokens[0];
+			if (directive === "v") { preproc.positionCount += 1; }
+			else if (directive === "vn") { preproc.normalCount += 1; }
+			else if (directive === "vt") { preproc.uvCount += 1; }
+			else if (directive === "f") {
+				preproc.polyCount += 1;
+				preproc.vertexCount += tokens.length - 1;
+			}
+			else if (directive === "mtllib") {
+				mtlFileName = tokens[1] || "";
+			}
+		}
+
+		if (mtlFileName.length) {
+			var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + mtlFileName;
+			return loadLWMaterialFile(group, mtlFilePath).then(() => {
+				return preproc;
+			});
+		}
+		else {
+			return Promise.resolve(preproc);
+		}
+	}
+
+
+	function parseLWObjectSource(group: AssetGroup, preproc: LWPreProcSource, hasColourAttr: boolean) {
+		var positions: Float32Array = new Float32Array(preproc.positionCount * 3);
+		var normalValues: Float32Array | undefined;
+		var uvValues: Float32Array | undefined;
+		var colourValues: Float32Array | undefined;
+		var positionIndexes = new Uint32Array(preproc.vertexCount);
+		var normalIndexes: Uint32Array | undefined;
+		var uvIndexes: Uint32Array | undefined;
+		var colourIndexes: Uint32Array | undefined;
+		var posIx = 0, normIx = 0, uvIx = 0, colIx = 0, vertexIx = 0, curMatIx = 0;
+
+		// map each material's name to its index
+		var matNameIndexMap = new Map<string, number>();
+		for (let matIx = 0; matIx < group.materials.length; ++matIx) {
+			matNameIndexMap.set(group.materials[matIx].name, matIx);
+		}
+
+		// create the Mesh asset for this obj
+		var sdMesh: Mesh = {
+			name: "lwobject",
+			positions: positions,
+			streams: []
+		};
+
+		if (preproc.normalCount > 0) {
+			normalValues = new Float32Array(preproc.normalCount * 3);
+			normalIndexes = new Uint32Array(preproc.vertexCount);
+
+			sdMesh.streams.push({
+				name: "normals",
+				includeInMesh: true,
+				mapping: mesh.VertexAttributeMapping.Vertex,
+				attr: { field: mesh.VertexField.Floatx3, role: mesh.VertexAttributeRole.Normal },
+				values: normalValues,
+				indexes: normalIndexes
+			});
+		}
+		if (preproc.uvCount > 0) {
+			uvValues = new Float32Array(preproc.uvCount * 2);
+			uvIndexes = new Uint32Array(preproc.vertexCount);
+
+			sdMesh.streams.push({
+				name: "uvs",
+				includeInMesh: true,
+				mapping: mesh.VertexAttributeMapping.Vertex,
+				attr: { field: mesh.VertexField.Floatx2, role: mesh.VertexAttributeRole.UV },
+				values: uvValues,
+				indexes: uvIndexes
+			});
+		}
+		if (hasColourAttr && group.materials.length > 0) {
+			colourValues = new Float32Array(group.materials.length * 3);
+			colourIndexes = new Uint32Array(preproc.polyCount);
+
+			// fill the colourValues list with the baseColour of each material
+			for (let matIx = 0; matIx < group.materials.length; ++matIx) {
+				container.setIndexedVec3(colourValues, matIx, group.materials[matIx].baseColour);
+			}
+
+			sdMesh.streams.push({
+				name: "colours",
+				includeInMesh: true,
+				mapping: mesh.VertexAttributeMapping.Polygon,
+				attr: { field: mesh.VertexField.Floatx3, role: mesh.VertexAttributeRole.Colour },
+				values: colourValues,
+				indexes: colourIndexes
+			});
+		}
+
+		var builder = new mesh.MeshBuilder(positions, positionIndexes, sdMesh.streams);
+
+
+		// convert a face index to zero-based int or -1 for empty index	
+		function fxtoi(fx: string) { return (+fx) - 1; }
+
+		for (const line of preproc.lines) {
+			const tokens = line.split(/ +/);
+			switch (tokens[0]) {
+				case "v":
+					positions[posIx] = parseFloat(tokens[1]);
+					positions[posIx + 1] = parseFloat(tokens[2]);
+					positions[posIx + 2] = parseFloat(tokens[3]);
+					posIx += 3;
+					break;
+				case "vn":
+					normalValues![normIx] = parseFloat(tokens[1]);
+					normalValues![normIx + 1] = parseFloat(tokens[2]);
+					normalValues![normIx + 2] = parseFloat(tokens[3]);
+					normIx += 3;
+					break;
+				case "vt":
+					uvValues![uvIx] = parseFloat(tokens[1]);
+					uvValues![uvIx + 1] = -parseFloat(tokens[2]);
+					uvIx += 2;
+					break;
+				case "f": {
+					if (colourIndexes) {
+						colourIndexes[builder.curPolygonIndex] = curMatIx;
+					}
+
+					let vi: number[] = [];
+					for (let fvix = 1; fvix < tokens.length; ++fvix) {
+						const fix = tokens[fvix].split("/").map(fxtoi);
+						positionIndexes[vertexIx] = fix[0];
+						if (uvIndexes && fix[1] > -1) {
+							uvIndexes[vertexIx] = fix[1];
+						}
+						if (normalIndexes && fix[2] > -1) {
+							normalIndexes[vertexIx] = fix[2];
+						}
+						vi.push(vertexIx);
+						vertexIx += 1;
+					}
+
+					builder.addPolygon(vi, vi);
+					break;
+				}
+				case "usemtl":
+					var newMatIx = matNameIndexMap.get(tokens[1]);
+					if (newMatIx === undefined) {
+						// issue an error/warning
+						console.warn("Tried to set material to non-existent name: " + tokens[1]);
+					}
+					else {
+						curMatIx = newMatIx;
+					}
+					builder.setGroup(curMatIx);
+					break;
+
+				default: break;
+			}
+		}
+
+		sdMesh.meshData = builder.complete();
+		group.addMesh(sdMesh);
+	}
+
+
 	export function loadLWObjectFile(filePath: string, materialsAsColours = false): Promise<AssetGroup> {
 		var group = new AssetGroup();
 
 		return loadFile(filePath).then((text: string) => {
-			return parseLWObjectSource(group, text, materialsAsColours);
+			return preflightLWObjectSource(group, filePath, text, materialsAsColours);
 		})
-		.then(meta => {
-			if (meta.mtlFileName) {
-				var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + meta.mtlFileName;
-				return loadLWMaterialFile(group, mtlFilePath).then(() => {
-					return meta;
-				});
-			}
-			return meta;
-		})
-		.then(meta => {
-			if (materialsAsColours) {
-				genColorEntriesFromDrawGroups(group, meta.drawGroups);
-			}
-
+		.then(preproc => {
+			parseLWObjectSource(group, preproc, materialsAsColours);
+			console.info("LWO GROUP", group);
 			return group;
 		});
 	}
