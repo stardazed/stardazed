@@ -55,7 +55,7 @@ namespace sd.asset {
 				var texelBaseIndex = ji * 8;
 
 				var xform = mat4.fromRotationTranslation([], j.rotation, j.position);
-				container.setIndexedVec4(texData, texelBaseIndex, [0,0,0,1]);
+				container.setIndexedVec4(texData, texelBaseIndex, j.rotation);
 				container.setIndexedMat4(texData, (ji * 2) + 1, xform);
 			}
 
@@ -315,7 +315,6 @@ namespace sd.asset {
 					});
 
 					var mb = new mesh.MeshBuilder(positions, null, streams);
-					mb.setGroup(0);
 					var triCount = this.triangles.length / 3;
 					var pvi = 0;
 					var pi = 0;
@@ -327,6 +326,8 @@ namespace sd.asset {
 
 					var md = mb.complete();
 					md.genVertexNormals();
+					this.transformNormalsIntoJointSpace(md, streams);
+
 					var sdMesh: Mesh = {
 						name: "",
 						userRef: this.meshCount_++,
@@ -351,6 +352,40 @@ namespace sd.asset {
 
 
 			completed() {
+			}
+
+
+			private transformNormalsIntoJointSpace(md: mesh.MeshData, streams: mesh.VertexAttributeStream[]) {
+				const normAttr = md.findFirstAttributeWithRole(mesh.VertexAttributeRole.Normal);
+				const jointIndexesStream = streams.find(s => s.name === "jointIndexes");
+
+				if (normAttr && jointIndexesStream) {
+					const jointIndexes = jointIndexesStream.values as Float32Array;
+					const weights = this.weights!;
+					const joints = this.joints;
+					const vertexes = this.vertexes!;
+					const vertexCount = vertexes.uvs.length / 2;
+
+					var normView = new mesh.VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
+
+					for (var vix = 0; vix < vertexCount; ++vix) {
+						var normalRef = normView.refItem(vix);
+						var finalNormal = [0, 0, 0];
+						var woff = vertexes.weightOffsetsCounts[vix * 2];
+						var wcnt = vertexes.weightOffsetsCounts[(vix * 2) + 1];
+
+						for (var j = 0; j < wcnt; ++j) {
+							const bias = weights.biases[woff + j];
+							const joint = joints[weights.joints[woff + j]];
+
+							vec3.scaleAndAdd(finalNormal, finalNormal, vec3.transformQuat([], normalRef, quat.invert([], joint.rotation)), bias);
+							// vert.m_Normal += ( normal * joint.m_Orient ) * weight.m_Bias;
+						}
+
+						// update normal in-place
+						vec3.copy(normalRef, finalNormal);
+					}
+				}
 			}
 
 

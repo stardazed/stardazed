@@ -22,7 +22,6 @@ namespace sd.asset {
 		}
 
 		addMaterial(mat: Material): number {
-			console.info("Add material: ", mat);
 			this.materials.push(mat);
 			return this.materials.length - 1;
 		}

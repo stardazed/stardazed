@@ -345,7 +345,7 @@ namespace sd.world {
 				line("}");
 
 				line("struct Joint {");
-				line("	vec4 invRotation_joint;");
+				line("	vec4 rotation_joint;");
 				line("	mat4 transform_model;");
 				line("};");
 
@@ -357,7 +357,7 @@ namespace sd.world {
 				line("	float row = (floor(jointIndex / 32.0) + 0.5) / 256.0;");
 				line("	float col = (mod(jointIndex, 32.0) * 8.0) + 0.5;");
 				line("	Joint j;");
-				line("	j.invRotation_joint = texture2D(jointData, vec2(col / 256.0, row));");
+				line("	j.rotation_joint = texture2D(jointData, vec2(col / 256.0, row));");
 				// rows 1,2,3 are reserved
 				line("	j.transform_model[0] = texture2D(jointData, vec2((col + 4.0) / 256.0, row));");
 				line("	j.transform_model[1] = texture2D(jointData, vec2((col + 5.0) / 256.0, row));");
@@ -387,12 +387,13 @@ namespace sd.world {
 				line("			vec4 weightedPos = weightedPos_joint[vji];");
 				line("			vec3 tempPos = (j.transform_model * vec4(weightedPos.xyz, 1.0)).xyz;");
 				line("			vertexPos_model += tempPos * weightedPos.w;");
-				// line("			vec3 vertexNormal_joint = transformQuat(vertexNormal, j.invRotation_joint);");
-				// line("			vertexNormal_final += vertexNormal_joint * weightedPos.w;");
+				//              normal += ( joint.m_Orient * vert.m_Normal ) * weight.m_Bias;
+				line("			vec3 vertexNormal_joint = transformQuat(vertexNormal, j.rotation_joint);");
+				line("			vertexNormal_final += vertexNormal_joint * weightedPos.w;");
 				line("		}");
 				line("	}");
-				// line("	vertexNormal_final = normalize(vertexNormal_final);");
-				line("	vertexNormal_final = vertexNormal;");
+				line("	vertexNormal_final = normalize(vertexNormal_final);");
+				// line("	vertexNormal_final = vertexNormal;");
 			}
 			else {
 				line("	vec3 vertexNormal_final = vertexNormal;");
