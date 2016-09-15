@@ -1,10 +1,11 @@
-// asset-lwo.ts - Wavefront OBJ mesh file import
+// asset-obj.ts - Wavefront OBJ mesh file + MTL material file import
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 namespace sd.asset {
 
-	function parseLWMaterialSource(group: AssetGroup, filePath: string, text: string) {
+	function parseMTLSource(group: AssetGroup, filePath: string, text: string) {
 		const lines = text.split("\n");
 		var curMat: Material | null = null;
 		var tokens: string[] = [];
@@ -108,14 +109,14 @@ namespace sd.asset {
 	}
 
 
-	function loadLWMaterialFile(group: AssetGroup, filePath: string): Promise<void> {
+	function loadMTLFile(group: AssetGroup, filePath: string): Promise<void> {
 		return loadFile(filePath).then((text: string) => {
-			return parseLWMaterialSource(group, filePath, text);
+			return parseMTLSource(group, filePath, text);
 		});
 	}
 
 
-	interface LWPreProcSource {
+	interface OBJPreProcSource {
 		lines: string[];
 
 		positionCount: number;
@@ -127,9 +128,9 @@ namespace sd.asset {
 	}
 
 
-	function preflightLWObjectSource(group: AssetGroup, filePath: string, text: string, hasColourAttr: boolean) {
+	function preflightOBJSource(group: AssetGroup, filePath: string, text: string, hasColourAttr: boolean) {
 		var mtlFileName = "";
-		var preproc: LWPreProcSource = {
+		var preproc: OBJPreProcSource = {
 			lines: [],
 			positionCount: 0,
 			normalCount: 0,
@@ -159,7 +160,7 @@ namespace sd.asset {
 
 		if (mtlFileName.length) {
 			var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + mtlFileName;
-			return loadLWMaterialFile(group, mtlFilePath).then(() => {
+			return loadMTLFile(group, mtlFilePath).then(() => {
 				return preproc;
 			});
 		}
@@ -169,7 +170,7 @@ namespace sd.asset {
 	}
 
 
-	function parseLWObjectSource(group: AssetGroup, preproc: LWPreProcSource, hasColourAttr: boolean) {
+	function parseOBJSource(group: AssetGroup, preproc: OBJPreProcSource, hasColourAttr: boolean) {
 		var positions: Float32Array = new Float32Array(preproc.positionCount * 3);
 		var normalValues: Float32Array | undefined;
 		var uvValues: Float32Array | undefined;
@@ -188,7 +189,7 @@ namespace sd.asset {
 
 		// create the Mesh asset for this obj
 		var sdMesh: Mesh = {
-			name: "lwobject",
+			name: "obj mesh",
 			positions: positions,
 			streams: []
 		};
@@ -307,15 +308,14 @@ namespace sd.asset {
 	}
 
 
-	export function loadLWObjectFile(filePath: string, materialsAsColours = false): Promise<AssetGroup> {
+	export function loadOBJFile(filePath: string, materialsAsColours = false): Promise<AssetGroup> {
 		var group = new AssetGroup();
 
 		return loadFile(filePath).then((text: string) => {
-			return preflightLWObjectSource(group, filePath, text, materialsAsColours);
+			return preflightOBJSource(group, filePath, text, materialsAsColours);
 		})
 		.then(preproc => {
-			parseLWObjectSource(group, preproc, materialsAsColours);
-			console.info("LWO GROUP", group);
+			parseOBJSource(group, preproc, materialsAsColours);
 			return group;
 		});
 	}
