@@ -1,6 +1,7 @@
 // framebuffer-desc - descriptors and enums related to FrameBuffer objects
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2015-2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 /// <reference path="pixelformat.ts"/>
 

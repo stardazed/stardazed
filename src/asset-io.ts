@@ -1,6 +1,7 @@
 // asset-io.ts - Asset file helpers
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 namespace sd.asset {
 

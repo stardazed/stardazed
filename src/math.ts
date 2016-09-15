@@ -1,6 +1,7 @@
 // math - general purpose functions, equations, RNG, etc.
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 /// <reference path="numeric.ts" />
 

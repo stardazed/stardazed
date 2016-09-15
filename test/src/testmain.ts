@@ -1,3 +1,7 @@
+// Part of Stardazed TX
+// (c) 2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
+
 /// <reference path="../../build/stardazed-tx.d.ts" />
 import td = testdazed;
 

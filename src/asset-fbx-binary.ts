@@ -1,6 +1,7 @@
 // asset-fbx-binary.ts - FBX binary file parser
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 // Implementation partially based on research done by Campbell Barton of the Blender Foundation
 // See: http://code.blender.org/2013/08/fbx-binary-file-format-specification/

@@ -1,6 +1,7 @@
 // testdazed mini testing harness (based on Inquisition)
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 namespace testdazed {
 

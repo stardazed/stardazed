@@ -1,6 +1,7 @@
 // mesh.ts - Mesh objects
 // Part of Stardazed TX
-// (c) 2015-6 by Arthur Langereis - @zenmumbler
+// (c) 2015-2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 /// <reference path="buffer.ts"/>
 /// <reference path="rendercontext.ts"/>

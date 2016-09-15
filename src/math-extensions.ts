@@ -1,6 +1,7 @@
 // math-extensions - extensions in interface and implementation for external types
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 /// <reference path="../defs/gl-matrix.d.ts" />
 

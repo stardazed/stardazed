@@ -1,6 +1,7 @@
 // audiocontext - web audio interfaces
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 declare var webkitAudioContext: {
     prototype: AudioContext;

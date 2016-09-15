@@ -1,6 +1,7 @@
 // mesh-manip.ts - mesh manipulators
 // Part of Stardazed TX
-// (c) 2015 by Arthur Langereis - @zenmumbler
+// (c) 2015-2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 /// <reference path="meshdata.ts" />
 

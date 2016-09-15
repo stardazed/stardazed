@@ -1,6 +1,7 @@
 // rendercontext - gl interfaces
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 /// <reference path="../defs/webgl-ext.d.ts"/>
 /// <reference path="pixelformat.ts"/>

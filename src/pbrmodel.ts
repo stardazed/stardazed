@@ -1,6 +1,7 @@
 // pbrmodel - PBR model component and Pipeline
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 // Implementation based off:
 // https://gist.github.com/galek/53557375251e1a942dfa by Nick Galko

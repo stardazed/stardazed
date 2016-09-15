@@ -1,6 +1,7 @@
 // asset-fbx.ts - FBX file import driver
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 namespace sd.asset {
 

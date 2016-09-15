@@ -1,6 +1,7 @@
 // core.ts - common helpers and types
 // Part of Stardazed TX
-// (c) 2015-6 by Arthur Langereis - @zenmumbler
+// (c) 2015-2016 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 interface Console {
 	// Safari-specific debugging extension
