@@ -485,12 +485,12 @@ namespace sd.asset {
 			}
 
 
-			private makeLayerElementStream(layerElemNode: FBXNode): mesh.VertexAttributeStream | null {
+			private makeLayerElementStream(layerElemNode: FBXNode): meshdata.VertexAttributeStream | null {
 				var valueArrayName: string, indexArrayName: string;
-				var stream: mesh.VertexAttributeStream = {
+				var stream: meshdata.VertexAttributeStream = {
 					name: "",
 					includeInMesh: true,
-					mapping: mesh.VertexAttributeMapping.Undefined
+					mapping: meshdata.VertexAttributeMapping.Undefined
 				};
 
 				const layerElemIndex = <number>layerElemNode.values[0];
@@ -509,29 +509,29 @@ namespace sd.asset {
 				if (layerElemNode.name == "LayerElementNormal") {
 					valueArrayName = "Normals";
 					indexArrayName = "NormalsIndex";
-					stream.attr = { role: mesh.VertexAttributeRole.Normal, field: mesh.VertexField.Floatx3 };
+					stream.attr = { role: meshdata.VertexAttributeRole.Normal, field: meshdata.VertexField.Floatx3 };
 				}
 				else if (layerElemNode.name == "LayerElementColor") {
 					valueArrayName = "Colors";
 					indexArrayName = "ColorIndex";
-					stream.attr = { role: mesh.VertexAttributeRole.Colour, field: mesh.VertexField.Floatx3 };
+					stream.attr = { role: meshdata.VertexAttributeRole.Colour, field: meshdata.VertexField.Floatx3 };
 				}
 				else if (layerElemNode.name == "LayerElementUV") {
 					valueArrayName = "UV";
 					indexArrayName = "UVIndex";
-					stream.attr = { role: mesh.VertexAttributeRole.UV0 + layerElemIndex, field: mesh.VertexField.Floatx2 };
+					stream.attr = { role: meshdata.VertexAttributeRole.UV0 + layerElemIndex, field: meshdata.VertexField.Floatx2 };
 				}
 				else if (layerElemNode.name == "LayerElementTangent") {
 					valueArrayName = "Tangents";
 					indexArrayName = "TangentsIndex";
-					stream.attr = { role: mesh.VertexAttributeRole.Tangent, field: mesh.VertexField.Floatx3 };
+					stream.attr = { role: meshdata.VertexAttributeRole.Tangent, field: meshdata.VertexField.Floatx3 };
 				}
 				else if (layerElemNode.name == "LayerElementMaterial") {
 					valueArrayName = "Materials";
 					indexArrayName = "--UNUSED--";
 					stream.includeInMesh = false;
 					stream.controlsGrouping = true;
-					stream.attr = { role: mesh.VertexAttributeRole.Material, field: mesh.VertexField.SInt32 };
+					stream.attr = { role: meshdata.VertexAttributeRole.Material, field: meshdata.VertexField.SInt32 };
 				}
 				else {
 					assert(false, "Unhandled layer element node");
@@ -546,16 +546,16 @@ namespace sd.asset {
 					else if (c.name == "MappingInformationType") {
 						let mappingName = <string>c.values[0];
 						if (mappingName == "ByVertice") {
-							stream.mapping = mesh.VertexAttributeMapping.Vertex;
+							stream.mapping = meshdata.VertexAttributeMapping.Vertex;
 						}
 						else if (mappingName == "ByPolygonVertex") {
-							stream.mapping = mesh.VertexAttributeMapping.PolygonVertex;
+							stream.mapping = meshdata.VertexAttributeMapping.PolygonVertex;
 						}
 						else if (mappingName == "ByPolygon") {
-							stream.mapping = mesh.VertexAttributeMapping.Polygon;	
+							stream.mapping = meshdata.VertexAttributeMapping.Polygon;	
 						}
 						else if (mappingName == "AllSame") {
-							stream.mapping = mesh.VertexAttributeMapping.SingleValue;
+							stream.mapping = meshdata.VertexAttributeMapping.SingleValue;
 						}
 						else {
 							assert(false, "Unknown stream mapping name: " + mappingName);
@@ -572,7 +572,7 @@ namespace sd.asset {
 				// check material stream applicability
 				if (layerElemNode.name == "LayerElementMaterial") {
 					assert(
-						stream.mapping == mesh.VertexAttributeMapping.Polygon || stream.mapping == mesh.VertexAttributeMapping.SingleValue,
+						stream.mapping == meshdata.VertexAttributeMapping.Polygon || stream.mapping == meshdata.VertexAttributeMapping.SingleValue,
 						"A material stream must be a single value or be applied per polygon"
 					);
 				}
@@ -634,7 +634,7 @@ namespace sd.asset {
 
 					// With all streams and stuff collected, create the mesh
 					var t0 = performance.now();
-					var mb = new mesh.MeshBuilder(sdMesh.positions, null, sdMesh.streams);
+					var mb = new meshdata.MeshBuilder(sdMesh.positions, null, sdMesh.streams);
 					var polygonIndexCount = polygonIndexes.length;
 					var polygonVertexIndexArray: number[] = []
 					var vertexIndexArray: number[] = []

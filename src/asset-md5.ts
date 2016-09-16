@@ -105,39 +105,39 @@ namespace sd.asset {
 				container.setIndexedVec4(jointIndexes, vix, vji);
 			}
 
-			var streams: mesh.VertexAttributeStream[] = [
+			var streams: meshdata.VertexAttributeStream[] = [
 				{
 					name: "weightPos0",
-					attr: { field: mesh.VertexField.Floatx4, role: mesh.VertexAttributeRole.WeightedPos0 },
-					mapping: mesh.VertexAttributeMapping.Vertex,
+					attr: { field: meshdata.VertexField.Floatx4, role: meshdata.VertexAttributeRole.WeightedPos0 },
+					mapping: meshdata.VertexAttributeMapping.Vertex,
 					includeInMesh: true,
 					values: weightPos0
 				},
 				{
 					name: "weightPos1",
-					attr: { field: mesh.VertexField.Floatx4, role: mesh.VertexAttributeRole.WeightedPos1 },
-					mapping: mesh.VertexAttributeMapping.Vertex,
+					attr: { field: meshdata.VertexField.Floatx4, role: meshdata.VertexAttributeRole.WeightedPos1 },
+					mapping: meshdata.VertexAttributeMapping.Vertex,
 					includeInMesh: true,
 					values: weightPos1
 				},
 				{
 					name: "weightPos2",
-					attr: { field: mesh.VertexField.Floatx4, role: mesh.VertexAttributeRole.WeightedPos2 },
-					mapping: mesh.VertexAttributeMapping.Vertex,
+					attr: { field: meshdata.VertexField.Floatx4, role: meshdata.VertexAttributeRole.WeightedPos2 },
+					mapping: meshdata.VertexAttributeMapping.Vertex,
 					includeInMesh: true,
 					values: weightPos2
 				},
 				{
 					name: "weightPos3",
-					attr: { field: mesh.VertexField.Floatx4, role: mesh.VertexAttributeRole.WeightedPos3 },
-					mapping: mesh.VertexAttributeMapping.Vertex,
+					attr: { field: meshdata.VertexField.Floatx4, role: meshdata.VertexAttributeRole.WeightedPos3 },
+					mapping: meshdata.VertexAttributeMapping.Vertex,
 					includeInMesh: true,
 					values: weightPos3
 				},
 				{
 					name: "jointIndexes",
-					attr: { field: mesh.VertexField.Floatx4, role: mesh.VertexAttributeRole.JointIndexes },
-					mapping: mesh.VertexAttributeMapping.Vertex,
+					attr: { field: meshdata.VertexField.Floatx4, role: meshdata.VertexAttributeRole.JointIndexes },
+					mapping: meshdata.VertexAttributeMapping.Vertex,
 					includeInMesh: true,
 					values: jointIndexes
 				}
@@ -302,20 +302,20 @@ namespace sd.asset {
 					var streams = constructSkinnedMeshStreams(this.vertexes, this.weights);
 					streams.push({
 						name: "normals",
-						attr: { field: mesh.VertexField.Floatx3, role: mesh.VertexAttributeRole.Normal },
-						mapping: mesh.VertexAttributeMapping.Vertex,
+						attr: { field: meshdata.VertexField.Floatx3, role: meshdata.VertexAttributeRole.Normal },
+						mapping: meshdata.VertexAttributeMapping.Vertex,
 						includeInMesh: true,
 						values: new Float32Array(positions.length)
 					});
 					streams.push({
 						name: "uvs",
-						attr: { field: mesh.VertexField.Floatx2, role: mesh.VertexAttributeRole.UV },
-						mapping: mesh.VertexAttributeMapping.Vertex,
+						attr: { field: meshdata.VertexField.Floatx2, role: meshdata.VertexAttributeRole.UV },
+						mapping: meshdata.VertexAttributeMapping.Vertex,
 						includeInMesh: true,
 						values: this.vertexes.uvs
 					});
 
-					var mb = new mesh.MeshBuilder(positions, null, streams);
+					var mb = new meshdata.MeshBuilder(positions, null, streams);
 					var triCount = this.triangles.length / 3;
 					var pvi = 0;
 					var pi = 0;
@@ -356,8 +356,8 @@ namespace sd.asset {
 			}
 
 
-			private transformNormalsIntoJointSpace(md: mesh.MeshData, streams: mesh.VertexAttributeStream[]) {
-				const normAttr = md.findFirstAttributeWithRole(mesh.VertexAttributeRole.Normal);
+			private transformNormalsIntoJointSpace(md: meshdata.MeshData, streams: meshdata.VertexAttributeStream[]) {
+				const normAttr = md.findFirstAttributeWithRole(meshdata.VertexAttributeRole.Normal);
 				const jointIndexesStream = streams.find(s => s.name === "jointIndexes");
 
 				if (normAttr && jointIndexesStream) {
@@ -367,7 +367,7 @@ namespace sd.asset {
 					const vertexes = this.vertexes!;
 					const vertexCount = vertexes.uvs.length / 2;
 
-					var normView = new mesh.VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
+					var normView = new meshdata.VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
 
 					for (var vix = 0; vix < vertexCount; ++vix) {
 						var normalRef = normView.refItem(vix);

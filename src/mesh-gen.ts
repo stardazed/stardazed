@@ -7,7 +7,7 @@
 /// <reference path="mesh-manip.ts" />
 
 
-namespace sd.mesh.gen {
+namespace sd.meshdata.gen {
 
 	//  __  __        _    ___                       _           
 	// |  \/  |___ __| |_ / __|___ _ _  ___ _ _ __ _| |_ ___ _ _ 

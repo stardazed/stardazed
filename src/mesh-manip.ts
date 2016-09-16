@@ -5,7 +5,7 @@
 
 /// <reference path="meshdata.ts" />
 
-namespace sd.mesh {
+namespace sd.meshdata {
 
 	export function scale(mesh: MeshData, scale: Float3) {
 		assert(scale.length == 3);

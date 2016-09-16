@@ -232,8 +232,8 @@ namespace sd.render {
 		drawPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
 			var activeMesh = this.mesh_!;
 			var glPrimitiveType = activeMesh.primitiveType;
-			var startVertex = mesh.indexOffsetForPrimitiveCount(activeMesh.primitiveType, startPrimitive);
-			var vertexCount = mesh.indexCountForPrimitiveCount(activeMesh.primitiveType, primitiveCount);
+			var startVertex = meshdata.indexOffsetForPrimitiveCount(activeMesh.primitiveType, startPrimitive);
+			var vertexCount = meshdata.indexCountForPrimitiveCount(activeMesh.primitiveType, primitiveCount);
 
 			if (instanceCount == 1) {
 				this.rc.gl.drawArrays(glPrimitiveType, startVertex, vertexCount);
@@ -247,8 +247,8 @@ namespace sd.render {
 		drawIndexedPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
 			var activeMesh = this.mesh_!;
 			var glPrimitiveType = activeMesh.glPrimitiveType;
-			var startIndex = mesh.indexOffsetForPrimitiveCount(activeMesh.primitiveType, startPrimitive);
-			var indexCount = mesh.indexCountForPrimitiveCount(activeMesh.primitiveType, primitiveCount);
+			var startIndex = meshdata.indexOffsetForPrimitiveCount(activeMesh.primitiveType, startPrimitive);
+			var indexCount = meshdata.indexCountForPrimitiveCount(activeMesh.primitiveType, primitiveCount);
 			var offsetBytes = startIndex * activeMesh.indexElementSizeBytes;
 
 			if (instanceCount == 1) {

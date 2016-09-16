@@ -87,10 +87,10 @@ namespace sd.asset {
 
 	export interface Mesh extends Asset {
 		positions?: Float64Array;
-		streams: mesh.VertexAttributeStream[];
+		streams: meshdata.VertexAttributeStream[];
 
-		meshData?: mesh.MeshData;
-		indexMap?: mesh.VertexIndexMapping;
+		meshData?: meshdata.MeshData;
+		indexMap?: meshdata.VertexIndexMapping;
 
 		mesh?: render.Mesh;
 	}

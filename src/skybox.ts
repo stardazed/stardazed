@@ -6,7 +6,7 @@
 namespace sd.world {
 
 	export class Skybox {
-		private meshData_: mesh.MeshData;
+		private meshData_: meshdata.MeshData;
 		private mesh_: render.Mesh;
 		private primitiveCount_: number;
 
@@ -47,7 +47,7 @@ namespace sd.world {
 			//pld.depthPixelFormat = render.PixelFormat.Depth24_Stencil8; // uhh..
 			pld.vertexShader = render.makeShader(rc, rc.gl.VERTEX_SHADER, this.vertexSource);
 			pld.fragmentShader = render.makeShader(rc, rc.gl.FRAGMENT_SHADER, this.fragmentSource);
-			pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
+			pld.attributeNames.set(meshdata.VertexAttributeRole.Position, "vertexPos_model");
 
 			this.pipeline_ = new render.Pipeline(rc, pld);
 
@@ -61,8 +61,8 @@ namespace sd.world {
 			this.pipeline_.unbind();
 
 			// -- mesh
-			var sphereGen = new mesh.gen.Sphere({ radius: 400, rows: 10, segs: 15 });
-			this.meshData_ = mesh.gen.generate(sphereGen, [mesh.attrPosition3()]);
+			var sphereGen = new meshdata.gen.Sphere({ radius: 400, rows: 10, segs: 15 });
+			this.meshData_ = meshdata.gen.generate(sphereGen, [meshdata.attrPosition3()]);
 			this.primitiveCount_ = this.meshData_.primitiveGroups[0].primCount;
 
 			var meshDesc = render.makeMeshDescriptor(this.meshData_);

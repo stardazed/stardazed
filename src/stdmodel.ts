@@ -135,23 +135,23 @@ namespace sd.world {
 			pld.fragmentShader = render.makeShader(this.rc, gl.FRAGMENT_SHADER, fragmentSource);
 
 			// -- mandatory and optional attribute arrays
-			pld.attributeNames.set(mesh.VertexAttributeRole.Normal, "vertexNormal");
+			pld.attributeNames.set(meshdata.VertexAttributeRole.Normal, "vertexNormal");
 			
 			if (feat & Features.Skinned) {
-				pld.attributeNames.set(mesh.VertexAttributeRole.JointIndexes, "vertexJointIndexes");
-				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos0, "vertexWeightedPos0_joint");
-				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos1, "vertexWeightedPos1_joint");
-				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos2, "vertexWeightedPos2_joint");
-				pld.attributeNames.set(mesh.VertexAttributeRole.WeightedPos3, "vertexWeightedPos3_joint");
+				pld.attributeNames.set(meshdata.VertexAttributeRole.JointIndexes, "vertexJointIndexes");
+				pld.attributeNames.set(meshdata.VertexAttributeRole.WeightedPos0, "vertexWeightedPos0_joint");
+				pld.attributeNames.set(meshdata.VertexAttributeRole.WeightedPos1, "vertexWeightedPos1_joint");
+				pld.attributeNames.set(meshdata.VertexAttributeRole.WeightedPos2, "vertexWeightedPos2_joint");
+				pld.attributeNames.set(meshdata.VertexAttributeRole.WeightedPos3, "vertexWeightedPos3_joint");
 			}
 			else {
-				pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
+				pld.attributeNames.set(meshdata.VertexAttributeRole.Position, "vertexPos_model");
 			}
 			if (feat & Features.VtxColour) {
-				pld.attributeNames.set(mesh.VertexAttributeRole.Colour, "vertexColour");
+				pld.attributeNames.set(meshdata.VertexAttributeRole.Colour, "vertexColour");
 			}
 			if (feat & Features.VtxUV) {
-				pld.attributeNames.set(mesh.VertexAttributeRole.UV, "vertexUV");
+				pld.attributeNames.set(meshdata.VertexAttributeRole.UV, "vertexUV");
 			}
 
 			if (feat & Features.Translucency) {
@@ -258,7 +258,7 @@ namespace sd.world {
 				pld.depthPixelFormat = render.PixelFormat.Depth24I;
 				pld.vertexShader = render.makeShader(this.rc, this.rc.gl.VERTEX_SHADER, this.shadowVertexSource);
 				pld.fragmentShader = render.makeShader(this.rc, this.rc.gl.FRAGMENT_SHADER, this.shadowFragmentSource);
-				pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
+				pld.attributeNames.set(meshdata.VertexAttributeRole.Position, "vertexPos_model");
 				// pld.writeMask.red = pld.writeMask.green = pld.writeMask.blue = pld.writeMask.alpha = false;
 
 				this.shadowPipeline_ = new render.Pipeline(this.rc, pld);
@@ -823,8 +823,8 @@ namespace sd.world {
 		private featuresForMeshAndMaterial(mesh: render.Mesh, material: StdMaterialInstance): Features {
 			var features = 0;
 
-			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.Colour)) features |= Features.VtxColour;
-			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.UV)) features |= Features.VtxUV;
+			if (mesh.hasAttributeOfRole(sd.meshdata.VertexAttributeRole.Colour)) features |= Features.VtxColour;
+			if (mesh.hasAttributeOfRole(sd.meshdata.VertexAttributeRole.UV)) features |= Features.VtxUV;
 
 			var matFlags = this.materialMgr_.flags(material);
 			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;

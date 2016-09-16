@@ -113,7 +113,7 @@ namespace sd.render {
 			pld.colourPixelFormats[0] = PixelFormat.RGBA8;
 			pld.vertexShader = makeShader(rc, rc.gl.VERTEX_SHADER, vertexSource);
 			pld.fragmentShader = makeShader(rc, rc.gl.FRAGMENT_SHADER, fragmentSource(rc, numSamples));
-			pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
+			pld.attributeNames.set(meshdata.VertexAttributeRole.Position, "vertexPos_model");
 
 			pfp.pipeline = new Pipeline(rc, pld);
 
@@ -157,7 +157,7 @@ namespace sd.render {
 			roughnessTable.push(roughAtLevel);
 		}
 
-		var quad = mesh.gen.generate(new mesh.gen.Quad(2, 2), [mesh.attrPosition2(), mesh.attrUV2()]);
+		var quad = meshdata.gen.generate(new meshdata.gen.Quad(2, 2), [meshdata.attrPosition2(), meshdata.attrUV2()]);
 		var quadMesh = new render.Mesh(rc, makeMeshDescriptor(quad));
 
 		var levelPixels: Uint8Array[] = [];

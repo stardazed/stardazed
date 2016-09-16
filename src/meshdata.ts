@@ -9,7 +9,7 @@
 /// <reference path="math.ts" />
 /// <reference path="numeric.ts" />
 
-namespace sd.mesh {
+namespace sd.meshdata {
 
 	// -- A single field in a vertex buffer
 	// -- 3 properties: element type, count and normalization

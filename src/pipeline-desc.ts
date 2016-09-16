@@ -58,7 +58,7 @@ namespace sd.render {
 	}
 
 
-	export type AttributeNameMap = Map<mesh.VertexAttributeRole, string>;
+	export type AttributeNameMap = Map<meshdata.VertexAttributeRole, string>;
 
 
 	export interface PipelineDescriptor {
@@ -121,7 +121,7 @@ namespace sd.render {
 			depthMask: true,
 			blending: makeColourBlendingDescriptor(),
 
-			attributeNames: new Map<mesh.VertexAttributeRole, string>()
+			attributeNames: new Map<meshdata.VertexAttributeRole, string>()
 		};
 	}
 

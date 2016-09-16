@@ -130,14 +130,14 @@ namespace sd.world {
 			pld.fragmentShader = render.makeShader(this.rc, gl.FRAGMENT_SHADER, fragmentSource);
 
 			// -- mandatory and optional attribute arrays
-			pld.attributeNames.set(mesh.VertexAttributeRole.Normal, "vertexNormal");
+			pld.attributeNames.set(meshdata.VertexAttributeRole.Normal, "vertexNormal");
 			
-			pld.attributeNames.set(mesh.VertexAttributeRole.Position, "vertexPos_model");
+			pld.attributeNames.set(meshdata.VertexAttributeRole.Position, "vertexPos_model");
 			if (feat & Features.VtxColour) {
-				pld.attributeNames.set(mesh.VertexAttributeRole.Colour, "vertexColour");
+				pld.attributeNames.set(meshdata.VertexAttributeRole.Colour, "vertexColour");
 			}
 			if (feat & Features.VtxUV) {
-				pld.attributeNames.set(mesh.VertexAttributeRole.UV, "vertexUV");
+				pld.attributeNames.set(meshdata.VertexAttributeRole.UV, "vertexUV");
 			}
 
 			var pipeline = new render.Pipeline(this.rc, pld);
@@ -820,8 +820,8 @@ namespace sd.world {
 		private featuresForMeshAndMaterial(mesh: render.Mesh, material: PBRMaterialInstance): Features {
 			var features = 0;
 
-			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.Colour)) features |= Features.VtxColour;
-			if (mesh.hasAttributeOfRole(sd.mesh.VertexAttributeRole.UV)) features |= Features.VtxUV;
+			if (mesh.hasAttributeOfRole(sd.meshdata.VertexAttributeRole.Colour)) features |= Features.VtxColour;
+			if (mesh.hasAttributeOfRole(sd.meshdata.VertexAttributeRole.UV)) features |= Features.VtxUV;
 
 			var matFlags = this.materialMgr_.flags(material);
 

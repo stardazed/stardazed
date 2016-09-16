@@ -201,8 +201,8 @@ namespace sd.asset {
 			sdMesh.streams.push({
 				name: "normals",
 				includeInMesh: true,
-				mapping: mesh.VertexAttributeMapping.Vertex,
-				attr: { field: mesh.VertexField.Floatx3, role: mesh.VertexAttributeRole.Normal },
+				mapping: meshdata.VertexAttributeMapping.Vertex,
+				attr: { field: meshdata.VertexField.Floatx3, role: meshdata.VertexAttributeRole.Normal },
 				values: normalValues,
 				indexes: normalIndexes
 			});
@@ -214,8 +214,8 @@ namespace sd.asset {
 			sdMesh.streams.push({
 				name: "uvs",
 				includeInMesh: true,
-				mapping: mesh.VertexAttributeMapping.Vertex,
-				attr: { field: mesh.VertexField.Floatx2, role: mesh.VertexAttributeRole.UV },
+				mapping: meshdata.VertexAttributeMapping.Vertex,
+				attr: { field: meshdata.VertexField.Floatx2, role: meshdata.VertexAttributeRole.UV },
 				values: uvValues,
 				indexes: uvIndexes
 			});
@@ -232,14 +232,14 @@ namespace sd.asset {
 			sdMesh.streams.push({
 				name: "colours",
 				includeInMesh: true,
-				mapping: mesh.VertexAttributeMapping.Polygon,
-				attr: { field: mesh.VertexField.Floatx3, role: mesh.VertexAttributeRole.Colour },
+				mapping: meshdata.VertexAttributeMapping.Polygon,
+				attr: { field: meshdata.VertexField.Floatx3, role: meshdata.VertexAttributeRole.Colour },
 				values: colourValues,
 				indexes: colourIndexes
 			});
 		}
 
-		var builder = new mesh.MeshBuilder(positions, positionIndexes, sdMesh.streams);
+		var builder = new meshdata.MeshBuilder(positions, positionIndexes, sdMesh.streams);
 
 
 		// convert a face index to zero-based int or -1 for empty index	

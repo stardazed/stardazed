@@ -3,7 +3,7 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-namespace sd.mesh {
+namespace sd.meshdata {
 
 	export const enum VertexAttributeMapping {
 		Undefined,
@@ -334,7 +334,7 @@ namespace sd.mesh {
 
 			// All triangles with the same material were merged, create full index buffer
 			// and primitive groups
-			var indexElemType = mesh.minimumIndexElementTypeForVertexCount(this.vertexCount_);
+			var indexElemType = meshdata.minimumIndexElementTypeForVertexCount(this.vertexCount_);
 			meshData.indexBuffer!.allocate(PrimitiveType.Triangle, indexElemType, this.triangleCount_); // FIXME implicit indexbuffer
 
 			var mergedIndexes: number[] = [];

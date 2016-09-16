@@ -57,7 +57,7 @@ namespace sd.render {
 		private depthMask_: boolean;
 		private blending_: ColourBlendingDescriptor;
 		private program_: WebGLProgram;
-		private attrRoleIndexMap_: Map<mesh.VertexAttributeRole, number>;
+		private attrRoleIndexMap_: Map<meshdata.VertexAttributeRole, number>;
 
 		constructor(private rc: RenderContext, desc: PipelineDescriptor) {
 			this.colourPixelFormats_ = desc.colourPixelFormats.slice(0);
@@ -84,7 +84,7 @@ namespace sd.render {
 
 			// -- create program and find attribute locations
 			this.program_ = makeProgram(rc, desc.vertexShader, desc.fragmentShader);
-			this.attrRoleIndexMap_ = new Map<mesh.VertexAttributeRole, number>();
+			this.attrRoleIndexMap_ = new Map<meshdata.VertexAttributeRole, number>();
 
 			desc.attributeNames.forEach((name, role) => {
 				var attrIx = rc.gl.getAttribLocation(this.program_, name);
@@ -154,7 +154,7 @@ namespace sd.render {
 
 		get attributeCount() { return this.attrRoleIndexMap_.size; }
 		attributePairs() { return this.attrRoleIndexMap_.entries(); }
-		attributeIndexForRole(role: mesh.VertexAttributeRole) {
+		attributeIndexForRole(role: meshdata.VertexAttributeRole) {
 			if (this.attrRoleIndexMap_.has(role))
 				return this.attrRoleIndexMap_.get(role);
 			return -1;

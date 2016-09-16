@@ -9,11 +9,11 @@
 
 namespace sd.render {
 
-	function glTypeForIndexElementType(rc: RenderContext, iet: mesh.IndexElementType): number {
+	function glTypeForIndexElementType(rc: RenderContext, iet: meshdata.IndexElementType): number {
 		switch (iet) {
-			case mesh.IndexElementType.UInt8: return rc.gl.UNSIGNED_BYTE;
-			case mesh.IndexElementType.UInt16: return rc.gl.UNSIGNED_SHORT;
-			case mesh.IndexElementType.UInt32:
+			case meshdata.IndexElementType.UInt8: return rc.gl.UNSIGNED_BYTE;
+			case meshdata.IndexElementType.UInt16: return rc.gl.UNSIGNED_SHORT;
+			case meshdata.IndexElementType.UInt32:
 				return rc.ext32bitIndexes ? rc.gl.UNSIGNED_INT : rc.gl.NONE;
 
 			default:
@@ -23,13 +23,13 @@ namespace sd.render {
 	}
 
 
-	export function glTypeForPrimitiveType(rc: RenderContext, pt: mesh.PrimitiveType) {
+	export function glTypeForPrimitiveType(rc: RenderContext, pt: meshdata.PrimitiveType) {
 		switch (pt) {
-			case mesh.PrimitiveType.Point: return rc.gl.POINTS;
-			case mesh.PrimitiveType.Line: return rc.gl.LINES;
-			case mesh.PrimitiveType.LineStrip: return rc.gl.LINE_STRIP;
-			case mesh.PrimitiveType.Triangle: return rc.gl.TRIANGLES;
-			case mesh.PrimitiveType.TriangleStrip: return rc.gl.TRIANGLE_STRIP;
+			case meshdata.PrimitiveType.Point: return rc.gl.POINTS;
+			case meshdata.PrimitiveType.Line: return rc.gl.LINES;
+			case meshdata.PrimitiveType.LineStrip: return rc.gl.LINE_STRIP;
+			case meshdata.PrimitiveType.Triangle: return rc.gl.TRIANGLES;
+			case meshdata.PrimitiveType.TriangleStrip: return rc.gl.TRIANGLE_STRIP;
 
 			default:
 				assert(false, "Invalid PrimitiveType")
@@ -38,56 +38,56 @@ namespace sd.render {
 	}
 
 
-	function glTypeForVertexField(rc: RenderContext, vf: mesh.VertexField) {
+	function glTypeForVertexField(rc: RenderContext, vf: meshdata.VertexField) {
 		switch (vf) {
-			case mesh.VertexField.Float:
-			case mesh.VertexField.Floatx2:
-			case mesh.VertexField.Floatx3:
-			case mesh.VertexField.Floatx4:
+			case meshdata.VertexField.Float:
+			case meshdata.VertexField.Floatx2:
+			case meshdata.VertexField.Floatx3:
+			case meshdata.VertexField.Floatx4:
 				return rc.gl.FLOAT;
 
-			case mesh.VertexField.UInt32:
-			case mesh.VertexField.UInt32x2:
-			case mesh.VertexField.UInt32x3:
-			case mesh.VertexField.UInt32x4:
+			case meshdata.VertexField.UInt32:
+			case meshdata.VertexField.UInt32x2:
+			case meshdata.VertexField.UInt32x3:
+			case meshdata.VertexField.UInt32x4:
 				return rc.gl.UNSIGNED_INT;
 
-			case mesh.VertexField.SInt32:
-			case mesh.VertexField.SInt32x2:
-			case mesh.VertexField.SInt32x3:
-			case mesh.VertexField.SInt32x4:
+			case meshdata.VertexField.SInt32:
+			case meshdata.VertexField.SInt32x2:
+			case meshdata.VertexField.SInt32x3:
+			case meshdata.VertexField.SInt32x4:
 				return rc.gl.INT;
 
-			case mesh.VertexField.UInt16x2:
-			case mesh.VertexField.Norm_UInt16x2:
-			case mesh.VertexField.UInt16x3:
-			case mesh.VertexField.Norm_UInt16x3:
-			case mesh.VertexField.UInt16x4:
-			case mesh.VertexField.Norm_UInt16x4:
+			case meshdata.VertexField.UInt16x2:
+			case meshdata.VertexField.Norm_UInt16x2:
+			case meshdata.VertexField.UInt16x3:
+			case meshdata.VertexField.Norm_UInt16x3:
+			case meshdata.VertexField.UInt16x4:
+			case meshdata.VertexField.Norm_UInt16x4:
 				return rc.gl.UNSIGNED_SHORT;
 
-			case mesh.VertexField.SInt16x2:
-			case mesh.VertexField.Norm_SInt16x2:
-			case mesh.VertexField.SInt16x3:
-			case mesh.VertexField.Norm_SInt16x3:
-			case mesh.VertexField.SInt16x4:
-			case mesh.VertexField.Norm_SInt16x4:
+			case meshdata.VertexField.SInt16x2:
+			case meshdata.VertexField.Norm_SInt16x2:
+			case meshdata.VertexField.SInt16x3:
+			case meshdata.VertexField.Norm_SInt16x3:
+			case meshdata.VertexField.SInt16x4:
+			case meshdata.VertexField.Norm_SInt16x4:
 				return rc.gl.SHORT;
 
-			case mesh.VertexField.UInt8x2:
-			case mesh.VertexField.Norm_UInt8x2:
-			case mesh.VertexField.UInt8x3:
-			case mesh.VertexField.Norm_UInt8x3:
-			case mesh.VertexField.UInt8x4:
-			case mesh.VertexField.Norm_UInt8x4:
+			case meshdata.VertexField.UInt8x2:
+			case meshdata.VertexField.Norm_UInt8x2:
+			case meshdata.VertexField.UInt8x3:
+			case meshdata.VertexField.Norm_UInt8x3:
+			case meshdata.VertexField.UInt8x4:
+			case meshdata.VertexField.Norm_UInt8x4:
 				return rc.gl.UNSIGNED_BYTE;
 
-			case mesh.VertexField.SInt8x2:
-			case mesh.VertexField.Norm_SInt8x2:
-			case mesh.VertexField.SInt8x3:
-			case mesh.VertexField.Norm_SInt8x3:
-			case mesh.VertexField.SInt8x4:
-			case mesh.VertexField.Norm_SInt8x4:
+			case meshdata.VertexField.SInt8x2:
+			case meshdata.VertexField.Norm_SInt8x2:
+			case meshdata.VertexField.SInt8x3:
+			case meshdata.VertexField.Norm_SInt8x3:
+			case meshdata.VertexField.SInt8x4:
+			case meshdata.VertexField.Norm_SInt8x4:
 				return rc.gl.BYTE;
 
 			default:
@@ -111,21 +111,21 @@ namespace sd.render {
 
 
 	interface AttributeLocation {
-		attribute: mesh.PositionedAttribute;
-		clientBuffer: mesh.VertexBuffer;
+		attribute: meshdata.PositionedAttribute;
+		clientBuffer: meshdata.VertexBuffer;
 		buffer: Buffer;
 	}
 
 
 	export class Mesh {
 		private pipelineVAOMap_: WeakMap<Pipeline, WebGLVertexArrayObjectOES> | null = null;
-		private attributes_ = new Map<mesh.VertexAttributeRole, AttributeLocation>();
+		private attributes_ = new Map<meshdata.VertexAttributeRole, AttributeLocation>();
 
 		private buffers_: Buffer[] = [];
-		private primitiveGroups_: mesh.PrimitiveGroup[];
+		private primitiveGroups_: meshdata.PrimitiveGroup[];
 		private totalPrimitiveCount_ = 0;
 
-		private primitiveType_: mesh.PrimitiveType;
+		private primitiveType_: meshdata.PrimitiveType;
 		private glPrimitiveType_ = 0;
 		private glIndexElementType_ = 0;
 		private indexElementSizeBytes_ = 0;
@@ -183,9 +183,9 @@ namespace sd.render {
 		}
 
 
-		private bindSingleAttribute(attr: mesh.PositionedAttribute, stride: number, toVAIndex: number) {
-			var elementCount = mesh.vertexFieldElementCount(attr.field);
-			var normalized = mesh.vertexFieldIsNormalized(attr.field);
+		private bindSingleAttribute(attr: meshdata.PositionedAttribute, stride: number, toVAIndex: number) {
+			var elementCount = meshdata.vertexFieldElementCount(attr.field);
+			var normalized = meshdata.vertexFieldIsNormalized(attr.field);
 			var glElementType = glTypeForVertexField(this.rc, attr.field);
 
 			this.rc.gl.enableVertexAttribArray(toVAIndex);
@@ -262,7 +262,7 @@ namespace sd.render {
 
 
 		// -- observers
-		hasAttributeOfRole(role: mesh.VertexAttributeRole) { return this.attributes_.has(role); }
+		hasAttributeOfRole(role: meshdata.VertexAttributeRole) { return this.attributes_.has(role); }
 		get hasIndexBuffer() { return this.glIndexElementType_ != 0; }
 
 		get primitiveType() { return this.primitiveType_; }

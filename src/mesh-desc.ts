@@ -8,14 +8,14 @@
 namespace sd.render {
 
 	export interface VertexBufferBinding {
-		vertexBuffer: mesh.VertexBuffer;
+		vertexBuffer: meshdata.VertexBuffer;
 		updateFrequency: BufferUpdateFrequency;
 		// TODO: add instancing divisor counts for each attrib
 	}
 
 
 	export interface IndexBufferBinding {
-		indexBuffer: mesh.IndexBuffer | null;
+		indexBuffer: meshdata.IndexBuffer | null;
 		updateFrequency: BufferUpdateFrequency;
 	}
 
@@ -23,14 +23,14 @@ namespace sd.render {
 	export interface MeshDescriptor {
 		vertexBindings: VertexBufferBinding[];
 		indexBinding: IndexBufferBinding;
-		primitiveGroups: mesh.PrimitiveGroup[];
+		primitiveGroups: meshdata.PrimitiveGroup[];
 
 		// -- explicit type used when there is no indexBuffer, ignored otherwise
-		primitiveType: mesh.PrimitiveType;
+		primitiveType: meshdata.PrimitiveType;
 	}
 
 
-	export function makeMeshDescriptor(data: mesh.MeshData): MeshDescriptor {
+	export function makeMeshDescriptor(data: meshdata.MeshData): MeshDescriptor {
 		return {
 			vertexBindings: data.vertexBuffers.map((vb) => ({
 				vertexBuffer: vb,
@@ -45,7 +45,7 @@ namespace sd.render {
 			primitiveGroups: data.primitiveGroups.map((pg) => cloneStruct(pg)),
 
 			// mandatory if no indexBuffer is provided, ignored otherwie
-			primitiveType: mesh.PrimitiveType.None
+			primitiveType: meshdata.PrimitiveType.None
 		};
 	}
 
