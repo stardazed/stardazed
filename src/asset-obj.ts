@@ -180,6 +180,7 @@ namespace sd.asset {
 		var uvIndexes: Uint32Array | undefined;
 		var colourIndexes: Uint32Array | undefined;
 		var posIx = 0, normIx = 0, uvIx = 0, colIx = 0, vertexIx = 0, curMatIx = 0;
+		var streams: meshdata.VertexAttributeStream[] = [];
 
 		// map each material's name to its index
 		var matNameIndexMap = new Map<string, number>();
@@ -187,18 +188,11 @@ namespace sd.asset {
 			matNameIndexMap.set(group.materials[matIx].name, matIx);
 		}
 
-		// create the Mesh asset for this obj
-		var sdMesh: Mesh = {
-			name: "obj mesh",
-			positions: positions,
-			streams: []
-		};
-
 		if (preproc.normalCount > 0) {
 			normalValues = new Float32Array(preproc.normalCount * 3);
 			normalIndexes = new Uint32Array(preproc.vertexCount);
 
-			sdMesh.streams.push({
+			streams.push({
 				name: "normals",
 				includeInMesh: true,
 				mapping: meshdata.VertexAttributeMapping.Vertex,
@@ -211,7 +205,7 @@ namespace sd.asset {
 			uvValues = new Float32Array(preproc.uvCount * 2);
 			uvIndexes = new Uint32Array(preproc.vertexCount);
 
-			sdMesh.streams.push({
+			streams.push({
 				name: "uvs",
 				includeInMesh: true,
 				mapping: meshdata.VertexAttributeMapping.Vertex,
@@ -229,7 +223,7 @@ namespace sd.asset {
 				container.setIndexedVec3(colourValues, matIx, group.materials[matIx].baseColour);
 			}
 
-			sdMesh.streams.push({
+			streams.push({
 				name: "colours",
 				includeInMesh: true,
 				mapping: meshdata.VertexAttributeMapping.Polygon,
@@ -239,7 +233,7 @@ namespace sd.asset {
 			});
 		}
 
-		var builder = new meshdata.MeshBuilder(positions, positionIndexes, sdMesh.streams);
+		var builder = new meshdata.MeshBuilder(positions, positionIndexes, streams);
 
 
 		// convert a face index to zero-based int or -1 for empty index	
@@ -303,8 +297,11 @@ namespace sd.asset {
 			}
 		}
 
-		sdMesh.meshData = builder.complete();
-		group.addMesh(sdMesh);
+		group.addMesh({
+			name: "obj model",
+			meshData: builder.complete(),
+			indexMap: builder.indexMap
+		});
 	}
 
 

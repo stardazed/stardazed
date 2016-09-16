@@ -599,16 +599,13 @@ namespace sd.asset {
 
 				for (var geomID in this.geometryNodes) {
 					var fbxGeom = this.geometryNodes[geomID];
-					var sdMesh: Mesh = {
-						name: fbxGeom.objectName,
-						userRef: fbxGeom.objectID,
-						streams: []
-					};
+					var positions: Float64Array | undefined;
+					var streams: meshdata.VertexAttributeStream[] = [];
 					var polygonIndexes: Int32Array | null = null;
 
 					for (var c of fbxGeom.children) {
 						if (c.name == "Vertices") {
-							sdMesh.positions = <Float64Array>c.values[0];
+							positions = <Float64Array>c.values[0];
 						}
 						else if (c.name == "PolygonVertexIndex") {
 							polygonIndexes = <Int32Array>c.values[0];
@@ -621,23 +618,23 @@ namespace sd.asset {
 						{
 							let strm = this.makeLayerElementStream(c);
 							if (strm) {
-								sdMesh.streams.push(strm);
+								streams.push(strm);
 							}
 						}
 					}
 
 					// sanity check mesh pre-requisites
-					if (! (sdMesh.positions && polygonIndexes)) {
-						console.warn("FBGeom ", fbxGeom, "is unsuitable for use.");
+					if (! (positions && polygonIndexes)) {
+						console.warn("FBXGeom ", fbxGeom, "is unsuitable for use.");
 						continue;
 					}
 
 					// With all streams and stuff collected, create the mesh
 					var t0 = performance.now();
-					var mb = new meshdata.MeshBuilder(sdMesh.positions, null, sdMesh.streams);
+					var mb = new meshdata.MeshBuilder(positions, null, streams);
 					var polygonIndexCount = polygonIndexes.length;
-					var polygonVertexIndexArray: number[] = []
-					var vertexIndexArray: number[] = []
+					var polygonVertexIndexArray: number[] = [];
+					var vertexIndexArray: number[] = [];
 
 					// Perform linear scan through polygon indexes as tris and quads can
 					// be used arbitrarily, the last index of each polygon is indicated
@@ -661,21 +658,25 @@ namespace sd.asset {
 
 					var t1 = performance.now();
 
-					sdMesh.meshData = mb.complete();
-					sdMesh.indexMap = mb.indexMap;
+					var meshAsset: Mesh = {
+						name: fbxGeom.objectName,
+						userRef: fbxGeom.objectID,
+						meshData: mb.complete(),
+						indexMap: mb.indexMap
+					};
 
 					var t2 = performance.now();
 					tStreams += (t1 - t0);
 					tMeshData += (t2 - t1);
 
-					group.addMesh(sdMesh);
+					group.addMesh(meshAsset);
 
 					// hook up mesh to linked model
 					for (let mco of fbxGeom.connectionsOut) {
 						var model = mco.toNode;
 						if (model && model.name == "Model") {
 							var sdModel = this.flattenedModels.get(model.objectID)!; // TODO: verify
-							sdModel.mesh = sdMesh;
+							sdModel.mesh = meshAsset;
 						}
 					}
 				}

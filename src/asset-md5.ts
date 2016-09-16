@@ -333,9 +333,7 @@ namespace sd.asset {
 						name: "",
 						userRef: this.meshCount_++,
 						meshData: md,
-						indexMap: mb.indexMap,
-						positions: positions,
-						streams: streams
+						indexMap: mb.indexMap
 					};
 					this.assets_.addMesh(sdMesh);
 

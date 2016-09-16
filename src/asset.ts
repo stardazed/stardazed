@@ -86,18 +86,13 @@ namespace sd.asset {
 
 
 	export interface Mesh extends Asset {
-		positions?: Float64Array;
-		streams: meshdata.VertexAttributeStream[];
-
-		meshData?: meshdata.MeshData;
+		meshData: meshdata.MeshData;
 		indexMap?: meshdata.VertexIndexMapping;
-
-		mesh?: render.Mesh;
 	}
 
 
 	export interface Transform {
-		position: Float3; // m
+		position: Float3;
 		rotation: Float4; // quat
 		scale: Float3;
 	}
