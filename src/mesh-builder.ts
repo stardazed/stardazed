@@ -319,9 +319,14 @@ namespace sd.meshdata {
 			var attrs = meshAttributeStreams.map(s => s.attr!);
 			var meshData = new MeshData();
 
+			// allocate as single buffer — TODO: give options for separate client buffers if wanted / needed
 			var vb = new VertexBuffer(attrs);
 			meshData.vertexBuffers.push(vb);
-			vb.allocate(this.vertexMapping_.size);
+			var indexElemType = meshdata.minimumIndexElementTypeForVertexCount(this.vertexCount_);
+			meshData.indexBuffer = new IndexBuffer();
+			meshData.allocateSingleStorage([this.vertexMapping_.size], PrimitiveType.Triangle, indexElemType, this.triangleCount_);
+
+			// copy vertex streams
 			for (var six = 0; six < meshAttributeStreams.length; ++six) {
 				let streamData = this.vertexData_[six];
 				let attribute = vb.attrByIndex(six);
@@ -334,10 +339,6 @@ namespace sd.meshdata {
 
 			// All triangles with the same material were merged, create full index buffer
 			// and primitive groups
-			var indexElemType = meshdata.minimumIndexElementTypeForVertexCount(this.vertexCount_);
-			meshData.indexBuffer = new IndexBuffer();
-			meshData.indexBuffer.allocate(PrimitiveType.Triangle, indexElemType, this.triangleCount_);
-
 			var mergedIndexes: number[] = [];
 			var nextTriangleIndex = 0;
 

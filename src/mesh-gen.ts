@@ -56,11 +56,13 @@ namespace sd.meshdata.gen {
 		var mesh = new MeshData();
 		var vertexBuffer = new VertexBuffer(attrList);
 		mesh.vertexBuffers.push(vertexBuffer);
-		vertexBuffer.allocate(totalVertexCount);
-
-		var indexElementType = minimumIndexElementTypeForVertexCount(totalVertexCount);
 		mesh.indexBuffer = new IndexBuffer();
-		mesh.indexBuffer.allocate(PrimitiveType.Triangle, indexElementType, totalFaceCount);
+		var indexElementType = minimumIndexElementTypeForVertexCount(totalVertexCount);
+
+		// TODO: give option for separate client buffers? Useful?
+		// vertexBuffer.allocate(totalVertexCount);
+		// mesh.indexBuffer.allocate(PrimitiveType.Triangle, indexElementType, totalFaceCount);
+		mesh.allocateSingleStorage([totalVertexCount], PrimitiveType.Triangle, indexElementType, totalFaceCount);
 
 		// -- views into various attributes and the index buffer
 		var normalAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);

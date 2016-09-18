@@ -367,7 +367,9 @@ namespace sd.meshdata {
 
 	export interface ClientBuffer {
 		readonly bufferSizeBytes: number;
+		readonly bufferLocalOffsetBytes: number;
 		readonly buffer: ArrayBuffer | null;
+		bufferView(): ArrayBufferView | null;
 	}
 
 
@@ -380,6 +382,7 @@ namespace sd.meshdata {
 	export class VertexBuffer implements ClientBuffer {
 		private layout_: VertexLayout;
 		private itemCount_ = 0;
+		private storageOffsetBytes_ = 0;
 		private storage_: ArrayBuffer | null = null;
 
 		constructor(attrs: VertexAttribute[] | VertexLayout) {
@@ -396,11 +399,31 @@ namespace sd.meshdata {
 		get attributeCount() { return this.layout_.attributeCount; }
 		get itemCount() { return this.itemCount_; }
 		get bufferSizeBytes() { return this.strideBytes * this.itemCount_; }
+		get bufferLocalOffsetBytes() { return this.storageOffsetBytes_; }
 		get buffer() { return this.storage_; }
+
+		bufferView(): ArrayBufferView | null {
+			if (this.storage_) {
+				return new Uint8Array(this.storage_, this.storageOffsetBytes_, this.bufferSizeBytes);
+			}
+
+			return null;
+		}
 
 		allocate(itemCount: number) {
 			this.itemCount_ = itemCount;
 			this.storage_ = new ArrayBuffer(this.layout_.bytesRequiredForVertexCount(itemCount));
+			this.storageOffsetBytes_ = 0;
+		}
+
+		suballocate(itemCount: number, insideBuffer: ArrayBuffer, atByteOffset: number) {
+			this.itemCount_ = itemCount;
+			this.storage_ = insideBuffer;
+			this.storageOffsetBytes_ = atByteOffset;
+		}
+
+		bytesRequiredForAllocation(itemCount: number) {
+			return this.layout_.vertexSizeBytes * itemCount;
 		}
 
 		// -- attribute access pass-through
@@ -458,7 +481,7 @@ namespace sd.meshdata {
 			assert(source.length >= valueCount * this.attrElementCount_, "not enough elements in source");
 
 			var firstIndex = this.firstItem_ + offset;
-			var offsetBytes = (this.stride_ * firstIndex) + this.attrOffset_;
+			var offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * firstIndex) + this.attrOffset_;
 			var buffer = this.buffer_;
 			var stride = this.stride_;
 			var elementSize = this.fieldNumType_.byteSize;
@@ -467,9 +490,10 @@ namespace sd.meshdata {
 
 			if (this.attrElementCount_ == 1) {
 				if (stride % elementSize == 0) {
-					arrView = new (this.typedViewCtor_)(buffer, offsetBytes);
-					let vertexOffset = 0;
 					let strideInElements = (stride / elementSize) | 0;
+					let offsetInElements = (offsetBytes / elementSize) | 0;
+					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
+					let vertexOffset = 0;
 					for (var n = 0; n < valueCount; ++n) {
 						arrView[vertexOffset] = source[sourceIndex];
 						sourceIndex += 1;
@@ -487,9 +511,10 @@ namespace sd.meshdata {
 			}
 			else if (this.attrElementCount_ == 2) {
 				if (stride % elementSize == 0) {
-					arrView = new (this.typedViewCtor_)(buffer, offsetBytes);
-					let vertexOffset = 0;
 					let strideInElements = (stride / elementSize) | 0;
+					let offsetInElements = (offsetBytes / elementSize) | 0;
+					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
+					let vertexOffset = 0;
 					for (var n = 0; n < valueCount; ++n) {
 						arrView[0 + vertexOffset] = source[sourceIndex];
 						arrView[1 + vertexOffset] = source[sourceIndex + 1];
@@ -509,9 +534,10 @@ namespace sd.meshdata {
 			}
 			else if (this.attrElementCount_ == 3) {
 				if (stride % elementSize == 0) {
-					arrView = new (this.typedViewCtor_)(buffer, offsetBytes);
-					let vertexOffset = 0;
 					let strideInElements = (stride / elementSize) | 0;
+					let offsetInElements = (offsetBytes / elementSize) | 0;
+					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
+					let vertexOffset = 0;
 					for (var n = 0; n < valueCount; ++n) {
 						arrView[0 + vertexOffset] = source[sourceIndex];
 						arrView[1 + vertexOffset] = source[sourceIndex + 1];
@@ -533,9 +559,10 @@ namespace sd.meshdata {
 			}
 			else if (this.attrElementCount_ == 4) {
 				if (stride % elementSize == 0) {
-					arrView = new (this.typedViewCtor_)(buffer, offsetBytes);
-					let vertexOffset = 0;
 					let strideInElements = (stride / elementSize) | 0;
+					let offsetInElements = (offsetBytes / elementSize) | 0;
+					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
+					let vertexOffset = 0;
 					for (var n = 0; n < valueCount; ++n) {
 						arrView[0 + vertexOffset] = source[sourceIndex];
 						arrView[1 + vertexOffset] = source[sourceIndex + 1];
@@ -561,13 +588,13 @@ namespace sd.meshdata {
 
 		refItem(index: number): TypedArray {
 			index += this.firstItem_;
-			var offsetBytes = (this.stride_ * index) + this.attrOffset_;
+			var offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * index) + this.attrOffset_;
 			return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.attrElementCount_);
 		}
 
 		copyItem(index: number): number[] {
 			index += this.firstItem_;
-			var offsetBytes = (this.stride_ * index) + this.attrOffset_;
+			var offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * index) + this.attrOffset_;
 			var result: number[] = [];
 
 			switch (this.attr_.field) {
@@ -715,6 +742,7 @@ namespace sd.meshdata {
 		private primitiveCount_ = 0;
 		private indexElementSizeBytes_ = 0;
 		private storage_: ArrayBuffer | null = null;
+		private storageOffsetBytes_ = 0;
 
 		allocate(primitiveType: PrimitiveType, elementType: IndexElementType, primitiveCount: number) {
 			this.primitiveType_ = primitiveType;
@@ -724,7 +752,25 @@ namespace sd.meshdata {
 			this.indexCount_ = indexCountForPrimitiveCount(primitiveType, primitiveCount);
 
 			this.storage_ = new ArrayBuffer(this.bufferSizeBytes);
+			this.storageOffsetBytes_ = 0;
 		}
+
+		suballocate(primitiveType: PrimitiveType, elementType: IndexElementType, primitiveCount: number, insideBuffer: ArrayBuffer, atByteOffset: number) {
+			this.primitiveType_ = primitiveType;
+			this.indexElementType_ = elementType;
+			this.indexElementSizeBytes_ = indexElementTypeSizeBytes(this.indexElementType_);
+			this.primitiveCount_ = primitiveCount;
+			this.indexCount_ = indexCountForPrimitiveCount(primitiveType, primitiveCount);
+
+			this.storage_ = insideBuffer;
+			this.storageOffsetBytes_ = atByteOffset;
+		}
+
+		bytesRequiredForAllocation(primitiveType: PrimitiveType, elementType: IndexElementType, primitiveCount: number) {
+			var indexCount = indexCountForPrimitiveCount(primitiveType, primitiveCount);
+			return indexCount * indexElementTypeSizeBytes(elementType);
+		}
+
 
 		// -- observers
 		get primitiveType() { return this.primitiveType_; }
@@ -735,12 +781,22 @@ namespace sd.meshdata {
 		get indexElementSizeBytes() { return this.indexElementSizeBytes_; }
 
 		get bufferSizeBytes() { return this.indexCount_ * this.indexElementSizeBytes_; }
+		get bufferLocalOffsetBytes() { return this.storageOffsetBytes_; }
 		get buffer() { return this.storage_; }
+
+		bufferView(): ArrayBufferView | null {
+			if (this.storage_) {
+				return new Uint8Array(this.storage_, this.storageOffsetBytes_, this.bufferSizeBytes);
+			}
+
+			return null;
+		}
+
 
 		// -- read/write indexes
 		typedBasePtr(baseIndexNr: number, elementCount: number): TypedIndexArray {
 			assert(this.storage_, "No storage allocated yet!");
-			var offsetBytes = this.indexElementSizeBytes_ * baseIndexNr;
+			var offsetBytes = this.storageOffsetBytes_ + this.indexElementSizeBytes_ * baseIndexNr;
 
 			if (this.indexElementType_ == IndexElementType.UInt32) {
 				return new Uint32Array(this.storage_!, offsetBytes, elementCount);
@@ -1049,11 +1105,47 @@ namespace sd.meshdata {
 		materialIx: number; // mesh-local index (starting at 0); representation of Materials is external to MeshData
 	}
 
+	const enum BufferAlignment {
+		SubBuffer = 8
+	}
 
 	export class MeshData {
 		vertexBuffers: VertexBuffer[] = [];
 		indexBuffer: IndexBuffer | null = null;
 		primitiveGroups: PrimitiveGroup[] = [];
+
+		allocateSingleStorage(vertexBufferItemCounts: number[], primitiveType: PrimitiveType, elementType: IndexElementType, primitiveCount: number) {
+			assert(vertexBufferItemCounts.length === this.vertexBuffers.length, "Did not specify exactly 1 item count per VertexBuffer");
+
+			var totalBytes = 0;
+			for (let vbix = 0; vbix < this.vertexBuffers.length; ++vbix) {
+				totalBytes += this.vertexBuffers[vbix].bytesRequiredForAllocation(vertexBufferItemCounts[vbix]);
+				totalBytes = math.alignUp(totalBytes, BufferAlignment.SubBuffer);
+			}
+			if (this.indexBuffer) {
+				totalBytes += this.indexBuffer.bytesRequiredForAllocation(primitiveType, elementType, primitiveCount);
+				totalBytes = math.alignUp(totalBytes, BufferAlignment.SubBuffer);
+			}
+
+			assert(totalBytes > 0, "Nothing to allocate!");
+
+			const storage = new ArrayBuffer(totalBytes);
+
+			var byteOffset = 0;
+			for (let vbix = 0; vbix < this.vertexBuffers.length; ++vbix) {
+				this.vertexBuffers[vbix].suballocate(vertexBufferItemCounts[vbix], storage, byteOffset);
+				byteOffset += this.vertexBuffers[vbix].bufferSizeBytes;
+				byteOffset = math.alignUp(byteOffset, BufferAlignment.SubBuffer);
+			}
+			if (this.indexBuffer) {
+				this.indexBuffer.suballocate(primitiveType, elementType, primitiveCount, storage, byteOffset);
+				byteOffset += this.indexBuffer.bufferSizeBytes;
+				byteOffset = math.alignUp(byteOffset, BufferAlignment.SubBuffer);
+			}
+
+			assert(totalBytes === byteOffset, "Mismatch of precalculated and actual buffer sizes");
+		}
+
 
 		findFirstAttributeWithRole(role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | null {
 			var pa: PositionedAttribute | null = null;

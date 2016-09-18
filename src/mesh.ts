@@ -141,7 +141,7 @@ namespace sd.render {
 
 				// -- allocate and fill attribute data buffer
 				let buffer = new Buffer(rc, BufferRole.VertexAttribute, vertexBinding.updateFrequency);
-				buffer.allocateWithContents(vertexBinding.vertexBuffer.buffer!); // TODO could be unallocated
+				buffer.allocateWithContents(vertexBinding.vertexBuffer.bufferView()!); // TODO could be unallocated
 				this.buffers_.push(buffer);
 
 				// -- build role/attribute info map
@@ -158,7 +158,7 @@ namespace sd.render {
 			if (desc.indexBinding.indexBuffer) {
 				// -- allocate sized index buffer
 				var indexBuffer = new Buffer(rc, BufferRole.VertexIndex, desc.indexBinding.updateFrequency);
-				indexBuffer.allocateWithContents(desc.indexBinding.indexBuffer.buffer!); // TODO could be unallocated
+				indexBuffer.allocateWithContents(desc.indexBinding.indexBuffer.bufferView()!); // TODO could be unallocated
 				this.buffers_.push(indexBuffer);
 			
 				// -- precompute some info required for draw calls
