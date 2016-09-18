@@ -6,17 +6,48 @@
 namespace sd {
 
 	export interface TypedArray {
-		BYTES_PER_ELEMENT: number;
+		readonly BYTES_PER_ELEMENT: number;
 
-		buffer: ArrayBuffer;
-		byteLength: number;
-		byteOffset: number;
+		readonly buffer: ArrayBuffer;
+		readonly byteLength: number;
+		readonly byteOffset: number;
+		readonly length: number;
 
-		length: number;
 		[index: number]: number;
 
+		set(index: number, value: number): void;
 		set(array: ArrayLike<number>, offset?: number): void;
 		subarray(begin: number, end?: number): TypedArray;
+		slice(start?: number, end?: number): TypedArray;
+
+		copyWithin(target: number, start: number, end?: number): this;
+		every(callbackfn: (value: number, index: number, array: TypedArray) => boolean, thisArg?: any): boolean;
+		fill(value: number, start?: number, end?: number): this;
+		filter(callbackfn: (value: number, index: number, array: TypedArray) => any, thisArg?: any): TypedArray;
+		find(predicate: (value: number, index: number, obj: Array<number>) => boolean, thisArg?: any): number | undefined;
+		findIndex(predicate: (value: number) => boolean, thisArg?: any): number;
+		forEach(callbackfn: (value: number, index: number, array: TypedArray) => void, thisArg?: any): void;
+		indexOf(searchElement: number, fromIndex?: number): number;
+		join(separator?: string): string;
+		lastIndexOf(searchElement: number, fromIndex?: number): number;
+
+		map(callbackfn: (value: number, index: number, array: TypedArray) => number, thisArg?: any): TypedArray;
+		reduce(callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: TypedArray) => number, initialValue?: number): number;
+		reduce<U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: TypedArray) => U, initialValue: U): U;
+		reduceRight(callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: TypedArray) => number, initialValue?: number): number;
+		reduceRight<U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: TypedArray) => U, initialValue: U): U;
+		reverse(): TypedArray;
+		some(callbackfn: (value: number, index: number, array: TypedArray) => boolean, thisArg?: any): boolean;
+		sort(compareFn?: (a: number, b: number) => number): this;
+
+		toLocaleString(): string;
+		toString(): string;
+
+		// es2015.iterable extensions
+		[Symbol.iterator](): IterableIterator<number>;
+		entries(): IterableIterator<[number, number]>;
+		keys(): IterableIterator<number>;
+		values(): IterableIterator<number>;
 	}
 
 	export interface TypedArrayConstructor {
