@@ -53,12 +53,14 @@ namespace sd.meshdata.gen {
 		}
 
 		// -- create vertex and index buffers for combined mesh
-		var mesh = new MeshData(attrList);
-		var vertexBuffer = mesh.primaryVertexBuffer;
-
+		var mesh = new MeshData();
+		var vertexBuffer = new VertexBuffer(attrList);
+		mesh.vertexBuffers.push(vertexBuffer);
 		vertexBuffer.allocate(totalVertexCount);
+
 		var indexElementType = minimumIndexElementTypeForVertexCount(totalVertexCount);
-		mesh.indexBuffer!.allocate(PrimitiveType.Triangle, indexElementType, totalFaceCount); // FIXME implicit indexbuffer
+		mesh.indexBuffer = new IndexBuffer();
+		mesh.indexBuffer.allocate(PrimitiveType.Triangle, indexElementType, totalFaceCount);
 
 		// -- views into various attributes and the index buffer
 		var normalAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
@@ -68,7 +70,7 @@ namespace sd.meshdata.gen {
 		var normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
 		var texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
 
-		var triView = new IndexBufferTriangleView(mesh.indexBuffer!);
+		var triView = new IndexBufferTriangleView(mesh.indexBuffer);
 
 		// -- data add functions for the generators
 		var posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;

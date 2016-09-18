@@ -1051,16 +1051,9 @@ namespace sd.meshdata {
 
 
 	export class MeshData {
-		vertexBuffers: Array<VertexBuffer> = [];
-		indexBuffer: IndexBuffer | null; // FIXME: the implicit indexbuffer is wrong
-		primitiveGroups: Array<PrimitiveGroup> = [];
-
-		constructor(attrs?: VertexAttribute[]) {
-			if (attrs) {
-				this.vertexBuffers.push(new VertexBuffer(attrs));
-			}
-			this.indexBuffer = new IndexBuffer();
-		}
+		vertexBuffers: VertexBuffer[] = [];
+		indexBuffer: IndexBuffer | null = null;
+		primitiveGroups: PrimitiveGroup[] = [];
 
 		findFirstAttributeWithRole(role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | null {
 			var pa: PositionedAttribute | null = null;
@@ -1079,11 +1072,6 @@ namespace sd.meshdata {
 				return { vertexBuffer: avb, attr: pa };
 			else
 				return null;
-		}
-
-		get primaryVertexBuffer() {
-			assert(this.vertexBuffers.length > 0);
-			return this.vertexBuffers[0];
 		}
 
 		// derived vertex data generation

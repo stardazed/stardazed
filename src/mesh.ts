@@ -23,7 +23,7 @@ namespace sd.render {
 	}
 
 
-	export function glTypeForPrimitiveType(rc: RenderContext, pt: meshdata.PrimitiveType) {
+	function glTypeForPrimitiveType(rc: RenderContext, pt: meshdata.PrimitiveType) {
 		switch (pt) {
 			case meshdata.PrimitiveType.Point: return rc.gl.POINTS;
 			case meshdata.PrimitiveType.Line: return rc.gl.LINES;

@@ -335,7 +335,8 @@ namespace sd.meshdata {
 			// All triangles with the same material were merged, create full index buffer
 			// and primitive groups
 			var indexElemType = meshdata.minimumIndexElementTypeForVertexCount(this.vertexCount_);
-			meshData.indexBuffer!.allocate(PrimitiveType.Triangle, indexElemType, this.triangleCount_); // FIXME implicit indexbuffer
+			meshData.indexBuffer = new IndexBuffer();
+			meshData.indexBuffer.allocate(PrimitiveType.Triangle, indexElemType, this.triangleCount_);
 
 			var mergedIndexes: number[] = [];
 			var nextTriangleIndex = 0;
