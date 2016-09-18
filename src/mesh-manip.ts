@@ -79,4 +79,4 @@ namespace sd.meshdata {
 		}
 	}
 
-} // ns sd.mesh
+} // ns sd.meshdata

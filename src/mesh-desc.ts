@@ -32,7 +32,7 @@ namespace sd.render {
 
 	export function makeMeshDescriptor(data: meshdata.MeshData): MeshDescriptor {
 		return {
-			vertexBindings: data.vertexBuffers.map((vb) => ({
+			vertexBindings: data.vertexBuffers.map(vb => ({
 				vertexBuffer: vb,
 				updateFrequency: BufferUpdateFrequency.Never
 			})),
@@ -42,9 +42,9 @@ namespace sd.render {
 				updateFrequency: BufferUpdateFrequency.Never
 			},
 
-			primitiveGroups: data.primitiveGroups.map((pg) => cloneStruct(pg)),
+			primitiveGroups: data.primitiveGroups.map(pg => cloneStruct(pg)),
 
-			// mandatory if no indexBuffer is provided, ignored otherwie
+			// mandatory if no indexBuffer is provided, ignored otherwise
 			primitiveType: meshdata.PrimitiveType.None
 		};
 	}

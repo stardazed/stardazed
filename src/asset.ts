@@ -58,8 +58,6 @@ namespace sd.asset {
 		jointDataTexture?: Texture2D;
 	}
 
-	export type MaterialSet = { [name: string]: Material };
-
 
 	export function makeMaterial(name?: string): Material {
 		return {

@@ -719,4 +719,4 @@ namespace sd.meshdata.gen {
 		}
 	}
 
-} // ns sd.mesh.gen
+} // ns sd.meshdata.gen

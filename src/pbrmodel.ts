@@ -820,8 +820,8 @@ namespace sd.world {
 		private featuresForMeshAndMaterial(mesh: render.Mesh, material: PBRMaterialInstance): Features {
 			var features = 0;
 
-			if (mesh.hasAttributeOfRole(sd.meshdata.VertexAttributeRole.Colour)) features |= Features.VtxColour;
-			if (mesh.hasAttributeOfRole(sd.meshdata.VertexAttributeRole.UV)) features |= Features.VtxUV;
+			if (mesh.hasAttributeOfRole(meshdata.VertexAttributeRole.Colour)) features |= Features.VtxColour;
+			if (mesh.hasAttributeOfRole(meshdata.VertexAttributeRole.UV)) features |= Features.VtxUV;
 
 			var matFlags = this.materialMgr_.flags(material);
 

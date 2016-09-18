@@ -1098,4 +1098,4 @@ namespace sd.meshdata {
 		// void genVertexTangents();
 	}
 
-} // ns sd.mesh
+} // ns sd.meshdata
