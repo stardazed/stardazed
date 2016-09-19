@@ -238,14 +238,14 @@ namespace sd.world {
 
 
 		rebasePrimGroups() {
-			this.pgFeaturesBase_ = this.bufferData_.indexedFieldView(0);
-			this.pgFromPrimIxBase_ = this.bufferData_.indexedFieldView(1);
-			this.pgPrimCountBase_ = this.bufferData_.indexedFieldView(2);
-			this.pgMaterialBase_ = this.bufferData_.indexedFieldView(3);
+			this.pgFeaturesBase_ = this.primGroupData_.indexedFieldView(0);
+			this.pgFromPrimIxBase_ = this.primGroupData_.indexedFieldView(1);
+			this.pgPrimCountBase_ = this.primGroupData_.indexedFieldView(2);
+			this.pgMaterialBase_ = this.primGroupData_.indexedFieldView(3);
 		}
 
 
-		create(entity: Entity, meshData: meshdata.MeshData): MeshInstance {
+		create(meshData: meshdata.MeshData): MeshInstance {
 			const gl = this.rctx_.gl;
 
 			// -- ensure space in instance and dependent arrays
@@ -259,12 +259,14 @@ namespace sd.world {
 			if (this.bufferData_.resize(bufferIndex + bufferCount) === container.InvalidatePointers.Yes) {
 				this.rebaseBuffers();
 			}
+			container.setIndexedVec2(this.buffersOffsetCountBase_, instance, [bufferIndex, bufferCount]);
 
 			const attrCount = meshData.vertexBuffers.map(vb => vb.attributeCount).reduce((sum, vbac) => sum + vbac, 0);
 			var attrIndex = this.attributeData_.count;
 			if (this.attributeData_.resize(attrIndex + attrCount) === container.InvalidatePointers.Yes) {
 				this.rebaseAttributes();
 			}
+			container.setIndexedVec2(this.attrsOffsetCountBase_, instance, [attrIndex, attrCount]);
 
 
 			for (var vertexBuffer of meshData.vertexBuffers) {
@@ -272,6 +274,7 @@ namespace sd.world {
 				gl.bindBuffer(gl.ARRAY_BUFFER, glBuf);
 				gl.bufferData(gl.ARRAY_BUFFER, vertexBuffer.bufferView()!, gl.STATIC_DRAW); // FIXME: bufferView could be null
 				this.bufGLBuffers_[bufferIndex] = glBuf;
+				this.bufGLTargetBase_[bufferIndex] = gl.ARRAY_BUFFER;
 
 				// -- build attribute info map
 				for (let aix = 0; aix < vertexBuffer.attributeCount; ++aix) {
@@ -293,6 +296,7 @@ namespace sd.world {
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glBuf);
 				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshData.indexBuffer.bufferView()!, gl.STATIC_DRAW); // FIXME: bufferView could be null
 				this.bufGLBuffers_[bufferIndex] = glBuf;
+				this.bufGLTargetBase_[bufferIndex] = gl.ELEMENT_ARRAY_BUFFER;
 			
 				// -- precompute some info required for draw calls
 				this.primitiveTypeBase_[instance] = meshData.indexBuffer.primitiveType;
@@ -333,6 +337,19 @@ namespace sd.world {
 		}
 
 
+		linkToEntity(inst: MeshInstance, ent: Entity) {
+			this.entityMap_.set(ent, inst);
+		}
+
+		removeFromEntity(inst: MeshInstance, ent: Entity) {
+			this.entityMap_.delete(ent);
+		}
+
+		forEntity(ent: Entity): MeshInstance {
+			return this.entityMap_.get(ent) || 0;
+		}
+
+
 		destroy(inst: MeshInstance) {
 		}
 
@@ -353,11 +370,6 @@ namespace sd.world {
 
 		all(): MeshRange {
 			return new InstanceLinearRange<MeshManager>(1, this.count);
-		}
-
-
-		forEntity(ent: Entity): MeshInstance {
-			return this.entityMap_.get(ent) || 0;
 		}
 
 
