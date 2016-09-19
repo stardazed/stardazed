@@ -198,11 +198,11 @@ namespace sd.render {
 			var needBinding = true;
 
 			if (this.pipelineVAOMap_) {
-				// -- If we're using VAOs then each mesh has a VAO per Pipeline it is
-				// -- bound to. This approach is sadly necessary as attribute indexes
-				// -- can differ for the same attributes for every Pipeline.
-				// -- A GL with explicit attribute locations can avoid this by being
-				// -- consistent with attribute indexes for attribute roles.
+				// If we're using VAOs then each mesh has a VAO per Pipeline it is bound to.
+				// This approach is sadly necessary as attribute indexes can differ for the same attributes for every Pipeline.
+				// gl.bindAttribLocation can be used to bind named attributes but different shaders would have to still specify
+				// a list of all their attributes and desired bind points, here we then have to detect a shader type and create
+				// one VAO per separate shader, maybe later.
 				plVAO = this.pipelineVAOMap_.get(usingPipeline);
 				if (plVAO) {
 					needBinding = false;

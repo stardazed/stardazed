@@ -138,4 +138,10 @@ namespace sd {
 	});
 
 
+	// helper type for enums stored in Int32Arrays
+	export interface ConstEnumArrayView<T extends number> extends TypedArray {
+		[index: number]: T;
+	}
+
+
 } // ns sd

@@ -9,6 +9,131 @@
 
 namespace sd.world {
 
+	function glTypeForIndexElementType(rc: render.RenderContext, iet: meshdata.IndexElementType): number {
+		switch (iet) {
+			case meshdata.IndexElementType.UInt8: return rc.gl.UNSIGNED_BYTE;
+			case meshdata.IndexElementType.UInt16: return rc.gl.UNSIGNED_SHORT;
+			case meshdata.IndexElementType.UInt32:
+				return rc.ext32bitIndexes ? rc.gl.UNSIGNED_INT : rc.gl.NONE;
+
+			default:
+				assert(false, "Invalid IndexElementType");
+				return rc.gl.NONE;
+		}
+	}
+
+
+	function glTypeForPrimitiveType(rc: render.RenderContext, pt: meshdata.PrimitiveType) {
+		switch (pt) {
+			case meshdata.PrimitiveType.Point: return rc.gl.POINTS;
+			case meshdata.PrimitiveType.Line: return rc.gl.LINES;
+			case meshdata.PrimitiveType.LineStrip: return rc.gl.LINE_STRIP;
+			case meshdata.PrimitiveType.Triangle: return rc.gl.TRIANGLES;
+			case meshdata.PrimitiveType.TriangleStrip: return rc.gl.TRIANGLE_STRIP;
+
+			default:
+				assert(false, "Invalid PrimitiveType")
+				return rc.gl.NONE;
+		}
+	}
+
+
+	function glTypeForVertexField(rc: render.RenderContext, vf: meshdata.VertexField) {
+		switch (vf) {
+			case meshdata.VertexField.Float:
+			case meshdata.VertexField.Floatx2:
+			case meshdata.VertexField.Floatx3:
+			case meshdata.VertexField.Floatx4:
+				return rc.gl.FLOAT;
+
+			case meshdata.VertexField.UInt32:
+			case meshdata.VertexField.UInt32x2:
+			case meshdata.VertexField.UInt32x3:
+			case meshdata.VertexField.UInt32x4:
+				return rc.gl.UNSIGNED_INT;
+
+			case meshdata.VertexField.SInt32:
+			case meshdata.VertexField.SInt32x2:
+			case meshdata.VertexField.SInt32x3:
+			case meshdata.VertexField.SInt32x4:
+				return rc.gl.INT;
+
+			case meshdata.VertexField.UInt16x2:
+			case meshdata.VertexField.Norm_UInt16x2:
+			case meshdata.VertexField.UInt16x3:
+			case meshdata.VertexField.Norm_UInt16x3:
+			case meshdata.VertexField.UInt16x4:
+			case meshdata.VertexField.Norm_UInt16x4:
+				return rc.gl.UNSIGNED_SHORT;
+
+			case meshdata.VertexField.SInt16x2:
+			case meshdata.VertexField.Norm_SInt16x2:
+			case meshdata.VertexField.SInt16x3:
+			case meshdata.VertexField.Norm_SInt16x3:
+			case meshdata.VertexField.SInt16x4:
+			case meshdata.VertexField.Norm_SInt16x4:
+				return rc.gl.SHORT;
+
+			case meshdata.VertexField.UInt8x2:
+			case meshdata.VertexField.Norm_UInt8x2:
+			case meshdata.VertexField.UInt8x3:
+			case meshdata.VertexField.Norm_UInt8x3:
+			case meshdata.VertexField.UInt8x4:
+			case meshdata.VertexField.Norm_UInt8x4:
+				return rc.gl.UNSIGNED_BYTE;
+
+			case meshdata.VertexField.SInt8x2:
+			case meshdata.VertexField.Norm_SInt8x2:
+			case meshdata.VertexField.SInt8x3:
+			case meshdata.VertexField.Norm_SInt8x3:
+			case meshdata.VertexField.SInt8x4:
+			case meshdata.VertexField.Norm_SInt8x4:
+				return rc.gl.BYTE;
+
+			default:
+				assert(false, "Invalid mesh.VertexField");
+				return rc.gl.NONE;
+		}
+	}
+
+
+	var meshLimits = {
+		maxVertexAttributes: 0
+	};
+
+	function maxVertexAttributes(rc: render.RenderContext) {
+		if (meshLimits.maxVertexAttributes == 0) {
+			meshLimits.maxVertexAttributes = rc.gl.getParameter(rc.gl.MAX_VERTEX_ATTRIBS);
+		}
+
+		return meshLimits.maxVertexAttributes;
+	}
+
+
+	interface AttributeLocation {
+		attribute: meshdata.PositionedAttribute;
+		clientBuffer: meshdata.VertexBuffer;
+		buffer: render.Buffer;
+	}
+
+
+	const enum MeshFeatures {
+		VertexPositions = 1,
+		VertexNormals = 2,
+		VertexTangents = 4,
+		VertexUVs = 8,
+		VertexColours = 16,
+		VertexWeights = 32,
+		Indexes = 64
+	}
+
+
+	//  __  __        _    __  __                             
+	// |  \/  |___ __| |_ |  \/  |__ _ _ _  __ _ __ _ ___ _ _ 
+	// | |\/| / -_|_-< ' \| |\/| / _` | ' \/ _` / _` / -_) '_|
+	// |_|  |_\___/__/_||_|_|  |_\__,_|_||_\__,_\__, \___|_|  
+	//                                          |___/         
+
 	export type MeshInstance = Instance<MeshManager>;
 	export type MeshRange = InstanceRange<MeshManager>;
 	export type MeshSet = InstanceSet<MeshManager>;
@@ -18,35 +143,193 @@ namespace sd.world {
 
 	export class MeshManager implements ComponentManager<MeshManager> {
 		private instanceData_: container.MultiArrayBuffer;
-		private entityBase_: Int32Array;
+		private primitiveTypeBase_: ConstEnumArrayView<meshdata.PrimitiveType>;
+		private glPrimitiveTypeBase_: Int32Array;
+		private glIndexElementTypeBase_: Int32Array;
+		private indexElementSizeBytesBase_: Int32Array;
+		private buffersOffsetCountBase_: Int32Array;
+		private attrsOffsetCountBase_: Int32Array;
+
+		private bufferData_: container.MultiArrayBuffer;
+		private bufGLTargetBase_: Int32Array;
+		private bufGLBuffers_: (WebGLBuffer | null)[];
+
+		private attributeData_: container.MultiArrayBuffer;
+		private attrBufferIndexBase_: Int32Array;
+		private attrVertexFieldBase_: ConstEnumArrayView<meshdata.VertexField>;
+		private attrFieldOffsetBase_: Int32Array;
+		private attrStrideBase_: Int32Array;
+
+		private primGroupData_: container.MultiArrayBuffer;
+		private pgFeaturesBase_: Int32Array;
+		private pgFromPrimIxBase_: Int32Array;
+		private pgPrimCountBase_: Int32Array;
+		private pgMaterialBase_: Int32Array;
+
 		private entityMap_: Map<Entity, MeshInstance>;
 
-		
+/*
+		private pipelineVAOMaps_: WeakMap<Pipeline, WebGLVertexArrayObjectOES> | null = null;
+		private attributes_ = new Map<meshdata.VertexAttributeRole, AttributeLocation>();
+*/
+
 		constructor(private rctx_: render.RenderContext) {
 			var instanceFields: container.MABField[] = [
-				{ type: SInt32, count: 1 }, // entity
+				{ type: SInt32, count: 1 }, // primitiveType
+				{ type: SInt32, count: 1 }, // glPrimitiveType
+				{ type: SInt32, count: 1 }, // glIndexElementType
+				{ type: SInt32, count: 1 }, // glIndexElementSizeBytes
+				{ type: SInt32, count: 2 }, // buffersOffsetCount ([0]: offset, [1]: count)
+				{ type: SInt32, count: 2 }, // attrsOffsetCount ([0]: offset, [1]: count)
 			];
-			this.instanceData_ = new container.MultiArrayBuffer(2048, instanceFields);
-			this.entityMap_ = new Map<Entity, MeshInstance>();
+			this.instanceData_ = new container.MultiArrayBuffer(1024, instanceFields);
+			this.rebaseInstances();
 
-			this.rebase();
+			var bufferFields: container.MABField[] = [
+				{ type: SInt32, count: 1 }, // glTarget
+			];
+			this.bufferData_ = new container.MultiArrayBuffer(1024, bufferFields);
+			this.bufGLBuffers_ = [];
+			this.rebaseBuffers();
+
+			var attrFields: container.MABField[] = [
+				{ type: SInt32, count: 1 }, // bufferIndex
+				{ type: SInt32, count: 1 }, // vertexField
+				{ type: SInt32, count: 1 }, // fieldOffset
+				{ type: SInt32, count: 1 }, // stride
+			];
+			this.attributeData_ = new container.MultiArrayBuffer(4096, attrFields);
+			this.rebaseAttributes();
+
+			var pgFields: container.MABField[] = [
+				{ type: SInt32, count: 1 }, // features
+				{ type: SInt32, count: 1 }, // fromPrimIx
+				{ type: SInt32, count: 1 }, // primCount
+				{ type: SInt32, count: 1 }, // materialIx - mesh-local zero-based material indexes
+			];
+			this.primGroupData_ = new container.MultiArrayBuffer(4096, pgFields);
+			this.rebasePrimGroups();
+
+			this.entityMap_ = new Map<Entity, MeshInstance>();
 		}
 
 
-		rebase() {
-			this.entityBase_ = this.instanceData_.indexedFieldView(0);
+		rebaseInstances() {
+			this.primitiveTypeBase_ = this.instanceData_.indexedFieldView(0);
+			this.glPrimitiveTypeBase_ = this.instanceData_.indexedFieldView(1);
+			this.glIndexElementTypeBase_ = this.instanceData_.indexedFieldView(2);
+			this.indexElementSizeBytesBase_ = this.instanceData_.indexedFieldView(3);
+			this.buffersOffsetCountBase_ = this.instanceData_.indexedFieldView(4);
+			this.attrsOffsetCountBase_ = this.instanceData_.indexedFieldView(5);
+		}
+
+
+		rebaseBuffers() {
+			this.bufGLTargetBase_ = this.bufferData_.indexedFieldView(0);
+		}
+
+
+		rebaseAttributes() {
+			this.attrBufferIndexBase_ = this.attributeData_.indexedFieldView(0);
+			this.attrVertexFieldBase_ = this.attributeData_.indexedFieldView(1);
+			this.attrFieldOffsetBase_ = this.attributeData_.indexedFieldView(2);
+			this.attrStrideBase_ = this.attributeData_.indexedFieldView(3);
+		}
+
+
+		rebasePrimGroups() {
+			this.pgFeaturesBase_ = this.bufferData_.indexedFieldView(0);
+			this.pgFromPrimIxBase_ = this.bufferData_.indexedFieldView(1);
+			this.pgPrimCountBase_ = this.bufferData_.indexedFieldView(2);
+			this.pgMaterialBase_ = this.bufferData_.indexedFieldView(3);
 		}
 
 
 		create(entity: Entity, meshData: meshdata.MeshData): MeshInstance {
+			const gl = this.rctx_.gl;
+
+			// -- ensure space in instance and dependent arrays
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
-				this.rebase();
+				this.rebaseInstances();
 			}
-			var ix = this.instanceData_.count;
+			const instance = this.instanceData_.count;
 
+			const bufferCount = meshData.vertexBuffers.length + (meshData.indexBuffer !== null ? 1 : 0);
+			var bufferIndex = this.bufferData_.count;
+			if (this.bufferData_.resize(bufferIndex + bufferCount) === container.InvalidatePointers.Yes) {
+				this.rebaseBuffers();
+			}
+
+			const attrCount = meshData.vertexBuffers.map(vb => vb.attributeCount).reduce((sum, vbac) => sum + vbac, 0);
+			var attrIndex = this.attributeData_.count;
+			if (this.attributeData_.resize(attrIndex + attrCount) === container.InvalidatePointers.Yes) {
+				this.rebaseAttributes();
+			}
+
+
+			for (var vertexBuffer of meshData.vertexBuffers) {
+				let glBuf = gl.createBuffer(); // FIXME: could fail
+				gl.bindBuffer(gl.ARRAY_BUFFER, glBuf);
+				gl.bufferData(gl.ARRAY_BUFFER, vertexBuffer.bufferView()!, gl.STATIC_DRAW); // FIXME: bufferView could be null
+				this.bufGLBuffers_[bufferIndex] = glBuf;
+
+				// -- build attribute info map
+				for (let aix = 0; aix < vertexBuffer.attributeCount; ++aix) {
+					let attr = vertexBuffer.attrByIndex(aix)!;
+
+					this.attrBufferIndexBase_[attrIndex] = bufferIndex;
+					this.attrVertexFieldBase_[attrIndex] = attr.field;
+					this.attrFieldOffsetBase_[attrIndex] = attr.offset;
+					this.attrStrideBase_[attrIndex] = vertexBuffer.strideBytes;
+
+					attrIndex += 1;
+				}
+
+				bufferIndex += 1;
+			}
+
+			if (meshData.indexBuffer) {
+				let glBuf = gl.createBuffer();
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glBuf);
+				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshData.indexBuffer.bufferView()!, gl.STATIC_DRAW); // FIXME: bufferView could be null
+				this.bufGLBuffers_[bufferIndex] = glBuf;
 			
+				// -- precompute some info required for draw calls
+				this.primitiveTypeBase_[instance] = meshData.indexBuffer.primitiveType;
+				this.glIndexElementTypeBase_[instance] = glTypeForIndexElementType(this.rctx_, meshData.indexBuffer.indexElementType);
+				this.indexElementSizeBytesBase_[instance] = meshData.indexBuffer.indexElementSizeBytes;
 
-			return ix;
+				bufferIndex += 1;
+			}
+			else {
+				this.primitiveTypeBase_[instance] = meshdata.PrimitiveType.Triangle;
+			}
+
+			this.glPrimitiveTypeBase_[instance] = glTypeForPrimitiveType(this.rctx_, this.primitiveTypeBase_[instance]);
+
+
+			// -- primitive groups
+			const primGroupCount = meshData.primitiveGroups.length;
+			assert(primGroupCount > 0, "No primitive groups present in meshData");
+			var primGroupIndex = this.primGroupData_.count;
+			if (this.primGroupData_.resize(primGroupIndex + primGroupCount) === container.InvalidatePointers.Yes) {
+				this.rebasePrimGroups();
+			}
+
+			for (let pg of meshData.primitiveGroups) {
+				this.pgFeaturesBase_[primGroupIndex] = 0;
+				this.pgFromPrimIxBase_[primGroupIndex] = pg.fromPrimIx;
+				this.pgPrimCountBase_[primGroupIndex] = pg.primCount;
+				this.pgMaterialBase_[primGroupIndex] = pg.materialIx;
+
+				primGroupIndex += 1;
+			}
+
+			// if (this.rctx_.extVAO) {
+			// 	this.pipelineVAOMap_ = new WeakMap<render.Pipeline, WebGLVertexArrayObjectOES>();
+			// }
+
+			return instance;
 		}
 
 
@@ -79,7 +362,6 @@ namespace sd.world {
 
 
 		// -- single instance getters
-		entity(inst: MeshInstance): Entity { return this.entityBase_[<number>inst]; }
 	}
 
 } // ns sd.world
