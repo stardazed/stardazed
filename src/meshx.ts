@@ -121,7 +121,7 @@ namespace sd.world {
 	}
 
 
-	interface MeshAttributeData {
+	export interface MeshAttributeData {
 		buffer: WebGLBuffer;
 		vertexField: meshdata.VertexField;
 		offset: number;
@@ -152,8 +152,6 @@ namespace sd.world {
 		private buffersOffsetCountBase_: Int32Array;
 		private attrsOffsetCountBase_: Int32Array;
 
-		private bufferData_: container.MultiArrayBuffer;
-		private bufGLTargetBase_: Int32Array;
 		private bufGLBuffers_: (WebGLBuffer | null)[];
 
 		private attributeData_: container.MultiArrayBuffer;
@@ -184,13 +182,6 @@ namespace sd.world {
 			];
 			this.instanceData_ = new container.MultiArrayBuffer(1024, instanceFields);
 			this.rebaseInstances();
-
-			var bufferFields: container.MABField[] = [
-				{ type: SInt32, count: 1 }, // glTarget
-			];
-			this.bufferData_ = new container.MultiArrayBuffer(1024, bufferFields);
-			this.bufGLBuffers_ = [];
-			this.rebaseBuffers();
 
 			var attrFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // role
@@ -229,11 +220,6 @@ namespace sd.world {
 		}
 
 
-		rebaseBuffers() {
-			this.bufGLTargetBase_ = this.bufferData_.indexedFieldView(0);
-		}
-
-
 		rebaseAttributes() {
 			this.attrRoleBase_ = this.attributeData_.indexedFieldView(0);
 			this.attrBufferIndexBase_ = this.attributeData_.indexedFieldView(1);
@@ -262,10 +248,7 @@ namespace sd.world {
 			var meshFeatures: MeshFeatures = 0;
 
 			const bufferCount = meshData.vertexBuffers.length + (meshData.indexBuffer !== null ? 1 : 0);
-			var bufferIndex = this.bufferData_.count;
-			if (this.bufferData_.resize(bufferIndex + bufferCount) === container.InvalidatePointers.Yes) {
-				this.rebaseBuffers();
-			}
+			var bufferIndex = this.bufGLBuffers_.length;
 			container.setIndexedVec2(this.buffersOffsetCountBase_, instance, [bufferIndex, bufferCount]);
 
 			const attrCount = meshData.vertexBuffers.map(vb => vb.attributeCount).reduce((sum, vbac) => sum + vbac, 0);
@@ -281,7 +264,6 @@ namespace sd.world {
 				gl.bindBuffer(gl.ARRAY_BUFFER, glBuf);
 				gl.bufferData(gl.ARRAY_BUFFER, vertexBuffer.bufferView()!, gl.STATIC_DRAW); // FIXME: bufferView could be null
 				this.bufGLBuffers_[bufferIndex] = glBuf;
-				this.bufGLTargetBase_[bufferIndex] = gl.ARRAY_BUFFER;
 
 				// -- build attribute info map
 				for (let aix = 0; aix < vertexBuffer.attributeCount; ++aix) {
@@ -316,7 +298,6 @@ namespace sd.world {
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glBuf);
 				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshData.indexBuffer.bufferView()!, gl.STATIC_DRAW); // FIXME: bufferView could be null
 				this.bufGLBuffers_[bufferIndex] = glBuf;
-				this.bufGLTargetBase_[bufferIndex] = gl.ELEMENT_ARRAY_BUFFER;
 			
 				this.primitiveTypeBase_[instance] = meshData.indexBuffer.primitiveType;
 				this.glIndexElementTypeBase_[instance] = glTypeForIndexElementType(this.rctx_, meshData.indexBuffer.indexElementType);
@@ -411,26 +392,6 @@ namespace sd.world {
 		}
 
 
-		private meshAttributesData(inst: MeshInstance): Map<meshdata.VertexAttributeRole, MeshAttributeData> {
-			const attrs = new Map<meshdata.VertexAttributeRole, MeshAttributeData>();
-			const meshIx = <number>inst;
-			const offsetCount = container.copyIndexedVec2(this.attrsOffsetCountBase_, meshIx);
-
-			for (let aix = 0; aix < offsetCount[1]; ++aix) {
-				let attrOffset = aix + offsetCount[0];
-
-				attrs.set(this.attrRoleBase_[attrOffset], {
-					buffer: this.bufGLBuffers_[this.attrBufferIndexBase_[attrOffset]]!,
-					vertexField: this.attrVertexFieldBase_[attrOffset],
-					offset: this.attrFieldOffsetBase_[attrOffset],
-					stride: this.attrStrideBase_[attrOffset]
-				});
-			}
-
-			return attrs;
-		}
-
-
 		bind(inst: MeshInstance, toPipeline: render.Pipeline) {
 			const meshIx = <number>inst;
 			const gl = this.rctx_.gl;
@@ -458,7 +419,7 @@ namespace sd.world {
 			if (needBinding) {
 				let roleIndexes = toPipeline.attributePairs();
 				let pair = roleIndexes.next();
-				let attributes = this.meshAttributesData(inst);
+				let attributes = this.attributes(inst);
 
 				while (! pair.done) {
 					var attrRole = pair.value![0];
@@ -493,20 +454,46 @@ namespace sd.world {
 			}
 			else {
 				// -- explicitly disable all attributes specified in the pipeline
+				const gl = this.rctx_.gl;
 				var roleIndexes = fromPipeline.attributePairs();
 				var pair = roleIndexes.next();
 
 				while (! pair.done) {
 					var attrIndex = pair.value![1];
-					this.rctx_.gl.disableVertexAttribArray(attrIndex);
+					gl.disableVertexAttribArray(attrIndex);
 					pair = roleIndexes.next();
 				}
+
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 			}
 		}
 
 
 		// -- single instance getters
 
+		attributes(inst: MeshInstance): Map<meshdata.VertexAttributeRole, MeshAttributeData> {
+			const attrs = new Map<meshdata.VertexAttributeRole, MeshAttributeData>();
+			const meshIx = <number>inst;
+			const offsetCount = container.copyIndexedVec2(this.attrsOffsetCountBase_, meshIx);
+
+			for (let aix = 0; aix < offsetCount[1]; ++aix) {
+				let attrOffset = aix + offsetCount[0];
+
+				attrs.set(this.attrRoleBase_[attrOffset], {
+					buffer: this.bufGLBuffers_[this.attrBufferIndexBase_[attrOffset]]!,
+					vertexField: this.attrVertexFieldBase_[attrOffset],
+					offset: this.attrFieldOffsetBase_[attrOffset],
+					stride: this.attrStrideBase_[attrOffset]
+				});
+			}
+
+			return attrs;
+		}
+
+
+		primitiveGroups(inst: MeshInstance) {
+
+		}
 	}
 
 } // ns sd.world
