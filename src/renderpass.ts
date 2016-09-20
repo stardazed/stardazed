@@ -11,8 +11,8 @@
 
 namespace sd.render {
 
-	export function runRenderPass(rc: RenderContext, rpDesc: RenderPassDescriptor, frameBuffer: FrameBuffer | null, passFunc: (rp: RenderPass) => void) {
-		var rp = new RenderPass(rc, rpDesc, frameBuffer);
+	export function runRenderPass(rc: RenderContext, meshMgr: world.MeshManager, rpDesc: RenderPassDescriptor, frameBuffer: FrameBuffer | null, passFunc: (rp: RenderPass) => void) {
+		var rp = new RenderPass(rc, meshMgr, rpDesc, frameBuffer);
 		rp.setup();
 		passFunc(rp);
 		rp.teardown();
@@ -46,9 +46,12 @@ namespace sd.render {
 
 	export class RenderPass {
 		private pipeline_: Pipeline | null = null;
-		private mesh_: Mesh | null = null;
+		private mesh_: world.MeshInstance = 0;
 
-		constructor(private rc: RenderContext, private desc_: RenderPassDescriptor, private frameBuffer_: FrameBuffer | null = null) {
+		// TEMPORARY: this class will be broken up, so as of now this stuff is all hacky and deprecated
+		// with dependencies up the wazoo
+
+		constructor(private rc: RenderContext, private meshMgr_: world.MeshManager, private desc_: RenderPassDescriptor, private frameBuffer_: FrameBuffer | null = null) {
 			assert(desc_.clearColour.length >= 4);
 		}
 
@@ -110,9 +113,9 @@ namespace sd.render {
 
 			if (this.mesh_) {
 				if (this.pipeline_) {
-					this.mesh_.unbind(this.pipeline_);
+					this.meshMgr_.unbind(this.mesh_, this.pipeline_);
 				}
-				this.mesh_ = null;
+				this.mesh_ = 0;
 			}
 			if (this.pipeline_) {
 				this.pipeline_.unbind();
@@ -126,7 +129,7 @@ namespace sd.render {
 		}
 
 
-		setMesh(mesh: Mesh | null) {
+		setMesh(mesh: world.MeshInstance) {
 			if (! this.pipeline_) {
 				assert(false, "You must set the Pipeline before setting the Mesh");
 				return;
@@ -137,11 +140,11 @@ namespace sd.render {
 
 			if (this.mesh_ && ! mesh) {
 				// only need to explicitly unbind if there is no replacement mesh
-				this.mesh_.unbind(this.pipeline_);
+				this.meshMgr_.unbind(this.mesh_, this.pipeline_);
 			}
 			this.mesh_ = mesh;
 			if (this.mesh_) {
-				this.mesh_.bind(this.pipeline_);
+				this.meshMgr_.bind(this.mesh_, this.pipeline_);
 			}
 		}
 
@@ -230,7 +233,7 @@ namespace sd.render {
 
 		// -- drawing
 		drawPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
-			var activeMesh = this.mesh_!;
+			var activeMesh = this.mesh_;
 			var glPrimitiveType = activeMesh.primitiveType;
 			var startVertex = meshdata.indexOffsetForPrimitiveCount(activeMesh.primitiveType, startPrimitive);
 			var vertexCount = meshdata.indexCountForPrimitiveCount(activeMesh.primitiveType, primitiveCount);

@@ -720,9 +720,7 @@ namespace sd.world {
 	export type StdModelArrayView = InstanceArrayView<StdModelManager>;
 
 	export interface StdModelDescriptor {
-		mesh: render.Mesh;
 		materials: StdMaterialInstance[];
-
 		castsShadows?: boolean;
 		acceptsShadows?: boolean;
 	}
@@ -753,10 +751,8 @@ namespace sd.world {
 		private primGroupOffsetBase_: Int32Array;
 
 		private primGroupData_: container.MultiArrayBuffer;
-		private primGroupMaterialBase_: TypedArray;
-		private primGroupFeatureBase_: TypedArray;
-
-		private meshes_: render.Mesh[] = [];
+		private primGroupMaterialBase_: Int32Array;
+		private primGroupFeatureBase_: ConstEnumArrayView<Features>;
 
 		// -- for light uniform updates
 		private lightTypeArray_ = new Int32Array(MAX_FRAGMENT_LIGHTS);
@@ -779,6 +775,7 @@ namespace sd.world {
 		constructor(
 			private rc: render.RenderContext,
 			private transformMgr_: TransformManager,
+			private meshMgr_: MeshManager,
 			private materialMgr_: StdMaterialManager,
 			private lightMgr_: LightManager
 		)
@@ -820,11 +817,12 @@ namespace sd.world {
 		}
 
 
-		private featuresForMeshAndMaterial(mesh: render.Mesh, material: StdMaterialInstance): Features {
+		private featuresForMeshAndMaterial(mesh: MeshInstance, material: StdMaterialInstance): Features {
 			var features = 0;
 
-			if (mesh.hasAttributeOfRole(meshdata.VertexAttributeRole.Colour)) features |= Features.VtxColour;
-			if (mesh.hasAttributeOfRole(meshdata.VertexAttributeRole.UV)) features |= Features.VtxUV;
+			const meshFeatures = this.meshMgr_.features(mesh);
+			if (meshFeatures & MeshFeatures.VertexColours) features |= Features.VtxColour;
+			if (meshFeatures & MeshFeatures.VertexUVs) features |= Features.VtxUV;
 
 			var matFlags = this.materialMgr_.flags(material);
 			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;
@@ -874,29 +872,28 @@ namespace sd.world {
 			this.entityBase_[ix] = <number>entity;
 			this.transformBase_[ix] = <number>this.transformMgr_.forEntity(entity);
 			this.enabledBase_[ix] = +true;
-			this.meshes_[ix] = desc.mesh;
 			this.shadowFlagBase_[ix] = 0;
 
 			// -- check correctness of mesh against material list
-			var groups = desc.mesh.primitiveGroups;
-			var maxLocalMatIndex = groups.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
-			assert(desc.materials.length >= maxLocalMatIndex - 1, "not enough StdMaterialIndexes for this mesh");
+			// var groups = desc.mesh.primitiveGroups;
+			// var maxLocalMatIndex = groups.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
+			// assert(desc.materials.length >= maxLocalMatIndex - 1, "not enough StdMaterialIndexes for this mesh");
 
 			// -- pre-calc global material indexes and program features for each group
-			var primGroupCount = this.primGroupData_.count;
-			this.primGroupOffsetBase_[ix] = this.primGroupData_.count;
+			// var primGroupCount = this.primGroupData_.count;
+			// this.primGroupOffsetBase_[ix] = this.primGroupData_.count;
 
 			// -- grow primitiveGroup metadata buffer when necessary
-			if (this.primGroupData_.resize(primGroupCount + groups.length) == container.InvalidatePointers.Yes) {
-				this.groupRebase();
-			}
+			// if (this.primGroupData_.resize(primGroupCount + groups.length) == container.InvalidatePointers.Yes) {
+			// 	this.groupRebase();
+			// }
 
 			// -- append metadata for each primGroup
-			groups.forEach((group, gix) => {
-				this.primGroupFeatureBase_[primGroupCount] = this.featuresForMeshAndMaterial(desc.mesh, desc.materials[group.materialIx]);
-				this.primGroupMaterialBase_[primGroupCount] = <number>desc.materials[group.materialIx];
-				++primGroupCount;
-			});
+			// groups.forEach((group, gix) => {
+			// 	this.primGroupFeatureBase_[primGroupCount] = this.featuresForMeshAndMaterial(desc.mesh, desc.materials[group.materialIx]);
+			// 	this.primGroupMaterialBase_[primGroupCount] = <number>desc.materials[group.materialIx];
+			// 	++primGroupCount;
+			// });
 
 			return ix;
 		}
@@ -933,10 +930,6 @@ namespace sd.world {
 
 		transform(inst: StdModelInstance): TransformInstance {
 			return this.transformBase_[<number>inst];
-		}
-
-		mesh(inst: StdModelInstance) {
-			return this.meshes_[<number>inst];
 		}
 
 		enabled(inst: StdModelInstance): boolean {

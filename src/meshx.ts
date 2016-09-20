@@ -110,7 +110,7 @@ namespace sd.world {
 	}
 
 
-	const enum MeshFeatures {
+	export const enum MeshFeatures {
 		VertexPositions = 1,
 		VertexNormals = 2,
 		VertexTangents = 4,
@@ -380,7 +380,7 @@ namespace sd.world {
 		}
 
 
-		// -- actions
+		// -- binding
 
 		private bindSingleAttribute(attr: MeshAttributeData, toVAIndex: number) {
 			var elementCount = meshdata.vertexFieldElementCount(attr.vertexField);
@@ -448,7 +448,7 @@ namespace sd.world {
 		}
 
 
-		unbind(fromPipeline: render.Pipeline) {
+		unbind(_inst: MeshInstance, fromPipeline: render.Pipeline) {
 			if (this.pipelineVAOMaps_) {
 				this.rctx_.extVAO.bindVertexArrayOES(null);
 			}
@@ -466,6 +466,13 @@ namespace sd.world {
 
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 			}
+		}
+
+
+		// -- drawing
+
+		draw(inst: MeshInstance) {
+			
 		}
 
 
@@ -493,6 +500,11 @@ namespace sd.world {
 
 		primitiveGroups(inst: MeshInstance) {
 
+		}
+
+
+		features(inst: MeshInstance): MeshFeatures {
+			return this.featuresBase_[<number>inst];
 		}
 	}
 
