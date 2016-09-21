@@ -147,10 +147,12 @@ namespace sd.world {
 		private featuresBase_: ConstEnumArrayView<MeshFeatures>;
 		private primitiveTypeBase_: ConstEnumArrayView<meshdata.PrimitiveType>;
 		private glPrimitiveTypeBase_: Int32Array;
+		private totalPrimitiveCountBase_: Int32Array;
 		private glIndexElementTypeBase_: Int32Array;
 		private indexElementSizeBytesBase_: Int32Array;
 		private buffersOffsetCountBase_: Int32Array;
 		private attrsOffsetCountBase_: Int32Array;
+		private primGroupsOffsetCountBase_: Int32Array;
 
 		private bufGLBuffers_: (WebGLBuffer | null)[];
 
@@ -175,10 +177,12 @@ namespace sd.world {
 				{ type: SInt32, count: 1 }, // features
 				{ type: SInt32, count: 1 }, // primitiveType
 				{ type: SInt32, count: 1 }, // glPrimitiveType
+				{ type: SInt32, count: 1 }, // totalPrimitiveCount
 				{ type: SInt32, count: 1 }, // glIndexElementType
 				{ type: SInt32, count: 1 }, // glIndexElementSizeBytes
 				{ type: SInt32, count: 2 }, // buffersOffsetCount ([0]: offset, [1]: count)
 				{ type: SInt32, count: 2 }, // attrsOffsetCount ([0]: offset, [1]: count)
+				{ type: SInt32, count: 2 }, // primGroupsOffsetCount ([0]: offset, [1]: count)
 			];
 			this.instanceData_ = new container.MultiArrayBuffer(1024, instanceFields);
 			this.rebaseInstances();
@@ -201,6 +205,8 @@ namespace sd.world {
 			this.primGroupData_ = new container.MultiArrayBuffer(4096, pgFields);
 			this.rebasePrimGroups();
 
+			this.bufGLBuffers_ = [];
+
 			this.entityMap_ = new Map<Entity, MeshInstance>();
 
 			if (rctx_.extVAO) {
@@ -213,10 +219,12 @@ namespace sd.world {
 			this.featuresBase_ = this.instanceData_.indexedFieldView(0);
 			this.primitiveTypeBase_ = this.instanceData_.indexedFieldView(1);
 			this.glPrimitiveTypeBase_ = this.instanceData_.indexedFieldView(2);
-			this.glIndexElementTypeBase_ = this.instanceData_.indexedFieldView(3);
-			this.indexElementSizeBytesBase_ = this.instanceData_.indexedFieldView(4);
-			this.buffersOffsetCountBase_ = this.instanceData_.indexedFieldView(5);
-			this.attrsOffsetCountBase_ = this.instanceData_.indexedFieldView(6);
+			this.totalPrimitiveCountBase_ = this.instanceData_.indexedFieldView(3);
+			this.glIndexElementTypeBase_ = this.instanceData_.indexedFieldView(4);
+			this.indexElementSizeBytesBase_ = this.instanceData_.indexedFieldView(5);
+			this.buffersOffsetCountBase_ = this.instanceData_.indexedFieldView(6);
+			this.attrsOffsetCountBase_ = this.instanceData_.indexedFieldView(7);
+			this.primGroupsOffsetCountBase_ = this.instanceData_.indexedFieldView(8);
 		}
 
 
@@ -321,16 +329,20 @@ namespace sd.world {
 			if (this.primGroupData_.resize(primGroupIndex + primGroupCount) === container.InvalidatePointers.Yes) {
 				this.rebasePrimGroups();
 			}
+			container.setIndexedVec2(this.primGroupsOffsetCountBase_, instance, [primGroupIndex, primGroupCount]);
 
+			var totalPrimitiveCount = 0;
 			for (let pg of meshData.primitiveGroups) {
 				this.pgFromPrimIxBase_[primGroupIndex] = pg.fromPrimIx;
 				this.pgPrimCountBase_[primGroupIndex] = pg.primCount;
 				this.pgMaterialBase_[primGroupIndex] = pg.materialIx;
 
+				totalPrimitiveCount += pg.primCount;
 				primGroupIndex += 1;
 			}
 
 			// -- store mesh features accumulated during the creation process
+			this.totalPrimitiveCountBase_[instance] = totalPrimitiveCount;
 			this.featuresBase_[instance] = meshFeatures;
 
 			// -- we weakly link Pipelines to VAO mappings per mesh, see bind()
@@ -440,9 +452,16 @@ namespace sd.world {
 
 				if (this.featuresBase_[meshIx] & MeshFeatures.Indexes) {
 					// the index buffer, when present, is the last buffer in the list
-					let bufOC = container.copyIndexedVec2(this.buffersOffsetCountBase_, meshIx);
-					let indexBuffer = this.bufGLBuffers_[bufOC[0] + bufOC[1] - 1];
+					const bufOC = container.copyIndexedVec2(this.buffersOffsetCountBase_, meshIx);
+					const indexBuffer = this.bufGLBuffers_[bufOC[0] + bufOC[1] - 1];
 					gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+					// DEBUG
+					const bufferSize = gl.getBufferParameter(gl.ELEMENT_ARRAY_BUFFER, gl.BUFFER_SIZE);
+					const expectedBufferSize = this.indexElementSizeBytesBase_[meshIx] * meshdata.indexCountForPrimitiveCount(this.primitiveTypeBase_[meshIx], this.totalPrimitiveCountBase_[meshIx]);
+					if (bufferSize < expectedBufferSize) {
+						debugger;
+					}
 				}
 			}
 		}
@@ -469,13 +488,6 @@ namespace sd.world {
 		}
 
 
-		// -- drawing
-
-		draw(inst: MeshInstance) {
-			
-		}
-
-
 		// -- single instance getters
 
 		attributes(inst: MeshInstance): Map<meshdata.VertexAttributeRole, MeshAttributeData> {
@@ -499,13 +511,31 @@ namespace sd.world {
 
 
 		primitiveGroups(inst: MeshInstance) {
+			const primGroups: meshdata.PrimitiveGroup[] = [];
+			const meshIx = <number>inst;
+			const offsetCount = container.copyIndexedVec2(this.primGroupsOffsetCountBase_, meshIx);
 
+			for (let pgix = 0; pgix < offsetCount[1]; ++pgix) {
+				const pgOffset = pgix + offsetCount[0];
+
+				primGroups.push({
+					fromPrimIx: this.pgFromPrimIxBase_[pgOffset],
+					primCount: this.pgPrimCountBase_[pgOffset],
+					materialIx: this.pgMaterialBase_[pgOffset]
+				});
+			}
+			return primGroups;
 		}
 
 
-		features(inst: MeshInstance): MeshFeatures {
-			return this.featuresBase_[<number>inst];
-		}
+		features(inst: MeshInstance): MeshFeatures { return this.featuresBase_[<number>inst]; }
+
+		primitiveType(inst: MeshInstance) { return this.primitiveTypeBase_[<number>inst]; }
+		glPrimitiveType(inst: MeshInstance) { return this.glPrimitiveTypeBase_[<number>inst]; }
+		totalPrimitiveCount(inst: MeshInstance) { return this.totalPrimitiveCountBase_[<number>inst]; }
+
+		glIndexElementType(inst: MeshInstance) { return this.glIndexElementTypeBase_[<number>inst]; }
+		indexElementSizeBytes(inst: MeshInstance) { return this.indexElementSizeBytesBase_[<number>inst]; }
 	}
 
 } // ns sd.world
