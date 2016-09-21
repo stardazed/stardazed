@@ -234,9 +234,9 @@ namespace sd.render {
 		// -- drawing
 		drawPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
 			var activeMesh = this.mesh_;
-			var glPrimitiveType = activeMesh.primitiveType;
-			var startVertex = meshdata.indexOffsetForPrimitiveCount(activeMesh.primitiveType, startPrimitive);
-			var vertexCount = meshdata.indexCountForPrimitiveCount(activeMesh.primitiveType, primitiveCount);
+			var glPrimitiveType = this.meshMgr_.glPrimitiveType(activeMesh);
+			var startVertex = meshdata.indexOffsetForPrimitiveCount(this.meshMgr_.primitiveType(activeMesh), startPrimitive);
+			var vertexCount = meshdata.indexCountForPrimitiveCount(this.meshMgr_.primitiveType(activeMesh), primitiveCount);
 
 			if (instanceCount == 1) {
 				this.rc.gl.drawArrays(glPrimitiveType, startVertex, vertexCount);
@@ -248,17 +248,21 @@ namespace sd.render {
 
 
 		drawIndexedPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
-			var activeMesh = this.mesh_!;
-			var glPrimitiveType = activeMesh.glPrimitiveType;
-			var startIndex = meshdata.indexOffsetForPrimitiveCount(activeMesh.primitiveType, startPrimitive);
-			var indexCount = meshdata.indexCountForPrimitiveCount(activeMesh.primitiveType, primitiveCount);
-			var offsetBytes = startIndex * activeMesh.indexElementSizeBytes;
+			var activeMesh = this.mesh_;
+			var glPrimitiveType = this.meshMgr_.glPrimitiveType(activeMesh);
+			var startIndex = meshdata.indexOffsetForPrimitiveCount(this.meshMgr_.primitiveType(activeMesh), startPrimitive);
+			var indexCount = meshdata.indexCountForPrimitiveCount(this.meshMgr_.primitiveType(activeMesh), primitiveCount);
+			var offsetBytes = startIndex * this.meshMgr_.indexElementSizeBytes(activeMesh);
 
 			if (instanceCount == 1) {
-				this.rc.gl.drawElements(glPrimitiveType, indexCount, activeMesh.glIndexElementType, offsetBytes);
+				this.rc.gl.drawElements(glPrimitiveType, indexCount, this.meshMgr_.glIndexElementType(activeMesh), offsetBytes);
+				const err = this.rc.gl.getError();
+				if (err !== this.rc.gl.NONE) {
+					debugger;
+				}
 			}
 			else {
-				this.rc.extInstancedArrays.drawElementsInstancedANGLE(glPrimitiveType, indexCount, activeMesh.glIndexElementType, offsetBytes, instanceCount);
+				this.rc.extInstancedArrays.drawElementsInstancedANGLE(glPrimitiveType, indexCount, this.meshMgr_.glIndexElementType(activeMesh), offsetBytes, instanceCount);
 			}
 		}
 	}

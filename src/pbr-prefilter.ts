@@ -133,7 +133,7 @@ namespace sd.render {
 	}
 
 
-	export function prefilteredEnvMap(rc: RenderContext, sourceEnvMap: Texture, numSamples: number) {
+	export function prefilteredEnvMap(rc: RenderContext, meshMgr: world.MeshManager, sourceEnvMap: Texture, numSamples: number) {
 		var pipeline = getPipeline(rc, numSamples);
 
 		var rpd = makeRenderPassDescriptor();
@@ -158,7 +158,8 @@ namespace sd.render {
 		}
 
 		var quad = meshdata.gen.generate(new meshdata.gen.Quad(2, 2), [meshdata.attrPosition2(), meshdata.attrUV2()]);
-		var quadMesh = new render.Mesh(rc, makeMeshDescriptor(quad));
+		// var quadMesh = new render.Mesh(rc, makeMeshDescriptor(quad));
+		const quadMesh = meshMgr.create(quad);
 
 		var levelPixels: Uint8Array[] = [];
 		var levelTextures: render.Texture[] = [];
@@ -177,7 +178,7 @@ namespace sd.render {
 				fbd.colourAttachments[0].texture = levelTextures[mip];
 				var fb = new FrameBuffer(rc, fbd);
 
-				runRenderPass(rc, rpd, fb, (rp) => {
+				runRenderPass(rc, meshMgr, rpd, fb, (rp) => {
 					rp.setPipeline(pipeline.pipeline);
 					rp.setTexture(sourceEnvMap, 0);
 					rp.setMesh(quadMesh);

@@ -7,7 +7,7 @@ namespace sd.world {
 
 	export class Skybox {
 		private meshData_: meshdata.MeshData;
-		private mesh_: render.Mesh;
+		private mesh_: MeshInstance;
 		private primitiveCount_: number;
 
 		private pipeline_: render.Pipeline;
@@ -40,7 +40,7 @@ namespace sd.world {
 		].join("\n");
 
 
-		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager, private texture_: render.Texture) {
+		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager, meshMgr: MeshManager, private texture_: render.Texture) {
 			// -- pipeline
 			var pld = render.makePipelineDescriptor();
 			pld.colourPixelFormats[0] = render.PixelFormat.RGBA8;
@@ -65,8 +65,9 @@ namespace sd.world {
 			this.meshData_ = meshdata.gen.generate(sphereGen, [meshdata.attrPosition3()]);
 			this.primitiveCount_ = this.meshData_.primitiveGroups[0].primCount;
 
-			var meshDesc = render.makeMeshDescriptor(this.meshData_);
-			this.mesh_ = new render.Mesh(rc, meshDesc);
+			// var meshDesc = render.makeMeshDescriptor(this.meshData_);
+			// this.mesh_ = new render.Mesh(rc, meshDesc);
+			this.mesh_ = meshMgr.create(this.meshData_);
 		}
 
 

@@ -8,6 +8,7 @@ namespace sd.world {
 	export interface EntityDescriptor {
 		transform?: TransformDescriptor;
 		parent?: TransformInstance;
+		mesh?: meshdata.MeshData | MeshInstance;
 		stdModel?: StdModelDescriptor;
 		pbrModel?: PBRModelDescriptor;
 		rigidBody?: RigidBodyDescriptor;
@@ -19,6 +20,7 @@ namespace sd.world {
 	export interface EntityInfo {
 		entity: Entity;
 		transform: TransformInstance;
+		mesh?: MeshInstance;
 		stdModel?: StdModelInstance;
 		pbrModel?: PBRModelInstance;
 		rigidBody?: RigidBodyInstance;
@@ -52,7 +54,7 @@ namespace sd.world {
 			this.lightMgr = new LightManager(this.transformMgr);
 			this.meshMgr = new MeshManager(rc);
 			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.meshMgr, this.stdMaterialMgr, this.lightMgr);
-			this.pbrModelMgr = new PBRModelManager(rc, this.transformMgr, this.pbrMaterialMgr, this.lightMgr);
+			this.pbrModelMgr = new PBRModelManager(rc, this.transformMgr, this.meshMgr, this.pbrMaterialMgr, this.lightMgr);
 
 			this.colliderMgr = new ColliderManager(this.physMatMgr);
 			this.rigidBodyMgr = new RigidBodyManager(this.transformMgr, this.colliderMgr);
@@ -60,11 +62,17 @@ namespace sd.world {
 
 
 		makeEntity(desc?: EntityDescriptor): EntityInfo {
-			var ent = this.entityMgr.create();
+			const ent = this.entityMgr.create();
+
+			const meshInstance = desc && desc.mesh ? ((typeof desc.mesh === "number") ? desc.mesh : this.meshMgr.create(<meshdata.MeshData>desc.mesh)) : undefined;
+			if (meshInstance) {
+				this.meshMgr.linkToEntity(meshInstance, ent);
+			}
 
 			return {
 				entity: ent,
 				transform: this.transformMgr.create(ent, desc && desc.transform, desc && desc.parent),
+				mesh: meshInstance,
 				stdModel: desc && desc.stdModel ? this.stdModelMgr.create(ent, desc.stdModel) : undefined,
 				pbrModel: desc && desc.pbrModel ? this.pbrModelMgr.create(ent, desc.pbrModel) : undefined,
 				rigidBody: desc && desc.rigidBody ? this.rigidBodyMgr.create(ent, desc.rigidBody) : undefined,
