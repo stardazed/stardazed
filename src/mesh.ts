@@ -117,7 +117,7 @@ namespace sd.render {
 	}
 
 
-	export class Mesh {
+	class Mesh_OLD {
 		private pipelineVAOMap_: WeakMap<Pipeline, WebGLVertexArrayObjectOES> | null = null;
 		private attributes_ = new Map<meshdata.VertexAttributeRole, AttributeLocation>();
 
