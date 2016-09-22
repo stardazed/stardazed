@@ -6,7 +6,6 @@
 /// <reference path="renderpass-desc.ts"/>
 /// <reference path="pipeline.ts"/>
 /// <reference path="framebuffer.ts"/>
-/// <reference path="mesh.ts"/>
 /// <reference path="rendercontext.ts"/>
 
 namespace sd.render {
