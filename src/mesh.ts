@@ -1,4 +1,4 @@
-// meshx.ts - Mesh component
+// mesh.ts - Mesh component
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
