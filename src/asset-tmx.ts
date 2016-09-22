@@ -17,7 +17,7 @@ namespace sd.asset {
 			var byteView = new Uint8Array(atob(layerText).split("").map(c => { return c.charCodeAt(0); }));
 			this.tileData = new Uint32Array(byteView.buffer);
 
-			seq(layerNode.attributes).forEach((attr, ix) => {
+			seq(layerNode.attributes).forEach(attr => {
 				if (attr.nodeName == "width") {
 					this.width = parseInt(attr.textContent || "0");
 				}
@@ -53,8 +53,8 @@ namespace sd.asset {
 
 
 	export class TMXObjectGroup {
-		constructor(groupNode: Node) {
-			// TBD
+		constructor(_groupNode: Node) {
+			// TODO: TBI
 		}
 	}
 
@@ -82,7 +82,7 @@ namespace sd.asset {
 				(dataXML: XMLDocument) => {
 					var tileDoc = dataXML.childNodes[0];
 
-					seq(tileDoc.attributes).forEach((attr, ix) => {
+					seq(tileDoc.attributes).forEach(attr => {
 						if (attr.nodeName == "width")
 							this.width_ = parseInt(attr.textContent || "0");
 						if (attr.nodeName == "height")

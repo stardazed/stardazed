@@ -5,7 +5,7 @@
 
 namespace sd.asset {
 
-	function parseMTLSource(group: AssetGroup, filePath: string, text: string) {
+	function parseMTLSource(group: AssetGroup, _filePath: string, text: string) {
 		const lines = text.split("\n");
 		var curMat: Material | null = null;
 		var tokens: string[] = [];
@@ -81,7 +81,7 @@ namespace sd.asset {
 							if (checkArgCount(1)) {
 								var texAsset: Texture2D = {
 									name: curMat.name + "_" + directive,
-									filePath: tokens[1],
+									filePath: tokens[1], // FIXME: resolve to filePath (arg) relative path
 									useMipMaps: render.UseMipMaps.Yes
 								};
 								if (directive === "map_Kd") { curMat.albedoTexture = texAsset; }
@@ -128,7 +128,7 @@ namespace sd.asset {
 	}
 
 
-	function preflightOBJSource(group: AssetGroup, filePath: string, text: string, hasColourAttr: boolean) {
+	function preflightOBJSource(group: AssetGroup, filePath: string, text: string) {
 		var mtlFileName = "";
 		var preproc: OBJPreProcSource = {
 			lines: [],
@@ -309,7 +309,7 @@ namespace sd.asset {
 		var group = new AssetGroup();
 
 		return loadFile(filePath).then((text: string) => {
-			return preflightOBJSource(group, filePath, text, materialsAsColours);
+			return preflightOBJSource(group, filePath, text);
 		})
 		.then(preproc => {
 			parseOBJSource(group, preproc, materialsAsColours);

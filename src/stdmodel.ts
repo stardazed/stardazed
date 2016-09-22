@@ -924,7 +924,7 @@ namespace sd.world {
 		}
 
 
-		destroy(inst: StdModelInstance) {
+		destroy(_inst: StdModelInstance) {
 		}
 
 

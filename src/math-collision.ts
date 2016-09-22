@@ -94,7 +94,8 @@ namespace sd.math {
 	}
 
 
-	export function planesOfTransformedBox(center: Float3, size: Float3, transMat4: Float4x4): Plane[] {
+	export function planesOfTransformedBox(center: Float3, size: Float3, _transMat4: Float4x4): Plane[] {
+		// FIXME: investigate what the transMat4 was meant for again
 		var planes: Plane[] = [];
 		var extents = vec3.scale([], size, 0.5);
 

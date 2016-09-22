@@ -162,7 +162,7 @@ namespace sd.asset {
 				this.assets_ = new AssetGroup();
 			}
 
-			jointCount(count: number) {}
+			jointCount(_count: number) {}
 
 			beginJoints() {}
 
@@ -203,7 +203,7 @@ namespace sd.asset {
 			}
 
 
-			meshCount(count: number) {}
+			meshCount(_count: number) {}
 
 
 			beginMesh() {
@@ -448,7 +448,7 @@ namespace sd.asset {
 			}
 
 			frameCount(count: number) { this.frameCount_ = count; }
-			jointCount(count: number) { }
+			jointCount(_count: number) { }
 			frameRate(fps: number) { this.frameRate_ = fps; }
 			frameComponentCount(count: number) { this.compCount_ = count; }
 
@@ -490,7 +490,7 @@ namespace sd.asset {
 
 
 			beginHierarchy() { }
-			joint(name: string, index: number, parentIndex: number, animMask: parse.MD5AnimMask, componentOffset: number) {
+			joint(name: string, index: number, parentIndex: number, animMask: parse.MD5AnimMask, _componentOffset: number) {
 				var j: AnimJoint = {
 					name: name,
 					index: index,
@@ -504,7 +504,7 @@ namespace sd.asset {
 
 
 			beginBoundingBoxes() { }
-			bounds(frameIndex: number, min: Float3, max: Float3) {
+			bounds(_frameIndex: number, _min: Float3, _max: Float3) {
 			}
 			endBoundingBoxes() { }
 

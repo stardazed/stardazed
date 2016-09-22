@@ -99,7 +99,7 @@ namespace sd.world {
 		}
 
 
-		destroy(inst: RigidBodyInstance) {
+		destroy(_inst: RigidBodyInstance) {
 		}
 
 		destroyRange(range: RigidBodyRange) {

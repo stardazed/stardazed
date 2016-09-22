@@ -30,7 +30,7 @@ namespace sd.world {
 			case meshdata.PrimitiveType.TriangleStrip: return rc.gl.TRIANGLE_STRIP;
 
 			default:
-				assert(false, "Invalid PrimitiveType")
+				assert(false, "Invalid PrimitiveType");
 				return rc.gl.NONE;
 		}
 	}
@@ -419,7 +419,7 @@ namespace sd.world {
 			this.entityMap_.set(ent, inst);
 		}
 
-		removeFromEntity(inst: MeshInstance, ent: Entity) {
+		removeFromEntity(_inst: MeshInstance, ent: Entity) {
 			this.entityMap_.delete(ent);
 		}
 
@@ -428,7 +428,7 @@ namespace sd.world {
 		}
 
 
-		destroy(inst: MeshInstance) {
+		destroy(_inst: MeshInstance) {
 			// TODO: remove mesh from all instances (add a reverse map->entities map?)
 			// TODO: zero+free all array segments
 		}

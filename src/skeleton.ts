@@ -73,7 +73,7 @@ namespace sd.world {
 		}
 
 
-		destroy(inst: SkeletonInstance) {
+		destroy(_inst: SkeletonInstance) {
 		}
 
 
@@ -130,13 +130,15 @@ namespace sd.world {
 		}
 
 
-		startAnimation(skel: SkeletonInstance, anim: asset.SkeletonAnimation) {
-			
+		startAnimation(_skel: SkeletonInstance, _anim: asset.SkeletonAnimation) {
+			// TODO: TBD
 		}
 
 
-		update(dt: number) {
+		update(_dt: number) {
 		/*
+			TODO: TBD
+
 			minJoint = Infinity, maxJoint = 0
 			for each animatingJoint
 				update minJoint, maxJoint from animatingJoint

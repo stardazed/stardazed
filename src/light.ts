@@ -188,7 +188,7 @@ namespace sd.world {
 		}
 
 
-		destroy(inst: LightInstance) {
+		destroy(_inst: LightInstance) {
 		}
 
 
@@ -280,7 +280,7 @@ namespace sd.world {
 		}
 
 
-		private shadowFrameBufferOfQuality(rc: render.RenderContext, quality: ShadowQuality) {
+		private shadowFrameBufferOfQuality(rc: render.RenderContext, _quality: ShadowQuality) {
 			// TODO: each shadow quality level of shadows will have a dedicated, reusable FBO
 			if (! this.shadowFBO_) {
 				this.shadowFBO_ = render.makeShadowMapFrameBuffer(rc, 1024);

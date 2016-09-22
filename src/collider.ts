@@ -85,7 +85,7 @@ namespace sd.world {
 
 		// --
 
-		destroy(inst: ColliderInstance) {
+		destroy(_inst: ColliderInstance) {
 		}
 
 		destroyRange(range: ColliderRange) {

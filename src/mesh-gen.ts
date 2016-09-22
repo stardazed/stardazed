@@ -77,7 +77,7 @@ namespace sd.meshdata.gen {
 		// -- data add functions for the generators
 		var posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;
 
-		var pos2: Vec3AddFn = (x: number, y: number, z: number) => {
+		var pos2: Vec3AddFn = (x: number, y: number, _z: number) => {
 			var v2 = posView.refItem(posIx);
 			v2[0] = x; v2[1] = y;
 			posIx++;

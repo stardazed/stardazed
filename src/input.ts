@@ -98,11 +98,11 @@ namespace sd.io {
 			});
 
 			// -- losing or gaining focus will reset all key state to avoid stuck keys
-			dom.on(window, "blur", (evt) => {
+			dom.on(window, "blur", _evt => {
 				this.keyData_.clear();
 			});
 
-			dom.on(window, "focus", (evt) => {
+			dom.on(window, "focus", _evt => {
 				this.keyData_.clear();
 			});
 		}

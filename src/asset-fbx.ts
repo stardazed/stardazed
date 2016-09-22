@@ -392,7 +392,7 @@ namespace sd.asset {
 			}
 
 
-			private buildMaterials(group: AssetGroup, options: FBXResolveOptions) {
+			private buildMaterials(group: AssetGroup, _options: FBXResolveOptions) {
 				for (var matID in this.materialNodes) {
 					var fbxMat = this.materialNodes[matID];
 					var mat = makeMaterial();
@@ -593,7 +593,7 @@ namespace sd.asset {
 			}
 
 
-			private buildMeshes(group: AssetGroup, options: FBXResolveOptions) {
+			private buildMeshes(group: AssetGroup, _options: FBXResolveOptions) {
 				var tStreams = 0;
 				var tMeshData = 0;
 
@@ -832,7 +832,7 @@ namespace sd.asset {
 			}
 
 
-			private buildHierarchy(group: AssetGroup, options: FBXResolveOptions) {
+			private buildHierarchy(group: AssetGroup, _options: FBXResolveOptions) {
 				for (var conn of this.hierarchyConnections) {
 					var childModel = this.flattenedModels.get(conn.fromID);
 					var parentModel = this.flattenedModels.get(conn.toID);
@@ -872,7 +872,7 @@ namespace sd.asset {
 			}
 
 
-			private buildAnimations(group: AssetGroup, options: FBXResolveOptions) {
+			private buildAnimations(_group: AssetGroup, _options: FBXResolveOptions) {
 				// the number of units of time per second for a KTime value
 				const KTimeUnit = 46186158000;
 
@@ -944,7 +944,7 @@ namespace sd.asset {
 			}
 
 
-			private buildSkins(group: AssetGroup, options: FBXResolveOptions) {
+			private buildSkins(_group: AssetGroup, _options: FBXResolveOptions) {
 				for (var skinNodeID in this.skinNodes) {
 					var fbxSkin = this.skinNodes[skinNodeID];
 					if (fbxSkin.connectionsIn.length == 0 || fbxSkin.connectionsOut.length == 0) {

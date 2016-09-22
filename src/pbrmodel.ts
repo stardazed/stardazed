@@ -934,7 +934,7 @@ namespace sd.world {
 		}
 
 
-		destroy(inst: PBRModelInstance) {
+		destroy(_inst: PBRModelInstance) {
 		}
 
 

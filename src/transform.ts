@@ -158,7 +158,7 @@ namespace sd.world {
 		}
 
 
-		destroy(inst: TransformInstance) {
+		destroy(_inst: TransformInstance) {
 		}
 
 

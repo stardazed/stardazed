@@ -370,7 +370,7 @@ namespace sd.container {
 
 		constructor(initialCapacity: number, fields: MABField[]) {
 			var totalOffset = 0;
-			this.fields_ = fields.map((field: MABField, ix: number) => {
+			this.fields_ = fields.map(field => {
 				var curOffset = totalOffset;
 				var sizeBytes = field.type.byteSize * field.count;
 				totalOffset += sizeBytes;
@@ -432,9 +432,9 @@ namespace sd.container {
 				// data to each new array. With large arrays >100k elements this can take
 				// millisecond-order time, so avoid resizes when possible.
 
-				this.fields_.forEach((f, ix) => {
-					var oldView = this.fieldArrayView(f, this.data_!, this.count_);
-					var newView = this.fieldArrayView(f, newData, newCapacity);
+				this.fields_.forEach(field => {
+					var oldView = this.fieldArrayView(field, this.data_!, this.count_);
+					var newView = this.fieldArrayView(field, newData, newCapacity);
 					newView.set(oldView);
 				});
 
@@ -481,10 +481,10 @@ namespace sd.container {
 
 				var elementsToClear = this.count_ - newCount;
 
-				this.fields_.forEach((f, ix) => {
-					var array = this.fieldArrayView(f, this.data_!, this.count_);
-					var zeroes = new (f.type.arrayType)(elementsToClear * f.count);
-					array.set(zeroes, newCount * f.count);
+				this.fields_.forEach(field => {
+					var array = this.fieldArrayView(field, this.data_!, this.count_);
+					var zeroes = new (field.type.arrayType)(elementsToClear * field.count);
+					array.set(zeroes, newCount * field.count);
 				});
 			}
 
