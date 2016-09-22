@@ -327,7 +327,7 @@ namespace sd.asset {
 
 					var md = mb.complete();
 					md.genVertexNormals();
-					this.transformNormalsIntoJointSpace(md, streams);
+					this.transformNormalsIntoJointSpace(md);
 
 					var sdMesh: Mesh = {
 						name: "",
@@ -354,12 +354,10 @@ namespace sd.asset {
 			}
 
 
-			private transformNormalsIntoJointSpace(md: meshdata.MeshData, streams: meshdata.VertexAttributeStream[]) {
+			private transformNormalsIntoJointSpace(md: meshdata.MeshData) {
 				const normAttr = md.findFirstAttributeWithRole(meshdata.VertexAttributeRole.Normal);
-				const jointIndexesStream = streams.find(s => s.name === "jointIndexes");
 
-				if (normAttr && jointIndexesStream) {
-					const jointIndexes = jointIndexesStream.values as Float32Array;
+				if (normAttr) {
 					const weights = this.weights!;
 					const joints = this.joints;
 					const vertexes = this.vertexes!;
@@ -377,8 +375,8 @@ namespace sd.asset {
 							const bias = weights.biases[woff + j];
 							const joint = joints[weights.joints[woff + j]];
 
+							// finalNormal += (normal * joint.rotation) * weight.bias;
 							vec3.scaleAndAdd(finalNormal, finalNormal, vec3.transformQuat([], normalRef, quat.invert([], joint.rotation)), bias);
-							// vert.m_Normal += ( normal * joint.m_Orient ) * weight.m_Bias;
 						}
 
 						// update normal in-place

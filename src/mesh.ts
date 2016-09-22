@@ -94,6 +94,9 @@ namespace sd.world {
 		}
 	}
 
+	/*
+
+	TODO: check meshes against max attr count
 
 	var meshLimits = {
 		maxVertexAttributes: 0
@@ -107,6 +110,7 @@ namespace sd.world {
 		return meshLimits.maxVertexAttributes;
 	}
 
+	*/
 
 	export const enum MeshFeatures {
 		VertexPositions = 1,
@@ -137,13 +141,6 @@ namespace sd.world {
 		Never,
 		Occasionally,
 		Frequently
-	}
-
-
-	const enum _BufferRole {
-		None,
-		VertexAttribute,
-		VertexIndex
 	}
 
 

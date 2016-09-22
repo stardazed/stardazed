@@ -57,7 +57,7 @@ namespace sd.world {
 			this.pbrModelMgr = new PBRModelManager(rc, this.transformMgr, this.meshMgr, this.pbrMaterialMgr, this.lightMgr);
 
 			this.colliderMgr = new ColliderManager(this.physMatMgr);
-			this.rigidBodyMgr = new RigidBodyManager(this.transformMgr, this.colliderMgr);
+			this.rigidBodyMgr = new RigidBodyManager(this.transformMgr);
 		}
 
 

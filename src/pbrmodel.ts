@@ -219,7 +219,7 @@ namespace sd.world {
 			var source: string[] = [];
 			var line = (s: string) => source.push(s);
 			var if_all = (s: string, f: number) => { if ((feat & f) == f) source.push(s) };
-			var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
+			//var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
 			
 			// In
 			line  ("attribute vec3 vertexPos_model;");

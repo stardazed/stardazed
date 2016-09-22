@@ -38,7 +38,7 @@ namespace sd.world {
 		private torqueBase_: Float32Array;
 
 
-		constructor(private transformMgr_: TransformManager, private colliderMgr_: ColliderManager) {
+		constructor(private transformMgr_: TransformManager) {
 			var fields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transform

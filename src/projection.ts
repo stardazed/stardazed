@@ -12,6 +12,9 @@ namespace sd.world {
 		viewMatrix: Float4x4;
 	}
 
+	/*
+
+	TODO: this was going to be used somewhere
 
 	interface Projection {
 		matrix: Float4x4;
@@ -23,5 +26,6 @@ namespace sd.world {
 		matrix: Float4x4;
 
 	}
+	*/
 
 } // sd.world

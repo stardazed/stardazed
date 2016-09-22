@@ -37,6 +37,12 @@ namespace sd.meshdata {
 	}
 
 
+	/*
+
+	VertexIndexMapping method A was to test a growing single array technique used
+	in native code, but in JS it lost out (badly) to method B, which is just to
+	use a Map with a lot of small arrays in it. Left here to test in the future.
+
 	class VertexIndexMappingA implements VertexIndexMapping {
 		private offsets_: number[] = [];
 		private values_: number[] = [];
@@ -62,6 +68,7 @@ namespace sd.meshdata {
 			return this.values_.slice(offA, offB);
 		}
 	}
+	*/
 
 
 	class VertexIndexMappingB implements VertexIndexMapping {

@@ -30,7 +30,7 @@ namespace sd.world {
 		private jointData_: Float32Array;
 		private jointDataTex_: render.Texture;
 
-		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager) {
+		constructor(rc: render.RenderContext, private transformMgr_: TransformManager) {
 			var instFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transform
@@ -100,6 +100,9 @@ namespace sd.world {
 
 		// ----
 
+		/*
+
+		TODO: implement all this stuff
 
 		private updateJointData(skel: world.TransformInstance[]) {
 			var count = skel.length;
@@ -130,13 +133,11 @@ namespace sd.world {
 		}
 
 
-		startAnimation(_skel: SkeletonInstance, _anim: asset.SkeletonAnimation) {
-			// TODO: TBD
+		startAnimation(skel: SkeletonInstance, anim: asset.SkeletonAnimation) {
 		}
 
 
-		update(_dt: number) {
-		/*
+		update(dt: number) {
 			TODO: TBD
 
 			minJoint = Infinity, maxJoint = 0
@@ -152,8 +153,9 @@ namespace sd.world {
 			end
 
 			updateJointData(minJoint, maxJoint)
-		*/
 		}
+
+		*/
 	}
 
 } // ns sd.world

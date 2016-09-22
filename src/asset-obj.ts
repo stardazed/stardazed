@@ -179,7 +179,7 @@ namespace sd.asset {
 		var normalIndexes: Uint32Array | undefined;
 		var uvIndexes: Uint32Array | undefined;
 		var colourIndexes: Uint32Array | undefined;
-		var posIx = 0, normIx = 0, uvIx = 0, colIx = 0, vertexIx = 0, curMatIx = 0;
+		var posIx = 0, normIx = 0, uvIx = 0, vertexIx = 0, curMatIx = 0;
 		var streams: meshdata.VertexAttributeStream[] = [];
 
 		// map each material's name to its index
