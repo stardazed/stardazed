@@ -513,13 +513,6 @@ namespace sd.world {
 					const bufOC = container.copyIndexedVec2(this.buffersOffsetCountBase_, meshIx);
 					const indexBuffer = this.bufGLBuffers_[bufOC[0] + bufOC[1] - 1];
 					gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-					// DEBUG
-					const bufferSize = gl.getBufferParameter(gl.ELEMENT_ARRAY_BUFFER, gl.BUFFER_SIZE);
-					const expectedBufferSize = this.indexElementSizeBytesBase_[meshIx] * meshdata.indexCountForPrimitiveCount(this.primitiveTypeBase_[meshIx], this.totalPrimitiveCountBase_[meshIx]);
-					if (bufferSize < expectedBufferSize) {
-						debugger;
-					}
 				}
 			}
 		}

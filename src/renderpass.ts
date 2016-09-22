@@ -255,10 +255,6 @@ namespace sd.render {
 
 			if (instanceCount == 1) {
 				this.rc.gl.drawElements(glPrimitiveType, indexCount, this.meshMgr_.glIndexElementType(activeMesh), offsetBytes);
-				const err = this.rc.gl.getError();
-				if (err !== this.rc.gl.NONE) {
-					debugger;
-				}
 			}
 			else {
 				this.rc.extInstancedArrays.drawElementsInstancedANGLE(glPrimitiveType, indexCount, this.meshMgr_.glIndexElementType(activeMesh), offsetBytes, instanceCount);
