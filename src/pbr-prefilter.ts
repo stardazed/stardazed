@@ -188,7 +188,8 @@ namespace sd.render {
 					rc.gl.uniform4fv(pipeline.paramsUniform, new Float32Array([face, roughnessTable[mip], levelWidth, 0]));
 
 					// render quad without any transforms, filling full FB
-					rp.drawIndexedPrimitives(0, quad.primitiveGroups[0].primCount);
+					const primGroup0 = quad.primitiveGroups[0];
+					rp.drawIndexedPrimitives(primGroup0.type, quad.indexBuffer!.indexElementType, 0, primGroup0.elementCount);
 
 					// implicit glFinish, read back generated texture
 					rc.gl.readPixels(0, 0, levelWidth, levelWidth, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, levelPixels[mip]);

@@ -156,7 +156,12 @@ namespace sd.meshdata.gen {
 		}
 
 		// -- currently generate single primitive group for full mesh, TODO: make this more configurable
-		mesh.primitiveGroups.push({ fromPrimIx: 0, primCount: totalFaceCount, materialIx: 0 });
+		mesh.primitiveGroups.push({
+			type: PrimitiveType.Triangle,
+			fromElement: 0,
+			elementCount: totalFaceCount * 3,
+			materialIx: 0
+		});
 
 		return mesh;
 	}

@@ -1064,10 +1064,13 @@ namespace sd.world {
 				gl.uniform4fv(program.lightParamArrayUniform, this.lightParamArray_);
 
 				// -- draw
-				if (this.meshMgr_.features(mesh) & MeshFeatures.Indexes)
-					rp.drawIndexedPrimitives(primGroup.fromPrimIx, primGroup.primCount);
-				else
-					rp.drawPrimitives(primGroup.fromPrimIx, primGroup.primCount);
+				const indexElementType = this.meshMgr_.indexBufferElementType(mesh);
+				if (indexElementType !== meshdata.IndexElementType.None) {
+					rp.drawIndexedPrimitives(primGroup.type, indexElementType, primGroup.fromElement, primGroup.elementCount);
+				}
+				else {
+					rp.drawPrimitives(primGroup.type, primGroup.fromElement, primGroup.elementCount);
+				}
 
 				drawCalls += 1;
 			}

@@ -18,6 +18,35 @@ namespace sd.render {
 	}
 
 
+	function glTypeForIndexElementType(rc: render.RenderContext, iet: meshdata.IndexElementType): number {
+		switch (iet) {
+			case meshdata.IndexElementType.UInt8: return rc.gl.UNSIGNED_BYTE;
+			case meshdata.IndexElementType.UInt16: return rc.gl.UNSIGNED_SHORT;
+			case meshdata.IndexElementType.UInt32:
+				return rc.ext32bitIndexes ? rc.gl.UNSIGNED_INT : rc.gl.NONE;
+
+			default:
+				assert(false, "Invalid IndexElementType");
+				return rc.gl.NONE;
+		}
+	}
+
+
+	function glTypeForPrimitiveType(rc: render.RenderContext, pt: meshdata.PrimitiveType) {
+		switch (pt) {
+			case meshdata.PrimitiveType.Point: return rc.gl.POINTS;
+			case meshdata.PrimitiveType.Line: return rc.gl.LINES;
+			case meshdata.PrimitiveType.LineStrip: return rc.gl.LINE_STRIP;
+			case meshdata.PrimitiveType.Triangle: return rc.gl.TRIANGLES;
+			case meshdata.PrimitiveType.TriangleStrip: return rc.gl.TRIANGLE_STRIP;
+
+			default:
+				assert(false, "Invalid PrimitiveType");
+				return rc.gl.NONE;
+		}
+	}
+
+
 	function glDepthFuncForDepthTest(rc: RenderContext, depthTest: DepthTest) {
 		switch (depthTest) {
 			case DepthTest.AllowAll:
@@ -231,33 +260,28 @@ namespace sd.render {
 
 
 		// -- drawing
-		drawPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
-			var activeMesh = this.mesh_;
-			var glPrimitiveType = this.meshMgr_.glPrimitiveType(activeMesh);
-			var startVertex = meshdata.indexOffsetForPrimitiveCount(this.meshMgr_.primitiveType(activeMesh), startPrimitive);
-			var vertexCount = meshdata.indexCountForPrimitiveCount(this.meshMgr_.primitiveType(activeMesh), primitiveCount);
+		drawPrimitives(primitiveType: meshdata.PrimitiveType, startElement: number, elementCount: number, instanceCount = 1) {
+			var glPrimitiveType = glTypeForPrimitiveType(this.rc, primitiveType);
 
 			if (instanceCount == 1) {
-				this.rc.gl.drawArrays(glPrimitiveType, startVertex, vertexCount);
+				this.rc.gl.drawArrays(glPrimitiveType, startElement, elementCount);
 			}
 			else {
-				this.rc.extInstancedArrays.drawArraysInstancedANGLE(glPrimitiveType, startVertex, vertexCount, instanceCount);
+				this.rc.extInstancedArrays.drawArraysInstancedANGLE(glPrimitiveType, startElement, elementCount, instanceCount);
 			}
 		}
 
 
-		drawIndexedPrimitives(startPrimitive: number, primitiveCount: number, instanceCount = 1) {
-			var activeMesh = this.mesh_;
-			var glPrimitiveType = this.meshMgr_.glPrimitiveType(activeMesh);
-			var startIndex = meshdata.indexOffsetForPrimitiveCount(this.meshMgr_.primitiveType(activeMesh), startPrimitive);
-			var indexCount = meshdata.indexCountForPrimitiveCount(this.meshMgr_.primitiveType(activeMesh), primitiveCount);
-			var offsetBytes = startIndex * this.meshMgr_.indexElementSizeBytes(activeMesh);
+		drawIndexedPrimitives(primitiveType: meshdata.PrimitiveType, indexElementType: meshdata.IndexElementType, startElement: number, elementCount: number, instanceCount = 1) {
+			var glPrimitiveType = glTypeForPrimitiveType(this.rc, primitiveType);
+			var glIndexElementType = glTypeForIndexElementType(this.rc, indexElementType);
+			var offsetBytes = startElement * meshdata.indexElementTypeSizeBytes(indexElementType);
 
 			if (instanceCount == 1) {
-				this.rc.gl.drawElements(glPrimitiveType, indexCount, this.meshMgr_.glIndexElementType(activeMesh), offsetBytes);
+				this.rc.gl.drawElements(glPrimitiveType, elementCount, glIndexElementType, offsetBytes);
 			}
 			else {
-				this.rc.extInstancedArrays.drawElementsInstancedANGLE(glPrimitiveType, indexCount, this.meshMgr_.glIndexElementType(activeMesh), offsetBytes, instanceCount);
+				this.rc.extInstancedArrays.drawElementsInstancedANGLE(glPrimitiveType, elementCount, glIndexElementType, offsetBytes, instanceCount);
 			}
 		}
 	}

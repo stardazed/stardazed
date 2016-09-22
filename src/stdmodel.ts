@@ -1109,10 +1109,13 @@ namespace sd.world {
 				}
 
 				// -- draw
-				if (this.meshMgr_.features(mesh) & MeshFeatures.Indexes)
-					rp.drawIndexedPrimitives(primGroup.fromPrimIx, primGroup.primCount);
-				else
-					rp.drawPrimitives(primGroup.fromPrimIx, primGroup.primCount);
+				const indexElementType = this.meshMgr_.indexBufferElementType(mesh);
+				if (indexElementType !== meshdata.IndexElementType.None) {
+					rp.drawIndexedPrimitives(primGroup.type, indexElementType, primGroup.fromElement, primGroup.elementCount);
+				}
+				else {
+					rp.drawPrimitives(primGroup.type, primGroup.fromElement, primGroup.elementCount);
+				}
 
 				drawCalls += 1;
 			}
@@ -1134,10 +1137,17 @@ namespace sd.world {
 			gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);
 
 			// -- draw full mesh
-			if (this.meshMgr_.features(mesh) & MeshFeatures.Indexes)
-				rp.drawIndexedPrimitives(0, this.meshMgr_.totalPrimitiveCount(mesh));
-			else
-				rp.drawPrimitives(0, this.meshMgr_.totalPrimitiveCount(mesh));
+			const uniformPrimType = this.meshMgr_.uniformPrimitiveType(mesh);
+			if (uniformPrimType !== meshdata.PrimitiveType.None) {
+				const totalElementCount = this.meshMgr_.totalElementCount(mesh);
+				const indexElementType = this.meshMgr_.indexBufferElementType(mesh);
+				if (indexElementType !== meshdata.IndexElementType.None) {
+					rp.drawIndexedPrimitives(uniformPrimType, indexElementType, 0, totalElementCount);
+				}
+				else {
+					rp.drawPrimitives(uniformPrimType, 0, totalElementCount);
+				}
+			}
 
 			// -- drawcall count, always 1
 			return 1;

@@ -11,8 +11,13 @@
 
 namespace sd.meshdata {
 
-	// -- A single field in a vertex buffer
-	// -- 3 properties: element type, count and normalization
+	// __   __       _           ___ _     _    _ 
+	// \ \ / /__ _ _| |_ _____ _| __(_)___| |__| |
+	//  \ V / -_) '_|  _/ -_) \ / _|| / -_) / _` |
+	//   \_/\___|_|  \__\___/_\_\_| |_\___|_\__,_|
+	                                           
+	// A single field in a vertex buffer
+	// 3 properties: element type, count and normalization
 
 	export const enum VertexField {
 		Undefined,
@@ -199,6 +204,12 @@ namespace sd.meshdata {
 	}
 
 
+	// __   __       _              _  _   _       _ _         _       
+	// \ \ / /__ _ _| |_ _____ __  /_\| |_| |_ _ _(_) |__ _  _| |_ ___ 
+	//  \ V / -_) '_|  _/ -_) \ / / _ \  _|  _| '_| | '_ \ || |  _/ -_)
+	//   \_/\___|_|  \__\___/_\_\/_/ \_\__|\__|_| |_|_.__/\_,_|\__\___|
+	//                                                                 
+
 	export const enum VertexAttributeRole {
 		None,
 
@@ -224,8 +235,8 @@ namespace sd.meshdata {
 	// -- A VertexAttribute is a Field with a certain Role inside a VertexBuffer
 
 	export interface VertexAttribute {
-		field: VertexField;
-		role: VertexAttributeRole;
+		readonly field: VertexField;
+		readonly role: VertexAttributeRole;
 	}
 
 
@@ -271,7 +282,7 @@ namespace sd.meshdata {
 
 
 	export interface PositionedAttribute extends VertexAttribute {
-		offset: number;
+		readonly offset: number;
 	}
 
 
@@ -295,6 +306,12 @@ namespace sd.meshdata {
 	}
 
 
+	// __   __       _           _                       _   
+	// \ \ / /__ _ _| |_ _____ _| |   __ _ _  _ ___ _  _| |_ 
+	//  \ V / -_) '_|  _/ -_) \ / |__/ _` | || / _ \ || |  _|
+	//   \_/\___|_|  \__\___/_\_\____\__,_|\_, \___/\_,_|\__|
+	//                                     |__/              
+
 	function alignFieldOnSize(size: number, offset: number) {
 		var mask = math.roundUpPowerOf2(size) - 1;
 		return (offset + mask) & ~mask;
@@ -305,12 +322,6 @@ namespace sd.meshdata {
 		return alignFieldOnSize(vertexFieldElementSizeBytes(field), offset);
 	}
 
-
-	// __   __       _           _                       _   
-	// \ \ / /__ _ _| |_ _____ _| |   __ _ _  _ ___ _  _| |_ 
-	//  \ V / -_) '_|  _/ -_) \ / |__/ _` | || / _ \ || |  _|
-	//   \_/\___|_|  \__\___/_\_\____\__,_|\_, \___/\_,_|\__|
-	//                                     |__/              
 
 	export class VertexLayout {
 		private attributeCount_ = 0;
@@ -736,8 +747,8 @@ namespace sd.meshdata {
 
 
 	export class IndexBuffer implements ClientBuffer {
-		private primitiveType_ = PrimitiveType.Point;
-		private indexElementType_ = IndexElementType.UInt8;
+		private primitiveType_ = PrimitiveType.None;
+		private indexElementType_ = IndexElementType.None;
 		private indexCount_ = 0;
 		private primitiveCount_ = 0;
 		private indexElementSizeBytes_ = 0;
@@ -912,6 +923,7 @@ namespace sd.meshdata {
 	//                                                   
 
 	// FIXME: once we have triview for non-indexed meshes, make param optional and create proper view
+
 	export function calcVertexNormals(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer) {
 		var posAttr = vertexBuffer.attrByRole(VertexAttributeRole.Position);
 		var normAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
@@ -1100,8 +1112,9 @@ namespace sd.meshdata {
 	//                                        
 
 	export interface PrimitiveGroup {
-		fromPrimIx: number;
-		primCount: number;
+		type: meshdata.PrimitiveType;
+		fromElement: number;
+		elementCount: number;
 		materialIx: number; // mesh-local index (starting at 0); representation of Materials is external to MeshData
 	}
 

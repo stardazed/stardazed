@@ -7,35 +7,6 @@
 
 namespace sd.world {
 
-	function glTypeForIndexElementType(rc: render.RenderContext, iet: meshdata.IndexElementType): number {
-		switch (iet) {
-			case meshdata.IndexElementType.UInt8: return rc.gl.UNSIGNED_BYTE;
-			case meshdata.IndexElementType.UInt16: return rc.gl.UNSIGNED_SHORT;
-			case meshdata.IndexElementType.UInt32:
-				return rc.ext32bitIndexes ? rc.gl.UNSIGNED_INT : rc.gl.NONE;
-
-			default:
-				assert(false, "Invalid IndexElementType");
-				return rc.gl.NONE;
-		}
-	}
-
-
-	function glTypeForPrimitiveType(rc: render.RenderContext, pt: meshdata.PrimitiveType) {
-		switch (pt) {
-			case meshdata.PrimitiveType.Point: return rc.gl.POINTS;
-			case meshdata.PrimitiveType.Line: return rc.gl.LINES;
-			case meshdata.PrimitiveType.LineStrip: return rc.gl.LINE_STRIP;
-			case meshdata.PrimitiveType.Triangle: return rc.gl.TRIANGLES;
-			case meshdata.PrimitiveType.TriangleStrip: return rc.gl.TRIANGLE_STRIP;
-
-			default:
-				assert(false, "Invalid PrimitiveType");
-				return rc.gl.NONE;
-		}
-	}
-
-
 	function glTypeForVertexField(rc: render.RenderContext, vf: meshdata.VertexField) {
 		switch (vf) {
 			case meshdata.VertexField.Float:
@@ -161,9 +132,6 @@ namespace sd.world {
 		vertexBindings: VertexBufferBinding[];
 		indexBinding: IndexBufferBinding;
 		primitiveGroups: meshdata.PrimitiveGroup[];
-
-		// -- explicit type used when there is no indexBuffer, ignored otherwise
-		primitiveType: meshdata.PrimitiveType;
 	}
 
 
@@ -179,10 +147,7 @@ namespace sd.world {
 				updateFrequency: BufferUpdateFrequency.Never
 			},
 
-			primitiveGroups: data.primitiveGroups.map(pg => cloneStruct(pg)),
-
-			// mandatory if no indexBuffer is provided, ignored otherwise
-			primitiveType: meshdata.PrimitiveType.None
+			primitiveGroups: data.primitiveGroups.map(pg => cloneStruct(pg))
 		};
 	}
 
@@ -203,11 +168,9 @@ namespace sd.world {
 	export class MeshManager implements ComponentManager<MeshManager> {
 		private instanceData_: container.MultiArrayBuffer;
 		private featuresBase_: ConstEnumArrayView<MeshFeatures>;
-		private primitiveTypeBase_: ConstEnumArrayView<meshdata.PrimitiveType>;
-		private glPrimitiveTypeBase_: Int32Array;
-		private totalPrimitiveCountBase_: Int32Array;
-		private glIndexElementTypeBase_: Int32Array;
-		private indexElementSizeBytesBase_: Int32Array;
+		private indexElementTypeBase_: ConstEnumArrayView<meshdata.IndexElementType>;
+		private uniformPrimTypeBase_: ConstEnumArrayView<meshdata.PrimitiveType>;
+		private totalElementCountBase_: Int32Array;
 		private buffersOffsetCountBase_: Int32Array;
 		private attrsOffsetCountBase_: Int32Array;
 		private primGroupsOffsetCountBase_: Int32Array;
@@ -222,8 +185,9 @@ namespace sd.world {
 		private attrStrideBase_: Int32Array;
 
 		private primGroupData_: container.MultiArrayBuffer;
-		private pgFromPrimIxBase_: Int32Array;
-		private pgPrimCountBase_: Int32Array;
+		private pgPrimTypeBase_: ConstEnumArrayView<meshdata.PrimitiveType>;
+		private pgFromElementBase_: Int32Array;
+		private pgElementCountBase_: Int32Array;
 		private pgMaterialBase_: Int32Array;
 
 		private pipelineVAOMaps_: WeakMap<render.Pipeline, WebGLVertexArrayObjectOES>[] | null = null;
@@ -233,11 +197,9 @@ namespace sd.world {
 		constructor(private rctx_: render.RenderContext) {
 			var instanceFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // features
-				{ type: SInt32, count: 1 }, // primitiveType
-				{ type: SInt32, count: 1 }, // glPrimitiveType
-				{ type: SInt32, count: 1 }, // totalPrimitiveCount
-				{ type: SInt32, count: 1 }, // glIndexElementType
-				{ type: SInt32, count: 1 }, // glIndexElementSizeBytes
+				{ type: SInt32, count: 1 }, // indexElementType (None if no indexBuffer)
+				{ type: SInt32, count: 1 }, // uniformPrimType (None if not uniform over all groups)
+				{ type: SInt32, count: 1 }, // totalElementCount
 				{ type: SInt32, count: 2 }, // buffersOffsetCount ([0]: offset, [1]: count)
 				{ type: SInt32, count: 2 }, // attrsOffsetCount ([0]: offset, [1]: count)
 				{ type: SInt32, count: 2 }, // primGroupsOffsetCount ([0]: offset, [1]: count)
@@ -256,8 +218,9 @@ namespace sd.world {
 			this.rebaseAttributes();
 
 			var pgFields: container.MABField[] = [
-				{ type: SInt32, count: 1 }, // fromPrimIx
-				{ type: SInt32, count: 1 }, // primCount
+				{ type: SInt32, count: 1 }, // primType
+				{ type: SInt32, count: 1 }, // fromElement
+				{ type: SInt32, count: 1 }, // elementCount
 				{ type: SInt32, count: 1 }, // materialIx - mesh-local zero-based material indexes
 			];
 			this.primGroupData_ = new container.MultiArrayBuffer(4096, pgFields);
@@ -275,14 +238,12 @@ namespace sd.world {
 
 		rebaseInstances() {
 			this.featuresBase_ = this.instanceData_.indexedFieldView(0);
-			this.primitiveTypeBase_ = this.instanceData_.indexedFieldView(1);
-			this.glPrimitiveTypeBase_ = this.instanceData_.indexedFieldView(2);
-			this.totalPrimitiveCountBase_ = this.instanceData_.indexedFieldView(3);
-			this.glIndexElementTypeBase_ = this.instanceData_.indexedFieldView(4);
-			this.indexElementSizeBytesBase_ = this.instanceData_.indexedFieldView(5);
-			this.buffersOffsetCountBase_ = this.instanceData_.indexedFieldView(6);
-			this.attrsOffsetCountBase_ = this.instanceData_.indexedFieldView(7);
-			this.primGroupsOffsetCountBase_ = this.instanceData_.indexedFieldView(8);
+			this.indexElementTypeBase_ = this.instanceData_.indexedFieldView(1);
+			this.uniformPrimTypeBase_ = this.instanceData_.indexedFieldView(2);
+			this.totalElementCountBase_ = this.instanceData_.indexedFieldView(3);
+			this.buffersOffsetCountBase_ = this.instanceData_.indexedFieldView(4);
+			this.attrsOffsetCountBase_ = this.instanceData_.indexedFieldView(5);
+			this.primGroupsOffsetCountBase_ = this.instanceData_.indexedFieldView(6);
 		}
 
 
@@ -296,9 +257,10 @@ namespace sd.world {
 
 
 		rebasePrimGroups() {
-			this.pgFromPrimIxBase_ = this.primGroupData_.indexedFieldView(0);
-			this.pgPrimCountBase_ = this.primGroupData_.indexedFieldView(1);
-			this.pgMaterialBase_ = this.primGroupData_.indexedFieldView(2);
+			this.pgPrimTypeBase_ = this.primGroupData_.indexedFieldView(0);
+			this.pgFromElementBase_ = this.primGroupData_.indexedFieldView(1);
+			this.pgElementCountBase_ = this.primGroupData_.indexedFieldView(2);
+			this.pgMaterialBase_ = this.primGroupData_.indexedFieldView(3);
 		}
 
 
@@ -364,20 +326,15 @@ namespace sd.world {
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glBuf);
 				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshData.indexBuffer.bufferView()!, gl.STATIC_DRAW); // FIXME: bufferView could be null
 				this.bufGLBuffers_[bufferIndex] = glBuf;
-			
-				this.primitiveTypeBase_[instance] = meshData.indexBuffer.primitiveType;
-				this.glIndexElementTypeBase_[instance] = glTypeForIndexElementType(this.rctx_, meshData.indexBuffer.indexElementType);
-				this.indexElementSizeBytesBase_[instance] = meshData.indexBuffer.indexElementSizeBytes;
 
 				meshFeatures |= MeshFeatures.Indexes;
+				this.indexElementTypeBase_[instance] = meshData.indexBuffer.indexElementType;
 
 				bufferIndex += 1;
 			}
 			else {
-				this.primitiveTypeBase_[instance] = meshdata.PrimitiveType.Triangle;
+				this.indexElementTypeBase_[instance] = meshdata.IndexElementType.None;
 			}
-
-			this.glPrimitiveTypeBase_[instance] = glTypeForPrimitiveType(this.rctx_, this.primitiveTypeBase_[instance]);
 
 
 			// -- cache primitive groups and metadata
@@ -389,19 +346,26 @@ namespace sd.world {
 			}
 			container.setIndexedVec2(this.primGroupsOffsetCountBase_, instance, [primGroupIndex, primGroupCount]);
 
-			var totalPrimitiveCount = 0;
+			var totalElementCount = 0;
+			var sharedPrimType = meshData.primitiveGroups[0].type;
+
 			for (let pg of meshData.primitiveGroups) {
-				this.pgFromPrimIxBase_[primGroupIndex] = pg.fromPrimIx;
-				this.pgPrimCountBase_[primGroupIndex] = pg.primCount;
+				this.pgPrimTypeBase_[primGroupIndex] = pg.type;
+				this.pgFromElementBase_[primGroupIndex] = pg.fromElement;
+				this.pgElementCountBase_[primGroupIndex] = pg.elementCount;
 				this.pgMaterialBase_[primGroupIndex] = pg.materialIx;
 
-				totalPrimitiveCount += pg.primCount;
+				totalElementCount += pg.elementCount;
+				if (pg.type !== sharedPrimType) {
+					sharedPrimType = meshdata.PrimitiveType.None;
+				}
 				primGroupIndex += 1;
 			}
 
 			// -- store mesh features accumulated during the creation process
-			this.totalPrimitiveCountBase_[instance] = totalPrimitiveCount;
 			this.featuresBase_[instance] = meshFeatures;
+			this.uniformPrimTypeBase_[instance] = sharedPrimType;
+			this.totalElementCountBase_[instance] = totalElementCount;
 
 			// -- we weakly link Pipelines to VAO mappings per mesh, see bind()
 			if (this.pipelineVAOMaps_) {
@@ -547,7 +511,7 @@ namespace sd.world {
 			const offsetCount = container.copyIndexedVec2(this.attrsOffsetCountBase_, meshIx);
 
 			for (let aix = 0; aix < offsetCount[1]; ++aix) {
-				let attrOffset = aix + offsetCount[0];
+				const attrOffset = aix + offsetCount[0];
 
 				attrs.set(this.attrRoleBase_[attrOffset], {
 					buffer: this.bufGLBuffers_[this.attrBufferIndexBase_[attrOffset]]!,
@@ -570,8 +534,9 @@ namespace sd.world {
 				const pgOffset = pgix + offsetCount[0];
 
 				primGroups.push({
-					fromPrimIx: this.pgFromPrimIxBase_[pgOffset],
-					primCount: this.pgPrimCountBase_[pgOffset],
+					type: this.pgPrimTypeBase_[pgOffset],
+					fromElement: this.pgFromElementBase_[pgOffset],
+					elementCount: this.pgElementCountBase_[pgOffset],
 					materialIx: this.pgMaterialBase_[pgOffset]
 				});
 			}
@@ -580,13 +545,10 @@ namespace sd.world {
 
 
 		features(inst: MeshInstance): MeshFeatures { return this.featuresBase_[<number>inst]; }
+		indexBufferElementType(inst: MeshInstance): meshdata.IndexElementType { return this.indexElementTypeBase_[<number>inst]; }
 
-		primitiveType(inst: MeshInstance) { return this.primitiveTypeBase_[<number>inst]; }
-		glPrimitiveType(inst: MeshInstance) { return this.glPrimitiveTypeBase_[<number>inst]; }
-		totalPrimitiveCount(inst: MeshInstance) { return this.totalPrimitiveCountBase_[<number>inst]; }
-
-		glIndexElementType(inst: MeshInstance) { return this.glIndexElementTypeBase_[<number>inst]; }
-		indexElementSizeBytes(inst: MeshInstance) { return this.indexElementSizeBytesBase_[<number>inst]; }
+		uniformPrimitiveType(inst: MeshInstance) { return this.uniformPrimTypeBase_[<number>inst]; }
+		totalElementCount(inst: MeshInstance) { return this.totalElementCountBase_[<number>inst]; }
 	}
 
 } // ns sd.world

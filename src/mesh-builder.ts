@@ -347,20 +347,21 @@ namespace sd.meshdata {
 			// All triangles with the same material were merged, create full index buffer
 			// and primitive groups
 			var mergedIndexes: number[] = [];
-			var nextTriangleIndex = 0;
+			var nextElementIndex = 0;
 
 			this.groupIndexStreams_.forEach((indexes, group) => {
 				if (indexes.length) {
 					mergedIndexes = mergedIndexes.concat(indexes);
-					var groupTriCount = indexes.length / 3;
+					var groupElementCount = indexes.length;
 
 					meshData.primitiveGroups.push({
-						fromPrimIx: nextTriangleIndex,
-						primCount: groupTriCount,
+						type: PrimitiveType.Triangle,
+						fromElement: nextElementIndex,
+						elementCount: groupElementCount,
 						materialIx: group
 					});
 
-					nextTriangleIndex += groupTriCount;
+					nextElementIndex += groupElementCount;
 				}
 			});
 
