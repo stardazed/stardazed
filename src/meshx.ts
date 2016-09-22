@@ -3,9 +3,7 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="buffer.ts"/>
 /// <reference path="rendercontext.ts"/>
-/// <reference path="mesh-desc.ts"/>
 
 namespace sd.world {
 
@@ -126,6 +124,69 @@ namespace sd.world {
 		vertexField: meshdata.VertexField;
 		offset: number;
 		stride: number;
+	}
+
+
+	//  __  __        _    ___                 _      _           
+	// |  \/  |___ __| |_ |   \ ___ ___ __ _ _(_)_ __| |_ ___ _ _ 
+	// | |\/| / -_|_-< ' \| |) / -_|_-</ _| '_| | '_ \  _/ _ \ '_|
+	// |_|  |_\___/__/_||_|___/\___/__/\__|_| |_| .__/\__\___/_|  
+	//                                          |_|               
+
+	export const enum BufferUpdateFrequency {
+		Never,
+		Occasionally,
+		Frequently
+	}
+
+
+	const enum _BufferRole {
+		None,
+		VertexAttribute,
+		VertexIndex
+	}
+
+
+	export interface VertexBufferBinding {
+		vertexBuffer: meshdata.VertexBuffer;
+		updateFrequency: BufferUpdateFrequency;
+		// TODO: add instancing divisor counts for each attrib
+	}
+
+
+	export interface IndexBufferBinding {
+		indexBuffer: meshdata.IndexBuffer | null;
+		updateFrequency: BufferUpdateFrequency;
+	}
+
+
+	export interface MeshDescriptor {
+		vertexBindings: VertexBufferBinding[];
+		indexBinding: IndexBufferBinding;
+		primitiveGroups: meshdata.PrimitiveGroup[];
+
+		// -- explicit type used when there is no indexBuffer, ignored otherwise
+		primitiveType: meshdata.PrimitiveType;
+	}
+
+
+	export function makeMeshDescriptor(data: meshdata.MeshData): MeshDescriptor {
+		return {
+			vertexBindings: data.vertexBuffers.map(vb => ({
+				vertexBuffer: vb,
+				updateFrequency: BufferUpdateFrequency.Never
+			})),
+
+			indexBinding: {
+				indexBuffer: data.indexBuffer,
+				updateFrequency: BufferUpdateFrequency.Never
+			},
+
+			primitiveGroups: data.primitiveGroups.map(pg => cloneStruct(pg)),
+
+			// mandatory if no indexBuffer is provided, ignored otherwise
+			primitiveType: meshdata.PrimitiveType.None
+		};
 	}
 
 
