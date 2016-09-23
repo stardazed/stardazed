@@ -42,7 +42,7 @@ namespace sd.meshdata.gen {
 		if (! attrList)
 			attrList = AttrList.Pos3Norm3UV2();
 
-		var genList = <MeshGenSource[]>seq(gens);
+		var genList = Array.isArray(gens) ? gens : [gens];
 		var totalVertexCount = 0;
 		var totalFaceCount = 0;
 

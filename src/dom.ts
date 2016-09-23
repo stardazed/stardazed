@@ -7,16 +7,26 @@ namespace sd.dom {
 
 	// -- Elements
 
-	export type ElemSelector = string | Object;
+	export type ElemSelector = string | Node | Node[];
 
 	export function $n(sel: string, base?: HTMLElement): HTMLElement[] { return Array.prototype.slice.call((base || document).querySelectorAll(sel), 0); }
-	export function $(sel: ElemSelector, base?: HTMLElement) { return (typeof (sel) == 'string') ? $n(<string>sel, base) : seq(sel); }
-	export function $1(sel: ElemSelector, base?: HTMLElement): HTMLElement { return $(sel, base)[0]; }
+	export function $(sel: ElemSelector, base?: HTMLElement) {
+		if (typeof sel === 'string') {
+			return $n(sel, base);
+		}
+		else if (sel instanceof Node) {
+			return [sel];
+		}
+		else {
+			return sel;
+		}
+	}
+	export function $1(sel: ElemSelector, base?: HTMLElement): HTMLElement { return <HTMLElement>$(sel, base)[0]; }
 
-	export function show(sel: ElemSelector, disp?: string) { $(sel).forEach(function(el) { el.style.display = (disp != null) ? disp : "block" }); }
-	export function hide(sel: ElemSelector) { $(sel).forEach(function(el) { el.style.display = "none" }); }
+	export function show(sel: ElemSelector, disp?: string) { $(sel).forEach(function(el) { (<HTMLElement>el).style.display = (disp != null) ? disp : "block" }); }
+	export function hide(sel: ElemSelector) { $(sel).forEach(function(el) { (<HTMLElement>el).style.display = "none" }); }
 
-	export function setDisabled(sel: ElemSelector, dis: boolean) { $(sel).forEach(function(el) { el.disabled = dis; }); }
+	export function setDisabled(sel: ElemSelector, dis: boolean) { $(sel).forEach(function(el) { (<HTMLInputElement>el).disabled = dis; }); }
 	export function enable(sel: ElemSelector) { setDisabled(sel, false); }
 	export function disable(sel: ElemSelector) { setDisabled(sel, true); }
 
@@ -52,12 +62,14 @@ namespace sd.dom {
 
 	// -- Events
 
-	export function on(target: ElemSelector, evt: string, handler: (ev: Event) => any) {
-		$(target).forEach(function(tgt) { tgt.addEventListener(evt, handler); });
+	export function on(target: ElemSelector | Window, evt: string, handler: (ev: Event) => any) {
+		var list: EventTarget[] = (target instanceof Window) ? [target] : $(target);
+		list.forEach(function(tgt) { tgt.addEventListener(evt, handler); });
 	}
 
-	export function off(target: ElemSelector, evt: string, handler: (ev: Event) => any) {
-		$(target).forEach(function(tgt) { tgt.removeEventListener(evt, handler); });
+	export function off(target: ElemSelector | Window, evt: string, handler: (ev: Event) => any) {
+		var list: EventTarget[] = (target instanceof Window) ? [target] : $(target);
+		list.forEach(function(tgt) { tgt.removeEventListener(evt, handler); });
 	}
 
 } // ns sd.dom

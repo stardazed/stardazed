@@ -17,14 +17,14 @@ namespace sd.asset {
 			var byteView = new Uint8Array(atob(layerText).split("").map(c => { return c.charCodeAt(0); }));
 			this.tileData = new Uint32Array(byteView.buffer);
 
-			seq(layerNode.attributes).forEach(attr => {
+			for (const attr of [].slice.call(layerNode.attributes, 0)) {
 				if (attr.nodeName == "width") {
 					this.width = parseInt(attr.textContent || "0");
 				}
 				if (attr.nodeName == "height") {
 					this.height = parseInt(attr.textContent || "0");
 				}
-			});
+			}
 		}
 
 		tileAt(col: number, row: number) {
@@ -82,12 +82,12 @@ namespace sd.asset {
 				(dataXML: XMLDocument) => {
 					var tileDoc = dataXML.childNodes[0];
 
-					seq(tileDoc.attributes).forEach(attr => {
+					for (const attr of [].slice.call(tileDoc.attributes, 0)) {
 						if (attr.nodeName == "width")
 							this.width_ = parseInt(attr.textContent || "0");
 						if (attr.nodeName == "height")
 							this.height_ = parseInt(attr.textContent || "0");
-					});
+					}
 
 					for (var ix = 0; ix < tileDoc.childNodes.length; ++ix) {
 						let node = tileDoc.childNodes[ix];

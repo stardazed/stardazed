@@ -63,9 +63,9 @@ namespace sd.world {
 			}
 		}
 
-		addArray(seq: ArrayLike<Instance<Component>>) {
-			for (var ix = 0, end = seq.length; ix < end; ++ix) {
-				this.data_.add(seq[ix]);
+		addArray(arr: ArrayLike<Instance<Component>>) {
+			for (var ix = 0, end = arr.length; ix < end; ++ix) {
+				this.data_.add(arr[ix]);
 			}
 		}
 
@@ -82,9 +82,9 @@ namespace sd.world {
 			}
 		}
 
-		removeArray(seq: ArrayLike<Instance<Component>>) {
-			for (var ix = 0, end = seq.length; ix < end; ++ix) {
-				this.data_.delete(seq[ix]);
+		removeArray(arr: ArrayLike<Instance<Component>>) {
+			for (var ix = 0, end = arr.length; ix < end; ++ix) {
+				this.data_.delete(arr[ix]);
 			}
 		}
 

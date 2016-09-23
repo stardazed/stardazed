@@ -19,31 +19,6 @@ namespace sd {
 	}
 
 
-	// -- Sequences (global)
-
-	export function seq<T>(t: ArrayLike<T>): Array<T>;
-	export function seq(t: any): Array<any>;
-
-	export function seq(t: any): any {
-		if (Array.isArray(t))
-			return t;
-		// try to detect a non-String ArrayLike
-		if ((typeof t == "object") && ("length" in t) && (t.length > 0) && !(t instanceof String) && ('0' in Object(t)))
-			return [].slice.call(t, 0);
-		return [].concat(t);
-	}
-
-
-	// -- Mixins (from TS site)
-
-	export function applyMixins(derivedCtor: any, baseCtors: any[]) {
-		baseCtors.forEach(baseCtor => {
-			Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
-				derivedCtor.prototype[name] = baseCtor.prototype[name];
-			})
-		});
-	}
-
 	// Shallow clone an object. Use only for simple struct types.
 	export function cloneStruct<T>(object: T): T {
 		var copy = {};
