@@ -274,10 +274,6 @@ namespace sd.meshdata {
 		export function Pos3Norm3UV2Tan3(): VertexAttribute[] {
 			return [attrPosition3(), attrNormal3(), attrUV2(), attrTangent3()];
 		}
-
-		export function SkinnedPosNormUV(): VertexAttribute[] {
-			return [];
-		}
 	}
 
 
@@ -431,10 +427,6 @@ namespace sd.meshdata {
 			this.itemCount_ = itemCount;
 			this.storage_ = insideBuffer;
 			this.storageOffsetBytes_ = atByteOffset;
-		}
-
-		bytesRequiredForAllocation(itemCount: number) {
-			return this.layout_.vertexSizeBytes * itemCount;
 		}
 
 		// -- attribute access pass-through
@@ -706,7 +698,12 @@ namespace sd.meshdata {
 	}
 
 
-	export function indexOffsetForPrimitiveCount(primitiveType: PrimitiveType, primitiveCount: number) {
+	export function bytesRequiredForIndexCount(elementType: IndexElementType, indexCount: number) {
+		return indexElementTypeSizeBytes(elementType) * indexCount;
+	}
+
+
+	export function elementOffsetForPrimitiveCount(primitiveType: PrimitiveType, primitiveCount: number) {
 		switch (primitiveType) {
 			case PrimitiveType.Point:
 				return primitiveCount;
@@ -726,7 +723,7 @@ namespace sd.meshdata {
 	}
 
 
-	export function indexCountForPrimitiveCount(primitiveType: PrimitiveType, primitiveCount: number) {
+	export function elementCountForPrimitiveCount(primitiveType: PrimitiveType, primitiveCount: number) {
 		switch (primitiveType) {
 			case PrimitiveType.Point:
 				return primitiveCount;
@@ -746,48 +743,54 @@ namespace sd.meshdata {
 	}
 
 
+	export function primitiveCountForElementCount(primitiveType: PrimitiveType, elementCount: number) {
+		switch (primitiveType) {
+			case PrimitiveType.Point:
+				return elementCount;
+			case PrimitiveType.Line:
+				return (elementCount / 2) | 0;
+			case PrimitiveType.LineStrip:
+				return elementCount - 1;
+			case PrimitiveType.Triangle:
+				return (elementCount / 3) | 0;
+			case PrimitiveType.TriangleStrip:
+				return elementCount - 2;
+
+			default:
+				assert(false, "Unknown primitive type");
+				return 0;
+		}
+	}
+
+
 	export class IndexBuffer implements ClientBuffer {
-		private primitiveType_ = PrimitiveType.None;
 		private indexElementType_ = IndexElementType.None;
 		private indexCount_ = 0;
-		private primitiveCount_ = 0;
 		private indexElementSizeBytes_ = 0;
 		private storage_: ArrayBuffer | null = null;
 		private storageOffsetBytes_ = 0;
 
-		allocate(primitiveType: PrimitiveType, elementType: IndexElementType, primitiveCount: number) {
-			this.primitiveType_ = primitiveType;
+		allocate(elementType: IndexElementType, elementCount: number) {
 			this.indexElementType_ = elementType;
 			this.indexElementSizeBytes_ = indexElementTypeSizeBytes(this.indexElementType_);
-			this.primitiveCount_ = primitiveCount;
-			this.indexCount_ = indexCountForPrimitiveCount(primitiveType, primitiveCount);
+			this.indexCount_ = elementCount;
 
 			this.storage_ = new ArrayBuffer(this.bufferSizeBytes);
 			this.storageOffsetBytes_ = 0;
 		}
 
-		suballocate(primitiveType: PrimitiveType, elementType: IndexElementType, primitiveCount: number, insideBuffer: ArrayBuffer, atByteOffset: number) {
-			this.primitiveType_ = primitiveType;
+		suballocate(elementType: IndexElementType, indexCount: number, insideBuffer: ArrayBuffer, atByteOffset: number) {
 			this.indexElementType_ = elementType;
 			this.indexElementSizeBytes_ = indexElementTypeSizeBytes(this.indexElementType_);
-			this.primitiveCount_ = primitiveCount;
-			this.indexCount_ = indexCountForPrimitiveCount(primitiveType, primitiveCount);
+			this.indexCount_ = indexCount;
 
 			this.storage_ = insideBuffer;
 			this.storageOffsetBytes_ = atByteOffset;
 		}
 
-		bytesRequiredForAllocation(primitiveType: PrimitiveType, elementType: IndexElementType, primitiveCount: number) {
-			var indexCount = indexCountForPrimitiveCount(primitiveType, primitiveCount);
-			return indexCount * indexElementTypeSizeBytes(elementType);
-		}
-
 
 		// -- observers
-		get primitiveType() { return this.primitiveType_; }
 		get indexElementType() { return this.indexElementType_; }
-
-		get primitiveCount() { return this.primitiveCount_; }
 		get indexCount() { return this.indexCount_; }
 		get indexElementSizeBytes() { return this.indexElementSizeBytes_; }
 
@@ -809,10 +812,10 @@ namespace sd.meshdata {
 			assert(this.storage_, "No storage allocated yet!");
 			var offsetBytes = this.storageOffsetBytes_ + this.indexElementSizeBytes_ * baseIndexNr;
 
-			if (this.indexElementType_ == IndexElementType.UInt32) {
+			if (this.indexElementType_ === IndexElementType.UInt32) {
 				return new Uint32Array(this.storage_!, offsetBytes, elementCount);
 			}
-			else if (this.indexElementType_ == IndexElementType.UInt16) {
+			else if (this.indexElementType_ === IndexElementType.UInt16) {
 				return new Uint16Array(this.storage_!, offsetBytes, elementCount);
 			}
 			else {
@@ -820,7 +823,7 @@ namespace sd.meshdata {
 			}
 		}
 
-		indexes(baseIndexNr: number, outputCount: number, outputPtr: Uint32Array) {
+		copyIndexes(baseIndexNr: number, outputCount: number, outputPtr: Uint32Array) {
 			assert(baseIndexNr < this.indexCount_);
 			assert(baseIndexNr + outputCount <= this.indexCount_);
 			assert(outputPtr.length >= outputCount);
@@ -881,16 +884,16 @@ namespace sd.meshdata {
 
 	export class IndexBufferTriangleView {
 		constructor(private indexBuffer_: IndexBuffer, private fromTriangle_ = -1, private toTriangle_ = -1) {
-			assert(this.indexBuffer_.primitiveType == PrimitiveType.Triangle);
-
 			// clamp range to available primitives, default to all triangles
+			const primitiveCount = primitiveCountForElementCount(PrimitiveType.Triangle, this.indexBuffer_.indexCount);
+
 			if (this.fromTriangle_ < 0)
 				this.fromTriangle_ = 0;
-			if (this.fromTriangle_ >= this.indexBuffer_.primitiveCount)
-				this.fromTriangle_ = this.indexBuffer_.primitiveCount - 1;
+			if (this.fromTriangle_ >= primitiveCount)
+				this.fromTriangle_ = primitiveCount - 1;
 
-			if ((this.toTriangle_ < 0) || (this.toTriangle_ > this.indexBuffer_.primitiveCount))
-				this.toTriangle_ = this.indexBuffer_.primitiveCount;
+			if ((this.toTriangle_ < 0) || (this.toTriangle_ > primitiveCount))
+				this.toTriangle_ = primitiveCount;
 		}
 
 		forEach(callback: (proxy: TriangleProxy) => void) {
@@ -902,7 +905,7 @@ namespace sd.meshdata {
 			}
 		}
 
-		item(triangleIndex: number) {
+		refItem(triangleIndex: number) {
 			return this.indexBuffer_.typedBasePtr((triangleIndex + this.fromTriangle_) * 3, 3);
 		}
 
@@ -1127,16 +1130,16 @@ namespace sd.meshdata {
 		indexBuffer: IndexBuffer | null = null;
 		primitiveGroups: PrimitiveGroup[] = [];
 
-		allocateSingleStorage(vertexBufferItemCounts: number[], primitiveType: PrimitiveType, elementType: IndexElementType, primitiveCount: number) {
+		allocateSingleStorage(vertexBufferItemCounts: number[], elementType: IndexElementType, indexCount: number) {
 			assert(vertexBufferItemCounts.length === this.vertexBuffers.length, "Did not specify exactly 1 item count per VertexBuffer");
 
 			var totalBytes = 0;
 			for (let vbix = 0; vbix < this.vertexBuffers.length; ++vbix) {
-				totalBytes += this.vertexBuffers[vbix].bytesRequiredForAllocation(vertexBufferItemCounts[vbix]);
+				totalBytes += this.vertexBuffers[vbix].layout.bytesRequiredForVertexCount(vertexBufferItemCounts[vbix]);
 				totalBytes = math.alignUp(totalBytes, BufferAlignment.SubBuffer);
 			}
 			if (this.indexBuffer) {
-				totalBytes += this.indexBuffer.bytesRequiredForAllocation(primitiveType, elementType, primitiveCount);
+				totalBytes += bytesRequiredForIndexCount(elementType, indexCount);
 				totalBytes = math.alignUp(totalBytes, BufferAlignment.SubBuffer);
 			}
 
@@ -1151,7 +1154,7 @@ namespace sd.meshdata {
 				byteOffset = math.alignUp(byteOffset, BufferAlignment.SubBuffer);
 			}
 			if (this.indexBuffer) {
-				this.indexBuffer.suballocate(primitiveType, elementType, primitiveCount, storage, byteOffset);
+				this.indexBuffer.suballocate(elementType, indexCount, storage, byteOffset);
 				byteOffset += this.indexBuffer.bufferSizeBytes;
 				byteOffset = math.alignUp(byteOffset, BufferAlignment.SubBuffer);
 			}

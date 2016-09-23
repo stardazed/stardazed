@@ -62,7 +62,7 @@ namespace sd.meshdata.gen {
 		// TODO: give option for separate client buffers? Useful?
 		// vertexBuffer.allocate(totalVertexCount);
 		// mesh.indexBuffer.allocate(PrimitiveType.Triangle, indexElementType, totalFaceCount);
-		mesh.allocateSingleStorage([totalVertexCount], PrimitiveType.Triangle, indexElementType, totalFaceCount);
+		mesh.allocateSingleStorage([totalVertexCount], indexElementType, totalFaceCount * 3);
 
 		// -- views into various attributes and the index buffer
 		var normalAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
@@ -92,7 +92,7 @@ namespace sd.meshdata.gen {
 		var pos = posView.elementCount == 2 ? pos2 : pos3;
 
 		var face: IndexesAddFn = (a: number, b: number, c: number) => {
-			var i3 = triView.item(faceIx);
+			var i3 = triView.refItem(faceIx);
 			i3[0] = a + baseVertex; i3[1] = b + baseVertex; i3[2] = c + baseVertex;
 			faceIx++;
 		};

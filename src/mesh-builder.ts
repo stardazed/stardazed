@@ -331,7 +331,7 @@ namespace sd.meshdata {
 			meshData.vertexBuffers.push(vb);
 			var indexElemType = meshdata.minimumIndexElementTypeForVertexCount(this.vertexCount_);
 			meshData.indexBuffer = new IndexBuffer();
-			meshData.allocateSingleStorage([this.vertexMapping_.size], PrimitiveType.Triangle, indexElemType, this.triangleCount_);
+			meshData.allocateSingleStorage([this.vertexMapping_.size], indexElemType, this.triangleCount_ * 3);
 
 			// copy vertex streams
 			for (var six = 0; six < meshAttributeStreams.length; ++six) {
