@@ -487,7 +487,7 @@ namespace sd.meshdata {
 			}
 		}
 
-		copyValuesFrom(source: ArrayOfNumber, valueCount: number, offset: number = 0) {
+		copyValuesFrom(source: ArrayOfConstNumber, valueCount: number, offset: number = 0) {
 			assert(this.firstItem_ + offset + valueCount <= this.viewItemCount_, "buffer overflow");
 			assert(source.length >= valueCount * this.attrElementCount_, "not enough elements in source");
 

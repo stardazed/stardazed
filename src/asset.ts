@@ -110,7 +110,7 @@ namespace sd.asset {
 
 		bindPoseLocalTranslation: Float3 | null;
 		bindPoseLocalRotation: Float4 | null;
-		bindPoseLocalMatrix: ArrayOfNumber | null;
+		bindPoseLocalMatrix: Float4x4 | null;
 	}
 
 	export interface Skin extends Asset {

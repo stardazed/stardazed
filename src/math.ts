@@ -15,6 +15,14 @@ namespace sd {
 	export type Float2x2 = ArrayOfNumber;
 	export type Float3x3 = ArrayOfNumber;
 	export type Float4x4 = ArrayOfNumber;
+
+	export type ConstFloat2 = ArrayOfConstNumber;
+	export type ConstFloat3 = ArrayOfConstNumber;
+	export type ConstFloat4 = ArrayOfConstNumber;
+
+	export type ConstFloat2x2 = ArrayOfConstNumber;
+	export type ConstFloat3x3 = ArrayOfConstNumber;
+	export type ConstFloat4x4 = ArrayOfConstNumber;
 } // ns sd
 
 

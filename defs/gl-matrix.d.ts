@@ -1,4 +1,4 @@
-  // Type definitions for gl-matrix 2.3.1
+// Type definitions for gl-matrix 2.3.1
 // Project: http://glmatrix.net/
 // Definitions by: chuntaro <https://github.com/chuntaro/>
 // Definitions: https://github.com/chuntaro/gl-matrix.d.ts
@@ -29,6 +29,7 @@ interface vec2 {
   create(): Float32Array;
   clone(a: ArrayOfConstNumber): Float32Array;
   fromValues(x: number, y: number): Float32Array;
+
   copy(out: ArrayOfNumber, a: ArrayOfConstNumber): ArrayOfNumber;
   set(out: ArrayOfNumber, x: number, y: number): ArrayOfNumber;
   add(out: ArrayOfNumber, a: ArrayOfConstNumber, b: ArrayOfConstNumber): ArrayOfNumber;
@@ -42,6 +43,7 @@ interface vec2 {
   max(out: ArrayOfNumber, a: ArrayOfConstNumber, b: ArrayOfConstNumber): ArrayOfNumber;
   scale(out: ArrayOfNumber, a: ArrayOfConstNumber, b: number): ArrayOfNumber;
   scaleAndAdd(out: ArrayOfNumber, a: ArrayOfConstNumber, b: ArrayOfConstNumber, scale: number): ArrayOfNumber;
+
   distance(a: ArrayOfConstNumber, b: ArrayOfConstNumber): number;
   dist(a: ArrayOfConstNumber, b: ArrayOfConstNumber): number;
   squaredDistance(a: ArrayOfConstNumber, b: ArrayOfConstNumber): number;
