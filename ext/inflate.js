@@ -1,4 +1,4 @@
-/*
+/** @license
  Copyright (c) 2013 Gildas Lormeau. All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -24,16 +24,14 @@
  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/*
+ 
+ *
  * This program is based on JZlib 1.0.2 ymnk, JCraft,Inc.
  * JZlib is based on zlib-1.1.3, so all credit should go authors
  * Jean-loup Gailly(jloup@gzip.org) and Mark Adler(madler@alumni.caltech.edu)
  * and contributors of zlib.
- */
-
-/*
+ *
+ *
  * Minor modifications by Arthur Langereis (@zenmumbler):
  * - Increased output buffer size from 512 bytes to 16384 bytes
  * - Replace ZStream.read_byte calls with direct z.next_in[] accesses
