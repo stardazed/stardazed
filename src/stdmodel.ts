@@ -449,7 +449,6 @@ namespace sd.world {
 
 			line  ("const int SPEC_INTENSITY = 0;");
 			line  ("const int SPEC_EXPONENT = 1;");
-			line  ("const int SPEC_COLOURMIX = 2;");
 
 			// -- light param constants
 			line  ("const int MAX_FRAGMENT_LIGHTS = " + MAX_FRAGMENT_LIGHTS + ";");
@@ -502,7 +501,7 @@ namespace sd.world {
 					line("		vec3 specularColour = texture2D(specularSampler, vertexUV_intp).xyz;");
 				}
 				else {
-					line("		vec3 specularColour = mix(matColour, colour.rgb, specular[SPEC_COLOURMIX]);");
+					line("		vec3 specularColour = colour.rgb;");
 				}
 				line("		specularStrength = pow(specularStrength, specular[SPEC_EXPONENT]) * diffuseStrength;"); // FIXME: not too sure about this (* diffuseStrength)
 				line("		specularContrib = specularColour * specularStrength * specular[SPEC_INTENSITY];");

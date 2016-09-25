@@ -27,7 +27,6 @@ namespace sd.world {
 	const enum SpecularElem {
 		Intensity = 0,
 		Exponent = 1,
-		ColourMix = 2
 	}
 
 
@@ -89,7 +88,7 @@ namespace sd.world {
 
 			vec4.set(this.tempVec4, desc.baseColour[0], desc.baseColour[1], desc.baseColour[2], 0);
 			container.setIndexedVec4(this.mainColourBase_, matIndex, this.tempVec4);
-			vec4.set(this.tempVec4, desc.specularIntensity, desc.specularExponent, .5, 0);
+			vec4.set(this.tempVec4, desc.specularIntensity, desc.specularExponent, 0, 0);
 			container.setIndexedVec4(this.specularBase_, matIndex, this.tempVec4);
 			vec4.set(this.tempVec4, desc.emissiveColour[0], desc.emissiveColour[1], desc.emissiveColour[2], desc.emissiveIntensity);
 			container.setIndexedVec4(this.emissiveBase_, matIndex, this.tempVec4);
@@ -215,15 +214,6 @@ namespace sd.world {
 
 		setSpecularExponent(inst: StdMaterialInstance, newExponent: number) {
 			this.specularBase_[(<number>inst * 4) + SpecularElem.Exponent] = newExponent;
-		}
-
-
-		specularColourMix(inst: StdMaterialInstance): number {
-			return this.specularBase_[(<number>inst * 4) + SpecularElem.ColourMix];
-		}
-
-		setSpecularColourMix(inst: StdMaterialInstance, newMix: number) {
-			this.specularBase_[(<number>inst * 4) + SpecularElem.ColourMix] = newMix;
 		}
 
 
