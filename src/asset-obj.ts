@@ -5,7 +5,8 @@
 
 namespace sd.asset {
 
-	function parseMTLSource(group: AssetGroup, _filePath: string, text: string) {
+	function parseMTLSource(group: AssetGroup, filePath: string, text: string) {
+		const basePath = filePath.substr(0, filePath.lastIndexOf("/") + 1);
 		const lines = text.split("\n");
 		var curMat: Material | null = null;
 		var tokens: string[] = [];
@@ -40,30 +41,53 @@ namespace sd.asset {
 						// Single colour directives
 						case "Kd":
 						case "Ks":
-						case "Ke": // custom Clara.io extension
+						case "Ke":
 							if (checkArgCount(3)) {
-								var colour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
-								vec3.copy((<{[s:string]:Float3}>{
-									"Kd": curMat.baseColour,
-									"Ks": curMat.specularColour,
-									"Ke": curMat.emissiveColour
-								})[directive], colour);
+								const colour = [parseFloat(tokens[1]), parseFloat(tokens[2]), parseFloat(tokens[3])];
+								const nonBlack = vec3.length(colour) > 0;
+
+								if (directive === "Kd") {
+									vec3.copy(curMat.baseColour, colour);
+								}
+								else if (nonBlack) {
+									if (directive === "Ks") {
+										vec3.copy(curMat.specularColour, colour);
+										curMat.specularIntensity = 1;
+										curMat.flags |= MaterialFlags.usesSpecular;
+									}
+									else if (directive === "Ke") {
+										vec3.copy(curMat.emissiveColour, colour);
+										curMat.emissiveIntensity = 1;
+										curMat.flags |= MaterialFlags.usesEmissive;
+									}
+								}
 							}
 							break;
 
 						// Single value directives
+						case "Ns":
 						case "Pr":
 						case "Pm":
 						case "aniso":
+							if (checkArgCount(1)) {
+								const value = parseFloat(tokens[1]);
+								if (directive === "Ns") { curMat.specularExponent = value; }
+								else if (directive === "Pr") { curMat.roughness = value; }
+								else if (directive === "Pm") { curMat.metallic = value; }
+								else if (directive === "aniso") { curMat.anisotropy = value; }
+							}
+							break;
 						case "d":
 						case "Tr":
 							if (checkArgCount(1)) {
-								var value = parseFloat(tokens[1]);
-								if (directive === "Pr") { curMat.roughness = value; }
-								else if (directive === "Pm") { curMat.metallic = value; }
-								else if (directive === "aniso") { curMat.anisotropy = value; }
-								else if (directive === "d") { curMat.opacity = value; }
-								else if (directive === "Tr") { curMat.opacity = 1.0 - value; }
+								let opacity = parseFloat(tokens[1]);
+								if (directive === "Tr") { opacity = 1.0 - opacity; }
+								opacity = math.clamp01(opacity);
+
+								if (opacity < 1) {
+									curMat.opacity = opacity;
+									curMat.flags |= MaterialFlags.isTranslucent;
+								}
 							}
 							break;
 
@@ -81,16 +105,23 @@ namespace sd.asset {
 							if (checkArgCount(1)) {
 								var texAsset: Texture2D = {
 									name: curMat.name + "_" + directive,
-									filePath: tokens[1], // FIXME: resolve to filePath (arg) relative path
+									filePath: basePath + tokens[1],
 									useMipMaps: render.UseMipMaps.Yes
 								};
 								if (directive === "map_Kd") { curMat.albedoTexture = texAsset; }
 								else if (directive === "map_Ks") { curMat.specularTexture = texAsset; }
-								else if (directive === "map_Ke") { curMat.emissiveTexture = texAsset; }
+								else if (directive === "map_Ke") {
+									curMat.emissiveTexture = texAsset;
+									curMat.flags |= MaterialFlags.usesEmissive;
+								}
 								else if (directive === "map_Pr") { curMat.roughnessTexture = texAsset; }
 								else if (directive === "map_Pm") { curMat.metallicTexture = texAsset; }
 								else if (directive === "norm") { curMat.normalTexture = texAsset; }
-								else if (directive === "map_d" || directive === "map_Tr") { curMat.transparencyTexture = texAsset; }
+								else if (directive === "map_d") {
+									curMat.transparencyTexture = texAsset;
+									curMat.flags |= MaterialFlags.isTranslucent;
+								}
+								else if (directive === "map_Tr") { /* warn: not supported */ }
 								else if (directive === "bump" || directive === "disp") { curMat.heightTexture = texAsset; }
 							}
 							break;
