@@ -721,7 +721,7 @@ namespace sd.world {
 
 
 	export interface StdModelDescriptor {
-		materials: StdMaterialInstance[];
+		materials: asset.Material[];
 		castsShadows?: boolean;
 		acceptsShadows?: boolean;
 	}
@@ -743,6 +743,7 @@ namespace sd.world {
 
 	export class StdModelManager implements ComponentManager<StdModelManager> {
 		private stdPipeline_: StdPipeline;
+		private materialMgr_: StdMaterialManager;
 
 		private instanceData_: container.MultiArrayBuffer;
 		private entityBase_: EntityArrayView;
@@ -752,7 +753,7 @@ namespace sd.world {
 		private materialOffsetCountBase_: Int32Array;
 		private primGroupOffsetBase_: Int32Array;
 
-		private materials_: number[];
+		private materials_: StdMaterialInstance[];
 
 		private primGroupData_: container.MultiArrayBuffer;
 		private primGroupMaterialBase_: StdMaterialArrayView;
@@ -780,11 +781,11 @@ namespace sd.world {
 			private rc: render.RenderContext,
 			private transformMgr_: TransformManager,
 			private meshMgr_: MeshManager,
-			private materialMgr_: StdMaterialManager,
 			private lightMgr_: LightManager
 		)
 		{
 			this.stdPipeline_ = new StdPipeline(rc);
+			this.materialMgr_ = new StdMaterialManager();
 
 			var instFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
@@ -833,14 +834,14 @@ namespace sd.world {
 			if (meshFeatures & MeshFeatures.VertexUVs) features |= Features.VtxUV;
 
 			var matFlags = this.materialMgr_.flags(material);
-			if (matFlags & StdMaterialFlags.usesSpecular) features |= Features.Specular;
-			if (matFlags & StdMaterialFlags.usesEmissive) features |= Features.Emissive;
-			if (matFlags & StdMaterialFlags.diffuseAlphaIsTransparency) features |= Features.DiffuseAlphaIsTransparency;
+			if (matFlags & asset.MaterialFlags.usesSpecular) features |= Features.Specular;
+			if (matFlags & asset.MaterialFlags.usesEmissive) features |= Features.Emissive;
+			if (matFlags & asset.MaterialFlags.diffuseAlphaIsTransparency) features |= Features.DiffuseAlphaIsTransparency;
 
-			if (matFlags & StdMaterialFlags.isTranslucent) {
+			if (matFlags & asset.MaterialFlags.isTranslucent) {
 				features |= Features.Translucency;
 
-				if (matFlags & StdMaterialFlags.diffuseAlphaIsOpacity) {
+				if (matFlags & asset.MaterialFlags.diffuseAlphaIsOpacity) {
 					features |= Features.DiffuseAlphaIsOpacity;
 				}
 			}
@@ -916,7 +917,9 @@ namespace sd.world {
 
 			// -- save material indexes
 			container.setIndexedVec2(this.materialOffsetCountBase_, ix, [this.materials_.length, desc.materials.length]);
-			this.materials_.push.apply(this.materials_, desc.materials);
+			for (const mat of desc.materials) {
+				this.materials_.push(this.materialMgr_.create(mat));
+			}
 			
 			this.updatePrimGroups(ix);
 

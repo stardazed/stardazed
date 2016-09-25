@@ -13,6 +13,21 @@ namespace sd.asset {
 
 	export interface Texture2D extends Asset {
 		filePath?: string;
+
+		useMipMaps?: render.UseMipMaps;
+		descriptor?: render.TextureDescriptor;
+		texture?: render.Texture;
+	}
+
+
+	export interface TextureCube extends Asset {
+		filePathPosX?: string;
+		filePathNegX?: string;
+		filePathPosY?: string;
+		filePathNegY?: string;
+		filePathPosZ?: string;
+		filePathNegZ?: string;
+
 		useMipMaps: render.UseMipMaps;
 		descriptor?: render.TextureDescriptor;
 		texture?: render.Texture;
@@ -26,7 +41,21 @@ namespace sd.asset {
 	// const missingTexture = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwAQMAAABtzGvEAAAABlBMVEX/AN8AAAA/lLvMAAAAFElEQVR4AWMAgv///w96Csoc9BQAKFKPcQjw3h8AAAAASUVORK5CYII=";
 
 
+	export const enum MaterialFlags {
+		usesSpecular               = 0x00000001,
+		usesEmissive               = 0x00000002,
+		isTranslucent              = 0x00000004,
+
+		diffuseAlphaIsTransparency = 0x00000100,
+		diffuseAlphaIsOpacity      = 0x00000200,
+
+		normalAlphaIsHeight        = 0x00000800,
+	}
+
+
 	export interface Material extends Asset {
+		flags: MaterialFlags;
+
 		baseColour: Float3;
 
 		specularColour: Float3;
@@ -62,15 +91,16 @@ namespace sd.asset {
 	export function makeMaterial(name?: string): Material {
 		return {
 			name: name || "",
+			flags: 0,
+
+			baseColour: [1, 1, 1],
+
+			specularColour: [0, 0, 0],
+			specularIntensity: 0,
+			specularExponent: 0,
 
 			emissiveColour: [0, 0, 0],
 			emissiveIntensity: 0,
-
-			baseColour: [0, 0, 0],
-
-			specularColour: [0, 0, 0],
-			specularIntensity: 1,
-			specularExponent: 0,
 
 			textureScale: [1, 1],
 			textureOffset: [0, 0],

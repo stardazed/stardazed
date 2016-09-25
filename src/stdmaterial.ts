@@ -11,74 +11,6 @@ namespace sd.world {
 	// |___/\__\__,_|_|  |_\__,_|\__\___|_| |_\__,_|_|_|  |_\__,_|_||_\__,_\__, \___|_|  
 	//                                                                     |___/         
 
-	// FIXME: these flags are bad, replace with texture usage type or eqv.
-	export const enum StdMaterialFlags {
-		usesSpecular               = 0x00000001,
-		isTranslucent              = 0x00000002,
-		usesEmissive               = 0x00000004,
-
-		diffuseAlphaIsTransparency = 0x00000100,
-		diffuseAlphaIsOpacity      = 0x00000200,
-		// diffuseAlphaIsGloss        = 0x00000400,
-
-		normalAlphaIsHeight        = 0x00000800,
-	}
-
-
-	export interface StdMaterialDescriptor {
-		// colours
-		mainColour: Float3;             // v3, single colour or tint for diffuse
-
-		specularIntensity: number;      // 0..1
-		specularExponent: number;       // 0+
-		specularColourMix: number;      // 0..1: mix between material colour and light colour for specular (0: all material, 1: all light)
-
-		emissiveColour: Float3;
-		emissiveIntensity: number;
-
-		// textures
-		textureScale: Float2;           // [0..1, 0..1], scale and offset apply to all textures, u and v clamped to 0..1
-		textureOffset: Float2;
-
-		diffuseMap: render.Texture | null;      // nullptr means use mainColour only
-		specularMap: render.Texture | null;
-		normalMap: render.Texture | null;      // nullptr means no bump
-
-		opacity: number;                // 0..1, only used if flags has `isTranslucent` set
-
-		jointData: render.Texture | null;      // joint transforms
-
-		flags: StdMaterialFlags;
-	}
-
-
-	export function makeStdMaterialDescriptor(): StdMaterialDescriptor {
-		return {
-			mainColour: vec3.copy([], math.Vec3.one),
-
-			specularIntensity: 0,
-			specularExponent: 0,
-			specularColourMix: 0.8,
-
-			emissiveColour: math.Vec3.zero,
-			emissiveIntensity: 0,
-
-			textureScale: vec2.copy([], math.Vec2.one),
-			textureOffset: vec2.copy([], math.Vec2.zero),
-
-			diffuseMap: null,
-			specularMap: null,
-			normalMap: null,
-
-			opacity: 1,
-
-			jointData: null,
-
-			flags: 0
-		};
-	}
-
-
 	export interface StdMaterialData {
 		colourData: Float32Array;
 		specularData: Float32Array;
@@ -88,7 +20,7 @@ namespace sd.world {
 		specularMap: render.Texture | null;
 		normalMap: render.Texture | null;
 		jointData: render.Texture | null;
-		flags: StdMaterialFlags;
+		flags: asset.MaterialFlags;
 	}
 
 
@@ -113,12 +45,12 @@ namespace sd.world {
 		private normalMaps_: (render.Texture | null)[] = [];
 		private jointDataMaps_: (render.Texture | null)[] = [];
 
-		private mainColourBase_: TypedArray;
-		private specularBase_: TypedArray;
-		private emissiveBase_: TypedArray;
-		private texScaleOffsetBase_: TypedArray;
-		private opacityBase_: TypedArray;
-		private flagsBase_: TypedArray;
+		private mainColourBase_: Float32Array;
+		private specularBase_: Float32Array;
+		private emissiveBase_: Float32Array;
+		private texScaleOffsetBase_: Float32Array;
+		private opacityBase_: Float32Array;
+		private flagsBase_: ConstEnumArrayView<asset.MaterialFlags>;
 
 		private tempVec4 = new Float32Array(4);
 
@@ -149,30 +81,34 @@ namespace sd.world {
 		}
 
 
-		create(desc: StdMaterialDescriptor): StdMaterialInstance {
+		create(desc: asset.Material): StdMaterialInstance {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
 			var matIndex = this.instanceData_.count; // entry 0 is reserved as nullptr-like
 
-			vec4.set(this.tempVec4, desc.mainColour[0], desc.mainColour[1], desc.mainColour[2], 0);
+			vec4.set(this.tempVec4, desc.baseColour[0], desc.baseColour[1], desc.baseColour[2], 0);
 			container.setIndexedVec4(this.mainColourBase_, matIndex, this.tempVec4);
-			vec4.set(this.tempVec4, desc.specularIntensity, desc.specularExponent, desc.specularColourMix, 0);
+			vec4.set(this.tempVec4, desc.specularIntensity, desc.specularExponent, .5, 0);
 			container.setIndexedVec4(this.specularBase_, matIndex, this.tempVec4);
 			vec4.set(this.tempVec4, desc.emissiveColour[0], desc.emissiveColour[1], desc.emissiveColour[2], desc.emissiveIntensity);
 			container.setIndexedVec4(this.emissiveBase_, matIndex, this.tempVec4);
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
-			if ((desc.flags & StdMaterialFlags.diffuseAlphaIsOpacity) && (desc.flags & StdMaterialFlags.diffuseAlphaIsTransparency)) {
+			if ((desc.flags & asset.MaterialFlags.diffuseAlphaIsOpacity) && (desc.flags & asset.MaterialFlags.diffuseAlphaIsTransparency)) {
 				assert(false, "Diffuse Alpha can't be both opacity and transparency");
 			}
 			this.flagsBase_[matIndex] = desc.flags;
 
-			this.diffuseMaps_[matIndex] = desc.diffuseMap;
-			this.specularMaps_[matIndex] = desc.specularMap;
-			this.normalMaps_[matIndex] = desc.normalMap;
-			this.jointDataMaps_[matIndex] = desc.jointData;
+
+			// FIXME: these are asserted to have render textures pre-created for now
+
+
+			this.diffuseMaps_[matIndex] = desc.albedoTexture ? desc.albedoTexture.texture! : null;
+			this.specularMaps_[matIndex] = desc.specularTexture ? desc.specularTexture.texture! : null;
+			this.normalMaps_[matIndex] = desc.normalTexture ? desc.normalTexture.texture! : null;
+			this.jointDataMaps_[matIndex] = desc.jointDataTexture ? desc.jointDataTexture.texture! : null;
 
 			this.opacityBase_[matIndex] = desc.opacity;
 
@@ -360,48 +296,14 @@ namespace sd.world {
 		}
 
 
-		flags(inst: StdMaterialInstance): StdMaterialFlags {
+		flags(inst: StdMaterialInstance): asset.MaterialFlags {
 			return this.flagsBase_[<number>inst];
 		}
 
 		// TODO: this will affect the pipeline required for this material, do we need this?
-		// setFlags(index: StdMaterialIndex, newFlags: StdMaterialFlags) {
+		// setFlags(index: StdMaterialIndex, newFlags: asset.MaterialFlags) {
 		// 	this.flagsBase_[index] = newFlags;
 		// }
-
-
-		// -- reconstruct a copy of the data as a descriptor
-		copyDescriptor(inst: StdMaterialInstance): StdMaterialDescriptor {
-			var matIndex = <number>inst;
-			assert(matIndex < this.instanceData_.count);
-
-			var mainColourArr = container.copyIndexedVec4(this.mainColourBase_, matIndex);
-			var specularArr = container.copyIndexedVec4(this.specularBase_, matIndex);
-			var emissiveColourArr = container.copyIndexedVec4(this.emissiveBase_, matIndex);
-
-			return {
-				mainColour: Array.prototype.slice.call(mainColourArr, 0, 3),
-
-				specularIntensity: specularArr[0],
-				specularExponent: specularArr[1],
-				specularColourMix: specularArr[2],
-
-				emissiveColour: Array.prototype.slice.call(emissiveColourArr, 0, 3),
-				emissiveIntensity: emissiveColourArr[3],
-
-				textureScale: this.textureScale(inst),
-				textureOffset: this.textureOffset(inst),
-
-				diffuseMap: this.diffuseMaps_[matIndex],
-				specularMap: this.specularMaps_[matIndex],
-				normalMap: this.normalMaps_[matIndex],
-				jointData: this.jointDataMaps_[matIndex],
-
-				opacity: this.opacityBase_[matIndex],
-
-				flags: this.flagsBase_[matIndex]
-			};
-		}
 
 
 		// direct data views to set uniforms with in StdModelMgr

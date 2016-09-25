@@ -30,7 +30,6 @@ namespace sd.world {
 
 
 	export class Scene {
-		stdMaterialMgr: StdMaterialManager;
 		pbrMaterialMgr: PBRMaterialManager;
 		physMatMgr: PhysicsMaterialManager;
 
@@ -44,7 +43,6 @@ namespace sd.world {
 		colliderMgr: ColliderManager;
 
 		constructor(rc: render.RenderContext) {
-			this.stdMaterialMgr = new StdMaterialManager();
 			this.pbrMaterialMgr = new PBRMaterialManager();
 			this.physMatMgr = new PhysicsMaterialManager();
 
@@ -53,7 +51,7 @@ namespace sd.world {
 
 			this.lightMgr = new LightManager(this.transformMgr);
 			this.meshMgr = new MeshManager(rc);
-			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.meshMgr, this.stdMaterialMgr, this.lightMgr);
+			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.meshMgr, this.lightMgr);
 			this.pbrModelMgr = new PBRModelManager(rc, this.transformMgr, this.meshMgr, this.pbrMaterialMgr, this.lightMgr);
 
 			this.colliderMgr = new ColliderManager(this.physMatMgr);
