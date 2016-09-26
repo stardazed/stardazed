@@ -163,6 +163,26 @@ namespace sd.render {
 	}
 
 
+	export function makeTexDesc2DFloatLUT(sourceData: Float32Array, width: number, height: number): TextureDescriptor {
+		return {
+			textureClass: render.TextureClass.Tex2D,
+			pixelFormat: render.PixelFormat.RGBA32F,
+			usageHint: render.TextureUsageHint.Normal,
+			sampling: {
+				repeatS: render.TextureRepeatMode.ClampToEdge,
+				repeatT: render.TextureRepeatMode.ClampToEdge,
+				maxAnisotropy: 1,
+				minFilter: render.TextureSizingFilter.Nearest,
+				magFilter: render.TextureSizingFilter.Nearest,
+				mipFilter: render.TextureMipFilter.Nearest
+			},
+			dim: render.makePixelDimensions(width, height),
+			mipmaps: 1,
+			pixelData: [sourceData]
+		};
+	}
+
+
 	export function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
 		var sampler = makeSamplerDescriptor();
 		sampler.mipFilter = TextureMipFilter.Linear;
