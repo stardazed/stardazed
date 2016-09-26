@@ -5,6 +5,61 @@
 
 namespace sd.asset {
 
+	interface MTLTextureSpec {
+		relPath: string;
+		texOffset?: number[];
+		texScale?: number[];
+	}
+
+	function parseMTLTextureSpec(line: string[]): MTLTextureSpec | null {
+		if (line.length < 2) {
+			return null;
+		}
+
+		// only the arguments, please
+		const tokens = line.slice(1);
+
+		const spec: MTLTextureSpec = {
+			// the last token is the relative path of the texture (no spaces allowed)
+			relPath: tokens.pop()!
+		};
+
+		// what remains are texture options
+		// SD only supports -o and -s for now and only with both u and v values
+		let tix = 0;
+		while (tix < tokens.length) {
+			const opt = tokens[tix];
+			switch (opt) {
+				case "-o": // offset
+				case "-s": // scale
+					if (tix < tokens.length - 2) {
+						const xy = [
+							parseFloat(tokens[++tix]),
+							parseFloat(tokens[++tix])
+						];
+						if (isNaN(xy[0]) || isNaN(xy[1])) {
+							// TODO: report invalid vector
+						}
+						else {
+							if (opt == "-o") spec.texOffset = xy;
+							else spec.texScale = xy;
+						}
+					}
+					else {
+						// TODO: report invalid option
+					}
+					break;
+				default:
+					break;
+			}
+
+			tix += 1;
+		}
+
+		return spec;
+	}
+
+
 	function parseMTLSource(group: AssetGroup, filePath: string, text: string) {
 		const basePath = filePath.substr(0, filePath.lastIndexOf("/") + 1);
 		const lines = text.split("\n");
@@ -101,13 +156,23 @@ namespace sd.asset {
 						case "map_Tr":
 						case "norm":
 						case "bump":
-						case "disp":
-							if (checkArgCount(1)) {
+						case "disp": {
+							const texSpec = parseMTLTextureSpec(tokens);
+							if (texSpec) {
 								var texAsset: Texture2D = {
 									name: curMat.name + "_" + directive,
-									filePath: basePath + tokens[1],
+									filePath: basePath + texSpec.relPath,
 									useMipMaps: render.UseMipMaps.Yes
 								};
+
+								// SD only supports a single offset/scale pair so these will overwrite previous ones
+								if (texSpec.texOffset) {
+									curMat.textureOffset = texSpec.texOffset;
+								}
+								if (texSpec.texScale) {
+									curMat.textureScale = texSpec.texScale;
+								}
+
 								if (directive === "map_Kd") { curMat.albedoTexture = texAsset; }
 								else if (directive === "map_Ks") { curMat.specularTexture = texAsset; }
 								else if (directive === "map_Ke") {
@@ -123,8 +188,14 @@ namespace sd.asset {
 								}
 								else if (directive === "map_Tr") { /* warn: not supported */ }
 								else if (directive === "bump" || directive === "disp") { curMat.heightTexture = texAsset; }
+
+								group.addTexture(texAsset);
+							}
+							else {
+								// TODO: warn
 							}
 							break;
+						}
 
 						default:
 							// other fields are either esoteric or filled with nonsense data
@@ -140,7 +211,9 @@ namespace sd.asset {
 	}
 
 
-	function loadMTLFile(group: AssetGroup, filePath: string): Promise<void> {
+	export function loadMTLFile(filePath: string, intoAssetGroup?: AssetGroup): Promise<void> {
+		const group = intoAssetGroup || new AssetGroup();
+
 		return loadFile(filePath).then((text: string) => {
 			return parseMTLSource(group, filePath, text);
 		});
@@ -191,7 +264,7 @@ namespace sd.asset {
 
 		if (mtlFileName.length) {
 			var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + mtlFileName;
-			return loadMTLFile(group, mtlFilePath).then(() => {
+			return loadMTLFile(mtlFilePath, group).then(() => {
 				return preproc;
 			});
 		}
@@ -336,14 +409,22 @@ namespace sd.asset {
 	}
 
 
-	export function loadOBJFile(filePath: string, materialsAsColours = false): Promise<AssetGroup> {
-		var group = new AssetGroup();
+	export function loadOBJFile(filePath: string, materialsAsColours = false, intoAssetGroup?: AssetGroup): Promise<AssetGroup> {
+		const group = intoAssetGroup || new AssetGroup();
 
 		return loadFile(filePath).then((text: string) => {
 			return preflightOBJSource(group, filePath, text);
 		})
 		.then(preproc => {
 			parseOBJSource(group, preproc, materialsAsColours);
+
+			// add the linked object as a Model to the group
+			const model = asset.makeModel("objModel");
+			model.mesh = group.meshes[0];
+			model.materials = group.materials;
+			model.transform = asset.makeTransform();
+			group.addModel(model);
+
 			return group;
 		});
 	}
