@@ -49,33 +49,6 @@ namespace sd.asset {
 		}
 
 
-		function constructJointDataTexture(joints: Transform[]): Texture2D {
-			var texData = new Float32Array(256 * 256 * 4);
-			for (var ji = 0; ji < joints.length; ++ji) {
-				var j = joints[ji];
-				var texelBaseIndex = ji * 8;
-
-				var xform = mat4.fromRotationTranslation([], j.rotation, j.position);
-				container.setIndexedVec4(texData, texelBaseIndex, j.rotation);
-				container.setIndexedMat4(texData, (ji * 2) + 1, xform);
-			}
-
-			var td = render.makeTexDesc2D(render.PixelFormat.RGBA32F, 256, 256, render.UseMipMaps.No);
-			td.pixelData = [texData];
-			td.sampling.magFilter = render.TextureSizingFilter.Nearest;
-			td.sampling.minFilter = render.TextureSizingFilter.Nearest;
-			td.sampling.repeatS = render.TextureRepeatMode.ClampToEdge;
-			td.sampling.repeatT = render.TextureRepeatMode.ClampToEdge;
-
-			return {
-				name: "jointData",
-				userRef: 1000,
-				descriptor: td,
-				useMipMaps: render.UseMipMaps.No
-			};
-		}
-
-
 		function constructSkinnedMeshStreams(vertexes: VertexData, weights: WeightData) {
 			var count = vertexes.uvs.length / 2;
 			var jointIndexes = new Float32Array(count * 4);
@@ -155,7 +128,6 @@ namespace sd.asset {
 			private assets_: AssetGroup;
 			private curMaterial: Material;
 			private meshCount_ = 0;
-			private jointDataTexture_: Texture2D;
 			private textures_ = new Map<string, Texture2D>();
 
 			constructor(private filePath: string) {
@@ -198,9 +170,7 @@ namespace sd.asset {
 			}
 
 
-			endJoints() {
-				this.jointDataTexture_ = constructJointDataTexture(this.joints);
-			}
+			endJoints() {}
 
 
 			meshCount(_count: number) {}
@@ -227,7 +197,7 @@ namespace sd.asset {
 					}
 					m.albedoTexture = this.textures_.get(name);
 				}
-				m.jointDataTexture = this.jointDataTexture_;
+				m.flags |= MaterialFlags.isSkinned;
 				
 				this.assets_.addMaterial(m);
 				this.curMaterial = m;

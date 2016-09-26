@@ -50,6 +50,8 @@ namespace sd.asset {
 		diffuseAlphaIsOpacity      = 0x00000200,
 
 		normalAlphaIsHeight        = 0x00000800,
+
+		isSkinned                  = 0x00001000   // FIXME: hmm
 	}
 
 
@@ -83,9 +85,6 @@ namespace sd.asset {
 		roughnessTexture?: Texture2D;
 		metallicTexture?: Texture2D;
 		ambientOcclusionTexture?: Texture2D;
-
-		// DEPRECATED: this will be removed as this obvs does not belong here
-		jointDataTexture?: Texture2D;
 	}
 
 

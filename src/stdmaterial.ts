@@ -19,7 +19,6 @@ namespace sd.world {
 		diffuseMap: render.Texture | null;
 		specularMap: render.Texture | null;
 		normalMap: render.Texture | null;
-		jointData: render.Texture | null;
 		flags: asset.MaterialFlags;
 	}
 
@@ -42,7 +41,6 @@ namespace sd.world {
 		private diffuseMaps_: (render.Texture | null)[] = [];
 		private specularMaps_: (render.Texture | null)[] = [];
 		private normalMaps_: (render.Texture | null)[] = [];
-		private jointDataMaps_: (render.Texture | null)[] = [];
 
 		private mainColourBase_: Float32Array;
 		private specularBase_: Float32Array;
@@ -107,7 +105,6 @@ namespace sd.world {
 			this.diffuseMaps_[matIndex] = desc.albedoTexture ? desc.albedoTexture.texture! : null;
 			this.specularMaps_[matIndex] = desc.specularTexture ? desc.specularTexture.texture! : null;
 			this.normalMaps_[matIndex] = desc.normalTexture ? desc.normalTexture.texture! : null;
-			this.jointDataMaps_[matIndex] = desc.jointDataTexture ? desc.jointDataTexture.texture! : null;
 
 			this.opacityBase_[matIndex] = desc.opacity;
 
@@ -128,7 +125,6 @@ namespace sd.world {
 			this.diffuseMaps_[matIndex] = null;
 			this.specularMaps_[matIndex] = null;
 			this.normalMaps_[matIndex] = null;
-			this.jointDataMaps_[matIndex] = null;
 
 			// TODO: track/reuse freed instances etc.
 		}
@@ -268,15 +264,6 @@ namespace sd.world {
 		}
 
 
-		jointData(inst: StdMaterialInstance): render.Texture | null {
-			return this.jointDataMaps_[<number>inst];
-		}
-
-		setJointData(inst: StdMaterialInstance, newTex: render.Texture) {
-			this.jointDataMaps_[<number>inst] = newTex;
-		}
-
-
 		opacity(inst: StdMaterialInstance): number {
 			return this.opacityBase_[<number>inst];
 		}
@@ -312,7 +299,6 @@ namespace sd.world {
 				diffuseMap: this.diffuseMaps_[matIndex],
 				specularMap: this.specularMaps_[matIndex],
 				normalMap: this.normalMaps_[matIndex],
-				jointData: this.jointDataMaps_[matIndex],
 
 				flags: this.flagsBase_[matIndex]
 			};
