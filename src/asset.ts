@@ -79,6 +79,7 @@ namespace sd.asset {
 		heightTexture?: Texture2D;
 		transparencyTexture?: Texture2D;
 		emissiveTexture?: Texture2D;
+
 		roughnessTexture?: Texture2D;
 		metallicTexture?: Texture2D;
 		ambientOcclusionTexture?: Texture2D;

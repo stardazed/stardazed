@@ -716,7 +716,7 @@ namespace sd.world {
 
 
 	export interface PBRModelDescriptor {
-		materials: PBRMaterialInstance[];
+		materials: asset.Material[];
 		castsShadows?: boolean;
 		acceptsShadows?: boolean;
 	}
@@ -732,6 +732,7 @@ namespace sd.world {
 		private materialOffsetCountBase_: Int32Array;
 		private primGroupOffsetBase_: Int32Array;
 
+		private materialMgr_: PBRMaterialManager;
 		private materials_: PBRMaterialInstance[];
 
 		private primGroupData_: container.MultiArrayBuffer;
@@ -762,11 +763,11 @@ namespace sd.world {
 			private rc: render.RenderContext,
 			private transformMgr_: TransformManager,
 			private meshMgr_: MeshManager,
-			private materialMgr_: PBRMaterialManager,
 			private lightMgr_: LightManager
 		)
 		{
 			this.pbrPipeline_ = new PBRPipeline(rc);
+			this.materialMgr_ = new PBRMaterialManager();
 
 			var instFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
@@ -926,7 +927,9 @@ namespace sd.world {
 
 			// -- save material indexes
 			container.setIndexedVec2(this.materialOffsetCountBase_, ix, [this.materials_.length, desc.materials.length]);
-			this.materials_.push.apply(this.materials_, desc.materials);
+			for (const mat of desc.materials) {
+				this.materials_.push(this.materialMgr_.create(mat));
+			}
 			
 			this.updatePrimGroups(ix);
 

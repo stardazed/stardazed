@@ -25,40 +25,6 @@ namespace sd.world {
 	}
 
 	
-	export interface PBRMaterialDescriptor {
-		baseColour: Float3;
-		metallic: number;               // 0..1
-		roughness: number;              // 0..1
-
-		textureScale: Float2;           // [0..1, 0..1], scale and offset apply to all textures, u and v clamped to 0..1
-		textureOffset: Float2;
-
-		albedoMap: render.Texture | null;
-		materialMap: render.Texture | null;
-		normalHeightMap: render.Texture | null;
-
-		flags: PBRMaterialFlags;
-	}
-
-
-	export function makePBRMaterialDescriptor(): PBRMaterialDescriptor {
-		return {
-			baseColour: vec3.copy([], math.Vec3.one),
-			metallic: 0,
-			roughness: 0,
-
-			textureScale: vec2.copy([], math.Vec2.one),
-			textureOffset: vec2.copy([], math.Vec2.zero),
-
-			albedoMap: null,
-			materialMap: null,
-			normalHeightMap: null,
-
-			flags: 0
-		};
-	}
-
-
 	export interface PBRMaterialData {
 		colourData: Float32Array;     // baseColour(rgb), opacity
 		materialParam: Float32Array;  // roughness, metallic, 0, 0 | specular(rgb), roughness
@@ -90,11 +56,11 @@ namespace sd.world {
 		private materialMaps_: (render.Texture | null)[] = [];
 		private normalHeightMaps_: (render.Texture | null)[] = [];
 
-		private baseColourBase_: TypedArray;
-		private materialBase_: TypedArray;
-		private texScaleOffsetBase_: TypedArray;
-		private opacityBase_: TypedArray;
-		private flagsBase_: TypedArray;
+		private baseColourBase_: Float32Array;
+		private materialBase_: Float32Array;
+		private texScaleOffsetBase_: Float32Array;
+		private opacityBase_: Float32Array;
+		private flagsBase_: ConstEnumArrayView<PBRMaterialFlags>;
 
 		private tempVec4 = new Float32Array(4);
 
@@ -123,7 +89,7 @@ namespace sd.world {
 		}
 
 
-		create(desc: PBRMaterialDescriptor): PBRMaterialInstance {
+		create(desc: asset.Material): PBRMaterialInstance {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
@@ -139,11 +105,19 @@ namespace sd.world {
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
-			this.flagsBase_[matIndex] = desc.flags;
+			var flags: PBRMaterialFlags = 0;
+			if (desc.roughnessTexture) flags |= PBRMaterialFlags.RoughnessMap;
+			if (desc.metallicTexture) flags |= PBRMaterialFlags.MetallicMap;
+			if (desc.ambientOcclusionTexture) flags |= PBRMaterialFlags.AmbientOcclusionMap;
+			if (desc.normalTexture) flags |= PBRMaterialFlags.NormalMap;
+			if (desc.heightTexture) flags |= PBRMaterialFlags.HeightMap;
+			this.flagsBase_[matIndex] = flags;
 
-			this.albedoMaps_[matIndex] = desc.albedoMap;
-			this.materialMaps_[matIndex] = desc.materialMap;
-			this.normalHeightMaps_[matIndex] = desc.normalHeightMap;
+			// FIXME: these need to have been already allocated and packed together (RMA, NormHeight)
+
+			this.albedoMaps_[matIndex] = desc.albedoTexture ? desc.albedoTexture.texture! : null;
+			this.materialMaps_[matIndex] = desc.roughnessTexture ? desc.roughnessTexture.texture! : null;
+			this.normalHeightMaps_[matIndex] = desc.normalTexture ? desc.normalTexture.texture! : null;
 
 			this.opacityBase_[matIndex] = 1.0;
 
@@ -174,7 +148,6 @@ namespace sd.world {
 				this.destroy(iter.current);
 			}
 		}
-
 
 
 		get count() { return this.instanceData_.count; }
