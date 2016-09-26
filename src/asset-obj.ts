@@ -161,7 +161,7 @@ namespace sd.asset {
 							if (texSpec) {
 								var texAsset: Texture2D = {
 									name: curMat.name + "_" + directive,
-									filePath: basePath + texSpec.relPath,
+									filePath: resolveRelativeFilePath(basePath, texSpec.relPath),
 									useMipMaps: render.UseMipMaps.Yes
 								};
 
