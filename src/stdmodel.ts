@@ -780,6 +780,7 @@ namespace sd.world {
 			private rc: render.RenderContext,
 			private transformMgr_: TransformManager,
 			private meshMgr_: MeshManager,
+			private skeletonMgr_: SkeletonManager,
 			private lightMgr_: LightManager
 		)
 		{
@@ -848,7 +849,8 @@ namespace sd.world {
 			if (this.materialMgr_.diffuseMap(material)) features |= Features.DiffuseMap;
 			if (this.materialMgr_.normalMap(material)) features |= Features.NormalMap;
 			if (this.materialMgr_.specularMap(material)) features |= Features.SpecularMap | Features.Specular;
-			if (this.materialMgr_.jointData(material)) features |= Features.Skinned;
+
+			if (this.materialMgr_.flags(material) & asset.MaterialFlags.isSkinned) features |= Features.Skinned;
 
 			// Remove redundant or unused features as GL drivers can and will remove attributes that are only used in the vertex shader
 			// var prePrune = features;
@@ -1080,7 +1082,7 @@ namespace sd.world {
 					rp.setTexture(materialData.normalMap!, TextureBindPoint.Normal);
 				}
 				if (features & Features.Skinned) {
-					rp.setTexture(materialData.jointData!, TextureBindPoint.JointData);
+					rp.setTexture(this.skeletonMgr_.jointDataTexture, TextureBindPoint.JointData);
 				}
 
 				// -- light data FIXME: only update these when local light data was changed -> pos and rot can change as well

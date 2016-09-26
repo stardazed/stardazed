@@ -35,7 +35,10 @@ namespace sd.world {
 		entityMgr: EntityManager;
 		transformMgr: TransformManager;
 		lightMgr: LightManager;
+
 		meshMgr: MeshManager;
+		skeletonMgr: SkeletonManager;
+
 		stdModelMgr: StdModelManager;
 		pbrModelMgr: PBRModelManager;
 		rigidBodyMgr: RigidBodyManager;
@@ -46,10 +49,12 @@ namespace sd.world {
 
 			this.entityMgr = new EntityManager();
 			this.transformMgr = new TransformManager();
-
 			this.lightMgr = new LightManager(this.transformMgr);
+
 			this.meshMgr = new MeshManager(rc);
-			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.meshMgr, this.lightMgr);
+			this.skeletonMgr = new SkeletonManager(rc, this.transformMgr);
+
+			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.meshMgr, this.skeletonMgr, this.lightMgr);
 			this.pbrModelMgr = new PBRModelManager(rc, this.transformMgr, this.meshMgr, this.lightMgr);
 
 			this.colliderMgr = new ColliderManager(this.physMatMgr);
