@@ -52,8 +52,8 @@ namespace sd.asset {
 
 
 	export function resolveRelativeFilePath(relPath: string, basePath: string) {
-		var normRelPath = relPath.replace(/\\/g, "/").replace(/\/\//g, "/").replace(/^\//, "");
-		var normBasePath = basePath.replace(/\\/g, "/").replace(/\/\//g, "/").replace(/^\//, "");
+		var normRelPath = relPath.replace(/\\/g, "/").replace(/\/\//g, "/").replace(/^\//, "").replace(/\/$/, "");
+		var normBasePath = basePath.replace(/\\/g, "/").replace(/\/\//g, "/").replace(/^\/|/, "").replace(/\/$/, "");
 
 		var relPathParts = normRelPath.split("/");
 		var basePathParts = normBasePath.split("/");
@@ -145,6 +145,27 @@ namespace sd.asset {
 	}
 
 
+	// TODO: temp
+	export function resolveTextures(textures: (asset.Texture2D | null)[]) {
+		return Promise.all(textures.map(tex => {
+			if (! tex) {
+				return null;
+			}
+			if (! tex.filePath || (tex.descriptor && tex.descriptor.pixelData)) {
+				return tex;
+			}
+
+			return loadImage(tex.filePath).then(img => {
+				tex.descriptor = render.makeTexDesc2DFromImageSource(img, tex.useMipMaps);
+				return tex;
+			}).catch(error => {
+				console.warn("resolveTextures error: ", error);
+				return null;
+			})
+		}).filter(p => !!p));
+	}
+
+
 	export function loadImage(srcPath: string, cors: CORSMode = CORSMode.Disabled): Promise<ImageData | HTMLImageElement> {
 		return new Promise(function(resolve, reject) {
 			var nativeLoader = () => {
@@ -158,7 +179,7 @@ namespace sd.asset {
 				image.src = srcPath;
 			};
 
-			if (fileExtensionOfFilePath(srcPath) == "tga") {
+			if (fileExtensionOfFilePath(srcPath) === "tga") {
 				checkNativeTGASupport().then(nativeTGA => {
 					if (nativeTGA) {
 						nativeLoader();
