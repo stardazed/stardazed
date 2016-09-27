@@ -161,7 +161,7 @@ namespace sd.asset {
 							if (texSpec) {
 								var texAsset: Texture2D = {
 									name: curMat.name + "_" + directive,
-									filePath: resolveRelativeFilePath(basePath, texSpec.relPath),
+									filePath: resolveRelativeFilePath(texSpec.relPath, basePath),
 									useMipMaps: render.UseMipMaps.Yes
 								};
 
@@ -208,10 +208,12 @@ namespace sd.asset {
 		if (curMat) {
 			group.addMaterial(curMat);
 		}
+
+		return group;
 	}
 
 
-	export function loadMTLFile(filePath: string, intoAssetGroup?: AssetGroup): Promise<void> {
+	export function loadMTLFile(filePath: string, intoAssetGroup?: AssetGroup): Promise<AssetGroup> {
 		const group = intoAssetGroup || new AssetGroup();
 
 		return loadFile(filePath).then((text: string) => {
