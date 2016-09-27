@@ -51,6 +51,8 @@ namespace sd.world {
 
 		private tempVec4 = new Float32Array(4);
 
+		private assetMaterialMap_: WeakMap<asset.Material, StdMaterialInstance>;
+
 		constructor() {
 			const initialCapacity = 256;
 
@@ -65,6 +67,8 @@ namespace sd.world {
 
 			this.instanceData_ = new container.MultiArrayBuffer(initialCapacity, fields);
 			this.rebase();
+
+			this.assetMaterialMap_ = new WeakMap<asset.Material, StdMaterialInstance>();
 		}
 
 
@@ -79,6 +83,12 @@ namespace sd.world {
 
 
 		create(desc: asset.Material): StdMaterialInstance {
+			if (this.assetMaterialMap_.has(desc)) {
+				// reuse already created material based on asset equality
+				// this is still a WIP
+				return this.assetMaterialMap_.get(desc)!;
+			}
+
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
@@ -99,7 +109,7 @@ namespace sd.world {
 			this.flagsBase_[matIndex] = desc.flags;
 
 
-			// FIXME: these are asserted to have render textures pre-created for now
+			// FIXME: these are expected to have render textures pre-created for now
 
 
 			this.diffuseMaps_[matIndex] = desc.albedoTexture ? desc.albedoTexture.texture! : null;
@@ -108,6 +118,7 @@ namespace sd.world {
 
 			this.opacityBase_[matIndex] = desc.opacity;
 
+			this.assetMaterialMap_.set(desc, matIndex);
 			return matIndex;
 		}
 
