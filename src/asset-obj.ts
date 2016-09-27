@@ -61,7 +61,6 @@ namespace sd.asset {
 
 
 	function parseMTLSource(group: AssetGroup, filePath: string, text: string) {
-		const basePath = filePath.substr(0, filePath.lastIndexOf("/") + 1);
 		const lines = text.split("\n");
 		var curMat: Material | null = null;
 		var tokens: string[] = [];
@@ -161,7 +160,7 @@ namespace sd.asset {
 							if (texSpec) {
 								var texAsset: Texture2D = {
 									name: curMat.name + "_" + directive,
-									filePath: resolveRelativeFilePath(texSpec.relPath, basePath),
+									filePath: resolveRelativeFilePath(texSpec.relPath, filePath),
 									useMipMaps: render.UseMipMaps.Yes
 								};
 
@@ -235,7 +234,7 @@ namespace sd.asset {
 
 
 	function preflightOBJSource(group: AssetGroup, filePath: string, text: string) {
-		var mtlFileName = "";
+		var mtlFileRelPath = "";
 		var preproc: OBJPreProcSource = {
 			lines: [],
 			positionCount: 0,
@@ -260,13 +259,12 @@ namespace sd.asset {
 				preproc.vertexCount += tokens.length - 1;
 			}
 			else if (directive === "mtllib") {
-				mtlFileName = tokens[1] || "";
+				mtlFileRelPath = tokens[1] || "";
 			}
 		}
 
-		if (mtlFileName.length) {
-			var mtlFilePath = filePath.substr(0, filePath.lastIndexOf("/") + 1) + mtlFileName;
-			return loadMTLFile(mtlFilePath, group).then(() => {
+		if (mtlFileRelPath.length) {
+			return loadMTLFile(resolveRelativeFilePath(mtlFileRelPath, filePath), group).then(_ => {
 				return preproc;
 			});
 		}
