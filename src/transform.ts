@@ -350,9 +350,17 @@ namespace sd.world {
 			this.setPosition(inst, [pos[0] + localDelta3[0], pos[1] + localDelta3[1], pos[2] + localDelta3[2]]);
 		}
 
-		rotateByAngles(inst: TransformInstance, angDelta3: Float3) {
+		rotate(inst: TransformInstance, localRot: Float4) {
+			this.setRotation(inst, quat.multiply([], this.localRotation(inst), localRot));
+		}
+
+		rotateRelWorld(inst: TransformInstance, worldRot: Float4) {
+			this.setRotation(inst, quat.multiply([], worldRot, this.localRotation(inst)));
+		}
+
+		rotateByAngles(inst: TransformInstance, localAng: Float3) {
 			var rot = this.localRotation(inst);
-			var q = quat.fromEuler(angDelta3[2], angDelta3[1], angDelta3[0]);
+			var q = quat.fromEuler(localAng[2], localAng[1], localAng[0]);
 			this.setRotation(inst, quat.multiply([], rot, q));
 		}
 	}
