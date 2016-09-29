@@ -566,27 +566,17 @@ namespace sd.asset {
 
 
 	function parseMD5MeshSource(filePath: string, source: string): Promise<AssetGroup> {
-		// var t0 = performance.now();
 		var del = new md5.MD5MeshBuilder(filePath);
 		var parser = new md5.parse.MD5MeshParser(source, del);
 		parser.parse();
-		// return del.assets.then(grp => {
-		// 	console.info("fbx total time: " + (performance.now() - t0).toFixed(1) + "ms");
-		// 	return grp;
-		// });
 		return del.assets();
 	}
 
 
 	function parseMD5AnimSource(filePath: string, source: string): AssetGroup {
-		// var t0 = performance.now();
 		var del = new md5.MD5AnimBuilder(filePath);
 		var parser = new md5.parse.MD5AnimParser(source, del);
 		parser.parse();
-		// return del.assets.then(grp => {
-		// 	console.info("fbx total time: " + (performance.now() - t0).toFixed(1) + "ms");
-		// 	return grp;
-		// });
 		return del.assets();
 	}
 	

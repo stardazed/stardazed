@@ -411,6 +411,7 @@ namespace sd.asset.md5.parse {
 			}
 		}
 
+
 		private parseJoints() {
 			var maxParentIndex = this.jointCount_ - 2;
 			var index = 0;
