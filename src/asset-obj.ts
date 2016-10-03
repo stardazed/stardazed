@@ -274,6 +274,8 @@ namespace sd.asset {
 	}
 
 
+	let objSequenceNumber_s = 0;
+
 	function parseOBJSource(group: AssetGroup, preproc: OBJPreProcSource, hasColourAttr: boolean) {
 		var positions: Float32Array = new Float32Array(preproc.positionCount * 3);
 		var normalValues: Float32Array | undefined;
@@ -402,7 +404,7 @@ namespace sd.asset {
 		}
 
 		group.addMesh({
-			name: "obj model",
+			name: "obj_" + objSequenceNumber_s + "_mesh",
 			meshData: builder.complete(),
 			indexMap: builder.indexMap
 		});
@@ -419,12 +421,13 @@ namespace sd.asset {
 			parseOBJSource(group, preproc, materialsAsColours);
 
 			// add the linked object as a Model to the group
-			const model = asset.makeModel("objModel");
+			const model = asset.makeModel("obj_" + objSequenceNumber_s + "_model");
 			model.mesh = group.meshes[0];
 			model.materials = group.materials;
 			model.transform = asset.makeTransform();
 			group.addModel(model);
 
+			objSequenceNumber_s += 1;
 			return group;
 		});
 	}
