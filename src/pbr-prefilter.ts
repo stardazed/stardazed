@@ -159,7 +159,7 @@ namespace sd.render {
 
 		var quad = meshdata.gen.generate(new meshdata.gen.Quad(2, 2), [meshdata.attrPosition2(), meshdata.attrUV2()]);
 		// var quadMesh = new render.Mesh(rc, makeMeshDescriptor(quad));
-		const quadMesh = meshMgr.create(quad);
+		const quadMesh = meshMgr.create({ name: "squareQuad", meshData: quad }); // TODO: add baked-in box, screen quads etc
 
 		var levelPixels: Uint8Array[] = [];
 		var levelTextures: render.Texture[] = [];

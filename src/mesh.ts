@@ -192,6 +192,7 @@ namespace sd.world {
 
 		private pipelineVAOMaps_: WeakMap<render.Pipeline, WebGLVertexArrayObjectOES>[] | null = null;
 		private entityMap_: Map<Entity, MeshInstance>;
+		private assetMeshMap_: WeakMap<asset.Mesh, MeshInstance>;
 
 
 		constructor(private rctx_: render.RenderContext) {
@@ -229,6 +230,7 @@ namespace sd.world {
 			this.bufGLBuffers_ = [];
 
 			this.entityMap_ = new Map<Entity, MeshInstance>();
+			this.assetMeshMap_ = new WeakMap<asset.Mesh, MeshInstance>();
 
 			if (rctx_.extVAO) {
 				this.pipelineVAOMaps_ = [];
@@ -264,7 +266,11 @@ namespace sd.world {
 		}
 
 
-		create(meshData: meshdata.MeshData): MeshInstance {
+		create(mesh: asset.Mesh): MeshInstance {
+			if (this.assetMeshMap_.has(mesh)) {
+				return this.assetMeshMap_.get(mesh)!;
+			}
+			const meshData = mesh.meshData;
 			const gl = this.rctx_.gl;
 
 			// -- ensure space in instance and dependent arrays
@@ -371,6 +377,9 @@ namespace sd.world {
 			if (this.pipelineVAOMaps_) {
 				this.pipelineVAOMaps_[instance] = new WeakMap<render.Pipeline, WebGLVertexArrayObjectOES>();
 			}
+
+			// -- remember that we've already instantiated this asset
+			this.assetMeshMap_.set(mesh, instance);
 
 			return instance;
 		}

@@ -8,7 +8,7 @@ namespace sd.world {
 	export interface EntityDescriptor {
 		transform?: TransformDescriptor;
 		parent?: TransformInstance;
-		mesh?: meshdata.MeshData | MeshInstance;
+		mesh?: asset.Mesh;
 		stdModel?: StdModelDescriptor;
 		pbrModel?: PBRModelDescriptor;
 		rigidBody?: RigidBodyDescriptor;
@@ -65,7 +65,7 @@ namespace sd.world {
 		makeEntity(desc?: EntityDescriptor): EntityInfo {
 			const ent = this.entityMgr.create();
 
-			const meshInstance = desc && desc.mesh ? ((typeof desc.mesh === "number") ? desc.mesh : this.meshMgr.create(<meshdata.MeshData>desc.mesh)) : undefined;
+			const meshInstance = desc && desc.mesh ? this.meshMgr.create(desc.mesh) : undefined;
 			if (meshInstance) {
 				this.meshMgr.linkToEntity(meshInstance, ent);
 			}

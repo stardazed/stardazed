@@ -6,8 +6,8 @@
 namespace sd.world {
 
 	export class Skybox {
-		private meshData_: meshdata.MeshData;
 		private mesh_: MeshInstance;
+		private meshAsset_: asset.Mesh;
 
 		private pipeline_: render.Pipeline;
 		private mvpMatrixUniform_: WebGLUniformLocation;
@@ -61,8 +61,8 @@ namespace sd.world {
 
 			// -- mesh
 			var sphereGen = new meshdata.gen.Sphere({ radius: 400, rows: 10, segs: 15 });
-			this.meshData_ = meshdata.gen.generate(sphereGen, [meshdata.attrPosition3()]);
-			this.mesh_ = meshMgr.create(this.meshData_);
+			this.meshAsset_ = { name: "skyboxMesh", meshData: meshdata.gen.generate(sphereGen, [meshdata.attrPosition3()]) }; // FIXME: asset 
+			this.mesh_ = meshMgr.create(this.meshAsset_);
 		}
 
 
@@ -94,8 +94,8 @@ namespace sd.world {
 			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewProjectionMatrix_);
 			this.rc.gl.uniformMatrix4fv(this.mvpMatrixUniform_, false, this.modelViewProjectionMatrix_);
 
-			const primGroup0 = this.meshData_.primitiveGroups[0];
-			rp.drawIndexedPrimitives(primGroup0.type, this.meshData_.indexBuffer!.indexElementType, 0, primGroup0.elementCount);
+			const primGroup0 = this.meshAsset_.meshData.primitiveGroups[0];
+			rp.drawIndexedPrimitives(primGroup0.type, this.meshAsset_.meshData.indexBuffer!.indexElementType, 0, primGroup0.elementCount);
 
 			// -- draw call count
 			return 1;
