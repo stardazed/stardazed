@@ -41,8 +41,9 @@ namespace sd.dom {
 			source = source.parentNode;
 			if (source.nodeType != Node.ELEMENT_NODE)
 				return null;
-			var elem = <HTMLElement>source;
-			if (elem.matches(sel))
+			const elem = <HTMLElement>source;
+			const matchFn = elem.matches || elem.webkitMatchesSelector || elem.msMatchesSelector;
+			if (matchFn.call(elem, sel))
 				return elem;
 		} while (source);
 
