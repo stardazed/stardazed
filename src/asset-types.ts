@@ -1,4 +1,4 @@
-// asset.ts - Main asset types and functions
+// asset-types.ts - Main asset types and functions
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
@@ -148,7 +148,7 @@ namespace sd.asset {
 	}
 
 
-	// -- DEPRECATED
+	// -- DEPRECATED?
 	export interface Joint {
 		root: boolean;
 	}
@@ -179,7 +179,7 @@ namespace sd.asset {
 		property: AnimationProperty;
 		key: AnimationKeyData;
 	}
-	// -- /DEPRECATED
+	// -- /DEPRECATED?
 
 
 
@@ -211,9 +211,7 @@ namespace sd.asset {
 	}
 
 
-	// TODO: models, lights, cameras and generic nodes do not belong in Asset
-	// Full scene formats like FBX, OpenGEX, etc. export assets and scene data together
-	// but in SD these are handled separately
+	// TODO: how do I handle models, lights, cameras and generic nodes?
 
 	export interface Light {
 		descriptor: world.LightDescriptor;
@@ -230,13 +228,12 @@ namespace sd.asset {
 		materials?: Material[];
 		light?: Light;
 
-		// DEPRECATED (FBX)
-		joint?: Joint;
-		vertexGroup?: WeightedVertexGroup;
-		animations?: AnimationTrack[];
-		// /DEPRECATED
+		// DEPRECATED?
+		joint?: Joint; // FBX and MD5
+		vertexGroup?: WeightedVertexGroup; // FBX
+		animations?: AnimationTrack[]; // FBX
+		// /DEPRECATED?
 	}
-
 
 	export function makeModel(name: string, ref?: any): Model {
 		return {
