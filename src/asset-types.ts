@@ -114,8 +114,8 @@ namespace sd.asset {
 
 
 	export interface Mesh extends Asset {
-		meshData: meshdata.MeshData;
-		indexMap?: meshdata.VertexIndexMapping;
+		readonly meshData: meshdata.MeshData;
+		readonly indexMap?: meshdata.VertexIndexMapping;
 	}
 
 
