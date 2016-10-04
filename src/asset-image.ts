@@ -320,7 +320,7 @@ namespace sd.asset {
 	}
 
 
-	export function tgaLoader(source: URL | ArrayBuffer, _mimeType: string) {
+	export function tgaLoader(source: URL | ArrayBuffer, mimeType: string) {
 		if (source instanceof URL) {
 			return checkNativeTGASupport().then(supported => {
 				if (supported) {
@@ -336,7 +336,16 @@ namespace sd.asset {
 			});
 		}
 		else {
-			return Promise.resolve(assetGroupForImage(loadTGAImageFromBuffer(source)));
+			return checkNativeTGASupport().then(supported => {
+				if (supported) {
+					return loadBuiltInImageFromBuffer(source, mimeType).then(image => {
+						return assetGroupForImage(image);
+					});
+				}
+				else {
+					return Promise.resolve(assetGroupForImage(loadTGAImageFromBuffer(source)));
+				}
+			});
 		}
 	}
 
