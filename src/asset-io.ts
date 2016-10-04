@@ -145,6 +145,46 @@ namespace sd.asset {
 	}
 
 
+	export class BlobReader {
+		private constructor() {}
+
+		private static readerPromise<T>(): { promise: Promise<T>, reader: FileReader } {
+			const reader = new FileReader();
+			const promise = new Promise<T>((resolve, reject) => {
+				reader.onerror = () => {
+					reject(reader.error);	
+				};
+				reader.onabort = () => {
+					reject("Blob load was aborted.");
+				};
+				reader.onload = () => {
+					resolve(reader.result);
+				};
+			});
+
+			return { promise, reader };
+		}
+
+		static readAsArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
+			const pr = this.readerPromise<ArrayBuffer>();
+			pr.reader.readAsArrayBuffer(blob);
+			return pr.promise;
+		}
+
+		static readAsDataURL(blob: Blob): Promise<string> {
+			const pr = this.readerPromise<string>();
+			pr.reader.readAsDataURL(blob);
+			return pr.promise;
+		}
+
+		static readAsText(blob: Blob, encoding?: string): Promise<string> {
+			const pr = this.readerPromise<string>();
+			pr.reader.readAsText(blob, encoding);
+			return pr.promise;
+		}
+	}
+
+
 	// TODO: temp
 	export function resolveTextures(textures: (asset.Texture2D | null)[]) {
 		return Promise.all(textures.map(tex => {
