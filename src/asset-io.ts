@@ -20,25 +20,6 @@ namespace sd.asset {
 	}
 
 
-	export const enum CORSMode {
-		Disabled,
-		Anonymous,
-		WithCredentials
-	}
-
-
-	function crossOriginForCORSMode(cm: CORSMode) {
-		if (cm == CORSMode.Disabled) {
-			return null;
-		}
-		if (cm == CORSMode.WithCredentials) {
-			return "with-credentials";
-		}
-
-		return "anonymous";
-	}
-
-
 	function responseTypeForFileLoadType(flt: FileLoadType) {
 		switch (flt) {
 			case FileLoadType.ArrayBuffer: return "arraybuffer";
@@ -51,77 +32,15 @@ namespace sd.asset {
 	}
 
 
-	export function resolveRelativeFilePath(relPath: string, basePath: string) {
-		var normRelPath = relPath.replace(/\\/g, "/").replace(/\/\//g, "/").replace(/^\//, "").replace(/\/$/, "");
-		var normBasePath = basePath.replace(/\\/g, "/").replace(/\/\//g, "/").replace(/^\/|/, "").replace(/\/$/, "");
-
-		var relPathParts = normRelPath.split("/");
-		var basePathParts = normBasePath.split("/");
-
-		// remove trailing filename, which we can only identify by a dot in the name...
-		if (basePathParts.length > 0 && basePathParts[basePathParts.length - 1].indexOf(".") > 0) {
-			basePathParts.pop();
-		}
-
-		for (var entry of relPathParts) {
-			if (entry == ".") {
-			}
-			else if (entry == "..") {
-				basePathParts.pop();
-			}
-			else {
-				basePathParts.push(entry);
-			}
-		}
-
-		return basePathParts.join("/");
-	}
-
-
-	export function fileExtensionOfFilePath(filePath: string): string {
-		var lastDot = filePath.lastIndexOf(".");
-		if (lastDot > -1) {
-			var ext = filePath.substr(lastDot + 1);
-			return ext.toLowerCase();
-		}
-		return "";
-	}
-
-
-	export type ImageMimeType =
-		"image/bmp" |
-		"image/png" |
-		"image/jpeg" |
-		"image/jpeg" |
-		"image/tga" |
-		"image/gif";
-
-
-	const mimeTypeMapping: { [extension: string]: ImageMimeType } = {
-		"bm": "image/bmp",
-		"bmp": "image/bmp",
-		"png": "image/png",
-		"jpg": "image/jpeg",
-		"jpeg": "image/jpeg",
-		"tga": "image/tga",
-		"gif": "image/gif"
-	};
-
-	export function mimeTypeForFilePath(filePath: string): ImageMimeType | undefined {
-		var ext = fileExtensionOfFilePath(filePath);
-		return mimeTypeMapping[ext];
-	}
-
-
-	export function loadFile(filePath: string, opts?: FileLoadOptions) {
+	export function loadFile(url: URL | string, opts?: FileLoadOptions) {
 		return new Promise(function(resolve, reject) {
 			opts = opts || {};
 
 			var xhr = new XMLHttpRequest();
 			if (opts.tryBreakCache) {
-				filePath += "?__ts=" + Date.now();
+				url += "?__ts=" + Date.now();
 			}
-			xhr.open("GET", filePath);
+			xhr.open("GET", (url instanceof URL) ? url.href : url);
 			if (opts.responseType) {
 				xhr.responseType = responseTypeForFileLoadType(opts.responseType);
 			}
@@ -136,8 +55,8 @@ namespace sd.asset {
 			};
 
 			xhr.onerror = function() {
-				assert(false, filePath + " doesn't exist");
-				reject(filePath + " doesn't exist");
+				assert(false, url + " doesn't exist");
+				reject(url + " doesn't exist");
 			};
 
 			xhr.send();
@@ -191,11 +110,11 @@ namespace sd.asset {
 			if (! tex) {
 				return null;
 			}
-			if (! tex.filePath || (tex.descriptor && tex.descriptor.pixelData)) {
+			if (! tex.url || (tex.descriptor && tex.descriptor.pixelData)) {
 				return tex;
 			}
 
-			return loadImage(tex.filePath).then(img => {
+			return loadImageURL(tex.url).then(img => {
 				tex.descriptor = render.makeTexDesc2DFromImageSource(img, tex.useMipMaps);
 				return tex;
 			}).catch(error => {
@@ -205,92 +124,6 @@ namespace sd.asset {
 		}).filter(p => !!p));
 	}
 
-
-	export function loadImage(srcPath: string, cors: CORSMode = CORSMode.Disabled): Promise<ImageData | HTMLImageElement> {
-		return new Promise(function(resolve, reject) {
-			var nativeLoader = () => {
-				var image = new Image();
-				image.onload = function() { resolve(image); };
-				image.onerror = function() { reject(srcPath + " doesn't exist or is not supported"); };
-				var co = crossOriginForCORSMode(cors);
-				if (co != null) {
-					image.crossOrigin = co;
-				}
-				image.src = srcPath;
-			};
-
-			if (fileExtensionOfFilePath(srcPath) === "tga") {
-				checkNativeTGASupport().then(nativeTGA => {
-					if (nativeTGA) {
-						nativeLoader();
-					}
-					else {
-						loadFile(srcPath, { responseType: FileLoadType.ArrayBuffer }).then(
-							(buffer: ArrayBuffer) => {
-								var tga: ImageData | null = null;
-								if (buffer && buffer.byteLength > 0) {
-									tga = loadTGAImageFromBuffer(buffer);
-									if (tga) {
-										resolve(tga);
-									}
-								}
-								if (! tga) {
-									reject("File not found or unsupported TGA format.");
-								}
-							},
-							(error) => {
-								reject(error);
-							}
-						);
-					}
-				});
-			}
-			else {
-				nativeLoader();
-			}
-		});
-	}
-
-
-	export function loadImageFromBuffer(buffer: ArrayBuffer, mimeType: ImageMimeType): Promise<ImageData | HTMLImageElement> {
-		return new Promise((resolve, reject) => {
-			var nativeImageLoader = () => {
-				const blob = new Blob([buffer], { type: mimeType });
-
-				BlobReader.readAsDataURL(blob).then(
-					dataURL => {
-						const img = new Image();
-						img.onload = () => { resolve(img); };
-						img.onerror = () => { reject("Bad or unsupported image data."); };
-						img.src = dataURL;
-					},
-					error => {
-						reject(error);
-					}
-				);
-			};
-
-			if (mimeType == "image/tga") {
-				checkNativeTGASupport().then(hasNativeTGA => {
-					if (hasNativeTGA) {
-						nativeImageLoader();
-					}
-					else {
-						let tga = loadTGAImageFromBuffer(buffer);
-						if (tga) {
-							resolve(tga);
-						}
-						else {
-							reject("Unsupported TGA format.");
-						}
-					}
-				});
-			}
-			else {
-				nativeImageLoader();
-			}
-		});
-	}
 
 
 	export function imageData(image: HTMLImageElement): ImageData {
@@ -304,8 +137,8 @@ namespace sd.asset {
 	}
 
 
-	export function loadImageData(src: string, cors: CORSMode = CORSMode.Disabled): Promise<ImageData> {
-		return loadImage(src, cors).then(function(imageOrData) {
+	export function loadImageDataURL(url: URL): Promise<ImageData> {
+		return loadImageURL(url).then(function(imageOrData) {
 			if ("data" in imageOrData) {
 				return <ImageData>imageOrData;
 			}

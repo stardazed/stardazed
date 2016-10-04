@@ -8,6 +8,24 @@
 namespace sd.asset {
 
 	// --------------------------------------------------------------------
+	// url / path helpers
+
+	export function fileExtensionOfURL(url: URL | string): string {
+		const path = (url instanceof URL) ? url.href : url;
+		var lastDot = path.lastIndexOf(".");
+		if (lastDot > -1) {
+			return path.substr(lastDot + 1).toLowerCase();
+		}
+		return "";
+	}
+
+	export function mimeTypeOfURL(url: URL | string): string | undefined {
+		const extension = fileExtensionOfURL(url);
+		return mimeTypeForFileExtension(extension);
+	}
+
+
+	// --------------------------------------------------------------------
 	// app-wide file extension to mime type registry
 
 	const extensionMimeTypeMap_s = new Map<string, string>();
@@ -36,7 +54,7 @@ namespace sd.asset {
 
 
 	// --------------------------------------------------------------------
-	// app-wide asset loader functions
+	// app-wide asset loader registry
 
 	export type URLAssetLoader = (url: URL, mimeType: string) => Promise<AssetGroup>;
 	export type BufferAssetLoader = (buffer: ArrayBuffer, mimeType: string) => Promise<AssetGroup>;
@@ -61,90 +79,34 @@ namespace sd.asset {
 		registerBufferLoaderForMIMEType(mimeType, bufferLoader);
 	}
 
-
-	// standard image loaders
-	export function loadBuiltInImageFromFile(url: URL) {
-		return new Promise<HTMLImageElement>(function(resolve, reject) {
-			const image = new Image();
-			image.onload = () => { resolve(image); };
-			image.onerror = () => { reject(url.href + " doesn't exist or is not supported"); };
-
-			// when requesting cross-domain media, always try the CORS route
-			// the GL methods will not allow tainted data to be loaded so if it fails, we can't use the image
-			if (url.origin !== location.origin) {
-				image.crossOrigin = "anonymous";
-			}
-			image.src = url.href;
-		});
+	export function urlLoaderForMIMEType(mimeType: string) {
+		const mime = mimeType.toLowerCase().trim();
+		return urlAssetLoaders_s.get(mime);
 	}
 
-	export function loadBuiltInImageFromBuffer(buffer: ArrayBuffer, mimeType: string) {
-		return new Promise<HTMLImageElement>(function(resolve, reject) {
-			const blob = new Blob([buffer], { type: mimeType });
-
-			BlobReader.readAsDataURL(blob).then(
-				dataURL => {
-					const img = new Image();
-					img.onload = () => { resolve(img); };
-					img.onerror = () => { reject("Bad or unsupported image data."); };
-					img.src = dataURL;
-				},
-				error => {
-					reject(error);
-				}
-			);
-		});
+	export function bufferLoaderForMIMEType(mimeType: string) {
+		const mime = mimeType.toLowerCase().trim();
+		return bufferAssetLoaders_s.get(mime);
 	}
-
-	function builtInImageLoader(source: URL | ArrayBuffer, mimeType: string) {
-		const imagePromise = (source instanceof URL) ? loadBuiltInImageFromFile(source) : loadBuiltInImageFromBuffer(source, mimeType);
-		return imagePromise.then(_img => {
-			return new AssetGroup();
-		});
-	}
-
-	registerFileExtension("bm", "image/bmp");
-	registerFileExtension("bmp", "image/bmp");
-	registerFileExtension("png", "image/png");
-	registerFileExtension("jpg", "image/jpeg");
-	registerFileExtension("jpeg", "image/jpeg");
-	registerFileExtension("gif", "image/gif");
-
-	registerURLLoaderForMIMEType("image/bmp", builtInImageLoader);
-	registerURLLoaderForMIMEType("image/png", builtInImageLoader);
-	registerURLLoaderForMIMEType("image/jpeg", builtInImageLoader);
-	registerURLLoaderForMIMEType("image/gif", builtInImageLoader);
-
-	registerBufferLoaderForMIMEType("image/bmp", builtInImageLoader);
-	registerBufferLoaderForMIMEType("image/png", builtInImageLoader);
-	registerBufferLoaderForMIMEType("image/jpeg", builtInImageLoader);
-	registerBufferLoaderForMIMEType("image/gif", builtInImageLoader);
 
 
 	// --------------------------------------------------------------------
 
-	export interface AssetRoot {
-		baseURL: URL;
-		corsMode: CORSMode;
-	}
 
 	export class AssetManager {
-		private roots_ = new Map<string, AssetRoot>();
+		private roots_ = new Map<string, URL>();
 
 		constructor() {
 		}
 
-		addRoot(name: string, options: AssetRoot) {
+		addRoot(name: string, baseURL: URL) {
 			assert(! this.roots_.has(name), `An asset root named '${name}' already exists.`);
-			this.roots_.set(name, options);
+			this.roots_.set(name, baseURL);
 		}
 
 		addLocalRoot(name: string, relativePath: string) {
 			assert(! this.roots_.has(name), `An asset root named '${name}' already exists.`);
-			this.roots_.set(name, {
-				baseURL: new URL(relativePath, location.href),
-				corsMode: CORSMode.Disabled
-			});
+			this.roots_.set(name, new URL(relativePath, location.href));
 		}
 
 		deleteRoot(name: string) {
