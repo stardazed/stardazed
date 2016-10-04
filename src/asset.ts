@@ -81,15 +81,18 @@ namespace sd.asset {
 	export function loadBuiltInImageFromBuffer(buffer: ArrayBuffer, mimeType: string) {
 		return new Promise<HTMLImageElement>(function(resolve, reject) {
 			const blob = new Blob([buffer], { type: mimeType });
-			const reader = new FileReader();
-			reader.onloadend = _ => {
-				const img = new Image();
-				img.onload = () => { resolve(img); };
-				img.onerror = () => { reject("Bad or unsupported image data."); };
-				img.src = reader.result;
-			};
-			reader.onerror = () => { reject("Could not read image buffer data."); };
-			reader.readAsDataURL(blob);
+
+			BlobReader.readAsDataURL(blob).then(
+				dataURL => {
+					const img = new Image();
+					img.onload = () => { resolve(img); };
+					img.onerror = () => { reject("Bad or unsupported image data."); };
+					img.src = dataURL;
+				},
+				error => {
+					reject(error);
+				}
+			);
 		});
 	}
 

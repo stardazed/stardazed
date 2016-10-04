@@ -1231,13 +1231,16 @@ namespace sd.asset {
 
 	export function loadFBXFile(filePath: string): Promise<AssetGroup> {
 		return loadFile(filePath, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => {
-			var bytes = new Uint8Array(data);
-			var ident = String.fromCharCode.apply(null, bytes.subarray(0, 20));
-			if (ident == "Kaydara FBX Binary  ") {
+			// Check the first 20 bytes of the file against the binary FBX identifier
+			const ident = convertBytesToString(new Uint8Array(data, 0, 20));
+			if (ident === "Kaydara FBX Binary  ") {
 				return parseFBXSource(filePath, data);
 			}
 			else {
-				return parseFBXSource(filePath, convertBytesToString(bytes));
+				const blob = new Blob([data], { type: "text/plain" });
+				return BlobReader.readAsText(blob).then(source => {
+					return parseFBXSource(filePath, source);
+				});
 			}
 		});
 	}
