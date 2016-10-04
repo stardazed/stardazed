@@ -324,7 +324,7 @@ namespace sd.asset {
 							}
 						}
 						else if (c.name == "RelativeFilename") {
-							tex.filePath = <string>c.values[0];
+							tex.url = new URL(<string>c.values[0], this.fbxFilePath);
 						}
 						else if (c.name == "Content") {
 							// TODO: handle text-embedded Content entries which are base64-encoded strings
@@ -337,9 +337,9 @@ namespace sd.asset {
 					};
 
 					if (fileData) {
-						var mime = mimeTypeForFilePath(tex.filePath!);
+						var mime = tex.url ? mimeTypeOfURL(tex.url) : "";
 						if (! mime) {
-							let err = "Cannot create texture, no mime-type found for file path " + tex.filePath;
+							let err = "Cannot create texture, no mime-type found for file path " + tex.url;
 							if (options.allowMissingTextures) {
 								console.warn(err);
 							}
@@ -364,10 +364,9 @@ namespace sd.asset {
 							}));
 						}
 					}
-					else {
-						let resolvedFilePath = resolveRelativeFilePath(tex.filePath!, this.fbxFilePath);
+					else if (tex.url) {
 						fileProms.push(
-							loadImage(resolvedFilePath).then((img) => {
+							loadImageURL(tex.url).then(img => {
 								tex.descriptor = makeTexDesc(img);
 								return tex;
 							}).catch((error) => {
@@ -380,6 +379,15 @@ namespace sd.asset {
 								}
 							})
 						);
+					}
+					else {
+						let err = `Texture ${tex.userRef} did not have relative filename or content.`;
+						if (options.allowMissingTextures) {
+							console.warn(err);
+						}
+						else {
+							fileProms.push(Promise.reject(err));
+						}
 					}
 				});
 
@@ -1219,27 +1227,27 @@ namespace sd.asset {
 	}
 
 
-	export function loadFBXTextFile(filePath: string): Promise<AssetGroup> {
-		return loadFile(filePath).then((text: string) => parseFBXSource(filePath, text));
+	export function loadFBXTextFile(url: URL): Promise<AssetGroup> {
+		return loadFile(url).then((text: string) => parseFBXSource(url.href, text));
 	}
 
 
-	export function loadFBXBinaryFile(filePath: string): Promise<AssetGroup> {
-		return loadFile(filePath, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => parseFBXSource(filePath, data));
+	export function loadFBXBinaryFile(url: URL): Promise<AssetGroup> {
+		return loadFile(url, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => parseFBXSource(url.href, data));
 	}
 
 
-	export function loadFBXFile(filePath: string): Promise<AssetGroup> {
-		return loadFile(filePath, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => {
+	export function loadFBXFile(url: URL): Promise<AssetGroup> {
+		return loadFile(url, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => {
 			// Check the first 20 bytes of the file against the binary FBX identifier
 			const ident = convertBytesToString(new Uint8Array(data, 0, 20));
 			if (ident === "Kaydara FBX Binary  ") {
-				return parseFBXSource(filePath, data);
+				return parseFBXSource(url.href, data);
 			}
 			else {
 				const blob = new Blob([data], { type: "text/plain" });
 				return BlobReader.readAsText(blob).then(source => {
-					return parseFBXSource(filePath, source);
+					return parseFBXSource(url.href, source);
 				});
 			}
 		});

@@ -12,7 +12,7 @@ namespace sd.asset {
 
 
 	export interface Texture2D extends Asset {
-		filePath?: string;
+		url?: URL;
 
 		useMipMaps?: render.UseMipMaps;
 		descriptor?: render.TextureDescriptor;

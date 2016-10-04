@@ -160,7 +160,7 @@ namespace sd.asset {
 							if (texSpec) {
 								var texAsset: Texture2D = {
 									name: curMat.name + "_" + directive,
-									filePath: resolveRelativeFilePath(texSpec.relPath, filePath),
+									url: new URL(texSpec.relPath, filePath),
 									useMipMaps: render.UseMipMaps.Yes
 								};
 
@@ -212,11 +212,11 @@ namespace sd.asset {
 	}
 
 
-	export function loadMTLFile(filePath: string, intoAssetGroup?: AssetGroup): Promise<AssetGroup> {
+	export function loadMTLFile(url: URL, intoAssetGroup?: AssetGroup): Promise<AssetGroup> {
 		const group = intoAssetGroup || new AssetGroup();
 
-		return loadFile(filePath).then((text: string) => {
-			return parseMTLSource(group, filePath, text);
+		return loadFile(url).then((text: string) => {
+			return parseMTLSource(group, url.href, text);
 		});
 	}
 
@@ -264,7 +264,7 @@ namespace sd.asset {
 		}
 
 		if (mtlFileRelPath.length) {
-			return loadMTLFile(resolveRelativeFilePath(mtlFileRelPath, filePath), group).then(_ => {
+			return loadMTLFile(new URL(mtlFileRelPath, filePath), group).then(_ => {
 				return preproc;
 			});
 		}
@@ -411,11 +411,11 @@ namespace sd.asset {
 	}
 
 
-	export function loadOBJFile(filePath: string, materialsAsColours = false, intoAssetGroup?: AssetGroup): Promise<AssetGroup> {
+	export function loadOBJFile(url: URL, materialsAsColours = false, intoAssetGroup?: AssetGroup): Promise<AssetGroup> {
 		const group = intoAssetGroup || new AssetGroup();
 
-		return loadFile(filePath).then((text: string) => {
-			return preflightOBJSource(group, filePath, text);
+		return loadFile(url).then((text: string) => {
+			return preflightOBJSource(group, url.href, text);
 		})
 		.then(preproc => {
 			parseOBJSource(group, preproc, materialsAsColours);

@@ -191,7 +191,7 @@ namespace sd.asset {
 					if (! this.textures_.has(name)) {
 						this.textures_.set(name, {
 							name: name,
-							filePath: name,
+							url: new URL(name, this.filePath),
 							useMipMaps: render.UseMipMaps.No
 						});
 					}
@@ -360,13 +360,12 @@ namespace sd.asset {
 				var fileProms: Promise<Texture2D | null>[] = [];
 
 				this.textures_.forEach(tex => {
-					if (! tex.filePath || tex.descriptor) {
+					if (! tex.url || tex.descriptor) {
 						return;
 					}
 
-					let resolvedFilePath = resolveRelativeFilePath(tex.filePath, this.filePath);
 					fileProms.push(
-						loadImage(resolvedFilePath).then(img => {
+						loadImageURL(tex.url).then(img => {
 							tex.descriptor = render.makeTexDesc2DFromImageSource(img, tex.useMipMaps);
 							return tex;
 						}).catch(error => {
@@ -376,8 +375,8 @@ namespace sd.asset {
 					);
 				});
 
-				return Promise.all(fileProms).then((textures) => {
-					for (var tex of textures) {
+				return Promise.all(fileProms).then(textures => {
+					for (const tex of textures) {
 						this.assets_.addTexture(tex);
 					}
 					return this.assets_;
@@ -581,13 +580,13 @@ namespace sd.asset {
 	}
 	
 
-	export function loadMD5Mesh(filePath: string) {
-		return loadFile(filePath).then((text: string) => parseMD5MeshSource(filePath, text));
+	export function loadMD5Mesh(url: URL) {
+		return loadFile(url).then((text: string) => parseMD5MeshSource(url.href, text));
 	}
 
 
-	export function loadMD5Anim(filePath: string) {
-		return loadFile(filePath).then((text: string) => parseMD5AnimSource(filePath, text));	
+	export function loadMD5Anim(url: URL) {
+		return loadFile(url).then((text: string) => parseMD5AnimSource(url.href, text));
 	}
 
 } // ns sd.asset
