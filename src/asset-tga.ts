@@ -22,13 +22,13 @@ namespace sd.asset {
 
 
 	const enum TGAImageType /* uint8 */ {
-		TGAIT_None = 0,
-		TGAIT_Paletted = 1,
-		TGAIT_RGB = 2,
-		TGAIT_Grayscale = 3,
+		None = 0,
+		Paletted = 1,
+		RGB = 2,
+		Grayscale = 3,
 
-		TGAIT_RLEBit = 8,
-		TGAIT_CompressedBit = 32
+		RLEBit = 8,
+		CompressedBit = 32
 	}
 
 	/*
@@ -60,13 +60,13 @@ namespace sd.asset {
 		// -- we only support a subset of TGA image types, namely those used in game pipelines
 		if (identLengthUnused != 0) supported = false;
 		if (usePalette != 0) supported = false;
-		if ((imageType & TGAImageType.TGAIT_CompressedBit) != 0) supported = false;
+		if ((imageType & TGAImageType.CompressedBit) != 0) supported = false;
 
 		var width = headerView.getUint16(12, true);
 		var height = headerView.getUint16(14, true);
 		var bitDepth = headerView.getUint8(16);
 
-		if ((imageType & 7) == TGAImageType.TGAIT_RGB) {
+		if ((imageType & 7) == TGAImageType.RGB) {
 			if (bitDepth == 24) {
 				bytesPerPixel = 3;
 			}
@@ -77,7 +77,7 @@ namespace sd.asset {
 				supported = false;
 			}
 		}
-		else if ((imageType & 7) == TGAImageType.TGAIT_Grayscale) {
+		else if ((imageType & 7) == TGAImageType.Grayscale) {
 			bytesPerPixel = 1;
 			if (bitDepth != 8) supported = false;
 		}
@@ -97,7 +97,7 @@ namespace sd.asset {
 		var pixelCount = width * height;
 		var sourceOffset = 0;
 		var destOffset = (height - 1) * width * 4;
-		var pixelRunLeft = imageType & TGAImageType.TGAIT_RLEBit ? 0 : pixelCount;
+		var pixelRunLeft = imageType & TGAImageType.RLEBit ? 0 : pixelCount;
 		var pixelRunRaw = true;
 		var linePixelsLeft = width;
 
