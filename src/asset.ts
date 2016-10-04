@@ -3,6 +3,8 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+/// <reference path="core.ts" />
+
 namespace sd.asset {
 
 	// --------------------------------------------------------------------
@@ -23,22 +25,14 @@ namespace sd.asset {
 		return extensionMimeTypeMap_s.get(ext);
 	}
 
-	// register asset file extensions that relevant browsers support natively
-	registerFileExtension("bm", "image/bmp");
-	registerFileExtension("bmp", "image/bmp");
-	registerFileExtension("png", "image/png");
-	registerFileExtension("jpg", "image/jpeg");
-	registerFileExtension("jpeg", "image/jpeg");
-	registerFileExtension("gif", "image/gif");
+	// registerFileExtension("wav", "audio/wav");
+	// registerFileExtension("mp3", "audio/mpeg");
+	// registerFileExtension("m4a", "audio/mp4");
 
-	registerFileExtension("wav", "audio/wav");
-	registerFileExtension("mp3", "audio/mpeg");
-	registerFileExtension("m4a", "audio/mp4");
-
-	registerFileExtension("mpg", "video/mpeg");
-	registerFileExtension("mpeg", "video/mpeg");
-	registerFileExtension("m4v", "video/mp4");
-	registerFileExtension("webm", "video/webm");
+	// registerFileExtension("mpg", "video/mpeg");
+	// registerFileExtension("mpeg", "video/mpeg");
+	// registerFileExtension("m4v", "video/mp4");
+	// registerFileExtension("webm", "video/webm");
 
 
 	// --------------------------------------------------------------------
@@ -62,6 +56,11 @@ namespace sd.asset {
 		bufferAssetLoaders_s.set(mime, loader);
 	}
 
+	export function registerLoadersForMIMEType(mimeType: string, urlLoader: URLAssetLoader, bufferLoader: BufferAssetLoader) {
+		registerURLLoaderForMIMEType(mimeType, urlLoader);
+		registerBufferLoaderForMIMEType(mimeType, bufferLoader);
+	}
+
 
 	// standard image loaders
 	export function loadBuiltInImageFromFile(url: URL) {
@@ -71,6 +70,7 @@ namespace sd.asset {
 			image.onerror = () => { reject(url.href + " doesn't exist or is not supported"); };
 
 			// when requesting cross-domain media, always try the CORS route
+			// the GL methods will not allow tainted data to be loaded so if it fails, we can't use the image
 			if (url.origin !== location.origin) {
 				image.crossOrigin = "anonymous";
 			}
@@ -80,14 +80,16 @@ namespace sd.asset {
 
 	export function loadBuiltInImageFromBuffer(buffer: ArrayBuffer, mimeType: string) {
 		return new Promise<HTMLImageElement>(function(resolve, reject) {
-			// Create an image in a most convoluted manner. Hurrah for the web.
-			const str = convertBytesToString(new Uint8Array(buffer));
-			const b64 = btoa(str);
-			const src = "data:" + mimeType + ";base64," + b64;
-			const image = new Image();
-			image.onload = () => { resolve(image); };
-			image.onerror = () => { reject("Bad or unsupported image data."); };
-			image.src = src;
+			const blob = new Blob([buffer], { type: mimeType });
+			const reader = new FileReader();
+			reader.onloadend = _ => {
+				const img = new Image();
+				img.onload = () => { resolve(img); };
+				img.onerror = () => { reject("Bad or unsupported image data."); };
+				img.src = reader.result;
+			};
+			reader.onerror = () => { reject("Could not read image buffer data."); };
+			reader.readAsDataURL(blob);
 		});
 	}
 
@@ -97,6 +99,13 @@ namespace sd.asset {
 			return new AssetGroup();
 		});
 	}
+
+	registerFileExtension("bm", "image/bmp");
+	registerFileExtension("bmp", "image/bmp");
+	registerFileExtension("png", "image/png");
+	registerFileExtension("jpg", "image/jpeg");
+	registerFileExtension("jpeg", "image/jpeg");
+	registerFileExtension("gif", "image/gif");
 
 	registerURLLoaderForMIMEType("image/bmp", builtInImageLoader);
 	registerURLLoaderForMIMEType("image/png", builtInImageLoader);

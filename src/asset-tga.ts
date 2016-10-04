@@ -48,7 +48,7 @@ namespace sd.asset {
 	} __attribute__((__packed__));
 	*/
 	
-	export function loadTGAImageBuffer(buffer: ArrayBuffer): ImageData | null {
+	export function loadTGAImageFromBuffer(buffer: ArrayBuffer): ImageData | null {
 		var headerView = new DataView(buffer, 0, 18);
 		var supported = true;
 		var bytesPerPixel = 0;
@@ -189,5 +189,26 @@ namespace sd.asset {
 
 		return imageData;		
 	}
+
+
+	export function tgaLoader(source: URL | ArrayBuffer, _mimeType: string) {
+		if (source instanceof URL) {
+			return loadFile(source.href, { responseType: FileLoadType.ArrayBuffer }).then(_buf => {
+				return new AssetGroup();
+			});
+		}
+		else {
+			// const _imageData = loadTGAImageFromBuffer(source);
+
+			return Promise.resolve();
+		}
+	}
+
+
+	// registerFileExtension("tga", "image/tga");
+
+	// registerURLLoaderForMIMEType("image/tga", tgaLoader);
+	// registerBufferLoaderForMIMEType("image/tga", tgaLoader);
+
 
 } // ns sd.asset

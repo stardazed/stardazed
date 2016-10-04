@@ -189,7 +189,7 @@ namespace sd.asset {
 							(buffer: ArrayBuffer) => {
 								var tga: ImageData | null = null;
 								if (buffer && buffer.byteLength > 0) {
-									tga = loadTGAImageBuffer(buffer);
+									tga = loadTGAImageFromBuffer(buffer);
 									if (tga) {
 										resolve(tga);
 									}
@@ -215,14 +215,16 @@ namespace sd.asset {
 	export function loadImageFromBuffer(buffer: ArrayBuffer, mimeType: ImageMimeType): Promise<ImageData | HTMLImageElement> {
 		return new Promise((resolve, reject) => {
 			var nativeImageLoader = () => {
-				// Create an image in a most convoluted manner. Hurrah for the web.
-				var str = convertBytesToString(new Uint8Array(buffer));
-				var b64 = btoa(str);
-				str = "data:" + mimeType + ";base64," + b64;
-				var img = new Image();
-				img.onload = () => { resolve(img); };
-				img.onerror = () => { reject("Bad or unsupported image data."); };
-				img.src = str;
+				const blob = new Blob([buffer], { type: mimeType });
+				const reader = new FileReader();
+				reader.onloadend = _ => {
+					const img = new Image();
+					img.onload = () => { resolve(img); };
+					img.onerror = () => { reject("Bad or unsupported image data."); };
+					img.src = reader.result;
+				};
+				reader.onerror = () => { reject("Could not read image buffer data."); };
+				reader.readAsDataURL(blob);
 			};
 
 			if (mimeType == "image/tga") {
@@ -231,7 +233,7 @@ namespace sd.asset {
 						nativeImageLoader();
 					}
 					else {
-						let tga = loadTGAImageBuffer(buffer);
+						let tga = loadTGAImageFromBuffer(buffer);
 						if (tga) {
 							resolve(tga);
 						}
