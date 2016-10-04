@@ -20,10 +20,10 @@ namespace sd.meshdata.gen {
 	export type IndexesAddFn = (a: number, b: number, c: number) => void;
 
 	export interface MeshGenerator {
-		vertexCount: number;
-		faceCount: number;
+		readonly vertexCount: number;
+		readonly faceCount: number;
 
-		explicitNormals: boolean;
+		readonly explicitNormals: boolean;
 
 		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn): void;
 	}
