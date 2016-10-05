@@ -126,29 +126,6 @@ namespace sd.asset {
 
 
 
-	export function imageData(image: HTMLImageElement): ImageData {
-		var cvs = document.createElement("canvas");
-		cvs.width = image.width;
-		cvs.height = image.height;
-		var tc = cvs.getContext("2d")!;
-		tc.drawImage(image, 0, 0);
-
-		return tc.getImageData(0, 0, image.width, image.height);
-	}
-
-
-	export function loadImageDataURL(url: URL): Promise<ImageData> {
-		return loadImageURL(url).then(function(imageOrData) {
-			if ("data" in imageOrData) {
-				return <ImageData>imageOrData;
-			}
-			else {
-				return imageData(<HTMLImageElement>imageOrData);
-			}
-		});
-	}
-
-
 	export function loadSoundFile(ac: audio.AudioContext, filePath: string): Promise<AudioBuffer> {
 		return loadFile(filePath, {
 			responseType: FileLoadType.ArrayBuffer
