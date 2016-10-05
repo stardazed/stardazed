@@ -3,6 +3,8 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+/// <reference path="asset.ts" />
+
 namespace sd.asset {
 
 	export namespace fbx {
@@ -1236,7 +1238,6 @@ namespace sd.asset {
 		return loadFile(url, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => parseFBXSource(url.href, data));
 	}
 
-
 	export function loadFBXFile(url: URL): Promise<AssetGroup> {
 		return loadFile(url, { responseType: FileLoadType.ArrayBuffer }).then((data: ArrayBuffer) => {
 			// Check the first 20 bytes of the file against the binary FBX identifier
@@ -1252,5 +1253,9 @@ namespace sd.asset {
 			}
 		});
 	}
+
+
+	registerFileExtension("fbx", "application/fbx");
+	registerURLLoaderForMIMEType("application/fbx", (url, _) => loadFBXFile(url));
 
 } // ns sd.asset

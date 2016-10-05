@@ -3,6 +3,8 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+/// <reference path="asset.ts" />
+
 namespace sd.asset {
 
 	export namespace md5 {
@@ -578,7 +580,7 @@ namespace sd.asset {
 		parser.parse();
 		return del.assets();
 	}
-	
+
 
 	export function loadMD5Mesh(url: URL) {
 		return loadFile(url).then((text: string) => parseMD5MeshSource(url.href, text));
@@ -588,5 +590,11 @@ namespace sd.asset {
 	export function loadMD5Anim(url: URL) {
 		return loadFile(url).then((text: string) => parseMD5AnimSource(url.href, text));
 	}
+
+
+	registerFileExtension("md5mesh", "application/idsoftware-md5mesh");
+	registerFileExtension("md5anim", "application/idsoftware-md5anim");
+	registerURLLoaderForMIMEType("application/idsoftware-md5mesh", (url, _) => loadMD5Mesh(url));
+	registerURLLoaderForMIMEType("application/idsoftware-md5anim", (url, _) => loadMD5Anim(url));
 
 } // ns sd.asset

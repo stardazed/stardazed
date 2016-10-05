@@ -3,6 +3,8 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+/// <reference path="asset.ts" />
+
 namespace sd.asset {
 
 	interface MTLTextureSpec {
@@ -431,5 +433,11 @@ namespace sd.asset {
 			return group;
 		});
 	}
+
+
+	registerFileExtension("obj", "application/wavefront-obj");
+	registerFileExtension("mtl", "application/wavefront-mtl");
+	registerURLLoaderForMIMEType("application/wavefront-obj", (url, _) => loadOBJFile(url));
+	registerURLLoaderForMIMEType("application/wavefront-mtl", (url, _) => loadMTLFile(url));
 
 } // ns sd.asset
