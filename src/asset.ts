@@ -42,7 +42,7 @@ namespace sd.asset {
 		const ext = extension.toLowerCase().trim();
 		return extensionMimeTypeMap_s.get(ext);
 	}
-
+  
 	// registerFileExtension("wav", "audio/wav");
 	// registerFileExtension("mp3", "audio/mpeg");
 	// registerFileExtension("m4a", "audio/mp4");
@@ -93,7 +93,7 @@ namespace sd.asset {
 	// --------------------------------------------------------------------
 
 
-	export class AssetManager {
+	export class AssetLibrary {
 		private roots_ = new Map<string, URL>();
 
 		constructor() {
@@ -113,6 +113,26 @@ namespace sd.asset {
 			assert(this.roots_.has(name), `No asset root named '${name}' exists.`);
 			this.roots_.delete(name);
 		}
+
+		resolvePath(path: string): URL {
+			// The first slash separates the root name from the file path.
+			// The root name must be at least 1 character in length.
+			// The file path can be empty.
+			// The slash separating the root and path is mandatory.
+			// Roots are not sandboxes, you can use .., etc. to escape the root (FIXME?)
+
+			const firstSlash = path.indexOf("/");
+			assert(firstSlash > 0, "path must have a root name and separating slash");
+
+			const rootName = path.substring(0, firstSlash);
+			const rootURL = this.roots_.get(rootName);
+			assert(rootURL, `root ${rootName} does not exist`);
+
+			const resourcePath = path.substring(firstSlash + 1);
+			return new URL(resourcePath, rootURL!.href);
+		}
+
+
 	}
 
 } // ns sd.asset
