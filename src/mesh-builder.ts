@@ -351,8 +351,8 @@ namespace sd.meshdata {
 
 			this.groupIndexStreams_.forEach((indexes, group) => {
 				if (indexes.length) {
-					mergedIndexes = mergedIndexes.concat(indexes);
 					var groupElementCount = indexes.length;
+					container.appendArrayInPlace(mergedIndexes, indexes);
 
 					meshData.primitiveGroups.push({
 						type: PrimitiveType.Triangle,

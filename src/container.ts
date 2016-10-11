@@ -50,6 +50,27 @@ namespace sd.container {
 	}
 
 
+	export function appendArrayInPlace<T>(dest: Array<T>, source: Array<T>) {
+		const MAX_BLOCK_SIZE = 65535;
+
+		var offset = 0;
+		var itemsLeft = source.length;
+
+		if (itemsLeft <= MAX_BLOCK_SIZE) {
+			dest.push.apply(dest, source);
+		}
+		else {
+			while (itemsLeft > 0) {
+				const pushCount = Math.min(MAX_BLOCK_SIZE, itemsLeft);
+				const subSource = source.slice(offset, pushCount);
+				dest.push.apply(dest, subSource);
+				itemsLeft -= pushCount;
+				offset += pushCount;
+			}
+		}
+	}
+
+
 	// -- single element ref, copy and set methods, mostly meant for accessors of components with MABs
 
 	export function refIndexedVec2(data: TypedArray, index: number): TypedArray {
