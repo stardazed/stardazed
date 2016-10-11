@@ -88,7 +88,7 @@ namespace sd.render {
 			this.attrRoleIndexMap_ = new Map<meshdata.VertexAttributeRole, number>();
 
 			desc.attributeNames.forEach((name, role) => {
-				var attrIx = rc.gl.getAttribLocation(this.program_, name);
+				const attrIx = rc.gl.getAttribLocation(this.program_, name);
 				assert(attrIx >= 0, "cannot find attribute " + name);
 				this.attrRoleIndexMap_.set(role, attrIx);
 			});
@@ -96,7 +96,7 @@ namespace sd.render {
 
 
 		bind() {
-			var gl = this.rc.gl;
+			const gl = this.rc.gl;
 			gl.useProgram(this.program_);
 
 			if (this.writeMask_) {
@@ -111,14 +111,14 @@ namespace sd.render {
 			if (this.blending_.enabled) {
 				gl.enable(gl.BLEND);
 
-				var rgbEq = glBlendEqForBlendOperation(this.rc, this.blending_.rgbBlendOp);
-				var alphaEq = glBlendEqForBlendOperation(this.rc, this.blending_.alphaBlendOp);
+				const rgbEq = glBlendEqForBlendOperation(this.rc, this.blending_.rgbBlendOp);
+				const alphaEq = glBlendEqForBlendOperation(this.rc, this.blending_.alphaBlendOp);
 				gl.blendEquationSeparate(rgbEq, alphaEq);
 
-				var rgbSrcFn = glBlendFuncForBlendFactor(this.rc, this.blending_.sourceRGBFactor);
-				var alphaSrcFn = glBlendFuncForBlendFactor(this.rc, this.blending_.sourceAlphaFactor);
-				var rgbDestFn = glBlendFuncForBlendFactor(this.rc, this.blending_.destRGBFactor);
-				var alphaDestFn = glBlendFuncForBlendFactor(this.rc, this.blending_.destAlphaFactor);
+				const rgbSrcFn = glBlendFuncForBlendFactor(this.rc, this.blending_.sourceRGBFactor);
+				const alphaSrcFn = glBlendFuncForBlendFactor(this.rc, this.blending_.sourceAlphaFactor);
+				const rgbDestFn = glBlendFuncForBlendFactor(this.rc, this.blending_.destRGBFactor);
+				const alphaDestFn = glBlendFuncForBlendFactor(this.rc, this.blending_.destAlphaFactor);
 				gl.blendFuncSeparate(rgbSrcFn, rgbDestFn, alphaSrcFn, alphaDestFn);
 
 				gl.blendColor(this.blending_.constantColour[0], this.blending_.constantColour[1], this.blending_.constantColour[2], this.blending_.constantColour[3]);
@@ -127,7 +127,7 @@ namespace sd.render {
 
 
 		unbind() {
-			var gl = this.rc.gl;
+			const gl = this.rc.gl;
 			gl.useProgram(null);
 
 			if (this.writeMask_) {

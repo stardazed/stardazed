@@ -5,7 +5,7 @@
 
 namespace sd.render {
 
-	var vertexSource = [
+	const vertexSource = [
 		"attribute vec2 vertexPos_model;",
 		"varying vec2 vertexUV_intp;",
 		"void main() {",
@@ -101,15 +101,15 @@ namespace sd.render {
 		envMapSamplerUniform: WebGLUniformLocation;
 	}
 
-	const preFilterPipelines_s = new Map<number, PreFilterPipeline>();
+	const preFilterPipelines = new Map<number, PreFilterPipeline>();
 
 	function getPipeline(rc: RenderContext, numSamples: number) {
-		var pfp = preFilterPipelines_s.get(numSamples);
+		var pfp = preFilterPipelines.get(numSamples);
 		if (! pfp) {
 			pfp = <PreFilterPipeline>{};
 
 			// -- pipeline
-			var pld = makePipelineDescriptor();
+			const pld = makePipelineDescriptor();
 			pld.colourPixelFormats[0] = PixelFormat.RGBA8;
 			pld.vertexShader = makeShader(rc, rc.gl.VERTEX_SHADER, vertexSource);
 			pld.fragmentShader = makeShader(rc, rc.gl.FRAGMENT_SHADER, fragmentSource(rc, numSamples));
@@ -126,7 +126,7 @@ namespace sd.render {
 			rc.gl.uniform1i(pfp.envMapSamplerUniform, 0);
 			pfp.pipeline.unbind();
 
-			preFilterPipelines_s.set(numSamples, pfp);
+			preFilterPipelines.set(numSamples, pfp);
 		}
 
 		return pfp;
@@ -153,12 +153,11 @@ namespace sd.render {
 
 		const roughnessTable: number[] = [];
 		for (let ml = 0; ml < mipCount; ++ml) {
-			var roughAtLevel = (1.0 / (mipCount - 1)) * ml;
+			let roughAtLevel = (1.0 / (mipCount - 1)) * ml;
 			roughnessTable.push(roughAtLevel);
 		}
 
 		const quad = meshdata.gen.generate(new meshdata.gen.Quad(2, 2), [meshdata.attrPosition2(), meshdata.attrUV2()]);
-		// var quadMesh = new render.Mesh(rc, makeMeshDescriptor(quad));
 		const quadMesh = meshMgr.create({ name: "squareQuad", meshData: quad }); // TODO: add baked-in box, screen quads etc
 
 		const levelPixels: Uint8Array[] = [];
@@ -173,7 +172,7 @@ namespace sd.render {
 		for (let mip = 0; mip < mipCount; ++mip) {
 			const levelWidth = levelWidths[mip];
 
-			for (var face = 0; face < 6; ++face) {
+			for (let face = 0; face < 6; ++face) {
 				const fbd = makeFrameBufferDescriptor();
 				fbd.colourAttachments[0].texture = levelTextures[mip];
 				const fb = new FrameBuffer(rc, fbd);

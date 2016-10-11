@@ -75,7 +75,9 @@ namespace sd {
 
 			this.runState_ = RunLoopState.Running;
 			if (this.sceneCtrl_) {
-				this.sceneCtrl_.resume && this.sceneCtrl_.resume();
+				if (this.sceneCtrl_.resume) {
+					this.sceneCtrl_.resume();
+				}
 			}
 
 			this.lastFrameTime_ = performance.now();
@@ -90,7 +92,9 @@ namespace sd {
 
 			this.runState_ = RunLoopState.Idle;
 			if (this.sceneCtrl_) {
-				this.sceneCtrl_.suspend && this.sceneCtrl_.suspend();
+				if (this.sceneCtrl_.suspend) {
+					this.sceneCtrl_.suspend();
+				}
 			}
 
 			if (this.rafID_) {
@@ -112,37 +116,39 @@ namespace sd {
 		set sceneController(newCtrl: SceneController | null) {
 			if (this.sceneCtrl_) {
 				if (this.runState_ == RunLoopState.Running) {
-					this.sceneCtrl_.suspend && this.sceneCtrl_.suspend();
+					if (this.sceneCtrl_.suspend) {
+						this.sceneCtrl_.suspend();
+					}
 				}
-				this.sceneCtrl_.blur && this.sceneCtrl_.blur();
+				if (this.sceneCtrl_.blur) {
+					this.sceneCtrl_.blur();
+				}
 			}
 
 			this.sceneCtrl_ = newCtrl;
 
 			if (this.sceneCtrl_) {
-				this.sceneCtrl_.focus && this.sceneCtrl_.focus();
+				if (this.sceneCtrl_.focus) {
+					this.sceneCtrl_.focus();
+				}
 				if (this.runState_ == RunLoopState.Running) {
-					this.sceneCtrl_.resume && this.sceneCtrl_.resume();
+					if (this.sceneCtrl_.resume) {
+						this.sceneCtrl_.resume();
+					}
 				}
 			}
 		}
 	}
 
 
-	var defaultRunLoop_s = new RunLoop();
-
-	export function defaultRunLoop(): RunLoop {
-		return defaultRunLoop_s;
-	}
-
+	export const defaultRunLoop = new RunLoop();
 
 	dom.on(window, "blur", function() {
-		defaultRunLoop_s.stop();
+		defaultRunLoop.stop();
 	});
 
 	dom.on(window, "focus", function() {
-		defaultRunLoop_s.start();
+		defaultRunLoop.start();
 	});
-
 
 } // ns sd

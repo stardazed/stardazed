@@ -30,7 +30,7 @@ namespace sd.render {
 	}
 
 
-	var contextLimits = {
+	const contextLimits = {
 		maxColourAttachments: 0,
 		maxDrawBuffers: 0
 	};
@@ -55,12 +55,12 @@ namespace sd.render {
 
 
 	export function makeShader(rc: RenderContext, type: number, sourceText: string) {
-		var shader = rc.gl.createShader(type)!; // TODO: handle resource allocation failure
+		const shader = rc.gl.createShader(type)!; // TODO: handle resource allocation failure
 		rc.gl.shaderSource(shader, sourceText);
 		rc.gl.compileShader(shader);
 
 		if (! rc.gl.getShaderParameter(shader, rc.gl.COMPILE_STATUS)) {
-			var errorLog = rc.gl.getShaderInfoLog(shader);
+			const errorLog = rc.gl.getShaderInfoLog(shader);
 			alert("COMPILE FAILED\n\n" + errorLog);
 			console.error("Shader compilation failed:", errorLog);
 			console.error("Source", sourceText);
@@ -72,7 +72,7 @@ namespace sd.render {
 
 
 	export function makeProgram(rc: RenderContext, vertexShader?: WebGLShader, fragmentShader?: WebGLShader) {
-		var program = rc.gl.createProgram()!; // TODO: handle resource allocation failure
+		const program = rc.gl.createProgram()!; // TODO: handle resource allocation failure
 		if (vertexShader) {
 			rc.gl.attachShader(program, vertexShader);
 		}
@@ -82,7 +82,7 @@ namespace sd.render {
 		rc.gl.linkProgram(program);
 
 		if (! rc.gl.getProgramParameter(program, rc.gl.LINK_STATUS)) {
-			var errorLog = rc.gl.getProgramInfoLog(program);
+			const errorLog = rc.gl.getProgramInfoLog(program);
 			alert("LINK FAILED\n\n" + errorLog);
 			console.error("Program link failed:", errorLog);
 			assert(false, "bad program");
@@ -96,7 +96,7 @@ namespace sd.render {
 		var gl: WebGLRenderingContext | null;
 
 		// try and create the 3D context
-		var contextAttrs: WebGLContextAttributes = {
+		const contextAttrs: WebGLContextAttributes = {
 			antialias: true
 		};
 		try {
@@ -113,10 +113,10 @@ namespace sd.render {
 
 
 		// enable large indexed meshes
-		var eiu = gl.getExtension("OES_element_index_uint");
+		const eiu = gl.getExtension("OES_element_index_uint");
 
 		// we'd like more colour attachments
-		var mdb = gl.getExtension("WEBGL_draw_buffers");
+		const mdb = gl.getExtension("WEBGL_draw_buffers");
 
 		// enable extended depth textures
 		var dte = gl.getExtension("WEBGL_depth_texture");
@@ -124,10 +124,10 @@ namespace sd.render {
 		dte = dte || gl.getExtension("MOZ_WEBGL_depth_texture");
 
 		// (half) float textures
-		var ftx = gl.getExtension("OES_texture_float");
-		var ftl = gl.getExtension("OES_texture_float_linear");
-		var htx = gl.getExtension("OES_texture_half_float");
-		var htl = gl.getExtension("OES_texture_half_float_linear");
+		const ftx = gl.getExtension("OES_texture_float");
+		const ftl = gl.getExtension("OES_texture_float_linear");
+		const htx = gl.getExtension("OES_texture_half_float");
+		const htl = gl.getExtension("OES_texture_half_float_linear");
 
 		// enable S3TC (desktop only)
 		var s3tc = gl.getExtension("WEBGL_compressed_texture_s3tc");
@@ -135,27 +135,27 @@ namespace sd.render {
 		s3tc = s3tc || gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc");
 
 		// enable MIN and MAX blend modes
-		var bmm = gl.getExtension("EXT_blend_minmax");
+		const bmm = gl.getExtension("EXT_blend_minmax");
 
 		// enable texture anisotropy
 		var txa = gl.getExtension("EXT_texture_filter_anisotropic");
 		txa = txa || gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
 
 		// enable Vertex Array Objects
-		var vao = gl.getExtension("OES_vertex_array_object");
+		const vao = gl.getExtension("OES_vertex_array_object");
 
 		// enable instanced draw calls
-		var aia = gl.getExtension("ANGLE_instanced_arrays");
+		const aia = gl.getExtension("ANGLE_instanced_arrays");
 
 		// enable texture gradient calc and *Lod and *Grad texture calls in fragment shaders
-		var drv = gl.getExtension("OES_standard_derivatives");
-		var fsl = gl.getExtension("EXT_shader_texture_lod");
+		const drv = gl.getExtension("OES_standard_derivatives");
+		const fsl = gl.getExtension("EXT_shader_texture_lod");
 
 		// enable explicit setting of fragment depth
-		var fgz = gl.getExtension("EXT_frag_depth");
+		const fgz = gl.getExtension("EXT_frag_depth");
 
 		// enable sRGB textures and renderbuffers
-		var srgb = gl.getExtension("EXT_sRGB");
+		const srgb = gl.getExtension("EXT_sRGB");
 
 
 		return {

@@ -50,8 +50,8 @@ namespace sd.render {
 
 
 	export function pixelFormatIsDepthFormat(format: PixelFormat) {
-		return format == PixelFormat.Depth16I ||
-			   format == PixelFormat.Depth24I;
+		return	format == PixelFormat.Depth16I ||
+				format == PixelFormat.Depth24I;
 		}
 
 
@@ -113,7 +113,7 @@ namespace sd.render {
 
 
 	export function glImageFormatForPixelFormat(rc: RenderContext, format: PixelFormat) {
-		var gl = rc.gl;
+		const gl = rc.gl;
 
 		switch (format) {
 			case PixelFormat.Alpha:
@@ -172,7 +172,7 @@ namespace sd.render {
 
 
 	export function glPixelDataTypeForPixelFormat(rc: RenderContext, format: PixelFormat) {
-		var gl = rc.gl;
+		const gl = rc.gl;
 
 		if (pixelFormatIsCompressed(format)) {
 			return gl.NONE;

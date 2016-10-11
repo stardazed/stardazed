@@ -93,7 +93,7 @@ namespace sd.render {
 	}
 
 
-	var textureLimits = {
+	const textureLimits = {
 		maxDimension: 0,
 		maxDimensionCube: 0,
 		maxAnisotropy: 0
@@ -136,12 +136,12 @@ namespace sd.render {
 
 
 		private createRenderBuffer() {
-			var gl = this.rc.gl;
+			const gl = this.rc.gl;
 
 			assert(this.mipmaps == 1, "Cannot create RenderBuffers with multiple levels");
 
 			// RenderBuffers in WebGL are restricted to 16-bit colour, 16-bit depth or 8-bit stencil formats
-			var sizedFormat = glRenderBufferInternalFormatForPixelFormat(this.rc, this.pixelFormat_);
+			const sizedFormat = glRenderBufferInternalFormatForPixelFormat(this.rc, this.pixelFormat_);
 			if (sizedFormat == gl.NONE) {
 				// fallback to normal texture if not compatible
 				console.warn("Incompatible PixelFormat for RenderBuffer: falling back to Tex2D");
@@ -149,7 +149,7 @@ namespace sd.render {
 			}
 			else {
 				this.glTarget_ = gl.RENDERBUFFER;
-				var rb = gl.createRenderbuffer();
+				const rb = gl.createRenderbuffer()!; // TODO: handle resource allocation failure
 				gl.bindRenderbuffer(this.glTarget_, rb);
 				gl.renderbufferStorage(this.glTarget_, sizedFormat, this.width, this.height);
 				gl.bindRenderbuffer(this.glTarget_, null);
@@ -172,7 +172,7 @@ namespace sd.render {
 			}
 
 			// -- create resource
-			var tex = this.resource_ = gl.createTexture()!; // TODO: handle resource allocation failure
+			const tex = this.resource_ = gl.createTexture()!; // TODO: handle resource allocation failure
 			this.glTarget_ = gl.TEXTURE_2D;
 			gl.bindTexture(this.glTarget_, tex);
 
@@ -215,7 +215,7 @@ namespace sd.render {
 			const glPixelType = glPixelDataTypeForPixelFormat(this.rc, this.pixelFormat_);
 
 			// -- create resource
-			var tex = this.resource_ = gl.createTexture()!; // TODO: handle resource allocation failure
+			const tex = this.resource_ = gl.createTexture()!; // TODO: handle resource allocation failure
 			this.glTarget_ = gl.TEXTURE_CUBE_MAP;
 			gl.bindTexture(this.glTarget_, tex);
 
@@ -325,7 +325,7 @@ namespace sd.render {
 
 				// -- anisotropy
 				if (rc.extTexAnisotropy) {
-					var anisotropy = math.clamp(this.sampler_.maxAnisotropy, 1, maxAllowedAnisotropy(rc));
+					const anisotropy = math.clamp(this.sampler_.maxAnisotropy, 1, maxAllowedAnisotropy(rc));
 					gl.texParameterf(this.glTarget_, rc.extTexAnisotropy.TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 				}
 

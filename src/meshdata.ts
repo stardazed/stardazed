@@ -190,7 +190,7 @@ namespace sd.meshdata {
 
 
 	export function vertexFieldElementSizeBytes(vf: VertexField) {
-		var nt = vertexFieldNumericType(vf);
+		const nt = vertexFieldNumericType(vf);
 		return nt ? nt.byteSize : 0;
 	}
 
@@ -310,7 +310,7 @@ namespace sd.meshdata {
 	//                                     |__/              
 
 	function alignFieldOnSize(size: number, offset: number) {
-		var mask = math.roundUpPowerOf2(size) - 1;
+		const mask = math.roundUpPowerOf2(size) - 1;
 		return (offset + mask) & ~mask;
 	}
 
@@ -332,10 +332,10 @@ namespace sd.meshdata {
 
 			// calculate positioning of successive attributes in linear item
 			this.attrs_ = attrList.map((attr: VertexAttribute): PositionedAttribute => {
-				var size = vertexFieldSizeBytes(attr.field);
+				const size = vertexFieldSizeBytes(attr.field);
 				maxElemSize = Math.max(maxElemSize, vertexFieldElementSizeBytes(attr.field));
 
-				var alignedOffset = alignVertexField(attr.field, offset);
+				const alignedOffset = alignVertexField(attr.field, offset);
 				offset = alignedOffset + size;
 				return makePositionedAttr(attr, alignedOffset);
 			});
@@ -353,7 +353,7 @@ namespace sd.meshdata {
 		}
 
 		attrByRole(role: VertexAttributeRole): PositionedAttribute | null {
-			var attr = this.attrs_.find((pa) => pa.role == role);
+			const attr = this.attrs_.find(pa => pa.role == role);
 			return attr || null;
 		}
 
@@ -833,15 +833,14 @@ namespace sd.meshdata {
 			assert(baseIndexNr + outputCount <= this.indexCount_);
 			assert(outputPtr.length >= outputCount);
 
-			var typedBasePtr = this.typedBasePtr(baseIndexNr, outputCount);
-
+			const typedBasePtr = this.typedBasePtr(baseIndexNr, outputCount);
 			for (let ix = 0; ix < outputCount; ++ix) {
 				outputPtr[ix] = typedBasePtr[ix];
 			}
 		}
 
 		index(indexNr: number): number {
-			var typedBasePtr = this.typedBasePtr(indexNr, 1);
+			const typedBasePtr = this.typedBasePtr(indexNr, 1);
 			return typedBasePtr[0];
 		}
 
@@ -850,15 +849,14 @@ namespace sd.meshdata {
 			assert(baseIndexNr + sourceCount <= this.indexCount_);
 			assert(sourcePtr.length >= sourceCount);
 
-			var typedBasePtr = this.typedBasePtr(baseIndexNr, sourceCount);
-
+			const typedBasePtr = this.typedBasePtr(baseIndexNr, sourceCount);
 			for (let ix = 0; ix < sourceCount; ++ix) {
 				typedBasePtr[ix] = sourcePtr[ix];
 			}
 		}
 
 		setIndex(indexNr: number, newValue: number) {
-			var typedBasePtr = this.typedBasePtr(indexNr, 1);
+			const typedBasePtr = this.typedBasePtr(indexNr, 1);
 			typedBasePtr[0] = newValue;
 		}
 	}

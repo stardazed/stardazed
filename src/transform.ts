@@ -41,7 +41,7 @@ namespace sd.world {
 		private worldMatrixBase_: TypedArray;
 
 		constructor() {
-			var instanceFields: container.MABField[] = [
+			const instanceFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 
 				{ type: SInt32, count: 1 }, // parentInstance

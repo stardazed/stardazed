@@ -32,18 +32,18 @@ namespace sd.world {
 
 
 		createSkeleton(jointTransforms: world.TransformInstance[]): SkeletonInstance {
-			var txm = this.transformMgr_;
+			const txm = this.transformMgr_;
 			this.skels_.set(this.nextSkelID_, jointTransforms.slice(0));
-			var baseRots: sd.Float4[] = [];
+			const baseRots: sd.Float4[] = [];
 
-			var parent = txm.parent(jointTransforms[0]);
-			var originWorldTransform = txm.worldMatrix(parent);
-			var invOriginWorldTransform = mat4.invert([], originWorldTransform);
+			const parent = txm.parent(jointTransforms[0]);
+			const originWorldTransform = txm.worldMatrix(parent);
+			const invOriginWorldTransform = mat4.invert([], originWorldTransform);
 
-			for (var tx of jointTransforms) {
-				var jmm = txm.copyWorldMatrix(tx);
+			for (const tx of jointTransforms) {
+				const jmm = txm.copyWorldMatrix(tx);
 				mat4.multiply(jmm, invOriginWorldTransform, jmm);
-				var modelSpaceRotQuat = quat.fromMat3([], mat3.fromMat4([], jmm));
+				const modelSpaceRotQuat = quat.fromMat3([], mat3.fromMat4([], jmm));
 				baseRots.push(modelSpaceRotQuat);
 			}
 			this.baseRotations_.set(this.nextSkelID_, baseRots);
@@ -60,19 +60,19 @@ namespace sd.world {
 
 
 		private updateJointData(_inst: SkeletonInstance, skel: world.TransformInstance[]) {
-			var count = skel.length;
-			var txm = this.transformMgr_;
-			var texData = new Float32Array(256 * 16 * 4);
+			const count = skel.length;
+			const txm = this.transformMgr_;
+			const texData = new Float32Array(256 * 16 * 4);
 
-			var parent = txm.parent(skel[0]);
-			var originWorldTransform = txm.worldMatrix(parent);
-			var invOriginWorldTransform = mat4.invert([], originWorldTransform);
+			const parent = txm.parent(skel[0]);
+			const originWorldTransform = txm.worldMatrix(parent);
+			const invOriginWorldTransform = mat4.invert([], originWorldTransform);
 
-			for (var ji = 0; ji < count; ++ji) {
-				var j = skel[ji];
-				var texelBaseIndex = ji * 8;
+			for (let ji = 0; ji < count; ++ji) {
+				const j = skel[ji];
+				const texelBaseIndex = ji * 8;
 
-				var xform = txm.copyWorldMatrix(j);
+				const xform = txm.copyWorldMatrix(j);
 				mat4.multiply(xform, invOriginWorldTransform, xform);
 
 				// container.setIndexedVec4(texData, texelBaseIndex, [0,0,0,1]);
@@ -93,9 +93,9 @@ namespace sd.world {
 
 
 		applyInterpFramesToSkeleton(inst: SkeletonInstance, animIndex: number, frameIndexA: number, frameIndexB: number, ratio: number) {
-			var anim = this.anims_.get(animIndex);
-			var skel = this.skels_.get(<number>inst);
-			var txm = this.transformMgr_;
+			const anim = this.anims_.get(animIndex);
+			const skel = this.skels_.get(<number>inst);
+			const txm = this.transformMgr_;
 
 			if (!(anim && skel)) {
 				return;
@@ -106,11 +106,11 @@ namespace sd.world {
 
 			var posA: sd.Float3 | null, posB: sd.Float3 | null, posI: sd.Float3 = [];
 			var rotA: sd.Float4 | null, rotB: sd.Float4 | null, rotI: sd.Float4 = [];
-			for (var j of anim.jointAnims) {
+			for (const j of anim.jointAnims) {
 				posA = posB = null;
 				rotA = rotB = null;
 
-				for (var t of j.tracks) {
+				for (const t of j.tracks) {
 					if (t.field == asset.TransformAnimationField.Translation) {
 						posA = container.copyIndexedVec3(t.key, frameIndexA);
 						posB = container.copyIndexedVec3(t.key, frameIndexB);

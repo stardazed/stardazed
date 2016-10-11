@@ -69,7 +69,7 @@ namespace sd.world {
 
 	TODO: check meshes against max attr count
 
-	var meshLimits = {
+	const meshLimits = {
 		maxVertexAttributes: 0
 	};
 
@@ -196,7 +196,7 @@ namespace sd.world {
 
 
 		constructor(private rctx_: render.RenderContext) {
-			var instanceFields: container.MABField[] = [
+			const instanceFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // features
 				{ type: SInt32, count: 1 }, // indexElementType (None if no indexBuffer)
 				{ type: SInt32, count: 1 }, // uniformPrimType (None if not uniform over all groups)
@@ -208,7 +208,7 @@ namespace sd.world {
 			this.instanceData_ = new container.MultiArrayBuffer(1024, instanceFields);
 			this.rebaseInstances();
 
-			var attrFields: container.MABField[] = [
+			const attrFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // role
 				{ type: SInt32, count: 1 }, // bufferIndex
 				{ type: SInt32, count: 1 }, // vertexField
@@ -218,7 +218,7 @@ namespace sd.world {
 			this.attributeData_ = new container.MultiArrayBuffer(4096, attrFields);
 			this.rebaseAttributes();
 
-			var pgFields: container.MABField[] = [
+			const pgFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // primType
 				{ type: SInt32, count: 1 }, // fromElement
 				{ type: SInt32, count: 1 }, // elementCount
@@ -293,15 +293,15 @@ namespace sd.world {
 			container.setIndexedVec2(this.attrsOffsetCountBase_, instance, [attrIndex, attrCount]);
 
 			// -- allocate gpu vertex buffers and cache attribute mappings for fast binding
-			for (var vertexBuffer of meshData.vertexBuffers) {
-				let glBuf = gl.createBuffer(); // FIXME: could fail
+			for (const vertexBuffer of meshData.vertexBuffers) {
+				const glBuf = gl.createBuffer(); // FIXME: could fail
 				gl.bindBuffer(gl.ARRAY_BUFFER, glBuf);
 				gl.bufferData(gl.ARRAY_BUFFER, vertexBuffer.bufferView()!, gl.STATIC_DRAW); // FIXME: bufferView could be null
 				this.bufGLBuffers_[bufferIndex] = glBuf;
 
 				// -- build attribute info map
 				for (let aix = 0; aix < vertexBuffer.attributeCount; ++aix) {
-					let attr = vertexBuffer.attrByIndex(aix)!;
+					const attr = vertexBuffer.attrByIndex(aix)!;
 
 					this.attrRoleBase_[attrIndex] = attr.role;
 					this.attrBufferIndexBase_[attrIndex] = bufferIndex;
@@ -328,7 +328,7 @@ namespace sd.world {
 
 			// -- allocate gpu index buffer if present and cache some index info as it is accessed frequently
 			if (meshData.indexBuffer) {
-				let glBuf = gl.createBuffer();
+				const glBuf = gl.createBuffer();
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glBuf);
 				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshData.indexBuffer.bufferView()!, gl.STATIC_DRAW); // FIXME: bufferView could be null
 				this.bufGLBuffers_[bufferIndex] = glBuf;
@@ -355,7 +355,7 @@ namespace sd.world {
 			var totalElementCount = 0;
 			var sharedPrimType = meshData.primitiveGroups[0].type;
 
-			for (let pg of meshData.primitiveGroups) {
+			for (const pg of meshData.primitiveGroups) {
 				this.pgPrimTypeBase_[primGroupIndex] = pg.type;
 				this.pgFromElementBase_[primGroupIndex] = pg.fromElement;
 				this.pgElementCountBase_[primGroupIndex] = pg.elementCount;
@@ -405,7 +405,7 @@ namespace sd.world {
 
 
 		destroyRange(range: MeshRange) {
-			var iter = range.makeIterator();
+			const iter = range.makeIterator();
 			while (iter.next()) {
 				this.destroy(iter.current);
 			}
@@ -426,9 +426,9 @@ namespace sd.world {
 		// -- binding
 
 		private bindSingleAttribute(attr: MeshAttributeData, toVAIndex: number) {
-			var elementCount = meshdata.vertexFieldElementCount(attr.vertexField);
-			var normalized = meshdata.vertexFieldIsNormalized(attr.vertexField);
-			var glElementType = glTypeForVertexField(this.rctx_, attr.vertexField);
+			const elementCount = meshdata.vertexFieldElementCount(attr.vertexField);
+			const normalized = meshdata.vertexFieldIsNormalized(attr.vertexField);
+			const glElementType = glTypeForVertexField(this.rctx_, attr.vertexField);
 
 			this.rctx_.gl.enableVertexAttribArray(toVAIndex);
 			this.rctx_.gl.vertexAttribPointer(toVAIndex, elementCount, glElementType, normalized, attr.stride, attr.offset);
@@ -460,15 +460,15 @@ namespace sd.world {
 			}
 
 			if (needBinding) {
-				let roleIndexes = toPipeline.attributePairs();
-				let pair = roleIndexes.next();
-				let attributes = this.attributes(inst);
+				const roleIndexes = toPipeline.attributePairs();
+				const attributes = this.attributes(inst);
+				var pair = roleIndexes.next();
 
 				while (! pair.done) {
-					var attrRole = pair.value![0];
-					var attrIndex = pair.value![1];
+					const attrRole = pair.value![0];
+					const attrIndex = pair.value![1];
 
-					var meshAttr = attributes.get(attrRole);
+					const meshAttr = attributes.get(attrRole);
 					if (meshAttr) {
 						gl.bindBuffer(gl.ARRAY_BUFFER, meshAttr.buffer);
 						this.bindSingleAttribute(meshAttr, attrIndex);
@@ -498,11 +498,11 @@ namespace sd.world {
 			else {
 				// -- explicitly disable all attributes specified in the pipeline
 				const gl = this.rctx_.gl;
-				var roleIndexes = fromPipeline.attributePairs();
+				const roleIndexes = fromPipeline.attributePairs();
 				var pair = roleIndexes.next();
 
 				while (! pair.done) {
-					var attrIndex = pair.value![1];
+					const attrIndex = pair.value![1];
 					gl.disableVertexAttribArray(attrIndex);
 					pair = roleIndexes.next();
 				}

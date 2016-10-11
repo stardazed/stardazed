@@ -61,8 +61,8 @@ namespace sd {
 		some(callbackfn: (value: number, index: number, array: TypedArray) => boolean, thisArg?: any): boolean;
 		sort(compareFn?: (a: number, b: number) => number): this;
 
-		toLocaleString(): string;
-		toString(): string;
+		toLocaleString(): string; // tslint:disable-line
+		toString(): string; // tslint:disable-line
 
 		// es2015.iterable extensions
 		[Symbol.iterator](): IterableIterator<number>;
@@ -74,8 +74,11 @@ namespace sd {
 	export interface TypedArrayConstructor {
 		new (length: number): TypedArray;
 		new (array: ArrayLike<number>): TypedArray;
-		new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
+		new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray; // tslint:disable-line
 	}
+
+
+	/* tslint:disable:variable-name */
 
 	export interface NumericType {
 		min: number;
@@ -158,6 +161,7 @@ namespace sd {
 		arrayType: Float64Array
 	});
 
+	/* tslint:enable:variable-name */
 
 	// helper type for enums stored in Int32Arrays
 	export interface ConstEnumArrayView<T extends number> extends TypedArray {

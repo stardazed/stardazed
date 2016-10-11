@@ -11,7 +11,7 @@
 namespace sd.render {
 
 	export function runRenderPass(rc: RenderContext, meshMgr: world.MeshManager, rpDesc: RenderPassDescriptor, frameBuffer: FrameBuffer | null, passFunc: (rp: RenderPass) => void) {
-		var rp = new RenderPass(rc, meshMgr, rpDesc, frameBuffer);
+		const rp = new RenderPass(rc, meshMgr, rpDesc, frameBuffer);
 		rp.setup();
 		passFunc(rp);
 		rp.teardown();
@@ -85,13 +85,13 @@ namespace sd.render {
 
 
 		setup() {
-			var gl = this.rc.gl;
+			const gl = this.rc.gl;
 
 			if (this.frameBuffer_) {
 				this.frameBuffer_.bind();
 
 				// auto-set viewport to FB dimensions (good idea?)
-				var port = render.makeViewport();
+				const port = render.makeViewport();
 				port.width = this.frameBuffer_.width;
 				port.height = this.frameBuffer_.height;
 				this.setViewPort(port);
@@ -195,13 +195,13 @@ namespace sd.render {
 			}
 			else {
 				this.rc.gl.enable(this.rc.gl.CULL_FACE);
-				var mode = (faceCulling == FaceCulling.Back) ? this.rc.gl.BACK : this.rc.gl.FRONT;
+				const mode = (faceCulling == FaceCulling.Back) ? this.rc.gl.BACK : this.rc.gl.FRONT;
 				this.rc.gl.cullFace(mode);
 			}
 		}
 
 		setFrontFaceWinding(winding: FrontFaceWinding) {
-			var mode = (winding == FrontFaceWinding.Clockwise) ? this.rc.gl.CW : this.rc.gl.CCW;
+			const mode = (winding == FrontFaceWinding.Clockwise) ? this.rc.gl.CW : this.rc.gl.CCW;
 			this.rc.gl.frontFace(mode);
 		}
 
@@ -248,7 +248,7 @@ namespace sd.render {
 
 
 		setTexture(texture: Texture, bindPoint: number) {
-			var gl = this.rc.gl;
+			const gl = this.rc.gl;
 
 			gl.activeTexture(gl.TEXTURE0 + bindPoint);
 			if (texture) {
@@ -264,7 +264,7 @@ namespace sd.render {
 
 		// -- drawing
 		drawPrimitives(primitiveType: meshdata.PrimitiveType, startElement: number, elementCount: number, instanceCount = 1) {
-			var glPrimitiveType = glTypeForPrimitiveType(this.rc, primitiveType);
+			const glPrimitiveType = glTypeForPrimitiveType(this.rc, primitiveType);
 
 			if (instanceCount == 1) {
 				this.rc.gl.drawArrays(glPrimitiveType, startElement, elementCount);
@@ -276,9 +276,9 @@ namespace sd.render {
 
 
 		drawIndexedPrimitives(primitiveType: meshdata.PrimitiveType, indexElementType: meshdata.IndexElementType, startElement: number, elementCount: number, instanceCount = 1) {
-			var glPrimitiveType = glTypeForPrimitiveType(this.rc, primitiveType);
-			var glIndexElementType = glTypeForIndexElementType(this.rc, indexElementType);
-			var offsetBytes = startElement * meshdata.indexElementTypeSizeBytes(indexElementType);
+			const glPrimitiveType = glTypeForPrimitiveType(this.rc, primitiveType);
+			const glIndexElementType = glTypeForIndexElementType(this.rc, indexElementType);
+			const offsetBytes = startElement * meshdata.indexElementTypeSizeBytes(indexElementType);
 
 			if (instanceCount == 1) {
 				this.rc.gl.drawElements(glPrimitiveType, elementCount, glIndexElementType, offsetBytes);

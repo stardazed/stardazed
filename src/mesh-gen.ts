@@ -79,13 +79,13 @@ namespace sd.meshdata.gen {
 		var posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;
 
 		const pos2: Vec3AddFn = (x: number, y: number, _z: number) => {
-			var v2 = posView.refItem(posIx);
+			const v2 = posView.refItem(posIx);
 			v2[0] = x; v2[1] = y;
 			posIx++;
 		};
 
 		const pos3: Vec3AddFn = (x: number, y: number, z: number) => {
-			var v3 = posView.refItem(posIx);
+			const v3 = posView.refItem(posIx);
 			v3[0] = x; v3[1] = y; v3[2] = z;
 			posIx++;
 		};
@@ -93,14 +93,14 @@ namespace sd.meshdata.gen {
 		const pos = posView.elementCount == 2 ? pos2 : pos3;
 
 		const face: IndexesAddFn = (a: number, b: number, c: number) => {
-			var i3 = triView.refItem(faceIx);
+			const i3 = triView.refItem(faceIx);
 			i3[0] = a + baseVertex; i3[1] = b + baseVertex; i3[2] = c + baseVertex;
 			faceIx++;
 		};
 
 		const normal: Vec3AddFn = normalView ?
 			(x: number, y: number, z: number) => {
-				var v3 = normalView!.refItem(normalIx);
+				const v3 = normalView!.refItem(normalIx);
 				v3[0] = x; v3[1] = y; v3[2] = z;
 				normalIx++;
 			}
@@ -108,7 +108,7 @@ namespace sd.meshdata.gen {
 
 		const uv: Vec2AddFn = texView ?
 			(u: number, v: number) => {
-				var v2 = texView!.refItem(uvIx);
+				const v2 = texView!.refItem(uvIx);
 				v2[0] = u; v2[1] = v;
 				uvIx++;
 			}
@@ -414,12 +414,14 @@ namespace sd.meshdata.gen {
 				curVtx += 4;
 			};
 
+			/* tslint:disable:whitespace */
 			quad(3, 2, 1, 0, [ 0, 0,-1]); // front
 			quad(7, 3, 0, 4, [-1, 0, 0]); // left
 			quad(6, 7, 4, 5, [ 0, 0, 1]); // back
 			quad(2, 6, 5, 1, [ 1, 0, 0]); // right
 			quad(7, 6, 2, 3, [ 0, 1, 0]); // top
 			quad(5, 4, 0, 1, [ 0,-1, 0]); // bottom
+			/* tslint:enable:whitespace */
 		}
 	}
 
@@ -483,7 +485,7 @@ namespace sd.meshdata.gen {
 
 			const yNorm = radiusDiff / this.height_;
 
-			for (var row = 0; row <= this.rows_; ++row) {
+			for (let row = 0; row <= this.rows_; ++row) {
 				const relPos = row / this.rows_;
 
 				const y = (relPos * -this.height_) + (this.height_ / 2);
@@ -616,8 +618,8 @@ namespace sd.meshdata.gen {
 					const rbix = vix - (this.segs_ + 1);
 
 					for (let seg = 0; seg < this.segs_; ++seg) {
-						var rl = seg,
-							rr = seg + 1;
+						const rl = seg;
+						const rr = seg + 1;
 
 						if (row > 1 || openTop) {
 							face(raix + rl, rbix + rl, raix + rr);

@@ -120,17 +120,17 @@ namespace sd.world {
 		pipelineForFeatures(feat: number) {
 			feat &= this.featureMask_;
 
-			var cached = this.cachedPipelines_.get(feat);
+			const cached = this.cachedPipelines_.get(feat);
 			if (cached) {
 				return cached;
 			}
 
-			var gl = this.rc.gl;
+			const gl = this.rc.gl;
 
-			var vertexSource = this.vertexShaderSource(feat);
-			var fragmentSource = this.fragmentShaderSource(feat);
+			const vertexSource = this.vertexShaderSource(feat);
+			const fragmentSource = this.fragmentShaderSource(feat);
 
-			var pld = render.makePipelineDescriptor();
+			const pld = render.makePipelineDescriptor();
 			pld.colourPixelFormats[0] = render.PixelFormat.RGBA8;
 			pld.vertexShader = render.makeShader(this.rc, gl.VERTEX_SHADER, vertexSource);
 			pld.fragmentShader = render.makeShader(this.rc, gl.FRAGMENT_SHADER, fragmentSource);
@@ -179,8 +179,8 @@ namespace sd.world {
 				}
 			}
 
-			var pipeline = new render.Pipeline(this.rc, pld);
-			var program = <StdGLProgram>pipeline.program;
+			const pipeline = new render.Pipeline(this.rc, pld);
+			const program = <StdGLProgram>pipeline.program;
 
 			gl.useProgram(program);
 
@@ -255,7 +255,7 @@ namespace sd.world {
 
 		shadowPipeline() {
 			if (this.shadowPipeline_ == null) {
-				var pld = render.makePipelineDescriptor();
+				const pld = render.makePipelineDescriptor();
 				pld.depthPixelFormat = render.PixelFormat.Depth24I;
 				pld.vertexShader = render.makeShader(this.rc, this.rc.gl.VERTEX_SHADER, this.shadowVertexSource);
 				pld.fragmentShader = render.makeShader(this.rc, this.rc.gl.FRAGMENT_SHADER, this.shadowFragmentSource);
@@ -264,7 +264,7 @@ namespace sd.world {
 
 				this.shadowPipeline_ = new render.Pipeline(this.rc, pld);
 
-				var program = <StdGLProgram>this.shadowPipeline_.program;
+				const program = <StdGLProgram>this.shadowPipeline_.program;
 				program.mvpMatrixUniform = this.rc.gl.getUniformLocation(program, "modelViewProjectionMatrix")!;
 			}
 
@@ -290,10 +290,13 @@ namespace sd.world {
 
 
 		private vertexShaderSource(feat: number) {
-			var source: string[] = [];
-			var line = (s: string) => source.push(s);
-			var if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
-			// var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
+			const source: string[] = [];
+			const line = (s: string) => source.push(s);
+
+			/* tslint:disable:variable-name */
+			const if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
+			// const if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
+			/* tslint:enable:variable-name */
 
 			// In
 			if (feat & Features.Skinned) {
@@ -418,11 +421,14 @@ namespace sd.world {
 
 
 		private fragmentShaderSource(feat: number) {
-			var source: string[] = [];
-			var line = (s: string) => source.push(s);
-			var if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
-			// var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
-			// var if_not = (s: string, f: number) => { if ((feat & f) == 0) source.push(s) };
+			const source: string[] = [];
+			const line = (s: string) => source.push(s);
+
+			/* tslint:disable:variable-name */
+			const if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
+			// const if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
+			// const if_not = (s: string, f: number) => { if ((feat & f) == 0) source.push(s) };
+			/* tslint:enable:variable-name */
 
 			if_all("#extension GL_OES_standard_derivatives : require", Features.NormalMap);
 			line  ("precision highp float;");
@@ -788,7 +794,7 @@ namespace sd.world {
 			this.stdPipeline_ = new StdPipeline(rc);
 			this.materialMgr_ = new StdMaterialManager();
 
-			var instFields: container.MABField[] = [
+			const instFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transform
 				{ type: UInt8,  count: 1 }, // enabled
@@ -798,7 +804,7 @@ namespace sd.world {
 			];
 			this.instanceData_ = new container.MultiArrayBuffer(1024, instFields);
 
-			var groupFields: container.MABField[] = [
+			const groupFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // material
 				{ type: SInt32, count: 1 }, // features
 			];
@@ -834,7 +840,7 @@ namespace sd.world {
 			if (meshFeatures & MeshFeatures.VertexColours) { features |= Features.VtxColour; }
 			if (meshFeatures & MeshFeatures.VertexUVs) { features |= Features.VtxUV; }
 
-			var matFlags = this.materialMgr_.flags(material);
+			const matFlags = this.materialMgr_.flags(material);
 			if (matFlags & asset.MaterialFlags.usesSpecular) { features |= Features.Specular; }
 			if (matFlags & asset.MaterialFlags.usesEmissive) { features |= Features.Emissive; }
 			if (matFlags & asset.MaterialFlags.diffuseAlphaIsTransparency) { features |= Features.DiffuseAlphaIsTransparency; }
@@ -854,7 +860,7 @@ namespace sd.world {
 			if (this.materialMgr_.flags(material) & asset.MaterialFlags.isSkinned) { features |= Features.Skinned; }
 
 			// Remove redundant or unused features as GL drivers can and will remove attributes that are only used in the vertex shader
-			// var prePrune = features;
+			// const prePrune = features;
 
 			// disable UV attr and DiffuseMap unless both are provided (TODO: also take other maps into account when added later)
 			if ((features & (Features.VtxUV | Features.DiffuseMap)) != (Features.VtxUV | Features.DiffuseMap)) {
@@ -885,7 +891,7 @@ namespace sd.world {
 			const materialCount = materialsOffsetCount[1];
 
 			// -- check correctness of mesh against material list
-			var maxLocalMatIndex = groups.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
+			const maxLocalMatIndex = groups.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
 			assert(materialCount >= maxLocalMatIndex - 1, "not enough StdMaterialIndexes for this mesh");
 
 			// -- pre-calc global material indexes and program features for each group
@@ -910,7 +916,7 @@ namespace sd.world {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
-			var ix = this.instanceData_.count;
+			const ix = this.instanceData_.count;
 
 			this.entityBase_[ix] = <number>entity;
 			this.transformBase_[ix] = <number>this.transformMgr_.forEntity(entity);
@@ -935,7 +941,7 @@ namespace sd.world {
 
 
 		destroyRange(range: StdModelRange) {
-			var iter = range.makeIterator();
+			const iter = range.makeIterator();
 			while (iter.next()) {
 				this.destroy(iter.current);
 			}
@@ -1000,35 +1006,35 @@ namespace sd.world {
 
 
 		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, fogSpec: world.FogDescriptor | null, modelIx: number) {
-			var gl = this.rc.gl;
+			const gl = this.rc.gl;
 			var drawCalls = 0;
 
-			var mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
+			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
 			if (! mesh) {
 				// console.warn("No mesh attached to entity of stdModel " + modelIx);
 				return;
 			}
 
 			// -- calc transform matrices
-			var modelMatrix = this.transformMgr_.worldMatrix(this.transformBase_[modelIx]);
+			const modelMatrix = this.transformMgr_.worldMatrix(this.transformBase_[modelIx]);
 			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
 			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
 
 			// -- draw all groups
-			var meshPrimitiveGroups = this.meshMgr_.primitiveGroups(mesh);
-			var primGroupBase = this.primGroupOffsetBase_[modelIx];
-			var primGroupCount = meshPrimitiveGroups.length;
+			const meshPrimitiveGroups = this.meshMgr_.primitiveGroups(mesh);
+			const primGroupBase = this.primGroupOffsetBase_[modelIx];
+			const primGroupCount = meshPrimitiveGroups.length;
 
-			for (var pgIx = 0; pgIx < primGroupCount; ++pgIx) {
-				var primGroup = meshPrimitiveGroups[pgIx];
-				var matInst: StdMaterialInstance = this.primGroupMaterialBase_[primGroupBase + pgIx];
-				var materialData = this.materialMgr_.getData(matInst);
+			for (let pgIx = 0; pgIx < primGroupCount; ++pgIx) {
+				const primGroup = meshPrimitiveGroups[pgIx];
+				const matInst: StdMaterialInstance = this.primGroupMaterialBase_[primGroupBase + pgIx];
+				const materialData = this.materialMgr_.getData(matInst);
 
 				// -- features are a combo of Material features and optional shadow
 				var features: Features = this.primGroupFeatureBase_[primGroupBase + pgIx];
 				if (shadow) {
 					features |= Features.ShadowMap;
-					var shadowType = this.lightMgr_.shadowType(shadow.light);
+					const shadowType = this.lightMgr_.shadowType(shadow.light);
 					if (shadowType == ShadowType.Soft) {
 						features |= Features.SoftShadow;
 					}
@@ -1038,12 +1044,12 @@ namespace sd.world {
 					features |= Features.Fog;
 				}
 
-				var pipeline = this.stdPipeline_.pipelineForFeatures(features);
+				const pipeline = this.stdPipeline_.pipelineForFeatures(features);
 				rp.setPipeline(pipeline);
 				rp.setMesh(mesh);
 
 				// -- set transform and normal uniforms
-				var program = <StdGLProgram>(pipeline.program);
+				const program = <StdGLProgram>(pipeline.program);
 
 				// model, mvp and normal matrices are always present
 				gl.uniformMatrix4fv(program.modelMatrixUniform, false, <Float32Array>modelMatrix);
@@ -1108,7 +1114,7 @@ namespace sd.world {
 					rp.setTexture(shadow.shadowFBO.depthAttachmentTexture()!, TextureBindPoint.Shadow);
 
 					mat4.multiply(this.lightViewProjectionMatrix_, shadow.lightProjection.projectionMatrix, shadow.lightProjection.viewMatrix);
-					var lightBiasMat = mat4.multiply([], mat4.fromTranslation([], [.5, .5, .5]), mat4.fromScaling([], [.5, .5, .5]));
+					const lightBiasMat = mat4.multiply([], mat4.fromTranslation([], [.5, .5, .5]), mat4.fromScaling([], [.5, .5, .5]));
 					mat4.multiply(this.lightViewProjectionMatrix_, lightBiasMat, this.lightViewProjectionMatrix_);
 
 					gl.uniformMatrix4fv(program.lightViewProjectionMatrixUniform!, false, this.lightViewProjectionMatrix_);
@@ -1131,13 +1137,13 @@ namespace sd.world {
 
 
 		private drawSingleShadow(rp: render.RenderPass, proj: ProjectionSetup, shadowPipeline: render.Pipeline, modelIx: number) {
-			var gl = this.rc.gl;
-			var program = <StdGLProgram>(shadowPipeline.program);
-			var mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
+			const gl = this.rc.gl;
+			const program = <StdGLProgram>(shadowPipeline.program);
+			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
 			rp.setMesh(mesh);
 
 			// -- calc MVP and set
-			var modelMatrix = this.transformMgr_.worldMatrix(this.transformBase_[modelIx]);
+			const modelMatrix = this.transformMgr_.worldMatrix(this.transformBase_[modelIx]);
 			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
 			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
 			gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);
@@ -1161,13 +1167,12 @@ namespace sd.world {
 
 
 		updateLightData(proj: ProjectionSetup) {
-			var lights = this.activeLights_;
+			const lights = this.activeLights_;
+			const viewNormalMatrix = mat3.normalFromMat4([], proj.viewMatrix);
 
-			var viewNormalMatrix = mat3.normalFromMat4([], proj.viewMatrix);
-
-			for (var lix = 0; lix < MAX_FRAGMENT_LIGHTS; ++lix) {
-				var light = lix < lights.length ? lights[lix] : null;
-				var lightData = light && this.lightMgr_.getData(light, proj.viewMatrix, viewNormalMatrix);
+			for (let lix = 0; lix < MAX_FRAGMENT_LIGHTS; ++lix) {
+				const light = lix < lights.length ? lights[lix] : null;
+				const lightData = light && this.lightMgr_.getData(light, proj.viewMatrix, viewNormalMatrix);
 
 				if (lightData) {
 					assert(lightData.type != LightType.None);
@@ -1192,19 +1197,19 @@ namespace sd.world {
 
 
 		private splitModelRange(range: StdModelRange, triggerFeature: Features, cullDisabled = false) {
-			var withFeature = new InstanceSet<StdModelManager>();
-			var withoutFeature = new InstanceSet<StdModelManager>();
+			const withFeature = new InstanceSet<StdModelManager>();
+			const withoutFeature = new InstanceSet<StdModelManager>();
 
-			var iter = range.makeIterator();
+			const iter = range.makeIterator();
 			while (iter.next()) {
-				let modelIx = <number>iter.current;
-				var enabled = this.enabledBase_[modelIx];
+				const modelIx = <number>iter.current;
+				const enabled = this.enabledBase_[modelIx];
 				if (! enabled && cullDisabled) {
 					continue;
 				}
 
-				var primGroupBase = this.primGroupOffsetBase_[modelIx];
-				var firstPGFeatures: Features = this.primGroupFeatureBase_[primGroupBase];
+				const primGroupBase = this.primGroupOffsetBase_[modelIx];
+				const firstPGFeatures: Features = this.primGroupFeatureBase_[primGroupBase];
 
 				if ((firstPGFeatures & triggerFeature) == triggerFeature) {
 					withFeature.add(iter.current);
@@ -1222,7 +1227,7 @@ namespace sd.world {
 
 
 		splitModelRangeByTranslucency(range: StdModelRange) {
-			var split = this.splitModelRange(range, Features.Translucency, true);
+			const split = this.splitModelRange(range, Features.Translucency, true);
 			return {
 				opaque: split.without,
 				translucent: split.with
@@ -1234,7 +1239,7 @@ namespace sd.world {
 			var drawCalls = 0;
 
 			if (mode == RenderMode.Forward) {
-				let iter = range.makeIterator();
+				const iter = range.makeIterator();
 				while (iter.next()) {
 					if (this.enabledBase_[<number>iter.current]) {
 						drawCalls += this.drawSingleForward(rp, proj, shadow, fogSpec, <number>iter.current);
@@ -1242,10 +1247,10 @@ namespace sd.world {
 				}
 			}
 			else if (mode == RenderMode.Shadow) {
-				var shadowPipeline = this.stdPipeline_.shadowPipeline();
+				const shadowPipeline = this.stdPipeline_.shadowPipeline();
 				rp.setPipeline(shadowPipeline);
 
-				let iter = range.makeIterator();
+				const iter = range.makeIterator();
 				while (iter.next()) {
 					if (this.enabledBase_[<number>iter.current]) {
 						drawCalls += this.drawSingleShadow(rp, proj, shadowPipeline, <number>iter.current);

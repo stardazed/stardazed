@@ -28,8 +28,8 @@ namespace testdazed {
 		get name() { return this.name_; }
 	}
 
-	var rootTest_s = new Test("root", () => { });
-	var curTest_s: Test = rootTest_s;
+	const rootTest = new Test("root", () => { /* empty test */ });
+	var curTest: Test = rootTest;
 
 
 	// ---
@@ -51,7 +51,7 @@ namespace testdazed {
 		errors: number;
 	}
 
-	var curReport_s: TestReport | null = null;
+	var curReport: TestReport | null = null;
 
 
 	class TestRun {
@@ -68,19 +68,20 @@ namespace testdazed {
 				this.report.error("Unexpected exception", e.toString());
 			}
 
-			for (var sub of test.subTests) {
+			for (const sub of test.subTests) {
 				this.evalTest(sub);
 			}
 
 			this.report.leaveTest(test);
 		}
 
-		run(rootTest: Test) {
-			var oldReport = curReport_s;
-			curReport_s = this.report;
+		run(test: Test) {
+			const oldReport = curReport;
+			curReport = this.report;
 			this.report.startReport();
-			this.evalTest(rootTest);
+			this.evalTest(test);
 			this.report.finishReport();
+			curReport = oldReport;
 		}
 	}
 
@@ -91,11 +92,13 @@ namespace testdazed {
 	type CheckExpr = () => boolean;
 
 	function checkImpl(expr: CheckExpr, failMsg: string) {
-		var success = expr();
-		if (success)
-			curReport_s.pass();
-		else
-			curReport_s.failure(failMsg);
+		const success = expr();
+		if (success) {
+			curReport!.pass();
+		}
+		else {
+			curReport!.failure(failMsg);
+		}
 		return success;
 	}
 
@@ -157,30 +160,30 @@ namespace testdazed {
 
 
 	export function group(name: string, init: TestBodyFn) {
-		var g = new Test(name, () => { });
+		const g = new Test(name, () => { /* group test */ });
 
-		var oldTest = curTest_s;
-		curTest_s.addChild(g);
+		const oldTest = curTest;
+		curTest.addChild(g);
 
-		curTest_s = g;
+		curTest = g;
 		init();
-		curTest_s = oldTest;
+		curTest = oldTest;
 	}
 
 
 	export function test(name: string, body: TestBodyFn) {
-		curTest_s.addChild(new Test(name, body));
+		curTest.addChild(new Test(name, body));
 	}
 
 
 	function run(root: Test, report: TestReport) {
-		var res = new TestRun(report);
+		const res = new TestRun(report);
 		res.run(root);
 	}
 
 
 	export function runAll(report: TestReport) {
-		run(rootTest_s, report);
+		run(rootTest, report);
 	}
 
 } // ns testdazed

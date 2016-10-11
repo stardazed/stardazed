@@ -12,7 +12,7 @@ class SimpleTestReport implements td.TestReport {
 	private checkIndex_ = 0;
 	private nameTree_: string[] = [];
 	private result_: string[] = [];
-	
+
 	private out(...args: any[]) {
 		this.result_.push(args.join(""));
 	}
@@ -36,7 +36,7 @@ class SimpleTestReport implements td.TestReport {
 	leaveTest(_test: td.Test) {
 		this.nameTree_.pop();
 	}
-		
+
 	private get nameTree(): string {
 		return this.nameTree_.join(".");
 	}
@@ -45,16 +45,16 @@ class SimpleTestReport implements td.TestReport {
 		this.checkIndex_++;
 		this.passes_++;
 	}
-		
+
 	failure(msg: string, innerMsg?: string) {
 		this.checkIndex_++;
 		this.failures_++;
-		this.out("FAIL (check #" + this.checkIndex_ + ") " + this.nameTree + ": " + msg + ' ' + (innerMsg || ""));
-	}	
-		
+		this.out("FAIL (check #" + this.checkIndex_ + ") " + this.nameTree + ": " + msg + " " + (innerMsg || ""));
+	}
+
 	error(msg: string, innerMsg?: string) {
 		this.errors_++;
-		this.out("ERROR in " + this.nameTree + ": " + msg + ' ' + (innerMsg || ""));
+		this.out("ERROR in " + this.nameTree + ": " + msg + " " + (innerMsg || ""));
 	}
 
 	get passes() { return this.passes_; }
@@ -70,6 +70,6 @@ class SimpleTestReport implements td.TestReport {
 dequeTests();
 
 // -- run and show report
-var report = new SimpleTestReport();
+const report = new SimpleTestReport();
 td.runAll(report);
 document.querySelector("pre").textContent = report.result;

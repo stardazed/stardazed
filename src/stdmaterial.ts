@@ -56,7 +56,7 @@ namespace sd.world {
 		constructor() {
 			const initialCapacity = 256;
 
-			var fields: container.MABField[] = [
+			const fields: container.MABField[] = [
 				{ type: Float, count: 4 },  // mainColour[3], 0
 				{ type: Float, count: 4 },  // specularIntensity, specularExponent, specularColourMix, 0
 				{ type: Float, count: 4 },  // emissiveColour[3], emissiveIntensity
@@ -92,7 +92,7 @@ namespace sd.world {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
-			var matIndex = this.instanceData_.count; // entry 0 is reserved as nullptr-like
+			const matIndex = this.instanceData_.count; // entry 0 is reserved as nullptr-like
 
 			vec4.set(this.tempVec4, desc.baseColour[0], desc.baseColour[1], desc.baseColour[2], 0);
 			container.setIndexedVec4(this.mainColourBase_, matIndex, this.tempVec4);
@@ -124,7 +124,7 @@ namespace sd.world {
 
 
 		destroy(inst: StdMaterialInstance) {
-			var matIndex = <number>inst;
+			const matIndex = <number>inst;
 
 			container.setIndexedVec4(this.mainColourBase_, matIndex, math.Vec4.zero);
 			container.setIndexedVec4(this.specularBase_, matIndex, math.Vec4.zero);
@@ -142,7 +142,7 @@ namespace sd.world {
 
 
 		destroyRange(range: StdMaterialRange) {
-			var iter = range.makeIterator();
+			const iter = range.makeIterator();
 			while (iter.next()) {
 				this.destroy(iter.current);
 			}
@@ -163,7 +163,7 @@ namespace sd.world {
 
 		// -- individual element field accessors
 		mainColour(inst: StdMaterialInstance): Float3 {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			return [
 				this.mainColourBase_[offset],
 				this.mainColourBase_[offset + 1],
@@ -172,7 +172,7 @@ namespace sd.world {
 		}
 
 		setMainColour(inst: StdMaterialInstance, newColour: Float3) {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			this.mainColourBase_[offset]     = newColour[0];
 			this.mainColourBase_[offset + 1] = newColour[1];
 			this.mainColourBase_[offset + 2] = newColour[2];
@@ -181,7 +181,7 @@ namespace sd.world {
 
 		// -- individual element field accessors
 		emissiveColour(inst: StdMaterialInstance): Float3 {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			return [
 				this.emissiveBase_[offset],
 				this.emissiveBase_[offset + 1],
@@ -190,7 +190,7 @@ namespace sd.world {
 		}
 
 		setEmissiveColour(inst: StdMaterialInstance, newColour: Float3) {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			this.emissiveBase_[offset]     = newColour[0];
 			this.emissiveBase_[offset + 1] = newColour[1];
 			this.emissiveBase_[offset + 2] = newColour[2];
@@ -225,24 +225,24 @@ namespace sd.world {
 
 
 		textureScale(inst: StdMaterialInstance): Float2 {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			return [this.texScaleOffsetBase_[offset], this.texScaleOffsetBase_[offset + 1]];
 		}
 
 		setTextureScale(inst: StdMaterialInstance, newScale: Float2) {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			this.texScaleOffsetBase_[offset] = newScale[0];
 			this.texScaleOffsetBase_[offset + 1] = newScale[1];
 		}
 
 
 		textureOffset(inst: StdMaterialInstance): Float2 {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			return [this.texScaleOffsetBase_[offset + 2], this.texScaleOffsetBase_[offset + 3]];
 		}
 
 		setTextureOffset(inst: StdMaterialInstance, newOffset: Float2) {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			this.texScaleOffsetBase_[offset + 2] = newOffset[0];
 			this.texScaleOffsetBase_[offset + 3] = newOffset[1];
 		}
@@ -296,9 +296,9 @@ namespace sd.world {
 
 		// direct data views to set uniforms with in StdModelMgr
 		getData(inst: StdMaterialInstance): StdMaterialData {
-			var matIndex = <number>inst;
+			const matIndex = <number>inst;
 
-			var colourOpacity = new Float32Array(container.copyIndexedVec4(this.mainColourBase_, matIndex));
+			const colourOpacity = new Float32Array(container.copyIndexedVec4(this.mainColourBase_, matIndex));
 			colourOpacity[3] = this.opacityBase_[matIndex];
 
 			return {

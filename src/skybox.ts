@@ -41,7 +41,7 @@ namespace sd.world {
 
 		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager, meshMgr: MeshManager, private texture_: render.Texture) {
 			// -- pipeline
-			var pld = render.makePipelineDescriptor();
+			const pld = render.makePipelineDescriptor();
 			pld.colourPixelFormats[0] = render.PixelFormat.RGBA8;
 			// pld.depthPixelFormat = render.PixelFormat.Depth24_Stencil8; // uhh..
 			pld.vertexShader = render.makeShader(rc, rc.gl.VERTEX_SHADER, this.vertexSource);
@@ -60,7 +60,7 @@ namespace sd.world {
 			this.pipeline_.unbind();
 
 			// -- mesh
-			var sphereGen = new meshdata.gen.Sphere({ radius: 400, rows: 10, segs: 15 });
+			const sphereGen = new meshdata.gen.Sphere({ radius: 400, rows: 10, segs: 15 });
 			this.meshAsset_ = { name: "skyboxMesh", meshData: meshdata.gen.generate(sphereGen, [meshdata.attrPosition3()]) }; // FIXME: asset 
 			this.mesh_ = meshMgr.create(this.meshAsset_);
 		}

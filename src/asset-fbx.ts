@@ -884,7 +884,7 @@ namespace sd.asset {
 
 			private buildAnimations(_group: AssetGroup, _options: FBXResolveOptions) {
 				// the number of units of time per second for a KTime value
-				const fbxTimeUnit = 46186158000;
+				const KTimeUnit = 46186158000;
 
 				for (const curveNodeID in this.animCurveNodes) {
 					const fbxCurveNode = this.animCurveNodes[curveNodeID];
@@ -926,7 +926,7 @@ namespace sd.asset {
 
 							// convert KTime values to seconds in place
 							for (let t = 0; t < count; ++t) {
-								times[t] /= fbxTimeUnit;
+								times[t] /= KTimeUnit;
 							}
 
 							// convert rotation angles to radians

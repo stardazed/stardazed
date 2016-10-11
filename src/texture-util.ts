@@ -31,7 +31,7 @@ namespace sd.render {
 			const images: HTMLImageElement[] = [];
 			var loaded = 0;
 
-			for (var k = 0; k < 6; ++k) {
+			for (let k = 0; k < 6; ++k) {
 				(function(face: number) {
 					const image = new Image();
 

@@ -9,7 +9,7 @@ interface Math {
 	sign(n: number): number;
 }
 
-
+/* tslint:disable:class-name */
 
 interface quat {
 	fromEuler(yaw: number, pitch: number, roll: number): Float32Array;
@@ -41,12 +41,12 @@ quat.fromEuler = function(yaw: number, pitch: number, roll: number) {
 //                   |_|   
 
 interface vec2 {
-	clamp(out: ArrayOfNumber, a: ArrayOfNumber, min: number, max: number): ArrayOfNumber;
-	clamp(out: ArrayOfNumber, a: ArrayOfNumber, min: ArrayOfNumber, max: ArrayOfNumber): ArrayOfNumber;
-	clamp01(out: ArrayOfNumber, a: ArrayOfNumber): ArrayOfNumber;
+	clamp(out: ArrayOfNumber, a: ArrayOfConstNumber, min: number, max: number): ArrayOfNumber;
+	clamp(out: ArrayOfNumber, a: ArrayOfConstNumber, min: ArrayOfConstNumber, max: ArrayOfConstNumber): ArrayOfNumber;
+	clamp01(out: ArrayOfNumber, a: ArrayOfConstNumber): ArrayOfNumber;
 }
 
-vec2.clamp = function(out: ArrayOfNumber, a: ArrayOfNumber, min: number | ArrayOfNumber, max: number | ArrayOfNumber) {
+vec2.clamp = function(out: ArrayOfNumber, a: ArrayOfConstNumber, min: number | ArrayOfConstNumber, max: number | ArrayOfConstNumber) {
 	if (typeof min == "number") {
 		out[0] = sd.math.clamp(a[0], <number>min, <number>max);
 		out[1] = sd.math.clamp(a[1], <number>min, <number>max);
@@ -59,7 +59,7 @@ vec2.clamp = function(out: ArrayOfNumber, a: ArrayOfNumber, min: number | ArrayO
 	return out;
 };
 
-vec2.clamp01 = function(out: ArrayOfNumber, a: ArrayOfNumber) {
+vec2.clamp01 = function(out: ArrayOfNumber, a: ArrayOfConstNumber) {
 	out[0] = sd.math.clamp01(a[0]);
 	out[1] = sd.math.clamp01(a[1]);
 
@@ -69,27 +69,27 @@ vec2.clamp01 = function(out: ArrayOfNumber, a: ArrayOfNumber) {
 
 
 interface vec3 {
-	clamp(out: ArrayOfNumber, a: ArrayOfNumber, min: number, max: number): ArrayOfNumber;
-	clamp(out: ArrayOfNumber, a: ArrayOfNumber, min: ArrayOfNumber, max: ArrayOfNumber): ArrayOfNumber;
-	clamp01(out: ArrayOfNumber, a: ArrayOfNumber): ArrayOfNumber;
+	clamp(out: ArrayOfNumber, a: ArrayOfConstNumber, min: number, max: number): ArrayOfNumber;
+	clamp(out: ArrayOfNumber, a: ArrayOfConstNumber, min: ArrayOfConstNumber, max: ArrayOfConstNumber): ArrayOfNumber;
+	clamp01(out: ArrayOfNumber, a: ArrayOfConstNumber): ArrayOfNumber;
 }
 
-vec3.clamp = function(out: ArrayOfNumber, a: ArrayOfNumber, min: number | ArrayOfNumber, max: number | ArrayOfNumber) {
+vec3.clamp = function(out: ArrayOfNumber, a: ArrayOfConstNumber, min: number | ArrayOfConstNumber, max: number | ArrayOfConstNumber) {
 	if (typeof min == "number") {
 		out[0] = sd.math.clamp(a[0], <number>min, <number>max);
 		out[1] = sd.math.clamp(a[1], <number>min, <number>max);
 		out[2] = sd.math.clamp(a[2], <number>min, <number>max);
 	}
 	else {
-		out[0] = sd.math.clamp(a[0], (<ArrayOfNumber>min)[0], (<ArrayOfNumber>max)[0]);
-		out[1] = sd.math.clamp(a[1], (<ArrayOfNumber>min)[1], (<ArrayOfNumber>max)[1]);
-		out[2] = sd.math.clamp(a[2], (<ArrayOfNumber>min)[2], (<ArrayOfNumber>max)[2]);
+		out[0] = sd.math.clamp(a[0], (<ArrayOfConstNumber>min)[0], (<ArrayOfConstNumber>max)[0]);
+		out[1] = sd.math.clamp(a[1], (<ArrayOfConstNumber>min)[1], (<ArrayOfConstNumber>max)[1]);
+		out[2] = sd.math.clamp(a[2], (<ArrayOfConstNumber>min)[2], (<ArrayOfConstNumber>max)[2]);
 	}
 
 	return out;
 };
 
-vec3.clamp01 = function(out: ArrayOfNumber, a: ArrayOfNumber) {
+vec3.clamp01 = function(out: ArrayOfNumber, a: ArrayOfConstNumber) {
 	out[0] = sd.math.clamp01(a[0]);
 	out[1] = sd.math.clamp01(a[1]);
 	out[2] = sd.math.clamp01(a[2]);
@@ -100,12 +100,12 @@ vec3.clamp01 = function(out: ArrayOfNumber, a: ArrayOfNumber) {
 
 
 interface vec4 {
-	clamp(out: ArrayOfNumber, a: ArrayOfNumber, min: number, max: number): ArrayOfNumber;
-	clamp(out: ArrayOfNumber, a: ArrayOfNumber, min: ArrayOfNumber, max: ArrayOfNumber): ArrayOfNumber;
-	clamp01(out: ArrayOfNumber, a: ArrayOfNumber): ArrayOfNumber;
+	clamp(out: ArrayOfNumber, a: ArrayOfConstNumber, min: number, max: number): ArrayOfNumber;
+	clamp(out: ArrayOfNumber, a: ArrayOfConstNumber, min: ArrayOfConstNumber, max: ArrayOfConstNumber): ArrayOfNumber;
+	clamp01(out: ArrayOfNumber, a: ArrayOfConstNumber): ArrayOfNumber;
 }
 
-vec4.clamp = function(out: ArrayOfNumber, a: ArrayOfNumber, min: number | ArrayOfNumber, max: number | ArrayOfNumber) {
+vec4.clamp = function(out: ArrayOfNumber, a: ArrayOfConstNumber, min: number | ArrayOfConstNumber, max: number | ArrayOfConstNumber) {
 	if (typeof min === "number") {
 		out[0] = sd.math.clamp(a[0], min, <number>max);
 		out[1] = sd.math.clamp(a[1], min, <number>max);
@@ -113,16 +113,16 @@ vec4.clamp = function(out: ArrayOfNumber, a: ArrayOfNumber, min: number | ArrayO
 		out[3] = sd.math.clamp(a[3], min, <number>max);
 	}
 	else {
-		out[0] = sd.math.clamp(a[0], (<ArrayOfNumber>min)[0], (<ArrayOfNumber>max)[0]);
-		out[1] = sd.math.clamp(a[1], (<ArrayOfNumber>min)[1], (<ArrayOfNumber>max)[1]);
-		out[2] = sd.math.clamp(a[2], (<ArrayOfNumber>min)[2], (<ArrayOfNumber>max)[2]);
-		out[3] = sd.math.clamp(a[3], (<ArrayOfNumber>min)[3], (<ArrayOfNumber>max)[3]);
+		out[0] = sd.math.clamp(a[0], (<ArrayOfConstNumber>min)[0], (<ArrayOfConstNumber>max)[0]);
+		out[1] = sd.math.clamp(a[1], (<ArrayOfConstNumber>min)[1], (<ArrayOfConstNumber>max)[1]);
+		out[2] = sd.math.clamp(a[2], (<ArrayOfConstNumber>min)[2], (<ArrayOfConstNumber>max)[2]);
+		out[3] = sd.math.clamp(a[3], (<ArrayOfConstNumber>min)[3], (<ArrayOfConstNumber>max)[3]);
 	}
 
 	return out;
 };
 
-vec4.clamp01 = function(out: ArrayOfNumber, a: ArrayOfNumber) {
+vec4.clamp01 = function(out: ArrayOfNumber, a: ArrayOfConstNumber) {
 	out[0] = sd.math.clamp01(a[0]);
 	out[1] = sd.math.clamp01(a[1]);
 	out[2] = sd.math.clamp01(a[2]);
@@ -147,11 +147,11 @@ namespace sd.math {
 
 
 interface vec2 {
-	mix(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, ratio: number): ArrayOfNumber;
-	mix(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, ratios: ArrayOfNumber): ArrayOfNumber;
+	mix(out: ArrayOfNumber, a: ArrayOfConstNumber, b: ArrayOfConstNumber, ratio: number): ArrayOfNumber;
+	mix(out: ArrayOfNumber, a: ArrayOfConstNumber, b: ArrayOfConstNumber, ratios: ArrayOfConstNumber): ArrayOfNumber;
 }
 
-vec2.mix = function(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, ratio: number | ArrayOfNumber): ArrayOfNumber {
+vec2.mix = function(out: ArrayOfNumber, a: ArrayOfConstNumber, b: ArrayOfConstNumber, ratio: number | ArrayOfConstNumber): ArrayOfNumber {
 	if (typeof ratio === "number") {
 		out[0] = sd.math.mix(a[0], b[0], ratio);
 		out[1] = sd.math.mix(a[1], b[1], ratio);
@@ -166,11 +166,11 @@ vec2.mix = function(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, rati
 
 
 interface vec3 {
-	mix(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, ratio: number): ArrayOfNumber;
-	mix(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, ratios: ArrayOfNumber): ArrayOfNumber;
+	mix(out: ArrayOfNumber, a: ArrayOfConstNumber, b: ArrayOfConstNumber, ratio: number): ArrayOfNumber;
+	mix(out: ArrayOfNumber, a: ArrayOfConstNumber, b: ArrayOfConstNumber, ratios: ArrayOfConstNumber): ArrayOfNumber;
 }
 
-vec3.mix = function(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, ratio: number | ArrayOfNumber): ArrayOfNumber {
+vec3.mix = function(out: ArrayOfNumber, a: ArrayOfConstNumber, b: ArrayOfConstNumber, ratio: number | ArrayOfConstNumber): ArrayOfNumber {
 	if (typeof ratio === "number") {
 		out[0] = sd.math.mix(a[0], b[0], ratio);
 		out[1] = sd.math.mix(a[1], b[1], ratio);
@@ -187,11 +187,11 @@ vec3.mix = function(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, rati
 
 
 interface vec4 {
-	mix(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, ratio: number): ArrayOfNumber;
-	mix(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, ratios: ArrayOfNumber): ArrayOfNumber;
+	mix(out: ArrayOfNumber, a: ArrayOfConstNumber, b: ArrayOfConstNumber, ratio: number): ArrayOfNumber;
+	mix(out: ArrayOfNumber, a: ArrayOfConstNumber, b: ArrayOfConstNumber, ratios: ArrayOfConstNumber): ArrayOfNumber;
 }
 
-vec4.mix = function(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, ratio: number | ArrayOfNumber): ArrayOfNumber {
+vec4.mix = function(out: ArrayOfNumber, a: ArrayOfConstNumber, b: ArrayOfConstNumber, ratio: number | ArrayOfConstNumber): ArrayOfNumber {
 	if (typeof ratio === "number") {
 		out[0] = sd.math.mix(a[0], b[0], ratio);
 		out[1] = sd.math.mix(a[1], b[1], ratio);
@@ -216,10 +216,10 @@ vec4.mix = function(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, rati
 //       |___/      
 
 interface vec2 {
-	sign(out: ArrayOfNumber, a: ArrayOfNumber): ArrayOfNumber;
+	sign(out: ArrayOfNumber, a: ArrayOfConstNumber): ArrayOfNumber;
 }
 
-vec2.sign = function(out: ArrayOfNumber, a: ArrayOfNumber): ArrayOfNumber {
+vec2.sign = function(out: ArrayOfNumber, a: ArrayOfConstNumber): ArrayOfNumber {
 	out[0] = Math.sign(a[0]);
 	out[1] = Math.sign(a[1]);
 
@@ -228,10 +228,10 @@ vec2.sign = function(out: ArrayOfNumber, a: ArrayOfNumber): ArrayOfNumber {
 
 
 interface vec3 {
-	sign(out: ArrayOfNumber, a: ArrayOfNumber): ArrayOfNumber;
+	sign(out: ArrayOfNumber, a: ArrayOfConstNumber): ArrayOfNumber;
 }
 
-vec3.sign = function(out: ArrayOfNumber, a: ArrayOfNumber): ArrayOfNumber {
+vec3.sign = function(out: ArrayOfNumber, a: ArrayOfConstNumber): ArrayOfNumber {
 	out[0] = Math.sign(a[0]);
 	out[1] = Math.sign(a[1]);
 	out[2] = Math.sign(a[2]);
@@ -241,10 +241,10 @@ vec3.sign = function(out: ArrayOfNumber, a: ArrayOfNumber): ArrayOfNumber {
 
 
 interface vec4 {
-	sign(out: ArrayOfNumber, a: ArrayOfNumber): ArrayOfNumber;
+	sign(out: ArrayOfNumber, a: ArrayOfConstNumber): ArrayOfNumber;
 }
 
-vec4.sign = function(out: ArrayOfNumber, a: ArrayOfNumber): ArrayOfNumber {
+vec4.sign = function(out: ArrayOfNumber, a: ArrayOfConstNumber): ArrayOfNumber {
 	out[0] = Math.sign(a[0]);
 	out[1] = Math.sign(a[1]);
 	out[2] = Math.sign(a[2]);
@@ -253,3 +253,4 @@ vec4.sign = function(out: ArrayOfNumber, a: ArrayOfNumber): ArrayOfNumber {
 	return out;
 };
 
+/* tslint:enable:class-name */

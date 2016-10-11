@@ -90,7 +90,7 @@
 		"ordered-imports": false,
 		"quotemark": [true, "double", "avoid-escape"],
 		"semicolon": [true, "always"],
-		"variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-trailing-underscore"],
+		"variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-trailing-underscore", "allow-pascal-case"],
 		"whitespace": ["check-branch", "check-decl", "check-operator", "check-module", "check-separator", "check-type"]
 	}
 }

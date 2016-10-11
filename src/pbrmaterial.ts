@@ -67,7 +67,7 @@ namespace sd.world {
 		constructor() {
 			const initialCapacity = 256;
 
-			var fields: container.MABField[] = [
+			const fields: container.MABField[] = [
 				{ type: Float, count: 4 },  // baseColour[3], 0
 				{ type: Float, count: 4 },  // roughness, metallic, 0, 0
 				{ type: Float, count: 4 },  // textureScale[2], textureOffset[2]
@@ -93,7 +93,7 @@ namespace sd.world {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
-			var matIndex = this.instanceData_.count; // entry 0 is reserved as nullptr-like
+			const matIndex = this.instanceData_.count; // entry 0 is reserved as nullptr-like
 
 			// compile baseColour and RMA fixed vars
 			vec4.set(this.tempVec4, desc.baseColour[0], desc.baseColour[1], desc.baseColour[2], 0);
@@ -126,7 +126,7 @@ namespace sd.world {
 
 
 		destroy(inst: PBRMaterialInstance) {
-			var matIndex = <number>inst;
+			const matIndex = <number>inst;
 
 			container.setIndexedVec4(this.baseColourBase_, matIndex, math.Vec4.zero);
 			container.setIndexedVec4(this.materialBase_, matIndex, math.Vec4.zero);
@@ -143,7 +143,7 @@ namespace sd.world {
 
 
 		destroyRange(range: PBRMaterialRange) {
-			var iter = range.makeIterator();
+			const iter = range.makeIterator();
 			while (iter.next()) {
 				this.destroy(iter.current);
 			}
@@ -163,7 +163,7 @@ namespace sd.world {
 
 		// -- individual element field accessors
 		baseColour(inst: PBRMaterialInstance): Float3 {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			return [
 				this.baseColourBase_[offset],
 				this.baseColourBase_[offset + 1],
@@ -172,7 +172,7 @@ namespace sd.world {
 		}
 
 		setBaseColour(inst: PBRMaterialInstance, newColour: Float3) {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			this.baseColourBase_[offset]     = newColour[0];
 			this.baseColourBase_[offset + 1] = newColour[1];
 			this.baseColourBase_[offset + 2] = newColour[2];
@@ -217,24 +217,24 @@ namespace sd.world {
 
 
 		textureScale(inst: PBRMaterialInstance): Float2 {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			return [this.texScaleOffsetBase_[offset], this.texScaleOffsetBase_[offset + 1]];
 		}
 
 		setTextureScale(inst: PBRMaterialInstance, newScale: Float2) {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			this.texScaleOffsetBase_[offset] = newScale[0];
 			this.texScaleOffsetBase_[offset + 1] = newScale[1];
 		}
 
 
 		textureOffset(inst: PBRMaterialInstance): Float2 {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			return [this.texScaleOffsetBase_[offset + 2], this.texScaleOffsetBase_[offset + 3]];
 		}
 
 		setTextureOffset(inst: PBRMaterialInstance, newOffset: Float2) {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			this.texScaleOffsetBase_[offset + 2] = newOffset[0];
 			this.texScaleOffsetBase_[offset + 3] = newOffset[1];
 		}
@@ -264,9 +264,9 @@ namespace sd.world {
 
 		// direct data views to set uniforms with in PBRModelMgr
 		getData(inst: PBRMaterialInstance): PBRMaterialData {
-			var matIndex = <number>inst;
+			const matIndex = <number>inst;
 
-			var colourOpacity = new Float32Array(container.copyIndexedVec4(this.baseColourBase_, matIndex));
+			const colourOpacity = new Float32Array(container.copyIndexedVec4(this.baseColourBase_, matIndex));
 			colourOpacity[3] = this.opacityBase_[matIndex];
 
 			return {

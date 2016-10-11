@@ -60,7 +60,6 @@ namespace sd.render {
 		}
 
 		const fbd = render.allocateTexturesForFrameBuffer(rc, fbad);
-
 		return new render.FrameBuffer(rc, fbd);
 	}
 

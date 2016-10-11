@@ -115,17 +115,17 @@ namespace sd.world {
 		pipelineForFeatures(feat: number) {
 			feat &= this.featureMask_;
 
-			var cached = this.cachedPipelines_.get(feat);
+			const cached = this.cachedPipelines_.get(feat);
 			if (cached) {
 				return cached;
 			}
 
-			var gl = this.rc.gl;
+			const gl = this.rc.gl;
 
-			var vertexSource = this.vertexShaderSource(feat);
-			var fragmentSource = this.fragmentShaderSource(feat);
+			const vertexSource = this.vertexShaderSource(feat);
+			const fragmentSource = this.fragmentShaderSource(feat);
 
-			var pld = render.makePipelineDescriptor();
+			const pld = render.makePipelineDescriptor();
 			pld.colourPixelFormats[0] = render.PixelFormat.RGBA8;
 			pld.vertexShader = render.makeShader(this.rc, gl.VERTEX_SHADER, vertexSource);
 			pld.fragmentShader = render.makeShader(this.rc, gl.FRAGMENT_SHADER, fragmentSource);
@@ -141,8 +141,8 @@ namespace sd.world {
 				pld.attributeNames.set(meshdata.VertexAttributeRole.UV, "vertexUV");
 			}
 
-			var pipeline = new render.Pipeline(this.rc, pld);
-			var program = <PBRGLProgram>pipeline.program;
+			const pipeline = new render.Pipeline(this.rc, pld);
+			const program = <PBRGLProgram>pipeline.program;
 
 			gl.useProgram(program);
 
@@ -160,21 +160,21 @@ namespace sd.world {
 
 			// -- material textures
 			if (feat & Features.AlbedoMap) {
-				let albedo = gl.getUniformLocation(program, "albedoMap");
+				const albedo = gl.getUniformLocation(program, "albedoMap");
 				if (albedo) {
 					program.albedoMapUniform = albedo;
 					gl.uniform1i(program.albedoMapUniform, TextureBindPoint.Albedo);
 				}
 			}
 			if (feat & (Features.MetallicMap | Features.RoughnessMap | Features.AOMap)) {
-				let material = gl.getUniformLocation(program, "materialMap");
+				const material = gl.getUniformLocation(program, "materialMap");
 				if (material) {
 					program.materialMapUniform = material;
 					gl.uniform1i(program.materialMapUniform, TextureBindPoint.Material);
 				}
 			}
 			if (feat & (Features.NormalMap | Features.HeightMap)) {
-				let normalHeight = gl.getUniformLocation(program, "normalHeightMap");
+				const normalHeight = gl.getUniformLocation(program, "normalHeightMap");
 				if (normalHeight) {
 					program.normalHeightMapUniform = normalHeight;
 					gl.uniform1i(program.normalHeightMapUniform, TextureBindPoint.NormalHeight);
@@ -182,12 +182,12 @@ namespace sd.world {
 			}
 
 			// -- reflection & LUT textures
-			var environment = gl.getUniformLocation(program, "environmentMap");
+			const environment = gl.getUniformLocation(program, "environmentMap");
 			if (environment) {
 				program.environmentMapUniform = environment;
 				gl.uniform1i(program.environmentMapUniform, TextureBindPoint.Environment);
 			}
-			var brdfLookup = gl.getUniformLocation(program, "brdfLookupMap");
+			const brdfLookup = gl.getUniformLocation(program, "brdfLookupMap");
 			if (brdfLookup) {
 				program.brdfLookupMapUniform = brdfLookup;
 				gl.uniform1i(program.brdfLookupMapUniform, TextureBindPoint.BRDFLookup);
@@ -217,10 +217,13 @@ namespace sd.world {
 
 
 		private vertexShaderSource(feat: number) {
-			var source: string[] = [];
-			var line = (s: string) => source.push(s);
-			var if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
-			// var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
+			const source: string[] = [];
+			const line = (s: string) => source.push(s);
+
+			/* tslint:disable:variable-name */
+			const if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
+			// const if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
+			/* tslint:enable:variable-name */
 
 			// In
 			line  ("attribute vec3 vertexPos_model;");
@@ -262,13 +265,16 @@ namespace sd.world {
 
 
 		private fragmentShaderSource(feat: number) {
-			var source: string[] = [];
-			var line = (s: string) => source.push(s);
-			var if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
-			var if_any = (s: string, f: number) => { if ((feat & f) != 0) { source.push(s); } };
-			var if_not = (s: string, f: number) => { if ((feat & f) == 0) { source.push(s); } };
+			const source: string[] = [];
+			const line = (s: string) => source.push(s);
 
-			var lightingQuality = (feat & Features.LightingQuality) >> LightingQualityBitShift;
+			/* tslint:disable:variable-name */
+			const if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
+			const if_any = (s: string, f: number) => { if ((feat & f) != 0) { source.push(s); } };
+			const if_not = (s: string, f: number) => { if ((feat & f) == 0) { source.push(s); } };
+			/* tslint:enable:variable-name */
+
+			const lightingQuality = (feat & Features.LightingQuality) >> LightingQualityBitShift;
 
 			line  ("#extension GL_EXT_shader_texture_lod : require");
 			if_any("#extension GL_OES_standard_derivatives : require", Features.NormalMap | Features.HeightMap);
@@ -770,7 +776,7 @@ namespace sd.world {
 			this.pbrPipeline_ = new PBRPipeline(rc);
 			this.materialMgr_ = new PBRMaterialManager();
 
-			var instFields: container.MABField[] = [
+			const instFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transform
 				{ type: UInt8,  count: 1 }, // enabled
@@ -779,7 +785,7 @@ namespace sd.world {
 			];
 			this.instanceData_ = new container.MultiArrayBuffer(1024, instFields);
 
-			var groupFields: container.MABField[] = [
+			const groupFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // material
 				{ type: SInt32, count: 1 }, // features
 			];
@@ -795,9 +801,9 @@ namespace sd.world {
 
 
 		private loadBRDFLUTTexture() {
-			var img = new Image();
+			const img = new Image();
 			img.onload = () => {
-				var td = render.makeTexDesc2DFromImageSource(img, render.UseMipMaps.No);
+				const td = render.makeTexDesc2DFromImageSource(img, render.UseMipMaps.No);
 				td.sampling.repeatS = render.TextureRepeatMode.ClampToEdge;
 				td.sampling.repeatT = render.TextureRepeatMode.ClampToEdge;
 				this.brdfLookupTex_ = new render.Texture(this.rc, td);
@@ -831,7 +837,7 @@ namespace sd.world {
 			if (meshFeatures & MeshFeatures.VertexColours) { features |= Features.VtxColour; }
 			if (meshFeatures & MeshFeatures.VertexUVs) { features |= Features.VtxUV; }
 
-			var matFlags = this.materialMgr_.flags(material);
+			const matFlags = this.materialMgr_.flags(material);
 
 			if (this.materialMgr_.albedoMap(material)) {
 				features |= Features.AlbedoMap;
@@ -873,7 +879,7 @@ namespace sd.world {
 			const materialCount = materialsOffsetCount[1];
 
 			// -- check correctness of mesh against material list
-			var maxLocalMatIndex = groups.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
+			const maxLocalMatIndex = groups.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
 			assert(materialCount >= maxLocalMatIndex - 1, "not enough PBRMaterialIndexes for this mesh");
 
 			// -- pre-calc global material indexes and program features for each group
@@ -920,7 +926,7 @@ namespace sd.world {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
-			var ix = this.instanceData_.count;
+			const ix = this.instanceData_.count;
 
 			this.entityBase_[ix] = <number>entity;
 			this.transformBase_[ix] = <number>this.transformMgr_.forEntity(entity);
@@ -944,7 +950,7 @@ namespace sd.world {
 
 
 		destroyRange(range: PBRModelRange) {
-			var iter = range.makeIterator();
+			const iter = range.makeIterator();
 			while (iter.next()) {
 				this.destroy(iter.current);
 			}
@@ -995,35 +1001,35 @@ namespace sd.world {
 
 
 		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, lightingQuality: PBRLightingQuality, modelIx: number) {
-			var gl = this.rc.gl;
+			const gl = this.rc.gl;
 			var drawCalls = 0;
 
 			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
 
 			// -- calc transform matrices
-			var modelMatrix = this.transformMgr_.worldMatrix(this.transformBase_[modelIx]);
+			const modelMatrix = this.transformMgr_.worldMatrix(this.transformBase_[modelIx]);
 			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
 			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
 
 			// -- draw all groups
 			const meshPrimitiveGroups = this.meshMgr_.primitiveGroups(mesh);
-			var primGroupBase = this.primGroupOffsetBase_[modelIx];
-			var primGroupCount = meshPrimitiveGroups.length;
+			const primGroupBase = this.primGroupOffsetBase_[modelIx];
+			const primGroupCount = meshPrimitiveGroups.length;
 
-			for (var pgIx = 0; pgIx < primGroupCount; ++pgIx) {
-				var primGroup = meshPrimitiveGroups[pgIx];
-				var matInst: PBRMaterialInstance = this.primGroupMaterialBase_[primGroupBase + pgIx];
-				var materialData = this.materialMgr_.getData(matInst);
+			for (let pgIx = 0; pgIx < primGroupCount; ++pgIx) {
+				const primGroup = meshPrimitiveGroups[pgIx];
+				const matInst: PBRMaterialInstance = this.primGroupMaterialBase_[primGroupBase + pgIx];
+				const materialData = this.materialMgr_.getData(matInst);
 
 				// -- features are a combo of Material features and optional shadow
-				var features: Features = this.primGroupFeatureBase_[primGroupBase + pgIx];
+				let features: Features = this.primGroupFeatureBase_[primGroupBase + pgIx];
 				features |= lightingQuality << LightingQualityBitShift;
-				var pipeline = this.pbrPipeline_.pipelineForFeatures(features);
+				const pipeline = this.pbrPipeline_.pipelineForFeatures(features);
 				rp.setPipeline(pipeline);
 				rp.setMesh(mesh);
 
 				// -- set transform and normal uniforms
-				var program = <PBRGLProgram>(pipeline.program);
+				const program = <PBRGLProgram>(pipeline.program);
 
 				// model, mvp and normal matrices are always present
 				gl.uniformMatrix4fv(program.modelMatrixUniform, false, <Float32Array>modelMatrix);
@@ -1085,13 +1091,12 @@ namespace sd.world {
 
 
 		updateLightData(proj: ProjectionSetup) {
-			var lights = this.activeLights_;
+			const lights = this.activeLights_;
+			const viewNormalMatrix = mat3.normalFromMat4([], proj.viewMatrix);
 
-			var viewNormalMatrix = mat3.normalFromMat4([], proj.viewMatrix);
-
-			for (var lix = 0; lix < MAX_FRAGMENT_LIGHTS; ++lix) {
-				var light = lix < lights.length ? lights[lix] : null;
-				var lightData = light && this.lightMgr_.getData(light, proj.viewMatrix, viewNormalMatrix);
+			for (let lix = 0; lix < MAX_FRAGMENT_LIGHTS; ++lix) {
+				const light = lix < lights.length ? lights[lix] : null;
+				const lightData = light && this.lightMgr_.getData(light, proj.viewMatrix, viewNormalMatrix);
 
 				if (lightData) {
 					assert(lightData.type != LightType.None);
@@ -1125,7 +1130,7 @@ namespace sd.world {
 			rp.setTexture(environmentMap, TextureBindPoint.Environment);
 			rp.setTexture(this.brdfLookupTex_, TextureBindPoint.BRDFLookup);
 
-			let iter = range.makeIterator();
+			const iter = range.makeIterator();
 			while (iter.next()) {
 				drawCalls += this.drawSingleForward(rp, proj, lightingQuality, <number>iter.current);
 			}

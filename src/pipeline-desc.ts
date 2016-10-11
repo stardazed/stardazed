@@ -106,11 +106,11 @@ namespace sd.render {
 
 
 	export function makePipelineDescriptor(): PipelineDescriptor {
-		var cpf: PixelFormat[] = [];
+		const cpf: PixelFormat[] = [];
 		for (let k = 0; k < 8; ++k) {
 			cpf.push(PixelFormat.None);
 		}
-		Object.seal(cpf); // fixed length array
+		Object.seal(cpf); // fixed length array FIXME: necessary?
 
 		return {
 			colourPixelFormats: cpf,

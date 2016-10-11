@@ -28,19 +28,19 @@ namespace sd.asset {
 	// --------------------------------------------------------------------
 	// app-wide file extension to mime type registry
 
-	const extensionMimeTypeMap_s = new Map<string, string>();
+	const extensionMimeTypeMap = new Map<string, string>();
 
 	export function registerFileExtension(extension: string, mimeType: string) {
 		const ext = extension.toLowerCase().trim();
 		const mime = mimeType.toLowerCase().trim();
 		assert(ext.length > 0, "empty file extension provided");
 		assert(mime.length > 0, "empty mime-type provided");
-		extensionMimeTypeMap_s.set(ext, mime);
+		extensionMimeTypeMap.set(ext, mime);
 	}
 
 	export function mimeTypeForFileExtension(extension: string): string | undefined {
 		const ext = extension.toLowerCase().trim();
-		return extensionMimeTypeMap_s.get(ext);
+		return extensionMimeTypeMap.get(ext);
 	}
 
 	// registerFileExtension("wav", "audio/wav");
@@ -59,19 +59,19 @@ namespace sd.asset {
 	export type URLAssetLoader = (url: URL, mimeType: string) => Promise<AssetGroup>;
 	export type BufferAssetLoader = (buffer: ArrayBuffer, mimeType: string) => Promise<AssetGroup>;
 
-	const urlAssetLoaders_s = new Map<string, URLAssetLoader>();
-	const bufferAssetLoaders_s = new Map<string, BufferAssetLoader>();
+	const urlAssetLoaders = new Map<string, URLAssetLoader>();
+	const bufferAssetLoaders = new Map<string, BufferAssetLoader>();
 
 	export function registerURLLoaderForMIMEType(mimeType: string, loader: URLAssetLoader) {
 		const mime = mimeType.toLowerCase().trim();
-		assert(! urlAssetLoaders_s.has(mime), `Tried to override file loader for MIME type '${mime}'`);
-		urlAssetLoaders_s.set(mime, loader);
+		assert(! urlAssetLoaders.has(mime), `Tried to override file loader for MIME type '${mime}'`);
+		urlAssetLoaders.set(mime, loader);
 	}
 
 	export function registerBufferLoaderForMIMEType(mimeType: string, loader: BufferAssetLoader) {
 		const mime = mimeType.toLowerCase().trim();
-		assert(! bufferAssetLoaders_s.has(mime), `Tried to override buffer loader for MIME type '${mime}'`);
-		bufferAssetLoaders_s.set(mime, loader);
+		assert(! bufferAssetLoaders.has(mime), `Tried to override buffer loader for MIME type '${mime}'`);
+		bufferAssetLoaders.set(mime, loader);
 	}
 
 	export function registerLoadersForMIMEType(mimeType: string, urlLoader: URLAssetLoader, bufferLoader: BufferAssetLoader) {
@@ -81,12 +81,12 @@ namespace sd.asset {
 
 	export function urlLoaderForMIMEType(mimeType: string) {
 		const mime = mimeType.toLowerCase().trim();
-		return urlAssetLoaders_s.get(mime);
+		return urlAssetLoaders.get(mime);
 	}
 
 	export function bufferLoaderForMIMEType(mimeType: string) {
 		const mime = mimeType.toLowerCase().trim();
-		return bufferAssetLoaders_s.get(mime);
+		return bufferAssetLoaders.get(mime);
 	}
 
 

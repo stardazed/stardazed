@@ -89,16 +89,16 @@ namespace sd.math {
 
 
 		export function transformMat3(destMin: Float3, destMax: Float3, sourceMin: ConstFloat3, sourceMax: ConstFloat3, mat: ConstFloat3x3) {
-			var destA = vec3.transformMat3([], sourceMin, mat);
-			var destB = vec3.transformMat3([], sourceMax, mat);
+			const destA = vec3.transformMat3([], sourceMin, mat);
+			const destB = vec3.transformMat3([], sourceMax, mat);
 			vec3.min(destMin, destA, destB);
 			vec3.max(destMax, destA, destB);
 		}
 
 
 		export function transformMat4(destMin: Float3, destMax: ConstFloat3, sourceMin: ConstFloat3, sourceMax: ConstFloat3, mat: ConstFloat4x4) {
-			var destA = vec3.transformMat4([], sourceMin, mat);
-			var destB = vec3.transformMat4([], sourceMax, mat);
+			const destA = vec3.transformMat4([], sourceMin, mat);
+			const destB = vec3.transformMat4([], sourceMax, mat);
 			vec3.min(destMin, destA, destB);
 			vec3.max(destMax, destA, destB);
 		}

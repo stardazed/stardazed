@@ -135,7 +135,7 @@ namespace sd.render {
 
 
 	export function makeTexDesc2D(pixelFormat: PixelFormat, width: number, height: number, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
-		var maxDim = Math.max(width, height);
+		const maxDim = Math.max(width, height);
 
 		return {
 			textureClass: TextureClass.Tex2D,
@@ -149,7 +149,7 @@ namespace sd.render {
 
 
 	export function makeTexDesc2DFromImageSource(source: TextureImageSource, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
-		var maxDim = Math.max(source.width, source.height);
+		const maxDim = Math.max(source.width, source.height);
 
 		return {
 			textureClass: TextureClass.Tex2D,
@@ -184,7 +184,7 @@ namespace sd.render {
 
 
 	export function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
-		var sampler = makeSamplerDescriptor();
+		const sampler = makeSamplerDescriptor();
 		sampler.mipFilter = TextureMipFilter.Linear;
 		sampler.repeatS = TextureRepeatMode.ClampToEdge;
 		sampler.repeatT = TextureRepeatMode.ClampToEdge;
@@ -201,7 +201,7 @@ namespace sd.render {
 
 
 	export function makeTexDescCubeFromImageSources(sources: TextureImageSource[], mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
-		var sampler = makeSamplerDescriptor();
+		const sampler = makeSamplerDescriptor();
 		sampler.repeatS = TextureRepeatMode.ClampToEdge;
 		sampler.repeatT = TextureRepeatMode.ClampToEdge;
 
