@@ -43,7 +43,7 @@ namespace sd.world {
 			// -- pipeline
 			var pld = render.makePipelineDescriptor();
 			pld.colourPixelFormats[0] = render.PixelFormat.RGBA8;
-			//pld.depthPixelFormat = render.PixelFormat.Depth24_Stencil8; // uhh..
+			// pld.depthPixelFormat = render.PixelFormat.Depth24_Stencil8; // uhh..
 			pld.vertexShader = render.makeShader(rc, rc.gl.VERTEX_SHADER, this.vertexSource);
 			pld.fragmentShader = render.makeShader(rc, rc.gl.FRAGMENT_SHADER, this.fragmentSource);
 			pld.attributeNames.set(meshdata.VertexAttributeRole.Position, "vertexPos_model");

@@ -39,25 +39,26 @@ namespace sd.meshdata.gen {
 
 
 	export function generate(gens: MeshGenSource | MeshGenSource[], attrList?: VertexAttribute[]): MeshData {
-		if (! attrList)
+		if (! attrList) {
 			attrList = AttrList.Pos3Norm3UV2();
+		}
 
-		var genList = Array.isArray(gens) ? gens : [gens];
+		const genList = Array.isArray(gens) ? gens : [gens];
 		var totalVertexCount = 0;
 		var totalFaceCount = 0;
 
-		for (var genSource of genList) {
-			var generator: MeshGenerator = ("generator" in genSource) ? (<TransformedMeshGen>genSource).generator : <MeshGenerator>genSource;
+		for (const genSource of genList) {
+			const generator: MeshGenerator = ("generator" in genSource) ? (<TransformedMeshGen>genSource).generator : <MeshGenerator>genSource;
 			totalVertexCount += generator.vertexCount;
 			totalFaceCount += generator.faceCount;
 		}
 
 		// -- create vertex and index buffers for combined mesh
-		var mesh = new MeshData();
-		var vertexBuffer = new VertexBuffer(attrList);
+		const mesh = new MeshData();
+		const vertexBuffer = new VertexBuffer(attrList);
 		mesh.vertexBuffers.push(vertexBuffer);
 		mesh.indexBuffer = new IndexBuffer();
-		var indexElementType = minimumIndexElementTypeForVertexCount(totalVertexCount);
+		const indexElementType = minimumIndexElementTypeForVertexCount(totalVertexCount);
 
 		// TODO: give option for separate client buffers? Useful?
 		// vertexBuffer.allocate(totalVertexCount);
@@ -65,66 +66,66 @@ namespace sd.meshdata.gen {
 		mesh.allocateSingleStorage([totalVertexCount], indexElementType, totalFaceCount * 3);
 
 		// -- views into various attributes and the index buffer
-		var normalAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
-		var texAttr = vertexBuffer.attrByRole(VertexAttributeRole.UV);
+		const normalAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
+		const texAttr = vertexBuffer.attrByRole(VertexAttributeRole.UV);
 
-		var posView = new VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(VertexAttributeRole.Position)!);
-		var normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
-		var texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
+		const posView = new VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(VertexAttributeRole.Position)!);
+		const normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
+		const texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
 
-		var triView = new IndexBufferTriangleView(mesh.indexBuffer);
+		const triView = new IndexBufferTriangleView(mesh.indexBuffer);
 
 		// -- data add functions for the generators
 		var posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;
 
-		var pos2: Vec3AddFn = (x: number, y: number, _z: number) => {
+		const pos2: Vec3AddFn = (x: number, y: number, _z: number) => {
 			var v2 = posView.refItem(posIx);
 			v2[0] = x; v2[1] = y;
 			posIx++;
 		};
 
-		var pos3: Vec3AddFn = (x: number, y: number, z: number) => {
+		const pos3: Vec3AddFn = (x: number, y: number, z: number) => {
 			var v3 = posView.refItem(posIx);
 			v3[0] = x; v3[1] = y; v3[2] = z;
 			posIx++;
 		};
 
-		var pos = posView.elementCount == 2 ? pos2 : pos3;
+		const pos = posView.elementCount == 2 ? pos2 : pos3;
 
-		var face: IndexesAddFn = (a: number, b: number, c: number) => {
+		const face: IndexesAddFn = (a: number, b: number, c: number) => {
 			var i3 = triView.refItem(faceIx);
 			i3[0] = a + baseVertex; i3[1] = b + baseVertex; i3[2] = c + baseVertex;
 			faceIx++;
 		};
 
-		var normal: Vec3AddFn = normalView ?
+		const normal: Vec3AddFn = normalView ?
 			(x: number, y: number, z: number) => {
 				var v3 = normalView!.refItem(normalIx);
 				v3[0] = x; v3[1] = y; v3[2] = z;
 				normalIx++;
 			}
-			: (_x: number, _y: number, _z: number) => { };
+			: (_x: number, _y: number, _z: number) => { /* ignored */ };
 
-		var uv: Vec2AddFn = texView ?
+		const uv: Vec2AddFn = texView ?
 			(u: number, v: number) => {
 				var v2 = texView!.refItem(uvIx);
 				v2[0] = u; v2[1] = v;
 				uvIx++;
 			}
-			: (_u: number, _v: number) => { };
+			: (_u: number, _v: number) => { /* ignored */ };
 
 		// -- generate and optionally transform each mesh part
-		var posTransMatrix = mat4.create();
-		var normTransMatrix = mat3.create();
+		const posTransMatrix = mat4.create();
+		const normTransMatrix = mat3.create();
 
-		for (var genSource of genList) {
-			var generator: MeshGenerator = ("generator" in genSource) ? (<TransformedMeshGen>genSource).generator : <MeshGenerator>genSource;
+		for (const genSource of genList) {
+			const generator: MeshGenerator = ("generator" in genSource) ? (<TransformedMeshGen>genSource).generator : <MeshGenerator>genSource;
 			generator.generate(pos, face, normal, uv);
 
-			var subVtxCount = generator.vertexCount;
-			var subFaceCount = generator.faceCount;
-			var subPosView = posView.subView(baseVertex, subVtxCount);
-			var subNormalView = normalView ? normalView.subView(baseVertex, subVtxCount) : null;
+			const subVtxCount = generator.vertexCount;
+			const subFaceCount = generator.faceCount;
+			const subPosView = posView.subView(baseVertex, subVtxCount);
+			const subNormalView = normalView ? normalView.subView(baseVertex, subVtxCount) : null;
 
 			// -- if the generator does not supply normals but the mesh has a Normal attribute, we calculate them
 			if (subNormalView && ! generator.explicitNormals) {
@@ -136,14 +137,14 @@ namespace sd.meshdata.gen {
 
 			// is this a TransformedMeshGen?
 			if ("generator" in genSource) {
-				let xformGen = <TransformedMeshGen>genSource;
-				let rotation = xformGen.rotation || quat.create();
-				let translation = xformGen.translation || vec3.create();
-				let scale = xformGen.scale || vec3.fromValues(1, 1, 1);
+				const xformGen = <TransformedMeshGen>genSource;
+				const rotation = xformGen.rotation || quat.create();
+				const translation = xformGen.translation || vec3.create();
+				const scale = xformGen.scale || vec3.fromValues(1, 1, 1);
 
 				// -- transform positions
 				mat4.fromRotationTranslationScale(posTransMatrix, rotation, translation, scale);
-				subPosView.forEach((pos) => { vec3.transformMat4(pos, pos, posTransMatrix); });
+				subPosView.forEach(vtxPos => { vec3.transformMat4(vtxPos, vtxPos, posTransMatrix); });
 
 				// -- transform normals
 				if (subNormalView) {
@@ -174,7 +175,7 @@ namespace sd.meshdata.gen {
 	// 						 
 
 	export class Quad implements MeshGenerator {
-		constructor(private width_: number = 1, private height_: number = 1) {
+		constructor(private width_ = 1, private height_ = 1) {
 			assert(width_ > 0);
 			assert(height_ > 0);
 		}
@@ -192,8 +193,8 @@ namespace sd.meshdata.gen {
 		}
 
 		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
-			var xh = this.width_ / 2;
-			var yh = this.height_ / 2;
+			const xh = this.width_ / 2;
+			const yh = this.height_ / 2;
 
 			position(-xh, yh, 0);
 			position(xh, yh, 0);
@@ -268,17 +269,17 @@ namespace sd.meshdata.gen {
 		}
 
 		generate(position: Vec3AddFn, face: IndexesAddFn, _normal: Vec3AddFn, uv: Vec2AddFn) {
-			var halfWidth = this.width_ / 2;
-			var halfDepth = this.depth_ / 2;
-			var tileDimX = this.width_ / this.segs_;
-			var tileDimZ = this.depth_ / this.rows_;
+			const halfWidth = this.width_ / 2;
+			const halfDepth = this.depth_ / 2;
+			const tileDimX = this.width_ / this.segs_;
+			const tileDimZ = this.depth_ / this.rows_;
 
 			// -- positions
-			for (var z = 0; z <= this.rows_; ++z) {
-				var posZ = -halfDepth + (z * tileDimZ);
+			for (let z = 0; z <= this.rows_; ++z) {
+				const posZ = -halfDepth + (z * tileDimZ);
 
-				for (var x = 0; x <= this.segs_; ++x) {
-					var posX = -halfWidth + (x * tileDimX);
+				for (let x = 0; x <= this.segs_; ++x) {
+					const posX = -halfWidth + (x * tileDimX);
 
 					position(posX, this.yGen_(posX, posZ), posZ);
 					uv(x / this.segs_, z / this.rows_);
@@ -287,10 +288,10 @@ namespace sd.meshdata.gen {
 
 			// -- faces
 			var baseIndex = 0;
-			var vertexRowCount = this.segs_ + 1;
+			const vertexRowCount = this.segs_ + 1;
 
-			for (var z = 0; z < this.rows_; ++z) {
-				for (var x = 0; x < this.segs_; ++x) {
+			for (let z = 0; z < this.rows_; ++z) {
+				for (let x = 0; x < this.segs_; ++x) {
 					face(
 						baseIndex + x + 1,
 						baseIndex + x + vertexRowCount,
@@ -359,13 +360,13 @@ namespace sd.meshdata.gen {
 		}
 
 		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
-			var xh = this.xDiam_ / 2;
-			var yh = this.yDiam_ / 2;
-			var zh = this.zDiam_ / 2;
+			const xh = this.xDiam_ / 2;
+			const yh = this.yDiam_ / 2;
+			const zh = this.zDiam_ / 2;
 			var curVtx = 0;
 
 			// unique positions
-			var p: number[][] = [
+			const p: number[][] = [
 				[ -xh, -yh, -zh ],
 				[ xh, -yh, -zh ],
 				[ xh, yh, -zh ],
@@ -378,7 +379,7 @@ namespace sd.meshdata.gen {
 			];
 
 			// topleft, topright, botright, botleft
-			var quad = (a: number, b: number, c: number, d: number, norm: Float3) => {
+			const quad = (a: number, b: number, c: number, d: number, norm: Float3) => {
 				if (this.inward_) {
 					vec3.negate(norm, norm);
 				}
@@ -414,7 +415,7 @@ namespace sd.meshdata.gen {
 			};
 
 			quad(3, 2, 1, 0, [ 0, 0,-1]); // front
-			quad(7, 3, 0, 4, [-1, 0 ,0]); // left
+			quad(7, 3, 0, 4, [-1, 0, 0]); // left
 			quad(6, 7, 4, 5, [ 0, 0, 1]); // back
 			quad(2, 6, 5, 1, [ 1, 0, 0]); // right
 			quad(7, 6, 2, 3, [ 0, 1, 0]); // top
@@ -465,8 +466,9 @@ namespace sd.meshdata.gen {
 
 		get faceCount(): number {
 			var fc = (2 * this.segs_ * this.rows_);
-			if ((this.radiusA_ == 0) || (this.radiusB_ == 0))
+			if ((this.radiusA_ == 0) || (this.radiusB_ == 0)) {
 				fc -= this.segs_;
+			}
 			return fc;
 		}
 
@@ -476,43 +478,45 @@ namespace sd.meshdata.gen {
 
 		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
 			var vix = 0;
-			var radiusDiff = this.radiusB_ - this.radiusA_;
-			var Tau = Math.PI * 2;
+			const radiusDiff = this.radiusB_ - this.radiusA_;
+			const tau = Math.PI * 2;
 
-			var yNorm = radiusDiff / this.height_;
+			const yNorm = radiusDiff / this.height_;
 
 			for (var row = 0; row <= this.rows_; ++row) {
-				var relPos = row / this.rows_;
+				const relPos = row / this.rows_;
 
-				var y = (relPos * -this.height_) + (this.height_ / 2);
-				var segRad = this.radiusA_ + (relPos * radiusDiff);
-				var texV = relPos;
+				const y = (relPos * -this.height_) + (this.height_ / 2);
+				const segRad = this.radiusA_ + (relPos * radiusDiff);
+				const texV = relPos;
 
-				for (var seg = 0; seg <= this.segs_; ++seg) {
-					var x = Math.sin((Tau / this.segs_) * seg) * segRad;
-					var z = Math.cos((Tau / this.segs_) * seg) * segRad;
-					var texU = seg / this.segs_;
+				for (let seg = 0; seg <= this.segs_; ++seg) {
+					const x = Math.sin((tau / this.segs_) * seg) * segRad;
+					const z = Math.cos((tau / this.segs_) * seg) * segRad;
+					const texU = seg / this.segs_;
 
 					position(x, y, z);
-					var norm = vec3.normalize([], [x, yNorm, z]);
+					const norm = vec3.normalize([], [x, yNorm, z]);
 					normal(norm[0], norm[1], norm[2]);
 					uv(texU, texV);
 					++vix;
 				}
-				
+
 				// construct row of faces
 				if (row > 0) {
-					var raix = vix - ((this.segs_ + 1) * 2);
-					var rbix = vix - (this.segs_ + 1);
+					const raix = vix - ((this.segs_ + 1) * 2);
+					const rbix = vix - (this.segs_ + 1);
 
-					for (var seg = 0; seg < this.segs_; ++seg) {
-						var rl = seg,
-							rr = seg + 1;
+					for (let seg = 0; seg < this.segs_; ++seg) {
+						const rl = seg;
+						const rr = seg + 1;
 
-						if (row > 1 || this.radiusA_ > 0)
+						if (row > 1 || this.radiusA_ > 0) {
 							face(raix + rl, rbix + rl, raix + rr);
-						if (row < this.rows_ || this.radiusB_ > 0)
+						}
+						if (row < this.rows_ || this.radiusB_ > 0) {
 							face(raix + rr, rbix + rl, rbix + rr);
+						}
 					}
 				}
 			}
@@ -562,11 +566,13 @@ namespace sd.meshdata.gen {
 
 		get faceCount(): number {
 			var fc = 2 * this.segs_ * this.rows_;
-			if (this.sliceFrom_ == 0.0)
+			if (this.sliceFrom_ == 0.0) {
 				fc -= this.segs_;
-			if (this.sliceTo_ == 1.0)
+			}
+			if (this.sliceTo_ == 1.0) {
 				fc -= this.segs_;
-			return fc; 
+			}
+			return fc;
 		}
 
 		get explicitNormals() {
@@ -574,49 +580,51 @@ namespace sd.meshdata.gen {
 		}
 
 		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
-			var Pi = Math.PI;
-			var Tau = Math.PI * 2;
+			const pi = Math.PI;
+			const tau = Math.PI * 2;
 
-			var slice = this.sliceTo_ - this.sliceFrom_;
-			var piFrom = this.sliceFrom_ * Pi;
-			var piSlice = slice * Pi;
+			const slice = this.sliceTo_ - this.sliceFrom_;
+			const piFrom = this.sliceFrom_ * pi;
+			const piSlice = slice * pi;
 
 			var vix = 0;
-			var openTop = this.sliceFrom_ > 0.0;
-			var openBottom = this.sliceTo_ < 1.0;
+			const openTop = this.sliceFrom_ > 0.0;
+			const openBottom = this.sliceTo_ < 1.0;
 
-			for (var row = 0; row <= this.rows_; ++row) {
-				var y = Math.cos(piFrom + (piSlice / this.rows_) * row) * this.radius_;
-				var segRad = Math.sin(piFrom + (piSlice / this.rows_) * row) * this.radius_;
-				var texV = this.sliceFrom_ + ((row / this.rows_) * slice);
+			for (let row = 0; row <= this.rows_; ++row) {
+				const y = Math.cos(piFrom + (piSlice / this.rows_) * row) * this.radius_;
+				const segRad = Math.sin(piFrom + (piSlice / this.rows_) * row) * this.radius_;
+				const texV = this.sliceFrom_ + ((row / this.rows_) * slice);
 
-				for (var seg = 0; seg <= this.segs_; ++seg) {
-					var tauSeg = (Tau / this.segs_);
-					var x = Math.sin(tauSeg * seg) * segRad;
-					var z = Math.cos(tauSeg * seg) * segRad;
-					var texU = seg / this.segs_;
+				for (let seg = 0; seg <= this.segs_; ++seg) {
+					const tauSeg = (tau / this.segs_);
+					const x = Math.sin(tauSeg * seg) * segRad;
+					const z = Math.cos(tauSeg * seg) * segRad;
+					const texU = seg / this.segs_;
 
 					// for a sphere with origin at [0,0,0], the normalized position is the normal
 					position(x, y, z);
-					var norm = vec3.normalize([], [x, y, z]);
+					const norm = vec3.normalize([], [x, y, z]);
 					normal(norm[0], norm[1], norm[2]);
 					uv(texU, texV);
 					++vix;
 				}
-				
+
 				// construct row of faces
 				if (row > 0) {
-					var raix = vix - ((this.segs_ + 1) * 2);
-					var rbix = vix - (this.segs_ + 1);
+					const raix = vix - ((this.segs_ + 1) * 2);
+					const rbix = vix - (this.segs_ + 1);
 
-					for (var seg = 0; seg < this.segs_; ++seg) {
+					for (let seg = 0; seg < this.segs_; ++seg) {
 						var rl = seg,
 							rr = seg + 1;
-						
-						if (row > 1 || openTop)
+
+						if (row > 1 || openTop) {
 							face(raix + rl, rbix + rl, raix + rr);
-						if (row < this.rows_ || openBottom)
+						}
+						if (row < this.rows_ || openBottom) {
 							face(raix + rr, rbix + rl, rbix + rr);
+						}
 					}
 				}
 			}
@@ -648,7 +656,7 @@ namespace sd.meshdata.gen {
 		private segs_: number;
 		private sliceFrom_: number;
 		private sliceTo_: number;
-		
+
 		constructor(desc: TorusDescriptor) {
 			this.minorRadius_ = desc.minorRadius;
 			this.majorRadius_ = desc.majorRadius;
@@ -678,47 +686,47 @@ namespace sd.meshdata.gen {
 		}
 
 		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
-			var Tau = Math.PI * 2;
+			const tau = Math.PI * 2;
 
-			var slice = this.sliceTo_ - this.sliceFrom_;
-			var piFrom = this.sliceFrom_ * Tau;
-			var piSlice = slice * Tau;
+			const slice = this.sliceTo_ - this.sliceFrom_;
+			const piFrom = this.sliceFrom_ * tau;
+			const piSlice = slice * tau;
 
 			var vix = 0;
-			var innerRadius = this.majorRadius_ - this.minorRadius_;
+			const innerRadius = this.majorRadius_ - this.minorRadius_;
 
-			for (var row = 0; row <= this.rows_; ++row) {
-				var majorAngle = piFrom + ((piSlice * row) / this.rows_); // angle on the x-y plane
-				var texV = this.sliceFrom_ + ((row / this.rows_) * slice);
+			for (let row = 0; row <= this.rows_; ++row) {
+				const majorAngle = piFrom + ((piSlice * row) / this.rows_); // angle on the x-y plane
+				const texV = this.sliceFrom_ + ((row / this.rows_) * slice);
 
-				for (var seg = 0; seg <= this.segs_; ++seg) {
-					var innerAngle = (Tau * seg) / this.segs_;
+				for (let seg = 0; seg <= this.segs_; ++seg) {
+					const innerAngle = (tau * seg) / this.segs_;
 
-					var cx = Math.cos(majorAngle) * this.majorRadius_;
-					var cy = Math.sin(majorAngle) * this.majorRadius_;
+					const cx = Math.cos(majorAngle) * this.majorRadius_;
+					const cy = Math.sin(majorAngle) * this.majorRadius_;
 
-					var x = Math.cos(majorAngle) * (this.majorRadius_ + Math.cos(innerAngle) * innerRadius);
-					var y = Math.sin(majorAngle) * (this.majorRadius_ + Math.cos(innerAngle) * innerRadius);
+					const x = Math.cos(majorAngle) * (this.majorRadius_ + Math.cos(innerAngle) * innerRadius);
+					const y = Math.sin(majorAngle) * (this.majorRadius_ + Math.cos(innerAngle) * innerRadius);
 
-					var z = Math.sin(innerAngle) * innerRadius;
+					const z = Math.sin(innerAngle) * innerRadius;
 
-					var texU = seg / this.segs_;
-					var vNorm = vec3.normalize([], [x - cx, y - cy, z]);
+					const texU = seg / this.segs_;
+					const vNorm = vec3.normalize([], [x - cx, y - cy, z]);
 
 					position(x, y, z);
 					normal(vNorm[0], vNorm[1], vNorm[2]);
 					uv(texU, texV);
 					++vix;
 				}
-				
+
 				// construct row of faces
 				if (row > 0) {
-					var raix = vix - ((this.segs_ + 1) * 2);
-					var rbix = vix - (this.segs_ + 1);
+					const raix = vix - ((this.segs_ + 1) * 2);
+					const rbix = vix - (this.segs_ + 1);
 
-					for (var seg = 0; seg < this.segs_; ++seg) {
-						var rl = seg,
-							rr = seg + 1;
+					for (let seg = 0; seg < this.segs_; ++seg) {
+						const rl = seg;
+						const rr = seg + 1;
 
 						face(raix + rl, rbix + rl, raix + rr);
 						face(raix + rr, rbix + rl, rbix + rr);

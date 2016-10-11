@@ -22,45 +22,45 @@ namespace sd.math {
 
 
 		export function encapsulatePoint(min: Float3, max: Float3, pt: ConstFloat3): void {
-			if (pt[0] < min[0]) min[0] = pt[0];
-			if (pt[0] > max[0]) max[0] = pt[0];
+			if (pt[0] < min[0]) { min[0] = pt[0]; }
+			if (pt[0] > max[0]) { max[0] = pt[0]; }
 
-			if (pt[1] < min[1]) min[1] = pt[1];
-			if (pt[1] > max[1]) max[1] = pt[1];
+			if (pt[1] < min[1]) { min[1] = pt[1]; }
+			if (pt[1] > max[1]) { max[1] = pt[1]; }
 
-			if (pt[2] < min[2]) min[2] = pt[2];
-			if (pt[2] > max[2]) max[2] = pt[2];
+			if (pt[2] < min[2]) { min[2] = pt[2]; }
+			if (pt[2] > max[2]) { max[2] = pt[2]; }
 		}
 
 
 		export function encapsulateAABB(min: Float3, max: Float3, otherMin: ConstFloat3, otherMax: ConstFloat3): void {
-			if (otherMin[0] < min[0]) min[0] = otherMin[0];
-			if (otherMax[0] > max[0]) max[0] = otherMax[0];
+			if (otherMin[0] < min[0]) { min[0] = otherMin[0]; }
+			if (otherMax[0] > max[0]) { max[0] = otherMax[0]; }
 
-			if (otherMin[1] < min[1]) min[1] = otherMin[1];
-			if (otherMax[1] > max[1]) max[1] = otherMax[1];
+			if (otherMin[1] < min[1]) { min[1] = otherMin[1]; }
+			if (otherMax[1] > max[1]) { max[1] = otherMax[1]; }
 
-			if (otherMin[2] < min[2]) min[2] = otherMin[2];
-			if (otherMax[2] > max[2]) max[2] = otherMax[2];
+			if (otherMin[2] < min[2]) { min[2] = otherMin[2]; }
+			if (otherMax[2] > max[2]) { max[2] = otherMax[2]; }
 		}
 
 
 		export function containsPoint(min: ConstFloat3, max: ConstFloat3, pt: ConstFloat3): boolean {
-			return pt[0] >= min[0] && pt[1] >= min[1] && pt[2] >= min[2] &&
-				   pt[0] <= max[0] && pt[1] <= max[1] && pt[2] <= max[2];
+			return	pt[0] >= min[0] && pt[1] >= min[1] && pt[2] >= min[2] &&
+					pt[0] <= max[0] && pt[1] <= max[1] && pt[2] <= max[2];
 		}
 
 
 		export function containsAABB(min: ConstFloat3, max: ConstFloat3, otherMin: ConstFloat3, otherMax: ConstFloat3): boolean {
-			return otherMin[0] >= min[0] && otherMin[1] >= min[1] && otherMin[2] >= min[2] &&
-				   otherMax[0] <= max[0] && otherMax[1] <= max[1] && otherMax[2] <= max[2];
+			return	otherMin[0] >= min[0] && otherMin[1] >= min[1] && otherMin[2] >= min[2] &&
+					otherMax[0] <= max[0] && otherMax[1] <= max[1] && otherMax[2] <= max[2];
 		}
 
 
 		export function intersectsAABB(min: ConstFloat3, max: ConstFloat3, otherMin: ConstFloat3, otherMax: ConstFloat3): boolean {
-			return otherMin[0] <= max[0] && otherMax[0] >= min[0] &&
-				   otherMin[1] <= max[1] && otherMax[1] >= min[1] &&
-				   otherMin[2] <= max[2] && otherMax[2] >= min[2];
+			return	otherMin[0] <= max[0] && otherMax[0] >= min[0] &&
+					otherMin[1] <= max[1] && otherMax[1] >= min[1] &&
+					otherMin[2] <= max[2] && otherMax[2] >= min[2];
 		}
 
 
@@ -74,7 +74,7 @@ namespace sd.math {
 
 
 		export function size(min: ConstFloat3, max: ConstFloat3) {
-			return vec3.subtract([1,2,3], max, min);
+			return vec3.subtract([0, 0, 0], max, min);
 		}
 
 
@@ -102,7 +102,7 @@ namespace sd.math {
 			vec3.min(destMin, destA, destB);
 			vec3.max(destMax, destA, destB);
 		}
-	
+
 	} // ns sd.math.aabb
 
 
@@ -113,7 +113,7 @@ namespace sd.math {
 		constructor();
 		constructor(min: Float3, max: Float3);
 		constructor(min?: Float3, max?: Float3) {
-			var data = new Float32Array(6);
+			const data = new Float32Array(6);
 			this.min = data.subarray(0, 3);
 			this.max = data.subarray(3, 6);
 
@@ -128,8 +128,8 @@ namespace sd.math {
 		}
 
 		static fromCenterAndSize(center: ConstFloat3, size: ConstFloat3): AABB {
-			var min = <number[]>[];
-			var max = <number[]>[];
+			const min = <number[]>[];
+			const max = <number[]>[];
 			aabb.setCenterAndSize(min, max, center, size);
 			return new AABB(min, max);
 		}
@@ -156,9 +156,9 @@ namespace sd.math {
 		get size() { return aabb.size(this.min, this.max); }
 		get extents() { return aabb.extents(this.min, this.max); }
 		get center() { return aabb.center(this.min, this.max); }
-		
+
 		// --
-		
+
 		containsPoint(pt: ConstFloat3) {
 			return aabb.containsPoint(this.min, this.max, pt);
 		}

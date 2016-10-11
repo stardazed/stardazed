@@ -39,7 +39,7 @@ namespace sd.world {
 			var parent = txm.parent(jointTransforms[0]);
 			var originWorldTransform = txm.worldMatrix(parent);
 			var invOriginWorldTransform = mat4.invert([], originWorldTransform);
-			
+
 			for (var tx of jointTransforms) {
 				var jmm = txm.copyWorldMatrix(tx);
 				mat4.multiply(jmm, invOriginWorldTransform, jmm);

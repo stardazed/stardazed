@@ -27,7 +27,7 @@ namespace sd.render {
 
 		AllowAll,
 		DenyAll,
-	
+
 		Less,
 		LessOrEqual,
 		Equal,
@@ -71,7 +71,7 @@ namespace sd.render {
 
 		clearColour: Float4;
 		clearDepth: number;
-		clearStencil: number;		
+		clearStencil: number;
 	}
 
 

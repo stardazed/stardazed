@@ -11,7 +11,7 @@ namespace sd.dom {
 
 	export function $n(sel: string, base?: HTMLElement): HTMLElement[] { return Array.prototype.slice.call((base || document).querySelectorAll(sel), 0); }
 	export function $(sel: ElemSelector, base?: HTMLElement) {
-		if (typeof sel === 'string') {
+		if (typeof sel === "string") {
 			return $n(sel, base);
 		}
 		else if (sel instanceof Node) {
@@ -23,8 +23,8 @@ namespace sd.dom {
 	}
 	export function $1(sel: ElemSelector, base?: HTMLElement): HTMLElement { return <HTMLElement>$(sel, base)[0]; }
 
-	export function show(sel: ElemSelector, disp?: string) { $(sel).forEach(function(el) { (<HTMLElement>el).style.display = (disp != null) ? disp : "block" }); }
-	export function hide(sel: ElemSelector) { $(sel).forEach(function(el) { (<HTMLElement>el).style.display = "none" }); }
+	export function show(sel: ElemSelector, disp?: string) { $(sel).forEach(function(el) { (<HTMLElement>el).style.display = (disp != null) ? disp : "block"; }); }
+	export function hide(sel: ElemSelector) { $(sel).forEach(function(el) { (<HTMLElement>el).style.display = "none"; }); }
 
 	export function setDisabled(sel: ElemSelector, dis: boolean) { $(sel).forEach(function(el) { (<HTMLInputElement>el).disabled = dis; }); }
 	export function enable(sel: ElemSelector) { setDisabled(sel, false); }
@@ -39,12 +39,14 @@ namespace sd.dom {
 
 		do {
 			source = source.parentNode;
-			if (source.nodeType != Node.ELEMENT_NODE)
+			if (source.nodeType != Node.ELEMENT_NODE) {
 				return null;
+			}
 			const elem = <HTMLElement>source;
 			const matchFn = elem.matches || elem.webkitMatchesSelector || elem.msMatchesSelector;
-			if (matchFn.call(elem, sel))
+			if (matchFn.call(elem, sel)) {
 				return elem;
+			}
 		} while (source);
 
 		return null;
@@ -53,8 +55,9 @@ namespace sd.dom {
 	export function nextElementSibling(elem: HTMLElement): HTMLElement | null {
 		while (elem) {
 			elem = <HTMLElement>(elem.nextSibling);
-			if (elem && elem.nodeType == Node.ELEMENT_NODE)
+			if (elem && elem.nodeType == Node.ELEMENT_NODE) {
 				return elem;
+			}
 		}
 
 		return null;
@@ -64,12 +67,12 @@ namespace sd.dom {
 	// -- Events
 
 	export function on(target: ElemSelector | Window, evt: string, handler: (ev: Event) => any) {
-		var list: EventTarget[] = (target instanceof Window) ? [target] : $(target);
+		const list: EventTarget[] = (target instanceof Window) ? [target] : $(target);
 		list.forEach(function(tgt) { tgt.addEventListener(evt, handler); });
 	}
 
 	export function off(target: ElemSelector | Window, evt: string, handler: (ev: Event) => any) {
-		var list: EventTarget[] = (target instanceof Window) ? [target] : $(target);
+		const list: EventTarget[] = (target instanceof Window) ? [target] : $(target);
 		list.forEach(function(tgt) { tgt.removeEventListener(evt, handler); });
 	}
 

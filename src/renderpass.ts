@@ -98,7 +98,7 @@ namespace sd.render {
 			}
 			else {
 				// set viewport to full canvas
-				this.setViewPort(render.makeViewport());	
+				this.setViewPort(render.makeViewport());
 			}
 
 			// -- clear indicated buffers
@@ -136,8 +136,9 @@ namespace sd.render {
 
 		// -- render state
 		setPipeline(pipeline: Pipeline | null) {
-			if (pipeline === this.pipeline_)
+			if (pipeline === this.pipeline_) {
 				return;
+			}
 
 			if (this.mesh_) {
 				if (this.pipeline_) {
@@ -163,8 +164,9 @@ namespace sd.render {
 				return;
 			}
 
-			if (this.mesh_ === mesh)
+			if (this.mesh_ === mesh) {
 				return;
+			}
 
 			if (this.mesh_ && ! mesh) {
 				// only need to explicitly unbind if there is no replacement mesh
@@ -196,7 +198,6 @@ namespace sd.render {
 				var mode = (faceCulling == FaceCulling.Back) ? this.rc.gl.BACK : this.rc.gl.FRONT;
 				this.rc.gl.cullFace(mode);
 			}
-	
 		}
 
 		setFrontFaceWinding(winding: FrontFaceWinding) {
@@ -231,10 +232,12 @@ namespace sd.render {
 				renderHeight = this.rc.gl.drawingBufferHeight;
 			}
 
-			if (rect.originX > 0 || rect.originY > 0 || rect.width < renderWidth || rect.height < renderHeight)
+			if (rect.originX > 0 || rect.originY > 0 || rect.width < renderWidth || rect.height < renderHeight) {
 				this.rc.gl.enable(this.rc.gl.SCISSOR_TEST);
-			else
+			}
+			else {
 				this.rc.gl.disable(this.rc.gl.SCISSOR_TEST);
+			}
 		}
 
 

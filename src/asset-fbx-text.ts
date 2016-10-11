@@ -52,8 +52,9 @@ namespace sd.asset.fbx.parse {
 		private skipWS() {
 			var c: string | null;
 			while (c = this.nextChar()) {
-				if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
+				if (c != " " && c != "\t" && c != "\r" && c != "\n") {
 					break;
+				}
 			}
 		}
 
@@ -61,8 +62,9 @@ namespace sd.asset.fbx.parse {
 		private skipToLineEnd() {
 			var c: string | null;
 			while (c = this.nextChar()) {
-				if (c == '\r' || c == '\n')
+				if (c == "\r" || c == "\n") {
 					break;
+				}
 			}
 		}
 
@@ -79,18 +81,18 @@ namespace sd.asset.fbx.parse {
 				};
 			}
 
-			var tokenStart = this.offset_;
+			const tokenStart = this.offset_;
 			var tokenEnd = 0;
 			var c = this.lastChar_;
 
-			var invalid = (): Token => { return {
+			const invalid = (): Token => { return {
 				type: TokenType.Invalid,
 				offset: tokenStart,
 				val: this.source.substring(tokenStart, tokenEnd + 1)
 			}; };
 
 
-			if (c == ';') {
+			if (c == ";") {
 				// single-line comment
 				this.skipToLineEnd();
 				return this.nextToken();
@@ -98,8 +100,9 @@ namespace sd.asset.fbx.parse {
 			else if (c == '"') {
 				// string literal, there are no escape sequences or other fanciness
 				while (c = this.nextChar()) {
-					if (c == '"' || c == '\r' || c == '\n')
+					if (c == '"' || c == "\r" || c == "\n") {
 						break;
+					}
 				}
 				tokenEnd = this.offset_;
 
@@ -114,19 +117,19 @@ namespace sd.asset.fbx.parse {
 					};
 				}
 			}
-			else if (c == ',') {
+			else if (c == ",") {
 				return {
 					type: TokenType.Comma,
 					offset: tokenStart
 				};
 			}
-			else if (c == '{') {
+			else if (c == "{") {
 				return {
 					type: TokenType.OpenBlock,
 					offset: tokenStart
 				};
 			}
-			else if (c == '}') {
+			else if (c == "}") {
 				return {
 					type: TokenType.CloseBlock,
 					offset: tokenStart
@@ -134,18 +137,19 @@ namespace sd.asset.fbx.parse {
 			}
 			else {
 				// find end of token based on break-chars
-				let firstChar = c;
+				const firstChar = c;
 				while (c = this.nextChar()) {
-					if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == ',' || c == '{' || c == '}')
+					if (c == " " || c == "\t" || c == "\r" || c == "\n" || c == "," || c == "{" || c == "}") {
 						break;
+					}
 				}
 
 				// rewind 1 pos to allow non-ws breaking chars to be separate tokens
 				tokenEnd = this.offset_;
 				this.offset_--;
-				let token = this.source.substring(tokenStart, tokenEnd);
+				const token = this.source.substring(tokenStart, tokenEnd);
 
-				if ((firstChar >= 'A' && firstChar <= 'Z') || (firstChar >= 'a' && firstChar <= 'z')) {
+				if ((firstChar >= "A" && firstChar <= "Z") || (firstChar >= "a" && firstChar <= "z")) {
 					// A non-quoted string starting with alphabetic character can only be a Label...
 					// ...except for the "Shading" property which has an unquoted string (T or Y) as a value
 					if (token == "T" || token == "Y") {
@@ -155,7 +159,7 @@ namespace sd.asset.fbx.parse {
 							val: token
 						};
 					}
-					if (token.length < 2 || (token[token.length - 1] != ':')) {
+					if (token.length < 2 || (token[token.length - 1] != ":")) {
 						return invalid();
 					}
 
@@ -166,16 +170,16 @@ namespace sd.asset.fbx.parse {
 						val: token.substr(0, token.length - 1)
 					};
 				}
-				else if (firstChar == '*' || firstChar == '-' || (firstChar >= '0' && firstChar <= '9')) {
+				else if (firstChar == "*" || firstChar == "-" || (firstChar >= "0" && firstChar <= "9")) {
 					// Numbers are either int32s, floats or the count of a following array.
 					// Counts are indicated by having an * prefix.
 
-					if (firstChar == '*') {
+					if (firstChar == "*") {
 						if (token.length < 2) {
 							return invalid();
 						}
 						else {
-							let count = parseFloat(token.substr(1));
+							const count = parseFloat(token.substr(1));
 							if (isNaN(count) || count != (count | 0) || count < 1) {
 								return invalid();
 							}
@@ -187,14 +191,14 @@ namespace sd.asset.fbx.parse {
 						}
 					}
 					else {
-						let number = parseFloat(token);
-						if (isNaN(number)) {
+						const num = parseFloat(token);
+						if (isNaN(num)) {
 							return invalid();
 						}
 						return {
 							type: TokenType.Number,
 							offset: tokenStart,
-							val: number
+							val: num
 						};
 					}
 				}
@@ -253,7 +257,7 @@ namespace sd.asset.fbx.parse {
 			else {
 				this.delegate_.error("Unexpected token", t.offset, t.val !== undefined ? t.val.toString() : undefined);
 			}
-			
+
 			this.eof_ = true;
 		}
 
@@ -261,7 +265,7 @@ namespace sd.asset.fbx.parse {
 		private reportBlock(): FBXBlockAction {
 			assert(this.values_.length > 0);
 
-			var blockName = <string>this.values_[0];
+			const blockName = <string>this.values_[0];
 			var blockAction = FBXBlockAction.Enter;
 
 			// The delegate contract does not care about "a:" pseudo-blocks or
@@ -285,13 +289,13 @@ namespace sd.asset.fbx.parse {
 		private reportProperty() {
 			assert(this.values_.length > 0);
 
-			var propName = <string>this.values_[0];
-			var values = this.values_.slice(1);
+			const propName = <string>this.values_[0];
+			const values = this.values_.slice(1);
 
 			if (this.depth_ <= this.skippingUntilDepth_) {
 				if (this.inProp70Block_) {
 					assert(propName == "P", "Only P properties are allowed in a Properties70 block.");
-					let p70p = interpretProp70P(values);
+					const p70p = interpretProp70P(values);
 					this.delegate_.typedProperty(p70p.name, p70p.type, p70p.typeName, p70p.values);
 				}
 				else {
@@ -358,7 +362,7 @@ namespace sd.asset.fbx.parse {
 
 		parse() {
 			do {
-				var token = this.tokenizer_.nextToken();	
+				const token = this.tokenizer_.nextToken();
 
 				switch (token.type) {
 					case TokenType.Key:
@@ -404,7 +408,7 @@ namespace sd.asset.fbx.parse {
 									this.expect_ = Expect.Close;
 								}
 								else {
-									this.expect_ = Expect.Comma;	
+									this.expect_ = Expect.Comma;
 								}
 							}
 							else {
@@ -440,7 +444,7 @@ namespace sd.asset.fbx.parse {
 
 					case TokenType.OpenBlock:
 						if (this.expect_ & Expect.Open) {
-							let blockAction = this.reportBlock();
+							const blockAction = this.reportBlock();
 							if (blockAction == FBXBlockAction.Skip) {
 								this.skippingUntilDepth_ = this.depth_;
 							}

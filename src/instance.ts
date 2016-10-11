@@ -37,7 +37,7 @@ namespace sd.world {
 		constructor(private es6Iter: Iterator<Instance<Component>>) {}
 
 		next() {
-			var res = this.es6Iter.next();
+			const res = this.es6Iter.next();
 			this.current = res.value || 0;
 			return !res.done;
 		}
@@ -56,7 +56,7 @@ namespace sd.world {
 
 		addRange(inst: Instance<Component>, count: number) {
 			var index = <number>inst;
-			var upto = index + count;
+			const upto = index + count;
 			while (index < upto) {
 				this.data_.add(index);
 				++index;
@@ -64,7 +64,7 @@ namespace sd.world {
 		}
 
 		addArray(arr: ArrayLike<Instance<Component>>) {
-			for (var ix = 0, end = arr.length; ix < end; ++ix) {
+			for (let ix = 0, end = arr.length; ix < end; ++ix) {
 				this.data_.add(arr[ix]);
 			}
 		}
@@ -75,7 +75,7 @@ namespace sd.world {
 
 		removeRange(inst: Instance<Component>, count: number) {
 			var index = <number>inst;
-			var upto = index + count;
+			const upto = index + count;
 			while (index < upto) {
 				this.data_.delete(index);
 				++index;
@@ -83,7 +83,7 @@ namespace sd.world {
 		}
 
 		removeArray(arr: ArrayLike<Instance<Component>>) {
-			for (var ix = 0, end = arr.length; ix < end; ++ix) {
+			for (let ix = 0, end = arr.length; ix < end; ++ix) {
 				this.data_.delete(arr[ix]);
 			}
 		}
@@ -117,12 +117,12 @@ namespace sd.world {
 		}
 
 		has(inst: Instance<Component>): boolean {
-			var index = <number>inst;
+			const index = <number>inst;
 			return index >= <number>this.first && index <= <number>this.last;
 		}
 
 		makeIterator(): InstanceIterator<Component> {
-			var end = this.last;
+			const end = this.last;
 
 			return {
 				current: <Instance<Component>>(<number>this.first - 1),
@@ -135,7 +135,7 @@ namespace sd.world {
 
 		forEach(fn: (inst: Instance<Component>) => void, thisObj?: any): void {
 			var index = <number>this.first;
-			var end = <number>this.last;
+			const end = <number>this.last;
 
 			if (index > 0) {
 				while (index <= end) {

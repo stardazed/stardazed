@@ -82,9 +82,9 @@ namespace sd.asset {
 
 			export function interpretProp70P(pValues: FBXValue[]) {
 				assert(pValues.length >= 4, "A P must have 4 or more values.");
-				var typeName = <string>pValues[1];
+				const typeName = <string>pValues[1];
 
-				var result: FBXProp70Prop = {
+				const result: FBXProp70Prop = {
 					name: <string>pValues[0],
 					typeName: typeName,
 					type: fbxTypeNameMapping[typeName.toLowerCase()] || FBXPropertyType.Unknown,
@@ -129,7 +129,7 @@ namespace sd.asset {
 			connectionsIn: FBXConnection[];
 			connectionsOut: FBXConnection[];
 
-			constructor(name: string, values: parse.FBXValue[], type: parse.FBXPropertyType = parse.FBXPropertyType.Unknown, typeName: string = "") {
+			constructor(name: string, values: parse.FBXValue[], type: parse.FBXPropertyType = parse.FBXPropertyType.Unknown, typeName = "") {
 				this.name = name;
 				this.values = values;
 				this.type = type;
@@ -148,7 +148,7 @@ namespace sd.asset {
 			}
 
 			get objectName() {
-				var cns = <string>this.values[1];
+				const cns = <string>this.values[1];
 				return cns.split("::")[1];
 			}
 
@@ -188,7 +188,7 @@ namespace sd.asset {
 		class FBXDocumentGraph {
 			private globals: FBXNode[];
 
-			private allObjects: FBXNodeSet; 
+			private allObjects: FBXNodeSet;
 			private geometryNodes: FBXNodeSet;
 			private videoNodes: FBXNodeSet;
 			private textureNodes: FBXNodeSet;
@@ -239,7 +239,7 @@ namespace sd.asset {
 
 
 			addObject(node: FBXNode) {
-				var typeSetMap: { [name: string]: FBXNodeSet } = {
+				const typeSetMap: { [name: string]: FBXNodeSet } = {
 					"Geometry": this.geometryNodes,
 					"Video": this.videoNodes,
 					"Texture": this.textureNodes,
@@ -251,10 +251,10 @@ namespace sd.asset {
 					"Deformer": this.clusterNodes,
 				};
 
-				var id = node.objectID;
-				var subClass = node.objectSubClass;
-				var set = typeSetMap[node.name];
-				assert(set != null, "Unknown object class " + node.name);
+				const id = node.objectID;
+				const subClass = node.objectSubClass;
+				var nodeSet = typeSetMap[node.name];
+				assert(nodeSet != null, "Unknown object class " + node.name);
 
 				if (node.name == "Model") {
 					if (subClass != "Mesh" && subClass != "Root" && subClass != "LimbNode" && subClass != "Null" && subClass != "Light") {
@@ -282,14 +282,14 @@ namespace sd.asset {
 				}
 				else if (node.name == "Deformer") {
 					if (subClass == "Skin") {
-						set = this.skinNodes;
+						nodeSet = this.skinNodes;
 					}
 					else if (subClass != "Cluster") {
 						return;
 					}
 				}
 
-				set[id] = node;
+				nodeSet[id] = node;
 				this.allObjects[id] = node;
 			}
 
@@ -297,7 +297,7 @@ namespace sd.asset {
 			addConnection(conn: FBXConnection) {
 				conn.fromNode = this.allObjects[conn.fromID];
 				conn.toNode = this.allObjects[conn.toID];
-				
+
 				if (conn.fromNode && conn.toNode) {
 					conn.fromNode.connectionsOut.push(conn);
 					conn.toNode.connectionsIn.push(conn);
@@ -307,19 +307,19 @@ namespace sd.asset {
 
 
 			private loadTextures(group: AssetGroup, options: FBXResolveOptions): Promise<AssetGroup> {
-				var fileProms: Promise<Texture2D | null>[] = [];
+				const fileProms: Promise<Texture2D | null>[] = [];
 
 				Object.keys(this.videoNodes).forEach((idStr) => {
-					var vidID = +idStr;
-					var fbxVideo = this.videoNodes[vidID];
-					var tex: Texture2D = {
+					const vidID = +idStr;
+					const fbxVideo = this.videoNodes[vidID];
+					const tex: Texture2D = {
 						name: fbxVideo.objectName,
 						userRef: vidID,
 						useMipMaps: options.forceMipMapsOn ? render.UseMipMaps.Yes : render.UseMipMaps.No
 					};
 					var fileData: ArrayBuffer | null = null;
 
-					for (let c of fbxVideo.children) {
+					for (const c of fbxVideo.children) {
 						if (c.name == "UseMipMap") {
 							if (! options.forceMipMapsOn) {
 								tex.useMipMaps = (<number>c.values[0] != 0) ? render.UseMipMaps.Yes : render.UseMipMaps.No;
@@ -334,14 +334,14 @@ namespace sd.asset {
 						}
 					}
 
-					var makeTexDesc = (img: render.TextureImageSource) => {
+					const makeTexDesc = (img: render.TextureImageSource) => {
 						return render.makeTexDesc2DFromImageSource(img, tex.useMipMaps);
 					};
 
 					if (fileData) {
-						var mime = tex.url ? mimeTypeOfURL(tex.url) : "";
+						const mime = tex.url ? mimeTypeOfURL(tex.url) : "";
 						if (! mime) {
-							let err = "Cannot create texture, no mime-type found for file path " + tex.url;
+							const err = "Cannot create texture, no mime-type found for file path " + tex.url;
 							if (options.allowMissingTextures) {
 								console.warn(err);
 							}
@@ -383,7 +383,7 @@ namespace sd.asset {
 						);
 					}
 					else {
-						let err = `Texture ${tex.userRef} did not have relative filename or content.`;
+						const err = `Texture ${tex.userRef} did not have relative filename or content.`;
 						if (options.allowMissingTextures) {
 							console.warn(err);
 						}
@@ -394,7 +394,7 @@ namespace sd.asset {
 				});
 
 				return Promise.all(fileProms).then((textures) => {
-					for (var tex of textures) {
+					for (const tex of textures) {
 						group.addTexture(tex);
 					}
 					return group;
@@ -403,9 +403,9 @@ namespace sd.asset {
 
 
 			private buildMaterials(group: AssetGroup, _options: FBXResolveOptions) {
-				for (var matID in this.materialNodes) {
-					var fbxMat = this.materialNodes[matID];
-					var mat = makeMaterial();
+				for (const matID in this.materialNodes) {
+					const fbxMat = this.materialNodes[matID];
+					const mat = makeMaterial();
 					mat.name = fbxMat.objectName;
 					mat.userRef = matID;
 
@@ -446,10 +446,10 @@ namespace sd.asset {
 						// An FBX "Texture" connects a "Video" clip to a "Material"
 						// with some parameters and may also directly reference a named
 						// set of UV coordinates in a "Model" used by the material...
-						var texNode = texIn.fromNode!;
-						var vidTexConn = texNode.connectionsIn[0];
-						var vidNodeID = vidTexConn && vidTexConn.fromID;
-						var tex2D = group.textures.find((t) => !!t && <number>t.userRef == vidNodeID);
+						const texNode = texIn.fromNode!;
+						const vidTexConn = texNode.connectionsIn[0];
+						const vidNodeID = vidTexConn && vidTexConn.fromID;
+						const tex2D = group.textures.find((t) => !!t && <number>t.userRef == vidNodeID);
 
 						if (! (texNode && vidTexConn && tex2D)) {
 							console.warn("Could not link texture " + texIn.fromID + " to material prop " + texIn.propName + " because link or texture is invalid.");
@@ -475,7 +475,7 @@ namespace sd.asset {
 								continue;
 							}
 
-							for (let tc of texNode.children) {
+							for (const tc of texNode.children) {
 								if (tc.name == "ModelUVTranslation") {
 									vec2.copy(mat.textureOffset, <number[]>tc.values);
 								}
@@ -497,7 +497,7 @@ namespace sd.asset {
 
 			private makeLayerElementStream(layerElemNode: FBXNode): meshdata.VertexAttributeStream | null {
 				var valueArrayName: string, indexArrayName: string;
-				var stream: meshdata.VertexAttributeStream = {
+				const stream: meshdata.VertexAttributeStream = {
 					name: "",
 					includeInMesh: true,
 					mapping: meshdata.VertexAttributeMapping.Undefined
@@ -514,7 +514,7 @@ namespace sd.asset {
 						return null;
 					}
 				}
-		
+
 				// Determine array key names as they are obviously not consistent
 				if (layerElemNode.name == "LayerElementNormal") {
 					valueArrayName = "Normals";
@@ -549,12 +549,12 @@ namespace sd.asset {
 					indexArrayName = "--UNHANDLED--";
 				}
 
-				for (var c of layerElemNode.children) {
+				for (const c of layerElemNode.children) {
 					if (c.name == "Name") {
 						stream.name = <string>c.values[0];
 					}
 					else if (c.name == "MappingInformationType") {
-						let mappingName = <string>c.values[0];
+						const mappingName = <string>c.values[0];
 						if (mappingName == "ByVertice") {
 							stream.mapping = meshdata.VertexAttributeMapping.Vertex;
 						}
@@ -562,7 +562,7 @@ namespace sd.asset {
 							stream.mapping = meshdata.VertexAttributeMapping.PolygonVertex;
 						}
 						else if (mappingName == "ByPolygon") {
-							stream.mapping = meshdata.VertexAttributeMapping.Polygon;	
+							stream.mapping = meshdata.VertexAttributeMapping.Polygon;
 						}
 						else if (mappingName == "AllSame") {
 							stream.mapping = meshdata.VertexAttributeMapping.SingleValue;
@@ -589,9 +589,9 @@ namespace sd.asset {
 
 				// invert V coordinates for direct usage in GL
 				if (layerElemNode.name == "LayerElementUV") {
-					let uvElements = stream.values!;
+					const uvElements = stream.values!;
 					assert(uvElements, "LayerElementUV without values is invalid!"); // FIXME: change error handling
-					let uvElementCount = uvElements.length;
+					const uvElementCount = uvElements.length;
 					let uvOffset = 0;
 					while (uvOffset < uvElementCount) {
 						uvElements[uvOffset + 1] = 1.0 - uvElements[uvOffset + 1];
@@ -607,13 +607,13 @@ namespace sd.asset {
 				var tStreams = 0;
 				var tMeshData = 0;
 
-				for (var geomID in this.geometryNodes) {
-					var fbxGeom = this.geometryNodes[geomID];
+				for (const geomID in this.geometryNodes) {
+					const fbxGeom = this.geometryNodes[geomID];
+					const streams: meshdata.VertexAttributeStream[] = [];
 					var positions: Float64Array | undefined;
-					var streams: meshdata.VertexAttributeStream[] = [];
 					var polygonIndexes: Int32Array | null = null;
 
-					for (var c of fbxGeom.children) {
+					for (const c of fbxGeom.children) {
 						if (c.name == "Vertices") {
 							positions = <Float64Array>c.values[0];
 						}
@@ -626,7 +626,7 @@ namespace sd.asset {
 							c.name == "LayerElementUV" ||
 							c.name == "LayerElementMaterial")
 						{
-							let strm = this.makeLayerElementStream(c);
+							const strm = this.makeLayerElementStream(c);
 							if (strm) {
 								streams.push(strm);
 							}
@@ -640,17 +640,17 @@ namespace sd.asset {
 					}
 
 					// With all streams and stuff collected, create the mesh
-					var t0 = performance.now();
-					var mb = new meshdata.MeshBuilder(positions, null, streams);
-					var polygonIndexCount = polygonIndexes.length;
-					var polygonVertexIndexArray: number[] = [];
-					var vertexIndexArray: number[] = [];
+					const t0 = performance.now();
+					const mb = new meshdata.MeshBuilder(positions, null, streams);
+					const polygonIndexCount = polygonIndexes.length;
+					let polygonVertexIndexArray: number[] = [];
+					let vertexIndexArray: number[] = [];
 
 					// Perform linear scan through polygon indexes as tris and quads can
 					// be used arbitrarily, the last index of each polygon is indicated
 					// by a negated index.
-					for (var pvi = 0; pvi < polygonIndexCount; ++pvi) {
-						var vi = polygonIndexes[pvi];
+					for (let pvi = 0; pvi < polygonIndexCount; ++pvi) {
+						const vi = polygonIndexes[pvi];
 						polygonVertexIndexArray.push(pvi);
 
 						if (vi < 0) {
@@ -666,26 +666,26 @@ namespace sd.asset {
 						}
 					}
 
-					var t1 = performance.now();
+					const t1 = performance.now();
 
-					var meshAsset: Mesh = {
+					const meshAsset: Mesh = {
 						name: fbxGeom.objectName,
 						userRef: fbxGeom.objectID,
 						meshData: mb.complete(),
 						indexMap: mb.indexMap
 					};
 
-					var t2 = performance.now();
+					const t2 = performance.now();
 					tStreams += (t1 - t0);
 					tMeshData += (t2 - t1);
 
 					group.addMesh(meshAsset);
 
 					// hook up mesh to linked model
-					for (let mco of fbxGeom.connectionsOut) {
-						var model = mco.toNode;
+					for (const mco of fbxGeom.connectionsOut) {
+						const model = mco.toNode;
 						if (model && model.name == "Model") {
-							var sdModel = this.flattenedModels.get(model.objectID)!; // TODO: verify
+							const sdModel = this.flattenedModels.get(model.objectID)!; // TODO: verify
 							sdModel.mesh = meshAsset;
 						}
 					}
@@ -698,7 +698,7 @@ namespace sd.asset {
 
 			private makeLightDescriptorFromFBXLight(lightAttrNode: FBXNode): world.LightDescriptor {
 				// fbx defaults
-				var ld: world.LightDescriptor = {
+				const ld: world.LightDescriptor = {
 					type: world.LightType.Point,
 					colour: [1, 1, 1],
 
@@ -707,7 +707,7 @@ namespace sd.asset {
 
 					range: 1,
 					cutoff: math.deg2rad(45 / 2),
-					
+
 					shadowType: world.ShadowType.None,
 					shadowQuality: world.ShadowQuality.Auto,
 					shadowStrength: 1
@@ -715,9 +715,9 @@ namespace sd.asset {
 
 				var fbxIntensity = 100;
 
-				for (var c of lightAttrNode.children) {
+				for (const c of lightAttrNode.children) {
 					if (c.name == "LightType") {
-						let fbxLightType = <number>c.values[0];
+						const fbxLightType = <number>c.values[0];
 						if (fbxLightType == 0) {
 							ld.type = world.LightType.Point;
 						}
@@ -758,13 +758,13 @@ namespace sd.asset {
 
 
 			private buildModels(group: AssetGroup, options: FBXResolveOptions) {
-				for (var modelID in this.modelNodes) {
-					var fbxModel = this.modelNodes[modelID];
-					var sdModel = makeModel(fbxModel.objectName, fbxModel.objectID);
+				for (const modelID in this.modelNodes) {
+					const fbxModel = this.modelNodes[modelID];
+					const sdModel = makeModel(fbxModel.objectName, fbxModel.objectID);
 
 					// skip bones we don't care about if allowed
 					if (options.removeUnusedBones) {
-						let modelName = fbxModel.objectName;
+						const modelName = fbxModel.objectName;
 						if (modelName.length > 3 && modelName.substr(-3) == "Nub") {
 							continue;
 						}
@@ -774,8 +774,8 @@ namespace sd.asset {
 					var preRot: Float4 = [0, 0, 0, 1];
 					var postRot: Float4 = [0, 0, 0, 1];
 					var localRot: Float4 = [0, 0, 0, 1];
-					for (var c of fbxModel.children) {
-						let vecVal = <number[]>c.values;
+					for (const c of fbxModel.children) {
+						const vecVal = <number[]>c.values;
 						if (c.name == "Lcl Translation") {
 							vec3.copy(sdModel.transform.position, vecVal);
 						}
@@ -797,17 +797,17 @@ namespace sd.asset {
 
 
 					// add linked components
-					for (var conn of fbxModel.connectionsIn) {
+					for (const conn of fbxModel.connectionsIn) {
 						if (! conn.fromNode) {
 							console.error("Invalid model in-connection", conn);
 							continue;
 						}
 
-						var connType = conn.fromNode.name;
-						var connSubType = conn.fromNode.objectSubClass;
+						const connType = conn.fromNode.name;
+						const connSubType = conn.fromNode.objectSubClass;
 
 						if (connType == "Material") {
-							let mat = group.materials.find((t) => t && <number>t.userRef == conn.fromID);
+							const mat = group.materials.find((t) => t && <number>t.userRef == conn.fromID);
 							if (mat) {
 								if (! sdModel.materials) {
 									sdModel.materials = [];
@@ -843,9 +843,9 @@ namespace sd.asset {
 
 
 			private buildHierarchy(group: AssetGroup, _options: FBXResolveOptions) {
-				for (var conn of this.hierarchyConnections) {
-					var childModel = this.flattenedModels.get(conn.fromID);
-					var parentModel = this.flattenedModels.get(conn.toID);
+				for (const conn of this.hierarchyConnections) {
+					const childModel = this.flattenedModels.get(conn.fromID);
+					const parentModel = this.flattenedModels.get(conn.toID);
 
 					if (childModel && parentModel) {
 						parentModel.children.push(childModel);
@@ -878,55 +878,55 @@ namespace sd.asset {
 					else if (curvePropName == "d|Z") { ap = AnimationProperty.ScaleZ; }
 				}
 
-				return ap;	
+				return ap;
 			}
 
 
 			private buildAnimations(_group: AssetGroup, _options: FBXResolveOptions) {
 				// the number of units of time per second for a KTime value
-				const KTimeUnit = 46186158000;
+				const fbxTimeUnit = 46186158000;
 
-				for (var curveNodeID in this.animCurveNodes) {
-					var fbxCurveNode = this.animCurveNodes[curveNodeID];
+				for (const curveNodeID in this.animCurveNodes) {
+					const fbxCurveNode = this.animCurveNodes[curveNodeID];
 					if (fbxCurveNode.connectionsIn.length == 0 || fbxCurveNode.connectionsOut.length == 0) {
 						continue;
 					}
 
 					// link to first out connection
-					var outConn = fbxCurveNode.connectionsOut[0];
+					const outConn = fbxCurveNode.connectionsOut[0];
 					if (! (outConn && outConn.propName)) {
 						continue;
 					}
 
-					var jointModel = this.flattenedModels.get(outConn.toID);
+					const jointModel = this.flattenedModels.get(outConn.toID);
 					if (! jointModel) {
 						// likely a curve for an omitted joint
 						continue;
 					}
 
-					var tracks: AnimationTrack[] = [];
-					for (let inConn of fbxCurveNode.connectionsIn) {
-						let curve = inConn.fromNode;
+					const tracks: AnimationTrack[] = [];
+					for (const inConn of fbxCurveNode.connectionsIn) {
+						const curve = inConn.fromNode;
 						if (! (curve && inConn.propName)) {
 							console.error("AnimationCurve in-connection is invalid!", inConn);
 							continue;
 						}
 
-						let timesNode = curve.childByName("KeyTime");
-						let valuesNode = curve.childByName("KeyValueFloat");
+						const timesNode = curve.childByName("KeyTime");
+						const valuesNode = curve.childByName("KeyValueFloat");
 
 						if (timesNode && valuesNode) {
-							let times = <TypedArray>timesNode.values[0];
-							let values = <TypedArray>valuesNode.values[0];
-							let count = times.length;
+							const times = <TypedArray>timesNode.values[0];
+							const values = <TypedArray>valuesNode.values[0];
+							const count = times.length;
 							assert(times.length == values.length, "Invalid animation key data");
 
 							// determine property being animated
-							var animProp = this.animPropForConnectionNames(inConn.propName, outConn.propName);
+							const animProp = this.animPropForConnectionNames(inConn.propName, outConn.propName);
 
 							// convert KTime values to seconds in place
 							for (let t = 0; t < count; ++t) {
-								times[t] /= KTimeUnit;
+								times[t] /= fbxTimeUnit;
 							}
 
 							// convert rotation angles to radians
@@ -955,27 +955,27 @@ namespace sd.asset {
 
 
 			private buildSkins(_group: AssetGroup, _options: FBXResolveOptions) {
-				for (var skinNodeID in this.skinNodes) {
-					var fbxSkin = this.skinNodes[skinNodeID];
+				for (const skinNodeID in this.skinNodes) {
+					const fbxSkin = this.skinNodes[skinNodeID];
 					if (fbxSkin.connectionsIn.length == 0 || fbxSkin.connectionsOut.length == 0) {
 						console.warn("Skin " + skinNodeID + " either has no mesh or no clusters. Skipping.");
 						continue;
 					}
 
-					var sdSkin: Skin = {
+					const sdSkin: Skin = {
 						name: fbxSkin.objectName,
 						userRef: fbxSkin.objectID,
 						groups: []
 					};
 
-					for (var clusterConn of fbxSkin.connectionsIn) {
-						var cluster = clusterConn.fromNode;
+					for (const clusterConn of fbxSkin.connectionsIn) {
+						const cluster = clusterConn.fromNode;
 						if (! cluster) {
 							console.error("Skin cluster connection is invalid", fbxSkin);
 							continue;
 						}
 
-						var wvg: WeightedVertexGroup = {
+						const wvg: WeightedVertexGroup = {
 							name: cluster.objectName,
 							userRef: cluster.objectID,
 							indexes: null,
@@ -985,7 +985,7 @@ namespace sd.asset {
 							bindPoseLocalMatrix: null
 						};
 
-						for (let cc of cluster.children) {
+						for (const cc of cluster.children) {
 							if (cc.name == "Indexes") {
 								wvg.indexes = <Int32Array>(cc.values[0]);
 							}
@@ -993,10 +993,10 @@ namespace sd.asset {
 								wvg.weights = <Float64Array>(cc.values[0]);
 							}
 							else if (cc.name == "Transform") {
-								let txmat = <Float64Array>(cc.values[0]);
-								let mat33 = mat3.fromMat4([], txmat);
-								let txq = quat.fromMat3([], mat33);
-								let trans = [txmat[12], txmat[13], txmat[14]];
+								const txmat = <Float64Array>(cc.values[0]);
+								const mat33 = mat3.fromMat4([], txmat);
+								const txq = quat.fromMat3([], mat33);
+								const trans = [txmat[12], txmat[13], txmat[14]];
 
 								wvg.bindPoseLocalTranslation = trans;
 								wvg.bindPoseLocalRotation = txq;
@@ -1008,15 +1008,15 @@ namespace sd.asset {
 							console.warn("Incomplete cluster " + clusterConn.fromID, cluster, wvg);
 						}
 						else {
-							for (let cinc of cluster.connectionsIn) {
-								var cinNode = cinc.fromNode;
+							for (const cinc of cluster.connectionsIn) {
+								const cinNode = cinc.fromNode;
 								if (! cinNode) {
 									console.error("Cluster in-connection Model is invalid", cluster);
 									continue;
 								}
 
 								if (cinNode.name == "Model") {
-									let sdModel = this.flattenedModels.get(cinNode.objectID);
+									const sdModel = this.flattenedModels.get(cinNode.objectID);
 
 									if (sdModel) {
 										if (sdModel.joint) {
@@ -1042,7 +1042,7 @@ namespace sd.asset {
 
 
 			resolve(options?: FBXResolveOptions): Promise<AssetGroup> {
-				var defaults: FBXResolveOptions = {
+				const defaults: FBXResolveOptions = {
 					allowMissingTextures: true,
 					forceMipMapsOn: true,
 					removeUnusedBones: true
@@ -1105,14 +1105,18 @@ namespace sd.asset {
 				var skip = false;
 
 				if (this.state == BuilderState.Root) {
-					if (name == "GlobalSettings")
+					if (name == "GlobalSettings") {
 						this.state = BuilderState.GlobalSettings;
-					else if (name == "Objects")
+					}
+					else if (name == "Objects") {
 						this.state = BuilderState.Objects;
-					else if (name == "Connections")
+					}
+					else if (name == "Connections") {
 						this.state = BuilderState.Connections;
-					else
+					}
+					else {
 						skip = true;
+					}
 				}
 				else if (this.state == BuilderState.Objects) {
 					if (this.knownObjects.has(name)) {
@@ -1125,7 +1129,7 @@ namespace sd.asset {
 					}
 				}
 				else if (this.curNodeParent) {
-					var node = new FBXNode(name, values);
+					const node = new FBXNode(name, values);
 					this.curNodeParent.appendChild(node);
 					this.curNodeParent = node;
 				}
@@ -1165,7 +1169,7 @@ namespace sd.asset {
 
 
 			typedProperty(name: string, type: parse.FBXPropertyType, typeName: string, values: parse.FBXValue[]) {
-				var node = new FBXNode(name, values, type, typeName);
+				const node = new FBXNode(name, values, type, typeName);
 
 				if (this.state == BuilderState.GlobalSettings) {
 					this.doc.globalSetting(node);
@@ -1175,9 +1179,9 @@ namespace sd.asset {
 				}
 				else if (this.state == BuilderState.Connections) {
 					assert(name == "C", "Only C properties are allowed inside Connections");
-					var binding = <string>node.values[0];
-					var fromID = <number>node.values[1];
-					var toID = <number>node.values[2];
+					const binding = <string>node.values[0];
+					const fromID = <number>node.values[1];
+					const toID = <number>node.values[2];
 
 					if (binding == "OO") {
 						this.doc.addConnection({ fromID: fromID, toID: toID });
@@ -1212,8 +1216,8 @@ namespace sd.asset {
 
 
 	function parseFBXSource(filePath: string, source: string | ArrayBuffer): Promise<AssetGroup> {
-		var t0 = performance.now();
- 		var del = new fbx.FBX7DocumentParser(filePath);
+		const t0 = performance.now();
+		const del = new fbx.FBX7DocumentParser(filePath);
 		var parser: fbx.parse.FBXParser;
 		if (typeof source === "string") {
 			parser = new fbx.parse.FBXTextParser(source, del);

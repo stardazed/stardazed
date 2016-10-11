@@ -4,9 +4,9 @@
 // https://github.com/stardazed/stardazed-tx
 
 declare var webkitAudioContext: {
-    prototype: AudioContext;
-    new (): AudioContext;
-}
+	prototype: AudioContext;
+	new (): AudioContext;
+};
 
 interface Window {
 	webkitAudioContext?: typeof AudioContext;
@@ -38,7 +38,7 @@ namespace sd.audio {
 
 
 	export function makeAudioContext(): audio.AudioContext | null {
-		var ac = window.AudioContext ? new (window.AudioContext)() : (window.webkitAudioContext ? new webkitAudioContext() : null);
+		const ac = window.AudioContext ? new (window.AudioContext)() : (window.webkitAudioContext ? new webkitAudioContext() : null);
 
 		if (ac) {
 			return {

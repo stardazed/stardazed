@@ -54,10 +54,10 @@ namespace sd.asset {
 
 
 	export function imageData(image: HTMLImageElement): ImageData {
-		var cvs = document.createElement("canvas");
+		const cvs = document.createElement("canvas");
 		cvs.width = image.width;
 		cvs.height = image.height;
-		var tc = cvs.getContext("2d")!;
+		const tc = cvs.getContext("2d")!;
 		tc.drawImage(image, 0, 0);
 
 		return tc.getImageData(0, 0, image.width, image.height);
@@ -169,7 +169,7 @@ namespace sd.asset {
 	function checkNativeTGASupport(): Promise<boolean> {
 		if (nativeTGASupport === null) {
 			return new Promise((resolve, _) => {
-				var img = new Image();
+				const img = new Image();
 				img.onload = () => { nativeTGASupport = true; resolve(true); };
 				img.onerror = () => { nativeTGASupport = false; resolve(false); };
 				img.src = "data:image/tga;base64,AAACAAAAAAAAAAAAAQABABgA////";
@@ -206,23 +206,22 @@ namespace sd.asset {
 		17	uint8  flagsUnused;
 		} __attribute__((__packed__));
 	*/
-	
-	export function loadTGAImageFromBuffer(buffer: ArrayBuffer): ImageData {
-		var headerView = new DataView(buffer, 0, 18);
-		var bytesPerPixel = 0;
 
-		var identLengthUnused = headerView.getUint8(0);
-		var usePalette = headerView.getUint8(1);
-		var imageType: TGAImageType = headerView.getUint8(2);
+	export function loadTGAImageFromBuffer(buffer: ArrayBuffer): ImageData {
+		const headerView = new DataView(buffer, 0, 18);
+		const identLengthUnused = headerView.getUint8(0);
+		const usePalette = headerView.getUint8(1);
+		const imageType: TGAImageType = headerView.getUint8(2);
 
 		// -- we only support a subset of TGA image types, namely those used in game pipelines
 		assert(identLengthUnused === 0, "Unsupported TGA format.");
-		assert(usePalette === 0, "Paletted TGA images are not supported.")
+		assert(usePalette === 0, "Paletted TGA images are not supported.");
 		assert((imageType & TGAImageType.CompressedBit) === 0, "Compressed TGA images are not supported.");
 
-		var width = headerView.getUint16(12, true);
-		var height = headerView.getUint16(14, true);
-		var bitDepth = headerView.getUint8(16);
+		const width = headerView.getUint16(12, true);
+		const height = headerView.getUint16(14, true);
+		const bitDepth = headerView.getUint8(16);
+		var bytesPerPixel = 0;
 
 		if ((imageType & 7) == TGAImageType.RGB) {
 			if (bitDepth == 24) {
@@ -243,35 +242,35 @@ namespace sd.asset {
 			throw new Error("Unknown or inconsistent TGA image type");
 		}
 
-		var tempCanvas = document.createElement("canvas");
-		var imageData = tempCanvas.getContext("2d")!.createImageData(width, height);
-		var sourcePixels = new Uint8ClampedArray(buffer, 18);
-		var destPixels = imageData.data;
-		var pixelCount = width * height;
+		const tempCanvas = document.createElement("canvas");
+		const imageData = tempCanvas.getContext("2d")!.createImageData(width, height);
+		const sourcePixels = new Uint8ClampedArray(buffer, 18);
+		const destPixels = imageData.data;
 		var sourceOffset = 0;
 		var destOffset = (height - 1) * width * 4;
-		var pixelRunLeft = imageType & TGAImageType.RLEBit ? 0 : pixelCount;
+		var pixelsLeft = width * height;
+		var pixelRunLeft = imageType & TGAImageType.RLEBit ? 0 : pixelsLeft;
 		var pixelRunRaw = true;
 		var linePixelsLeft = width;
 
 		if (bytesPerPixel == 1) {
 			// 8-bit Grayscale pixels
-			while (pixelCount > 0) {
+			while (pixelsLeft > 0) {
 				if (pixelRunLeft == 0) {
-					let ctrl = sourcePixels[sourceOffset];
+					const ctrl = sourcePixels[sourceOffset];
 					pixelRunRaw = (ctrl & 0x80) == 0;
 					pixelRunLeft = 1 + (ctrl & 0x7f);
 					sourceOffset += 1;
 				}
 
-				var gray = sourcePixels[sourceOffset];
+				const gray = sourcePixels[sourceOffset];
 				destPixels[destOffset]     = gray;
 				destPixels[destOffset + 1] = gray;
 				destPixels[destOffset + 2] = gray;
 				destPixels[destOffset + 3] = 255;
 
 				pixelRunLeft -= 1;
-				pixelCount -= 1;
+				pixelsLeft -= 1;
 				if (pixelRunRaw || pixelRunLeft == 0) {
 					sourceOffset += 1;
 				}
@@ -285,21 +284,21 @@ namespace sd.asset {
 		}
 		else if (bytesPerPixel == 3) {
 			// 24-bit BGR pixels
-			while (pixelCount > 0) {
+			while (pixelsLeft > 0) {
 				if (pixelRunLeft == 0) {
-					let ctrl = sourcePixels[sourceOffset];
+					const ctrl = sourcePixels[sourceOffset];
 					pixelRunRaw = (ctrl & 0x80) == 0;
 					pixelRunLeft = 1 + (ctrl & 0x7f);
 					sourceOffset += 1;
 				}
-				
+
 				destPixels[destOffset] = sourcePixels[sourceOffset + 2];
 				destPixels[destOffset + 1] = sourcePixels[sourceOffset + 1];
 				destPixels[destOffset + 2] = sourcePixels[sourceOffset];
 				destPixels[destOffset + 3] = 255;
 
 				pixelRunLeft -= 1;
-				pixelCount -= 1;
+				pixelsLeft -= 1;
 				if (pixelRunRaw || pixelRunLeft == 0) {
 					sourceOffset += 3;
 				}
@@ -313,21 +312,21 @@ namespace sd.asset {
 		}
 		else if (bytesPerPixel == 4) {
 			// 32-bit BGRA pixels
-			while (pixelCount > 0) {
+			while (pixelsLeft > 0) {
 				if (pixelRunLeft == 0) {
-					let ctrl = sourcePixels[sourceOffset];
+					const ctrl = sourcePixels[sourceOffset];
 					pixelRunRaw = (ctrl & 0x80) == 0;
 					pixelRunLeft = 1 + (ctrl & 0x7f);
 					sourceOffset += 1;
 				}
-				
+
 				destPixels[destOffset] = sourcePixels[sourceOffset + 2];
 				destPixels[destOffset + 1] = sourcePixels[sourceOffset + 1];
 				destPixels[destOffset + 2] = sourcePixels[sourceOffset];
 				destPixels[destOffset + 3] = sourcePixels[sourceOffset + 3];
 
 				pixelRunLeft -= 1;
-				pixelCount -= 1;
+				pixelsLeft -= 1;
 				if (pixelRunRaw || pixelRunLeft == 0) {
 					sourceOffset += 4;
 				}
@@ -340,7 +339,7 @@ namespace sd.asset {
 			}
 		}
 
-		return imageData;		
+		return imageData;
 	}
 
 

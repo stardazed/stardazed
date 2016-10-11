@@ -40,7 +40,7 @@ namespace sd.render {
 		// explicit by setting both to the same DepthStencil PixelFormat.
 		depthPixelFormat: PixelFormat;
 		stencilPixelFormat: PixelFormat;
-	
+
 		depthUsageHint: TextureUsageHint;
 		stencilUsageHint: TextureUsageHint;
 	}
@@ -56,7 +56,7 @@ namespace sd.render {
 
 
 	export function makeFrameBufferDescriptor(): FrameBufferDescriptor {
-		var cad: AttachmentDescriptor[] = [];
+		const cad: AttachmentDescriptor[] = [];
 		for (let k = 0; k < 8; ++k) {
 			cad.push(makeAttachmentDescriptor());
 		}
@@ -71,8 +71,8 @@ namespace sd.render {
 
 
 	export function makeFrameBufferAllocationDescriptor(numColourAttachments: number): FrameBufferAllocationDescriptor {
-		var apf: PixelFormat[] = [];
-		var auh: TextureUsageHint[] = [];
+		const apf: PixelFormat[] = [];
+		const auh: TextureUsageHint[] = [];
 		for (let k = 0; k < 8; ++k) {
 			// set default pixelformat for requested colour attachments to RGBA8
 			apf.push((k < numColourAttachments) ? PixelFormat.RGBA8 : PixelFormat.None);

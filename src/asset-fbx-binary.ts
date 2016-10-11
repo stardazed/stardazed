@@ -52,31 +52,31 @@ namespace sd.asset.fbx.parse {
 			this.offset_ = this.length_;
 		}
 
-		
+
 		private inflateCompressedArray(dataBlock: TypedArray, outElementType: NumericType): TypedArray {
 			// the first 2 bytes are usually 0x7801, which is a DEFLATE marker
 			// the final 4 bytes are likely a checksum
 			assert(dataBlock.byteLength > 6, "Compressed array data size is too small");
-			var compData = new Uint8Array(dataBlock.buffer, dataBlock.byteOffset + 2, dataBlock.byteLength - 6);
+			const compData = new Uint8Array(dataBlock.buffer, dataBlock.byteOffset + 2, dataBlock.byteLength - 6);
 
-			var inf = new Inflater();
-			var result = inf.append(compData);
+			const inf = new Inflater();
+			const result = inf.append(compData);
 			inf.flush();
-			
+
 			assert(result.byteLength % outElementType.byteSize == 0, "Invalid aligned size of output buffer");
 			return new (outElementType.arrayType)(result.buffer);
 		}
 
 
 		private checkFileHeader() {
-			var ident = String.fromCharCode.apply(null, this.bytes_.subarray(0, 20));
+			const ident = String.fromCharCode.apply(null, this.bytes_.subarray(0, 20));
 			if (ident != "Kaydara FBX Binary  ") {
 				this.error("Not an FBX binary file");
 				return false;
 			}
 			if (this.dataView_.getUint16(21, true) != 0x001A) {
 				this.error("Expected 0x001A marker in header");
-				return false;	
+				return false;
 			}
 
 			this.version_ = this.dataView_.getUint32(23, true);
@@ -97,7 +97,7 @@ namespace sd.asset.fbx.parse {
 			const propertiesSizeBytes = this.dataView_.getUint32(this.offset_ + 8, true);
 			const nameLength = this.dataView_.getUint8(this.offset_ + 12);
 
-			var result: PropertyHeader = {
+			const result: PropertyHeader = {
 				offset: this.offset_,
 				endOffset: endOffset,
 				valueCount: propertyCount,
@@ -121,7 +121,7 @@ namespace sd.asset.fbx.parse {
 			var array: TypedArray | null = null;
 			var dataSizeBytes = 0;
 
-			if (encoding == 0) { 
+			if (encoding == 0) {
 				dataSizeBytes = element.byteSize * arrayLength;
 				assert(dataSizeBytes < (this.length_ - this.offset_), "array length out of bounds");
 
@@ -148,8 +148,8 @@ namespace sd.asset.fbx.parse {
 
 
 		private convertInt64ToDouble(dv: DataView, offset: number): number {
-			let vLo = dv.getUint32(offset, true);
-			let vHi = dv.getInt32(offset + 4, true);
+			const vLo = dv.getUint32(offset, true);
+			const vHi = dv.getInt32(offset + 4, true);
 
 			if (vHi > this.twoExp21 || vHi < -this.twoExp21) {
 				console.warn("A 64-bit int property was larger than (+/-)2^53 so it may not be accurately represented.");
@@ -160,9 +160,9 @@ namespace sd.asset.fbx.parse {
 
 
 		private readValues(header: PropertyHeader): FBXValue[] {
+			const values: FBXValue[] = [];
+			const firstPropOffset = this.offset_;
 			var count = header.valueCount;
-			var values: FBXValue[] = [];
-			var firstPropOffset = this.offset_;
 
 			while (count--) {
 				let val: FBXValue | null;
@@ -172,13 +172,13 @@ namespace sd.asset.fbx.parse {
 
 				switch (type) {
 					// String and data
-					case 'S':
+					case "S":
 						// [[fallthrough]]
-					case 'R':
+					case "R":
 						propLen = this.dataView_.getUint32(this.offset_, true);
 						if (propLen > 0) {
 							let propData = this.bytes_.subarray(this.offset_ + 4, this.offset_ + 4 + propLen);
-							if (type == 'S') {
+							if (type == "S") {
 								let str = convertBytesToString(propData);
 
 								// In binary FBX, the :: separating a name and a classname is replaced with a 0x0001 sequence
@@ -199,41 +199,41 @@ namespace sd.asset.fbx.parse {
 						break;
 
 					// Signed integer
-					case 'C':
+					case "C":
 						val = this.dataView_.getInt8(this.offset_);
 						this.offset_ += 1;
 						break;
-					case 'Y':
+					case "Y":
 						val = this.dataView_.getInt16(this.offset_, true);
 						this.offset_ += 2;
 						break;
-					case 'I':
+					case "I":
 						val = this.dataView_.getInt32(this.offset_, true);
 						this.offset_ += 4;
 						break;
-					case 'L':
+					case "L":
 						val = this.convertInt64ToDouble(this.dataView_, this.offset_);
 						this.offset_ += 8;
 						break;
 
 					// Floating point
-					case 'F':
+					case "F":
 						val = this.dataView_.getFloat32(this.offset_, true);
 						this.offset_ += 4;
 						break;
-					case 'D':
+					case "D":
 						val = this.dataView_.getFloat64(this.offset_, true);
 						this.offset_ += 8;
 						break;
 
 					// Integer arrays
-					case 'b':
+					case "b":
 						val = this.readArrayProperty(UInt8);
 						break;
-					case 'i':
+					case "i":
 						val = this.readArrayProperty(SInt32);
 						break;
-					case 'l':
+					case "l":
 						{
 							// read array as doubles for proper size and alignment
 							let doubles = this.readArrayProperty(Double);
@@ -251,10 +251,10 @@ namespace sd.asset.fbx.parse {
 						}
 						break;
 
-					case 'f':
+					case "f":
 						val = this.readArrayProperty(Float);
 						break;
-					case 'd':
+					case "d":
 						val = this.readArrayProperty(Double);
 						break;
 
@@ -282,11 +282,11 @@ namespace sd.asset.fbx.parse {
 			}
 
 			while (this.offset_ < this.length_) {
-				var hdr = this.readFieldHeader();
+				const hdr = this.readFieldHeader();
 				if (hdr.endOffset == 0) {
 					// end of scope marker
 					if (this.stack_.length > 0) {
-						var closing = this.stack_.pop()!; // above check asserts succesful pop()
+						const closing = this.stack_.pop()!; // above check asserts succesful pop()
 						assert(closing.endOffset == this.offset_, "Offset mismatch at end of scope");
 						if (this.inProp70Block_) {
 							assert(closing.name == "Properties70", "Invalid parser state, assumed closing a Prop70 but was closing a " + closing.name);

@@ -41,7 +41,7 @@ namespace sd.meshdata {
 
 
 	export function transform(mesh: MeshData, actions: { rotate?: Float4, translate?: Float3, scale?: Float3 }) {
-		const rotation = actions.rotate || math.Quat.identity; 
+		const rotation = actions.rotate || math.Quat.identity;
 		const translation = actions.translate || math.Vec3.zero;
 		const scale = actions.scale || math.Vec3.one;
 		const posMatrix = mat4.fromRotationTranslationScale([], rotation, translation, scale);

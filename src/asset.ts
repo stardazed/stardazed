@@ -12,7 +12,7 @@ namespace sd.asset {
 
 	export function fileExtensionOfURL(url: URL | string): string {
 		const path = (url instanceof URL) ? url.href : url;
-		var lastDot = path.lastIndexOf(".");
+		const lastDot = path.lastIndexOf(".");
 		if (lastDot > -1) {
 			return path.substr(lastDot + 1).toLowerCase();
 		}
@@ -42,7 +42,7 @@ namespace sd.asset {
 		const ext = extension.toLowerCase().trim();
 		return extensionMimeTypeMap_s.get(ext);
 	}
-  
+
 	// registerFileExtension("wav", "audio/wav");
 	// registerFileExtension("mp3", "audio/mpeg");
 	// registerFileExtension("m4a", "audio/mp4");
@@ -64,13 +64,13 @@ namespace sd.asset {
 
 	export function registerURLLoaderForMIMEType(mimeType: string, loader: URLAssetLoader) {
 		const mime = mimeType.toLowerCase().trim();
-		assert(! urlAssetLoaders_s.has(mime), `Tried to override file loader for MIME type '${mime}'`)
+		assert(! urlAssetLoaders_s.has(mime), `Tried to override file loader for MIME type '${mime}'`);
 		urlAssetLoaders_s.set(mime, loader);
 	}
 
 	export function registerBufferLoaderForMIMEType(mimeType: string, loader: BufferAssetLoader) {
 		const mime = mimeType.toLowerCase().trim();
-		assert(! bufferAssetLoaders_s.has(mime), `Tried to override buffer loader for MIME type '${mime}'`)
+		assert(! bufferAssetLoaders_s.has(mime), `Tried to override buffer loader for MIME type '${mime}'`);
 		bufferAssetLoaders_s.set(mime, loader);
 	}
 
@@ -95,9 +95,6 @@ namespace sd.asset {
 
 	export class AssetLibrary {
 		private roots_ = new Map<string, URL>();
-
-		constructor() {
-		}
 
 		addRoot(name: string, baseURL: URL) {
 			assert(! this.roots_.has(name), `An asset root named '${name}' already exists.`);

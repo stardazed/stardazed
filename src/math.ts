@@ -35,7 +35,7 @@ namespace sd.math {
 
 
 	export function intRandomRange(minimum: number, maximum: number): number {
-		var diff = (maximum - minimum) | 0;
+		const diff = (maximum - minimum) | 0;
 		return minimum + intRandom(diff);
 	}
 
@@ -75,7 +75,7 @@ namespace sd.math {
 	// e.g.: 15 -> 16; 16 -> 16; 17 -> 32
 
 	export function roundUpPowerOf2(n: number) {
-		if (n <= 0) return 1;
+		if (n <= 0) { return 1; }
 		n = (n | 0) - 1;
 		n |= n >> 1;
 		n |= n >> 2;
@@ -124,32 +124,34 @@ namespace sd.math {
 		}
 
 		intersectsLineSegment(ptA: Float3, ptB: Float3): boolean {
-			var d = [ptB[0] - ptA[0], ptB[1] - ptA[1]];
+			const d = [ptB[0] - ptA[0], ptB[1] - ptA[1]];
 
 			var tmin = 0;
 			var tmax = 9999;
 
-			for (var i = 0; i < 2; ++i) {
+			for (let i = 0; i < 2; ++i) {
 				if (Math.abs(d[i]) < 0.00001) {
-					if (ptA[i] < this.topLeft[i] || ptA[i] > this.bottomRight[i])
+					if (ptA[i] < this.topLeft[i] || ptA[i] > this.bottomRight[i]) {
 						return false;
+					}
 				}
 				else {
-					var ood = 1 / d[i];
-					var t1 = (this.topLeft[i] - ptA[i]) * ood;
-					var t2 = (this.bottomRight[i] - ptA[i]) * ood;
+					const ood = 1 / d[i];
+					let t1 = (this.topLeft[i] - ptA[i]) * ood;
+					let t2 = (this.bottomRight[i] - ptA[i]) * ood;
 
 					if (t1 > t2) {
-						var tt = t2;
+						const tt = t2;
 						t2 = t1;
 						t1 = tt;
 					}
 
-					if (t1 > tmin) tmin = t1;
-					if (t2 < tmax) tmax = t2;
+					if (t1 > tmin) { tmin = t1; }
+					if (t2 < tmax) { tmax = t2; }
 
-					if (tmin > tmax)
+					if (tmin > tmax) {
 						return false;
+					}
 				}
 			}
 
@@ -171,7 +173,7 @@ namespace sd.math {
 	export class Vec3 {
 		static get zero() { return new Float32Array([0, 0, 0]); }
 		static get one() { return new Float32Array([1, 1, 1]); }
-	
+
 		static elementCount = 3;
 		static byteSize = Float.byteSize * Vec3.elementCount;
 	}
@@ -179,7 +181,7 @@ namespace sd.math {
 	export class Vec4 {
 		static get zero() { return new Float32Array([0, 0, 0, 0]); }
 		static get one() { return new Float32Array([1, 1, 1, 1]); }
-	
+
 		static elementCount = 4;
 		static byteSize = Float.byteSize * Vec4.elementCount;
 	}
@@ -227,13 +229,13 @@ namespace sd.math {
 
 
 	export function arbitraryOrthogonalVec3(v: Float3): Float3 {
-		var ax = Math.abs(v[0]),
-			ay = Math.abs(v[1]),
-			az = Math.abs(v[2]);
+		const ax = Math.abs(v[0]);
+		const ay = Math.abs(v[1]);
+		const az = Math.abs(v[2]);
 
-		var dominantAxis = (ax > ay) ? (ax > az ? 0 : 2) : (ay > az ? 1 : 2);
+		const dominantAxis = (ax > ay) ? (ax > az ? 0 : 2) : (ay > az ? 1 : 2);
 
-		var p: Float3 = [];
+		const p: Float3 = [];
 		switch(dominantAxis) {
 			case 0:
 				p[0] = -v[1] - v[2];

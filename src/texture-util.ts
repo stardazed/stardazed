@@ -7,11 +7,11 @@ namespace sd.render {
 
 	export function loadSimpleTexture(rc: RenderContext, filePath: string, mipmaps = false): Promise<render.Texture> {
 		return new Promise<render.Texture>(function(resolve, reject) {
-			var image = new Image();
+			const image = new Image();
 
 			image.onload = function() {
-				var td = render.makeTexDesc2DFromImageSource(image, render.useMipMaps(mipmaps));
-				var texture = new render.Texture(rc, td);
+				const td = render.makeTexDesc2DFromImageSource(image, render.useMipMaps(mipmaps));
+				const texture = new render.Texture(rc, td);
 				resolve(texture);
 			};
 			image.onerror = function() {
@@ -28,20 +28,20 @@ namespace sd.render {
 		assert(filePaths.length == 6, "must have 6 paths for cube tex");
 
 		return new Promise<render.Texture>(function(resolve, reject) {
-			var images: HTMLImageElement[] = [];
+			const images: HTMLImageElement[] = [];
 			var loaded = 0;
 
 			for (var k = 0; k < 6; ++k) {
 				(function(face: number) {
-					var image = new Image;
+					const image = new Image();
 
 					image.onload = function() {
 						images[face] = image;
 						++loaded;
 
 						if (loaded == 6) {
-							var td = render.makeTexDescCubeFromImageSources(images);
-							var texture = new render.Texture(rc, td);
+							const td = render.makeTexDescCubeFromImageSources(images);
+							const texture = new render.Texture(rc, td);
 							resolve(texture);
 						}
 					};

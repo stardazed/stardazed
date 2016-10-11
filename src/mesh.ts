@@ -474,7 +474,7 @@ namespace sd.world {
 						this.bindSingleAttribute(meshAttr, attrIndex);
 					}
 					else {
-						console.warn("Mesh does not have Pipeline attr for index " + attrIndex + " of role " + attrRole);
+						console.warn(`Mesh does not have Pipeline attr for index ${attrIndex} of role ${attrRole}`);
 						gl.disableVertexAttribArray(attrIndex);
 					}
 

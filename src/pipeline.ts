@@ -75,8 +75,9 @@ namespace sd.render {
 			// -- can the GL support the required # of colour attachments?
 			var highestEnabledAttachment = -1;
 			this.colourPixelFormats_.slice(1).forEach((pf, ix) => {
-				if (pf != PixelFormat.None)
+				if (pf != PixelFormat.None) {
 					highestEnabledAttachment = ix;
+				}
 			});
 			if (highestEnabledAttachment >= maxColourAttachments(rc)) {
 				assert(false, "This GL only supports up to " + maxColourAttachments(rc) + " attachment(s)");
@@ -155,8 +156,9 @@ namespace sd.render {
 		get attributeCount() { return this.attrRoleIndexMap_.size; }
 		attributePairs() { return this.attrRoleIndexMap_.entries(); }
 		attributeIndexForRole(role: meshdata.VertexAttributeRole) {
-			if (this.attrRoleIndexMap_.has(role))
+			if (this.attrRoleIndexMap_.has(role)) {
 				return this.attrRoleIndexMap_.get(role);
+			}
 			return -1;
 		}
 	}

@@ -10,7 +10,7 @@
 namespace sd.render {
 
 	function glRenderBufferInternalFormatForPixelFormat(rc: RenderContext, format: PixelFormat) {
-		var gl = rc.gl;
+		const gl = rc.gl;
 
 		switch (format) {
 			// sRGB
@@ -55,22 +55,28 @@ namespace sd.render {
 		var glSizingFilter: number;
 
 		if (mipFilter == TextureMipFilter.None) {
-			if (minFilter == TextureSizingFilter.Nearest)
+			if (minFilter == TextureSizingFilter.Nearest) {
 				glSizingFilter = rc.gl.NEAREST;
-			else
+			}
+			else {
 				glSizingFilter = rc.gl.LINEAR;
+			}
 		}
 		else if (mipFilter == TextureMipFilter.Nearest) {
-			if (minFilter == TextureSizingFilter.Nearest)
+			if (minFilter == TextureSizingFilter.Nearest) {
 				glSizingFilter = rc.gl.NEAREST_MIPMAP_NEAREST;
-			else
+			}
+			else {
 				glSizingFilter = rc.gl.LINEAR_MIPMAP_NEAREST;
+			}
 		}
 		else {
-			if (minFilter == TextureSizingFilter.Nearest)
+			if (minFilter == TextureSizingFilter.Nearest) {
 				glSizingFilter = rc.gl.NEAREST_MIPMAP_LINEAR;
-			else
+			}
+			else {
 				glSizingFilter = rc.gl.LINEAR_MIPMAP_LINEAR;
+			}
 		}
 
 		return glSizingFilter;
@@ -78,10 +84,12 @@ namespace sd.render {
 
 
 	function glTextureMagnificationFilter(rc: RenderContext, magFilter: TextureSizingFilter) {
-		if (magFilter == TextureSizingFilter.Nearest)
+		if (magFilter == TextureSizingFilter.Nearest) {
 			return rc.gl.NEAREST;
-		else
+		}
+		else {
 			return rc.gl.LINEAR;
+		}
 	}
 
 
@@ -98,8 +106,9 @@ namespace sd.render {
 			textureLimits.maxDimensionCube = rc.gl.getParameter(rc.gl.MAX_CUBE_MAP_TEXTURE_SIZE);
 		}
 
-		if (texClass == TextureClass.TexCube)
+		if (texClass == TextureClass.TexCube) {
 			return textureLimits.maxDimensionCube;
+		}
 		return textureLimits.maxDimension;
 	}
 
@@ -130,7 +139,7 @@ namespace sd.render {
 			var gl = this.rc.gl;
 
 			assert(this.mipmaps == 1, "Cannot create RenderBuffers with multiple levels");
-			
+
 			// RenderBuffers in WebGL are restricted to 16-bit colour, 16-bit depth or 8-bit stencil formats
 			var sizedFormat = glRenderBufferInternalFormatForPixelFormat(this.rc, this.pixelFormat_);
 			if (sizedFormat == gl.NONE) {
@@ -149,17 +158,18 @@ namespace sd.render {
 
 
 		private createTex2D(pixelData?: TextureImageData[]) {
-			var gl = this.rc.gl;
+			const gl = this.rc.gl;
 
 			// -- input checks
 			assert((pixelData == null) || (pixelData.length == 1), "Tex2D pixelData array must contain 1 item or be omitted completely.");
-			var texPixelData = (pixelData && pixelData[0]) || null;
+			const texPixelData = (pixelData && pixelData[0]) || null;
 
-			var glPixelFormat = glImageFormatForPixelFormat(this.rc, this.pixelFormat_);
-			var glPixelType = glPixelDataTypeForPixelFormat(this.rc, this.pixelFormat_);
+			const glPixelFormat = glImageFormatForPixelFormat(this.rc, this.pixelFormat_);
+			const glPixelType = glPixelDataTypeForPixelFormat(this.rc, this.pixelFormat_);
 
-			if (pixelFormatIsCompressed(this.pixelFormat_))
+			if (pixelFormatIsCompressed(this.pixelFormat_)) {
 				assert(texPixelData && ("byteLength" in texPixelData), "Compressed textures MUST provide pixelData");
+			}
 
 			// -- create resource
 			var tex = this.resource_ = gl.createTexture()!; // TODO: handle resource allocation failure
@@ -167,8 +177,8 @@ namespace sd.render {
 			gl.bindTexture(this.glTarget_, tex);
 
 			// -- allocate and fill pixel storage
-			let w = this.width;
-			let h = this.height;
+			const w = this.width;
+			const h = this.height;
 
 			if (pixelFormatIsCompressed(this.pixelFormat_)) {
 				gl.compressedTexImage2D(this.glTarget_, 0, glPixelFormat, w, h, 0, <ArrayBufferView>texPixelData);
@@ -180,7 +190,7 @@ namespace sd.render {
 				}
 				else {
 					// a TexImageSource was provided
-					var tis = <TextureImageSource>texPixelData;
+					const tis = <TextureImageSource>texPixelData;
 					assert((tis.width == w) && (tis.height == h), "Tex2D imageSource's size does not match descriptor");
 					gl.texImage2D(this.glTarget_, 0, glPixelFormat, glPixelFormat, glPixelType, <any>tis);
 				}
@@ -196,13 +206,13 @@ namespace sd.render {
 
 
 		private createTexCube(pixelData?: TextureImageData[]) {
-			var gl = this.rc.gl;
+			const gl = this.rc.gl;
 
 			// -- input checks
 			assert((pixelData == null) || (pixelData.length == 6), "TexCube pixelData array must contain 6 items or be omitted completely.");
 
-			var glPixelFormat = glImageFormatForPixelFormat(this.rc, this.pixelFormat_);
-			var glPixelType = glPixelDataTypeForPixelFormat(this.rc, this.pixelFormat_);
+			const glPixelFormat = glImageFormatForPixelFormat(this.rc, this.pixelFormat_);
+			const glPixelType = glPixelDataTypeForPixelFormat(this.rc, this.pixelFormat_);
 
 			// -- create resource
 			var tex = this.resource_ = gl.createTexture()!; // TODO: handle resource allocation failure
@@ -210,22 +220,22 @@ namespace sd.render {
 			gl.bindTexture(this.glTarget_, tex);
 
 			// -- allocate and fill pixel storage
-			let w = this.width;
-			let h = this.height;
+			const w = this.width;
+			const h = this.height;
 			assert(w == h, "TexCube textures MUST have the same width and height");
 
 			if (pixelFormatIsCompressed(this.pixelFormat_)) {
 				assert(pixelData && (pixelData.length == 6), "Compressed textures MUST provide pixelData");
 
 				for (let layer = 0; layer < 6; ++layer) {
-					let layerPixels = pixelData![layer];
+					const layerPixels = pixelData![layer];
 					assert(layerPixels && ("byteLength" in layerPixels), "pixelData source " + layer + " for compressed TexCube is not an ArrayBufferView");
 					gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer, 0, glPixelFormat, w, h, 0, <ArrayBufferView>layerPixels);
 				}
 			}
 			else {
 				for (let layer = 0; layer < 6; ++layer) {
-					var texPixelData = (pixelData && pixelData[layer]) || null;
+					const texPixelData = (pixelData && pixelData[layer]) || null;
 
 					if ((texPixelData == null) || ("byteLength" in texPixelData)) {
 						// either no data or raw pixel data
@@ -233,7 +243,7 @@ namespace sd.render {
 					}
 					else {
 						// a TexImageSource was provided
-						var tis = <TextureImageSource>texPixelData;
+						const tis = <TextureImageSource>texPixelData;
 						assert((tis.width == w) && (tis.height == h), "TexCube pixelData " + layer + "'s size does not match descriptor");
 						gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer, 0, glPixelFormat, glPixelFormat, glPixelType, <any>texPixelData);
 					}
@@ -265,7 +275,7 @@ namespace sd.render {
 			assert(this.height <= maxTextureDimension(rc, this.textureClass_));
 
 			// -- WebGL imposes several restrictions on Non-Power-of-Two textures
-			var npot = !(math.isPowerOf2(this.width) && math.isPowerOf2(this.height));
+			const npot = !(math.isPowerOf2(this.width) && math.isPowerOf2(this.height));
 			if (npot) {
 				if (this.sampler_.repeatS != TextureRepeatMode.ClampToEdge || this.sampler_.repeatT != TextureRepeatMode.ClampToEdge) {
 					console.warn("NPOT textures cannot repeat, overriding with ClampToEdge", desc);
@@ -282,7 +292,7 @@ namespace sd.render {
 				}
 			}
 
-			var gl = rc.gl;
+			const gl = rc.gl;
 
 			// -- create resource
 			if (desc.textureClass == TextureClass.Tex2D) {
@@ -307,8 +317,9 @@ namespace sd.render {
 				gl.texParameteri(this.glTarget_, gl.TEXTURE_WRAP_T, glTextureRepeatMode(rc, this.sampler_.repeatS));
 
 				// -- mini-/magnification
-				if (this.mipmaps_ == 1)
+				if (this.mipmaps_ == 1) {
 					this.sampler_.mipFilter = TextureMipFilter.None;
+				}
 				gl.texParameteri(this.glTarget_, rc.gl.TEXTURE_MIN_FILTER, glTextureMinificationFilter(rc, this.sampler_.minFilter, this.sampler_.mipFilter));
 				gl.texParameteri(this.glTarget_, rc.gl.TEXTURE_MAG_FILTER, glTextureMagnificationFilter(rc, this.sampler_.magFilter));
 
@@ -325,18 +336,22 @@ namespace sd.render {
 
 		// -- binding
 		bind() {
-			if (this.glTarget_ == this.rc.gl.RENDERBUFFER)
+			if (this.glTarget_ == this.rc.gl.RENDERBUFFER) {
 				this.rc.gl.bindRenderbuffer(this.rc.gl.RENDERBUFFER, <WebGLRenderbuffer>this.resource_);
-			else	
+			}
+			else {
 				this.rc.gl.bindTexture(this.glTarget_, <WebGLTexture>this.resource_);
+			}
 		}
 
 
 		unbind() {
-			if (this.glTarget_ == this.rc.gl.RENDERBUFFER)
+			if (this.glTarget_ == this.rc.gl.RENDERBUFFER) {
 				this.rc.gl.bindRenderbuffer(this.rc.gl.RENDERBUFFER, null);
-			else
+			}
+			else {
 				this.rc.gl.bindTexture(this.glTarget_, null);
+			}
 		}
 
 
@@ -349,15 +364,15 @@ namespace sd.render {
 		get isMipMapped() { return this.mipmaps_ > 1; }
 
 		get pixelFormat() { return this.pixelFormat_; }
-			
+
 		get textureClass() { return this.textureClass_; };
 		get clientWritable() {
 			return this.glTarget_ != this.rc.gl.RENDERBUFFER; // later also != TEXTURE_2D_MULTISAMPLE
 		}
 		get renderTargetOnly() {
 			return this.glTarget_ == this.rc.gl.RENDERBUFFER;
-		}	
-			
+		}
+
 		// -- gl-specific observers
 		get resource() { return this.resource_; }
 		get target() { return this.glTarget_; }

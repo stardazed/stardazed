@@ -35,7 +35,7 @@ namespace sd.world {
 
 
 		constructor(private physMatMgr_: PhysicsMaterialManager) {
-			var fields: container.MABField[] = [
+			const fields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // type
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // physicsMaterial
@@ -61,7 +61,7 @@ namespace sd.world {
 				this.rebase();
 			}
 
-			var instance = this.instanceData_.count;
+			const instance = this.instanceData_.count;
 			this.typeBase_[instance] = desc.type;
 			this.entityBase_[instance] = <number>ent;
 			this.physMatBase_[instance] = desc.physicsMaterial;
@@ -86,10 +86,11 @@ namespace sd.world {
 		// --
 
 		destroy(_inst: ColliderInstance) {
+			// TBI
 		}
 
 		destroyRange(range: ColliderRange) {
-			var iter = range.makeIterator();
+			const iter = range.makeIterator();
 			while (iter.next()) {
 				this.destroy(iter.current);
 			}
@@ -118,7 +119,7 @@ namespace sd.world {
 		}
 
 		physicsMaterial(inst: ColliderInstance): PhysicsMaterialData {
-			var ref = this.physMatBase_[<number>inst];
+			const ref = this.physMatBase_[<number>inst];
 			return this.physMatMgr_.item(ref);
 		}
 

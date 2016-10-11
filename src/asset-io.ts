@@ -36,7 +36,7 @@ namespace sd.asset {
 		return new Promise(function(resolve, reject) {
 			opts = opts || {};
 
-			var xhr = new XMLHttpRequest();
+			const xhr = new XMLHttpRequest();
 			if (opts.tryBreakCache) {
 				url += "?__ts=" + Date.now();
 			}
@@ -49,7 +49,7 @@ namespace sd.asset {
 			}
 
 			xhr.onreadystatechange = function() {
-				if (xhr.readyState != 4) return;
+				if (xhr.readyState != 4) { return; }
 				assert(xhr.status == 200 || xhr.status == 0);
 				resolve(xhr.response);
 			};
@@ -65,13 +65,13 @@ namespace sd.asset {
 
 
 	export class BlobReader {
-		private constructor() {}
+		private constructor() { /* this is a static class, maybe change to namespace or functions? */ }
 
 		private static readerPromise<T>(): { promise: Promise<T>, reader: FileReader } {
 			const reader = new FileReader();
 			const promise = new Promise<T>((resolve, reject) => {
 				reader.onerror = () => {
-					reject(reader.error);	
+					reject(reader.error);
 				};
 				reader.onabort = () => {
 					reject("Blob load was aborted.");
@@ -120,7 +120,7 @@ namespace sd.asset {
 			}).catch(error => {
 				console.warn("resolveTextures error: ", error);
 				return null;
-			})
+			});
 		}).filter(p => !!p));
 	}
 
@@ -136,15 +136,15 @@ namespace sd.asset {
 
 
 	export function convertBytesToString(bytes: Uint8Array) {
-		var strings: string[] = [];
+		const strings: string[] = [];
 
 		var bytesLeft = bytes.length;
 		var offset = 0;
 		const maxBlockSize = 65536; // max parameter array size for use in Webkit
 
 		while (bytesLeft > 0) {
-			let blockSize = Math.min(bytesLeft, maxBlockSize);
-			let str: string = String.fromCharCode.apply(null, bytes.subarray(offset, offset + blockSize));
+			const blockSize = Math.min(bytesLeft, maxBlockSize);
+			const str: string = String.fromCharCode.apply(null, bytes.subarray(offset, offset + blockSize));
 			strings.push(str);
 			offset += blockSize;
 			bytesLeft -= blockSize;
@@ -155,13 +155,13 @@ namespace sd.asset {
 
 
 	export function debugDumpPixelData(pixels: Uint8Array, width: number, height: number) {
-		var cvs = document.createElement("canvas");
+		const cvs = document.createElement("canvas");
 		cvs.width = width;
 		cvs.height = height;
-		var ctx = cvs.getContext("2d")!;
-		var id = ctx.createImageData(width, height);
-		id.data.set(pixels);
-		ctx.putImageData(id, 0, 0);
+		const ctx = cvs.getContext("2d")!;
+		const imageData = ctx.createImageData(width, height);
+		imageData.data.set(pixels);
+		ctx.putImageData(imageData, 0, 0);
 		document.body.appendChild(cvs);
 	}
 

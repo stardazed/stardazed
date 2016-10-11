@@ -24,7 +24,7 @@ namespace sd.world {
 		HeightMap = 1 << 5
 	}
 
-	
+
 	export interface PBRMaterialData {
 		colourData: Float32Array;     // baseColour(rgb), opacity
 		materialParam: Float32Array;  // roughness, metallic, 0, 0 | specular(rgb), roughness
@@ -48,7 +48,7 @@ namespace sd.world {
 	export type PBRMaterialSet = InstanceSet<PBRMaterialManager>;
 	export type PBRMaterialIterator = InstanceIterator<PBRMaterialManager>;
 	export type PBRMaterialArrayView = InstanceArrayView<PBRMaterialManager>;
- 
+
 
 	export class PBRMaterialManager implements ComponentManager<PBRMaterialManager> {
 		private instanceData_: container.MultiArrayBuffer;
@@ -106,11 +106,11 @@ namespace sd.world {
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
 			var flags: PBRMaterialFlags = 0;
-			if (desc.roughnessTexture) flags |= PBRMaterialFlags.RoughnessMap;
-			if (desc.metallicTexture) flags |= PBRMaterialFlags.MetallicMap;
-			if (desc.ambientOcclusionTexture) flags |= PBRMaterialFlags.AmbientOcclusionMap;
-			if (desc.normalTexture) flags |= PBRMaterialFlags.NormalMap;
-			if (desc.heightTexture) flags |= PBRMaterialFlags.HeightMap;
+			if (desc.roughnessTexture) { flags |= PBRMaterialFlags.RoughnessMap; }
+			if (desc.metallicTexture) { flags |= PBRMaterialFlags.MetallicMap; }
+			if (desc.ambientOcclusionTexture) { flags |= PBRMaterialFlags.AmbientOcclusionMap; }
+			if (desc.normalTexture) { flags |= PBRMaterialFlags.NormalMap; }
+			if (desc.heightTexture) { flags |= PBRMaterialFlags.HeightMap; }
 			this.flagsBase_[matIndex] = flags;
 
 			// FIXME: these need to have been already allocated and packed together (RMA, NormHeight)

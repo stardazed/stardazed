@@ -28,7 +28,7 @@ namespace sd.asset {
 
 		// what remains are texture options
 		// SD only supports -o and -s for now and only with both u and v values
-		let tix = 0;
+		var tix = 0;
 		while (tix < tokens.length) {
 			const opt = tokens[tix];
 			switch (opt) {
@@ -43,8 +43,12 @@ namespace sd.asset {
 							// TODO: report invalid vector
 						}
 						else {
-							if (opt == "-o") spec.texOffset = xy;
-							else spec.texScale = xy;
+							if (opt == "-o") {
+								spec.texOffset = xy;
+							}
+							else {
+								spec.texScale = xy;
+							}
 						}
 					}
 					else {
@@ -64,11 +68,11 @@ namespace sd.asset {
 
 	function parseMTLSource(group: AssetGroup, filePath: string, text: string) {
 		const lines = text.split("\n");
+		var tokens: string[];
 		var curMat: Material | null = null;
-		var tokens: string[] = [];
 
 		const checkArgCount = function(c: number) {
-			var ok = c === tokens.length - 1;
+			const ok = (c === tokens.length - 1);
 			if (! ok) {
 				// TODO: emit warning in asset loader
 			}
@@ -77,14 +81,14 @@ namespace sd.asset {
 
 		for (const line of lines) {
 			tokens = line.trim().split(/ +/);
-			var directive = tokens[0];
+			const directive = tokens[0];
 
 			if (directive === "newmtl") {
 				if (checkArgCount(1)) {
 					if (curMat) {
 						group.addMaterial(curMat);
 					}
-					var matName = tokens[1];
+					const matName = tokens[1];
 					curMat = makeMaterial(matName);
 				}
 			}
@@ -160,7 +164,7 @@ namespace sd.asset {
 						case "disp": {
 							const texSpec = parseMTLTextureSpec(tokens);
 							if (texSpec) {
-								var texAsset: Texture2D = {
+								const texAsset: Texture2D = {
 									name: curMat.name + "_" + directive,
 									url: new URL(texSpec.relPath, filePath),
 									useMipMaps: render.UseMipMaps.Yes
@@ -237,7 +241,7 @@ namespace sd.asset {
 
 	function preflightOBJSource(group: AssetGroup, filePath: string, text: string) {
 		var mtlFileRelPath = "";
-		var preproc: OBJPreProcSource = {
+		const preproc: OBJPreProcSource = {
 			lines: [],
 			positionCount: 0,
 			normalCount: 0,
@@ -252,7 +256,7 @@ namespace sd.asset {
 		// scan for the mtllib declaration (if any) and do a counting preflight
 		for (const line of preproc.lines) {
 			const tokens = line.split(/ +/);
-			var directive = tokens[0];
+			const directive = tokens[0];
 			if (directive === "v") { preproc.positionCount += 1; }
 			else if (directive === "vn") { preproc.normalCount += 1; }
 			else if (directive === "vt") { preproc.uvCount += 1; }
@@ -276,22 +280,22 @@ namespace sd.asset {
 	}
 
 
-	let objSequenceNumber_s = 0;
+	var objSequenceNumber_s = 0;
 
 	function parseOBJSource(group: AssetGroup, preproc: OBJPreProcSource, hasColourAttr: boolean) {
-		var positions: Float32Array = new Float32Array(preproc.positionCount * 3);
+		const positions: Float32Array = new Float32Array(preproc.positionCount * 3);
+		const positionIndexes = new Uint32Array(preproc.vertexCount);
+		const streams: meshdata.VertexAttributeStream[] = [];
 		var normalValues: Float32Array | undefined;
 		var uvValues: Float32Array | undefined;
 		var colourValues: Float32Array | undefined;
-		var positionIndexes = new Uint32Array(preproc.vertexCount);
 		var normalIndexes: Uint32Array | undefined;
 		var uvIndexes: Uint32Array | undefined;
 		var colourIndexes: Uint32Array | undefined;
 		var posIx = 0, normIx = 0, uvIx = 0, vertexIx = 0, curMatIx = 0;
-		var streams: meshdata.VertexAttributeStream[] = [];
 
 		// map each material's name to its index
-		var matNameIndexMap = new Map<string, number>();
+		const matNameIndexMap = new Map<string, number>();
 		for (let matIx = 0; matIx < group.materials.length; ++matIx) {
 			matNameIndexMap.set(group.materials[matIx].name, matIx);
 		}
@@ -341,7 +345,7 @@ namespace sd.asset {
 			});
 		}
 
-		var builder = new meshdata.MeshBuilder(positions, positionIndexes, streams);
+		const builder = new meshdata.MeshBuilder(positions, positionIndexes, streams);
 
 
 		// convert a face index to zero-based int or -1 for empty index	
@@ -372,7 +376,7 @@ namespace sd.asset {
 						colourIndexes[builder.curPolygonIndex] = curMatIx;
 					}
 
-					let vi: number[] = [];
+					const vi: number[] = [];
 					for (let fvix = 1; fvix < tokens.length; ++fvix) {
 						const fix = tokens[fvix].split("/").map(fxtoi);
 						positionIndexes[vertexIx] = fix[0];
@@ -390,7 +394,7 @@ namespace sd.asset {
 					break;
 				}
 				case "usemtl":
-					var newMatIx = matNameIndexMap.get(tokens[1]);
+					const newMatIx = matNameIndexMap.get(tokens[1]);
 					if (newMatIx === undefined) {
 						// issue an error/warning
 						console.warn("Tried to set material to non-existent name: " + tokens[1]);

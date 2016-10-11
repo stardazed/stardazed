@@ -81,7 +81,7 @@ namespace sd.world {
 		create(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
 		create(linkedEntity: Entity, desc?: TransformDescriptor, parent?: TransformInstance): TransformInstance;
 		create(linkedEntity: Entity, descOrParent?: TransformDescriptor | TransformInstance, parent?: TransformInstance): TransformInstance {
-			var entIndex = entityIndex(linkedEntity);
+			const entIndex = entityIndex(linkedEntity);
 
 			if (this.instanceData_.count < entIndex) {
 				if (this.instanceData_.resize(entIndex) == container.InvalidatePointers.Yes) {
@@ -89,7 +89,7 @@ namespace sd.world {
 				}
 			}
 
-			var thisInstance = entIndex;
+			const thisInstance = entIndex;
 			var parentInstance = 0;
 			var descriptor: TransformDescriptor | null = null;
 
@@ -136,8 +136,8 @@ namespace sd.world {
 
 			if (descriptor) {
 				// optional descriptor fields
-				let rotation = descriptor.rotation || math.Quat.identity;
-				let scale = descriptor.scale || math.Vec3.one;
+				const rotation = descriptor.rotation || math.Quat.identity;
+				const scale = descriptor.scale || math.Vec3.one;
 
 				this.positionBase_.set(descriptor.position, thisInstance * math.Vec3.elementCount);
 				this.rotationBase_.set(rotation, thisInstance * math.Quat.elementCount);
@@ -159,11 +159,12 @@ namespace sd.world {
 
 
 		destroy(_inst: TransformInstance) {
+			// TBI
 		}
 
 
 		destroyRange(range: TransformRange) {
-			var iter = range.makeIterator();
+			const iter = range.makeIterator();
 			while (iter.next()) {
 				this.destroy(iter.current);
 			}
@@ -183,9 +184,10 @@ namespace sd.world {
 
 		// Entity -> TransformInstance mapping
 		forEntity(ent: Entity): TransformInstance {
-			var index = entityIndex(ent);
-			if (index > 0 && index <= this.instanceData_.count)
+			const index = entityIndex(ent);
+			if (index > 0 && index <= this.instanceData_.count) {
 				return <number>ent;
+			}
 
 			assert(false, "No transform for entity " + index);
 			return 0;
@@ -205,7 +207,7 @@ namespace sd.world {
 		localScale(inst: TransformInstance) { return container.copyIndexedVec3(this.scaleBase_, <number>inst); }
 
 		worldPosition(inst: TransformInstance): number[] {
-			var matOffset = <number>inst * 16;
+			const matOffset = <number>inst * 16;
 			return [this.worldMatrixBase_[matOffset + 12], this.worldMatrixBase_[matOffset + 13], this.worldMatrixBase_[matOffset + 14]];
 		}
 
@@ -218,8 +220,8 @@ namespace sd.world {
 
 		// update the world matrices of inst and all of its children
 		private applyParentTransform(parentMatrix: Float4x4, inst: TransformInstance) {
-			var localMat = this.localMatrix(inst);
-			var worldMat = this.worldMatrix(inst);
+			const localMat = this.localMatrix(inst);
+			const worldMat = this.worldMatrix(inst);
 			mat4.multiply(worldMat, parentMatrix, localMat);
 
 			var child = this.firstChildBase_[<number>inst];
@@ -234,7 +236,7 @@ namespace sd.world {
 		setLocalMatrix(inst: TransformInstance, newLocalMatrix: Float4x4): void;
 		setLocalMatrix(inst: TransformInstance, newRotation: Float4, newPosition: Float3, newScale: Float3): void;
 		setLocalMatrix(inst: TransformInstance, localMatOrRot: ArrayOfNumber, newPosition?: Float3, newScale?: Float3) {
-			var localMat = container.refIndexedMat4(this.localMatrixBase_, <number>inst);
+			const localMat = container.refIndexedMat4(this.localMatrixBase_, <number>inst);
 			if (arguments.length == 4) {
 				mat4.fromRotationTranslationScale(localMat, localMatOrRot, newPosition!, newScale!);
 			}
@@ -242,12 +244,12 @@ namespace sd.world {
 				localMat.set(localMatOrRot); // 4x4 mat
 			}
 
-			var parent = this.parentBase_[<number>inst];
-			var firstChild = this.firstChildBase_[<number>inst];
+			const parent = this.parentBase_[<number>inst];
+			const firstChild = this.firstChildBase_[<number>inst];
 
 			// -- optimization for root-level, childless entities (of which I have seen there are many, but this may/will change)
 			if (parent || firstChild) {
-				var parentWorldMat = (parent == 0) ? math.Mat4.identity : this.worldMatrix(parent);
+				const parentWorldMat = (parent == 0) ? math.Mat4.identity : this.worldMatrix(parent);
 				this.applyParentTransform(parentWorldMat, inst);
 			}
 			else {
@@ -257,16 +259,16 @@ namespace sd.world {
 
 
 		private removeFromParent(inst: TransformInstance) {
-			var index = <number>inst;
-			var parentIndex = this.parentBase_[index];
-			
+			const index = <number>inst;
+			const parentIndex = this.parentBase_[index];
+
 			if (! parentIndex) {
 				return;
 			}
 
-			var firstChild = this.firstChildBase_[parentIndex];
-			var prevSibling = this.prevSiblingBase_[index];
-			var nextSibling = this.nextSiblingBase_[index];
+			const firstChild = this.firstChildBase_[parentIndex];
+			const prevSibling = this.prevSiblingBase_[index];
+			const nextSibling = this.nextSiblingBase_[index];
 
 			if (firstChild == index) {
 				this.firstChildBase_[parentIndex] = nextSibling;
@@ -285,8 +287,8 @@ namespace sd.world {
 
 
 		setParent(inst: TransformInstance, newParent: TransformInstance) {
-			var thisIndex = <number>inst;
-			var parentIndex = <number>newParent;
+			const thisIndex = <number>inst;
+			const parentIndex = <number>newParent;
 
 			this.removeFromParent(inst);
 
@@ -346,7 +348,7 @@ namespace sd.world {
 		// -- relative transform helpers
 
 		translate(inst: TransformInstance, localDelta3: Float3) {
-			var pos = this.localPosition(inst);
+			const pos = this.localPosition(inst);
 			this.setPosition(inst, [pos[0] + localDelta3[0], pos[1] + localDelta3[1], pos[2] + localDelta3[2]]);
 		}
 
@@ -359,8 +361,8 @@ namespace sd.world {
 		}
 
 		rotateByAngles(inst: TransformInstance, localAng: Float3) {
-			var rot = this.localRotation(inst);
-			var q = quat.fromEuler(localAng[2], localAng[1], localAng[0]);
+			const rot = this.localRotation(inst);
+			const q = quat.fromEuler(localAng[2], localAng[1], localAng[0]);
 			this.setRotation(inst, quat.multiply([], rot, q));
 		}
 	}

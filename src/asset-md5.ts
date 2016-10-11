@@ -23,23 +23,23 @@ namespace sd.asset {
 
 
 		function constructBindPosePositions(vertexes: VertexData, weights: WeightData, joints: Transform[]) {
-			var count = vertexes.uvs.length / 2;
-			var positions = new Float32Array(count * 3);
+			const count = vertexes.uvs.length / 2;
+			const positions = new Float32Array(count * 3);
 
-			for (var vix = 0; vix < count; ++vix) {
-				var vpos = [0, 0, 0];
-				var vOff2 = vix * 2;
+			for (let vix = 0; vix < count; ++vix) {
+				const vpos = [0, 0, 0];
+				const vOff2 = vix * 2;
 
-				var weightStart = vertexes.weightOffsetsCounts[vOff2];
-				var weightEnd = weightStart + vertexes.weightOffsetsCounts[vOff2 + 1];
+				const weightStart = vertexes.weightOffsetsCounts[vOff2];
+				const weightEnd = weightStart + vertexes.weightOffsetsCounts[vOff2 + 1];
 
-				for (var wix = weightStart; wix < weightEnd; ++wix) {
-					var jix = weights.joints[wix];
-					var joint = joints[jix];
-					var bias = weights.biases[wix];
-					var weightPos = container.copyIndexedVec3(weights.positions, wix);
+				for (let wix = weightStart; wix < weightEnd; ++wix) {
+					const jix = weights.joints[wix];
+					const joint = joints[jix];
+					const bias = weights.biases[wix];
+					const weightPos = container.copyIndexedVec3(weights.positions, wix);
 
-					var weightRelPos = vec3.transformQuat([], weightPos, joint.rotation);
+					const weightRelPos = vec3.transformQuat([], weightPos, joint.rotation);
 					vec3.add(weightRelPos, weightRelPos, joint.position);
 					vec3.scaleAndAdd(vpos, vpos, weightRelPos, bias);
 				}
@@ -52,27 +52,27 @@ namespace sd.asset {
 
 
 		function constructSkinnedMeshStreams(vertexes: VertexData, weights: WeightData) {
-			var count = vertexes.uvs.length / 2;
-			var jointIndexes = new Float32Array(count * 4);
-			var weightPos0 = new Float32Array(count * 4);
-			var weightPos1 = new Float32Array(count * 4);
-			var weightPos2 = new Float32Array(count * 4);
-			var weightPos3 = new Float32Array(count * 4);
-			var weightPosArray = [weightPos0, weightPos1, weightPos2, weightPos3];
+			const count = vertexes.uvs.length / 2;
+			const jointIndexes = new Float32Array(count * 4);
+			const weightPos0 = new Float32Array(count * 4);
+			const weightPos1 = new Float32Array(count * 4);
+			const weightPos2 = new Float32Array(count * 4);
+			const weightPos3 = new Float32Array(count * 4);
+			const weightPosArray = [weightPos0, weightPos1, weightPos2, weightPos3];
 
-			for (var vix = 0; vix < count; ++vix) {
-				var vOff2 = vix * 2;
-				var vji = [-1, -1, -1, -1];
+			for (let vix = 0; vix < count; ++vix) {
+				const vOff2 = vix * 2;
+				const vji = [-1, -1, -1, -1];
 
-				var weightStart = vertexes.weightOffsetsCounts[vOff2];
-				var weightCount = vertexes.weightOffsetsCounts[vOff2 + 1];
+				const weightStart = vertexes.weightOffsetsCounts[vOff2];
+				const weightCount = vertexes.weightOffsetsCounts[vOff2 + 1];
 
-				for (var wi = 0; wi < 4; ++wi) {
+				for (let wi = 0; wi < 4; ++wi) {
 					if (wi < weightCount) {
-						var jix = weights.joints[wi + weightStart];
-						var weightPos = container.copyIndexedVec3(weights.positions, wi + weightStart);
+						const jix = weights.joints[wi + weightStart];
+						const weightPos = container.copyIndexedVec3(weights.positions, wi + weightStart);
 						weightPos[3] = weights.biases[wi + weightStart];
-						
+
 						vji[wi] = jix;
 						container.setIndexedVec4(weightPosArray[wi], vix, weightPos);
 					}
@@ -80,7 +80,7 @@ namespace sd.asset {
 				container.setIndexedVec4(jointIndexes, vix, vji);
 			}
 
-			var streams: meshdata.VertexAttributeStream[] = [
+			const streams: meshdata.VertexAttributeStream[] = [
 				{
 					name: "weightPos0",
 					attr: { field: meshdata.VertexField.Floatx4, role: meshdata.VertexAttributeRole.WeightedPos0 },
@@ -136,12 +136,12 @@ namespace sd.asset {
 				this.assets_ = new AssetGroup();
 			}
 
-			jointCount(_count: number) {}
+			jointCount(_count: number) { /* ignored */ }
 
-			beginJoints() {}
+			beginJoints() { /* ignored */ }
 
 			joint(name: string, index: number, parentIndex: number, modelPos: Float3, modelRot: Float4) {
-				var jm = makeModel(name, index);
+				const jm = makeModel(name, index);
 				jm.joint = { root: parentIndex == -1 };
 				this.joints.push({
 					position: modelPos,
@@ -152,18 +152,18 @@ namespace sd.asset {
 
 				vec3.copy(jm.transform.position, modelPos);
 				quat.copy(jm.transform.rotation, modelRot);
-				
+
 				if (parentIndex > -1) {
-					var pj = this.joints[parentIndex];
-					var pjm = this.flatJointModels.get(parentIndex)!;
+					const pj = this.joints[parentIndex];
+					const pjm = this.flatJointModels.get(parentIndex)!;
 					pjm.children.push(jm);
 					jm.parent = pjm;
 
-					var invParentQuat = quat.invert([], pj.rotation);
+					const invParentQuat = quat.invert([], pj.rotation);
 					quat.mul(jm.transform.rotation, invParentQuat, jm.transform.rotation);
 
-					var parentMat = mat4.fromRotationTranslation([], pj.rotation, pj.position);
-					var invParentMat = mat4.invert([], parentMat);
+					const parentMat = mat4.fromRotationTranslation([], pj.rotation, pj.position);
+					const invParentMat = mat4.invert([], parentMat);
 					vec3.transformMat4(jm.transform.position, jm.transform.position, invParentMat);
 				}
 				else {
@@ -172,10 +172,10 @@ namespace sd.asset {
 			}
 
 
-			endJoints() {}
+			endJoints() { /* ignored */ }
 
 
-			meshCount(_count: number) {}
+			meshCount(_count: number) { /* ignored */ }
 
 
 			beginMesh() {
@@ -186,7 +186,7 @@ namespace sd.asset {
 
 
 			materialName(name: string) {
-				var m = makeMaterial();
+				const m = makeMaterial();
 				m.userRef = this.assets_.materials.length + 1;
 				vec3.set(m.baseColour, 0.8, 0.8, 0.8);
 				if (name) {
@@ -200,7 +200,7 @@ namespace sd.asset {
 					m.albedoTexture = this.textures_.get(name);
 				}
 				m.flags |= MaterialFlags.isSkinned;
-				
+
 				this.assets_.addMaterial(m);
 				this.curMaterial = m;
 			}
@@ -221,7 +221,7 @@ namespace sd.asset {
 
 			vertex(index: number, uv: Float2, weightOffset: number, weightCount: number) {
 				// precondition: this.vertexes was set (vertexCount was called with non-zero count)
-				var io = index * 2;
+				const io = index * 2;
 				this.vertexes!.uvs[io] = uv[0];
 				this.vertexes!.uvs[io + 1] = uv[1];
 				this.vertexes!.weightOffsetsCounts[io] = weightOffset;
@@ -270,8 +270,8 @@ namespace sd.asset {
 
 			endMesh() {
 				if (this.vertexes && this.triangles && this.weights) {
-					var positions = constructBindPosePositions(this.vertexes, this.weights, this.joints);
-					var streams = constructSkinnedMeshStreams(this.vertexes, this.weights);
+					const positions = constructBindPosePositions(this.vertexes, this.weights, this.joints);
+					const streams = constructSkinnedMeshStreams(this.vertexes, this.weights);
 					streams.push({
 						name: "normals",
 						attr: { field: meshdata.VertexField.Floatx3, role: meshdata.VertexAttributeRole.Normal },
@@ -287,7 +287,7 @@ namespace sd.asset {
 						values: this.vertexes.uvs
 					});
 
-					var mb = new meshdata.MeshBuilder(positions, null, streams);
+					const mb = new meshdata.MeshBuilder(positions, null, streams);
 					var triCount = this.triangles.length / 3;
 					var pvi = 0;
 					var pi = 0;
@@ -297,11 +297,11 @@ namespace sd.asset {
 						pi += 1;
 					}
 
-					var md = mb.complete();
+					const md = mb.complete();
 					md.genVertexNormals();
 					this.transformNormalsIntoJointSpace(md);
 
-					var sdMesh: Mesh = {
+					const sdMesh: Mesh = {
 						name: "",
 						userRef: this.meshCount_++,
 						meshData: md,
@@ -309,7 +309,7 @@ namespace sd.asset {
 					};
 					this.assets_.addMesh(sdMesh);
 
-					var mm = makeModel("mesh");
+					const mm = makeModel("mesh");
 					mm.mesh = sdMesh;
 					mm.materials = [this.curMaterial];
 					this.assets_.addModel(mm);
@@ -322,8 +322,7 @@ namespace sd.asset {
 			}
 
 
-			completed() {
-			}
+			completed() { /* ignored */ }
 
 
 			private transformNormalsIntoJointSpace(md: meshdata.MeshData) {
@@ -335,15 +334,15 @@ namespace sd.asset {
 					const vertexes = this.vertexes!;
 					const vertexCount = vertexes.uvs.length / 2;
 
-					var normView = new meshdata.VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
+					const normView = new meshdata.VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
 
-					for (var vix = 0; vix < vertexCount; ++vix) {
-						var normalRef = normView.refItem(vix);
-						var finalNormal = [0, 0, 0];
-						var woff = vertexes.weightOffsetsCounts[vix * 2];
-						var wcnt = vertexes.weightOffsetsCounts[(vix * 2) + 1];
+					for (let vix = 0; vix < vertexCount; ++vix) {
+						const normalRef = normView.refItem(vix);
+						const finalNormal = [0, 0, 0];
+						const woff = vertexes.weightOffsetsCounts[vix * 2];
+						const wcnt = vertexes.weightOffsetsCounts[(vix * 2) + 1];
 
-						for (var j = 0; j < wcnt; ++j) {
+						for (let j = 0; j < wcnt; ++j) {
 							const bias = weights.biases[woff + j];
 							const joint = joints[weights.joints[woff + j]];
 
@@ -359,7 +358,7 @@ namespace sd.asset {
 
 
 			private loadTextures() {
-				var fileProms: Promise<Texture2D | null>[] = [];
+				const fileProms: Promise<Texture2D | null>[] = [];
 
 				this.textures_.forEach(tex => {
 					if (! tex.url || tex.descriptor) {
@@ -417,7 +416,7 @@ namespace sd.asset {
 			}
 
 			frameCount(count: number) { this.frameCount_ = count; }
-			jointCount(_count: number) { }
+			jointCount(_count: number) { /* ignored */ }
 			frameRate(fps: number) { this.frameRate_ = fps; }
 			frameComponentCount(count: number) { this.compCount_ = count; }
 
@@ -426,14 +425,14 @@ namespace sd.asset {
 				if (j.mask == 0) {
 					return undefined;
 				}
-				var hasPos = (j.mask & 7) != 0;
-				var hasRot = (j.mask & 56) != 0;
-				var comps = 0;
-				if (hasPos) comps += 3;
-				if (hasRot) comps += 4;
+				const hasPos = (j.mask & 7) != 0;
+				const hasRot = (j.mask & 56) != 0;
+				var components = 0;
+				if (hasPos) { components += 3; }
+				if (hasRot) { components += 4; }
 
-				var buffer = new Float32Array(comps * this.frameCount_);
-				var tracks: TransformAnimationTrack[] = [];
+				const buffer = new Float32Array(components * this.frameCount_);
+				const tracks: TransformAnimationTrack[] = [];
 				var offset = 0;
 
 				if (hasPos) {
@@ -458,9 +457,9 @@ namespace sd.asset {
 			}
 
 
-			beginHierarchy() { }
+			beginHierarchy() { /* ignored */ }
 			joint(name: string, index: number, parentIndex: number, animMask: parse.MD5AnimMask, _componentOffset: number) {
-				var j: AnimJoint = {
+				const j: AnimJoint = {
 					name: name,
 					index: index,
 					parentIndex: parentIndex,
@@ -469,39 +468,38 @@ namespace sd.asset {
 				j.anim = this.animForJoint(j);
 				this.joints_.push(j);
 			}
-			endHierarchy() { }
+			endHierarchy() { /* ignored */ }
 
 
-			beginBoundingBoxes() { }
-			bounds(_frameIndex: number, _min: Float3, _max: Float3) {
-			}
-			endBoundingBoxes() { }
+			beginBoundingBoxes() { /* ignored */ }
+			bounds(_frameIndex: number, _min: Float3, _max: Float3) { /* ignored */ }
+			endBoundingBoxes() { /* ignored */ }
 
 
-			beginBaseFrame() { }
+			beginBaseFrame() { /* ignored */ }
 			baseJoint(index: number, jointPos: Float3, jointRot: Float4) {
 				this.joints_[index].basePos = jointPos;
 				this.joints_[index].baseRot = jointRot;
 
-				var xf = makeTransform();
+				const xf = makeTransform();
 				vec3.copy(xf.position, jointPos);
 				quat.copy(xf.rotation, jointRot);
 				this.baseFrame_.push(xf);
 			}
-			endBaseFrame() { }
+			endBaseFrame() { /* ignored */ }
 
 
 			frame(index: number, components: Float32Array) {
 				var compIx = 0;
-				
-				for (var jix = 0; jix < this.joints_.length; ++jix) {
-					var j = this.joints_[jix];
+
+				for (let jix = 0; jix < this.joints_.length; ++jix) {
+					const j = this.joints_[jix];
 					if (j.mask == 0) {
 						continue;
 					}
 
 					if (j.mask & 7) {
-						let finalPos = vec3.copy([], j.basePos!);
+						const finalPos = vec3.copy([], j.basePos!);
 						if (j.mask & parse.MD5AnimMask.PosX) {
 							finalPos[0] = components[compIx++];
 						}
@@ -512,13 +510,13 @@ namespace sd.asset {
 							finalPos[2] = components[compIx++];
 						}
 
-						container.setIndexedVec3(j.anim!.tracks[0].key, index, finalPos);						
+						container.setIndexedVec3(j.anim!.tracks[0].key, index, finalPos);
 					}
 
 					if (j.mask & 56) {
-						let arrIx = ((j.mask & 7) != 0) ? 1 : 0;
+						const arrIx = ((j.mask & 7) != 0) ? 1 : 0;
 
-						let finalRot = vec3.copy([], j.baseRot!); // only need first 3 floats
+						const finalRot = vec3.copy([], j.baseRot!); // only need first 3 floats
 						if (j.mask & parse.MD5AnimMask.QuatX) {
 							finalRot[0] = components[compIx++];
 						}
@@ -547,10 +545,10 @@ namespace sd.asset {
 
 
 			assets(): AssetGroup {
-				var ag = new AssetGroup();
+				const ag = new AssetGroup();
 				// the non-null assertion is necessary as the null filtering does not register
-				var ja = this.joints_.map(j => j.anim!).filter(a => a != null);
-				var sa: SkeletonAnimation = {
+				const ja = this.joints_.map(j => j.anim!).filter(a => a != null);
+				const sa: SkeletonAnimation = {
 					frameCount: this.frameCount_,
 					frameTime: 1 / this.frameRate_,
 					name: this.filePath,
@@ -567,16 +565,16 @@ namespace sd.asset {
 
 
 	function parseMD5MeshSource(filePath: string, source: string): Promise<AssetGroup> {
-		var del = new md5.MD5MeshBuilder(filePath);
-		var parser = new md5.parse.MD5MeshParser(source, del);
+		const del = new md5.MD5MeshBuilder(filePath);
+		const parser = new md5.parse.MD5MeshParser(source, del);
 		parser.parse();
 		return del.assets();
 	}
 
 
 	function parseMD5AnimSource(filePath: string, source: string): AssetGroup {
-		var del = new md5.MD5AnimBuilder(filePath);
-		var parser = new md5.parse.MD5AnimParser(source, del);
+		const del = new md5.MD5AnimBuilder(filePath);
+		const parser = new md5.parse.MD5AnimParser(source, del);
 		parser.parse();
 		return del.assets();
 	}

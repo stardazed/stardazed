@@ -22,13 +22,13 @@ namespace sd.io {
 		DELETE = 46,
 
 		// charCode equals keyCode for A-Z
-		A = 'A'.charCodeAt(0), B = 'B'.charCodeAt(0), C = 'C'.charCodeAt(0), D = 'D'.charCodeAt(0),
-		E = 'E'.charCodeAt(0), F = 'F'.charCodeAt(0), G = 'G'.charCodeAt(0), H = 'H'.charCodeAt(0),
-		I = 'I'.charCodeAt(0), J = 'J'.charCodeAt(0), K = 'K'.charCodeAt(0), L = 'L'.charCodeAt(0),
-		M = 'M'.charCodeAt(0), N = 'N'.charCodeAt(0), O = 'O'.charCodeAt(0), P = 'P'.charCodeAt(0),
-		Q = 'Q'.charCodeAt(0), R = 'R'.charCodeAt(0), S = 'S'.charCodeAt(0), T = 'T'.charCodeAt(0),
-		U = 'U'.charCodeAt(0), V = 'V'.charCodeAt(0), W = 'W'.charCodeAt(0), X = 'X'.charCodeAt(0),
-		Y = 'Y'.charCodeAt(0), Z = 'Z'.charCodeAt(0)
+		A = "A".charCodeAt(0), B = "B".charCodeAt(0), C = "C".charCodeAt(0), D = "D".charCodeAt(0),
+		E = "E".charCodeAt(0), F = "F".charCodeAt(0), G = "G".charCodeAt(0), H = "H".charCodeAt(0),
+		I = "I".charCodeAt(0), J = "J".charCodeAt(0), K = "K".charCodeAt(0), L = "L".charCodeAt(0),
+		M = "M".charCodeAt(0), N = "N".charCodeAt(0), O = "O".charCodeAt(0), P = "P".charCodeAt(0),
+		Q = "Q".charCodeAt(0), R = "R".charCodeAt(0), S = "S".charCodeAt(0), T = "T".charCodeAt(0),
+		U = "U".charCodeAt(0), V = "V".charCodeAt(0), W = "W".charCodeAt(0), X = "X".charCodeAt(0),
+		Y = "Y".charCodeAt(0), Z = "Z".charCodeAt(0)
 	};
 
 
@@ -62,7 +62,7 @@ namespace sd.io {
 		// keyup event handler, causing the key to appear to be "stuck".
 
 		constructor() {
-			var fields: container.MABField[] = [
+			const fields: container.MABField[] = [
 				{ type: UInt8, count: 1 },  // down
 				{ type: UInt8, count: 1 },  // halfTransitionCount
 				{ type: UInt32, count: 1 }, // lastEvent
@@ -73,8 +73,8 @@ namespace sd.io {
 			this.lastEventBase_ = this.keyData_.indexedFieldView(2);
 
 			dom.on(window, "keydown", (evt: KeyboardEvent) => {
-				var lastEvent = this.lastEventBase_[evt.keyCode];
-				var wasDown = this.downBase_[evt.keyCode];
+				const lastEvent = this.lastEventBase_[evt.keyCode];
+				const wasDown = this.downBase_[evt.keyCode];
 
 				if (lastEvent < evt.timeStamp) {
 					if (! wasDown) { // ignore key repeat events
@@ -84,8 +84,9 @@ namespace sd.io {
 					this.lastEventBase_[evt.keyCode] = evt.timeStamp;
 				}
 
-				if (! evt.metaKey)
+				if (! evt.metaKey) {
 					evt.preventDefault();
+				}
 			});
 
 			dom.on(window, "keyup", (evt: KeyboardEvent) => {
@@ -93,8 +94,9 @@ namespace sd.io {
 				++this.halfTransBase_[evt.keyCode];
 				this.lastEventBase_[evt.keyCode] = evt.timeStamp;
 
-				if (! evt.metaKey)
+				if (! evt.metaKey) {
 					evt.preventDefault();
+				}
 			});
 
 			// -- losing or gaining focus will reset all key state to avoid stuck keys

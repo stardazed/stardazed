@@ -28,7 +28,7 @@ namespace sd.world {
 		Fog             = 0x004000,
 		Translucency    = 0x008000,
 
-		//Instanced      = 0x010000,
+		// Instanced      = 0x010000,
 		Skinned         = 0x020000
 	}
 
@@ -39,7 +39,7 @@ namespace sd.world {
 		mvMatrixUniform: WebGLUniformLocation | null;  // mat4
 		mvpMatrixUniform: WebGLUniformLocation;        // mat4
 		normalMatrixUniform: WebGLUniformLocation;     // mat3
-		lightNormalMatrixUniform: WebGLUniformLocation | null;// mat3
+		lightNormalMatrixUniform: WebGLUniformLocation | null; // mat3
 
 		// -- skinning
 		jointDataUniform: WebGLUniformLocation | null;        // sampler2D 
@@ -121,8 +121,9 @@ namespace sd.world {
 			feat &= this.featureMask_;
 
 			var cached = this.cachedPipelines_.get(feat);
-			if (cached)
+			if (cached) {
 				return cached;
+			}
 
 			var gl = this.rc.gl;
 
@@ -136,7 +137,7 @@ namespace sd.world {
 
 			// -- mandatory and optional attribute arrays
 			pld.attributeNames.set(meshdata.VertexAttributeRole.Normal, "vertexNormal");
-			
+
 			if (feat & Features.Skinned) {
 				pld.attributeNames.set(meshdata.VertexAttributeRole.JointIndexes, "vertexJointIndexes");
 				pld.attributeNames.set(meshdata.VertexAttributeRole.WeightedPos0, "vertexWeightedPos0_joint");
@@ -180,7 +181,7 @@ namespace sd.world {
 
 			var pipeline = new render.Pipeline(this.rc, pld);
 			var program = <StdGLProgram>pipeline.program;
-			
+
 			gl.useProgram(program);
 
 			// -- transformation matrices
@@ -291,9 +292,9 @@ namespace sd.world {
 		private vertexShaderSource(feat: number) {
 			var source: string[] = [];
 			var line = (s: string) => source.push(s);
-			var if_all = (s: string, f: number) => { if ((feat & f) == f) source.push(s) };
+			var if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
 			// var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
-			
+
 			// In
 			if (feat & Features.Skinned) {
 				line("attribute vec4 vertexWeightedPos0_joint;");
@@ -419,7 +420,7 @@ namespace sd.world {
 		private fragmentShaderSource(feat: number) {
 			var source: string[] = [];
 			var line = (s: string) => source.push(s);
-			var if_all = (s: string, f: number) => { if ((feat & f) == f) source.push(s) };
+			var if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
 			// var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
 			// var if_not = (s: string, f: number) => { if ((feat & f) == 0) source.push(s) };
 
@@ -532,7 +533,7 @@ namespace sd.world {
 			line  ("	float cutoff = param[LPARAM_CUTOFF];");
 			line  ("	if (spotCosAngle > cutoff) {");
 			line  ("		vec3 light = calcPointLight(lightIx, matColour, colour, param, lightPos_cam, lightPos_world, normal_cam);");
-			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);")
+			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);");
 			line  ("	}");
 			line  ("	return vec3(0.0);");
 			line  ("}");
@@ -585,11 +586,11 @@ namespace sd.world {
 
 					if (feat & Features.DiffuseAlphaIsTransparency) {
 						line("	if (texColourA.a < 0.1) {");
-						line("		discard;")
+						line("		discard;");
 						line("	}");
 					}
 					else {
-						line("	fragOpacity = texColourA.a;")
+						line("	fragOpacity = texColourA.a;");
 					}
 				}
 				else {
@@ -600,7 +601,7 @@ namespace sd.world {
 					line("	vec3 matColour = vertexColour_intp * texColour * mainColour.rgb;");
 				}
 				else {
-					line("	vec3 matColour = texColour * mainColour.rgb;");	
+					line("	vec3 matColour = texColour * mainColour.rgb;");
 				}
 			}
 			else if (feat & Features.VtxColour) {
@@ -616,18 +617,18 @@ namespace sd.world {
 				line("	poissonDisk[1] = vec2(0.94558609, -0.76890725);");
 				line("	poissonDisk[2] = vec2(-0.094184101, -0.92938870);");
 				line("	poissonDisk[3] = vec2(0.34495938, 0.29387760);");
-				line("	poissonDisk[4] = vec2( -0.91588581, 0.45771432 );")
-				line("	poissonDisk[5] = vec2( -0.81544232, -0.87912464 );")
-				line("	poissonDisk[6] = vec2( -0.38277543, 0.27676845 );")
-				line("	poissonDisk[7] = vec2( 0.97484398, 0.75648379 );")
-				line("	poissonDisk[8] = vec2( 0.44323325, -0.97511554 );")
-				line("	poissonDisk[9] = vec2( 0.53742981, -0.47373420 );")
-				line("	poissonDisk[10] = vec2( -0.26496911, -0.41893023 );")
-				line("	poissonDisk[11] = vec2( 0.79197514, 0.19090188 );")
-				line("	poissonDisk[12] = vec2( -0.24188840, 0.99706507 ); ")
-				line("	poissonDisk[13] = vec2( -0.81409955, 0.91437590 );")
-				line("	poissonDisk[14] = vec2( 0.19984126, 0.78641367 );")
-				line("	poissonDisk[15] = vec2( 0.14383161, -0.14100790 );")
+				line("	poissonDisk[4] = vec2( -0.91588581, 0.45771432 );");
+				line("	poissonDisk[5] = vec2( -0.81544232, -0.87912464 );");
+				line("	poissonDisk[6] = vec2( -0.38277543, 0.27676845 );");
+				line("	poissonDisk[7] = vec2( 0.97484398, 0.75648379 );");
+				line("	poissonDisk[8] = vec2( 0.44323325, -0.97511554 );");
+				line("	poissonDisk[9] = vec2( 0.53742981, -0.47373420 );");
+				line("	poissonDisk[10] = vec2( -0.26496911, -0.41893023 );");
+				line("	poissonDisk[11] = vec2( 0.79197514, 0.19090188 );");
+				line("	poissonDisk[12] = vec2( -0.24188840, 0.99706507 ); ");
+				line("	poissonDisk[13] = vec2( -0.81409955, 0.91437590 );");
+				line("	poissonDisk[14] = vec2( 0.19984126, 0.78641367 );");
+				line("	poissonDisk[15] = vec2( 0.14383161, -0.14100790 );");
 			}
 
 			// -- normal in camera space, convert from tangent space
@@ -676,13 +677,13 @@ namespace sd.world {
 				line("		}"); // lightIx == shadowCastingLightIndex
 			}
 
-			line  ("		if (type == 1) {")
+			line  ("		if (type == 1) {");
 			line  ("			totalLight += shadowFactor * calcDirectionalLight(lightIx, matColour, lightColour, lightParam, lightDir_cam, normal_cam);");
 			line  ("		}");
-			line  ("		else if (type == 2) {")
+			line  ("		else if (type == 2) {");
 			line  ("			totalLight += shadowFactor * calcPointLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, normal_cam);");
 			line  ("		}");
-			line  ("		else if (type == 3) {")
+			line  ("		else if (type == 3) {");
 			line  ("			totalLight += shadowFactor * calcSpotLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, normal_cam);");
 			line  ("		}");
 			line  ("	}");
@@ -728,7 +729,7 @@ namespace sd.world {
 
 	export const enum RenderMode {
 		Forward,
-		//Deferred,
+		// Deferred,
 		Shadow
 	}
 
@@ -830,13 +831,13 @@ namespace sd.world {
 			var features = 0;
 
 			const meshFeatures = this.meshMgr_.features(mesh);
-			if (meshFeatures & MeshFeatures.VertexColours) features |= Features.VtxColour;
-			if (meshFeatures & MeshFeatures.VertexUVs) features |= Features.VtxUV;
+			if (meshFeatures & MeshFeatures.VertexColours) { features |= Features.VtxColour; }
+			if (meshFeatures & MeshFeatures.VertexUVs) { features |= Features.VtxUV; }
 
 			var matFlags = this.materialMgr_.flags(material);
-			if (matFlags & asset.MaterialFlags.usesSpecular) features |= Features.Specular;
-			if (matFlags & asset.MaterialFlags.usesEmissive) features |= Features.Emissive;
-			if (matFlags & asset.MaterialFlags.diffuseAlphaIsTransparency) features |= Features.DiffuseAlphaIsTransparency;
+			if (matFlags & asset.MaterialFlags.usesSpecular) { features |= Features.Specular; }
+			if (matFlags & asset.MaterialFlags.usesEmissive) { features |= Features.Emissive; }
+			if (matFlags & asset.MaterialFlags.diffuseAlphaIsTransparency) { features |= Features.DiffuseAlphaIsTransparency; }
 
 			if (matFlags & asset.MaterialFlags.isTranslucent) {
 				features |= Features.Translucency;
@@ -846,11 +847,11 @@ namespace sd.world {
 				}
 			}
 
-			if (this.materialMgr_.diffuseMap(material)) features |= Features.DiffuseMap;
-			if (this.materialMgr_.normalMap(material)) features |= Features.NormalMap;
-			if (this.materialMgr_.specularMap(material)) features |= Features.SpecularMap | Features.Specular;
+			if (this.materialMgr_.diffuseMap(material)) { features |= Features.DiffuseMap; }
+			if (this.materialMgr_.normalMap(material)) { features |= Features.NormalMap; }
+			if (this.materialMgr_.specularMap(material)) { features |= Features.SpecularMap | Features.Specular; }
 
-			if (this.materialMgr_.flags(material) & asset.MaterialFlags.isSkinned) features |= Features.Skinned;
+			if (this.materialMgr_.flags(material) & asset.MaterialFlags.isSkinned) { features |= Features.Skinned; }
 
 			// Remove redundant or unused features as GL drivers can and will remove attributes that are only used in the vertex shader
 			// var prePrune = features;
@@ -921,7 +922,7 @@ namespace sd.world {
 			for (const mat of desc.materials) {
 				this.materials_.push(this.materialMgr_.create(mat));
 			}
-			
+
 			this.updatePrimGroups(ix);
 
 			return ix;
@@ -929,6 +930,7 @@ namespace sd.world {
 
 
 		destroy(_inst: StdModelInstance) {
+			// TBI
 		}
 
 
@@ -1189,7 +1191,7 @@ namespace sd.world {
 		}
 
 
-		private splitModelRange(range: StdModelRange, triggerFeature: Features, cullDisabled: boolean = false) {
+		private splitModelRange(range: StdModelRange, triggerFeature: Features, cullDisabled = false) {
 			var withFeature = new InstanceSet<StdModelManager>();
 			var withoutFeature = new InstanceSet<StdModelManager>();
 

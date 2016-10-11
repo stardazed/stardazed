@@ -112,7 +112,7 @@ namespace sd.world {
 		constructor(private transformMgr_: TransformManager) {
 			const initialCapacity = 256;
 
-			var fields: container.MABField[] = [
+			const fields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transformInstance
 				{ type: UInt8, count: 1 }, // type
@@ -157,7 +157,7 @@ namespace sd.world {
 			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
-			var instanceIx = this.instanceData_.count;
+			const instanceIx = this.instanceData_.count;
 
 			// -- entity and transform links
 			this.entityBase_[instanceIx] = <number>entity;
@@ -169,8 +169,8 @@ namespace sd.world {
 			container.setIndexedVec4(this.colourBase_, instanceIx, this.tempVec4_);
 
 			// -- parameters, force 0 for unused fields for specified type
-			var range = (desc.range === undefined || desc.type == LightType.Directional) ? 0 : desc.range;
-			var cutoff = (desc.cutoff === undefined || desc.type != LightType.Spot) ? 0 : desc.cutoff;
+			const range = (desc.range === undefined || desc.type == LightType.Directional) ? 0 : desc.range;
+			const cutoff = (desc.cutoff === undefined || desc.type != LightType.Spot) ? 0 : desc.cutoff;
 			vec4.set(this.tempVec4_, desc.ambientIntensity || 0, desc.diffuseIntensity, range, Math.cos(cutoff));
 			container.setIndexedVec4(this.parameterBase_, instanceIx, this.tempVec4_);
 
@@ -179,7 +179,7 @@ namespace sd.world {
 				this.shadowTypeBase_[instanceIx] = desc.shadowType;
 				this.shadowQualityBase_[instanceIx] = desc.shadowQuality || ShadowQuality.Auto;
 
-				var paramData = container.refIndexedVec2(this.shadowParamBase_, instanceIx);
+				const paramData = container.refIndexedVec2(this.shadowParamBase_, instanceIx);
 				paramData[ShadowParam.Strength] = (desc.shadowStrength != undefined) ? math.clamp01(desc.shadowStrength) : 1.0;
 				paramData[ShadowParam.Bias] = (desc.shadowBias != undefined) ? math.clamp01(desc.shadowBias) : 0.05;
 			}
@@ -189,11 +189,12 @@ namespace sd.world {
 
 
 		destroy(_inst: LightInstance) {
+			// TBI
 		}
 
 
 		destroyRange(range: LightRange) {
-			var iter = range.makeIterator();
+			const iter = range.makeIterator();
 			while (iter.next()) {
 				this.destroy(iter.current);
 			}
@@ -236,12 +237,12 @@ namespace sd.world {
 
 
 		direction(inst: LightInstance): Float3 {
-			var rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(this.transformBase_[<number>inst]));
+			const rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(this.transformBase_[<number>inst]));
 			return vec3.normalize([], vec3.transformMat3([], this.nullVec3_, rotMat));
 		}
 
 		setDirection(inst: LightInstance, newDirection: Float3) {
-			var normalizedDir = vec3.normalize([], newDirection);
+			const normalizedDir = vec3.normalize([], newDirection);
 			this.transformMgr_.setRotation(this.transformBase_[<number>inst], quat.rotationTo([], this.nullVec3_, normalizedDir));
 		}
 
@@ -249,18 +250,18 @@ namespace sd.world {
 		// -- derived properties
 
 		projectionSetupForLight(inst: LightInstance, viewportWidth: number, viewportHeight: number, nearZ: number): ProjectionSetup | null {
-			var transform = this.transformBase_[<number>inst];
-			var worldPos = this.transformMgr_.worldPosition(transform);
-			var worldDirection = this.direction(inst);
-			var worldTarget = vec3.add([], worldPos, worldDirection);
+			const transform = this.transformBase_[<number>inst];
+			const worldPos = this.transformMgr_.worldPosition(transform);
+			const worldDirection = this.direction(inst);
+			const worldTarget = vec3.add([], worldPos, worldDirection);
 
 			var viewMatrix: Float4x4;
 			var projectionMatrix: Float4x4;
 
-			var type = this.typeBase_[<number>inst];
+			const type = this.typeBase_[<number>inst];
 			if (type == LightType.Spot) {
-				var farZ = this.range(inst);
-				var fov = this.cutoff(inst) * 2; // cutoff is half-angle
+				const farZ = this.range(inst);
+				const fov = this.cutoff(inst) * 2; // cutoff is half-angle
 				viewMatrix = mat4.lookAt([], worldPos, worldTarget, [0, 1, 0]); // FIXME: this can likely be done cheaper
 				projectionMatrix = mat4.perspective([], fov, viewportWidth / viewportHeight, nearZ, farZ);
 				// TODO: cache this matrix?
@@ -291,8 +292,8 @@ namespace sd.world {
 
 
 		shadowViewForLight(rc: render.RenderContext, inst: LightInstance, nearZ: number): ShadowView | null {
-			var fbo = this.shadowFrameBufferOfQuality(rc, this.shadowQualityBase_[<number>inst]);
-			var projection = this.projectionSetupForLight(inst, fbo.width, fbo.height, nearZ);
+			const fbo = this.shadowFrameBufferOfQuality(rc, this.shadowQualityBase_[<number>inst]);
+			const projection = this.projectionSetupForLight(inst, fbo.width, fbo.height, nearZ);
 
 			return projection && {
 				light: inst,
@@ -309,7 +310,7 @@ namespace sd.world {
 		}
 
 		setColour(inst: LightInstance, newColour: Float3) {
-			var offset = <number>inst * 4;
+			const offset = <number>inst * 4;
 			this.colourBase_[offset] = newColour[0];
 			this.colourBase_[offset + 1] = newColour[1];
 			this.colourBase_[offset + 2] = newColour[2];
@@ -354,7 +355,7 @@ namespace sd.world {
 
 		// cutoff is stored as the cosine of the angle for quick usage in the shader
 		cutoff(inst: LightInstance) {
-			var cosCutoff = this.parameterBase_[(<number>inst * 4) + LightParam.Cutoff];
+			const cosCutoff = this.parameterBase_[(<number>inst * 4) + LightParam.Cutoff];
 			return Math.acos(cosCutoff);
 		}
 
@@ -402,21 +403,21 @@ namespace sd.world {
 		// -- shader data
 
 		getData(inst: LightInstance, viewMatrix: Float4x4, viewNormalMatrix: Float3x3): LightData {
-			var transform = this.transformBase_[<number>inst];
+			const transform = this.transformBase_[<number>inst];
 
-			var paramData = container.copyIndexedVec2(this.shadowParamBase_, <number>inst);
-			var posAndStrength = new Float32Array(4);
-			var dirAndBias = new Float32Array(4);
-			var rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(transform));
+			const paramData = container.copyIndexedVec2(this.shadowParamBase_, <number>inst);
+			const posAndStrength = new Float32Array(4);
+			const dirAndBias = new Float32Array(4);
+			const rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(transform));
 
-			var lightPos_world = this.transformMgr_.worldPosition(transform);
-			var lightPos_cam = vec3.transformMat4([], lightPos_world, viewMatrix);
-			var lightDir_world = vec3.transformMat3([], this.nullVec3_, rotMat);
-			var lightDir_cam = vec3.transformMat3([], lightDir_world, viewNormalMatrix);
+			const lightPosWorld = this.transformMgr_.worldPosition(transform);
+			const lightPosCam = vec3.transformMat4([], lightPosWorld, viewMatrix);
+			const lightDirWorld = vec3.transformMat3([], this.nullVec3_, rotMat);
+			const lightDirCam = vec3.transformMat3([], lightDirWorld, viewNormalMatrix);
 
-			posAndStrength.set(lightPos_cam, 0);
+			posAndStrength.set(lightPosCam, 0);
 			posAndStrength[3] = paramData[ShadowParam.Strength];
-			dirAndBias.set(vec3.normalize([], lightDir_cam), 0);
+			dirAndBias.set(vec3.normalize([], lightDirCam), 0);
 			dirAndBias[3] = paramData[ShadowParam.Bias];
 
 			return {
@@ -424,7 +425,7 @@ namespace sd.world {
 				colourData: container.refIndexedVec4(this.colourBase_, <number>inst),
 				parameterData: container.refIndexedVec4(this.parameterBase_, <number>inst),
 				position_cam: posAndStrength,
-				position_world: lightPos_world.concat(0),
+				position_world: lightPosWorld.concat(0),
 				direction: dirAndBias
 			};
 		}

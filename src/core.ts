@@ -21,7 +21,7 @@ namespace sd {
 
 	// Shallow clone an object. Use only for simple struct types.
 	export function cloneStruct<T>(object: T): T {
-		var copy = {};
+		const copy = {};
 		Object.getOwnPropertyNames(object).forEach(name => {
 			(<any>copy)[name] = (<any>object)[name];
 		});
@@ -31,7 +31,7 @@ namespace sd {
 
 	// Deep clone an object. Use only for simple struct types.
 	export function cloneStructDeep<T>(object: T): T {
-		var copy = {};
+		const copy = {};
 		Object.getOwnPropertyNames(object).forEach(name => {
 			if (typeof (<any>object)[name] === "object") {
 				(<any>copy)[name] = cloneStructDeep((<any>object)[name]);

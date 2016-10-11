@@ -35,8 +35,9 @@ namespace sd.world {
 
 
 		destroy(ref: PhysicsMaterialRef) {
-			if (! this.valid(ref))
+			if (! this.valid(ref)) {
 				return;
+			}
 
 			const index = <number>ref;
 			if (index == this.instanceData_.length - 1) {

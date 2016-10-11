@@ -15,7 +15,8 @@ namespace sd.meshdata {
 	// \ \ / /__ _ _| |_ _____ _| __(_)___| |__| |
 	//  \ V / -_) '_|  _/ -_) \ / _|| / -_) / _` |
 	//   \_/\___|_|  \__\___/_\_\_| |_\___|_\__,_|
-	                                           
+	//                                            
+
 	// A single field in a vertex buffer
 	// 3 properties: element type, count and normalization
 
@@ -384,7 +385,7 @@ namespace sd.meshdata {
 	// \ \ / /__ _ _| |_ _____ _| _ )_  _ / _|/ _|___ _ _ 
 	//  \ V / -_) '_|  _/ -_) \ / _ \ || |  _|  _/ -_) '_|
 	//   \_/\___|_|  \__\___/_\_\___/\_,_|_| |_| \___|_|  
-	//	
+	//                                                    
 
 	export class VertexBuffer implements ClientBuffer {
 		private layout_: VertexLayout;
@@ -393,10 +394,12 @@ namespace sd.meshdata {
 		private storage_: ArrayBuffer | null = null;
 
 		constructor(attrs: VertexAttribute[] | VertexLayout) {
-			if (attrs instanceof VertexLayout)
+			if (attrs instanceof VertexLayout) {
 				this.layout_ = attrs;
-			else
+			}
+			else {
 				this.layout_ = new VertexLayout(<VertexAttribute[]>attrs);
+			}
 		}
 
 		// -- buffer data management
@@ -473,38 +476,38 @@ namespace sd.meshdata {
 		}
 
 		forEach(callback: (item: TypedArray) => void) {
-			var max = this.count;
+			const max = this.count;
 			for (let ix = 0; ix < max; ++ix) {
 				callback(this.refItem(ix));
 			}
 		}
 
-		copyValuesFrom(source: ArrayOfConstNumber, valueCount: number, offset: number = 0) {
+		copyValuesFrom(source: ArrayOfConstNumber, valueCount: number, offset = 0) {
 			assert(this.firstItem_ + offset + valueCount <= this.viewItemCount_, "buffer overflow");
 			assert(source.length >= valueCount * this.attrElementCount_, "not enough elements in source");
 
-			var firstIndex = this.firstItem_ + offset;
+			const buffer = this.buffer_;
+			const stride = this.stride_;
+			const elementSize = this.fieldNumType_.byteSize;
+			const firstIndex = this.firstItem_ + offset;
 			var offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * firstIndex) + this.attrOffset_;
-			var buffer = this.buffer_;
-			var stride = this.stride_;
-			var elementSize = this.fieldNumType_.byteSize;
 			var sourceIndex = 0;
 			var arrView: TypedArray;
 
 			if (this.attrElementCount_ == 1) {
 				if (stride % elementSize == 0) {
-					let strideInElements = (stride / elementSize) | 0;
-					let offsetInElements = (offsetBytes / elementSize) | 0;
+					const strideInElements = (stride / elementSize) | 0;
+					const offsetInElements = (offsetBytes / elementSize) | 0;
 					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
 					let vertexOffset = 0;
-					for (var n = 0; n < valueCount; ++n) {
+					for (let n = 0; n < valueCount; ++n) {
 						arrView[vertexOffset] = source[sourceIndex];
 						sourceIndex += 1;
 						vertexOffset += strideInElements;
 					}
 				}
 				else {
-					for (var n = 0; n < valueCount; ++n) {
+					for (let n = 0; n < valueCount; ++n) {
 						arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 1);
 						arrView[0] = source[sourceIndex];
 						sourceIndex += 1;
@@ -514,11 +517,11 @@ namespace sd.meshdata {
 			}
 			else if (this.attrElementCount_ == 2) {
 				if (stride % elementSize == 0) {
-					let strideInElements = (stride / elementSize) | 0;
-					let offsetInElements = (offsetBytes / elementSize) | 0;
+					const strideInElements = (stride / elementSize) | 0;
+					const offsetInElements = (offsetBytes / elementSize) | 0;
 					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
 					let vertexOffset = 0;
-					for (var n = 0; n < valueCount; ++n) {
+					for (let n = 0; n < valueCount; ++n) {
 						arrView[0 + vertexOffset] = source[sourceIndex];
 						arrView[1 + vertexOffset] = source[sourceIndex + 1];
 						sourceIndex += 2;
@@ -526,7 +529,7 @@ namespace sd.meshdata {
 					}
 				}
 				else {
-					for (var n = 0; n < valueCount; ++n) {
+					for (let n = 0; n < valueCount; ++n) {
 						arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 2);
 						arrView[0] = source[sourceIndex];
 						arrView[1] = source[sourceIndex + 1];
@@ -537,11 +540,11 @@ namespace sd.meshdata {
 			}
 			else if (this.attrElementCount_ == 3) {
 				if (stride % elementSize == 0) {
-					let strideInElements = (stride / elementSize) | 0;
-					let offsetInElements = (offsetBytes / elementSize) | 0;
+					const strideInElements = (stride / elementSize) | 0;
+					const offsetInElements = (offsetBytes / elementSize) | 0;
 					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
 					let vertexOffset = 0;
-					for (var n = 0; n < valueCount; ++n) {
+					for (let n = 0; n < valueCount; ++n) {
 						arrView[0 + vertexOffset] = source[sourceIndex];
 						arrView[1 + vertexOffset] = source[sourceIndex + 1];
 						arrView[2 + vertexOffset] = source[sourceIndex + 2];
@@ -550,7 +553,7 @@ namespace sd.meshdata {
 					}
 				}
 				else {
-					for (var n = 0; n < valueCount; ++n) {
+					for (let n = 0; n < valueCount; ++n) {
 						arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 3);
 						arrView[0] = source[sourceIndex];
 						arrView[1] = source[sourceIndex + 1];
@@ -562,11 +565,11 @@ namespace sd.meshdata {
 			}
 			else if (this.attrElementCount_ == 4) {
 				if (stride % elementSize == 0) {
-					let strideInElements = (stride / elementSize) | 0;
-					let offsetInElements = (offsetBytes / elementSize) | 0;
+					const strideInElements = (stride / elementSize) | 0;
+					const offsetInElements = (offsetBytes / elementSize) | 0;
 					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
 					let vertexOffset = 0;
-					for (var n = 0; n < valueCount; ++n) {
+					for (let n = 0; n < valueCount; ++n) {
 						arrView[0 + vertexOffset] = source[sourceIndex];
 						arrView[1 + vertexOffset] = source[sourceIndex + 1];
 						arrView[2 + vertexOffset] = source[sourceIndex + 2];
@@ -576,7 +579,7 @@ namespace sd.meshdata {
 					}
 				}
 				else {
-					for (var n = 0; n < valueCount; ++n) {
+					for (let n = 0; n < valueCount; ++n) {
 						arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 4);
 						arrView[0] = source[sourceIndex];
 						arrView[1] = source[sourceIndex + 1];
@@ -591,14 +594,14 @@ namespace sd.meshdata {
 
 		refItem(index: number): TypedArray {
 			index += this.firstItem_;
-			var offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * index) + this.attrOffset_;
+			const offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * index) + this.attrOffset_;
 			return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.attrElementCount_);
 		}
 
 		copyItem(index: number): number[] {
 			index += this.firstItem_;
 			var offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * index) + this.attrOffset_;
-			var result: number[] = [];
+			const result: number[] = [];
 
 			switch (this.attr_.field) {
 				case VertexField.Floatx4:
@@ -689,10 +692,12 @@ namespace sd.meshdata {
 
 
 	export function minimumIndexElementTypeForVertexCount(vertexCount: number): IndexElementType {
-		if (vertexCount <= UInt8.max)
+		if (vertexCount <= UInt8.max) {
 			return IndexElementType.UInt8;
-		if (vertexCount <= UInt16.max)
+		}
+		if (vertexCount <= UInt16.max) {
 			return IndexElementType.UInt16;
+		}
 
 		return IndexElementType.UInt32;
 	}
@@ -887,18 +892,20 @@ namespace sd.meshdata {
 			// clamp range to available primitives, default to all triangles
 			const primitiveCount = primitiveCountForElementCount(PrimitiveType.Triangle, this.indexBuffer_.indexCount);
 
-			if (this.fromTriangle_ < 0)
+			if (this.fromTriangle_ < 0) {
 				this.fromTriangle_ = 0;
-			if (this.fromTriangle_ >= primitiveCount)
+			}
+			if (this.fromTriangle_ >= primitiveCount) {
 				this.fromTriangle_ = primitiveCount - 1;
-
-			if ((this.toTriangle_ < 0) || (this.toTriangle_ > primitiveCount))
+			}
+			if ((this.toTriangle_ < 0) || (this.toTriangle_ > primitiveCount)) {
 				this.toTriangle_ = primitiveCount;
+			}
 		}
 
 		forEach(callback: (proxy: TriangleProxy) => void) {
-			var primCount = this.toTriangle_ - this.fromTriangle_;
-			var basePtr = this.indexBuffer_.typedBasePtr(this.fromTriangle_ * 3, primCount * 3);
+			const primCount = this.toTriangle_ - this.fromTriangle_;
+			const basePtr = this.indexBuffer_.typedBasePtr(this.fromTriangle_ * 3, primCount * 3);
 
 			for (let tix = 0; tix < primCount; ++tix) {
 				callback(new TriangleProxy(basePtr, tix));
@@ -928,13 +935,13 @@ namespace sd.meshdata {
 	// FIXME: once we have triview for non-indexed meshes, make param optional and create proper view
 
 	export function calcVertexNormals(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer) {
-		var posAttr = vertexBuffer.attrByRole(VertexAttributeRole.Position);
-		var normAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
+		const posAttr = vertexBuffer.attrByRole(VertexAttributeRole.Position);
+		const normAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
 
 		if (posAttr && normAttr) {
-			var posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
-			var normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
-			var triView = new IndexBufferTriangleView(indexBuffer);
+			const posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
+			const normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
+			const triView = new IndexBufferTriangleView(indexBuffer);
 
 			calcVertexNormalsViews(posView, normView, triView);
 		}
@@ -943,23 +950,23 @@ namespace sd.meshdata {
 
 
 	export function calcVertexNormalsViews(posView: VertexBufferAttributeView, normView: VertexBufferAttributeView, triView: IndexBufferTriangleView) {
-		var vertexCount = posView.count;
-		var normalCount = normView.count;
+		const vertexCount = posView.count;
+		const normalCount = normView.count;
 		assert(vertexCount <= normalCount);
-		var baseVertex = normView.baseVertex;
+		const baseVertex = normView.baseVertex;
 
 		normView.forEach((norm) => {
 			vec3.set(norm, 0, 0, 1);
 		});
-		var usages = new Float32Array(vertexCount);
+		const usages = new Float32Array(vertexCount);
 
-		var lineA = vec3.create(), lineB = vec3.create();
-		var faceNormal = vec3.create(), temp = vec3.create();
+		const lineA = vec3.create(), lineB = vec3.create();
+		const faceNormal = vec3.create(), temp = vec3.create();
 
 		triView.forEach((face: TriangleProxy) => {
-			var posA = posView.copyItem(face.a() - baseVertex);
-			var posB = posView.copyItem(face.b() - baseVertex);
-			var posC = posView.copyItem(face.c() - baseVertex);
+			const posA = posView.copyItem(face.a() - baseVertex);
+			const posB = posView.copyItem(face.b() - baseVertex);
+			const posC = posView.copyItem(face.c() - baseVertex);
 
 			vec3.subtract(lineA, posB, posA);
 			vec3.subtract(lineB, posC, posB);
@@ -972,8 +979,8 @@ namespace sd.meshdata {
 			vec3.normalize(faceNormal, faceNormal);
 
 			for (let fi = 0; fi < 3; ++fi) {
-				let fvi = face.index(fi) - baseVertex;
-				let norm = normView.refItem(fvi);
+				const fvi = face.index(fi) - baseVertex;
+				const norm = normView.refItem(fvi);
 
 				// normBegin[fvi] = (normBegin[fvi] * usages[fvi] + faceNormal) / (usages[fvi] + 1.0f);
 				vec3.scaleAndAdd(temp, faceNormal, norm, usages[fvi]);
@@ -990,17 +997,17 @@ namespace sd.meshdata {
 
 
 	export function calcVertexTangents(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer, uvSet = VertexAttributeRole.UV0) {
-		var posAttr = vertexBuffer.attrByRole(VertexAttributeRole.Position);
-		var normAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
-		var uvAttr = vertexBuffer.attrByRole(uvSet);
-		var tanAttr = vertexBuffer.attrByRole(VertexAttributeRole.Tangent);
+		const posAttr = vertexBuffer.attrByRole(VertexAttributeRole.Position);
+		const normAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
+		const uvAttr = vertexBuffer.attrByRole(uvSet);
+		const tanAttr = vertexBuffer.attrByRole(VertexAttributeRole.Tangent);
 
 		if (posAttr && normAttr && uvAttr && tanAttr) {
-			var posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
-			var normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
-			var uvView = new VertexBufferAttributeView(vertexBuffer, uvAttr);
-			var tanView = new VertexBufferAttributeView(vertexBuffer, tanAttr);
-			var triView = new IndexBufferTriangleView(indexBuffer);
+			const posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
+			const normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
+			const uvView = new VertexBufferAttributeView(vertexBuffer, uvAttr);
+			const tanView = new VertexBufferAttributeView(vertexBuffer, tanAttr);
+			const triView = new IndexBufferTriangleView(indexBuffer);
 
 			calcVertexTangentsViews(posView, normView, uvView, tanView, triView);
 		}
@@ -1023,43 +1030,43 @@ namespace sd.meshdata {
 		assert(vertexCount <= uvView.count);
 		assert(vertexCount <= tanView.count);
 
-		var tanBuf = new Float32Array(vertexCount * 3 * 2);
-		var tan1 = tanBuf.subarray(0, vertexCount);
-		var tan2 = tanBuf.subarray(vertexCount);
+		const tanBuf = new Float32Array(vertexCount * 3 * 2);
+		const tan1 = tanBuf.subarray(0, vertexCount);
+		const tan2 = tanBuf.subarray(vertexCount);
 
 		triView.forEach(face => {
-			var a = face.a(),
+			const a = face.a(),
 				b = face.b(),
 				c = face.c();
 
-			var v1 = posView.copyItem(a),
+			const v1 = posView.copyItem(a),
 				v2 = posView.copyItem(b),
 				v3 = posView.copyItem(c);
 
-			var w1 = uvView.copyItem(a),
+			const w1 = uvView.copyItem(a),
 				w2 = uvView.copyItem(b),
 				w3 = uvView.copyItem(c);
 
-			var x1 = v2[0] - v1[0];
-			var x2 = v3[0] - v1[0];
-			var y1 = v2[1] - v1[1];
-			var y2 = v3[1] - v1[1];
-			var z1 = v2[2] - v1[2];
-			var z2 = v3[2] - v1[2];
+			const x1 = v2[0] - v1[0];
+			const x2 = v3[0] - v1[0];
+			const y1 = v2[1] - v1[1];
+			const y2 = v3[1] - v1[1];
+			const z1 = v2[2] - v1[2];
+			const z2 = v3[2] - v1[2];
 
-			var s1 = w2[0] - w1[0];
-			var s2 = w3[0] - w1[0];
-			var t1 = w2[1] - w1[1];
-			var t2 = w3[1] - w1[1];
+			const s1 = w2[0] - w1[0];
+			const s2 = w3[0] - w1[0];
+			const t1 = w2[1] - w1[1];
+			const t2 = w3[1] - w1[1];
 
-			var rd = (s1 * t2 - s2 * t1);
-			var r = rd == 0 ? 0.0 : 1.0 / rd;
-			var sdir = [
+			const rd = (s1 * t2 - s2 * t1);
+			const r = rd == 0 ? 0.0 : 1.0 / rd;
+			const sdir = [
 				(t2 * x1 - t1 * x2) * r,
 				(t2 * y1 - t1 * y2) * r,
 				(t2 * z1 - t1 * z2) * r
 			];
-			var tdir = [
+			const tdir = [
 				(s1 * x2 - s2 * x1) * r,
 				(s1 * y2 - s2 * y1) * r,
 				(s1 * z2 - s2 * z1) * r
@@ -1068,9 +1075,9 @@ namespace sd.meshdata {
 			// tan1[a] += sdir;
 			// tan1[b] += sdir;
 			// tan1[c] += sdir;
-			var tan1a = container.copyIndexedVec3(tan1, a);
-			var tan1b = container.copyIndexedVec3(tan1, b);
-			var tan1c = container.copyIndexedVec3(tan1, c);
+			const tan1a = container.copyIndexedVec3(tan1, a);
+			const tan1b = container.copyIndexedVec3(tan1, b);
+			const tan1c = container.copyIndexedVec3(tan1, c);
 			container.setIndexedVec3(tan1, a, vec3.add(tan1a, tan1a, sdir));
 			container.setIndexedVec3(tan1, b, vec3.add(tan1b, tan1b, sdir));
 			container.setIndexedVec3(tan1, c, vec3.add(tan1c, tan1c, sdir));
@@ -1078,21 +1085,21 @@ namespace sd.meshdata {
 			// tan2[a] += tdir;
 			// tan2[b] += tdir;
 			// tan2[c] += tdir;
-			var tan2a = container.copyIndexedVec3(tan2, a);
-			var tan2b = container.copyIndexedVec3(tan2, b);
-			var tan2c = container.copyIndexedVec3(tan2, c);
+			const tan2a = container.copyIndexedVec3(tan2, a);
+			const tan2b = container.copyIndexedVec3(tan2, b);
+			const tan2c = container.copyIndexedVec3(tan2, c);
 			container.setIndexedVec3(tan2, a, vec3.add(tan2a, tan2a, tdir));
 			container.setIndexedVec3(tan2, b, vec3.add(tan2b, tan2b, tdir));
 			container.setIndexedVec3(tan2, c, vec3.add(tan2c, tan2c, tdir));
 		});
 
-		for (var ix = 0; ix < vertexCount; ++ix) {
-			var n = normView.copyItem(ix);
-			var t = container.copyIndexedVec3(tan1, ix);
-			var t2 = container.copyIndexedVec3(tan2, ix);
+		for (let ix = 0; ix < vertexCount; ++ix) {
+			const n = normView.copyItem(ix);
+			const t = container.copyIndexedVec3(tan1, ix);
+			const t2 = container.copyIndexedVec3(tan2, ix);
 
 			// Gram-Schmidt orthogonalize, specify standard normal in case n or t = 0
-			var tangent = vec3.normalize([0, 0, 1], vec3.sub([], t, vec3.scale([], n, vec3.dot(n, t))));
+			const tangent = vec3.normalize([0, 0, 1], vec3.sub([], t, vec3.scale([], n, vec3.dot(n, t))));
 
 			// Reverse tangent to conform to GL handedness if needed
 			if (vec3.dot(vec3.cross([], n, t), t2) < 0) {
@@ -1176,10 +1183,10 @@ namespace sd.meshdata {
 				}
 			});
 
-			if (pa && avb)
+			if (pa && avb) {
 				return { vertexBuffer: avb, attr: pa };
-			else
-				return null;
+			}
+			return null;
 		}
 
 		// derived vertex data generation

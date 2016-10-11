@@ -116,8 +116,9 @@ namespace sd.world {
 			feat &= this.featureMask_;
 
 			var cached = this.cachedPipelines_.get(feat);
-			if (cached)
+			if (cached) {
 				return cached;
+			}
 
 			var gl = this.rc.gl;
 
@@ -131,7 +132,7 @@ namespace sd.world {
 
 			// -- mandatory and optional attribute arrays
 			pld.attributeNames.set(meshdata.VertexAttributeRole.Normal, "vertexNormal");
-			
+
 			pld.attributeNames.set(meshdata.VertexAttributeRole.Position, "vertexPos_model");
 			if (feat & Features.VtxColour) {
 				pld.attributeNames.set(meshdata.VertexAttributeRole.Colour, "vertexColour");
@@ -142,7 +143,7 @@ namespace sd.world {
 
 			var pipeline = new render.Pipeline(this.rc, pld);
 			var program = <PBRGLProgram>pipeline.program;
-			
+
 			gl.useProgram(program);
 
 			// -- transformation matrices
@@ -218,9 +219,9 @@ namespace sd.world {
 		private vertexShaderSource(feat: number) {
 			var source: string[] = [];
 			var line = (s: string) => source.push(s);
-			var if_all = (s: string, f: number) => { if ((feat & f) == f) source.push(s) };
-			//var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
-			
+			var if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
+			// var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
+
 			// In
 			line  ("attribute vec3 vertexPos_model;");
 			line  ("attribute vec3 vertexNormal;");
@@ -263,9 +264,9 @@ namespace sd.world {
 		private fragmentShaderSource(feat: number) {
 			var source: string[] = [];
 			var line = (s: string) => source.push(s);
-			var if_all = (s: string, f: number) => { if ((feat & f) == f) source.push(s) };
-			var if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
-			var if_not = (s: string, f: number) => { if ((feat & f) == 0) source.push(s) };
+			var if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
+			var if_any = (s: string, f: number) => { if ((feat & f) != 0) { source.push(s); } };
+			var if_not = (s: string, f: number) => { if ((feat & f) == 0) { source.push(s); } };
 
 			var lightingQuality = (feat & Features.LightingQuality) >> LightingQualityBitShift;
 
@@ -408,7 +409,7 @@ namespace sd.world {
 				line("		currentTextureCoords -= dtex;");
 				line("		// new depth from heightmap");
 				line("		heightFromTexture = texture2D(normalHeightMap, currentTextureCoords).a;");
-				
+
 				line("		if (heightFromTexture <= curLayerHeight) break;");
 				line("	}");
 
@@ -445,7 +446,7 @@ namespace sd.world {
 				// line("	float h = texture2D(normalHeightMap, vertexUV_intp).a;");
 				// line("	h = h * 0.04 - 0.02;");
 				line("	vec3 eyeTan = normalize(inverse(TBN) * si.V);");
-				line("	float finalH = 0.0;")
+				line("	float finalH = 0.0;");
 				// line("	si.UV = vertexUV_intp + (eyeTan.xy * h);");
 				line("	si.UV = parallaxMapping(eyeTan, vertexUV_intp, finalH);");
 			}
@@ -587,7 +588,7 @@ namespace sd.world {
 					line("	vec3 specref = cooktorrance_specular(NdL, si.NdV, NdH, specfresnel, roughness);");
 				}
 			}
-			
+
 			line("	specref *= vec3(NdL);");
 
 			// diffuse contribition is common for all lighting models
@@ -624,7 +625,7 @@ namespace sd.world {
 			line  ("	float cutoff = lightParam[LPARAM_CUTOFF];");
 			line  ("	if (spotCosAngle > cutoff) {");
 			line  ("		vec3 light = calcPointLight(baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, si);");
-			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);")
+			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);");
 			line  ("	}");
 			line  ("	return vec3(0.0);");
 			line  ("}");
@@ -680,13 +681,13 @@ namespace sd.world {
 			line  ("		vec4 lightColour = lightColours[lightIx];");
 			line  ("		vec4 lightParam = lightParams[lightIx];");
 
-			line  ("		if (type == 1) {")
+			line  ("		if (type == 1) {");
 			line  ("			totalLight += calcDirectionalLight(baseColour, matParam, lightColour, lightParam, lightDir_cam, si);");
 			line  ("		}");
-			line  ("		else if (type == 2) {")
+			line  ("		else if (type == 2) {");
 			line  ("			totalLight += calcPointLight(baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, si);");
 			line  ("		}");
-			line  ("		else if (type == 3) {")
+			line  ("		else if (type == 3) {");
 			line  ("			totalLight += calcSpotLight(baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, si);");
 			line  ("		}");
 			line  ("	}");
@@ -827,8 +828,8 @@ namespace sd.world {
 			var features = 0;
 
 			const meshFeatures = this.meshMgr_.features(mesh);
-			if (meshFeatures & MeshFeatures.VertexColours) features |= Features.VtxColour;
-			if (meshFeatures & MeshFeatures.VertexUVs) features |= Features.VtxUV;
+			if (meshFeatures & MeshFeatures.VertexColours) { features |= Features.VtxColour; }
+			if (meshFeatures & MeshFeatures.VertexUVs) { features |= Features.VtxUV; }
 
 			var matFlags = this.materialMgr_.flags(material);
 
@@ -930,7 +931,7 @@ namespace sd.world {
 			for (const mat of desc.materials) {
 				this.materials_.push(this.materialMgr_.create(mat));
 			}
-			
+
 			this.updatePrimGroups(ix);
 
 			return ix;
@@ -938,6 +939,7 @@ namespace sd.world {
 
 
 		destroy(_inst: PBRModelInstance) {
+			// TBI
 		}
 
 

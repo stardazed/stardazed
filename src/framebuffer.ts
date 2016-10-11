@@ -9,32 +9,33 @@
 
 namespace sd.render {
 
-	var fboBugs = {
+	const fboBugs = {
 		mustHaveAColourAtt: <(boolean | null)>null
 	};
 
 	function fboMustHaveAColourAttachment(rc: RenderContext) {
 		if (fboBugs.mustHaveAColourAtt === null) {
-			var gl = rc.gl;
-			var fboBinding = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+			const gl = rc.gl;
+			const fboBinding = gl.getParameter(gl.FRAMEBUFFER_BINDING);
 
-			var fbo = gl.createFramebuffer();
+			const fbo = gl.createFramebuffer();
 			gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-		
+
 			// -- create and attach depth buffer
-			var depthBuf = gl.createRenderbuffer();
+			const depthBuf = gl.createRenderbuffer();
 			gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuf);
 			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 160, 120);
 			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuf);
 
 			// -- specify empty draw buffer list
-			if (rc.extDrawBuffers)
+			if (rc.extDrawBuffers) {
 				rc.extDrawBuffers.drawBuffersWEBGL([gl.NONE]);
+			}
 
 			// This bug occurs on Mac OS X in Safari 9 and Chrome 45, it is due to faulty
 			// setup of DRAW and READ buffer bindings in the underlying GL4 context.
 			// Bugs have been filed.		
-			var fbStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+			const fbStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
 			fboBugs.mustHaveAColourAtt = (fbStatus != gl.FRAMEBUFFER_COMPLETE);
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, fboBinding);
@@ -49,26 +50,21 @@ namespace sd.render {
 
 
 	export function allocateTexturesForFrameBuffer(rc: RenderContext, desc: FrameBufferAllocationDescriptor): FrameBufferDescriptor {
-		var fbDesc = makeFrameBufferDescriptor();
+		const fbDesc = makeFrameBufferDescriptor();
 
-		var width = desc.width;
-		var height = desc.height;
-	
-		// -- default to viewport size if not explicitly specified
-		if (width == 0 && height == 0) {
-			width = rc.gl.drawingBufferWidth;
-			height = rc.gl.drawingBufferHeight;
-		}
-	
+		// -- default to viewport dimensions if set to 0
+		const width = desc.width || rc.gl.drawingBufferWidth;
+		const height = desc.height || rc.gl.drawingBufferHeight;
+
 		// -- colour
 		if ((desc.colourPixelFormats[0] == PixelFormat.None) && fboMustHaveAColourAttachment(rc)) {
 			// work around FBO bug, see fboMustHaveAColourAttachment function
 			desc.colourPixelFormats[0] = PixelFormat.RGB8;
 		}
 
-		for (var colourAttIndex = 0; colourAttIndex < desc.colourPixelFormats.length; ++colourAttIndex) {
+		for (let colourAttIndex = 0; colourAttIndex < desc.colourPixelFormats.length; ++colourAttIndex) {
 			if (desc.colourPixelFormats[colourAttIndex] != PixelFormat.None) {
-				var texDesc = makeTextureDescriptor();
+				const texDesc = makeTextureDescriptor();
 				texDesc.textureClass = TextureClass.Tex2D;
 				texDesc.dim.width = width;
 				texDesc.dim.height = height;
@@ -77,7 +73,7 @@ namespace sd.render {
 				texDesc.pixelFormat = desc.colourPixelFormats[colourAttIndex];
 				texDesc.usageHint = desc.colourUsageHints[colourAttIndex];
 
-				var attachment = fbDesc.colourAttachments[colourAttIndex];
+				const attachment = fbDesc.colourAttachments[colourAttIndex];
 				attachment.texture = new Texture(rc, texDesc);
 			}
 		}
@@ -115,7 +111,7 @@ namespace sd.render {
 		}
 
 		// -- create the texture(s)
-		var dsTex = makeTextureDescriptor();
+		const dsTex = makeTextureDescriptor();
 		dsTex.textureClass = TextureClass.Tex2D;
 		dsTex.dim.width = width;
 		dsTex.dim.height = height;
@@ -125,7 +121,7 @@ namespace sd.render {
 		if (combinedFormat != PixelFormat.None) {
 			dsTex.pixelFormat = combinedFormat;
 			dsTex.usageHint = desc.depthUsageHint;
-			var depthStencil = new Texture(rc, dsTex);
+			const depthStencil = new Texture(rc, dsTex);
 
 			fbDesc.depthAttachment.texture = depthStencil;
 			fbDesc.stencilAttachment.texture = depthStencil;
@@ -155,8 +151,8 @@ namespace sd.render {
 
 
 		private attachTexture(glAttachment: number, attachment: AttachmentDescriptor) {
-			var gl = this.rc.gl;
-			var texture = attachment.texture!;
+			const gl = this.rc.gl;
+			const texture = attachment.texture!;
 			assert(texture, "Tried to attach a null texture");
 
 			if (texture.target == gl.RENDERBUFFER) {
@@ -166,7 +162,7 @@ namespace sd.render {
 				gl.framebufferRenderbuffer(gl.FRAMEBUFFER, glAttachment, gl.RENDERBUFFER, <WebGLRenderbuffer>texture.resource);
 			}
 			else {
-				var tex = <WebGLTexture>texture.resource;
+				const tex = <WebGLTexture>texture.resource;
 				assert(attachment.level == 0, "WebGL 1 does not allow mapping of texture level > 0");
 				assert(attachment.level < texture.mipmaps);
 
@@ -182,8 +178,8 @@ namespace sd.render {
 
 
 		constructor(private rc: RenderContext, desc: FrameBufferDescriptor) {
-			var gl = rc.gl;
-			var fbo = this.fbo_ = gl.createFramebuffer()!; // FIXME: verify resource creation
+			const gl = rc.gl;
+			const fbo = this.fbo_ = gl.createFramebuffer()!; // FIXME: verify resource creation
 			gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
 			// -- deep copy of descriptor
@@ -196,10 +192,10 @@ namespace sd.render {
 			var anyTexture: (Texture | null) = null;
 
 			// -- colour
-			var drawBuffers = desc.colourAttachments.map((attachment, attIndex) => {
+			const drawBuffers = desc.colourAttachments.map((attachment, attIndex) => {
 				if (attachment.texture) {
 					anyTexture = attachment.texture;
-					var glAttachment = rc.extDrawBuffers ? (rc.extDrawBuffers.COLOR_ATTACHMENT0_WEBGL + attIndex) : rc.gl.COLOR_ATTACHMENT0;
+					const glAttachment = rc.extDrawBuffers ? (rc.extDrawBuffers.COLOR_ATTACHMENT0_WEBGL + attIndex) : rc.gl.COLOR_ATTACHMENT0;
 					this.attachTexture(glAttachment, attachment);
 					return glAttachment;
 				}
@@ -210,13 +206,13 @@ namespace sd.render {
 
 			// -- setup the draw buffers to mimic the colour attachments
 			// -- which is required in WebGL
-			if (rc.extDrawBuffers)
+			if (rc.extDrawBuffers) {
 				rc.extDrawBuffers.drawBuffersWEBGL(drawBuffers);
-
+			}
 
 			// -- depth and/or stencil
-			var depthTex = desc.depthAttachment.texture;
-			var stencilTex = desc.stencilAttachment.texture;
+			const depthTex = desc.depthAttachment.texture;
+			const stencilTex = desc.stencilAttachment.texture;
 
 			if (depthTex) {
 				anyTexture = depthTex;
@@ -250,11 +246,11 @@ namespace sd.render {
 
 
 			// -- beg for approval to the GL gods
-			var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+			const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
 			if (status != gl.FRAMEBUFFER_COMPLETE) {
 				assert(false, "FrameBuffer not complete");
 			}
-	
+
 			// -- get width and height from one of the textures
 			// -- they should all be the same
 			if (anyTexture) {
@@ -271,7 +267,7 @@ namespace sd.render {
 		}
 
 		unbind() {
-			this.rc.gl.bindFramebuffer(this.rc.gl.FRAMEBUFFER, null);	
+			this.rc.gl.bindFramebuffer(this.rc.gl.FRAMEBUFFER, null);
 		}
 
 

@@ -100,6 +100,7 @@ namespace sd.world {
 
 
 		destroy(_inst: RigidBodyInstance) {
+			// TBI
 		}
 
 		destroyRange(range: RigidBodyRange) {
@@ -259,7 +260,7 @@ namespace sd.world {
 				this.addTorque(inst, vec3.cross([], forceCenterOffset, force));
 			}
 		}
-		
+
 		addTorque(inst: RigidBodyInstance, torque: Float3) {
 			var indexVec3 = container.offsetOfIndexedVec3(<number>inst);
 			this.torqueBase_[indexVec3 + 0] += torque[0];

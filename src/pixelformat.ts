@@ -7,7 +7,7 @@ namespace sd.render {
 
 	export const enum PixelFormat {
 		None,
-	
+
 		// 8-bit component
 		Alpha,
 		RGB8,
@@ -68,7 +68,7 @@ namespace sd.render {
 	export function pixelFormatBytesPerElement(format: PixelFormat) {
 		// Element means a pixel for non-compressed formats
 		// and a block for compressed formats
-	
+
 		switch (format) {
 			case PixelFormat.Alpha:
 			case PixelFormat.Stencil8:
@@ -174,8 +174,9 @@ namespace sd.render {
 	export function glPixelDataTypeForPixelFormat(rc: RenderContext, format: PixelFormat) {
 		var gl = rc.gl;
 
-		if (pixelFormatIsCompressed(format))
+		if (pixelFormatIsCompressed(format)) {
 			return gl.NONE;
+		}
 
 		switch (format) {
 			case PixelFormat.Alpha:
@@ -217,7 +218,7 @@ namespace sd.render {
 
 
 	// In SD, PixelCoordinate and PixelDimensions are defined in PixelBuffer, not present yet in SDTX
-	
+
 	export interface PixelCoordinate {
 		x: number;
 		y: number;

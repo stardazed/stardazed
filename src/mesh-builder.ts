@@ -55,16 +55,16 @@ namespace sd.meshdata {
 				container.fill(this.offsets_, this.values_.length, from - this.highest_, this.highest_ + 1);
 				this.highest_ = from;
 			}
-			var fromOff = this.offsets_[from];
+			const fromOff = this.offsets_[from];
 			this.values_.splice(fromOff, 0, to);
-			for (var n = from + 1; n <= this.highest_; ++n) {
+			for (let n = from + 1; n <= this.highest_; ++n) {
 				this.offsets_[n]++;
 			}
 		}
 
 		mappedValues(forIndex: number) {
-			var offA = this.offsets_[forIndex];
-			var offB = (forIndex < this.offsets_.length - 1) ? this.offsets_[forIndex + 1] : this.values_.length;
+			const offA = this.offsets_[forIndex];
+			const offB = (forIndex < this.offsets_.length - 1) ? this.offsets_[forIndex + 1] : this.values_.length;
 			return this.values_.slice(offA, offB);
 		}
 	}
@@ -81,7 +81,7 @@ namespace sd.meshdata {
 				this.data_.set(from, [to]);
 			}
 			else {
-				var mapped = this.data_.get(from)!;
+				const mapped = this.data_.get(from)!;
 				if (mapped.indexOf(to) == -1) {
 					mapped.push(to);
 				}
@@ -117,7 +117,7 @@ namespace sd.meshdata {
 			this.streams_ = streams.slice(0);
 
 			// create the positions stream, which is needed for both simple and rigged models
-			var positionStream: VertexAttributeStream = {
+			const positionStream: VertexAttributeStream = {
 				attr: { role: VertexAttributeRole.Position, field: VertexField.Floatx3 },
 				mapping: VertexAttributeMapping.Vertex,
 				includeInMesh: true,
@@ -130,28 +130,28 @@ namespace sd.meshdata {
 				this.streams_.push(positionStream);
 			}
 			else {
-				this.streams_.unshift(positionStream);	
+				this.streams_.unshift(positionStream);
 			}
 
 			// sort attr streams ensuring ones that are not to be included in the mesh
 			// end up at the end. Try to keep the array as stable as possible by not
 			// moving streams if not needed.
 			this.streams_.sort((sA, sB) => {
-				if (sA.includeInMesh == sB.includeInMesh)
+				if (sA.includeInMesh == sB.includeInMesh) {
 					return 0;
-				else
-					return sA.includeInMesh ? -1 : 1;
+				}
+				return sA.includeInMesh ? -1 : 1;
 			});
 
 
 			// minor optimization as the element count will be requested many times
 			// also check for ambigious or incorrect grouping
 			var groupers = 0;
-			for (var s of this.streams_) {
+			for (const s of this.streams_) {
 				s.elementCount = vertexFieldElementCount(s.attr!.field);
 				if (s.controlsGrouping === true) {
 					assert(s.elementCount == 1, "A grouping stream must use a single element field");
-					var groupNumType = vertexFieldNumericType(s.attr!.field);
+					const groupNumType = vertexFieldNumericType(s.attr!.field);
 					assert(groupNumType != Float && groupNumType != Double, "A grouping stream must use an integer element");
 					groupers++;
 				}
@@ -173,10 +173,10 @@ namespace sd.meshdata {
 
 
 		private streamIndexesForPVI(polygonVertexIndex: number, vertexIndex: number, polygonIndex: number) {
-			var res: number[] = [];
+			const res: number[] = [];
 
-			for (var stream of this.streams_) {
-				var index: number;
+			for (const stream of this.streams_) {
+				let index: number;
 				if (stream.mapping == VertexAttributeMapping.Vertex) {
 					index = vertexIndex;
 				}
@@ -218,19 +218,19 @@ namespace sd.meshdata {
 				return this.vertexMapping_.get(key)!;
 			}
 			else {
-				for (var streamIx = 0; streamIx < this.streamCount_; ++streamIx) {
-					var stream = this.streams_[streamIx];
-					var elemCount = stream.elementCount;
+				for (let streamIx = 0; streamIx < this.streamCount_; ++streamIx) {
+					const stream = this.streams_[streamIx];
+					const elemCount = stream.elementCount;
+					const array = this.vertexData_[streamIx];
 					var values: ArrayOfNumber = stream.values!; // TODO: is this guaranteed to exist in this loop?
-					var array = this.vertexData_[streamIx];
-					var fieldIndex = streamIndexes[streamIx];
+					const fieldIndex = streamIndexes[streamIx];
 					var fieldOffset = elemCount * fieldIndex;
 
 					// This is slowest on all browsers (by a mile)
 					// array.push.apply(array, stream.values.subarray(fieldOffset, fieldOffset + stream.elementCount));
 
 					// This is 20% faster in Firefox
-					// for (var el = 0; el < elemCount; ++el) {
+					// for (let el = 0; el < elemCount; ++el) {
 					// 	array.push(values[fieldOffset + el]);
 					// }
 
@@ -255,7 +255,7 @@ namespace sd.meshdata {
 						array.push(values[fieldOffset]);
 
 						if (stream.controlsGrouping) {
-							var gi = values[fieldOffset];
+							const gi = values[fieldOffset];
 							if (gi != this.groupIndex_) {
 								this.setGroup(gi);
 							}
@@ -263,7 +263,7 @@ namespace sd.meshdata {
 					}
 				}
 
-				var vertexIndex = this.vertexCount_;
+				const vertexIndex = this.vertexCount_;
 				this.vertexCount_++;
 				this.vertexMapping_.set(key, vertexIndex);
 
@@ -273,13 +273,13 @@ namespace sd.meshdata {
 
 
 		private addTriangle(polygonVertexIndexes: ArrayOfNumber, vertexIndexes: ArrayOfNumber) {
-			var indexesA = this.streamIndexesForPVI(polygonVertexIndexes[0], vertexIndexes[0], this.sourcePolygonIndex_);
-			var indexesB = this.streamIndexesForPVI(polygonVertexIndexes[1], vertexIndexes[1], this.sourcePolygonIndex_);
-			var indexesC = this.streamIndexesForPVI(polygonVertexIndexes[2], vertexIndexes[2], this.sourcePolygonIndex_);
+			const indexesA = this.streamIndexesForPVI(polygonVertexIndexes[0], vertexIndexes[0], this.sourcePolygonIndex_);
+			const indexesB = this.streamIndexesForPVI(polygonVertexIndexes[1], vertexIndexes[1], this.sourcePolygonIndex_);
+			const indexesC = this.streamIndexesForPVI(polygonVertexIndexes[2], vertexIndexes[2], this.sourcePolygonIndex_);
 
-			var dstVIxA = this.getVertexIndex(indexesA);
-			var dstVIxB = this.getVertexIndex(indexesB);
-			var dstVIxC = this.getVertexIndex(indexesC);
+			const dstVIxA = this.getVertexIndex(indexesA);
+			const dstVIxB = this.getVertexIndex(indexesB);
+			const dstVIxC = this.getVertexIndex(indexesC);
 
 			this.indexMap_.add(vertexIndexes[0], dstVIxA);
 			this.indexMap_.add(vertexIndexes[1], dstVIxB);
@@ -295,7 +295,7 @@ namespace sd.meshdata {
 				this.addTriangle(polygonVertexIndexes, vertexIndexes);
 			}
 			else {
-				var polyPoints = vertexIndexes.length;
+				const polyPoints = vertexIndexes.length;
 				var polyNext = 2;
 				const pv0 = polygonVertexIndexes[0];
 				const v0 = vertexIndexes[0];
@@ -322,23 +322,23 @@ namespace sd.meshdata {
 			// final mesh data. Because we sorted the non-included streams to the end
 			// of the list the order of this filtered list will still be the same as
 			// of the vertexData arrays, so no need for mapping etc.
-			var meshAttributeStreams = this.streams_.filter(s => s.includeInMesh);
-			var attrs = meshAttributeStreams.map(s => s.attr!);
-			var meshData = new MeshData();
+			const meshAttributeStreams = this.streams_.filter(s => s.includeInMesh);
+			const attrs = meshAttributeStreams.map(s => s.attr!);
+			const meshData = new MeshData();
 
 			// allocate as single buffer — TODO: give options for separate client buffers if wanted / needed
-			var vb = new VertexBuffer(attrs);
+			const vb = new VertexBuffer(attrs);
 			meshData.vertexBuffers.push(vb);
-			var indexElemType = meshdata.minimumIndexElementTypeForVertexCount(this.vertexCount_);
+			const indexElemType = meshdata.minimumIndexElementTypeForVertexCount(this.vertexCount_);
 			meshData.indexBuffer = new IndexBuffer();
 			meshData.allocateSingleStorage([this.vertexMapping_.size], indexElemType, this.triangleCount_ * 3);
 
 			// copy vertex streams
-			for (var six = 0; six < meshAttributeStreams.length; ++six) {
-				let streamData = this.vertexData_[six];
-				let attribute = vb.attrByIndex(six);
+			for (let six = 0; six < meshAttributeStreams.length; ++six) {
+				const streamData = this.vertexData_[six];
+				const attribute = vb.attrByIndex(six);
 				if (attribute) {
-					let view = new VertexBufferAttributeView(vb, attribute);
+					const view = new VertexBufferAttributeView(vb, attribute);
 					view.copyValuesFrom(streamData, this.vertexCount_);
 				}
 				// FIXME else unexpected()
@@ -351,8 +351,8 @@ namespace sd.meshdata {
 
 			this.groupIndexStreams_.forEach((indexes, group) => {
 				if (indexes.length) {
-					var groupElementCount = indexes.length;
 					container.appendArrayInPlace(mergedIndexes, indexes);
+					const groupElementCount = indexes.length;
 
 					meshData.primitiveGroups.push({
 						type: PrimitiveType.Triangle,

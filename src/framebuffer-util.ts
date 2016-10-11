@@ -8,7 +8,7 @@ namespace sd.render {
 	// Util functions to create a Framebuffer object with standard configuration:
 	// RGBA8/16F/32F colour attachments and default depth and stencil formats when requested.
 	// Width/Height, Square and Screen dimension versions are available.
-	
+
 	export const enum FBOPixelComponent {
 		Integer,
 		HalfFloat,
@@ -26,7 +26,7 @@ namespace sd.render {
 
 
 	export function makeDefaultFrameBuffer(rc: RenderContext, width: number, height: number, desc: DefaultFBODesc) {
-		var fbad = render.makeFrameBufferAllocationDescriptor(desc.colourCount);
+		const fbad = render.makeFrameBufferAllocationDescriptor(desc.colourCount);
 		fbad.width = width;
 		fbad.height = height;
 
@@ -59,7 +59,7 @@ namespace sd.render {
 			fbad.stencilUsageHint = fbad.depthUsageHint;
 		}
 
-		var fbd = render.allocateTexturesForFrameBuffer(rc, fbad);
+		const fbd = render.allocateTexturesForFrameBuffer(rc, fbad);
 
 		return new render.FrameBuffer(rc, fbd);
 	}

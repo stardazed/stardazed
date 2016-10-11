@@ -101,7 +101,7 @@ namespace sd.render {
 		envMapSamplerUniform: WebGLUniformLocation;
 	}
 
-	var preFilterPipelines_s = new Map<number, PreFilterPipeline>();
+	const preFilterPipelines_s = new Map<number, PreFilterPipeline>();
 
 	function getPipeline(rc: RenderContext, numSamples: number) {
 		var pfp = preFilterPipelines_s.get(numSamples);
@@ -134,49 +134,49 @@ namespace sd.render {
 
 
 	export function prefilteredEnvMap(rc: RenderContext, meshMgr: world.MeshManager, sourceEnvMap: Texture, numSamples: number) {
-		var pipeline = getPipeline(rc, numSamples);
+		const pipeline = getPipeline(rc, numSamples);
 
-		var rpd = makeRenderPassDescriptor();
+		const rpd = makeRenderPassDescriptor();
 		rpd.clearMask = ClearMask.None;
 
 		const baseWidth = 128; // this basewidth gives max 8 mip levels, 6 of which are used in pbrmodel.ts
 
-		var resultMapDesc = makeTexDescCube(PixelFormat.RGBA8, baseWidth, UseMipMaps.Yes);
-		var resultEnvMap = new render.Texture(rc, resultMapDesc);
-		var mipCount = resultEnvMap.mipmaps - 2; // ignore the 1x1 and 2x2 levels
-		var resultGLPixelFormat = glImageFormatForPixelFormat(rc, resultEnvMap.pixelFormat);
+		const resultMapDesc = makeTexDescCube(PixelFormat.RGBA8, baseWidth, UseMipMaps.Yes);
+		const resultEnvMap = new render.Texture(rc, resultMapDesc);
+		const mipCount = resultEnvMap.mipmaps - 2; // ignore the 1x1 and 2x2 levels
+		const resultGLPixelFormat = glImageFormatForPixelFormat(rc, resultEnvMap.pixelFormat);
 
-		var levelWidths: number[] = [];
-		for (var lmip = 0; lmip < mipCount; ++lmip) {
+		const levelWidths: number[] = [];
+		for (let lmip = 0; lmip < mipCount; ++lmip) {
 			levelWidths[lmip] = baseWidth >> lmip;
 		}
 
-		var roughnessTable: number[] = [];
-		for (var ml = 0; ml < mipCount; ++ml) {
+		const roughnessTable: number[] = [];
+		for (let ml = 0; ml < mipCount; ++ml) {
 			var roughAtLevel = (1.0 / (mipCount - 1)) * ml;
 			roughnessTable.push(roughAtLevel);
 		}
 
-		var quad = meshdata.gen.generate(new meshdata.gen.Quad(2, 2), [meshdata.attrPosition2(), meshdata.attrUV2()]);
+		const quad = meshdata.gen.generate(new meshdata.gen.Quad(2, 2), [meshdata.attrPosition2(), meshdata.attrUV2()]);
 		// var quadMesh = new render.Mesh(rc, makeMeshDescriptor(quad));
 		const quadMesh = meshMgr.create({ name: "squareQuad", meshData: quad }); // TODO: add baked-in box, screen quads etc
 
-		var levelPixels: Uint8Array[] = [];
-		var levelTextures: render.Texture[] = [];
-		for (var mip = 0; mip < mipCount; ++mip) {
-			var levelWidth = levelWidths[mip];
-			var levelMapDesc = makeTexDesc2D(PixelFormat.RGBA8, levelWidth, levelWidth, UseMipMaps.No);
+		const levelPixels: Uint8Array[] = [];
+		const levelTextures: render.Texture[] = [];
+		for (let mip = 0; mip < mipCount; ++mip) {
+			const levelWidth = levelWidths[mip];
+			const levelMapDesc = makeTexDesc2D(PixelFormat.RGBA8, levelWidth, levelWidth, UseMipMaps.No);
 			levelTextures[mip] = new render.Texture(rc, levelMapDesc);
 			levelPixels[mip] = new Uint8Array(levelWidth * levelWidth * 4);
 		}
 
-		for (var mip = 0; mip < mipCount; ++mip) {
-			var levelWidth = levelWidths[mip];
+		for (let mip = 0; mip < mipCount; ++mip) {
+			const levelWidth = levelWidths[mip];
 
 			for (var face = 0; face < 6; ++face) {
-				var fbd = makeFrameBufferDescriptor();
+				const fbd = makeFrameBufferDescriptor();
 				fbd.colourAttachments[0].texture = levelTextures[mip];
-				var fb = new FrameBuffer(rc, fbd);
+				const fb = new FrameBuffer(rc, fbd);
 
 				runRenderPass(rc, meshMgr, rpd, fb, (rp) => {
 					rp.setPipeline(pipeline.pipeline);

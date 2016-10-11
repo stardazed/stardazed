@@ -17,7 +17,7 @@ if (! ArrayBuffer.transfer) {
 		// but `oldBuffer` is to be treated as a moved-from value in C++ terms
 		// after calling transfer.
 
-		var oldByteLength = oldBuffer.byteLength;
+		const oldByteLength = oldBuffer.byteLength;
 		newByteLength = newByteLength | 0;
 		sd.assert(newByteLength > 0);
 
@@ -25,26 +25,26 @@ if (! ArrayBuffer.transfer) {
 			return oldBuffer.slice(0, newByteLength);
 		}
 
-		var oldBufferView = new Uint8Array(oldBuffer);
-		var newBufferView = new Uint8Array(newByteLength); // also creates new ArrayBuffer
+		const oldBufferView = new Uint8Array(oldBuffer);
+		const newBufferView = new Uint8Array(newByteLength); // also creates new ArrayBuffer
 		newBufferView.set(oldBufferView);
 
 		return newBufferView.buffer;
-	}
+	};
 }
 
 
 namespace sd.container {
 
 	export function copyElementRange<T>(src: ArrayLike<T>, srcOffset: number, srcCount: number, dest: MutableArrayLike<T>, destOffset: number) {
-		for (var ix = 0; ix < srcCount; ++ix) {
+		for (let ix = 0; ix < srcCount; ++ix) {
 			dest[destOffset++] = src[srcOffset++];
 		}
 	}
 
 
-	export function fill<T>(dest: MutableArrayLike<T>, value: T, count: number, offset: number = 0) {
-		for (var ix = 0; ix < count; ++ix) {
+	export function fill<T>(dest: MutableArrayLike<T>, value: T, count: number, offset = 0) {
+		for (let ix = 0; ix < count; ++ix) {
 			dest[ix + offset] = value;
 		}
 	}
@@ -78,12 +78,12 @@ namespace sd.container {
 	}
 
 	export function copyIndexedVec2(data: TypedArray, index: number): number[] {
-		var offset = (index * 2) | 0;
+		const offset = (index * 2) | 0;
 		return [data[offset], data[offset + 1]];
 	}
 
 	export function setIndexedVec2(data: TypedArray, index: number, v2: Float2) {
-		var offset = (index * 2) | 0;
+		const offset = (index * 2) | 0;
 		data[offset]     = v2[0];
 		data[offset + 1] = v2[1];
 	}
@@ -105,12 +105,12 @@ namespace sd.container {
 	}
 
 	export function copyIndexedVec3(data: TypedArray, index: number): number[] {
-		var offset = (index * 3) | 0;
+		const offset = (index * 3) | 0;
 		return [data[offset], data[offset + 1], data[offset + 2]];
 	}
 
 	export function setIndexedVec3(data: TypedArray, index: number, v3: Float3) {
-		var offset = (index * 3) | 0;
+		const offset = (index * 3) | 0;
 		data[offset]     = v3[0];
 		data[offset + 1] = v3[1];
 		data[offset + 2] = v3[2];
@@ -134,12 +134,12 @@ namespace sd.container {
 	}
 
 	export function copyIndexedVec4(data: TypedArray, index: number): number[] {
-		var offset = (index * 4) | 0;
+		const offset = (index * 4) | 0;
 		return [data[offset], data[offset + 1], data[offset + 2], data[offset + 3]];
 	}
 
 	export function setIndexedVec4(data: TypedArray, index: number, v4: Float4) {
-		var offset = (index * 4) | 0;
+		const offset = (index * 4) | 0;
 		data[offset]     = v4[0];
 		data[offset + 1] = v4[1];
 		data[offset + 2] = v4[2];
@@ -166,7 +166,7 @@ namespace sd.container {
 	}
 
 	export function copyIndexedMat3(data: TypedArray, index: number): number[] {
-		var offset = (index * 9) | 0;
+		const offset = (index * 9) | 0;
 		return [
 			data[offset],     data[offset + 1], data[offset + 2],
 			data[offset + 3], data[offset + 4], data[offset + 5],
@@ -175,7 +175,7 @@ namespace sd.container {
 	}
 
 	export function setIndexedMat3(data: TypedArray, index: number, m3: Float3x3) {
-		var offset = (index * 9) | 0;
+		const offset = (index * 9) | 0;
 		data[offset]     = m3[0]; data[offset + 1] = m3[1]; data[offset + 2] = m3[2];
 		data[offset + 3] = m3[3]; data[offset + 4] = m3[4]; data[offset + 5] = m3[5];
 		data[offset + 6] = m3[6]; data[offset + 7] = m3[7]; data[offset + 8] = m3[8];
@@ -190,7 +190,7 @@ namespace sd.container {
 	}
 
 	export function copyIndexedMat4(data: TypedArray, index: number): number[] {
-		var offset = (index * 16) | 0;
+		const offset = (index * 16) | 0;
 		return [
 			data[offset],      data[offset + 1],  data[offset + 2],  data[offset + 3],
 			data[offset + 4],  data[offset + 5],  data[offset + 6],  data[offset + 7],
@@ -200,7 +200,7 @@ namespace sd.container {
 	}
 
 	export function setIndexedMat4(data: TypedArray, index: number, m4: Float4x4) {
-		var offset = (index * 16) | 0;
+		const offset = (index * 16) | 0;
 		data[offset]      = m4[0];  data[offset + 1]  = m4[1];  data[offset + 2]  = m4[2];  data[offset + 3]  = m4[3];
 		data[offset + 4]  = m4[4];  data[offset + 5]  = m4[5];  data[offset + 6]  = m4[6];  data[offset + 7]  = m4[7];
 		data[offset + 8]  = m4[8];  data[offset + 9]  = m4[9];  data[offset + 10] = m4[10]; data[offset + 11] = m4[11];
@@ -230,7 +230,7 @@ namespace sd.container {
 		private newBlock(): T[] {
 			return [];
 		}
-			
+
 		private get headBlock() { return this.blocks_[this.headBlock_]; }
 		private get tailBlock() { return this.blocks_[this.tailBlock_]; }
 
@@ -313,8 +313,7 @@ namespace sd.container {
 			if (this.tailIndex_ == 0) {
 				// Strategy: keep max. 1 block after tail if it was previously created.
 				// Once we get to 2 empty blocks after tail, then remove the back block.
-					
-				var lastBlockIndex = this.blocks_.length - 1;
+				const lastBlockIndex = this.blocks_.length - 1;
 
 				if (this.tailBlock_ == lastBlockIndex - 1) {
 					this.blocks_.pop();
@@ -339,7 +338,7 @@ namespace sd.container {
 			this.headIndex_ = this.tailIndex_ = 0;
 			this.count_ = 0;
 		}
-			
+
 
 		// -- observers
 		get count() { return this.count_; }
@@ -392,8 +391,8 @@ namespace sd.container {
 		constructor(initialCapacity: number, fields: MABField[]) {
 			var totalOffset = 0;
 			this.fields_ = fields.map(field => {
-				var curOffset = totalOffset;
-				var sizeBytes = field.type.byteSize * field.count;
+				const curOffset = totalOffset;
+				const sizeBytes = field.type.byteSize * field.count;
 				totalOffset += sizeBytes;
 
 				return {
@@ -401,7 +400,7 @@ namespace sd.container {
 					count: field.count,
 					byteOffset: curOffset,
 					sizeBytes: sizeBytes
-				};			
+				};
 			});
 
 			this.elementSumSize_ = totalOffset;
@@ -419,7 +418,7 @@ namespace sd.container {
 
 
 		private fieldArrayView(f: PositionedMABField, buffer: ArrayBuffer, itemCount: number) {
-			var byteOffset = f.byteOffset * itemCount;
+			const byteOffset = f.byteOffset * itemCount;
 			return new (f.type.arrayType)(buffer, byteOffset, itemCount * f.count);
 		}
 
@@ -440,12 +439,10 @@ namespace sd.container {
 				return InvalidatePointers.No;
 			}
 
-			var invalidation = InvalidatePointers.No;
-			var newSizeBytes = newCapacity * this.elementSumSize_;
-
-			var newData = new ArrayBuffer(newSizeBytes);
+			const newData = new ArrayBuffer(newCapacity * this.elementSumSize_);
 			assert(newData);
-		
+
+			var invalidation = InvalidatePointers.No;
 			if (this.data_) {
 				// Since a capacity change will change the length of each array individually
 				// we need to re-layout the data in the new buffer.
@@ -454,8 +451,8 @@ namespace sd.container {
 				// millisecond-order time, so avoid resizes when possible.
 
 				this.fields_.forEach(field => {
-					var oldView = this.fieldArrayView(field, this.data_!, this.count_);
-					var newView = this.fieldArrayView(field, newData, newCapacity);
+					const oldView = this.fieldArrayView(field, this.data_!, this.count_);
+					const newView = this.fieldArrayView(field, newData, newCapacity);
 					newView.set(oldView);
 				});
 
@@ -471,19 +468,19 @@ namespace sd.container {
 
 		clear() {
 			this.count_ = 0;
-			var data = this.data_!;
+			const data = this.data_!;
 
-			var numDoubles = (data.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
-			var doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
-			var remainingBytes = data.byteLength - doublesByteSize;
+			const numDoubles = (data.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
+			const doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
+			const remainingBytes = data.byteLength - doublesByteSize;
 
 			// As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
-			var doubleView = new Float64Array(data);
-			var remainderView = new Uint8Array(data, doublesByteSize);
-			for (var d = 0; d < numDoubles; ++d) {
+			const doubleView = new Float64Array(data);
+			const remainderView = new Uint8Array(data, doublesByteSize);
+			for (let d = 0; d < numDoubles; ++d) {
 				doubleView[d] = 0;
 			}
-			for (var b = 0; b < remainingBytes; ++b) {
+			for (let b = 0; b < remainingBytes; ++b) {
 				remainderView[b] = 0;
 			}
 		}
@@ -500,11 +497,11 @@ namespace sd.container {
 				// Reducing the count will clear the now freed up elements so that when
 				// a new allocation is made the element data is guaranteed to be zeroed.
 
-				var elementsToClear = this.count_ - newCount;
+				const elementsToClear = this.count_ - newCount;
 
 				this.fields_.forEach(field => {
-					var array = this.fieldArrayView(field, this.data_!, this.count_);
-					var zeroes = new (field.type.arrayType)(elementsToClear * field.count);
+					const array = this.fieldArrayView(field, this.data_!, this.count_);
+					const zeroes = new (field.type.arrayType)(elementsToClear * field.count);
 					array.set(zeroes, newCount * field.count);
 				});
 			}

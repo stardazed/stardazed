@@ -73,10 +73,12 @@ namespace sd.render {
 
 	export function makeProgram(rc: RenderContext, vertexShader?: WebGLShader, fragmentShader?: WebGLShader) {
 		var program = rc.gl.createProgram()!; // TODO: handle resource allocation failure
-		if (vertexShader)
+		if (vertexShader) {
 			rc.gl.attachShader(program, vertexShader);
-		if (fragmentShader)
+		}
+		if (fragmentShader) {
 			rc.gl.attachShader(program, fragmentShader);
+		}
 		rc.gl.linkProgram(program);
 
 		if (! rc.gl.getProgramParameter(program, rc.gl.LINK_STATUS)) {
@@ -88,7 +90,7 @@ namespace sd.render {
 
 		return program;
 	}
-	
+
 
 	export function makeRenderContext(canvas: HTMLCanvasElement): RenderContext | null {
 		var gl: WebGLRenderingContext | null;

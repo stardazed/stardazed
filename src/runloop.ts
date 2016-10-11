@@ -69,8 +69,9 @@ namespace sd {
 
 
 		start() {
-			if (this.runState_ != RunLoopState.Idle)
+			if (this.runState_ != RunLoopState.Idle) {
 				return;
+			}
 
 			this.runState_ = RunLoopState.Running;
 			if (this.sceneCtrl_) {
@@ -83,8 +84,9 @@ namespace sd {
 
 
 		stop() {
-			if (this.runState_ != RunLoopState.Running)
+			if (this.runState_ != RunLoopState.Running) {
 				return;
+			}
 
 			this.runState_ = RunLoopState.Idle;
 			if (this.sceneCtrl_) {

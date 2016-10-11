@@ -16,13 +16,13 @@ interface quat {
 }
 
 quat.fromEuler = function(yaw: number, pitch: number, roll: number) {
-	var y = yaw * 0.5;
-	var p = pitch * 0.5;
-	var r = roll * 0.5;
+	const y = yaw * 0.5;
+	const p = pitch * 0.5;
+	const r = roll * 0.5;
 
-	var siny = Math.sin(y), cosy = Math.cos(y);
-	var sinp = Math.sin(p), cosp = Math.cos(p);
-	var sinr = Math.sin(r), cosr = Math.cos(r);
+	const siny = Math.sin(y), cosy = Math.cos(y);
+	const sinp = Math.sin(p), cosp = Math.cos(p);
+	const sinr = Math.sin(r), cosr = Math.cos(r);
 
 	// evaluated form of 3 Quat multiplications (of yaw, pitch and roll)
 	return <Float32Array>quat.normalize(new Float32Array(4), [
@@ -157,7 +157,7 @@ vec2.mix = function(out: ArrayOfNumber, a: ArrayOfNumber, b: ArrayOfNumber, rati
 		out[1] = sd.math.mix(a[1], b[1], ratio);
 	}
 	else {
-		out[0] = sd.math.mix(a[0], b[0], ratio[0]);	
+		out[0] = sd.math.mix(a[0], b[0], ratio[0]);
 		out[1] = sd.math.mix(a[1], b[1], ratio[1]);
 	}
 

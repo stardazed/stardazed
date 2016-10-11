@@ -11,7 +11,7 @@ namespace sd.world {
 
 	// -- Entity bit-field build up
 	const entityIndexBits = 23; // numbers are signed int32 types internally in browsers when not used as int
-	const entityGenerationBits = 8; 
+	const entityGenerationBits = 8;
 	const entityIndexMask = (1 << entityIndexBits) - 1;
 	const entityGenerationMask = (1 << entityGenerationBits) - 1;
 
@@ -47,7 +47,7 @@ namespace sd.world {
 		private appendGeneration() {
 			if (this.genCount_ == this.generation_.length) {
 				// grow generation array
-				var newBuffer = ArrayBuffer.transfer(this.generation_.buffer, this.generation_.length * 2);
+				const newBuffer = ArrayBuffer.transfer(this.generation_.buffer, this.generation_.length * 2);
 				this.generation_ = new Uint8Array(newBuffer);
 			}
 
@@ -72,13 +72,13 @@ namespace sd.world {
 
 		alive(ent: Entity) {
 			// explicitly "inlined" calls to entityIndex/Generation as this method will be called a lot
-			var index = <number>ent & entityIndexMask;
-			var generation = ((<number>ent) >> entityIndexBits) & entityGenerationMask;
+			const index = <number>ent & entityIndexMask;
+			const generation = ((<number>ent) >> entityIndexBits) & entityGenerationMask;
 			return index <= this.genCount_ && (generation == this.generation_[index]);
 		}
 
 		destroy(ent: Entity) {
-			var index = entityIndex(ent);
+			const index = entityIndex(ent);
 			this.generation_[index]++;
 			this.freedIndices_.append(index);
 		}

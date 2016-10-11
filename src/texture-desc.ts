@@ -8,7 +8,7 @@
 namespace sd.render {
 
 	export const enum TextureClass {
-		None, 
+		None,
 
 		Tex2D,
 		TexCube
@@ -74,7 +74,7 @@ namespace sd.render {
 
 		maxAnisotropy: number;
 	}
-	
+
 
 	export type TextureImageSource = ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement;
 	export type TextureImageData = ArrayBufferView | TextureImageSource;
