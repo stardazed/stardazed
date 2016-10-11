@@ -51,7 +51,7 @@ namespace testdazed {
 		errors: number;
 	}
 
-	var curReport_s: TestReport = null;
+	var curReport_s: TestReport | null = null;
 
 
 	class TestRun {

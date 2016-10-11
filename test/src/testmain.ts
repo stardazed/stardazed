@@ -33,7 +33,7 @@ class SimpleTestReport implements td.TestReport {
 		this.checkIndex_ = 0;
 	}
 
-	leaveTest(test: td.Test) {
+	leaveTest(_test: td.Test) {
 		this.nameTree_.pop();
 	}
 		
