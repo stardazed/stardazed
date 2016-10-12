@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
+        "module": "amd",
         "target": "es5",
         "rootDir": "src",
         "outFile": "build/sdtx-test.js",
