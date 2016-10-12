@@ -25,8 +25,9 @@ namespace sd.audio {
 
 	export function makeAudioBufferFromData(ac: AudioContext, data: ArrayBuffer): Promise<AudioBuffer> {
 		return new Promise<AudioBuffer>((resolve, reject) => {
-			ac.ctx.decodeAudioData(data,
-				(audioData: AudioBuffer) => {
+			ac.ctx.decodeAudioData(
+				data,
+				audioData => {
 					resolve(audioData);
 				},
 				() => {

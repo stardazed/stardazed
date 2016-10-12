@@ -376,12 +376,15 @@ namespace sd.asset {
 					);
 				});
 
-				return Promise.all(fileProms).then(textures => {
-					for (const tex of textures) {
-						this.assets_.addTexture(tex);
-					}
-					return this.assets_;
-				}, () => null);
+				return Promise.all(fileProms).then(
+					textures => {
+						for (const tex of textures) {
+							this.assets_.addTexture(tex);
+						}
+						return this.assets_;
+					},
+					() => null
+				);
 			}
 
 

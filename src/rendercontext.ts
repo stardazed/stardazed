@@ -119,9 +119,9 @@ namespace sd.render {
 		const mdb = gl.getExtension("WEBGL_draw_buffers");
 
 		// enable extended depth textures
-		var dte = gl.getExtension("WEBGL_depth_texture");
-		dte = dte || gl.getExtension("WEBKIT_WEBGL_depth_texture");
-		dte = dte || gl.getExtension("MOZ_WEBGL_depth_texture");
+		const dte = gl.getExtension("WEBGL_depth_texture") ||
+					gl.getExtension("WEBKIT_WEBGL_depth_texture") ||
+					gl.getExtension("MOZ_WEBGL_depth_texture");
 
 		// (half) float textures
 		const ftx = gl.getExtension("OES_texture_float");
@@ -130,16 +130,16 @@ namespace sd.render {
 		const htl = gl.getExtension("OES_texture_half_float_linear");
 
 		// enable S3TC (desktop only)
-		var s3tc = gl.getExtension("WEBGL_compressed_texture_s3tc");
-		s3tc = s3tc || gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
-		s3tc = s3tc || gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc");
+		const s3tc = gl.getExtension("WEBGL_compressed_texture_s3tc") ||
+					gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc") ||
+					gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc");
 
 		// enable MIN and MAX blend modes
 		const bmm = gl.getExtension("EXT_blend_minmax");
 
 		// enable texture anisotropy
-		var txa = gl.getExtension("EXT_texture_filter_anisotropic");
-		txa = txa || gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
+		const txa = gl.getExtension("EXT_texture_filter_anisotropic") ||
+					gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
 
 		// enable Vertex Array Objects
 		const vao = gl.getExtension("OES_vertex_array_object");

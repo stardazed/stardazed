@@ -70,7 +70,7 @@ namespace sd.asset {
 
 				"object": FBXPropertyType.Object,
 				"compound": FBXPropertyType.Empty,
-				"referenceproperty": FBXPropertyType.Empty,
+				"referenceproperty": FBXPropertyType.Empty
 			};
 
 			export interface FBXProp70Prop {
@@ -248,7 +248,7 @@ namespace sd.asset {
 					"NodeAttribute": this.attributeNodes,
 					"AnimationCurveNode": this.animCurveNodes,
 					"AnimationCurve": this.animCurves,
-					"Deformer": this.clusterNodes,
+					"Deformer": this.clusterNodes
 				};
 
 				const id = node.objectID;
@@ -351,18 +351,21 @@ namespace sd.asset {
 						}
 						else {
 							fileProms.push(new Promise<Texture2D | null>((resolve, reject) => {
-								loadImageFromBuffer(fileData!, mime!).then((img) => {
-									tex.descriptor = makeTexDesc(img);
-									resolve(tex);
-								}, (error) => {
-									if (options.allowMissingTextures) {
-										console.warn(error);
-										resolve(null);
+								loadImageFromBuffer(fileData!, mime!).then(
+									img => {
+										tex.descriptor = makeTexDesc(img);
+										resolve(tex);
+									},
+									error => {
+										if (options.allowMissingTextures) {
+											console.warn(error);
+											resolve(null);
+										}
+										else {
+											reject(error);
+										}
 									}
-									else {
-										reject(error);
-									}
-								});
+								);
 							}));
 						}
 					}
@@ -393,12 +396,15 @@ namespace sd.asset {
 					}
 				});
 
-				return Promise.all(fileProms).then((textures) => {
-					for (const tex of textures) {
-						group.addTexture(tex);
-					}
-					return group;
-				}, () => null);
+				return Promise.all(fileProms).then(
+					textures => {
+						for (const tex of textures) {
+							group.addTexture(tex);
+						}
+						return group;
+					},
+					() => null
+				);
 			}
 
 

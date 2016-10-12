@@ -47,13 +47,13 @@
 		"no-for-in-array": false, // sublimeliner-tslint does not enable type checking
 		"no-null-keyword": false,
 		"no-shadowed-variable": true,
-		"no-string-literal": false,
+		"no-string-literal": true,
 		"no-unsafe-finally": true,
 		"no-unused-expression": true,
 		"no-unused-new": true,
 		"no-var-keyword": false,
 		"radix": false,
-		"restrict-plus-operands": false,
+		"restrict-plus-operands": false, // sublimeliner-tslint does not enable type checking
 		"switch-default": false,
 		"triple-equals": false,
 		"use-isnan": true,
@@ -65,14 +65,14 @@
 		"max-file-line-count": false,
 		"max-line-length": false,
 		"no-default-export": true,
-		"no-mergeable-namespace": false,
+		"no-mergeable-namespace": false, // is buggy
 		"no-require-imports": true,
 		"no-trailing-whitespace": true,
 		"object-literal-sort-keys": false,
 		"trailing-comma": false,
 
 		/* Style */
-		"align": false,
+		"align": [true, "parameters", "arguments", "statements"],
 		"arrow-parens": false,
 		"class-name": true,
 		"comment-format": [true, "check-space"],

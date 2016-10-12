@@ -166,7 +166,7 @@ namespace sd.render {
 				assert(attachment.level == 0, "WebGL 1 does not allow mapping of texture level > 0");
 				assert(attachment.level < texture.mipmaps);
 
-				var glTarget = gl.TEXTURE_2D;
+				let glTarget = gl.TEXTURE_2D;
 				if (texture.textureClass == TextureClass.TexCube) {
 					assert(attachment.layer >= 0 && attachment.layer <= 5, "layer is not a valid CubeMapFace index");
 					glTarget = gl.TEXTURE_CUBE_MAP_POSITIVE_X + attachment.layer;

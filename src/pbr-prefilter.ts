@@ -193,7 +193,7 @@ namespace sd.render {
 					// implicit glFinish, read back generated texture
 					rc.gl.readPixels(0, 0, levelWidth, levelWidth, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, levelPixels[mip]);
 
-					var err = rc.gl.getError();
+					let err = rc.gl.getError();
 					if (err) {
 						assert(false, "Cannot read pixels, gl error " + err);
 					}

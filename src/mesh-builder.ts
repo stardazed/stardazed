@@ -222,8 +222,8 @@ namespace sd.meshdata {
 					const stream = this.streams_[streamIx];
 					const elemCount = stream.elementCount;
 					const array = this.vertexData_[streamIx];
-					var values: ArrayOfNumber = stream.values!; // TODO: is this guaranteed to exist in this loop?
 					const fieldIndex = streamIndexes[streamIx];
+					var values: ArrayOfNumber = stream.values!; // TODO: is this guaranteed to exist in this loop?
 					var fieldOffset = elemCount * fieldIndex;
 
 					// This is slowest on all browsers (by a mile)
@@ -296,9 +296,9 @@ namespace sd.meshdata {
 			}
 			else {
 				const polyPoints = vertexIndexes.length;
-				var polyNext = 2;
 				const pv0 = polygonVertexIndexes[0];
 				const v0 = vertexIndexes[0];
+				var polyNext = 2;
 
 				while (polyNext < polyPoints) {
 					this.addTriangle(
