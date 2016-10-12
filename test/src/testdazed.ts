@@ -116,43 +116,43 @@ namespace testdazed {
 	}
 
 	export function checkNull(tp: any) {
-		return checkImpl(() => tp == null, "expected a nullptr");
+		return checkImpl(() => tp == null, "expected null or undefined");
 	}
 
 	export function checkNonNull(tp: any) {
-		return checkImpl(() => tp != null, "expected a valid pointer but was nullptr");
+		return checkImpl(() => tp != null, "expected a valid reference but got null or undefined");
 	}
 
 	export function checkEqual<T>(t1: T, t2: T) {
-		return checkImpl(() => t1 === t2, t1.toString() + " is not equal to " + t2.toString());
+		return checkImpl(() => t1 === t2, `${t1.toString()} is not equal to ${t2.toString()}`);
 	}
 
 	export function checkNotEqual<T>(t1: T, t2: T) {
-		return checkImpl(() => t1 !== t2, t1.toString() + " was expected to differ from " + t2.toString());
+		return checkImpl(() => t1 !== t2, `${t1.toString()} was expected to differ from ${t2.toString()}`);
 	}
 
 	export function checkNearEqual(f1: number, f2: number, epsilon = 0.00001) {
-		return checkImpl(() => Math.abs(f2 - f1) <= epsilon, f1 + " is not mostly equal to " + f2);
+		return checkImpl(() => Math.abs(f2 - f1) <= epsilon, `${f1} is not mostly equal to ${f2}`);
 	}
 
 	export function checkNotNearEqual(f1: number, f2: number, epsilon = 0.00001) {
-		return checkImpl(() => Math.abs(f2 - f1) > epsilon, f1 + " is too similar to " + f2);
+		return checkImpl(() => Math.abs(f2 - f1) > epsilon, `${f1} is too similar to ${f2}`);
 	}
 
 	export function checkGT(t: number, u: number) {
-		return checkImpl(() => t > u, t + " was expected to be greater than " + u);
+		return checkImpl(() => t > u, `${t} was expected to be greater than ${u}`);
 	}
 
 	export function checkGE(t: number, u: number) {
-		return checkImpl(() => t >= u, t + " was expected to be greater than or equal to " + u);
+		return checkImpl(() => t >= u, `${t} was expected to be greater than or equal to ${u}`);
 	}
 
 	export function checkLT(t: number, u: number) {
-		return checkImpl(() => t < u, t + " was expected to be less than " + u);
+		return checkImpl(() => t < u, `${t} was expected to be less than ${u}`);
 	}
 
 	export function checkLE(t: number, u: number) {
-		return checkImpl(() => t <= u, t + " was expected to be less than or equal to " + u);
+		return checkImpl(() => t <= u, `${t} was expected to be less than or equal to ${u}`);
 	}
 
 

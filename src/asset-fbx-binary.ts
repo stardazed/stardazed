@@ -138,7 +138,7 @@ namespace sd.asset.fbx.parse {
 				array = this.inflateCompressedArray(source, element);
 			}
 			else {
-				console.warn("Unknown array encoding encountered: " + encoding + ". Skipping array.");
+				console.warn(`Unknown array encoding encountered: ${encoding}. Skipping array.`);
 				dataSizeBytes = compressedSizeBytes;
 			}
 
@@ -259,7 +259,7 @@ namespace sd.asset.fbx.parse {
 						break;
 
 					default:
-						console.warn("Unknown property type: " + type + ". Skipping further properties for this field.");
+						console.warn(`Unknown property type: '${type}'. Skipping further properties for this field.`);
 						count = 0;
 						val = 0;
 						this.offset_ = firstPropOffset + header.valuesSizeBytes;
@@ -289,7 +289,7 @@ namespace sd.asset.fbx.parse {
 						const closing = this.stack_.pop()!; // above check asserts succesful pop()
 						assert(closing.endOffset == this.offset_, "Offset mismatch at end of scope");
 						if (this.inProp70Block_) {
-							assert(closing.name == "Properties70", "Invalid parser state, assumed closing a Prop70 but was closing a " + closing.name);
+							assert(closing.name == "Properties70", `Invalid parser state, assumed closing a Prop70 but was closing a ${closing.name}`);
 							this.inProp70Block_ = false;
 						}
 						else {
@@ -335,7 +335,7 @@ namespace sd.asset.fbx.parse {
 				}
 			}
 
-			this.error("Unexpected EOF at nesting depth " + this.stack_.length);
+			this.error(`Unexpected EOF at nesting depth ${this.stack_.length}`);
 		}
 	}
 

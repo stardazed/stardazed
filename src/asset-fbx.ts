@@ -92,7 +92,7 @@ namespace sd.asset {
 				};
 
 				if (result.type == FBXPropertyType.Unknown) {
-					console.warn("Unknown typed prop typename: " + typeName);
+					console.warn(`Unknown typed prop typename: ${typeName}`);
 				}
 				return result;
 			}
@@ -254,7 +254,7 @@ namespace sd.asset {
 				const id = node.objectID;
 				const subClass = node.objectSubClass;
 				var nodeSet = typeSetMap[node.name];
-				assert(nodeSet != null, "Unknown object class " + node.name);
+				assert(nodeSet != null, `Unknown object class ${node.name}`);
 
 				if (node.name == "Model") {
 					if (subClass != "Mesh" && subClass != "Root" && subClass != "LimbNode" && subClass != "Null" && subClass != "Light") {
@@ -341,7 +341,7 @@ namespace sd.asset {
 					if (fileData) {
 						const mime = tex.url ? mimeTypeOfURL(tex.url) : "";
 						if (! mime) {
-							const err = "Cannot create texture, no mime-type found for file path " + tex.url;
+							const err = `Cannot create texture, no mime-type found for file path ${tex.url}`;
 							if (options.allowMissingTextures) {
 								console.warn(err);
 							}
@@ -458,7 +458,7 @@ namespace sd.asset {
 						const tex2D = group.textures.find((t) => !!t && <number>t.userRef == vidNodeID);
 
 						if (! (texNode && vidTexConn && tex2D)) {
-							console.warn("Could not link texture " + texIn.fromID + " to material prop " + texIn.propName + " because link or texture is invalid.");
+							console.warn(`Could not link texture ${texIn.fromID} to material prop ${texIn.propName} because link or texture is invalid.`);
 						}
 						else {
 							if (texIn.propName == "DiffuseColor") {
@@ -477,7 +477,7 @@ namespace sd.asset {
 								mat.transparencyTexture = tex2D;
 							}
 							else {
-								console.warn("Unsupported texture property link: " + texIn.propName);
+								console.warn(`Unsupported texture property link: ${texIn.propName}`);
 								continue;
 							}
 
@@ -574,7 +574,7 @@ namespace sd.asset {
 							stream.mapping = meshdata.VertexAttributeMapping.SingleValue;
 						}
 						else {
-							assert(false, "Unknown stream mapping name: " + mappingName);
+							assert(false, `Unknown stream mapping name: ${mappingName}`);
 						}
 					}
 					else if (c.name == valueArrayName) {
@@ -697,8 +697,8 @@ namespace sd.asset {
 					}
 				}
 
-				console.info("fbx streams build time " + tStreams.toFixed(1));
-				console.info("fbx meshdata build time " + tMeshData.toFixed(1));
+				console.info(`fbx streams build time ${tStreams.toFixed(1)}`);
+				console.info(`fbx meshdata build time ${tMeshData.toFixed(1)}`);
 			}
 
 
@@ -734,7 +734,7 @@ namespace sd.asset {
 							ld.type = world.LightType.Spot;
 						}
 						else {
-							console.warn("Invalid FBX light type: " + fbxLightType);
+							console.warn(`Invalid FBX light type: ${fbxLightType}`);
 						}
 					}
 					else if (c.name == "Color") {
@@ -821,7 +821,7 @@ namespace sd.asset {
 								sdModel.materials.push(mat);
 							}
 							else {
-								console.warn("Could not connect material " + conn.fromID + " to model " + modelID);
+								console.warn(`Could not connect material ${conn.fromID} to model ${modelID}`);
 							}
 						}
 						else if (connType == "NodeAttribute") {
@@ -855,7 +855,7 @@ namespace sd.asset {
 
 					if (childModel && parentModel) {
 						parentModel.children.push(childModel);
-						assert(childModel.parent == null, "Cannot re-parent node " + childModel.userRef);
+						assert(childModel.parent == null, `Cannot re-parent node ${childModel.userRef}`);
 						childModel.parent = parentModel;
 						if (conn.toID == 0) {
 							group.addModel(childModel);
@@ -964,7 +964,7 @@ namespace sd.asset {
 				for (const skinNodeID in this.skinNodes) {
 					const fbxSkin = this.skinNodes[skinNodeID];
 					if (fbxSkin.connectionsIn.length == 0 || fbxSkin.connectionsOut.length == 0) {
-						console.warn("Skin " + skinNodeID + " either has no mesh or no clusters. Skipping.");
+						console.warn(`Skin ${skinNodeID} either has no mesh or no clusters. Skipping.`);
 						continue;
 					}
 
@@ -1011,7 +1011,7 @@ namespace sd.asset {
 						}
 
 						if (! (wvg.indexes && wvg.weights && wvg.bindPoseLocalTranslation && wvg.bindPoseLocalRotation)) {
-							console.warn("Incomplete cluster " + clusterConn.fromID, cluster, wvg);
+							console.warn(`Incomplete cluster ${clusterConn.fromID}`, cluster, wvg);
 						}
 						else {
 							for (const cinc of cluster.connectionsIn) {
@@ -1029,11 +1029,11 @@ namespace sd.asset {
 											sdModel.vertexGroup = wvg;
 										}
 										else {
-											console.warn("Model " + cinNode.objectID + " has a cluster but no joint?");
+											console.warn(`Model ${cinNode.objectID} has a cluster but no joint?`);
 										}
 									}
 									else {
-										console.warn("Can't connect cluster " + cluster.objectID + " to model " + cinNode.objectID);
+										console.warn(`Can't connect cluster ${cluster.objectID} to non-existent model ${cinNode.objectID}`);
 									}
 								}
 							}
@@ -1203,13 +1203,14 @@ namespace sd.asset {
 
 
 			completed() {
-				console.info("fbx parse time " + (performance.now() - this.parseT0).toFixed(1));
+				const parseTime = (performance.now() - this.parseT0).toFixed(1);
+				console.info(`fbx parse time ${parseTime}`);
 				this.assets_ = this.doc.resolve();
 			}
 
 
 			error(msg: string, offset: number, token?: string) {
-				console.warn("FBX parse error @ offset " + offset + ": " + msg, token);
+				console.warn(`FBX parse error @ offset ${offset}: ${msg}`, token);
 			}
 
 
@@ -1233,7 +1234,8 @@ namespace sd.asset {
 		}
 		parser.parse();
 		return del.assets.then(grp => {
-			console.info("fbx total time: " + (performance.now() - t0).toFixed(1) + "ms");
+			const totalTime = (performance.now() - t0).toFixed(1);
+			console.info(`fbx total time: ${totalTime}ms`);
 			return grp;
 		});
 	}

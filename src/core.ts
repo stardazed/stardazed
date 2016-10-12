@@ -68,7 +68,7 @@ namespace sd {
 
 			this.stepSums_.set(name, diffT + (this.stepSums_.get(stepName) || 0));
 
-			console.info("Perf [" + this.name_ + "] " + stepName + ": " + diffT.toFixed(1));
+			console.info(`Perf [${this.name_}] ${stepName}: ${diffT.toFixed(1)}`);
 		}
 
 		end() {
@@ -76,9 +76,9 @@ namespace sd {
 			const diffT = curT - this.t0_;
 
 			this.stepSums_.forEach((totalStepT, stepName) => {
-				console.info("Perf TOTAL [" + this.name_ + "] " + stepName + ": " + totalStepT.toFixed(1));
+				console.info(`Perf TOTAL [${this.name_}] ${stepName}: ${totalStepT.toFixed(1)}`);
 			});
-			console.info("Perf TOTAL: " + diffT.toFixed(1));
+			console.info(`Perf TOTAL: ${diffT.toFixed(1)}`);
 		}
 	}
 

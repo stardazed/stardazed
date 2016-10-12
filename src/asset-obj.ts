@@ -165,7 +165,7 @@ namespace sd.asset {
 							const texSpec = parseMTLTextureSpec(tokens);
 							if (texSpec) {
 								const texAsset: Texture2D = {
-									name: curMat.name + "_" + directive,
+									name: `${curMat.name}_${directive}`,
 									url: new URL(texSpec.relPath, filePath),
 									useMipMaps: render.UseMipMaps.Yes
 								};
@@ -397,7 +397,7 @@ namespace sd.asset {
 					const newMatIx = matNameIndexMap.get(tokens[1]);
 					if (newMatIx === undefined) {
 						// issue an error/warning
-						console.warn("Tried to set material to non-existent name: " + tokens[1]);
+						console.warn(`Tried to set material to non-existent name: ${tokens[1]}`);
 					}
 					else {
 						curMatIx = newMatIx;
@@ -410,7 +410,7 @@ namespace sd.asset {
 		}
 
 		group.addMesh({
-			name: "obj_" + objSequenceNumber + "_mesh",
+			name: `obj_${objSequenceNumber}_mesh`,
 			meshData: builder.complete(),
 			indexMap: builder.indexMap
 		});
@@ -427,7 +427,7 @@ namespace sd.asset {
 			parseOBJSource(group, preproc, materialsAsColours);
 
 			// add the linked object as a Model to the group
-			const model = asset.makeModel("obj_" + objSequenceNumber + "_model");
+			const model = asset.makeModel(`obj_${objSequenceNumber}_model`);
 			model.mesh = group.meshes[0];
 			model.materials = group.materials;
 			model.transform = asset.makeTransform();

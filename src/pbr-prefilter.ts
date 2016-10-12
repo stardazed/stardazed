@@ -25,7 +25,7 @@ namespace sd.render {
 			"varying vec2 vertexUV_intp;",
 			"uniform vec4 params;", // face (0..5), roughness (0..1), dim, 0
 			"uniform samplerCube envMapSampler;",
-			"const int numSamples = " + numSamples + ";",
+			`const int numSamples = ${numSamples};`,
 			"const float PI = 3.141592654;",
 			"float rnd(vec2 uv) {",
 			"	return fract(sin(dot(uv, vec2(12.9898, 78.233) * 2.0)) * 43758.5453);",
@@ -195,7 +195,7 @@ namespace sd.render {
 
 					let err = rc.gl.getError();
 					if (err) {
-						assert(false, "Cannot read pixels, gl error " + err);
+						assert(false, `Cannot read pixels, gl error: ${err}`);
 					}
 					else {
 						// write generated pixels into result envmap at proper face/mip level
@@ -203,7 +203,7 @@ namespace sd.render {
 						rc.gl.texImage2D(rc.gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, resultGLPixelFormat, levelWidth, levelWidth, 0, rc.gl.RGBA, rc.gl.UNSIGNED_BYTE, levelPixels[mip]);
 						err = rc.gl.getError();
 						if (err) {
-							assert(false, "Cannot write pixels, gl error " + err);
+							assert(false, `Cannot write pixels, gl error: ${err}`);
 						}
 						resultEnvMap.unbind();
 					}

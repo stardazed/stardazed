@@ -229,7 +229,7 @@ namespace sd.render {
 
 				for (let layer = 0; layer < 6; ++layer) {
 					const layerPixels = pixelData![layer];
-					assert(layerPixels && ("byteLength" in layerPixels), "pixelData source " + layer + " for compressed TexCube is not an ArrayBufferView");
+					assert(layerPixels && ("byteLength" in layerPixels), `pixelData source ${layer} for compressed TexCube is not an ArrayBufferView`);
 					gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer, 0, glPixelFormat, w, h, 0, <ArrayBufferView>layerPixels);
 				}
 			}
@@ -244,7 +244,7 @@ namespace sd.render {
 					else {
 						// a TexImageSource was provided
 						const tis = <TextureImageSource>texPixelData;
-						assert((tis.width == w) && (tis.height == h), "TexCube pixelData " + layer + "'s size does not match descriptor");
+						assert((tis.width == w) && (tis.height == h), `TexCube pixelData ${layer}'s size does not match descriptor`);
 						gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer, 0, glPixelFormat, glPixelFormat, glPixelType, <any>texPixelData);
 					}
 				}

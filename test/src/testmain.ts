@@ -23,9 +23,9 @@ class SimpleTestReport implements td.TestReport {
 
 	finishReport() {
 		this.out("------------------");
-		this.out("passes   : " + this.passes_);
-		this.out("failures : " + this.failures_);
-		this.out("errors   : " + this.errors_);
+		this.out(`passes   : ${this.passes_}`);
+		this.out(`failures : ${this.failures_}`);
+		this.out(`errors   : ${this.errors_}`);
 	}
 
 	enterTest(test: td.Test) {
@@ -49,12 +49,12 @@ class SimpleTestReport implements td.TestReport {
 	failure(msg: string, innerMsg?: string) {
 		this.checkIndex_++;
 		this.failures_++;
-		this.out("FAIL (check #" + this.checkIndex_ + ") " + this.nameTree + ": " + msg + " " + (innerMsg || ""));
+		this.out(`FAIL (check ${this.checkIndex_}) ${this.nameTree}: ${msg} ${innerMsg || ""}`);
 	}
 
 	error(msg: string, innerMsg?: string) {
 		this.errors_++;
-		this.out("ERROR in " + this.nameTree + ": " + msg + " " + (innerMsg || ""));
+		this.out(`ERROR in ${this.nameTree}: ${msg} ${innerMsg || ""}`);
 	}
 
 	get passes() { return this.passes_; }

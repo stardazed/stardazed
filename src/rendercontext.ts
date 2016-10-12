@@ -61,7 +61,7 @@ namespace sd.render {
 
 		if (! rc.gl.getShaderParameter(shader, rc.gl.COMPILE_STATUS)) {
 			const errorLog = rc.gl.getShaderInfoLog(shader);
-			alert("COMPILE FAILED\n\n" + errorLog);
+			alert(`COMPILE FAILED\n\n${errorLog}`);
 			console.error("Shader compilation failed:", errorLog);
 			console.error("Source", sourceText);
 			assert(false, "bad shader");
@@ -83,7 +83,7 @@ namespace sd.render {
 
 		if (! rc.gl.getProgramParameter(program, rc.gl.LINK_STATUS)) {
 			const errorLog = rc.gl.getProgramInfoLog(program);
-			alert("LINK FAILED\n\n" + errorLog);
+			alert(`LINK FAILED\n\n${errorLog}`);
 			console.error("Program link failed:", errorLog);
 			assert(false, "bad program");
 		}

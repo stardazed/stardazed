@@ -458,7 +458,7 @@ namespace sd.world {
 			line  ("const int SPEC_EXPONENT = 1;");
 
 			// -- light param constants
-			line  ("const int MAX_FRAGMENT_LIGHTS = " + MAX_FRAGMENT_LIGHTS + ";");
+			line  (`const int MAX_FRAGMENT_LIGHTS = ${MAX_FRAGMENT_LIGHTS};`);
 			line  ("const int LPARAM_AMBIENT_INTENSITY = 0;");
 			line  ("const int LPARAM_DIFFUSE_INTENSITY = 1;");
 			line  ("const int LPARAM_RANGE = 2;");
@@ -705,7 +705,7 @@ namespace sd.world {
 
 			line  ("}");
 
-			// console.info("------ FRAGMENT " + feat);
+			// console.info(`------ FRAGMENT ${feat}`);
 			// source.forEach((s) => console.info(s));
 
 			return source.join("\n") + "\n";
@@ -874,7 +874,7 @@ namespace sd.world {
 			}
 
 			// if (features != prePrune) {
-			// 	console.info("Filtered " + prePrune + " to " + features);
+			// 	console.info(`Filtered ${prePrune} to ${features}`);
 			// }
 			return features;
 		}
@@ -1011,7 +1011,7 @@ namespace sd.world {
 
 			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
 			if (! mesh) {
-				// console.warn("No mesh attached to entity of stdModel " + modelIx);
+				// console.warn(`No mesh attached to entity of stdModel ${modelIx}`);
 				return;
 			}
 

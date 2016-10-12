@@ -318,7 +318,7 @@ namespace sd.asset {
 
 
 			error(msg: string, offset: number, token?: string) {
-				console.warn("MD5 Mesh parse error @ offset " + offset + ": " + msg, token);
+				console.warn(`MD5 Mesh parse error @ offset ${offset}: ${msg}`, token);
 			}
 
 
@@ -538,7 +538,7 @@ namespace sd.asset {
 
 
 			error(msg: string, offset: number, token?: string) {
-				console.warn("MD5 Anim parse error @ offset " + offset + ": " + msg, token);
+				console.warn(`MD5 Anim parse error @ offset ${offset}: ${msg}`, token);
 			}
 
 

@@ -355,7 +355,7 @@ namespace sd.asset.fbx.parse {
 				return new Float64Array(elementCount);
 			}
 
-			console.warn("Unknown array key " + key + ", making default Float64 array.");
+			console.warn(`Unknown array key '${key}', making default Float64 array.`);
 			return new Float64Array(elementCount);
 		}
 
@@ -513,7 +513,7 @@ namespace sd.asset.fbx.parse {
 			} while (! this.eof_);
 
 			if (this.depth_ > 0) {
-				this.delegate_.error("Unexpected EOF at nesting depth " + this.depth_, this.tokenizer_.offset);
+				this.delegate_.error(`Unexpected EOF at nesting depth ${this.depth_}`, this.tokenizer_.offset);
 			}
 			else {
 				this.delegate_.completed();

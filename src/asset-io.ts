@@ -38,7 +38,7 @@ namespace sd.asset {
 
 			const xhr = new XMLHttpRequest();
 			if (opts.tryBreakCache) {
-				url += "?__ts=" + Date.now();
+				url += `?__ts=${Date.now()}`;
 			}
 			xhr.open("GET", (url instanceof URL) ? url.href : url);
 			if (opts.responseType) {
@@ -55,8 +55,9 @@ namespace sd.asset {
 			};
 
 			xhr.onerror = function() {
-				assert(false, url + " doesn't exist");
-				reject(url + " doesn't exist");
+				const message = `'${url}' doesn't exist or failed to load`;
+				assert(false, message);
+				reject(message);
 			};
 
 			xhr.send();

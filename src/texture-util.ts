@@ -15,7 +15,7 @@ namespace sd.render {
 				resolve(texture);
 			};
 			image.onerror = function() {
-				assert(false, "Image " + filePath + "does not exist");
+				assert(false, `Image ${filePath} does not exist`);
 				reject();
 			};
 
@@ -46,7 +46,7 @@ namespace sd.render {
 						}
 					};
 					image.onerror = function() {
-						assert(false, "Image " + filePaths[face] + "does not exist");
+						assert(false, `Image ${filePaths[face]} does not exist`);
 						reject();
 					};
 
@@ -59,12 +59,12 @@ namespace sd.render {
 
 	export function makeCubeMapPaths(basePath: string, extension: string): string[] {
 		return [
-			basePath + "posx" + extension,
-			basePath + "negx" + extension,
-			basePath + "posy" + extension,
-			basePath + "negy" + extension,
-			basePath + "posz" + extension,
-			basePath + "negz" + extension
+			basePath + `posx${extension}`,
+			basePath + `negx${extension}`,
+			basePath + `posy${extension}`,
+			basePath + `negy${extension}`,
+			basePath + `posz${extension}`,
+			basePath + `negz${extension}`
 		];
 	}
 

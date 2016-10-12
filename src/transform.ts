@@ -189,7 +189,7 @@ namespace sd.world {
 				return <number>ent;
 			}
 
-			assert(false, "No transform for entity " + index);
+			assert(false, `No transform for entity ${index}`);
 			return 0;
 		}
 

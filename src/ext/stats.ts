@@ -39,10 +39,14 @@ namespace mrdoob {
 		constructor() {
 			const container = this.container = document.createElement("div");
 			container.id = "stats";
-			container.addEventListener("mousedown", (event) => {
-				event.preventDefault();
-				this.setMode(++this.mode_ % 2);
-			}, false);
+			container.addEventListener(
+				"mousedown",
+				event => {
+					event.preventDefault();
+					this.setMode(++this.mode_ % 2);
+				},
+				false
+			);
 			container.style.cssText = "width:80px;opacity:0.9;cursor:pointer";
 
 			const fpsDiv = document.createElement("div");
@@ -58,12 +62,12 @@ namespace mrdoob {
 
 			const fpsGraph = this.fpsGraph = document.createElement("div");
 			fpsGraph.id = "fpsGraph";
-			fpsGraph.style.cssText = "position:relative;width:" + GRAPH_WIDTH + "px;height:" + GRAPH_HEIGHT + "px;background-color:#0ff";
+			fpsGraph.style.cssText = `position:relative;width:${GRAPH_WIDTH}px;height:${GRAPH_HEIGHT}px;background-color:#0ff`;
 			fpsDiv.appendChild(fpsGraph);
 
 			while (fpsGraph.children.length < GRAPH_WIDTH) {
 				const bar = document.createElement("span");
-				bar.style.cssText = "width:1px;height:" + GRAPH_HEIGHT + "px;float:left;background-color:#113";
+				bar.style.cssText = `width:1px;height:${GRAPH_HEIGHT}px;float:left;background-color:#113`;
 				fpsGraph.appendChild(bar);
 			}
 
@@ -80,12 +84,12 @@ namespace mrdoob {
 
 			const msGraph = this.msGraph = document.createElement("div");
 			msGraph.id = "msGraph";
-			msGraph.style.cssText = "position:relative;width:" + GRAPH_WIDTH + "px;height:" + GRAPH_HEIGHT + "px;background-color:#0f0";
+			msGraph.style.cssText = `position:relative;width:${GRAPH_WIDTH}px;height:${GRAPH_HEIGHT}px;background-color:#0f0`;
 			msDiv.appendChild(msGraph);
 
 			while (msGraph.children.length < GRAPH_WIDTH) {
 				const bar = document.createElement("span");
-				bar.style.cssText = "width:1px;height:" + GRAPH_HEIGHT + "px;float:left;background-color:#131";
+				bar.style.cssText = `width:1px;height:${GRAPH_HEIGHT}px;float:left;background-color:#131`;
 				msGraph.appendChild(bar);
 			}
 		}
@@ -111,7 +115,7 @@ namespace mrdoob {
 
 		updateGraph(elem: HTMLDivElement, value: number) {
 			const child = <HTMLDivElement>elem.appendChild(elem.firstChild);
-			child.style.height = value + "px";
+			child.style.height = `${value}px`;
 		}
 
 		get domElement() {
@@ -129,7 +133,7 @@ namespace mrdoob {
 			this.msMin = Math.min(this.msMin, this.ms);
 			this.msMax = Math.max(this.msMax, this.ms);
 
-			this.msText.textContent = this.ms + " MS (" + this.msMin + "-" + this.msMax + ")";
+			this.msText.textContent = `${this.ms} MS (${this.msMin}-${this.msMax})`;
 			this.updateGraph(this.msGraph, Math.min(GRAPH_HEIGHT, GRAPH_HEIGHT - (this.ms / 200) * GRAPH_HEIGHT));
 
 			this.frames++;
@@ -139,7 +143,7 @@ namespace mrdoob {
 				this.fpsMin = Math.min(this.fpsMin, this.fps);
 				this.fpsMax = Math.max(this.fpsMax, this.fps);
 
-				this.fpsText.textContent = this.fps + " FPS (" + this.fpsMin + "-" + this.fpsMax + ")";
+				this.fpsText.textContent = `${this.fps} FPS (${this.fpsMin}-${this.fpsMax})`;
 				this.updateGraph(this.fpsGraph, Math.min(GRAPH_HEIGHT, GRAPH_HEIGHT - (this.fps / 100) * GRAPH_HEIGHT));
 
 				this.prevTime = time;

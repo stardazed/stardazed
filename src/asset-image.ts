@@ -102,7 +102,7 @@ namespace sd.asset {
 				resolve(image);
 			};
 			image.onerror = () => {
-				reject(url.href + " doesn't exist or is not supported");
+				reject(`${url.href} doesn't exist or is not supported`);
 			};
 
 			// When requesting cross-domain media, always try the CORS route

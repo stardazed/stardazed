@@ -306,7 +306,7 @@ namespace sd.world {
 			line  ("const int MAT_AMBIENT_OCCLUSION = 2;");
 
 			// -- light param constants
-			line  ("const int MAX_FRAGMENT_LIGHTS = " + MAX_FRAGMENT_LIGHTS + ";");
+			line  (`const int MAX_FRAGMENT_LIGHTS = ${MAX_FRAGMENT_LIGHTS};`);
 			line  ("const int LPARAM_INTENSITY = 1;");
 			line  ("const int LPARAM_RANGE = 2;");
 			line  ("const int LPARAM_CUTOFF = 3;");

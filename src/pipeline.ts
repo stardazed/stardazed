@@ -80,7 +80,7 @@ namespace sd.render {
 				}
 			});
 			if (highestEnabledAttachment >= maxColourAttachments(rc)) {
-				assert(false, "This GL only supports up to " + maxColourAttachments(rc) + " attachment(s)");
+				assert(false, `This GL only supports up to ${maxColourAttachments(rc)} attachment(s)`);
 			}
 
 			// -- create program and find attribute locations
@@ -89,7 +89,7 @@ namespace sd.render {
 
 			desc.attributeNames.forEach((name, role) => {
 				const attrIx = rc.gl.getAttribLocation(this.program_, name);
-				assert(attrIx >= 0, "cannot find attribute " + name);
+				assert(attrIx >= 0, `cannot find vertex attribute ${name}`);
 				this.attrRoleIndexMap_.set(role, attrIx);
 			});
 		}

@@ -407,7 +407,7 @@ namespace sd.asset.md5.parse {
 							}
 						}
 						else {
-							console.warn("Unknown command in mesh: `" + cmd + "`");
+							console.warn(`Unknown command in mesh: '${cmd}'`);
 						}
 					}
 					else if (cmdN && cmdN.type != TokenType.CloseBlock) {
