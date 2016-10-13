@@ -130,6 +130,21 @@ namespace sd.asset {
 		}
 
 
+		load(_path: string) {
+			/*
+				- resolve path to url
+				- if path is present in the cache, then serve resolved Promise to full assetgroup
+
+				- use extension of path to determine mime-type
+				- use mime-type to get a loader
+				- create asset group
+				- invoke loader, passing in asset group and library or some loading context
+
+				- loader fetches file
+				- any warnings or errors are logged in the loading context / library?
+				- resources are added to the group, both individually and linked together where necessary
+			*/
+		}
 	}
 
 } // ns sd.asset
