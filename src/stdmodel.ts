@@ -1045,6 +1045,12 @@ namespace sd.world {
 				}
 
 				const pipeline = this.stdPipeline_.pipelineForFeatures(features);
+
+				// FIXME: what a pile of #$!@#
+				if ((features & (Features.Translucency | Features.DiffuseAlphaIsOpacity)) === Features.Translucency) {
+					pipeline.blendConstantAlpha = materialData.colourData[3];
+				}
+
 				rp.setPipeline(pipeline);
 				rp.setMesh(mesh);
 

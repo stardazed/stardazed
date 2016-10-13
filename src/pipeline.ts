@@ -151,6 +151,10 @@ namespace sd.render {
 		get depthPixelFormat() { return this.depthPixelFormat_; }
 		get stencilPixelFormat() { return this.stencilPixelFormat_; }
 
+		// FIXME: this is bad
+		get blendConstantAlpha() { return this.blending_.constantColour[3]; }
+		set blendConstantAlpha(newAlpha: number) { this.blending_.constantColour[3] = math.clamp01(newAlpha); }
+
 		get program() { return this.program_; }
 
 		get attributeCount() { return this.attrRoleIndexMap_.size; }
