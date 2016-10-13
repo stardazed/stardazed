@@ -34,13 +34,6 @@ namespace sd.asset {
 	}
 
 
-	// This is a PNG that is a purple-black chessboard pattern
-	// to be used when resolving textures and a texture is missing.
-	// Dimensions: 48x48. Placement in this file is temporary until
-	// standardised asset texture resolving is implemented.
-	// const missingTexture = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwAQMAAABtzGvEAAAABlBMVEX/AN8AAAA/lLvMAAAAFElEQVR4AWMAgv///w96Csoc9BQAKFKPcQjw3h8AAAAASUVORK5CYII=";
-
-
 	export const enum MaterialFlags {
 		usesSpecular               = 0x00000001,
 		usesEmissive               = 0x00000002,

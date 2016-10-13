@@ -5,7 +5,7 @@
 
 namespace sd.asset {
 
-	export enum FileLoadType {
+	export const enum FileLoadType {
 		ArrayBuffer = 1,
 		Blob,
 		Document,
@@ -137,11 +137,10 @@ namespace sd.asset {
 
 
 	export function convertBytesToString(bytes: Uint8Array) {
+		const maxBlockSize = 65536; // max parameter array size for use in Webkit
 		const strings: string[] = [];
-
 		var bytesLeft = bytes.length;
 		var offset = 0;
-		const maxBlockSize = 65536; // max parameter array size for use in Webkit
 
 		while (bytesLeft > 0) {
 			const blockSize = Math.min(bytesLeft, maxBlockSize);
@@ -153,18 +152,5 @@ namespace sd.asset {
 
 		return strings.length == 1 ? strings[0] : strings.join("");
 	}
-
-
-	export function debugDumpPixelData(pixels: Uint8Array, width: number, height: number) {
-		const cvs = document.createElement("canvas");
-		cvs.width = width;
-		cvs.height = height;
-		const ctx = cvs.getContext("2d")!;
-		const imageData = ctx.createImageData(width, height);
-		imageData.data.set(pixels);
-		ctx.putImageData(imageData, 0, 0);
-		document.body.appendChild(cvs);
-	}
-
 
 } // ns sd.asset

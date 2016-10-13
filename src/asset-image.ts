@@ -89,6 +89,25 @@ namespace sd.asset {
 	}
 
 
+	export function debugDumpPixelData(pixels: Uint8Array, width: number, height: number) {
+		const cvs = document.createElement("canvas");
+		cvs.width = width;
+		cvs.height = height;
+		const ctx = cvs.getContext("2d")!;
+		const imageData = ctx.createImageData(width, height);
+		imageData.data.set(pixels);
+		ctx.putImageData(imageData, 0, 0);
+		document.body.appendChild(cvs);
+	}
+
+
+	// This is a PNG that is a purple-black chessboard pattern
+	// to be used when resolving textures and a texture is missing.
+	// Dimensions: 48x48. Placement in this file is temporary until
+	// standardised asset texture resolving is implemented.
+	// const missingTexture = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwAQMAAABtzGvEAAAABlBMVEX/AN8AAAA/lLvMAAAAFElEQVR4AWMAgv///w96Csoc9BQAKFKPcQjw3h8AAAAASUVORK5CYII=";
+
+
 	//  ___      _ _ _       _      
 	// | _ )_  _(_) | |_ ___(_)_ _  
 	// | _ \ || | | |  _|___| | ' \ 
