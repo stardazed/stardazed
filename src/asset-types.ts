@@ -214,7 +214,7 @@ namespace sd.asset {
 	export interface Model extends Asset {
 		transform: Transform;
 		children: Model[];
-		parent: Model | null;
+		parent?: Model;
 
 		// components
 		mesh?: Mesh;
@@ -233,8 +233,7 @@ namespace sd.asset {
 			name: name,
 			userRef: ref,
 			transform: makeTransform(),
-			children: [],
-			parent: null
+			children: []
 		};
 	}
 
