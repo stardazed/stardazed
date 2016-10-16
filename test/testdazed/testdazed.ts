@@ -6,6 +6,7 @@
 namespace testdazed {
 
 	export type TestBodyFn = () => void;
+	export type HelperFn = () => void;
 
 	export class Test {
 		private subTests_: Test[] = [];
@@ -26,6 +27,11 @@ namespace testdazed {
 		}
 
 		get name() { return this.name_; }
+
+		before: HelperFn | null = null;
+		beforeAll: HelperFn | null = null;
+		afterAll: HelperFn | null = null;
+		after: HelperFn | null = null;
 	}
 
 	const rootTest = new Test("root", () => { /* empty test */ });
@@ -62,15 +68,30 @@ namespace testdazed {
 			this.report.enterTest(test);
 
 			try {
+				if (test.before) {
+					test.before();
+				}
+
 				test.run();
+
+				if (test.after) {
+					test.after();
+				}
 			}
 			catch (e) {
 				this.report.error("Unexpected exception", e.toString());
 			}
 
 			for (const sub of test.subTests) {
+				if (test.beforeAll) {
+					test.beforeAll();
+				}
 				this.evalTest(sub);
+				if (test.afterAll) {
+					test.afterAll();
+				}
 			}
+
 
 			this.report.leaveTest(test);
 		}
@@ -89,7 +110,7 @@ namespace testdazed {
 	// ---
 
 
-	type CheckExpr = () => boolean;
+	export type CheckExpr = () => boolean;
 
 	function checkImpl(expr: CheckExpr, failMsg: string) {
 		const success = expr();
@@ -112,7 +133,7 @@ namespace testdazed {
 	}
 
 	export function checkFalse(expr: boolean) {
-		return checkImpl(() => ! expr, "expression was expected to be false");
+		return checkImpl(() => !expr, "expression was expected to be false");
 	}
 
 	export function checkNull(tp: any) {
@@ -170,9 +191,25 @@ namespace testdazed {
 		curTest = oldTest;
 	}
 
-
 	export function test(name: string, body: TestBodyFn) {
 		curTest.addChild(new Test(name, body));
+	}
+
+
+	export function before(beforeFn: HelperFn) {
+		curTest.before = beforeFn;
+	}
+
+	export function beforeAll(beforeAllFn: HelperFn) {
+		curTest.beforeAll = beforeAllFn;
+	}
+
+	export function afterAll(afterAllFn: HelperFn) {
+		curTest.afterAll = afterAllFn;
+	}
+
+	export function after(afterFn: HelperFn) {
+		curTest.after = afterFn;
 	}
 
 
@@ -187,3 +224,21 @@ namespace testdazed {
 	}
 
 } // ns testdazed
+
+
+// expose TD for your pleasure
+declare function group(name: string, init: testdazed.TestBodyFn): void;
+declare function test(name: string, body: testdazed.TestBodyFn): void;
+
+declare function before(beforeFn: testdazed.HelperFn): void;
+declare function beforeAll(beforeAllFn: testdazed.HelperFn): void;
+declare function afterAll(afterAllFn: testdazed.HelperFn): void;
+declare function after(afterFn: testdazed.HelperFn): void;
+
+const glob = <any>window;
+glob.group = testdazed.group;
+glob.test = testdazed.test;
+glob.before = testdazed.before;
+glob.beforeAll = testdazed.beforeAll;
+glob.afterAll = testdazed.afterAll;
+glob.after = testdazed.after;

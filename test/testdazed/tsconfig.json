@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "module": "amd",
+        "target": "es5",
+        "rootDir": "src",
+        "outFile": "testdazed.js",
+        "noEmitOnError": true,
+        "diagnostics": false,
+        "listFiles": false,
+
+        "noImplicitAny": true,
+        "suppressImplicitAnyIndexErrors": false,
+        "noImplicitReturns": true,
+        "forceConsistentCasingInFileNames": true,
+        "noFallthroughCasesInSwitch": false,
+        "strictNullChecks": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+
+        "lib": ["es5", "dom", "es2015.core", "es2015.iterable", "es2015.collection", "es2015.promise"],
+        "skipLibCheck": false,
+        "skipDefaultLibCheck": false,
+
+        "removeComments": true,
+        "sourceMap": false,
+        "declaration": true
+    },
+    "include": ["*.ts"]
+}
