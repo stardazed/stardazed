@@ -3,7 +3,7 @@
         "module": "amd",
         "target": "es5",
         "rootDir": "src",
-        "outFile": "build/sdtx-test.js",
+        "outFile": "build/sdtx-tests.js",
         "noEmitOnError": true,
         "diagnostics": false,
         "listFiles": false,
@@ -19,13 +19,13 @@
         "noUnusedParameters": true,
 
         "lib": ["es5", "dom", "es2015.core", "es2015.iterable", "es2015.collection", "es2015.promise"],
-        "skipLibCheck": false,
+        "skipLibCheck": true,
         "skipDefaultLibCheck": false,
 
-        "removeComments": false,
+        "removeComments": true,
         "sourceMap": false
     },
-    "exclude": [
-        "build"
+    "include": [
+        "./*.ts"
     ]
 }
