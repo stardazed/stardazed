@@ -1,0 +1,171 @@
+ASSET IMPORT
+============
+
+Image & Sound data
+------------------
+png, jpg, wav, mp3, etc.
+	1 image or sound
+
+
+3D data
+-------
+obj
+	1 mesh (with N drawgroups)
+	1 file reference (MTL, technically multiple refs are supported in the spec, but SD does not)
+	N external material references by name and, implicitly, file
+
+mtl
+	N materials (named)
+
+fbx, gex, collada, etc.
+	N meshes
+	N materials
+	N file references (to textures mostly)
+	N built-in images
+	N skins
+	N animation tracks
+
+	N nodes
+	N transforms
+	N cameras
+	N lights
+	N skeletons
+
+md5mesh
+	1 skeleton
+	1 skin
+	N meshes
+	N implicit external filerefs
+
+md5anim
+	1 skeleton binding reference (named joint nodes)
+	1-6 animation tracks
+
+
+2D data
+-------
+tmx
+	1 tilemap
+	N file references (tile image files)
+
+
+RESOLVING
+---------
+
+Create a deterministic, unique, reversible asset ID that refers to both the container file and the asset inside it.
+e.g.:
+	path: data/scene.fbx +
+	type: material +
+	id: 4564015648
+	=> AID:data/scene.fbx:mat:4564015648
+
+API: Given a format like fbx, it is desirable to also allow for lookup by the human readable name. So if object with
+id 4564015648 is named "zombie-leg", then the loader or library should make an effort to look objects up by
+name as well. This should work most of the time as asset of the same type generally should not have the same name
+esp. given file formats like these have no hierarchy.
+
+MAYBE: File path should be a "rooted" path, i.e. first path should be a resolvable generic root.
+
+REQUIREMENT: each loader must have a way to uniquely identify each separate asset in its container using a string
+             that must be intuitive to use outside of the loading context. So an index generated implicitly from
+             a list of items is likely bad as it may not be known outside of the file.
+
+
+NODES
+-----
+
+Node types also don't have the unique external ID creation requirement as we don't support cross library linking
+of node types, this is not the job of the asset loader, but more like a scene loader or custom code.
+
+However, referring to a node by an internal ID is needed they will be looked up by some name or id and then
+instantiated. The API needs to allow for direct lookup and iteration of templates per container.
+
+All node subtypes are created as templates. They can be instantiated into the world. Add support for instantiation
+with backlink to template so you can instantly modify a whole set of objects at once later. Same for node group
+inheritance etc (a la Lumberyard)
+
+
+LOADING
+-------
+
+The game needs to know at arbitrary times if a specific set of assets is loaded. Typically at app initialization,
+and (sub)level load moments, but more fine-grained scenarios are imaginable. All assets are delivered as Promises
+and can natively be waited on by group.
+
+It would be helpful if tags can be applied to assets such as "level1", "4K", etc. so assets can be queried
+by tag and loaded / waited for easily.
+
+It is the library's responsibility to not double-load assets if they are requested multiple times etc.
+
+Loading status feedback should be available when loading any group. Each callback should specify which
+file finished loading and what the total percentage level. Large files will need individual sub-loading status
+reported as well.
+
+The loading logic needs a fallback instance for each asset type to indicate a missing asset. Missing assets
+are often a dealbreaker but a web game is not an installed game. Connections will fail at arbitrary times.
+Timeouts and retries are required but sometimes an asset cannot be loaded at all. This should be reported in
+the asset loading process and it is up to the game to decide how to go from there.
+
+
+CACHING
+-------
+
+SD distinguishes containers and assets. Container are the files and the assets are created from the parsed data
+inside the containers. Single asset containers like image and sound files are not handled differently from
+e.g. an FBX with dozens of assets.
+
+For normal loads, the entire container file must be loaded before any assets will (or can) be parsed. The
+availability of the container data however, is not the same as the availability of the assets. Assets are
+parsed, mangled and created in seperate structures.
+
+The network is slow, so a game may want to keep a more permanent local cached copy around of the container.
+While locally caching individual assets from a container is feasible, often most if not all assets in a
+container are required so then caching 1 asset would help little as the container needs to be downloaded anyway.
+
+While the library will not have to worry about simple image files and such as default caching behaviour
+will catch those, large blobs are best stored in e.g. an IndexedDB. A default behaviour and override will
+have to be provided for these types of data. Caching leads to problems with cache-invalidation so this should
+be done explicitly I think.
+
+So, the library should provide blob storage and lookup by AID where storage and clearing is done explicitly by
+the client and lookup is always done as part of the loading procedure.
+
+ASIDE: As a quick test I checked Saf10, Fox and Chrome and they all happily stored 150MB of data in IndexedDB
+without prompting. (On desktop at least) Max storage *seems* to be 6% of avail space on device, which is a lot.
+But it's also always temporary.
+
+
+API IDIOM
+---------
+
+Game code needs to be able to simply refer to assets by type and/or name.
+In this early stage, asset loading and referencing is done as follows:
+
+- load several container files
+- have custom code in the load handler of each container do some instantiation work and create direct
+  references in some static or global struct to the assets.
+- when assets need to be used in the scene, create items explicitly referring to the stored references
+
+For simple games, this is, in a way, fine. Small games load everything up front and can refer to objects
+directly. However, there are two downsides to this approach.
+
+First, this method does not scale. I already saw in Squirm (LD35) that the asset loading took up a sizable
+piece of code just for a completely static method of loading assets, and it doesn't do any error handling
+at all. The game only has about 40 assets, not a lot.
+
+And secondly, following the first problem is that because the method does not scale, you'll get a
+completely different way of loading assets for small games than for larger ones, which will give problems
+when you start out "simple" but then have to transition a ton of code once you exceed whatever amount
+of code is deemed "reasonable" to handle manually. It also discourages data-driven practices by making
+a lot of loading and glue code explicit in the game itself instead of going for asset containers.
+And you don't get error handling, fallbacks, retries, etc. etc. etc.
+
+While it feels reasonable, to me as a programmer at least to be able to reference assets in a nicely typed
+and structured way, it gets old quickly with dozens of assets, interface definitions and whatnot. Hell,
+even Doom used strings to refer to textures.
+
+So, while SD is not set up to force the client to use more complicated ways of loading, for consistency's
+sake and for a bit more future-proof development setup it should be The Right Thing to use a more
+integrated asset loading/caching mechanism.
+That means that it should be _as painless as possible_ with intuitive loading, querying and loading.
+
