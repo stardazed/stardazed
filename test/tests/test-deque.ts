@@ -3,6 +3,13 @@
 // https://github.com/stardazed/stardazed-tx
 
 group("Deque", () => {
+	beforeAll(() => {
+		return new Promise(resolve => {
+			console.info("BEFORE_ALL");
+			setTimeout(resolve, 100);
+		});
+	});
+
 	test("init", () => {
 		const deq = new container.Deque<number>();
 		check.equal(deq.count, 0);

@@ -19,8 +19,9 @@
 
 	<script>
 		const report = new inquisition.SimpleTestReport();
-		inquisition.runAll(report);
-		document.querySelector("pre").textContent = report.result;
+		inquisition.runAll(report).then(() => {
+			document.querySelector("pre").textContent = report.result;
+		});
 	</script>
 </body>
 </html>

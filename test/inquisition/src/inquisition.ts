@@ -5,23 +5,19 @@
 
 namespace inquisition {
 
-	export type TestBodyFn = () => void;
-	export type HelperFn = () => void;
+	export type TestImplFn = () => Promise<void> | void;
 
 	export class Test {
 		private subTests_: Test[] = [];
 
-		constructor(private name_: string, private body_: TestBodyFn) {
+		constructor(private name_: string, private body_: TestImplFn) {
 		}
 
 		addChild(child: Test) {
 			this.subTests_.push(child);
 		}
 
-		run() {
-			this.body_();
-		}
-
+		get body() { return this.body_; }
 		get subTests(): Test[] {
 			return this.subTests_;
 		}
@@ -29,14 +25,14 @@ namespace inquisition {
 
 		get name() { return this.name_; }
 
-		before?: HelperFn;
-		beforeAll?: HelperFn;
-		afterAll?: HelperFn;
-		after?: HelperFn;
+		before?: TestImplFn;
+		beforeAll?: TestImplFn;
+		afterAll?: TestImplFn;
+		after?: TestImplFn;
 	}
 
-	const rootTest = new Test("root", () => { /* empty test */ });
-	var curTest: Test = rootTest;
+	const _rootTest_ = new Test("root", () => { /* empty test */ });
+	var _curTest_: Test = _rootTest_;
 
 
 	// ---
@@ -59,59 +55,146 @@ namespace inquisition {
 	}
 
 
+	// ---
+
+
+	const enum TestRunPhase {
+		None,
+		Before,
+		Test,
+		ChildLoopStart,
+		BeforeAll,
+		SubTest,
+		AfterAll,
+		ChildLoopEnd,
+		After,
+		Exit
+	}
+
+	interface TestRunContext {
+		test: Test;
+		phase: TestRunPhase;
+		childIndex: number;
+	}
+
 	class TestRun {
+		private testRunStack_: TestRunContext[] = [];
+		private nextStepFn_: (this: this) => Promise<void>;
+
 		constructor(public report: TestReport) {
+			this.nextStepFn_ = this.nextStep.bind(this);
 		}
 
-		private evalTest(test: Test) {
-			if (test !== rootTest) {
-				this.report.enterTest(test);
+		private get active() {
+			if (this.testRunStack_.length) {
+				return this.testRunStack_[0];
+			}
+			return undefined;
+		}
+
+		private runPotentiallyDeferredFn(fn: TestImplFn): Promise<void> {
+			return new Promise<void>(
+				resolve => {
+					resolve(fn());
+				})
+				.then(() => {
+					if (this.active) {
+						this.active.phase += 1;
+						return this.nextStepFn_();
+					}
+					throw new Error("Lost Active test");
+				})
+				.catch(err => {
+					if (err instanceof AssertionError) {
+						this.report.failure(err.message);
+					}
+					else {
+						if (! (err instanceof Error)) {
+							err = new Error(err.toString());
+						}
+						this.report.error(err);
+					}
+					this.active!.phase = TestRunPhase.Exit;
+					return this.nextStepFn_();
+				});
+		}
+
+		private enterTest(test: Test) {
+			this.testRunStack_.unshift({
+				test,
+				phase: TestRunPhase.None,
+				childIndex: -1
+			});
+		}
+
+		private nextStep(): Promise<void> {
+			const active = this.active;
+			if (! active) {
+				return Promise.resolve();
 			}
 
-			try {
-				if (test.before) {
-					test.before();
-				}
-
-				test.run();
-				if (test.isLeaf) {
-					this.report.pass();
-				}
-
-				if (test.after) {
-					test.after();
-				}
-			}
-			catch (e) {
-				if (e instanceof AssertionError) {
-					this.report.failure(e.message);
+			// advance to the next usable step
+			if (active.phase === TestRunPhase.None) { active.phase++; }
+			if (active.phase === TestRunPhase.Before && (! active.test.before)) { active.phase++; }
+			if (active.phase === TestRunPhase.ChildLoopStart) {
+				active.childIndex += 1;
+				if (active.childIndex >= active.test.subTests.length) {
+					active.phase = TestRunPhase.After;
 				}
 				else {
-					this.report.error(e);
+					active.phase++;
 				}
 			}
+			if (active.phase === TestRunPhase.BeforeAll && (! active.test.beforeAll)) { active.phase++; }
+			if (active.phase === TestRunPhase.AfterAll && (! active.test.afterAll)) { active.phase++; }
+			if (active.phase === TestRunPhase.After && (! active.test.after)) { active.phase++; }
 
-			for (const sub of test.subTests) {
-				if (test.beforeAll) {
-					test.beforeAll();
-				}
-
-				this.evalTest(sub);
-
-				if (test.afterAll) {
-					test.afterAll();
-				}
+			// jump back to start of loop
+			if (active.phase === TestRunPhase.ChildLoopEnd) {
+				active.phase = TestRunPhase.ChildLoopStart;
+				return this.nextStepFn_();
 			}
-
-			if (test !== rootTest) {
-				this.report.leaveTest(test);
+			// are we done with this test and subtests?
+			else if (active.phase === TestRunPhase.Exit) {
+				this.testRunStack_.shift();
+				if (this.active) {
+					// move parent test to next step
+					this.active.phase += 1;
+				}
+				return this.nextStepFn_();
+			}
+			// recurse into each child
+			else if (active.phase == TestRunPhase.SubTest) {
+				const curChild = active.test.subTests[active.childIndex];
+				if (! curChild) {
+					throw new Error("Internal inconsistency: wrong child index");
+				}
+				this.enterTest(curChild);
+				return this.nextStepFn_();
+			}
+			// one of the test's optional functions
+			else {
+				let fn: TestImplFn;
+				switch (active.phase) {
+					case TestRunPhase.Before: fn = active.test.before!; break;
+					case TestRunPhase.BeforeAll: fn = active.test.beforeAll!; break;
+					case TestRunPhase.Test: fn = active.test.body!; break;
+					case TestRunPhase.AfterAll: fn = active.test.afterAll!; break;
+					case TestRunPhase.After: fn = active.test.after!; break;
+					default:
+						throw new Error("SOMETHING BAD IS AFOOT!");
+				}
+				return this.runPotentiallyDeferredFn(fn);
 			}
 		}
 
 		run(test: Test) {
+			this.enterTest(test);
+
 			this.report.startReport();
-			this.evalTest(test);
-			this.report.finishReport();
+			return this.nextStepFn_().then(() => {
+				this.report.finishReport();
+			});
 		}
 	}
 
@@ -119,60 +202,60 @@ namespace inquisition {
 	// ---
 
 
-	export function group(name: string, init: TestBodyFn) {
+	export function group(name: string, init: TestImplFn) {
 		const g = new Test(name, () => { /* group test */ });
 
-		const oldTest = curTest;
-		curTest.addChild(g);
+		const oldTest = _curTest_;
+		_curTest_.addChild(g);
 
-		curTest = g;
+		_curTest_ = g;
 		init();
-		curTest = oldTest;
+		_curTest_ = oldTest;
 	}
 
-	export function test(name: string, body: TestBodyFn) {
-		curTest.addChild(new Test(name, body));
+	export function test(name: string, body: TestImplFn) {
+		_curTest_.addChild(new Test(name, body));
 	}
 
 
-	export function before(beforeFn: HelperFn) {
-		curTest.before = beforeFn;
+	export function before(beforeFn: TestImplFn) {
+		_curTest_.before = beforeFn;
 	}
 
-	export function beforeAll(beforeAllFn: HelperFn) {
-		curTest.beforeAll = beforeAllFn;
+	export function beforeAll(beforeAllFn: TestImplFn) {
+		_curTest_.beforeAll = beforeAllFn;
 	}
 
-	export function afterAll(afterAllFn: HelperFn) {
-		curTest.afterAll = afterAllFn;
+	export function afterAll(afterAllFn: TestImplFn) {
+		_curTest_.afterAll = afterAllFn;
 	}
 
-	export function after(afterFn: HelperFn) {
-		curTest.after = afterFn;
+	export function after(afterFn: TestImplFn) {
+		_curTest_.after = afterFn;
 	}
 
 
 	function run(root: Test, report: TestReport) {
 		const res = new TestRun(report);
-		res.run(root);
+		return res.run(root);
 	}
 
 
 	export function runAll(report: TestReport) {
-		run(rootTest, report);
+		return run(_rootTest_, report);
 	}
 
 } // ns testdazed
 
 
 // Expose IQ for your pleasure
-declare function group(name: string, init: inquisition.TestBodyFn): void;
-declare function test(name: string, body: inquisition.TestBodyFn): void;
+declare function group(name: string, init: inquisition.TestImplFn): void;
+declare function test(name: string, body: inquisition.TestImplFn): void;
 
-declare function before(beforeFn: inquisition.HelperFn): void;
-declare function beforeAll(beforeAllFn: inquisition.HelperFn): void;
-declare function afterAll(afterAllFn: inquisition.HelperFn): void;
-declare function after(afterFn: inquisition.HelperFn): void;
+declare function before(beforeFn: inquisition.TestImplFn): void;
+declare function beforeAll(beforeAllFn: inquisition.TestImplFn): void;
+declare function afterAll(afterAllFn: inquisition.TestImplFn): void;
+declare function after(afterFn: inquisition.TestImplFn): void;
 
 (function(glob: any){
 	glob.group = inquisition.group;
