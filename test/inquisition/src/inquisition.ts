@@ -75,6 +75,7 @@ namespace inquisition {
 		test: Test;
 		phase: TestRunPhase;
 		childIndex: number;
+		pass: boolean;
 	}
 
 	class TestRun {
@@ -114,6 +115,7 @@ namespace inquisition {
 						}
 						this.report.error(err);
 					}
+					this.active!.pass = false;
 					this.active!.phase = TestRunPhase.Exit;
 					return this.nextStepFn_();
 				});
@@ -123,8 +125,12 @@ namespace inquisition {
 			this.testRunStack_.unshift({
 				test,
 				phase: TestRunPhase.None,
-				childIndex: -1
+				childIndex: -1,
+				pass: true
 			});
+			if (test !== _rootTest_) {
+				this.report.enterTest(test);
+			}
 		}
 
 		private nextStep(): Promise<void> {
@@ -156,6 +162,13 @@ namespace inquisition {
 			}
 			// are we done with this test and subtests?
 			else if (active.phase === TestRunPhase.Exit) {
+				if (active.test.isLeaf && active.pass) {
+					this.report.pass();
+				}
+				if (active.test !== _rootTest_) {
+					this.report.leaveTest(active.test);
+				}
+
 				this.testRunStack_.shift();
 				if (this.active) {
 					// move parent test to next step
