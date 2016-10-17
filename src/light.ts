@@ -236,7 +236,7 @@ namespace sd.world {
 		}
 
 
-		direction(inst: LightInstance): Float3 {
+		direction(inst: LightInstance) {
 			const rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(this.transformBase_[<number>inst]));
 			return vec3.normalize([], vec3.transformMat3([], this.nullVec3_, rotMat));
 		}

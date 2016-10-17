@@ -78,12 +78,12 @@ namespace sd.math {
 		}
 
 
-		export function extents(min: ConstFloat3, max: ConstFloat3): Float3 {
+		export function extents(min: ConstFloat3, max: ConstFloat3) {
 			return vec3.scale([], size(min, max), 0.5);
 		}
 
 
-		export function center(min: ConstFloat3, max: ConstFloat3): Float3 {
+		export function center(min: ConstFloat3, max: ConstFloat3) {
 			return vec3.add([], min, extents(min, max));
 		}
 
@@ -171,7 +171,7 @@ namespace sd.math {
 			return aabb.intersectsAABB(this.min, this.max, bounds.min, bounds.max);
 		}
 
-		closestPoint(pt: ConstFloat3): Float3 {
+		closestPoint(pt: ConstFloat3) {
 			return aabb.closestPoint(this.min, this.max, pt);
 		}
 	}
