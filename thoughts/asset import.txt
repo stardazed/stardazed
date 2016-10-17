@@ -160,7 +160,7 @@ of code is deemed "reasonable" to handle manually. It also discourages data-driv
 a lot of loading and glue code explicit in the game itself instead of going for asset containers.
 And you don't get error handling, fallbacks, retries, etc. etc. etc.
 
-While it feels reasonable, to me as a programmer at least to be able to reference assets in a nicely typed
+While it feels reasonable, to me as a programmer at least, to be able to reference assets in a nicely typed
 and structured way, it gets old quickly with dozens of assets, interface definitions and whatnot. Hell,
 even Doom used strings to refer to textures.
 
