@@ -7,6 +7,70 @@
 
 namespace sd.math {
 
+	// imported from now-dead tiled-light branch
+	// used to determine what area of screenspace a (point) light would affect
+	export function screenSpaceBoundsForWorldCube(position: Float3, halfDim: number, cameraDir: Float3, viewMatrix: Float4x4, projectionViewMatrix: Float4x4, viewportMatrix: Float4x4, bounds: Rect) {
+		const lx = position[0];
+		const ly = position[1];
+		const lz = position[2];
+
+		// const vec3Dir = vec3.sub([], center, eye);
+		// const cam_dir = vec3.normalize([], vec3Dir);
+
+		const camUp = vec3.normalize([], [viewMatrix[4], viewMatrix[5], viewMatrix[6]]);
+		const camLeft = vec3.cross([], camUp, cameraDir);
+		vec3.normalize(camLeft, camLeft);
+
+		const leftLight = vec4.transformMat4(
+			[],
+			[
+				lx + halfDim * camLeft[0],
+				ly + halfDim * camLeft[1],
+				lz + halfDim * camLeft[2],
+				1.0
+			],
+			projectionViewMatrix);
+
+		const upLight = vec4.transformMat4(
+			[],
+			[
+				lx + halfDim * camUp[0],
+				ly + halfDim * camUp[1],
+				lz + halfDim * camUp[2],
+				1.0
+			],
+			projectionViewMatrix);
+
+		const centerLight = vec4.transformMat4([], [lx, ly, lz, 1.0], projectionViewMatrix);
+
+		// perspective divide
+		vec3.scale(leftLight, leftLight, 1.0 / leftLight[3]);
+		vec3.scale(upLight, upLight, 1.0 / upLight[3]);
+		vec3.scale(centerLight, centerLight, 1.0 / centerLight[3]);
+
+		// project on 2d viewport
+		vec4.transformMat4(leftLight, leftLight, viewportMatrix);
+		vec4.transformMat4(upLight, upLight, viewportMatrix);
+		vec4.transformMat4(centerLight, centerLight, viewportMatrix);
+
+		const dw = vec4.subtract([], leftLight, centerLight);
+		const lenw = vec4.length(dw);
+
+		const dh = vec4.subtract([], upLight, centerLight);
+		const lenh = vec4.length(dh);
+
+		const leftx = centerLight[0] - lenw;
+		const bottomy = centerLight[1] - lenh;
+		const rightx = centerLight[0] + lenw;
+		const topy = centerLight[1] + lenh;
+
+		bounds.left = leftx;
+		bounds.right = rightx;
+		bounds.bottom = bottomy;
+		bounds.top = topy;
+	}
+
+
 	export interface Sphere {
 		center: Float3;
 		radius: number;
