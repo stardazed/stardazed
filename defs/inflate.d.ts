@@ -21,8 +21,8 @@ interface Inflater {
 }
 
 interface InflaterConstructor {
-    new(): Inflater;
-    prototype: Inflater;
+	new(): Inflater;
+	prototype: Inflater;
 }
 
 declare var Inflater: InflaterConstructor;

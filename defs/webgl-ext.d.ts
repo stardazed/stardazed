@@ -3,20 +3,30 @@
 // Definitions by: Arthur Langereis <https://github.com/zenmumbler/>
 // Definitions: https://github.com/stardazed/stardazed-tx/defs
 
-// These definitions go beyond those already defined in TS 2.0.2 stdlib
+// These definitions go beyond those already defined in TS 2.0.3 stdlib
 // All non-draft WebGL 1.0 extensions and prefixed extension names are
 // covered.
 // Some missing parameters for getContext and attributes for
 // WebGLContextAttributes are added as well, copied over from
 // Shane S. Anderson's definitions file.
 
-/// <reference path="webgl-branding.d.ts" />
+// Add 'branding' to the WebGL types to ensure that accidental assignments aren't made.
+// For example, var program: WebGLProgram = gl.createShader(...);
+interface WebGLObject { readonly __WebGLObject: void; }
+interface WebGLBuffer { readonly __WebGLBuffer: void; }
+interface WebGLFramebuffer { readonly __WebGLFramebuffer: void; }
+interface WebGLProgram { readonly __WebGLProgram: void; }
+interface WebGLRenderbuffer { readonly __WebGLRenderbuffer: void; }
+interface WebGLShader { readonly __WebGLShader: void; }
+interface WebGLTexture { readonly __WebGLTexture: void; }
+interface WebGLUniformLocation { readonly __WebGLUniformLocation: void; }
+
 
 interface WebGLContextAttributes {
-	// The following attribute is missing from TypeScript 2.0.2's lib.d.ts
+	// the following attribute is missing from TypeScript 2.0.2's lib.d.ts
 	preferLowPowerToHighPerformance?: boolean;
 
-	// All others duplicated here for reference
+	// all others duplicated here for reference
 	/*
 	failIfMajorPerformanceCaveat?: boolean;
 	alpha?: boolean;
