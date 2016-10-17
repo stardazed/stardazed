@@ -61,8 +61,8 @@ namespace sd {
 		some(callbackfn: (value: number, index: number, array: TypedArray) => boolean, thisArg?: any): boolean;
 		sort(compareFn?: (a: number, b: number) => number): this;
 
-		toLocaleString(): string; // tslint:disable-line
-		toString(): string; // tslint:disable-line
+		toLocaleString(): string;
+		toString(): string;
 
 		// es2015.iterable extensions
 		[Symbol.iterator](): IterableIterator<number>;

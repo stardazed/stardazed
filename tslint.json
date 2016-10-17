@@ -1,7 +1,7 @@
 {
 	"rules": {
 		/* TypeScript Specific */
-		"adjacent-overload-signatures": true,
+		"adjacent-overload-signatures": false, // is buggy
 		"member-access": false,
 		"member-ordering": false,
 		"no-any": false,
