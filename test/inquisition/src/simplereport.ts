@@ -2,15 +2,12 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="testdazed.ts" />
-
-namespace testdazed {
+namespace inquisition {
 
 	export class SimpleTestReport implements TestReport {
 		private passes_ = 0;
 		private failures_ = 0;
 		private errors_ = 0;
-		private checkIndex_ = 0;
 		private nameTree_: string[] = [];
 		private result_: string[] = [];
 
@@ -31,7 +28,6 @@ namespace testdazed {
 
 		enterTest(test: Test) {
 			this.nameTree_.push(test.name);
-			this.checkIndex_ = 0;
 		}
 
 		leaveTest(_test: Test) {
@@ -43,19 +39,18 @@ namespace testdazed {
 		}
 
 		pass() {
-			this.checkIndex_++;
 			this.passes_++;
+			this.out(`PASS ${this.nameTree}`);
 		}
 
 		failure(msg: string, innerMsg?: string) {
-			this.checkIndex_++;
 			this.failures_++;
-			this.out(`FAIL (check ${this.checkIndex_}) ${this.nameTree}: ${msg} ${innerMsg || ""}`);
+			this.out(`FAIL ${this.nameTree}: ${msg} ${innerMsg || ""}`);
 		}
 
-		error(msg: string, innerMsg?: string) {
+		error(err: Error, innerMsg?: string) {
 			this.errors_++;
-			this.out(`ERROR in ${this.nameTree}: ${msg} ${innerMsg || ""}`);
+			this.out(`ERROR in ${this.nameTree}: ${err} ${innerMsg || ""}`);
 		}
 
 		get passes() { return this.passes_; }

@@ -3,7 +3,7 @@
 // https://github.com/stardazed/stardazed-tx
 
 /// <reference path="../build/stardazed-tx.d.ts" />
-/// <reference path="testdazed/testdazed.d.ts" />
+/// <reference path="inquisition/build/inquisition.d.ts" />
 
 // alias first-level namespaces
 import io = sd.io;
@@ -16,4 +16,4 @@ import asset = sd.asset;
 import container = sd.container;
 import audio = sd.audio;
 
-import td = testdazed;
+import check = inquisition.check;

@@ -3,7 +3,8 @@
         "module": "amd",
         "target": "es5",
         "rootDir": "src",
-        "outFile": "testdazed.js",
+        "outFile": "build/inquisition.js",
+        "outDir": "build",
         "noEmitOnError": true,
         "diagnostics": false,
         "listFiles": false,
@@ -26,5 +27,5 @@
         "sourceMap": false,
         "declaration": true
     },
-    "include": ["*.ts"]
+    "include": ["src/*.ts"]
 }

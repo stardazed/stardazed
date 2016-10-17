@@ -2,3 +2,5 @@
 build/*.js
 build/*.ts
 test/build/*.js
+test/inquisition/build/*.js
+test/inquisition/build/*.d.ts

@@ -5,7 +5,17 @@
 group("Deque", () => {
 	test("init", () => {
 		const deq = new container.Deque<number>();
-		td.checkEqual(deq.count, 0);
-		td.checkTrue(deq.empty);
+		check.equal(deq.count, 0);
+		check.truthy(deq.empty);
+	});
+
+	test("stuff", () => {
+		check.equal(true, false, "What Is Reality?");
+	});
+
+	test("exc", () => {
+		check.throws(Error, () => {
+			throw "aapje";
+		});
 	});
 });
