@@ -18,9 +18,7 @@ namespace inquisition {
 		}
 
 		get body() { return this.body_; }
-		get subTests(): Test[] {
-			return this.subTests_;
-		}
+		get subTests() { return this.subTests_; }
 		get isLeaf() { return this.subTests_.length === 0; }
 
 		get name() { return this.name_; }
