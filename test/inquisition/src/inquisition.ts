@@ -192,9 +192,15 @@ namespace inquisition {
 			this.enterTest(test);
 
 			this.report.startReport();
-			return this.nextStepFn_().then(() => {
-				this.report.finishReport();
-			});
+			return this.nextStepFn_()
+				.then(() => {
+					this.report.finishReport();
+				})
+				.catch(err => {
+					console.error("Inquisition: Internal Error:", err);
+					this.report.error(err);
+					this.report.finishReport();
+				});
 		}
 	}
 
