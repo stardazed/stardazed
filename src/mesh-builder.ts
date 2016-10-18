@@ -38,7 +38,6 @@ namespace sd.meshdata {
 
 
 	/*
-
 	VertexIndexMapping method A was to test a growing single array technique used
 	in native code, but in JS it lost out (badly) to method B, which is just to
 	use a Map with a lot of small arrays in it. Left here to test in the future.
@@ -346,7 +345,7 @@ namespace sd.meshdata {
 
 			// All triangles with the same material were merged, create full index buffer
 			// and primitive groups
-			var mergedIndexes: number[] = [];
+			const mergedIndexes: number[] = [];
 			var nextElementIndex = 0;
 
 			this.groupIndexStreams_.forEach((indexes, group) => {
