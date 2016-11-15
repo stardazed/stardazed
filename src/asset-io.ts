@@ -33,7 +33,7 @@ namespace sd.asset {
 
 
 	export function loadFile(url: URL | string, opts?: FileLoadOptions) {
-		return new Promise(function(resolve, reject) {
+		return new Promise<any>(function(resolve, reject) {
 			opts = opts || {};
 
 			const xhr = new XMLHttpRequest();

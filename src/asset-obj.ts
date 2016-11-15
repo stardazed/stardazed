@@ -420,22 +420,23 @@ namespace sd.asset {
 	export function loadOBJFile(url: URL, materialsAsColours = false, intoAssetGroup?: AssetGroup): Promise<AssetGroup> {
 		const group = intoAssetGroup || new AssetGroup();
 
-		return loadFile(url).then((text: string) => {
-			return preflightOBJSource(group, url.href, text);
-		})
-		.then(preproc => {
-			parseOBJSource(group, preproc, materialsAsColours);
+		return loadFile(url)
+			.then((text: string) => {
+				return preflightOBJSource(group, url.href, text);
+			})
+			.then((preproc: OBJPreProcSource) => {
+				parseOBJSource(group, preproc, materialsAsColours);
 
-			// add the linked object as a Model to the group
-			const model = asset.makeModel(`obj_${objSequenceNumber}_model`);
-			model.mesh = group.meshes[0];
-			model.materials = group.materials;
-			model.transform = asset.makeTransform();
-			group.addModel(model);
+				// add the linked object as a Model to the group
+				const model = asset.makeModel(`obj_${objSequenceNumber}_model`);
+				model.mesh = group.meshes[0];
+				model.materials = group.materials;
+				model.transform = asset.makeTransform();
+				group.addModel(model);
 
-			objSequenceNumber += 1;
-			return group;
-		});
+				objSequenceNumber += 1;
+				return group;
+			});
 	}
 
 

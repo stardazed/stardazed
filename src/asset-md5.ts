@@ -583,12 +583,12 @@ namespace sd.asset {
 	}
 
 
-	export function loadMD5Mesh(url: URL) {
+	export function loadMD5Mesh(url: URL): Promise<AssetGroup> {
 		return loadFile(url).then((text: string) => parseMD5MeshSource(url.href, text));
 	}
 
 
-	export function loadMD5Anim(url: URL) {
+	export function loadMD5Anim(url: URL): Promise<AssetGroup> {
 		return loadFile(url).then((text: string) => parseMD5AnimSource(url.href, text));
 	}
 
