@@ -26,7 +26,7 @@ SOFTWARE.
 
 namespace sd {
 
-	export interface TypedArray {
+	export interface TypedArrayBase {
 		readonly BYTES_PER_ELEMENT: number;
 
 		readonly buffer: ArrayBuffer;
@@ -34,32 +34,24 @@ namespace sd {
 		readonly byteOffset: number;
 		readonly length: number;
 
-		[index: number]: number;
+		subarray(begin: number, end?: number): this;
+		slice(start?: number, end?: number): this;
 
-		set(index: number, value: number): void;
-		set(array: ArrayLike<number>, offset?: number): void;
-		subarray(begin: number, end?: number): TypedArray;
-		slice(start?: number, end?: number): TypedArray;
-
-		copyWithin(target: number, start: number, end?: number): this;
-		every(callbackfn: (value: number, index: number, array: TypedArray) => boolean, thisArg?: any): boolean;
-		fill(value: number, start?: number, end?: number): this;
-		filter(callbackfn: (value: number, index: number, array: TypedArray) => any, thisArg?: any): TypedArray;
+		every(callbackfn: (value: number, index: number, array: this) => boolean, thisArg?: any): boolean;
+		filter(callbackfn: (value: number, index: number, array: this) => any, thisArg?: any): this;
 		find(predicate: (value: number, index: number, obj: Array<number>) => boolean, thisArg?: any): number | undefined;
 		findIndex(predicate: (value: number) => boolean, thisArg?: any): number;
-		forEach(callbackfn: (value: number, index: number, array: TypedArray) => void, thisArg?: any): void;
+		forEach(callbackfn: (value: number, index: number, array: this) => void, thisArg?: any): void;
 		indexOf(searchElement: number, fromIndex?: number): number;
 		join(separator?: string): string;
 		lastIndexOf(searchElement: number, fromIndex?: number): number;
 
-		map(callbackfn: (value: number, index: number, array: TypedArray) => number, thisArg?: any): TypedArray;
-		reduce(callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: TypedArray) => number, initialValue?: number): number;
-		reduce<U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: TypedArray) => U, initialValue: U): U;
-		reduceRight(callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: TypedArray) => number, initialValue?: number): number;
-		reduceRight<U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: TypedArray) => U, initialValue: U): U;
-		reverse(): TypedArray;
-		some(callbackfn: (value: number, index: number, array: TypedArray) => boolean, thisArg?: any): boolean;
-		sort(compareFn?: (a: number, b: number) => number): this;
+		map(callbackfn: (value: number, index: number, array: this) => number, thisArg?: any): this;
+		reduce(callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: this) => number, initialValue?: number): number;
+		reduce<U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: this) => U, initialValue: U): U;
+		reduceRight(callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: this) => number, initialValue?: number): number;
+		reduceRight<U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: this) => U, initialValue: U): U;
+		some(callbackfn: (value: number, index: number, array: this) => boolean, thisArg?: any): boolean;
 
 		toLocaleString(): string;
 		toString(): string;
@@ -69,6 +61,23 @@ namespace sd {
 		entries(): IterableIterator<[number, number]>;
 		keys(): IterableIterator<number>;
 		values(): IterableIterator<number>;
+	}
+
+	export interface TypedArray extends TypedArrayBase {
+		[index: number]: number;
+
+		set(index: number, value: number): void;
+		set(array: ArrayLike<number>, offset?: number): void;
+
+		copyWithin(target: number, start: number, end?: number): this;
+		fill(value: number, start?: number, end?: number): this;
+
+		reverse(): this;
+		sort(compareFn?: (a: number, b: number) => number): this;
+	}
+
+	export interface ReadonlyTypedArray extends TypedArrayBase {
+		readonly [index: number]: number;
 	}
 
 	export interface TypedArrayConstructor {
@@ -167,6 +176,5 @@ namespace sd {
 	export interface ConstEnumArrayView<T extends number> extends TypedArray {
 		[index: number]: T;
 	}
-
 
 } // ns sd
