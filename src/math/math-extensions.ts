@@ -47,7 +47,7 @@ interface vec2 {
 }
 
 vec2.clamp = function(out: ArrayOfNumber, a: ArrayOfConstNumber, min: number | ArrayOfConstNumber, max: number | ArrayOfConstNumber) {
-	if (typeof min == "number") {
+	if (typeof min === "number") {
 		out[0] = sd.math.clamp(a[0], <number>min, <number>max);
 		out[1] = sd.math.clamp(a[1], <number>min, <number>max);
 	}
