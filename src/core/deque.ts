@@ -5,7 +5,7 @@
 
 import { assert } from "core/util";
 
-export class Deque<T> {
+export default class Deque<T> {
 	private blocks_: T[][];
 	private headBlock_: number;
 	private headIndex_: number;
