@@ -1,23 +1,23 @@
-import { EPSILON, GLMForEachOptions, GLMForEachFunction } from "./common";
+import { EPSILON, GLMForEach, GLMForEachOptions, GLMForEachFunction } from "./common";
 import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 
 namespace vec2 {
 
-export function create(): Float32Array {
+export function create() {
 	const out = new Float32Array(2);
 	out[0] = 0;
 	out[1] = 0;
 	return out;
 }
 
-export function clone(a: ACN): Float32Array {
+export function clone(a: ACN) {
 	const out = new Float32Array(2);
 	out[0] = a[0];
 	out[1] = a[1];
 	return out;
 }
 
-export function fromValues(x: number, y: number): Float32Array {
+export function fromValues(x: number, y: number) {
 	const out = new Float32Array(2);
 	out[0] = x;
 	out[1] = y;
@@ -57,7 +57,6 @@ export function subtract(out: AN, a: ACN, b: ACN) {
 }
 
 export const sub = subtract;
-
 
 export function multiply(out: number[], a: ACN, b: ACN): number[];
 export function multiply<T extends AN>(out: T, a: ACN, b: ACN): T;
@@ -159,7 +158,7 @@ export function length(a: ACN) {
 
 export const len = length;
 
-export function squaredLength(a) {
+export function squaredLength(a: ACN) {
 	const x = a[0];
 	const y = a[1];
 	return x * x + y * y;
@@ -318,11 +317,7 @@ export function transformMat4(out: AN, a: ACN, m: ACN) {
 	return out;
 }
 
-export interface ForEach {
-	// (a: number[], opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]): number[];
-	<T extends AN>(a: T, opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]): T;
-}
-export const forEach: ForEach = (function() {
+export const forEach: GLMForEach = (function() {
 	const vec = create();
 
 	return function(a: AN | number[], opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]) {

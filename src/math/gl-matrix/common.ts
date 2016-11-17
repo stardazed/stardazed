@@ -30,6 +30,11 @@ export interface GLMForEachOptions {
 	count?: number;
 }
 
+export interface GLMForEach {
+	// (a: number[], opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]): number[];
+	<T extends ArrayOfNumber>(a: T, opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]): T;
+}
+
 export interface GLMForEachFunction {
 	(out: number[], a: ArrayOfConstNumber, ...args: any[]): number[];
 	<T extends ArrayOfNumber>(out: T, a: ArrayOfConstNumber, ...args: any[]): T;
