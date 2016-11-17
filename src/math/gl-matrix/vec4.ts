@@ -21,26 +21,32 @@ THE SOFTWARE. */
 import { EPSILON, GLMForEach, GLMForEachOptions, GLMForEachFunction } from "./common";
 import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 
-namespace vec2 {
+namespace vec4 {
 
 export function create() {
-	const out = new Float32Array(2);
+	const out = new Float32Array(4);
 	out[0] = 0;
 	out[1] = 0;
+	out[2] = 0;
+	out[3] = 0;
 	return out;
 }
 
 export function clone(a: ACN) {
-	const out = new Float32Array(2);
+	const out = new Float32Array(4);
 	out[0] = a[0];
 	out[1] = a[1];
+	out[2] = a[2];
+	out[3] = a[3];
 	return out;
 }
 
-export function fromValues(x: number, y: number) {
-	const out = new Float32Array(2);
+export function fromValues(x: number, y: number, z: number, w: number) {
+	const out = new Float32Array(4);
 	out[0] = x;
 	out[1] = y;
+	out[2] = z;
+	out[3] = w;
 	return out;
 }
 
@@ -49,14 +55,18 @@ export function copy<T extends AN>(out: T, a: ACN): T;
 export function copy(out: AN, a: ACN) {
 	out[0] = a[0];
 	out[1] = a[1];
+	out[2] = a[2];
+	out[3] = a[3];
 	return out;
 }
 
-export function set(out: number[], x: number, y: number): number[];
-export function set<T extends AN>(out: T, x: number, y: number): T;
-export function set(out: AN, x: number, y: number) {
+export function set(out: number[], x: number, y: number, z: number, w: number): number[];
+export function set<T extends AN>(out: T, x: number, y: number, z: number, w: number): T;
+export function set(out: AN, x: number, y: number, z: number, w: number) {
 	out[0] = x;
 	out[1] = y;
+	out[2] = z;
+	out[3] = w;
 	return out;
 }
 
@@ -65,6 +75,8 @@ export function add<T extends AN>(out: T, a: ACN, b: ACN): T;
 export function add(out: AN, a: ACN, b: ACN) {
 	out[0] = a[0] + b[0];
 	out[1] = a[1] + b[1];
+	out[2] = a[2] + b[2];
+	out[3] = a[3] + b[3];
 	return out;
 }
 
@@ -73,6 +85,8 @@ export function subtract<T extends AN>(out: T, a: ACN, b: ACN): T;
 export function subtract(out: AN, a: ACN, b: ACN) {
 	out[0] = a[0] - b[0];
 	out[1] = a[1] - b[1];
+	out[2] = a[2] - b[2];
+	out[3] = a[3] - b[3];
 	return out;
 }
 
@@ -83,6 +97,8 @@ export function multiply<T extends AN>(out: T, a: ACN, b: ACN): T;
 export function multiply(out: AN, a: ACN, b: ACN) {
 	out[0] = a[0] * b[0];
 	out[1] = a[1] * b[1];
+	out[2] = a[2] * b[2];
+	out[3] = a[3] * b[3];
 	return out;
 }
 
@@ -93,6 +109,8 @@ export function divide<T extends AN>(out: T, a: ACN, b: ACN): T;
 export function divide(out: AN, a: ACN, b: ACN) {
 	out[0] = a[0] / b[0];
 	out[1] = a[1] / b[1];
+	out[2] = a[2] / b[2];
+	out[3] = a[3] / b[3];
 	return out;
 }
 
@@ -103,6 +121,8 @@ export function ceil<T extends AN>(out: T, a: ACN): T;
 export function ceil(out: AN, a: ACN) {
 	out[0] = Math.ceil(a[0]);
 	out[1] = Math.ceil(a[1]);
+	out[2] = Math.ceil(a[2]);
+	out[3] = Math.ceil(a[3]);
 	return out;
 }
 
@@ -111,6 +131,8 @@ export function floor<T extends AN>(out: T, a: ACN): T;
 export function floor(out: AN, a: ACN) {
 	out[0] = Math.floor(a[0]);
 	out[1] = Math.floor(a[1]);
+	out[2] = Math.floor(a[2]);
+	out[3] = Math.floor(a[3]);
 	return out;
 }
 
@@ -119,6 +141,8 @@ export function min<T extends AN>(out: T, a: ACN, b: ACN): T;
 export function min(out: AN, a: ACN, b: ACN) {
 	out[0] = Math.min(a[0], b[0]);
 	out[1] = Math.min(a[1], b[1]);
+	out[2] = Math.min(a[2], b[2]);
+	out[3] = Math.min(a[3], b[3]);
 	return out;
 }
 
@@ -127,6 +151,8 @@ export function max<T extends AN>(out: T, a: ACN, b: ACN): T;
 export function max(out: AN, a: ACN, b: ACN) {
 	out[0] = Math.max(a[0], b[0]);
 	out[1] = Math.max(a[1], b[1]);
+	out[2] = Math.max(a[2], b[2]);
+	out[3] = Math.max(a[3], b[3]);
 	return out;
 }
 
@@ -135,14 +161,18 @@ export function round<T extends AN>(out: T, a: ACN): T;
 export function round(out: AN, a: ACN) {
 	out[0] = Math.round(a[0]);
 	out[1] = Math.round(a[1]);
+	out[2] = Math.round(a[2]);
+	out[3] = Math.round(a[3]);
 	return out;
 }
 
 export function scale(out: number[], a: ACN, s: number): number[];
 export function scale<T extends AN>(out: T, a: ACN, s: number): T;
 export function scale(out: AN, a: ACN, s: number) {
-	out[0] = a[0] * s;
-	out[1] = a[1] * s;
+	out[0] = a[0] * b;
+	out[1] = a[1] * b;
+	out[2] = a[2] * b;
+	out[3] = a[3] * b;
 	return out;
 }
 
@@ -151,38 +181,48 @@ export function scaleAndAdd<T extends AN>(out: T, a: ACN, b: ACN, scale: number)
 export function scaleAndAdd(out: AN, a: ACN, b: ACN, scale: number) {
 	out[0] = a[0] + (b[0] * scale);
 	out[1] = a[1] + (b[1] * scale);
+	out[2] = a[2] + (b[2] * scale);
+	out[3] = a[3] + (b[3] * scale);
 	return out;
 }
 
 export function distance(a: ACN, b: ACN) {
-	const x = b[0] - a[0];
-	const y = b[1] - a[1];
-	return Math.sqrt(x * x + y * y);
+	const x = b[0] - a[0],
+		y = b[1] - a[1],
+		z = b[2] - a[2],
+		w = b[3] - a[3];
+	return Math.sqrt(x * x + y * y + z * z + w * w);
 }
 
 export const dist = distance;
 
 export function squaredDistance(a: ACN, b: ACN) {
-	const x = b[0] - a[0];
-	const y = b[1] - a[1];
-	return x * x + y * y;
+	const x = b[0] - a[0],
+		y = b[1] - a[1],
+		z = b[2] - a[2],
+		w = b[3] - a[3];
+	return x * x + y * y + z * z + w * w;
 }
 
 export const sqrDist = squaredDistance;
 
 export function length(a: ACN) {
-	const x = a[0];
-	const y = a[1];
-	return Math.sqrt(x * x + y * y);
-};
+	const x = a[0],
+		y = a[1],
+		z = a[2],
+		w = a[3];
+	return Math.sqrt(x * x + y * y + z * z + w * w);
+}
 
 export const len = length;
 
 export function squaredLength(a: ACN) {
-	const x = a[0];
-	const y = a[1];
-	return x * x + y * y;
-};
+	const x = a[0],
+		y = a[1],
+		z = a[2],
+		w = a[3];
+	return x * x + y * y + z * z + w * w;
+}
 
 export const sqrLen = squaredLength;
 
@@ -191,6 +231,8 @@ export function negate<T extends AN>(out: T, a: ACN): T;
 export function negate(out: AN, a: ACN) {
 	out[0] = -a[0];
 	out[1] = -a[1];
+	out[2] = -a[2];
+	out[3] = -a[3];
 	return out;
 }
 
@@ -199,53 +241,57 @@ export function inverse<T extends AN>(out: T, a: ACN): T;
 export function inverse(out: AN, a: ACN) {
 	out[0] = 1.0 / a[0];
 	out[1] = 1.0 / a[1];
+	out[2] = 1.0 / a[2];
+	out[3] = 1.0 / a[3];
 	return out;
 }
 
 export function normalize(out: number[], a: ACN): number[];
 export function normalize<T extends AN>(out: T, a: ACN): T;
 export function normalize(out: AN, a: ACN) {
-	const x = a[0];
-	const y = a[1];
-	let len = x * x + y * y; // tslint:disable-line:no-shadowed-variable
+	const x = a[0],
+		y = a[1],
+		z = a[2],
+		w = a[3];
+	let len = x * x + y * y + z * z + w * w; // tslint:disable-line:no-shadowed-variable
 	if (len > 0) {
-		// TODO: evaluate use of glm_invsqrt here?
 		len = 1 / Math.sqrt(len);
-		out[0] = a[0] * len;
-		out[1] = a[1] * len;
+		out[0] = x * len;
+		out[1] = y * len;
+		out[2] = z * len;
+		out[3] = w * len;
 	}
 	return out;
 }
 
 export function dot(a: ACN, b: ACN) {
-	return a[0] * b[0] + a[1] * b[1];
-}
-
-export function cross(out: number[], a: ACN, b: ACN): number[];
-export function cross<T extends AN>(out: T, a: ACN, b: ACN): T;
-export function cross(out: AN, a: ACN, b: ACN) {
-	const z = a[0] * b[1] - a[1] * b[0];
-	out[0] = out[1] = 0;
-	out[2] = z;
-	return out;
+	return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
 }
 
 export function lerp(out: number[], a: ACN, b: ACN, t: number): number[];
 export function lerp<T extends AN>(out: T, a: ACN, b: ACN, t: number): T;
 export function lerp(out: AN, a: ACN, b: ACN, t: number) {
-	const ax = a[0];
-	const ay = a[1];
+	const ax = a[0],
+		ay = a[1],
+		az = a[2],
+		aw = a[3];
 	out[0] = ax + t * (b[0] - ax);
 	out[1] = ay + t * (b[1] - ay);
+	out[2] = az + t * (b[2] - az);
+	out[3] = aw + t * (b[3] - aw);
 	return out;
 }
 
 export function random(out: number[], scale: number): number[];
 export function random<T extends AN>(out: T, scale: number): T;
 export function random(out: AN, scale = 1.0) {
-	const r = Math.random() * 2.0 * Math.PI;
-	out[0] = Math.cos(r) * scale;
-	out[1] = Math.sin(r) * scale;
+	// TODO: This is a pretty awful way of doing this. Find something better.
+	out[0] = Math.random();
+	out[1] = Math.random();
+	out[2] = Math.random();
+	out[3] = Math.random();
+	vec4.normalize(out, out);
+	vec4.scale(out, out, scale);
 	return out;
 }
 
@@ -257,11 +303,16 @@ export function clamp(out: AN, a: ACN, min: number | ACN, max: number | ACN) {
 	if (typeof min === "number") {
 		out[0] = sd.math.clamp(a[0], min, max as number);
 		out[1] = sd.math.clamp(a[1], min, max as number);
+		out[2] = sd.math.clamp(a[2], min, max as number);
+		out[3] = sd.math.clamp(a[3], min, max as number);
 	}
 	else {
 		out[0] = sd.math.clamp(a[0], min[0], (max as ACN)[0]);
 		out[1] = sd.math.clamp(a[1], min[1], (max as ACN)[1]);
+		out[2] = sd.math.clamp(a[2], min[2], (max as ACN)[2]);
+		out[3] = sd.math.clamp(a[3], min[3], (max as ACN)[3]);
 	}
+
 	return out;
 }
 
@@ -270,6 +321,8 @@ export function clamp01<T extends AN>(out: T, a: ACN): T;
 export function clamp01(out: AN, a: ACN) {
 	out[0] = sd.math.clamp01(a[0]);
 	out[1] = sd.math.clamp01(a[1]);
+	out[2] = sd.math.clamp01(a[2]);
+	out[3] = sd.math.clamp01(a[3]);
 	return out;
 }
 
@@ -281,10 +334,14 @@ export function mix(out: AN, a: ACN, b: ACN, ratio: number | ACN) {
 	if (typeof ratio === "number") {
 		out[0] = sd.math.mix(a[0], b[0], ratio);
 		out[1] = sd.math.mix(a[1], b[1], ratio);
+		out[2] = sd.math.mix(a[2], b[2], ratio);
+		out[3] = sd.math.mix(a[3], b[3], ratio);
 	}
 	else {
 		out[0] = sd.math.mix(a[0], b[0], ratio[0]);
 		out[1] = sd.math.mix(a[1], b[1], ratio[1]);
+		out[2] = sd.math.mix(a[2], b[2], ratio[2]);
+		out[3] = sd.math.mix(a[3], b[3], ratio[3]);
 	}
 	return out;
 }
@@ -294,46 +351,39 @@ export function sign<T extends AN>(out: T, a: ACN): T;
 export function sign(out: AN, a: ACN) {
 	out[0] = Math.sign(a[0]);
 	out[1] = Math.sign(a[1]);
-	return out;
-}
-
-export function transformMat2(out: number[], a: ACN, m: ACN): number[];
-export function transformMat2<T extends AN>(out: T, a: ACN, m: ACN): T;
-export function transformMat2(out: AN, a: ACN, m: ACN) {
-	const x = a[0];
-	const y = a[1];
-	out[0] = m[0] * x + m[2] * y;
-	out[1] = m[1] * x + m[3] * y;
-	return out;
-}
-
-export function transformMat2d(out: number[], a: ACN, m: ACN): number[];
-export function transformMat2d<T extends AN>(out: T, a: ACN, m: ACN): T;
-export function transformMat2d(out: AN, a: ACN, m: ACN) {
-	const x = a[0];
-	const y = a[1];
-	out[0] = m[0] * x + m[2] * y + m[4];
-	out[1] = m[1] * x + m[3] * y + m[5];
-	return out;
-}
-
-export function transformMat3(out: number[], a: ACN, m: ACN): number[];
-export function transformMat3<T extends AN>(out: T, a: ACN, m: ACN): T;
-export function transformMat3(out: AN, a: ACN, m: ACN) {
-	const x = a[0];
-	const y = a[1];
-	out[0] = m[0] * x + m[3] * y + m[6];
-	out[1] = m[1] * x + m[4] * y + m[7];
+	out[2] = Math.sign(a[2]);
+	out[3] = Math.sign(a[3]);
 	return out;
 }
 
 export function transformMat4(out: number[], a: ACN, m: ACN): number[];
 export function transformMat4<T extends AN>(out: T, a: ACN, m: ACN): T;
 export function transformMat4(out: AN, a: ACN, m: ACN) {
-	const x = a[0];
-	const y = a[1];
-	out[0] = m[0] * x + m[4] * y + m[12];
-	out[1] = m[1] * x + m[5] * y + m[13];
+	const x = a[0], y = a[1], z = a[2], w = a[3];
+	out[0] = m[0] * x + m[4] * y + m[8] * z + m[12] * w;
+	out[1] = m[1] * x + m[5] * y + m[9] * z + m[13] * w;
+	out[2] = m[2] * x + m[6] * y + m[10] * z + m[14] * w;
+	out[3] = m[3] * x + m[7] * y + m[11] * z + m[15] * w;
+	return out;
+}
+
+export function transformQuat(out: number[], a: ACN, m: ACN): number[];
+export function transformQuat<T extends AN>(out: T, a: ACN, m: ACN): T;
+export function transformQuat(out: AN, a: ACN, q: ACN) {
+	const x = a[0], y = a[1], z = a[2],
+		qx = q[0], qy = q[1], qz = q[2], qw = q[3],
+
+		// calculate quat * vec
+		ix = qw * x + qy * z - qz * y,
+		iy = qw * y + qz * x - qx * z,
+		iz = qw * z + qx * y - qy * x,
+		iw = -qx * x - qy * y - qz * z;
+
+	// calculate result * inverse quat
+	out[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+	out[1] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+	out[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+	out[3] = a[3];
 	return out;
 }
 
@@ -341,37 +391,43 @@ export const forEach: GLMForEach = (function() {
 	const vec = create();
 
 	return function(a: AN | number[], opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]) {
-		const stride = opt.stride || 2;
+		const stride = opt.stride || 4;
 		const offset = opt.offset || 0;
 		const count = opt.count ? Math.min((opt.count * stride) + offset, a.length) : a.length;
 
 		for (let i = offset; i < count; i += stride) {
 			vec[0] = a[i];
 			vec[1] = a[i + 1];
+			vec[2] = a[i + 2];
+			vec[3] = a[i + 3];
 			fn(vec, vec, args);
 			a[i] = vec[0];
 			a[i + 1] = vec[1];
+			a[i + 2] = vec[2];
+			a[i + 3] = vec[3];
 		}
 
 		return a;
 	};
 })();
 
-export function str(a: ACN) {
-	return `vec2(${a[0]}, ${a[1]})`;
+export function str(a) {
+	return `vec4(${a[0]}, ${a[1]}, ${a[2]}, ${a[3]})`;
 }
 
 export function exactEquals(a: ACN, b: ACN) {
-	return a[0] === b[0] && a[1] === b[1];
+	return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
 }
 
 export function equals(a: ACN, b: ACN) {
-	const a0 = a[0], a1 = a[1];
-	const b0 = b[0], b1 = b[1];
+	const a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
+	const b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
 	return (Math.abs(a0 - b0) <= EPSILON * Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
-			Math.abs(a1 - b1) <= EPSILON * Math.max(1.0, Math.abs(a1), Math.abs(b1)));
+			Math.abs(a1 - b1) <= EPSILON * Math.max(1.0, Math.abs(a1), Math.abs(b1)) &&
+			Math.abs(a2 - b2) <= EPSILON * Math.max(1.0, Math.abs(a2), Math.abs(b2)) &&
+			Math.abs(a3 - b3) <= EPSILON * Math.max(1.0, Math.abs(a3), Math.abs(b3)));
 }
 
-} // ns vec2
+} // ns vec4
 
-export default vec2;
+export default vec4;
