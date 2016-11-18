@@ -43,3 +43,10 @@ export interface GLMForEachFunction {
 export function equals(a: number, b: number) {
 	return Math.abs(a - b) <= EPSILON * Math.max(1.0, Math.abs(a), Math.abs(b));
 }
+
+export interface FieldOfViewDegrees {
+	upDegrees: number;
+	downDegrees: number;
+	leftDegrees: number;
+	rightDegrees: number;
+}
