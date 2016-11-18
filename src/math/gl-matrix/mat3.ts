@@ -222,28 +222,6 @@ export function multiply(out: AN, a: ACN, b: ACN) {
 
 export const mul = multiply;
 
-export function translate(out: number[], a: ACN, v2: ACN): number[];
-export function translate<T extends AN>(out: T, a: ACN, v2: ACN): T;
-export function translate(out: AN, a: ACN, v2: ACN) {
-	const a00 = a[0], a01 = a[1], a02 = a[2],
-		a10 = a[3], a11 = a[4], a12 = a[5],
-		a20 = a[6], a21 = a[7], a22 = a[8];
-	const x = v2[0], y = v2[1];
-
-	out[0] = a00;
-	out[1] = a01;
-	out[2] = a02;
-
-	out[3] = a10;
-	out[4] = a11;
-	out[5] = a12;
-
-	out[6] = x * a00 + y * a10 + a20;
-	out[7] = x * a01 + y * a11 + a21;
-	out[8] = x * a02 + y * a12 + a22;
-	return out;
-}
-
 export function rotate(out: number[], a: ACN, rad: number): number[];
 export function rotate<T extends AN>(out: T, a: ACN, rad: number): T;
 export function rotate(out: AN, a: ACN, rad: number) {
@@ -284,6 +262,28 @@ export function scale(out: AN, a: ACN, v2: ACN) {
 	out[6] = a[6];
 	out[7] = a[7];
 	out[8] = a[8];
+	return out;
+}
+
+export function translate(out: number[], a: ACN, v2: ACN): number[];
+export function translate<T extends AN>(out: T, a: ACN, v2: ACN): T;
+export function translate(out: AN, a: ACN, v2: ACN) {
+	const a00 = a[0], a01 = a[1], a02 = a[2],
+		a10 = a[3], a11 = a[4], a12 = a[5],
+		a20 = a[6], a21 = a[7], a22 = a[8];
+	const x = v2[0], y = v2[1];
+
+	out[0] = a00;
+	out[1] = a01;
+	out[2] = a02;
+
+	out[3] = a10;
+	out[4] = a11;
+	out[5] = a12;
+
+	out[6] = x * a00 + y * a10 + a20;
+	out[7] = x * a01 + y * a11 + a21;
+	out[8] = x * a02 + y * a12 + a22;
 	return out;
 }
 
