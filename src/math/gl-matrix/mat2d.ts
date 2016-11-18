@@ -24,9 +24,6 @@ import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 namespace mat2d {
 
 /**
- * @class 2x3 Matrix
- * @name mat2d
- * 
  * @description 
  * A mat2d contains six elements defined as:
  * <pre>
