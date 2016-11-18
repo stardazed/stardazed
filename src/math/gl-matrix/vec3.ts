@@ -511,8 +511,8 @@ export const forEach: GLMForEach = (function() {
 
 
 export function angle(a: ACN, b: ACN) {
-	const tempA = fromValues(a[0], a[1], a[2]);
-	const tempB = fromValues(b[0], b[1], b[2]);
+	const tempA = clone(a);
+	const tempB = clone(b);
 
 	normalize(tempA, tempA);
 	normalize(tempB, tempB);
