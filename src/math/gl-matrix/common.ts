@@ -22,7 +22,6 @@ import { ArrayOfNumber, ArrayOfConstNumber } from "math/primarray";
 
 // Configuration Constants
 export const EPSILON = 0.000001;
-export const USE_SIMD = false;
 
 export interface GLMForEachOptions {
 	stride?: number;
