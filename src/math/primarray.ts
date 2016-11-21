@@ -3,11 +3,9 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { MutableArrayLike, TypedArrayBase } from "core/array";
+import { ArrayOfConstNumber, ArrayOfNumber, TypedArrayBase } from "core/array";
 
-export type ArrayOfConstNumber = ArrayLike<number>;
-export type ArrayOfNumber = MutableArrayLike<number>;
-
+// specialized types waiting for some kind of fixed-length array checking to surface in TS one day...
 export type Float2 = ArrayOfNumber;
 export type Float3 = ArrayOfNumber;
 export type Float4 = ArrayOfNumber;
@@ -24,6 +22,7 @@ export type ConstFloat2x2 = ArrayOfConstNumber;
 export type ConstFloat3x3 = ArrayOfConstNumber;
 export type ConstFloat4x4 = ArrayOfConstNumber;
 
+
 // (strided) iteration of vecN types
 export interface VecArrayIterationOptions {
 	stride?: number;
@@ -32,6 +31,7 @@ export interface VecArrayIterationOptions {
 }
 
 export type VecArrayIterationFunction = (out: ArrayOfNumber, a: ArrayOfConstNumber, ...args: any[]) => void;
+
 
 // single primitive type access within larger buffers
 export function refIndexedVec2<T extends TypedArrayBase>(data: T, index: number): T {

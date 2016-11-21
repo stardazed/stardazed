@@ -3,8 +3,6 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { assert } from "core/util";
-
 // global type augmentations
 declare global {
 	interface ArrayBufferConstructor {
@@ -21,7 +19,6 @@ if (! ArrayBuffer.transfer) {
 
 		const oldByteLength = oldBuffer.byteLength;
 		newByteLength = newByteLength | 0;
-		assert(newByteLength > 0);
 
 		if (newByteLength < oldByteLength) {
 			return oldBuffer.slice(0, newByteLength);
@@ -98,11 +95,14 @@ export interface TypedArrayConstructor {
 }
 
 
-// special purpose or generic array interfaces
+// special purpose or generic array interfaces used very frequently
 export interface MutableArrayLike<T> {
 	readonly length: number;
 	[n: number]: T;
 }
+
+export type ArrayOfConstNumber = ArrayLike<number>;
+export type ArrayOfNumber = MutableArrayLike<number>;
 
 export interface ConstEnumArrayView<T extends number> extends TypedArray {
 	[index: number]: T;
