@@ -3,8 +3,7 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { TypedArrayBase } from "core/typedarray";
-import { MutableArrayLike } from "core/array";
+import { MutableArrayLike, TypedArrayBase } from "core/array";
 
 export type ArrayOfConstNumber = ArrayLike<number>;
 export type ArrayOfNumber = MutableArrayLike<number>;

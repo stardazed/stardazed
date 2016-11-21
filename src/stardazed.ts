@@ -5,7 +5,6 @@
 
 export * from "core/util";
 export * from "core/array";
-export * from "core/typedarray";
 export * from "core/numeric";
 
 export * from "core/dom";

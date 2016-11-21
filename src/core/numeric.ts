@@ -3,7 +3,7 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { TypedArrayConstructor } from "core/typedarray";
+import { TypedArrayConstructor } from "core/array";
 
 /* tslint:disable:variable-name */
 
