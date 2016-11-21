@@ -24,22 +24,24 @@ import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 
 namespace vec2 {
 
+export const ELEMENT_COUNT = 2;
+
 export function create() {
-	const out = new Float32Array(2);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = 0;
 	out[1] = 0;
 	return out;
 }
 
 export function clone(a: ACN) {
-	const out = new Float32Array(2);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = a[0];
 	out[1] = a[1];
 	return out;
 }
 
 export function fromValues(x: number, y: number) {
-	const out = new Float32Array(2);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = x;
 	out[1] = y;
 	return out;

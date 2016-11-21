@@ -39,8 +39,10 @@ namespace mat2d {
  * The last row is ignored so the array is shorter and operations are faster.
  */
 
+export const ELEMENT_COUNT = 6;
+
 export function create() {
-	const out = new Float32Array(6);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = 1;
 	out[1] = 0;
 	out[2] = 0;
@@ -51,7 +53,7 @@ export function create() {
 }
 
 export function clone(a: ACN) {
-	const out = new Float32Array(6);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = a[0];
 	out[1] = a[1];
 	out[2] = a[2];
@@ -86,7 +88,7 @@ export function identity(out: AN) {
 }
 
 export function fromValues(a: number, b: number, c: number, d: number, tx: number, ty: number) {
-	const out = new Float32Array(6);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = a;
 	out[1] = b;
 	out[2] = c;

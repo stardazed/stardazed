@@ -26,8 +26,10 @@ import { vec4 } from "./vec4";
 
 namespace quat {
 
+export const ELEMENT_COUNT = 4;
+
 export function create() {
-	const out = new Float32Array(4);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = 0;
 	out[1] = 0;
 	out[2] = 0;
@@ -356,7 +358,7 @@ export function fromEuler(yaw: number, pitch: number, roll: number) {
 	const sinr = Math.sin(r), cosr = Math.cos(r);
 
 	// evaluated form of 3 Quat multiplications (of yaw, pitch and roll)
-	return normalize(new Float32Array(4), [
+	return normalize(new Float32Array(ELEMENT_COUNT), [
 		sinr * cosp * cosy - cosr * sinp * siny,
 		cosr * sinp * cosy + sinr * cosp * siny,
 		cosr * cosp * siny - sinr * sinp * cosy,

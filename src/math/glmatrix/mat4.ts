@@ -23,8 +23,10 @@ import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 
 namespace mat4 {
 
+export const ELEMENT_COUNT = 16;
+
 export function create() {
-	const out = new Float32Array(16);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = 1;
 	out[1] = 0;
 	out[2] = 0;
@@ -45,7 +47,7 @@ export function create() {
 }
 
 export function clone(a: ACN) {
-	const out = new Float32Array(16);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = a[0];
 	out[1] = a[1];
 	out[2] = a[2];
@@ -113,7 +115,7 @@ export function fromValues(
 	m00: number, m01: number, m02: number, m03: number, m10: number, m11: number, m12: number, m13: number,
 	m20: number, m21: number, m22: number, m23: number, m30: number, m31: number, m32: number, m33: number
 ) {
-	const out = new Float32Array(16);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = m00;
 	out[1] = m01;
 	out[2] = m02;

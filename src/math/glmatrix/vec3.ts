@@ -24,8 +24,10 @@ import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 
 namespace vec3 {
 
+export const ELEMENT_COUNT = 3;
+
 export function create() {
-	const out = new Float32Array(3);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = 0;
 	out[1] = 0;
 	out[2] = 0;
@@ -33,7 +35,7 @@ export function create() {
 }
 
 export function clone(a: ACN) {
-	const out = new Float32Array(3);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = a[0];
 	out[1] = a[1];
 	out[2] = a[2];
@@ -41,7 +43,7 @@ export function clone(a: ACN) {
 }
 
 export function fromValues(x: number, y: number, z: number) {
-	const out = new Float32Array(3);
+	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = x;
 	out[1] = y;
 	out[2] = z;
