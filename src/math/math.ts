@@ -4,7 +4,6 @@
 // https://github.com/stardazed/stardazed-tx
 
 import { Float } from "core/numeric";
-import { ConstFloat3, Float3 } from "math/primarray";
 
 declare global {
 	interface Math {
@@ -147,41 +146,4 @@ export class Mat4 {
 
 	static elementCount = 16;
 	static byteSize = Float.byteSize * Mat4.elementCount;
-}
-
-
-// ----
-
-export function reflectVec3(v3: ConstFloat3, normal: ConstFloat3) {
-	return vec3.sub([], v3, vec3.scale([], normal, 2 * vec3.dot(v3, normal)));
-}
-
-
-export function arbitraryOrthogonalVec3(v: ConstFloat3): Float3 {
-	const ax = Math.abs(v[0]);
-	const ay = Math.abs(v[1]);
-	const az = Math.abs(v[2]);
-
-	const dominantAxis = (ax > ay) ? (ax > az ? 0 : 2) : (ay > az ? 1 : 2);
-
-	const p: Float3 = [];
-	switch (dominantAxis) {
-		case 0:
-			p[0] = -v[1] - v[2];
-			p[1] = v[0];
-			p[2] = v[0];
-			break;
-		case 1:
-			p[0] = v[1];
-			p[1] = -v[0] - v[2];
-			p[2] = v[1];
-			break;
-		case 2:
-			p[0] = v[2];
-			p[1] = v[2];
-			p[2] = -v[0] - v[1];
-			break;
-	}
-
-	return p;
 }

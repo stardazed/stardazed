@@ -488,6 +488,44 @@ export function rotateZ(out: AN, a: ACN, b: ACN, c: number) {
 	return out;
 }
 
+export function reflect(out: number[], a: ACN, normal: ACN): number[];
+export function reflect<T extends AN>(out: T, a: ACN, normal: ACN): T;
+export function reflect(out: AN, a: ACN, normal: ACN) {
+	scale(out, normal, 2.0 * vec3.dot(a, normal));
+	return sub(out, a, out);
+}
+
+
+export function arbitraryOrthogonalVec(a: ACN) {
+	const p = create();
+	const ax = Math.abs(a[0]);
+	const ay = Math.abs(a[1]);
+	const az = Math.abs(a[2]);
+
+	const dominantAxis = (ax > ay) ? (ax > az ? 0 : 2) : (ay > az ? 1 : 2);
+
+	switch (dominantAxis) {
+		case 0:
+			p[0] = -a[1] - a[2];
+			p[1] = a[0];
+			p[2] = a[0];
+			break;
+		case 1:
+			p[0] = a[1];
+			p[1] = -a[0] - a[2];
+			p[2] = a[1];
+			break;
+		case 2:
+			p[0] = a[2];
+			p[1] = a[2];
+			p[2] = -a[0] - a[1];
+			break;
+	}
+
+	return p;
+}
+
+
 export const forEach = (function() {
 	const vec = create();
 
