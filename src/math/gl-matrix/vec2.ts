@@ -337,10 +337,10 @@ export function transformMat4(out: AN, a: ACN, m: ACN) {
 	return out;
 }
 
-export const forEach: GLMForEach = (function() {
+export const forEach = (function() {
 	const vec = create();
 
-	return function(a: AN | number[], opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]) {
+	return function(a: AN, opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]) {
 		const stride = opt.stride || 2;
 		const offset = opt.offset || 0;
 		const count = opt.count ? Math.min((opt.count * stride) + offset, a.length) : a.length;
@@ -354,7 +354,7 @@ export const forEach: GLMForEach = (function() {
 		}
 
 		return a;
-	};
+	} as GLMForEach;
 })();
 
 export function str(a: ACN) {

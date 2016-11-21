@@ -18,11 +18,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
+import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 import { EPSILON } from "./common";
 import mat3 from "./mat3";
 import vec3 from "./vec3";
 import vec4 from "./vec4";
-import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 
 namespace quat {
 
@@ -35,10 +35,7 @@ export function create() {
 	return out;
 };
 
-export const rotationTo: {
-	(out: number[], a: ACN, b: ACN): number[];
-	<T extends AN>(out: T, a: ACN, b: ACN): T;
-} = (function() {
+export const rotationTo = (function() {
 	const tmpvec3 = vec3.create();
 	const xUnitVec3 = vec3.fromValues(1, 0, 0);
 	const yUnitVec3 = vec3.fromValues(0, 1, 0);
@@ -67,13 +64,13 @@ export const rotationTo: {
 			out[3] = 1 + dot;
 			return quat.normalize(out, out);
 		}
+	} as {
+		(out: number[], a: ACN, b: ACN): number[];
+		<T extends AN>(out: T, a: ACN, b: ACN): T;
 	};
 })();
 
-export const setAxes: {
-	(out: number[], view: ACN, right: ACN, up: ACN): number[];
-	<T extends AN>(out: T, view: ACN, right: ACN, up: ACN): T;
-} = (function() {
+export const setAxes = (function() {
 	const mat = mat3.create();
 
 	return function(out: AN, view: ACN, right: ACN, up: ACN) {
@@ -89,7 +86,10 @@ export const setAxes: {
 		mat[5] = -view[1];
 		mat[8] = -view[2];
 
-		return quat.normalize(out, quat.fromMat3(out, mat));
+		return quat.normalize(out, quat.fromMat3(out, mat)) as any;
+	} as {
+		(out: number[], view: ACN, right: ACN, up: ACN): number[];
+		<T extends AN>(out: T, view: ACN, right: ACN, up: ACN): T;
 	};
 })();
 

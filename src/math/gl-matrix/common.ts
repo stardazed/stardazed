@@ -30,7 +30,7 @@ export interface GLMForEachOptions {
 }
 
 export interface GLMForEach {
-	// (a: number[], opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]): number[];
+	(a: number[], opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]): number[];
 	<T extends ArrayOfNumber>(a: T, opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]): T;
 }
 
