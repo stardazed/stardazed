@@ -1,4 +1,4 @@
-// multiarraybuffer - struct-of-arrays container for primitive types
+// container/multiarraybuffer - struct-of-arrays container for primitive types
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
@@ -6,7 +6,7 @@
 import { TypedArray } from "core/array";
 import { NumericType } from "core/numeric";
 import { assert } from "core/util";
-
+import { alignUp, roundUpPowerOf2 } from "math/util";
 
 export interface MABField {
 	type: NumericType;
@@ -35,7 +35,7 @@ export class MultiArrayBuffer {
 
 
 	constructor(initialCapacity: number, fields: MABField[]) {
-		var totalOffset = 0;
+		let totalOffset = 0;
 		this.fields_ = fields.map(field => {
 			const curOffset = totalOffset;
 			const sizeBytes = field.type.byteSize * field.count;
@@ -79,7 +79,7 @@ export class MultiArrayBuffer {
 		// We could align to 16 or even 8 and likely be fine, but this container
 		// isn't meant for tiny arrays so 32 it is.
 
-		newCapacity = math.alignUp(newCapacity, 32);
+		newCapacity = alignUp(newCapacity, 32);
 		if (newCapacity <= this.capacity_) {
 			// TODO: add way to cut capacity?
 			return InvalidatePointers.No;
@@ -88,7 +88,7 @@ export class MultiArrayBuffer {
 		const newData = new ArrayBuffer(newCapacity * this.elementSumSize_);
 		assert(newData);
 
-		var invalidation = InvalidatePointers.No;
+		let invalidation = InvalidatePointers.No;
 		if (this.data_) {
 			// Since a capacity change will change the length of each array individually
 			// we need to re-layout the data in the new buffer.
@@ -133,11 +133,11 @@ export class MultiArrayBuffer {
 
 
 	resize(newCount: number): InvalidatePointers {
-		var invalidation = InvalidatePointers.No;
+		let invalidation = InvalidatePointers.No;
 
 		if (newCount > this.capacity_) {
 			// automatically expand up to next highest power of 2 size
-			invalidation = this.reserve(math.roundUpPowerOf2(newCount));
+			invalidation = this.reserve(roundUpPowerOf2(newCount));
 		}
 		else if (newCount < this.count_) {
 			// Reducing the count will clear the now freed up elements so that when
@@ -158,7 +158,7 @@ export class MultiArrayBuffer {
 
 
 	extend(): InvalidatePointers {
-		var invalidation = InvalidatePointers.No;
+		let invalidation = InvalidatePointers.No;
 
 		if (this.count_ == this.capacity_) {
 			invalidation = this.reserve(this.capacity_ * 2);
