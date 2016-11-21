@@ -35,6 +35,17 @@ export function create() {
 	return out;
 }
 
+export const zero = create();
+
+export function one() {
+	const out = new Float32Array(ELEMENT_COUNT);
+	out[0] = 1;
+	out[1] = 1;
+	out[2] = 1;
+	out[3] = 1;
+	return out;
+}
+
 export function clone(a: ACN) {
 	const out = new Float32Array(ELEMENT_COUNT);
 	out[0] = a[0];
