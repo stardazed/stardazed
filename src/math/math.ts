@@ -3,6 +3,15 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+import { Float } from "core/numeric";
+import { ConstFloat3, Float3 } from "math/primarray";
+
+declare global {
+	interface Math {
+		sign(n: number): number;
+	}
+}
+
 // common functions
 export function intRandom(maximum: number): number {
 	return (Math.random() * (maximum + 1)) | 0;
@@ -40,6 +49,11 @@ export function clamp01(n: number): number {
 }
 
 
+export function mix(a: number, b: number, ratio: number): number {
+	return a * (1 - ratio) + b * ratio;
+}
+
+
 export function isPowerOf2(n: number) {
 	return (n & (n - 1)) == 0;
 }
@@ -48,7 +62,6 @@ export function isPowerOf2(n: number) {
 // roundUpPowerOf2
 // return closest powerOf2 number that is >= n
 // e.g.: 15 -> 16; 16 -> 16; 17 -> 32
-
 export function roundUpPowerOf2(n: number) {
 	if (n <= 0) { return 1; }
 	n = (n | 0) - 1;
@@ -63,7 +76,6 @@ export function roundUpPowerOf2(n: number) {
 
 // alignUp
 // round val up to closest alignmentPow2
-
 export function alignUp(val: number, alignmentPow2: number) {
 	return (val + alignmentPow2 - 1) & (~(alignmentPow2 - 1));
 }
@@ -71,7 +83,6 @@ export function alignUp(val: number, alignmentPow2: number) {
 
 // alignDown
 // round val down to closest alignmentPow2
-
 export function alignDown(val: number, alignmentPow2: number) {
 	return val & (~(alignmentPow2 - 1));
 }
@@ -141,12 +152,12 @@ export class Mat4 {
 
 // ----
 
-export function reflectVec3(v3: Float3, normal: Float3) {
+export function reflectVec3(v3: ConstFloat3, normal: ConstFloat3) {
 	return vec3.sub([], v3, vec3.scale([], normal, 2 * vec3.dot(v3, normal)));
 }
 
 
-export function arbitraryOrthogonalVec3(v: Float3): Float3 {
+export function arbitraryOrthogonalVec3(v: ConstFloat3): Float3 {
 	const ax = Math.abs(v[0]);
 	const ay = Math.abs(v[1]);
 	const az = Math.abs(v[2]);
@@ -154,7 +165,7 @@ export function arbitraryOrthogonalVec3(v: Float3): Float3 {
 	const dominantAxis = (ax > ay) ? (ax > az ? 0 : 2) : (ay > az ? 1 : 2);
 
 	const p: Float3 = [];
-	switch(dominantAxis) {
+	switch (dominantAxis) {
 		case 0:
 			p[0] = -v[1] - v[2];
 			p[1] = v[0];
