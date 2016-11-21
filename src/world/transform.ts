@@ -137,7 +137,7 @@ namespace sd.world {
 			if (descriptor) {
 				// optional descriptor fields
 				const rotation = descriptor.rotation || quat.create();
-				const scale = descriptor.scale || math.Vec3.one;
+				const scale = descriptor.scale || vec3.one();
 
 				this.positionBase_.set(descriptor.position, thisInstance * math.Vec3.elementCount);
 				this.rotationBase_.set(rotation, thisInstance * math.Quat.elementCount);
@@ -146,12 +146,12 @@ namespace sd.world {
 				this.setLocalMatrix(thisInstance, rotation, descriptor.position, scale);
 			}
 			else {
-				this.positionBase_.set(math.Vec3.zero, thisInstance * math.Quat.elementCount);
+				this.positionBase_.set(vec3.zero(), thisInstance * math.Quat.elementCount);
 				this.rotationBase_.set(quat.create(), thisInstance * math.Quat.elementCount);
-				this.scaleBase_.set(math.Vec3.one, thisInstance * math.Vec3.elementCount);
+				this.scaleBase_.set(vec3.one(), thisInstance * math.Vec3.elementCount);
 
-				this.localMatrixBase_.set(math.Mat4.identity, thisInstance * math.Mat4.elementCount);
-				this.worldMatrixBase_.set(math.Mat4.identity, thisInstance * math.Mat4.elementCount);
+				this.localMatrixBase_.set(mat4.create(), thisInstance * math.Mat4.elementCount);
+				this.worldMatrixBase_.set(mat4.create(), thisInstance * math.Mat4.elementCount);
 			}
 
 			return thisInstance;
@@ -249,7 +249,7 @@ namespace sd.world {
 
 			// -- optimization for root-level, childless entities (of which I have seen there are many, but this may/will change)
 			if (parent || firstChild) {
-				const parentWorldMat = (parent == 0) ? math.Mat4.identity : this.worldMatrix(parent);
+				const parentWorldMat = (parent == 0) ? mat4.create() : this.worldMatrix(parent);
 				this.applyParentTransform(parentWorldMat, inst);
 			}
 			else {
