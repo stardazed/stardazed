@@ -18,7 +18,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { EPSILON, GLMForEach, GLMForEachOptions, GLMForEachFunction } from "./common";
+import { EPSILON, GLMForEach, GLMForEachOptions, GLMForEachFunction, clamp as clampf, clamp01 as clamp01f, mix as mixf } from "./common";
 import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 
 namespace vec4 {
@@ -169,10 +169,10 @@ export function round(out: AN, a: ACN) {
 export function scale(out: number[], a: ACN, s: number): number[];
 export function scale<T extends AN>(out: T, a: ACN, s: number): T;
 export function scale(out: AN, a: ACN, s: number) {
-	out[0] = a[0] * b;
-	out[1] = a[1] * b;
-	out[2] = a[2] * b;
-	out[3] = a[3] * b;
+	out[0] = a[0] * s;
+	out[1] = a[1] * s;
+	out[2] = a[2] * s;
+	out[3] = a[3] * s;
 	return out;
 }
 
@@ -301,16 +301,16 @@ export function clamp(out: number[], a: ACN, min: ACN, max: ACN): number[];
 export function clamp<T extends AN>(out: AN, a: ACN, min: ACN, max: ACN): T;
 export function clamp(out: AN, a: ACN, min: number | ACN, max: number | ACN) {
 	if (typeof min === "number") {
-		out[0] = sd.math.clamp(a[0], min, max as number);
-		out[1] = sd.math.clamp(a[1], min, max as number);
-		out[2] = sd.math.clamp(a[2], min, max as number);
-		out[3] = sd.math.clamp(a[3], min, max as number);
+		out[0] = clampf(a[0], min, max as number);
+		out[1] = clampf(a[1], min, max as number);
+		out[2] = clampf(a[2], min, max as number);
+		out[3] = clampf(a[3], min, max as number);
 	}
 	else {
-		out[0] = sd.math.clamp(a[0], min[0], (max as ACN)[0]);
-		out[1] = sd.math.clamp(a[1], min[1], (max as ACN)[1]);
-		out[2] = sd.math.clamp(a[2], min[2], (max as ACN)[2]);
-		out[3] = sd.math.clamp(a[3], min[3], (max as ACN)[3]);
+		out[0] = clampf(a[0], min[0], (max as ACN)[0]);
+		out[1] = clampf(a[1], min[1], (max as ACN)[1]);
+		out[2] = clampf(a[2], min[2], (max as ACN)[2]);
+		out[3] = clampf(a[3], min[3], (max as ACN)[3]);
 	}
 
 	return out;
@@ -319,10 +319,10 @@ export function clamp(out: AN, a: ACN, min: number | ACN, max: number | ACN) {
 export function clamp01(out: number[], a: ACN): number[];
 export function clamp01<T extends AN>(out: T, a: ACN): T;
 export function clamp01(out: AN, a: ACN) {
-	out[0] = sd.math.clamp01(a[0]);
-	out[1] = sd.math.clamp01(a[1]);
-	out[2] = sd.math.clamp01(a[2]);
-	out[3] = sd.math.clamp01(a[3]);
+	out[0] = clamp01f(a[0]);
+	out[1] = clamp01f(a[1]);
+	out[2] = clamp01f(a[2]);
+	out[3] = clamp01f(a[3]);
 	return out;
 }
 
@@ -332,16 +332,16 @@ export function mix(out: number[], a: ACN, b: ACN, ratios: ACN): number[];
 export function mix<T extends AN>(out: T, a: ACN, b: ACN, ratios: ACN): T;
 export function mix(out: AN, a: ACN, b: ACN, ratio: number | ACN) {
 	if (typeof ratio === "number") {
-		out[0] = sd.math.mix(a[0], b[0], ratio);
-		out[1] = sd.math.mix(a[1], b[1], ratio);
-		out[2] = sd.math.mix(a[2], b[2], ratio);
-		out[3] = sd.math.mix(a[3], b[3], ratio);
+		out[0] = mixf(a[0], b[0], ratio);
+		out[1] = mixf(a[1], b[1], ratio);
+		out[2] = mixf(a[2], b[2], ratio);
+		out[3] = mixf(a[3], b[3], ratio);
 	}
 	else {
-		out[0] = sd.math.mix(a[0], b[0], ratio[0]);
-		out[1] = sd.math.mix(a[1], b[1], ratio[1]);
-		out[2] = sd.math.mix(a[2], b[2], ratio[2]);
-		out[3] = sd.math.mix(a[3], b[3], ratio[3]);
+		out[0] = mixf(a[0], b[0], ratio[0]);
+		out[1] = mixf(a[1], b[1], ratio[1]);
+		out[2] = mixf(a[2], b[2], ratio[2]);
+		out[3] = mixf(a[3], b[3], ratio[3]);
 	}
 	return out;
 }
@@ -411,7 +411,7 @@ export const forEach = (function() {
 	} as GLMForEach;
 })();
 
-export function str(a) {
+export function str(a: ACN) {
 	return `vec4(${a[0]}, ${a[1]}, ${a[2]}, ${a[3]})`;
 }
 
@@ -430,4 +430,4 @@ export function equals(a: ACN, b: ACN) {
 
 } // ns vec4
 
-export default vec4;
+export { vec4 };

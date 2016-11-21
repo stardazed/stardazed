@@ -415,4 +415,4 @@ export function translate(out: Float32Array, a: Float32Array, v3: Float32Array) 
 
 } // ns mat4simd
 
-export default mat4simd;
+export { mat4simd };

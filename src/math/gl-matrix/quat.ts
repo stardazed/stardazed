@@ -18,11 +18,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
+import { MutableArrayLike, ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 import { EPSILON } from "./common";
-import mat3 from "./mat3";
-import vec3 from "./vec3";
-import vec4 from "./vec4";
+import { mat3 } from "./mat3";
+import { vec3 } from "./vec3";
+import { vec4 } from "./vec4";
 
 namespace quat {
 
@@ -40,7 +40,7 @@ export const rotationTo = (function() {
 	const xUnitVec3 = vec3.fromValues(1, 0, 0);
 	const yUnitVec3 = vec3.fromValues(0, 1, 0);
 
-	return function(out: AN, a: ACN, b: ACN) {
+	return function(out: AN, a: ACN, b: ACN): MutableArrayLike<number> {
 		const dot = vec3.dot(a, b);
 		if (dot < (-1 + EPSILON)) {
 			vec3.cross(tmpvec3, xUnitVec3, a);
@@ -126,11 +126,12 @@ export function setAxisAngle(out: AN, axis: ACN, rad: number) {
 export function getAxisAngle(outAxis: AN, q: ACN): number {
 	const rad = Math.acos(q[3]) * 2.0;
 	const s = Math.sin(rad / 2.0);
-	if (s != 0.0) {
+	if (s !== 0.0) {
 		outAxis[0] = q[0] / s;
 		outAxis[1] = q[1] / s;
 		outAxis[2] = q[2] / s;
-	} else {
+	}
+	else {
 		// If s is zero, return any axis (no rotation - axis does not matter)
 		outAxis[0] = 1;
 		outAxis[1] = 0;
@@ -203,7 +204,9 @@ export function rotateZ(out: AN, a: ACN, rad: number) {
 	return out;
 };
 
-export function calculateW(out, a) {
+export function calculateW(out: number[], a: ACN): number[];
+export function calculateW<T extends AN>(out: T, a: ACN): T;
+export function calculateW(out: AN, a: ACN) {
 	const x = a[0], y = a[1], z = a[2];
 
 	out[0] = x;
@@ -217,7 +220,9 @@ export const dot = vec4.dot;
 
 export const lerp = vec4.lerp;
 
-export function slerp(out, a, b, t) {
+export function slerp(out: number[], a: ACN, b: ACN, t: number): number[];
+export function slerp<T extends AN>(out: T, a: ACN, b: ACN, t: number): T;
+export function slerp(out: AN, a: ACN, b: ACN, t: number) {
 	// benchmarks:
 	//    http://jsperf.com/quaternion-slerp-implementations
 
@@ -243,7 +248,8 @@ export function slerp(out, a, b, t) {
 		sinom  = Math.sin(omega);
 		scale0 = Math.sin((1.0 - t) * omega) / sinom;
 		scale1 = Math.sin(t * omega) / sinom;
-	} else {
+	}
+	else {
 		// "from" and "to" quaternions are very close 
 		//  ... so we can do a linear interpolation
 		scale0 = 1.0 - t;
@@ -262,12 +268,15 @@ export const sqlerp = (function() {
 	const temp1 = quat.create();
 	const temp2 = quat.create();
 
-	return function (out, a, b, c, d, t) {
+	return function (out: AN, a: ACN, b: ACN, c: ACN, d: ACN, t: number): AN {
 		quat.slerp(temp1, a, d, t);
 		quat.slerp(temp2, b, c, t);
 		quat.slerp(out, temp1, temp2, 2 * t * (1 - t));
 
 		return out;
+	} as {
+		(out: number[], a: ACN, b: ACN, c: ACN, d: ACN, t: number): number[];
+		<T extends AN>(out: AN, a: ACN, b: ACN, c: ACN, d: ACN, t: number): T;
 	};
 }());
 
@@ -325,7 +334,7 @@ export function fromMat3(out: AN, m: ACN) {
 	}
 	else {
 		// |w| <= 1/2
-		const i = 0;
+		let i = 0;
 		if (m[4] > m[0]) {
 			i = 1;
 		}
@@ -356,4 +365,4 @@ export const equals = vec4.equals;
 
 } // ns quat
 
-export default quat;
+export { quat };

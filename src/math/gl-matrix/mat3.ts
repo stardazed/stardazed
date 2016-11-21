@@ -541,4 +541,4 @@ export function equals(a: ACN, b: ACN) {
 
 } // ns mat3
 
-export default mat3;
+export { mat3 };

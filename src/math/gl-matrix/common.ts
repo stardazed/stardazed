@@ -18,7 +18,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { ArrayOfNumber, ArrayOfConstNumber } from "math/primarray";
+import { ArrayOfNumber, ArrayOfConstNumber } from "./primarray";
 
 // Configuration Constants
 export const EPSILON = 0.000001;
@@ -48,4 +48,17 @@ export interface FieldOfViewDegrees {
 	downDegrees: number;
 	leftDegrees: number;
 	rightDegrees: number;
+}
+
+
+export function clamp(n: number, min: number, max: number): number {
+	return Math.max(min, Math.min(max, n));
+}
+
+export function clamp01(n: number): number {
+	return Math.max(0.0, Math.min(1.0, n));
+}
+
+export function mix(a: number, b: number, ratio: number): number {
+	return a * (1 - ratio) + b * ratio;
 }

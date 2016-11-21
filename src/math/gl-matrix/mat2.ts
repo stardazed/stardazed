@@ -267,4 +267,4 @@ export function equals(a: ACN, b: ACN) {
 
 } // ns mat2
 
-export default mat2;
+export { mat2 };

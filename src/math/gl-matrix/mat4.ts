@@ -319,7 +319,7 @@ export function multiply(out: AN, a: ACN, b: ACN) {
 		a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
 
 	// Cache only the current line of the second matrix
-	const b0  = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+	let b0  = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
 	out[0] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
 	out[1] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
 	out[2] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
@@ -984,7 +984,7 @@ export function frustum(out: AN, left: number, right: number, bottom: number, to
 
 export function perspective(out: number[], fovy: number, aspect: number, near: number, far: number): number[];
 export function perspective<T extends AN>(out: T, fovy: number, aspect: number, near: number, far: number): T;
-export function perspective(out, fovy: number, aspect: number, near: number, far: number) {
+export function perspective(out: AN, fovy: number, aspect: number, near: number, far: number) {
 	const f = 1.0 / Math.tan(fovy / 2),
 		nf = 1 / (near - far);
 	out[0] = f / aspect;
@@ -1201,22 +1201,22 @@ export const sub = subtract;
 export function multiplyScalar(out: number[], a: ACN, scale: number): number[];
 export function multiplyScalar<T extends AN>(out: T, a: ACN, scale: number): T;
 export function multiplyScalar(out: AN, a: ACN, scale: number) {
-	out[0] = a[0] * b;
-	out[1] = a[1] * b;
-	out[2] = a[2] * b;
-	out[3] = a[3] * b;
-	out[4] = a[4] * b;
-	out[5] = a[5] * b;
-	out[6] = a[6] * b;
-	out[7] = a[7] * b;
-	out[8] = a[8] * b;
-	out[9] = a[9] * b;
-	out[10] = a[10] * b;
-	out[11] = a[11] * b;
-	out[12] = a[12] * b;
-	out[13] = a[13] * b;
-	out[14] = a[14] * b;
-	out[15] = a[15] * b;
+	out[0] = a[0] * scale;
+	out[1] = a[1] * scale;
+	out[2] = a[2] * scale;
+	out[3] = a[3] * scale;
+	out[4] = a[4] * scale;
+	out[5] = a[5] * scale;
+	out[6] = a[6] * scale;
+	out[7] = a[7] * scale;
+	out[8] = a[8] * scale;
+	out[9] = a[9] * scale;
+	out[10] = a[10] * scale;
+	out[11] = a[11] * scale;
+	out[12] = a[12] * scale;
+	out[13] = a[13] * scale;
+	out[14] = a[14] * scale;
+	out[15] = a[15] * scale;
 	return out;
 }
 
@@ -1280,4 +1280,4 @@ export function equals(a: ACN, b: ACN) {
 
 } // ns mat4
 
-export default mat4;
+export { mat4 };

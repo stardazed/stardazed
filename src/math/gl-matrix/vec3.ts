@@ -18,7 +18,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { EPSILON, GLMForEach, GLMForEachOptions, GLMForEachFunction } from "./common";
+import { EPSILON, GLMForEach, GLMForEachOptions, GLMForEachFunction, clamp as clampf, clamp01 as clamp01f, mix as mixf } from "./common";
 import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 
 namespace vec3 {
@@ -230,7 +230,7 @@ export function normalize(out: AN, a: ACN) {
 	const x = a[0];
 	const y = a[1];
 	const z = a[2];
-	const len = x * x + y * y + z * z; // tslint:disable-line:no-shadowed-variable
+	let len = x * x + y * y + z * z; // tslint:disable-line:no-shadowed-variable
 
 	if (len > 0) {
 		// TODO: evaluate use of glm_invsqrt here?
@@ -270,7 +270,7 @@ export function lerp(out: AN, a: ACN, b: ACN, t: number) {
 	return out;
 }
 
-export function hermite(out, a, b, c, d, t) {
+export function hermite(out: AN, a: ACN, b: ACN, c: ACN, d: ACN, t: number): AN {
 	const factorTimes2 = t * t;
 	const factor1 = factorTimes2 * (2 * t - 3) + 1;
 	const factor2 = factorTimes2 * (t - 2) + t;
@@ -284,7 +284,7 @@ export function hermite(out, a, b, c, d, t) {
 	return out;
 }
 
-export function bezier(out, a, b, c, d, t) {
+export function bezier(out: AN, a: ACN, b: ACN, c: ACN, d: ACN, t: number): AN {
 	const inverseFactor = 1 - t;
 	const inverseFactorTimesTwo = inverseFactor * inverseFactor;
 	const factorTimes2 = t * t;
@@ -320,15 +320,15 @@ export function clamp<T extends AN>(out: AN, a: ACN, min: number, max: number): 
 export function clamp(out: number[], a: ACN, min: ACN, max: ACN): number[];
 export function clamp<T extends AN>(out: AN, a: ACN, min: ACN, max: ACN): T;
 export function clamp(out: AN, a: ACN, min: number | ACN, max: number | ACN) {
-	if (typeof min == "number") {
-		out[0] = sd.math.clamp(a[0], <number>min, <number>max);
-		out[1] = sd.math.clamp(a[1], <number>min, <number>max);
-		out[2] = sd.math.clamp(a[2], <number>min, <number>max);
+	if (typeof min === "number") {
+		out[0] = clampf(a[0], <number>min, <number>max);
+		out[1] = clampf(a[1], <number>min, <number>max);
+		out[2] = clampf(a[2], <number>min, <number>max);
 	}
 	else {
-		out[0] = sd.math.clamp(a[0], (<ArrayOfConstNumber>min)[0], (<ArrayOfConstNumber>max)[0]);
-		out[1] = sd.math.clamp(a[1], (<ArrayOfConstNumber>min)[1], (<ArrayOfConstNumber>max)[1]);
-		out[2] = sd.math.clamp(a[2], (<ArrayOfConstNumber>min)[2], (<ArrayOfConstNumber>max)[2]);
+		out[0] = clampf(a[0], min[0], (max as ACN)[0]);
+		out[1] = clampf(a[1], min[1], (max as ACN)[1]);
+		out[2] = clampf(a[2], min[2], (max as ACN)[2]);
 	}
 
 	return out;
@@ -337,9 +337,9 @@ export function clamp(out: AN, a: ACN, min: number | ACN, max: number | ACN) {
 export function clamp01(out: number[], a: ACN): number[];
 export function clamp01<T extends AN>(out: T, a: ACN): T;
 export function clamp01(out: AN, a: ACN) {
-	out[0] = sd.math.clamp01(a[0]);
-	out[1] = sd.math.clamp01(a[1]);
-	out[2] = sd.math.clamp01(a[2]);
+	out[0] = clamp01f(a[0]);
+	out[1] = clamp01f(a[1]);
+	out[2] = clamp01f(a[2]);
 	return out;
 }
 
@@ -349,14 +349,14 @@ export function mix(out: number[], a: ACN, b: ACN, ratios: ACN): number[];
 export function mix<T extends AN>(out: T, a: ACN, b: ACN, ratios: ACN): T;
 export function mix(out: AN, a: ACN, b: ACN, ratio: number | ACN) {
 	if (typeof ratio === "number") {
-		out[0] = sd.math.mix(a[0], b[0], ratio);
-		out[1] = sd.math.mix(a[1], b[1], ratio);
-		out[2] = sd.math.mix(a[2], b[2], ratio);
+		out[0] = mixf(a[0], b[0], ratio);
+		out[1] = mixf(a[1], b[1], ratio);
+		out[2] = mixf(a[2], b[2], ratio);
 	}
 	else {
-		out[0] = sd.math.mix(a[0], b[0], ratio[0]);
-		out[1] = sd.math.mix(a[1], b[1], ratio[1]);
-		out[2] = sd.math.mix(a[2], b[2], ratio[2]);
+		out[0] = mixf(a[0], b[0], ratio[0]);
+		out[1] = mixf(a[1], b[1], ratio[1]);
+		out[2] = mixf(a[2], b[2], ratio[2]);
 	}
 	return out;
 }
@@ -547,4 +547,4 @@ export function equals(a: ACN, b: ACN) {
 
 } // ns vec3
 
-export default vec3;
+export { vec3 };
