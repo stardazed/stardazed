@@ -18,7 +18,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { MutableArrayLike, ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
+import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 import { EPSILON } from "./common";
 import { mat3 } from "./mat3";
 import { vec3 } from "./vec3";
@@ -33,65 +33,59 @@ export function create() {
 	out[2] = 0;
 	out[3] = 1;
 	return out;
-};
+}
 
-export const rotationTo = (function() {
-	const tmpvec3 = vec3.create();
-	const xUnitVec3 = vec3.fromValues(1, 0, 0);
-	const yUnitVec3 = vec3.fromValues(0, 1, 0);
+const tmpVec3_ = vec3.create();
+const xUnitVec3_ = vec3.fromValues(1, 0, 0);
+const yUnitVec3_ = vec3.fromValues(0, 1, 0);
 
-	return function(out: AN, a: ACN, b: ACN): MutableArrayLike<number> {
-		const dot = vec3.dot(a, b);
-		if (dot < (-1 + EPSILON)) {
-			vec3.cross(tmpvec3, xUnitVec3, a);
-			if (vec3.length(tmpvec3) < EPSILON) {
-				vec3.cross(tmpvec3, yUnitVec3, a);
-			}
-			vec3.normalize(tmpvec3, tmpvec3);
-			quat.setAxisAngle(out, tmpvec3, Math.PI);
-			return out;
-		} else if (dot > (1 - EPSILON)) {
-			out[0] = 0;
-			out[1] = 0;
-			out[2] = 0;
-			out[3] = 1;
-			return out;
-		} else {
-			vec3.cross(tmpvec3, a, b);
-			out[0] = tmpvec3[0];
-			out[1] = tmpvec3[1];
-			out[2] = tmpvec3[2];
-			out[3] = 1 + dot;
-			return quat.normalize(out, out);
+export function rotationTo(out: number[], a: ACN, b: ACN): number[];
+export function rotationTo<T extends AN>(out: T, a: ACN, b: ACN): T;
+export function rotationTo(out: AN, a: ACN, b: ACN) {
+	const dot = vec3.dot(a, b);
+	if (dot < (-1 + EPSILON)) {
+		vec3.cross(tmpVec3_, xUnitVec3_, a);
+		if (vec3.length(tmpVec3_) < EPSILON) {
+			vec3.cross(tmpVec3_, yUnitVec3_, a);
 		}
-	} as {
-		(out: number[], a: ACN, b: ACN): number[];
-		<T extends AN>(out: T, a: ACN, b: ACN): T;
-	};
-})();
+		vec3.normalize(tmpVec3_, tmpVec3_);
+		quat.setAxisAngle(out, tmpVec3_, Math.PI);
+		return out;
+	} else if (dot > (1 - EPSILON)) {
+		out[0] = 0;
+		out[1] = 0;
+		out[2] = 0;
+		out[3] = 1;
+		return out;
+	} else {
+		vec3.cross(tmpVec3_, a, b);
+		out[0] = tmpVec3_[0];
+		out[1] = tmpVec3_[1];
+		out[2] = tmpVec3_[2];
+		out[3] = 1 + dot;
+		return quat.normalize(out, out);
+	}
+}
 
-export const setAxes = (function() {
-	const mat = mat3.create();
+const mat_ = mat3.create();
 
-	return function(out: AN, view: ACN, right: ACN, up: ACN) {
-		mat[0] = right[0];
-		mat[3] = right[1];
-		mat[6] = right[2];
+export function setAxes(out: number[], view: ACN, right: ACN, up: ACN): number[];
+export function setAxes<T extends AN>(out: T, view: ACN, right: ACN, up: ACN): T;
+export function setAxes(out: AN, view: ACN, right: ACN, up: ACN) {
+	mat_[0] = right[0];
+	mat_[3] = right[1];
+	mat_[6] = right[2];
 
-		mat[1] = up[0];
-		mat[4] = up[1];
-		mat[7] = up[2];
+	mat_[1] = up[0];
+	mat_[4] = up[1];
+	mat_[7] = up[2];
 
-		mat[2] = -view[0];
-		mat[5] = -view[1];
-		mat[8] = -view[2];
+	mat_[2] = -view[0];
+	mat_[5] = -view[1];
+	mat_[8] = -view[2];
 
-		return quat.normalize(out, quat.fromMat3(out, mat)) as any;
-	} as {
-		(out: number[], view: ACN, right: ACN, up: ACN): number[];
-		<T extends AN>(out: T, view: ACN, right: ACN, up: ACN): T;
-	};
-})();
+	return quat.normalize(out, quat.fromMat3(out, mat_)) as any;
+}
 
 export const clone = vec4.clone;
 
@@ -109,7 +103,7 @@ export function identity(out: AN) {
 	out[2] = 0;
 	out[3] = 1;
 	return out;
-};
+}
 
 export function setAxisAngle(out: number[], axis: ACN, rad: number): number[];
 export function setAxisAngle<T extends AN>(out: T, axis: ACN, rad: number): T;
@@ -121,7 +115,7 @@ export function setAxisAngle(out: AN, axis: ACN, rad: number) {
 	out[2] = s * axis[2];
 	out[3] = Math.cos(rad);
 	return out;
-};
+}
 
 export function getAxisAngle(outAxis: AN, q: ACN): number {
 	const rad = Math.acos(q[3]) * 2.0;
@@ -138,7 +132,7 @@ export function getAxisAngle(outAxis: AN, q: ACN): number {
 		outAxis[2] = 0;
 	}
 	return rad;
-};
+}
 
 export const add = vec4.add;
 
@@ -153,7 +147,7 @@ export function multiply(out: AN, a: ACN, b: ACN) {
 	out[2] = az * bw + aw * bz + ax * by - ay * bx;
 	out[3] = aw * bw - ax * bx - ay * by - az * bz;
 	return out;
-};
+}
 
 export const mul = quat.multiply;
 
@@ -172,7 +166,7 @@ export function rotateX(out: AN, a: ACN, rad: number) {
 	out[2] = az * bw - ay * bx;
 	out[3] = aw * bw - ax * bx;
 	return out;
-};
+}
 
 export function rotateY(out: number[], a: ACN, rad: number): number[];
 export function rotateY<T extends AN>(out: T, a: ACN, rad: number): T;
@@ -187,7 +181,7 @@ export function rotateY(out: AN, a: ACN, rad: number) {
 	out[2] = az * bw + ax * by;
 	out[3] = aw * bw - ay * by;
 	return out;
-};
+}
 
 export function rotateZ(out: number[], a: ACN, rad: number): number[];
 export function rotateZ<T extends AN>(out: T, a: ACN, rad: number): T;
@@ -202,7 +196,7 @@ export function rotateZ(out: AN, a: ACN, rad: number) {
 	out[2] = az * bw + aw * bz;
 	out[3] = aw * bw - az * bz;
 	return out;
-};
+}
 
 export function calculateW(out: number[], a: ACN): number[];
 export function calculateW<T extends AN>(out: T, a: ACN): T;
@@ -214,7 +208,7 @@ export function calculateW(out: AN, a: ACN) {
 	out[2] = z;
 	out[3] = Math.sqrt(Math.abs(1.0 - x * x - y * y - z * z));
 	return out;
-};
+}
 
 export const dot = vec4.dot;
 
@@ -262,23 +256,20 @@ export function slerp(out: AN, a: ACN, b: ACN, t: number) {
 	out[3] = scale0 * aw + scale1 * bw;
 
 	return out;
-};
+}
 
-export const sqlerp = (function() {
-	const temp1 = quat.create();
-	const temp2 = quat.create();
+const tempQ1_ = quat.create();
+const tempQ2_ = quat.create();
 
-	return function (out: AN, a: ACN, b: ACN, c: ACN, d: ACN, t: number): AN {
-		quat.slerp(temp1, a, d, t);
-		quat.slerp(temp2, b, c, t);
-		quat.slerp(out, temp1, temp2, 2 * t * (1 - t));
+export function sqlerp(out: number[], a: ACN, b: ACN, c: ACN, d: ACN, t: number): number[];
+export function sqlerp<T extends AN>(out: AN, a: ACN, b: ACN, c: ACN, d: ACN, t: number): T;
+export function sqlerp(out: AN, a: ACN, b: ACN, c: ACN, d: ACN, t: number) {
+	slerp(tempQ1_, a, d, t);
+	slerp(tempQ2_, b, c, t);
+	slerp(out, tempQ1_, tempQ2_, 2 * t * (1 - t));
 
-		return out;
-	} as {
-		(out: number[], a: ACN, b: ACN, c: ACN, d: ACN, t: number): number[];
-		<T extends AN>(out: AN, a: ACN, b: ACN, c: ACN, d: ACN, t: number): T;
-	};
-}());
+	return out;
+}
 
 export function invert(out: number[], a: ACN): number[];
 export function invert<T extends AN>(out: T, a: ACN): T;
@@ -293,7 +284,7 @@ export function invert(out: AN, a: ACN) {
 	out[2] = -a2 * invDot;
 	out[3] =  a3 * invDot;
 	return out;
-};
+}
 
 export function conjugate(out: number[], a: ACN): number[];
 export function conjugate<T extends AN>(out: T, a: ACN): T;
@@ -303,7 +294,7 @@ export function conjugate(out: AN, a: ACN) {
 	out[2] = -a[2];
 	out[3] = a[3];
 	return out;
-};
+}
 
 export const length = vec4.length;
 
@@ -353,11 +344,30 @@ export function fromMat3(out: AN, m: ACN) {
 	}
 
 	return out;
-};
+}
+
+export function fromEuler(yaw: number, pitch: number, roll: number) {
+	const y = yaw * 0.5;
+	const p = pitch * 0.5;
+	const r = roll * 0.5;
+
+	const siny = Math.sin(y), cosy = Math.cos(y);
+	const sinp = Math.sin(p), cosp = Math.cos(p);
+	const sinr = Math.sin(r), cosr = Math.cos(r);
+
+	// evaluated form of 3 Quat multiplications (of yaw, pitch and roll)
+	return normalize(new Float32Array(4), [
+		sinr * cosp * cosy - cosr * sinp * siny,
+		cosr * sinp * cosy + sinr * cosp * siny,
+		cosr * cosp * siny - sinr * sinp * cosy,
+		cosr * cosp * cosy + sinr * sinp * siny
+	]);
+}
+
 
 export function str(a: ACN) {
 	return `quat(${a[0]}, ${a[1]}, ${a[2]}, ${a[3]})`;
-};
+}
 
 export const exactEquals = vec4.exactEquals;
 
@@ -365,4 +375,4 @@ export const equals = vec4.equals;
 
 } // ns quat
 
-export { quat };
+export { quat }
