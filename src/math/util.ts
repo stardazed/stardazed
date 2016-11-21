@@ -1,13 +1,18 @@
-// math - general purpose functions, equations, RNG, etc.
+// math/util - general purpose functions, equations, RNG, etc.
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+// augment Math class
 declare global {
 	interface Math {
 		sign(n: number): number;
 	}
 }
+
+// constants
+export const EPSILON = 0.000001;
+
 
 // common functions
 export function intRandom(maximum: number): number {
@@ -53,6 +58,11 @@ export function mix(a: number, b: number, ratio: number): number {
 
 export function isPowerOf2(n: number) {
 	return (n & (n - 1)) == 0;
+}
+
+
+export function nearEquals(a: number, b: number) {
+	return Math.abs(a - b) <= EPSILON * Math.max(1.0, Math.abs(a), Math.abs(b));
 }
 
 
