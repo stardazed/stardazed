@@ -3,6 +3,8 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+import { vec2 } from "math/vec2";
+
 export default class Rect {
 	topLeft: Float32Array;
 	topRight: Float32Array;
