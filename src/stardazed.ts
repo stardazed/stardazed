@@ -7,13 +7,8 @@ export * from "core/util";
 export * from "core/array";
 export * from "core/numeric";
 
-export * from "core/dom";
-
-export * from "core/deque";
-export * from "core/multiarraybuffer";
-
-export * from "core/perftimer";
-export * from "core/runloop";
+export * from "container/deque";
+export * from "container/multiarraybuffer";
 
 // testing how to approach submodules
 import * as input from "input/input";
