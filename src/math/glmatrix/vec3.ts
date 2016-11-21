@@ -18,7 +18,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { EPSILON, GLMForEach, GLMForEachOptions, GLMForEachFunction } from "./common";
+import { EPSILON, GLMForEachOptions, GLMForEachFunction } from "./common";
 import { clamp as clampf, clamp01 as clamp01f, mix as mixf } from "math/math";
 import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 
@@ -538,27 +538,26 @@ export function arbitraryOrthogonalVec(a: ACN) {
 }
 
 
-export const forEach = (function() {
+export function forEach(a: number[], opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]): number[];
+export function forEach<T extends AN>(a: T, opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]): T;
+export function forEach(a: AN, opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]) {
+	const stride = opt.stride || ELEMENT_COUNT;
+	const offset = opt.offset || 0;
+	const count = opt.count ? Math.min((opt.count * stride) + offset, a.length) : a.length;
 	const vec = create();
 
-	return function(a: AN, opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]) {
-		const stride = opt.stride || 3;
-		const offset = opt.offset || 0;
-		const count = opt.count ? Math.min((opt.count * stride) + offset, a.length) : a.length;
+	for (let i = offset; i < count; i += stride) {
+		vec[0] = a[i];
+		vec[1] = a[i + 1];
+		vec[2] = a[i + 2];
+		fn(vec, vec, args);
+		a[i] = vec[0];
+		a[i + 1] = vec[1];
+		a[i + 2] = vec[2];
+	}
 
-		for (let i = offset; i < count; i += stride) {
-			vec[0] = a[i];
-			vec[1] = a[i + 1];
-			vec[2] = a[i + 2];
-			fn(vec, vec, args);
-			a[i] = vec[0];
-			a[i + 1] = vec[1];
-			a[i + 2] = vec[2];
-		}
-
-		return a;
-	} as GLMForEach;
-})();
+	return a;
+}
 
 
 export function angle(a: ACN, b: ACN) {
