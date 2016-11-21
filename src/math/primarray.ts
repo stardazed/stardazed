@@ -25,7 +25,16 @@ export type ConstFloat2x2 = ArrayOfConstNumber;
 export type ConstFloat3x3 = ArrayOfConstNumber;
 export type ConstFloat4x4 = ArrayOfConstNumber;
 
+// (strided) iteration of vecN types
+export interface VecArrayIterationOptions {
+	stride?: number;
+	offset?: number;
+	count?: number;
+}
 
+export type VecArrayIterationFunction = (out: ArrayOfNumber, a: ArrayOfConstNumber, ...args: any[]) => void;
+
+// single primitive type access within larger buffers
 export function refIndexedVec2<T extends TypedArrayBase>(data: T, index: number): T {
 	return data.subarray(index * 2, (index + 1) * 2);
 }
