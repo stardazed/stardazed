@@ -18,7 +18,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-/// <reference path="../../../typings/simd.d.ts" />
+/// <reference path="../../typings/simd.d.ts" />
 
 namespace mat4simd {
 

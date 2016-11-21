@@ -18,7 +18,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { EPSILON } from "./common";
+import { EPSILON } from "math/util";
 import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 
 namespace mat3 {

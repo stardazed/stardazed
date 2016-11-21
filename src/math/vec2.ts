@@ -18,9 +18,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { EPSILON, GLMForEachOptions, GLMForEachFunction } from "./common";
-import { clamp as clampf, clamp01 as clamp01f, mix as mixf } from "math/math";
-import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
+import { EPSILON } from "math/util";
+import { clamp as clampf, clamp01 as clamp01f, mix as mixf } from "math/util";
+import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN, VecArrayIterationOptions, VecArrayIterationFunction } from "math/primarray";
 
 namespace vec2 {
 
@@ -349,9 +349,9 @@ export function transformMat4(out: AN, a: ACN, m: ACN) {
 	return out;
 }
 
-export function forEach(a: number[], opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]): number[];
-export function forEach<T extends AN>(a: T, opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]): T;
-export function forEach(a: AN, opt: GLMForEachOptions, fn: GLMForEachFunction, ...args: any[]) {
+export function forEach(a: number[], opt: VecArrayIterationOptions, fn: VecArrayIterationFunction, ...args: any[]): number[];
+export function forEach<T extends AN>(a: T, opt: VecArrayIterationOptions, fn: VecArrayIterationFunction, ...args: any[]): T;
+export function forEach(a: AN, opt: VecArrayIterationOptions, fn: VecArrayIterationFunction, ...args: any[]) {
 	const stride = opt.stride || ELEMENT_COUNT;
 	const offset = opt.offset || 0;
 	const count = opt.count ? Math.min((opt.count * stride) + offset, a.length) : a.length;
