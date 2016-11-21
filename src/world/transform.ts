@@ -136,7 +136,7 @@ namespace sd.world {
 
 			if (descriptor) {
 				// optional descriptor fields
-				const rotation = descriptor.rotation || math.Quat.identity;
+				const rotation = descriptor.rotation || quat.create();
 				const scale = descriptor.scale || math.Vec3.one;
 
 				this.positionBase_.set(descriptor.position, thisInstance * math.Vec3.elementCount);
@@ -147,7 +147,7 @@ namespace sd.world {
 			}
 			else {
 				this.positionBase_.set(math.Vec3.zero, thisInstance * math.Quat.elementCount);
-				this.rotationBase_.set(math.Quat.identity, thisInstance * math.Quat.elementCount);
+				this.rotationBase_.set(quat.create(), thisInstance * math.Quat.elementCount);
 				this.scaleBase_.set(math.Vec3.one, thisInstance * math.Vec3.elementCount);
 
 				this.localMatrixBase_.set(math.Mat4.identity, thisInstance * math.Mat4.elementCount);
