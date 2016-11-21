@@ -84,7 +84,7 @@ export function setAxes(out: AN, view: ACN, right: ACN, up: ACN) {
 	mat_[5] = -view[1];
 	mat_[8] = -view[2];
 
-	return quat.normalize(out, quat.fromMat3(out, mat_)) as any;
+	return normalize(out, quat.fromMat3(out, mat_));
 }
 
 export const clone = vec4.clone;

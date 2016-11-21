@@ -18,7 +18,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { EPSILON, GLMForEach, GLMForEachOptions, GLMForEachFunction, clamp as clampf, clamp01 as clamp01f, mix as mixf } from "./common";
+import { EPSILON, GLMForEach, GLMForEachOptions, GLMForEachFunction } from "./common";
+import { clamp as clampf, clamp01 as clamp01f, mix as mixf } from "math/math";
 import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "math/primarray";
 
 namespace vec3 {
