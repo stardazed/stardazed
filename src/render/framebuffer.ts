@@ -79,7 +79,7 @@ namespace sd.render {
 		}
 
 		// -- depth & stencil
-		var combinedFormat = PixelFormat.None;
+		let combinedFormat = PixelFormat.None;
 
 		assert(desc.depthPixelFormat == PixelFormat.None ||
 			pixelFormatIsDepthFormat(desc.depthPixelFormat) ||
@@ -189,7 +189,7 @@ namespace sd.render {
 				stencilAttachment: cloneStruct(desc.stencilAttachment)
 			};
 
-			var anyTexture: (Texture | null) = null;
+			let anyTexture: (Texture | null) = null;
 
 			// -- colour
 			const drawBuffers = desc.colourAttachments.map((attachment, attIndex) => {

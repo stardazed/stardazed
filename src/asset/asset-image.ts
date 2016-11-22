@@ -183,7 +183,7 @@ namespace sd.asset {
 	//   |_| \___/_/ \_\
 	//                  
 
-	var nativeTGASupport: boolean | null = null;
+	let nativeTGASupport: boolean | null = null;
 
 	function checkNativeTGASupport(): Promise<boolean> {
 		if (nativeTGASupport === null) {
@@ -240,7 +240,7 @@ namespace sd.asset {
 		const width = headerView.getUint16(12, true);
 		const height = headerView.getUint16(14, true);
 		const bitDepth = headerView.getUint8(16);
-		var bytesPerPixel = 0;
+		let bytesPerPixel = 0;
 
 		if ((imageType & 7) == TGAImageType.RGB) {
 			if (bitDepth == 24) {
@@ -265,12 +265,12 @@ namespace sd.asset {
 		const imageData = tempCanvas.getContext("2d")!.createImageData(width, height);
 		const sourcePixels = new Uint8ClampedArray(buffer, 18);
 		const destPixels = imageData.data;
-		var sourceOffset = 0;
-		var destOffset = (height - 1) * width * 4;
-		var pixelsLeft = width * height;
-		var pixelRunLeft = imageType & TGAImageType.RLEBit ? 0 : pixelsLeft;
-		var pixelRunRaw = true;
-		var linePixelsLeft = width;
+		let sourceOffset = 0;
+		let destOffset = (height - 1) * width * 4;
+		let pixelsLeft = width * height;
+		let pixelRunLeft = imageType & TGAImageType.RLEBit ? 0 : pixelsLeft;
+		let pixelRunRaw = true;
+		let linePixelsLeft = width;
 
 		if (bytesPerPixel == 1) {
 			// 8-bit Grayscale pixels

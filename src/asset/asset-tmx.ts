@@ -42,7 +42,7 @@ namespace sd.asset {
 		}
 
 		eachTile(callback: (row: number, col: number, tile: number) => void) {
-			var off = 0;
+			let off = 0;
 			for (let row = 0; row < this.height; ++row) {
 				for (let col = 0; col < this.width; ++col) {
 					if (this.tileData[off]) {

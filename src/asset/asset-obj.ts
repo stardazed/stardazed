@@ -28,7 +28,7 @@ namespace sd.asset {
 
 		// what remains are texture options
 		// SD only supports -o and -s for now and only with both u and v values
-		var tix = 0;
+		let tix = 0;
 		while (tix < tokens.length) {
 			const opt = tokens[tix];
 			switch (opt) {
@@ -68,8 +68,8 @@ namespace sd.asset {
 
 	function parseMTLSource(group: AssetGroup, filePath: string, text: string) {
 		const lines = text.split("\n");
-		var tokens: string[];
-		var curMat: Material | null = null;
+		let tokens: string[];
+		let curMat: Material | null = null;
 
 		const checkArgCount = function(c: number) {
 			const ok = (c === tokens.length - 1);
@@ -240,7 +240,7 @@ namespace sd.asset {
 
 
 	function preflightOBJSource(group: AssetGroup, filePath: string, text: string) {
-		var mtlFileRelPath = "";
+		let mtlFileRelPath = "";
 		const preproc: OBJPreProcSource = {
 			lines: [],
 			positionCount: 0,
@@ -280,19 +280,19 @@ namespace sd.asset {
 	}
 
 
-	var objSequenceNumber = 0;
+	let objSequenceNumber = 0;
 
 	function parseOBJSource(group: AssetGroup, preproc: OBJPreProcSource, hasColourAttr: boolean) {
 		const positions: Float32Array = new Float32Array(preproc.positionCount * 3);
 		const positionIndexes = new Uint32Array(preproc.vertexCount);
 		const streams: meshdata.VertexAttributeStream[] = [];
-		var normalValues: Float32Array | undefined;
-		var uvValues: Float32Array | undefined;
-		var colourValues: Float32Array | undefined;
-		var normalIndexes: Uint32Array | undefined;
-		var uvIndexes: Uint32Array | undefined;
-		var colourIndexes: Uint32Array | undefined;
-		var posIx = 0, normIx = 0, uvIx = 0, vertexIx = 0, curMatIx = 0;
+		let normalValues: Float32Array | undefined;
+		let uvValues: Float32Array | undefined;
+		let colourValues: Float32Array | undefined;
+		let normalIndexes: Uint32Array | undefined;
+		let uvIndexes: Uint32Array | undefined;
+		let colourIndexes: Uint32Array | undefined;
+		let posIx = 0, normIx = 0, uvIx = 0, vertexIx = 0, curMatIx = 0;
 
 		// map each material's name to its index
 		const matNameIndexMap = new Map<string, number>();

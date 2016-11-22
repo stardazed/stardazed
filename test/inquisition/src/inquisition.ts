@@ -30,7 +30,7 @@ namespace inquisition {
 	}
 
 	const _rootTest_ = new Test("root", () => { /* empty test */ });
-	var _curTest_: Test = _rootTest_;
+	let _curTest_: Test = _rootTest_;
 
 
 	// ---

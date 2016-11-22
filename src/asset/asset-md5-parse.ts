@@ -50,7 +50,7 @@ namespace sd.asset.md5.parse {
 
 
 		private skipWS() {
-			var c: string | null;
+			let c: string | null;
 			while (c = this.nextChar()) {
 				if (c != " " && c != "\t" && c != "\r" && c != "\n") {
 					break;
@@ -60,7 +60,7 @@ namespace sd.asset.md5.parse {
 
 
 		private skipToLineEnd() {
-			var c: string | null;
+			let c: string | null;
 			while (c = this.nextChar()) {
 				if (c == "\r" || c == "\n") {
 					break;
@@ -83,8 +83,8 @@ namespace sd.asset.md5.parse {
 			}
 
 			const tokenStart = this.offset_;
-			var tokenEnd = 0;
-			var c = this.lastChar_;
+			let tokenEnd = 0;
+			let c = this.lastChar_;
 
 			const invalid = (): Token => {
 				return {
@@ -369,7 +369,7 @@ namespace sd.asset.md5.parse {
 			}
 
 			if (this.parser_.expectNext(TokenType.OpenBlock)) {
-				var cmdN: Token;
+				let cmdN: Token;
 				do {
 					cmdN = this.parser_.nextToken();
 
@@ -420,7 +420,7 @@ namespace sd.asset.md5.parse {
 
 		private parseJoints() {
 			const maxParentIndex = this.jointCount_ - 2;
-			var index = 0;
+			let index = 0;
 
 			if (this.parser_.expectNext(TokenType.OpenBlock)) {
 				while (this.jointCount_ > 0 && ! this.parser_.stop) {
@@ -562,7 +562,7 @@ namespace sd.asset.md5.parse {
 
 		private parseHierarchy() {
 			const maxParentIndex = this.jointCount_ - 2;
-			var index = 0;
+			let index = 0;
 
 			if (this.parser_.expectNext(TokenType.OpenBlock)) {
 				while (! this.parser_.stop && this.jointCount_ > 0) {
@@ -615,7 +615,7 @@ namespace sd.asset.md5.parse {
 
 
 		private parseBounds() {
-			var index = 0;
+			let index = 0;
 
 			if (this.parser_.expectNext(TokenType.OpenBlock)) {
 				while (this.boundsCount_ > 0 && ! this.parser_.stop) {
@@ -637,7 +637,7 @@ namespace sd.asset.md5.parse {
 
 
 		private parseBaseFrame() {
-			var index = 0;
+			let index = 0;
 
 			if (this.parser_.expectNext(TokenType.OpenBlock)) {
 				while (this.baseJointCount_ > 0 && ! this.parser_.stop) {
@@ -660,7 +660,7 @@ namespace sd.asset.md5.parse {
 
 
 		private parseFrame(frameIndex: number) {
-			var index = 0;
+			let index = 0;
 			const data = new Float32Array(this.frameComponentCount_);
 
 			if (this.parser_.expectNext(TokenType.OpenBlock)) {

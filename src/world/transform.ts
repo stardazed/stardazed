@@ -90,8 +90,8 @@ namespace sd.world {
 			}
 
 			const thisInstance = entIndex;
-			var parentInstance = 0;
-			var descriptor: TransformDescriptor | null = null;
+			let parentInstance = 0;
+			let descriptor: TransformDescriptor | null = null;
 
 			this.entityBase_[thisInstance] = <number>linkedEntity;
 
@@ -107,7 +107,7 @@ namespace sd.world {
 
 			if (parentInstance) {
 				this.parentBase_[thisInstance] = parentInstance;
-				var myPrevSibling = this.firstChildBase_[parentInstance];
+				let myPrevSibling = this.firstChildBase_[parentInstance];
 
 				if (myPrevSibling) {
 					assert(this.prevSiblingBase_[myPrevSibling] == 0, "firstChild cannot have prev siblings");
@@ -224,7 +224,7 @@ namespace sd.world {
 			const worldMat = this.worldMatrix(inst);
 			mat4.multiply(worldMat, parentMatrix, localMat);
 
-			var child = this.firstChildBase_[<number>inst];
+			let child = this.firstChildBase_[<number>inst];
 			while (child != 0) {
 				this.applyParentTransform(worldMat, child);
 				child = this.nextSiblingBase_[child];
@@ -294,7 +294,7 @@ namespace sd.world {
 
 			if (parentIndex) {
 				this.parentBase_[thisIndex] = parentIndex;
-				var myPrevSibling = this.firstChildBase_[parentIndex];
+				let myPrevSibling = this.firstChildBase_[parentIndex];
 
 				if (myPrevSibling) {
 					// find end of child chain

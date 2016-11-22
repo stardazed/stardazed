@@ -102,7 +102,7 @@ namespace sd.render {
 			}
 
 			// -- clear indicated buffers
-			var glClearMask = 0;
+			let glClearMask = 0;
 			if (this.desc_.clearMask & ClearMask.Colour) {
 				gl.clearColor(this.desc_.clearColour[0], this.desc_.clearColour[1], this.desc_.clearColour[2], this.desc_.clearColour[3]);
 				glClearMask |= gl.COLOR_BUFFER_BIT;
@@ -220,8 +220,8 @@ namespace sd.render {
 		setScissorRect(rect: ScissorRect) {
 			this.rc.gl.scissor(rect.originX, rect.originY, rect.width, rect.height);
 
-			var renderWidth: number;
-			var renderHeight: number;
+			let renderWidth: number;
+			let renderHeight: number;
 
 			if (this.frameBuffer_) {
 				renderWidth = this.frameBuffer_.width;

@@ -145,7 +145,7 @@ namespace sd.meshdata {
 
 			// minor optimization as the element count will be requested many times
 			// also check for ambigious or incorrect grouping
-			var groupers = 0;
+			let groupers = 0;
 			for (const s of this.streams_) {
 				s.elementCount = vertexFieldElementCount(s.attr!.field);
 				if (s.controlsGrouping === true) {
@@ -222,8 +222,8 @@ namespace sd.meshdata {
 					const elemCount = stream.elementCount;
 					const array = this.vertexData_[streamIx];
 					const fieldIndex = streamIndexes[streamIx];
-					var values: ArrayOfNumber = stream.values!; // TODO: is this guaranteed to exist in this loop?
-					var fieldOffset = elemCount * fieldIndex;
+					let values: ArrayOfNumber = stream.values!; // TODO: is this guaranteed to exist in this loop?
+					let fieldOffset = elemCount * fieldIndex;
 
 					// This is slowest on all browsers (by a mile)
 					// array.push.apply(array, stream.values.subarray(fieldOffset, fieldOffset + stream.elementCount));
@@ -297,7 +297,7 @@ namespace sd.meshdata {
 				const polyPoints = vertexIndexes.length;
 				const pv0 = polygonVertexIndexes[0];
 				const v0 = vertexIndexes[0];
-				var polyNext = 2;
+				let polyNext = 2;
 
 				while (polyNext < polyPoints) {
 					this.addTriangle(
@@ -346,7 +346,7 @@ namespace sd.meshdata {
 			// All triangles with the same material were merged, create full index buffer
 			// and primitive groups
 			const mergedIndexes: number[] = [];
-			var nextElementIndex = 0;
+			let nextElementIndex = 0;
 
 			this.groupIndexStreams_.forEach((indexes, group) => {
 				if (indexes.length) {

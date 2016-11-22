@@ -70,7 +70,7 @@
 		"no-trailing-whitespace": true,
 		"object-literal-sort-keys": false,
 		"trailing-comma": false,
-		"cyclomatic-complexity": true,
+		"cyclomatic-complexity": [true, 20],
 		"completed-docs": false,
 
 		/* Style */

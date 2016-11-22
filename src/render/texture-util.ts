@@ -29,7 +29,7 @@ namespace sd.render {
 
 		return new Promise<render.Texture>(function(resolve, reject) {
 			const images: HTMLImageElement[] = [];
-			var loaded = 0;
+			let loaded = 0;
 
 			for (let k = 0; k < 6; ++k) {
 				(function(face: number) {

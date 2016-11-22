@@ -20,7 +20,7 @@ namespace sd.world {
 		private freed_ = new Set<PhysicsMaterialRef>();
 
 		create(desc: PhysicsMaterialData): PhysicsMaterialRef {
-			var nextRef: PhysicsMaterialRef = 0;
+			let nextRef: PhysicsMaterialRef = 0;
 			if (this.freed_.size > 0) {
 				nextRef = this.freed_.values().next().value!;
 				this.freed_.delete(nextRef);

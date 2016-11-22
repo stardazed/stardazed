@@ -255,8 +255,8 @@ namespace sd.world {
 			const worldDirection = this.direction(inst);
 			const worldTarget = vec3.add([], worldPos, worldDirection);
 
-			var viewMatrix: Float4x4;
-			var projectionMatrix: Float4x4;
+			let viewMatrix: Float4x4;
+			let projectionMatrix: Float4x4;
 
 			const type = this.typeBase_[<number>inst];
 			if (type == LightType.Spot) {

@@ -104,7 +104,7 @@ namespace sd.render {
 	const preFilterPipelines = new Map<number, PreFilterPipeline>();
 
 	function getPipeline(rc: RenderContext, numSamples: number) {
-		var pfp = preFilterPipelines.get(numSamples);
+		let pfp = preFilterPipelines.get(numSamples);
 		if (! pfp) {
 			pfp = <PreFilterPipeline>{};
 
