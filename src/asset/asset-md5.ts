@@ -495,8 +495,7 @@ namespace sd.asset {
 			frame(index: number, components: Float32Array) {
 				let compIx = 0;
 
-				for (let jix = 0; jix < this.joints_.length; ++jix) {
-					const j = this.joints_[jix];
+				for (const j of this.joints_) {
 					if (j.mask == 0) {
 						continue;
 					}

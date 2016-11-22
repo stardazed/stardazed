@@ -64,7 +64,7 @@ namespace sd.world {
 		}
 
 		addArray(arr: ArrayLike<Instance<Component>>) {
-			for (let ix = 0, end = arr.length; ix < end; ++ix) {
+			for (let ix = 0, end = arr.length; ix < end; ++ix) { // tslint:disable-line:prefer-for-of
 				this.data_.add(arr[ix]);
 			}
 		}
@@ -83,7 +83,7 @@ namespace sd.world {
 		}
 
 		removeArray(arr: ArrayLike<Instance<Component>>) {
-			for (let ix = 0, end = arr.length; ix < end; ++ix) {
+			for (let ix = 0, end = arr.length; ix < end; ++ix) { // tslint:disable-line:prefer-for-of
 				this.data_.delete(arr[ix]);
 			}
 		}

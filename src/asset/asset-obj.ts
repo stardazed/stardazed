@@ -377,8 +377,8 @@ namespace sd.asset {
 					}
 
 					const vi: number[] = [];
-					for (let fvix = 1; fvix < tokens.length; ++fvix) {
-						const fix = tokens[fvix].split("/").map(fxtoi);
+					for (const token of tokens) {
+						const fix = token.split("/").map(fxtoi);
 						positionIndexes[vertexIx] = fix[0];
 						if (uvIndexes && fix[1] > -1) {
 							uvIndexes[vertexIx] = fix[1];

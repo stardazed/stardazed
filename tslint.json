@@ -52,6 +52,7 @@
 		"no-unused-expression": true,
 		"no-unused-new": true,
 		"no-var-keyword": true,
+		"prefer-for-of": true,
 		"radix": false,
 		"restrict-plus-operands": false, // sublimeliner-tslint does not enable type checking
 		"switch-default": false,
@@ -70,7 +71,7 @@
 		"no-trailing-whitespace": true,
 		"object-literal-sort-keys": false,
 		"trailing-comma": false,
-		"cyclomatic-complexity": [true, 20],
+		"cyclomatic-complexity": false,/*[true, 20],*/
 		"completed-docs": false,
 
 		/* Style */

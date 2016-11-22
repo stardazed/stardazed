@@ -94,7 +94,7 @@ namespace sd.asset {
 						}
 					}
 
-					for (let ix = 0; ix < tileDoc.childNodes.length; ++ix) {
+					for (let ix = 0; ix < tileDoc.childNodes.length; ++ix) { // tslint:disable-line:prefer-for-of
 						const node = tileDoc.childNodes[ix];
 						let nameAttr: Attr;
 						let name: string | null;
