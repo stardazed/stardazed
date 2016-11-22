@@ -8,6 +8,15 @@ import { makeTexDesc2DFromImageSource } from "render/texture-desc";
 import { Texture2D } from "asset/types";
 import { loadImageURL } from "asset/image";
 
+export function fileExtensionOfURL(url: URL | string): string {
+	const path = (url instanceof URL) ? url.href : url;
+	const lastDot = path.lastIndexOf(".");
+	if (lastDot > -1) {
+		return path.substr(lastDot + 1).toLowerCase();
+	}
+	return "";
+}
+
 export const enum FileLoadType {
 	ArrayBuffer = 1,
 	Blob,
