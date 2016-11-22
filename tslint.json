@@ -1,7 +1,7 @@
 {
 	"rules": {
 		/* TypeScript Specific */
-		"adjacent-overload-signatures": false, // is buggy
+		"adjacent-overload-signatures": true, // let's try this again (is buggy)
 		"member-access": false,
 		"member-ordering": false,
 		"no-any": false,
@@ -70,6 +70,8 @@
 		"no-trailing-whitespace": true,
 		"object-literal-sort-keys": false,
 		"trailing-comma": false,
+		"cyclomatic-complexity": true,
+		"completed-docs": false,
 
 		/* Style */
 		"align": [true, "parameters", "arguments", "statements"],
@@ -81,8 +83,8 @@
 		"jsdoc-format": true,
 		"new-parens": true,
 		"no-angle-bracket-type-assertion": false,
-		"no-consecutive-blank-lines": false,
-		"no-constructor-vars": false,
+		"no-consecutive-blank-lines": [true, 2],
+		"no-parameter-properties": false,
 		"object-literal-key-quotes": false,
 		"object-literal-shorthand": false,
 		"one-line": false,
