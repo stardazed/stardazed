@@ -11,6 +11,11 @@ import { VertexBuffer } from "mesh/vertexbuffer";
 import { IndexBuffer, IndexElementType, bytesRequiredForIndexCount } from "mesh/indexbuffer";
 import { calcVertexNormals } from "mesh/deriveddata";
 
+export * from "mesh/types";
+export * from "mesh/layout";
+export * from "mesh/vertexbuffer";
+export * from "mesh/indexbuffer";
+
 const enum BufferAlignment {
 	SubBuffer = 8
 }
