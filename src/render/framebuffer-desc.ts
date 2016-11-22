@@ -4,8 +4,7 @@
 // https://github.com/stardazed/stardazed-tx
 
 import { PixelFormat } from "render/pixelformat";
-import { CubeMapFace, TextureUsageHint } from "render/texture-desc";
-import { Texture } from "render/texture";
+import { Texture, CubeMapFace, TextureUsageHint } from "render/texture";
 
 export interface AttachmentDescriptor {
 	texture: Texture | null;

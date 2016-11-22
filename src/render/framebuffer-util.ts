@@ -8,8 +8,7 @@ import { fill } from "core/array";
 import { RenderContext } from "render/rendercontext";
 import { PixelFormat } from "render/pixelformat";
 import { TextureUsageHint } from "render/texture-desc";
-import { makeFrameBufferAllocationDescriptor } from "render/framebuffer-desc";
-import { FrameBuffer, allocateTexturesForFrameBuffer } from "render/framebuffer";
+import { FrameBuffer, makeFrameBufferAllocationDescriptor, allocateTexturesForFrameBuffer } from "render/framebuffer";
 
 // Util functions to create a Framebuffer object with standard configuration:
 // RGBA8/16F/32F colour attachments and default depth and stencil formats when requested.

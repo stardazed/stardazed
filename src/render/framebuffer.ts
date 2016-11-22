@@ -6,8 +6,7 @@
 import { assert, cloneStruct } from "core/util";
 import { RenderContext, maxColourAttachments } from "render/rendercontext";
 import { PixelFormat, pixelFormatIsDepthFormat, pixelFormatIsStencilFormat, pixelFormatIsDepthStencilFormat } from "render/pixelformat";
-import { TextureClass, TextureMipFilter, TextureRepeatMode, makeTextureDescriptor } from "render/texture-desc";
-import { Texture } from "render/texture";
+import { Texture, TextureClass, TextureMipFilter, TextureRepeatMode, makeTextureDescriptor } from "render/texture";
 import { FrameBufferAllocationDescriptor, FrameBufferDescriptor, AttachmentDescriptor, makeFrameBufferDescriptor } from "render/framebuffer-desc";
 
 export * from "render/framebuffer-desc";
