@@ -34,7 +34,7 @@ export function create() {
 	return out;
 }
 
-export const zero = create();
+export const zero = create;
 
 export function one() {
 	const out = new Float32Array(ELEMENT_COUNT);
