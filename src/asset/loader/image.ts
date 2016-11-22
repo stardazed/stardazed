@@ -1,4 +1,4 @@
-// asset/image - built-in and custom image loaders
+// asset/loader/image - built-in and custom image loaders
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx

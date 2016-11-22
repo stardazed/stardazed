@@ -6,7 +6,7 @@
 import { assert } from "core/util";
 import { makeTexDesc2DFromImageSource } from "render/texture-desc";
 import { Texture2D } from "asset/types";
-import { loadImageURL } from "asset/image";
+import { loadImageURL } from "asset/loader/image";
 
 export function fileExtensionOfURL(url: URL | string): string {
 	const path = (url instanceof URL) ? url.href : url;
