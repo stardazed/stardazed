@@ -10,6 +10,8 @@ import { TextureClass, TextureMipFilter, TextureRepeatMode, makeTextureDescripto
 import { Texture } from "render/texture";
 import { FrameBufferAllocationDescriptor, FrameBufferDescriptor, AttachmentDescriptor, makeFrameBufferDescriptor } from "render/framebuffer-desc";
 
+export * from "render/framebuffer-desc";
+
 const fboBugs = {
 	mustHaveAColourAtt: <(boolean | null)>null
 };

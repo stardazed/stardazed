@@ -10,6 +10,8 @@ import { PixelFormat, PixelDimensions, pixelFormatIsCompressed, glImageFormatFor
 import { TextureClass, TextureDescriptor, SamplerDescriptor, TextureMipFilter, TextureSizingFilter, TextureRepeatMode } from "render/texture-desc";
 import { TextureImageSource, TextureImageData, TextureUsageHint } from "render/texture-desc";
 
+export * from "render/texture-desc";
+
 function glRenderBufferInternalFormatForPixelFormat(rc: RenderContext, format: PixelFormat) {
 	const gl = rc.gl;
 

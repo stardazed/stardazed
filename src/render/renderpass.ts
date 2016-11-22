@@ -15,6 +15,8 @@ import { RenderPassDescriptor, ClearMask, DepthTest, FaceCulling, FrontFaceWindi
 
 import { MeshManager, MeshInstance } from "world/mesh";
 
+export * from "render/renderpass-desc";
+
 export function runRenderPass(rc: RenderContext, meshMgr: MeshManager, rpDesc: RenderPassDescriptor, frameBuffer: FrameBuffer | null, passFunc: (rp: RenderPass) => void) {
 	const rp = new RenderPass(rc, meshMgr, rpDesc, frameBuffer);
 	rp.setup();

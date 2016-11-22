@@ -10,6 +10,8 @@ import { PixelFormat } from "render/pixelformat";
 import { RenderContext, makeProgram } from "render/rendercontext";
 import { BlendFactor, BlendOperation, ColourBlendingDescriptor, PipelineDescriptor, ColourWriteMask } from "render/pipeline-desc";
 
+export * from "render/pipeline-desc";
+
 function glBlendEqForBlendOperation(rc: RenderContext, op: BlendOperation) {
 	switch (op) {
 		case BlendOperation.Add: return rc.gl.FUNC_ADD;
