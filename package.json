@@ -1,0 +1,9 @@
+{
+  "name": "stardazed-tx",
+  "version": "0.1.0",
+  "description": "Web 3D Game Development Library",
+  "main": "stardazed-tx.ts",
+  "repository": "git@github.com:stardazed/stardazed-tx.git",
+  "author": "Arthur Langereis <puurtuur@me.com>",
+  "license": "MIT"
+}
