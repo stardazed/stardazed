@@ -3,107 +3,102 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="pixelformat.ts"/>
-/// <reference path="math.ts"/>
+import { Float4 } from "math/primarray";
 
-namespace sd.render {
-
-	export const enum FrontFaceWinding {
-		Clockwise,
-		CounterClockwise
-	}
+export const enum FrontFaceWinding {
+	Clockwise,
+	CounterClockwise
+}
 
 
-	export const enum FaceCulling {
-		Disabled,
+export const enum FaceCulling {
+	Disabled,
 
-		Front,
-		Back
-	}
-
-
-	export const enum DepthTest {
-		Disabled,
-
-		AllowAll,
-		DenyAll,
-
-		Less,
-		LessOrEqual,
-		Equal,
-		NotEqual,
-		GreaterOrEqual,
-		Greater
-	}
+	Front,
+	Back
+}
 
 
-	export const enum ClearMask {
-		None         = 0,
-		Colour       = 1,
-		Depth        = 2,
-		Stencil      = 4,
-		ColourDepth  = Colour | Depth,
-		DepthStencil = Depth | Stencil,
-		All          = Colour | Depth | Stencil
-	}
+export const enum DepthTest {
+	Disabled,
+
+	AllowAll,
+	DenyAll,
+
+	Less,
+	LessOrEqual,
+	Equal,
+	NotEqual,
+	GreaterOrEqual,
+	Greater
+}
 
 
-	export interface ScissorRect {
-		originX: number;
-		originY: number;
-		width: number;
-		height: number;
-	}
+export const enum ClearMask {
+	None         = 0,
+	Colour       = 1,
+	Depth        = 2,
+	Stencil      = 4,
+	ColourDepth  = Colour | Depth,
+	DepthStencil = Depth | Stencil,
+	All          = Colour | Depth | Stencil
+}
 
 
-	export interface Viewport {
-		originX: number;
-		originY: number;
-		width: number;
-		height: number;
-		nearZ: number;
-		farZ: number;
-	}
+export interface ScissorRect {
+	originX: number;
+	originY: number;
+	width: number;
+	height: number;
+}
 
 
-	export interface RenderPassDescriptor {
-		clearMask: ClearMask;
-
-		clearColour: Float4;
-		clearDepth: number;
-		clearStencil: number;
-	}
-
-
-	export function makeScissorRect(): ScissorRect {
-		return {
-			originX: 0,
-			originY: 0,
-			width: 32768,
-			height: 32768
-		};
-	}
+export interface Viewport {
+	originX: number;
+	originY: number;
+	width: number;
+	height: number;
+	nearZ: number;
+	farZ: number;
+}
 
 
-	export function makeViewport(): Viewport {
-		return {
-			originX: 0,
-			originY: 0,
-			width: 0,
-			height: 0,
-			nearZ: 0,
-			farZ: 1
-		};
-	}
+export interface RenderPassDescriptor {
+	clearMask: ClearMask;
+
+	clearColour: Float4;
+	clearDepth: number;
+	clearStencil: number;
+}
 
 
-	export function makeRenderPassDescriptor(): RenderPassDescriptor {
-		return {
-			clearMask: ClearMask.All,
-			clearColour: [0, 0, 0, 1],
-			clearDepth: 1.0,
-			clearStencil: 0
-		};
-	}
+export function makeScissorRect(): ScissorRect {
+	return {
+		originX: 0,
+		originY: 0,
+		width: 32768,
+		height: 32768
+	};
+}
 
-} // ns sd.render
+
+export function makeViewport(): Viewport {
+	return {
+		originX: 0,
+		originY: 0,
+		width: 0,
+		height: 0,
+		nearZ: 0,
+		farZ: 1
+	};
+}
+
+
+export function makeRenderPassDescriptor(): RenderPassDescriptor {
+	return {
+		clearMask: ClearMask.All,
+		clearColour: [0, 0, 0, 1],
+		clearDepth: 1.0,
+		clearStencil: 0
+	};
+}
