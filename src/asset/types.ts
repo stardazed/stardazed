@@ -11,6 +11,8 @@ import { Texture, TextureDescriptor, UseMipMaps } from "render/texture";
 
 import { LightDescriptor } from "world/light";
 
+export { UseMipMaps } from "render/texture-desc";
+
 export interface Asset {
 	name: string;
 	userRef?: any;
