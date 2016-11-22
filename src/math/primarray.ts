@@ -121,7 +121,6 @@ export function setVec4AtOffset(data: ArrayOfNumber, offset: number, v4: ConstFl
 export function offsetOfIndexedVec4(index: number) { return (index * 4) | 0; }
 
 
-
 export function refIndexedMat3<T extends TypedArrayBase>(data: T, index: number): T {
 	return data.subarray(index * 9, (index + 1) * 9);
 }
@@ -143,7 +142,6 @@ export function setIndexedMat3(data: ArrayOfNumber, index: number, m3: ConstFloa
 }
 
 export function offsetOfIndexedMat3(index: number) { return (index * 9) | 0; }
-
 
 
 export function refIndexedMat4<T extends TypedArrayBase>(data: T, index: number): T {

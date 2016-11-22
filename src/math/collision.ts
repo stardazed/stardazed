@@ -112,7 +112,6 @@ export function pointDistanceToPlane(point: Float3, plane: Plane) {
 }
 
 
-
 // this whole BoundedPlane business is experimental and possibly a load of shite
 
 export interface BoundedPlane extends Plane {

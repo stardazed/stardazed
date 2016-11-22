@@ -126,7 +126,6 @@ namespace sd.asset {
 	}
 
 
-
 	export function loadSoundFile(ac: audio.AudioContext, filePath: string): Promise<AudioBuffer> {
 		return loadFile(filePath, {
 			responseType: FileLoadType.ArrayBuffer
