@@ -4,8 +4,9 @@
 // https://github.com/stardazed/stardazed-tx
 
 import { vec2 } from "math/vec2";
+import { Float3 } from "math/primarray";
 
-export default class Rect {
+export class Rect {
 	topLeft: Float32Array;
 	topRight: Float32Array;
 	bottomLeft: Float32Array;
