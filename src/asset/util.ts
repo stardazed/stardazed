@@ -7,6 +7,7 @@ import { assert } from "core/util";
 import { makeTexDesc2DFromImageSource } from "render/texture-desc";
 import { Texture2D } from "asset/types";
 import { loadImageURL } from "asset/loader/image";
+import * as audio from "audio/audiocontext";
 
 export function fileExtensionOfURL(url: URL | string): string {
 	const path = (url instanceof URL) ? url.href : url;
@@ -139,7 +140,7 @@ export function resolveTextures(textures: (Texture2D | null)[]) {
 
 
 // TODO: temporary function, to be moved out / integrated elsewhere, etc.
-export function loadSoundFile(ac: audio.AudioContext, filePath: string): Promise<AudioBuffer> {
+export function loadSoundFile(ac: audio.AudioContextSD, filePath: string): Promise<AudioBuffer> {
 	return loadFile(filePath, {
 		responseType: FileLoadType.ArrayBuffer
 	}).then((data: ArrayBuffer) => {

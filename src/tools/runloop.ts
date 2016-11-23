@@ -4,6 +4,7 @@
 // https://github.com/stardazed/stardazed-tx
 
 import { on } from "tools/dom";
+import { keyboard } from "input/keyboard";
 
 export const enum RunLoopState {
 	Idle,
@@ -59,7 +60,7 @@ export class RunLoop {
 		}
 
 		// reset io devices
-		io.keyboard.resetHalfTransitions();
+		keyboard.resetHalfTransitions();
 
 		if (this.runState_ == RunLoopState.Running) {
 			this.rafID_ = requestAnimationFrame(this.nextFrameFn_);
