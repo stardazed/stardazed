@@ -1,54 +1,48 @@
-// audiocontext - web audio interfaces
+// audio/audiocontext - web audio interfaces
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-declare let webkitAudioContext: {
-	prototype: AudioContext;
-	new (): AudioContext;
-};
+declare global {
+	const webkitAudioContext: {
+		prototype: AudioContext;
+		new (): AudioContext;
+	};
 
-interface Window {
-	webkitAudioContext?: typeof AudioContext;
-	AudioContext?: typeof AudioContext;
+	interface Window {
+		webkitAudioContext?: typeof AudioContext;
+		AudioContext?: typeof AudioContext;
+	}
 }
 
-type NativeAudioContext = AudioContext;
+export interface AudioContextSD {
+	ctx: AudioContext;
+}
+
+export function makeAudioBufferFromData(ac: AudioContextSD, data: ArrayBuffer): Promise<AudioBuffer> {
+	return new Promise<AudioBuffer>((resolve, reject) => {
+		ac.ctx.decodeAudioData(
+			data,
+			audioData => {
+				resolve(audioData);
+			},
+			() => {
+				reject("invalid audio data");
+			}
+		);
+	});
+}
 
 
-namespace sd.audio {
+export function makeAudioContext(): AudioContextSD | null {
+	const ac = window.AudioContext ? new (window.AudioContext)() : (window.webkitAudioContext ? new webkitAudioContext() : null);
 
-	export interface AudioContext {
-		ctx: NativeAudioContext;
+	if (ac) {
+		return {
+			ctx: ac
+		};
 	}
-
-
-	export function makeAudioBufferFromData(ac: AudioContext, data: ArrayBuffer): Promise<AudioBuffer> {
-		return new Promise<AudioBuffer>((resolve, reject) => {
-			ac.ctx.decodeAudioData(
-				data,
-				audioData => {
-					resolve(audioData);
-				},
-				() => {
-					reject("invalid audio data");
-				}
-			);
-		});
+	else {
+		return null;
 	}
-
-
-	export function makeAudioContext(): audio.AudioContext | null {
-		const ac = window.AudioContext ? new (window.AudioContext)() : (window.webkitAudioContext ? new webkitAudioContext() : null);
-
-		if (ac) {
-			return {
-				ctx: ac
-			};
-		}
-		else {
-			return null;
-		}
-	}
-
-} // ns sd.audio
+}
