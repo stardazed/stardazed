@@ -7,12 +7,14 @@ import { assert, copyValues } from "core/util";
 import { TypedArray } from "core/array";
 import { Float4 } from "math/primarray";
 import { clamp01, deg2rad } from "math/util";
+import { vec2 } from "math/vec2";
 import { vec3 } from "math/vec3";
 import { quat } from "math/quat";
+import { mat3 } from "math/mat3";
 import { VertexField, VertexAttributeRole } from "mesh/types";
 import { VertexAttributeMapping, VertexAttributeStream, MeshBuilder } from "mesh/builder";
 import { AssetGroup, Model, Material, Texture2D, makeMaterial, makeModel } from "asset/types";
-import { Mesh, UseMipMaps, Skin, WeightedVertexGroup, AnimationProperty, AnimationTrack } from "asset/types";
+import { Mesh, UseMipMaps, Skin, WeightedVertexGroup, AnimationProperty, AnimationTrack, Light, LightType, ShadowType, ShadowQuality } from "asset/types";
 import { loadFile, FileLoadType, BlobReader, convertBytesToString } from "asset/util";
 import * as registry from "asset/registry";
 import * as parse from "./fbx-parse";
@@ -607,10 +609,13 @@ class FBXDocumentGraph {
 	}
 
 
-	private makeLightDescriptorFromFBXLight(lightAttrNode: FBXNode): world.LightDescriptor {
+	private makeLightAssetFromFBXLight(lightAttrNode: FBXNode): Light {
 		// fbx defaults
-		const ld: world.LightDescriptor = {
-			type: world.LightType.Point,
+		const ld: Light = {
+			name: lightAttrNode.name,
+			userRef: lightAttrNode.objectID,
+
+			type: LightType.Point,
 			colour: [1, 1, 1],
 
 			ambientIntensity: 0,
@@ -619,8 +624,8 @@ class FBXDocumentGraph {
 			range: 1,
 			cutoff: deg2rad(45 / 2),
 
-			shadowType: world.ShadowType.None,
-			shadowQuality: world.ShadowQuality.Auto,
+			shadowType: ShadowType.None,
+			shadowQuality: ShadowQuality.Auto,
 			shadowStrength: 1
 		};
 
@@ -630,13 +635,13 @@ class FBXDocumentGraph {
 			if (c.name == "LightType") {
 				const fbxLightType = <number>c.values[0];
 				if (fbxLightType == 0) {
-					ld.type = world.LightType.Point;
+					ld.type = LightType.Point;
 				}
 				else if (fbxLightType == 1) {
-					ld.type = world.LightType.Directional;
+					ld.type = LightType.Directional;
 				}
 				else if (fbxLightType == 2) {
-					ld.type = world.LightType.Spot;
+					ld.type = LightType.Spot;
 				}
 				else {
 					console.warn(`Invalid FBX light type: ${fbxLightType}`);
@@ -652,12 +657,12 @@ class FBXDocumentGraph {
 				ld.cutoff = deg2rad(<number>c.values[0] / 2);
 			}
 			else if (c.name == "CastShadows") {
-				ld.shadowType = world.ShadowType.Soft;
+				ld.shadowType = ShadowType.Soft;
 			}
 		}
 
 		// convert FBX intensity to something we can work with
-		if (ld.type === world.LightType.Directional) {
+		if (ld.type === LightType.Directional) {
 			ld.diffuseIntensity = clamp01(fbxIntensity / 100);
 		}
 		else {
@@ -736,9 +741,7 @@ class FBXDocumentGraph {
 						};
 					}
 					else if (connSubType === "Light") {
-						sdModel.light = {
-							descriptor: this.makeLightDescriptorFromFBXLight(conn.fromNode)
-						};
+						sdModel.light = this.makeLightAssetFromFBXLight(conn.fromNode);
 					}
 				}
 				else if (connType === "Model") {
