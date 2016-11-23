@@ -27,7 +27,7 @@
  
         "removeComments": true,
         "sourceMap": false,
-        "declaration": true
+        "declaration": false
     },
     "exclude": [
         "build"
