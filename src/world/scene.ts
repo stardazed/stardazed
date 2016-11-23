@@ -1,4 +1,4 @@
-// scene - manages a set of related components and provides convenience functions
+// world/scene - manages a set of related components and provides convenience functions
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx

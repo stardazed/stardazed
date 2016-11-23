@@ -1,4 +1,4 @@
-// transform - Transform component
+// world/transform - Transform component
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
