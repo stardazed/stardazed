@@ -9,8 +9,6 @@ import { MeshData } from "mesh/meshdata";
 import { VertexIndexMapping } from "mesh/builder";
 import { Texture, TextureDescriptor, UseMipMaps } from "render/texture";
 
-import { LightDescriptor } from "world/light";
-
 export { UseMipMaps } from "render/texture-desc";
 
 export interface Asset {
@@ -213,10 +211,37 @@ export interface SkeletonAnimation extends Asset {
 
 // TODO: how do I handle models, lights, cameras and generic nodes?
 
+export const enum LightType {
+	None,
+	Directional,
+	Point,
+	Spot
+}
 
-export interface Light {
-	// FIXME: to be changed
-	descriptor: LightDescriptor;
+export const enum ShadowType {
+	None,
+	Hard,
+	Soft
+}
+
+export const enum ShadowQuality {
+	Auto
+}
+
+export interface Light extends Asset {
+	type: LightType;
+
+	colour: Float3;
+	diffuseIntensity: number;
+	ambientIntensity?: number;
+
+	range?: number;  // m   (point/spot only)
+	cutoff?: number; // rad (spot only)
+
+	shadowType?: ShadowType;
+	shadowQuality?: ShadowQuality;
+	shadowStrength?: number;  // 0..1
+	shadowBias?: number;      // 0.001..0.1
 }
 
 

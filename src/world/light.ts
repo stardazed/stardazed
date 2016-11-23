@@ -1,28 +1,9 @@
-// light - Light component
+// world/light - Light component
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
 namespace sd.world {
-
-	export const enum LightType {
-		None,
-		Directional,
-		Point,
-		Spot
-	}
-
-
-	export const enum ShadowType {
-		None,
-		Hard,
-		Soft
-	}
-
-
-	export const enum ShadowQuality {
-		Auto
-	}
 
 
 	export type LightInstance = Instance<LightManager>;
@@ -30,22 +11,6 @@ namespace sd.world {
 	export type LightSet = InstanceSet<LightManager>;
 	export type LightIterator = InstanceIterator<LightManager>;
 	export type LightArrayView = InstanceArrayView<LightManager>;
-
-	export interface LightDescriptor {
-		type: LightType;
-
-		colour: Float3;
-		diffuseIntensity: number;
-		ambientIntensity?: number;
-
-		range?: number;  // m   (point/spot only)
-		cutoff?: number; // rad (spot only)
-
-		shadowType?: ShadowType;
-		shadowQuality?: ShadowQuality;
-		shadowStrength?: number;  // 0..1
-		shadowBias?: number;      // 0.001..0.1
-	}
 
 
 	export interface LightData {
