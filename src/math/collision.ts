@@ -8,6 +8,7 @@ import { mat3 } from "math/mat3";
 import { vec2 } from "math/vec2";
 import { vec3 } from "math/vec3";
 import { vec4 } from "math/vec4";
+import { Rect } from "math/rect";
 
 // portions based on text and sources from Real-Time Collision Detection by Christer Ericson
 

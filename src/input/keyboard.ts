@@ -5,8 +5,8 @@
 
 import { UInt8, UInt32 } from "core/numeric";
 import { fill } from "core/array";
-import { MABField, MultiArrayBuffer } from "core/multiarraybuffer";
-import { on } from "core/dom";
+import { MABField, MultiArrayBuffer } from "container/multiarraybuffer";
+import { on } from "tools/dom";
 
 export enum Key {
 	UP = 38,

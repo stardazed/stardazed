@@ -7,7 +7,7 @@ import { assert, cloneStruct } from "core/util";
 import { clamp01 } from "math/util";
 import { VertexAttributeRole } from "mesh/types";
 import { PixelFormat } from "render/pixelformat";
-import { RenderContext, makeProgram } from "render/rendercontext";
+import { RenderContext, makeProgram, maxColourAttachments } from "render/rendercontext";
 import { BlendFactor, BlendOperation, ColourBlendingDescriptor, PipelineDescriptor, ColourWriteMask } from "render/pipeline-desc";
 
 export * from "render/pipeline-desc";
