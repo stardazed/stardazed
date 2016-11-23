@@ -4,7 +4,7 @@
 // https://github.com/stardazed/stardazed-tx
 
 import { ArrayOfNumber } from "core/array";
-import { Float2, Float3, Float4, Float4x4 } from "math/primarray";
+import { va } from "math/veclib";
 import { MeshData } from "mesh/meshdata";
 import { VertexIndexMapping } from "mesh/builder";
 import { Texture, TextureDescriptor, UseMipMaps } from "render/texture";
@@ -57,13 +57,13 @@ export const enum MaterialFlags {
 export interface Material extends Asset {
 	flags: MaterialFlags;
 
-	baseColour: Float3;
+	baseColour: va.Float3;
 
-	specularColour: Float3;
+	specularColour: va.Float3;
 	specularIntensity: number;
 	specularExponent: number;
 
-	emissiveColour: Float3;
+	emissiveColour: va.Float3;
 	emissiveIntensity: number;
 
 	opacity: number; // 0: fully transparent, 1: fully opaque (default)
@@ -71,8 +71,8 @@ export interface Material extends Asset {
 	roughness: number; // 0: fully smooth (default), 1: fully rough
 	anisotropy: number; // 1..16
 
-	textureScale: Float2;
-	textureOffset: Float2;
+	textureScale: va.Float2;
+	textureOffset: va.Float2;
 
 	albedoTexture?: Texture2D;	// TODO: change this to array of textures with typed channels
 	specularTexture?: Texture2D;
@@ -119,9 +119,9 @@ export interface Mesh extends Asset {
 
 
 export interface Transform {
-	position: Float3;
-	rotation: Float4; // quat
-	scale: Float3;
+	position: va.Float3;
+	rotation: va.Float4; // quat
+	scale: va.Float3;
 }
 
 export function makeTransform(): Transform {
@@ -137,9 +137,9 @@ export interface WeightedVertexGroup extends Asset {
 	indexes: Int32Array | null;
 	weights: Float64Array | null;
 
-	bindPoseLocalTranslation: Float3 | null;
-	bindPoseLocalRotation: Float4 | null;
-	bindPoseLocalMatrix: Float4x4 | null;
+	bindPoseLocalTranslation: va.Float3 | null;
+	bindPoseLocalRotation: va.Float4 | null;
+	bindPoseLocalMatrix: va.Float4x4 | null;
 }
 
 export interface Skin extends Asset {
@@ -231,7 +231,7 @@ export const enum ShadowQuality {
 export interface Light extends Asset {
 	type: LightType;
 
-	colour: Float3;
+	colour: va.Float3;
 	diffuseIntensity: number;
 	ambientIntensity?: number;
 

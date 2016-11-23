@@ -6,9 +6,7 @@
 import { assert } from "core/util";
 import { UInt8, SInt32 } from "core/numeric";
 import { ConstEnumArrayView } from "core/array";
-import { copyIndexedVec2, setIndexedVec2, setIndexedVec4 } from "math/primarray";
-import { mat3 } from "math/mat3";
-import { mat4 } from "math/mat4";
+import { mat3, mat4, va } from "math/veclib";
 import { ProjectionSetup } from "math/projection";
 import { MABField, MultiArrayBuffer, InvalidatePointers } from  "container/multiarraybuffer";
 import { VertexAttributeRole, IndexElementType, PrimitiveType } from "mesh/meshdata";
@@ -907,7 +905,7 @@ export class StdModelManager implements ComponentManager<StdModelManager> {
 			return;
 		}
 		const groups = this.meshMgr_.primitiveGroups(mesh);
-		const materialsOffsetCount = copyIndexedVec2(this.materialOffsetCountBase_, modelIx);
+		const materialsOffsetCount = va.copyIndexedVec2(this.materialOffsetCountBase_, modelIx);
 		const materialsOffset = materialsOffsetCount[0];
 		const materialCount = materialsOffsetCount[1];
 
@@ -945,7 +943,7 @@ export class StdModelManager implements ComponentManager<StdModelManager> {
 		this.shadowFlagBase_[ix] = 0;
 
 		// -- save material indexes
-		setIndexedVec2(this.materialOffsetCountBase_, ix, [this.materials_.length, desc.materials.length]);
+		va.setIndexedVec2(this.materialOffsetCountBase_, ix, [this.materials_.length, desc.materials.length]);
 		for (const mat of desc.materials) {
 			this.materials_.push(this.materialMgr_.create(mat));
 		}
@@ -1205,15 +1203,15 @@ export class StdModelManager implements ComponentManager<StdModelManager> {
 				assert(lightData.type != LightType.None);
 
 				this.lightTypeArray_[lix] = lightData.type;
-				setIndexedVec4(this.lightColourArray_, lix, lightData.colourData);
-				setIndexedVec4(this.lightParamArray_, lix, lightData.parameterData);
+				va.setIndexedVec4(this.lightColourArray_, lix, lightData.colourData);
+				va.setIndexedVec4(this.lightParamArray_, lix, lightData.parameterData);
 
 				if (lightData.type != LightType.Point) {
-					setIndexedVec4(this.lightDirectionArray_, lix, lightData.direction);
+					va.setIndexedVec4(this.lightDirectionArray_, lix, lightData.direction);
 				}
 				if (lightData.type != LightType.Directional) {
-					setIndexedVec4(this.lightCamPositionArray_, lix, lightData.position_cam);
-					setIndexedVec4(this.lightWorldPositionArray_, lix, lightData.position_world);
+					va.setIndexedVec4(this.lightCamPositionArray_, lix, lightData.position_cam);
+					va.setIndexedVec4(this.lightWorldPositionArray_, lix, lightData.position_world);
 				}
 			}
 			else {

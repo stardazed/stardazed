@@ -3,18 +3,14 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { Float2, Float3, Float4x4 } from "math/primarray";
-import { mat3 } from "math/mat3";
-import { vec2 } from "math/vec2";
-import { vec3 } from "math/vec3";
-import { vec4 } from "math/vec4";
+import { vec2, vec3, vec4, mat3, va } from "math/veclib";
 import { Rect } from "math/rect";
 
 // portions based on text and sources from Real-Time Collision Detection by Christer Ericson
 
 // imported from now-dead tiled-light branch
 // used to determine what area of screenspace a (point) light would affect
-export function screenSpaceBoundsForWorldCube(position: Float3, halfDim: number, cameraDir: Float3, viewMatrix: Float4x4, projectionViewMatrix: Float4x4, viewportMatrix: Float4x4, bounds: Rect) {
+export function screenSpaceBoundsForWorldCube(position: va.Float3, halfDim: number, cameraDir: va.Float3, viewMatrix: va.Float4x4, projectionViewMatrix: va.Float4x4, viewportMatrix: va.Float4x4, bounds: Rect) {
 	const lx = position[0];
 	const ly = position[1];
 	const lz = position[2];
@@ -77,19 +73,19 @@ export function screenSpaceBoundsForWorldCube(position: Float3, halfDim: number,
 
 
 export interface Sphere {
-	center: Float3;
+	center: va.Float3;
 	radius: number;
 }
 
 
 export interface Plane {
-	normal: Float3;
+	normal: va.Float3;
 	d: number;
 }
 
 
 // a, b, c must be in CCW order
-export function makePlaneFromPoints(a: Float3, b: Float3, c: Float3): Plane {
+export function makePlaneFromPoints(a: va.Float3, b: va.Float3, c: va.Float3): Plane {
 	const normal = vec3.normalize([], vec3.cross([], vec3.sub([], b, a), vec3.sub([], c, a)));
 
 	return {
@@ -99,7 +95,7 @@ export function makePlaneFromPoints(a: Float3, b: Float3, c: Float3): Plane {
 }
 
 
-export function makePlaneFromPointAndNormal(p: Float3, normal: Float3): Plane {
+export function makePlaneFromPointAndNormal(p: va.Float3, normal: va.Float3): Plane {
 	const orthoNormal = vec3.arbitraryOrthogonalVec(normal);
 	const b = vec3.add([], p, orthoNormal);
 	const c = vec3.add([], p, vec3.cross([], normal, orthoNormal));
@@ -108,7 +104,7 @@ export function makePlaneFromPointAndNormal(p: Float3, normal: Float3): Plane {
 }
 
 
-export function pointDistanceToPlane(point: Float3, plane: Plane) {
+export function pointDistanceToPlane(point: va.Float3, plane: Plane) {
 	return vec3.dot(plane.normal, point) + plane.d;
 }
 
@@ -116,12 +112,12 @@ export function pointDistanceToPlane(point: Float3, plane: Plane) {
 // this whole BoundedPlane business is experimental and possibly a load of shite
 
 export interface BoundedPlane extends Plane {
-	center: Float3;
-	size: Float2;   // 2 dimensions!
+	center: va.Float3;
+	size: va.Float2;   // 2 dimensions!
 }
 
 
-export function makeBoundedPlane(center: Float3, normal: Float3, size: Float2): BoundedPlane {
+export function makeBoundedPlane(center: va.Float3, normal: va.Float3, size: va.Float2): BoundedPlane {
 	const bp = <BoundedPlane>makePlaneFromPointAndNormal(center, normal);
 	bp.center = vec3.clone(center);
 	bp.size = vec2.clone(size);
@@ -129,7 +125,7 @@ export function makeBoundedPlane(center: Float3, normal: Float3, size: Float2): 
 }
 
 
-export function boundingSizeOfBoundedPlane(bp: BoundedPlane): Float3 {
+export function boundingSizeOfBoundedPlane(bp: BoundedPlane): va.Float3 {
 	// FIXME: this is kind of a guess which seems to return reasonable sizes, but need to check and improve this
 	const wx = Math.abs(Math.sin(Math.acos(bp.normal[0])));
 	const wz = Math.abs(Math.sin(Math.acos(bp.normal[2])));
@@ -143,7 +139,7 @@ export function boundingSizeOfBoundedPlane(bp: BoundedPlane): Float3 {
 }
 
 
-export function transformBoundedPlaneMat4(bp: BoundedPlane, mat: Float4x4): BoundedPlane {
+export function transformBoundedPlaneMat4(bp: BoundedPlane, mat: va.Float4x4): BoundedPlane {
 	const newCenter = vec3.transformMat4([], bp.center, mat);
 	const normMat = mat3.normalFromMat4([], mat);
 	const newNormal = vec3.transformMat3([], bp.normal, normMat);
@@ -158,11 +154,11 @@ export function transformBoundedPlaneMat4(bp: BoundedPlane, mat: Float4x4): Boun
 export interface SpherePlaneIntersection {
 	intersected: boolean;
 	t?: number;
-	point?: Float3;
+	point?: va.Float3;
 }
 
 
-export function planesOfTransformedBox(center: Float3, size: Float3, _transMat4: Float4x4): Plane[] {
+export function planesOfTransformedBox(center: va.Float3, size: va.Float3, _transMat4: va.Float4x4): Plane[] {
 	// FIXME: investigate what the transMat4 was meant for again
 	const planes: Plane[] = [];
 	const extents = vec3.scale([], size, 0.5);
@@ -170,7 +166,7 @@ export function planesOfTransformedBox(center: Float3, size: Float3, _transMat4:
 	const cx = center[0], cy = center[1], cz = center[2];
 	const ex = extents[0], ey = extents[1], ez = extents[2];
 
-	const corners: Float3[] = [
+	const corners: va.Float3[] = [
 		vec3.fromValues(cx - ex, cy - ey, cz - ez),
 		vec3.fromValues(cx - ex, cy - ey, cz + ez),
 		vec3.fromValues(cx + ex, cy - ey, cz - ez),
@@ -188,7 +184,7 @@ export function planesOfTransformedBox(center: Float3, size: Float3, _transMat4:
 }
 
 
-export function intersectMovingSpherePlane(sphere: Sphere, direction: Float3, plane: Plane): SpherePlaneIntersection {
+export function intersectMovingSpherePlane(sphere: Sphere, direction: va.Float3, plane: Plane): SpherePlaneIntersection {
 	const result: SpherePlaneIntersection = { intersected: false };
 
 	const dist = vec3.dot(plane.normal, sphere.center) - plane.d;

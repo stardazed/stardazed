@@ -3,8 +3,7 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { vec2 } from "math/vec2";
-import { Float3 } from "math/primarray";
+import { vec2, va } from "math/veclib";
 
 export class Rect {
 	topLeft: Float32Array;
@@ -21,7 +20,7 @@ export class Rect {
 		// console.info("FRAME", this.topLeft, this.topRight, this.bottomLeft, this.bottomRight);
 	}
 
-	intersectsLineSegment(ptA: Float3, ptB: Float3): boolean {
+	intersectsLineSegment(ptA: va.Float3, ptB: va.Float3): boolean {
 		const d = [ptB[0] - ptA[0], ptB[1] - ptA[1]];
 
 		let tmin = 0;

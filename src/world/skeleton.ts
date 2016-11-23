@@ -3,12 +3,8 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { Float3, Float4, copyIndexedVec3, copyIndexedVec4, setIndexedVec4, setIndexedMat4 } from "math/primarray";
 import { clamp01 } from "math/util";
-import { vec3 } from "math/vec3";
-import { quat } from "math/quat";
-import { mat3 } from "math/mat3";
-import { mat4 } from "math/mat4";
+import { vec3, mat3, mat4, quat, va } from "math/veclib";
 import { RenderContext } from "render/rendercontext";
 import { Texture, makeTexDesc2DFloatLUT } from "render/texture";
 import { SkeletonAnimation, TransformAnimationField } from "asset/types";
@@ -27,7 +23,7 @@ export class SkeletonManager /* implements ComponentManager<SkeletonManager> */ 
 	private nextSkelID_ = 1;
 	private nextAnimID_ = 1;
 	private skels_ = new Map<SkeletonInstance, TransformInstance[]>();
-	private baseRotations_ = new Map<SkeletonInstance, Float4[]>();
+	private baseRotations_ = new Map<SkeletonInstance, va.Float4[]>();
 	private anims_ = new Map<number, SkeletonAnimation>();
 
 	private jointData_: Float32Array;
@@ -44,7 +40,7 @@ export class SkeletonManager /* implements ComponentManager<SkeletonManager> */ 
 	createSkeleton(jointTransforms: TransformInstance[]): SkeletonInstance {
 		const txm = this.transformMgr_;
 		this.skels_.set(this.nextSkelID_, jointTransforms.slice(0));
-		const baseRots: Float4[] = [];
+		const baseRots: va.Float4[] = [];
 
 		const parent = txm.parent(jointTransforms[0]);
 		const originWorldTransform = txm.worldMatrix(parent);
@@ -85,10 +81,10 @@ export class SkeletonManager /* implements ComponentManager<SkeletonManager> */ 
 			const xform = txm.copyWorldMatrix(j);
 			mat4.multiply(xform, invOriginWorldTransform, xform);
 
-			// setIndexedVec4(texData, texelBaseIndex, [0,0,0,1]);
-			// setIndexedVec4(texData, texelBaseIndex, quat.invert([], txm.localRotation(j)));
-			setIndexedVec4(texData, texelBaseIndex, txm.localRotation(j));
-			setIndexedMat4(texData, (ji * 2) + 1, xform);
+			// va.setIndexedVec4(texData, texelBaseIndex, [0,0,0,1]);
+			// va.setIndexedVec4(texData, texelBaseIndex, quat.invert([], txm.localRotation(j)));
+			va.setIndexedVec4(texData, texelBaseIndex, txm.localRotation(j));
+			va.setIndexedMat4(texData, (ji * 2) + 1, xform);
 		}
 
 		this.jointDataTex_.bind();
@@ -114,21 +110,21 @@ export class SkeletonManager /* implements ComponentManager<SkeletonManager> */ 
 		frameIndexB %= anim.frameCount;
 		ratio = clamp01(ratio);
 
-		let posA: Float3 | null, posB: Float3 | null, posI: Float3 = [];
-		let rotA: Float4 | null, rotB: Float4 | null, rotI: Float4 = [];
+		let posA: va.Float3 | null, posB: va.Float3 | null, posI: va.Float3 = [];
+		let rotA: va.Float4 | null, rotB: va.Float4 | null, rotI: va.Float4 = [];
 		for (const j of anim.jointAnims) {
 			posA = posB = null;
 			rotA = rotB = null;
 
 			for (const t of j.tracks) {
 				if (t.field == TransformAnimationField.Translation) {
-					posA = copyIndexedVec3(t.key, frameIndexA);
-					posB = copyIndexedVec3(t.key, frameIndexB);
+					posA = va.copyIndexedVec3(t.key, frameIndexA);
+					posB = va.copyIndexedVec3(t.key, frameIndexB);
 					vec3.lerp(posI, posA, posB, ratio);
 				}
 				else if (t.field == TransformAnimationField.Rotation) {
-					rotA = copyIndexedVec4(t.key, frameIndexA);
-					rotB = copyIndexedVec4(t.key, frameIndexB);
+					rotA = va.copyIndexedVec4(t.key, frameIndexA);
+					rotB = va.copyIndexedVec4(t.key, frameIndexB);
 					quat.slerp(rotI, rotA, rotB, ratio);
 				}
 			}

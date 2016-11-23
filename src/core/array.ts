@@ -104,12 +104,14 @@ export interface MutableArrayLike<T> {
 export type ArrayOfConstNumber = ArrayLike<number>;
 export type ArrayOfNumber = MutableArrayLike<number>;
 
+
+// helper type for arrays of const enum types
 export interface ConstEnumArrayView<T extends number> extends TypedArray {
 	[index: number]: T;
 }
 
 
-// utility functions
+// array utility functions
 export function fill<T>(dest: MutableArrayLike<T>, value: T, count: number, offset = 0) {
 	for (let ix = 0; ix < count; ++ix) {
 		dest[ix + offset] = value;

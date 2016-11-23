@@ -6,8 +6,7 @@
 import { assert } from "core/util";
 import { SInt32, Float } from "core/numeric";
 import { ConstEnumArrayView } from "core/array";
-import { Float2, Float3, refIndexedVec4, copyIndexedVec4, setIndexedVec4 } from "math/primarray";
-import { vec4 } from "math/vec4";
+import { vec4, va } from "math/veclib";
 import { MABField, MultiArrayBuffer, InvalidatePointers } from  "container/multiarraybuffer";
 import { Texture } from "render/texture";
 import { Material, MaterialFlags } from "asset/types";
@@ -98,13 +97,13 @@ export class StdMaterialManager implements ComponentManager<StdMaterialManager> 
 		const matIndex = this.instanceData_.count; // entry 0 is reserved as nullptr-like
 
 		vec4.set(this.tempVec4, desc.baseColour[0], desc.baseColour[1], desc.baseColour[2], 0);
-		setIndexedVec4(this.mainColourBase_, matIndex, this.tempVec4);
+		va.setIndexedVec4(this.mainColourBase_, matIndex, this.tempVec4);
 		vec4.set(this.tempVec4, desc.specularIntensity, desc.specularExponent, 0, 0);
-		setIndexedVec4(this.specularBase_, matIndex, this.tempVec4);
+		va.setIndexedVec4(this.specularBase_, matIndex, this.tempVec4);
 		vec4.set(this.tempVec4, desc.emissiveColour[0], desc.emissiveColour[1], desc.emissiveColour[2], desc.emissiveIntensity);
-		setIndexedVec4(this.emissiveBase_, matIndex, this.tempVec4);
+		va.setIndexedVec4(this.emissiveBase_, matIndex, this.tempVec4);
 		vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
-		setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
+		va.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
 		if ((desc.flags & MaterialFlags.diffuseAlphaIsOpacity) && (desc.flags & MaterialFlags.diffuseAlphaIsTransparency)) {
 			assert(false, "Diffuse Alpha can't be both opacity and transparency");
@@ -129,10 +128,10 @@ export class StdMaterialManager implements ComponentManager<StdMaterialManager> 
 	destroy(inst: StdMaterialInstance) {
 		const matIndex = <number>inst;
 
-		setIndexedVec4(this.mainColourBase_, matIndex, vec4.zero());
-		setIndexedVec4(this.specularBase_, matIndex, vec4.zero());
-		setIndexedVec4(this.emissiveBase_, matIndex, vec4.zero());
-		setIndexedVec4(this.texScaleOffsetBase_, matIndex, vec4.zero());
+		va.setIndexedVec4(this.mainColourBase_, matIndex, vec4.zero());
+		va.setIndexedVec4(this.specularBase_, matIndex, vec4.zero());
+		va.setIndexedVec4(this.emissiveBase_, matIndex, vec4.zero());
+		va.setIndexedVec4(this.texScaleOffsetBase_, matIndex, vec4.zero());
 		this.flagsBase_[matIndex] = 0;
 		this.opacityBase_[matIndex] = 0;
 
@@ -164,7 +163,7 @@ export class StdMaterialManager implements ComponentManager<StdMaterialManager> 
 
 
 	// -- individual element field accessors
-	mainColour(inst: StdMaterialInstance): Float3 {
+	mainColour(inst: StdMaterialInstance): va.Float3 {
 		const offset = <number>inst * 4;
 		return [
 			this.mainColourBase_[offset],
@@ -173,7 +172,7 @@ export class StdMaterialManager implements ComponentManager<StdMaterialManager> 
 		];
 	}
 
-	setMainColour(inst: StdMaterialInstance, newColour: Float3) {
+	setMainColour(inst: StdMaterialInstance, newColour: va.Float3) {
 		const offset = <number>inst * 4;
 		this.mainColourBase_[offset]     = newColour[0];
 		this.mainColourBase_[offset + 1] = newColour[1];
@@ -182,7 +181,7 @@ export class StdMaterialManager implements ComponentManager<StdMaterialManager> 
 
 
 	// -- individual element field accessors
-	emissiveColour(inst: StdMaterialInstance): Float3 {
+	emissiveColour(inst: StdMaterialInstance): va.Float3 {
 		const offset = <number>inst * 4;
 		return [
 			this.emissiveBase_[offset],
@@ -191,7 +190,7 @@ export class StdMaterialManager implements ComponentManager<StdMaterialManager> 
 		];
 	}
 
-	setEmissiveColour(inst: StdMaterialInstance, newColour: Float3) {
+	setEmissiveColour(inst: StdMaterialInstance, newColour: va.Float3) {
 		const offset = <number>inst * 4;
 		this.emissiveBase_[offset]     = newColour[0];
 		this.emissiveBase_[offset + 1] = newColour[1];
@@ -226,24 +225,24 @@ export class StdMaterialManager implements ComponentManager<StdMaterialManager> 
 	}
 
 
-	textureScale(inst: StdMaterialInstance): Float2 {
+	textureScale(inst: StdMaterialInstance): va.Float2 {
 		const offset = <number>inst * 4;
 		return [this.texScaleOffsetBase_[offset], this.texScaleOffsetBase_[offset + 1]];
 	}
 
-	setTextureScale(inst: StdMaterialInstance, newScale: Float2) {
+	setTextureScale(inst: StdMaterialInstance, newScale: va.Float2) {
 		const offset = <number>inst * 4;
 		this.texScaleOffsetBase_[offset] = newScale[0];
 		this.texScaleOffsetBase_[offset + 1] = newScale[1];
 	}
 
 
-	textureOffset(inst: StdMaterialInstance): Float2 {
+	textureOffset(inst: StdMaterialInstance): va.Float2 {
 		const offset = <number>inst * 4;
 		return [this.texScaleOffsetBase_[offset + 2], this.texScaleOffsetBase_[offset + 3]];
 	}
 
-	setTextureOffset(inst: StdMaterialInstance, newOffset: Float2) {
+	setTextureOffset(inst: StdMaterialInstance, newOffset: va.Float2) {
 		const offset = <number>inst * 4;
 		this.texScaleOffsetBase_[offset + 2] = newOffset[0];
 		this.texScaleOffsetBase_[offset + 3] = newOffset[1];
@@ -300,14 +299,14 @@ export class StdMaterialManager implements ComponentManager<StdMaterialManager> 
 	getData(inst: StdMaterialInstance): StdMaterialData {
 		const matIndex = <number>inst;
 
-		const colourOpacity = new Float32Array(copyIndexedVec4(this.mainColourBase_, matIndex));
+		const colourOpacity = new Float32Array(va.copyIndexedVec4(this.mainColourBase_, matIndex));
 		colourOpacity[3] = this.opacityBase_[matIndex];
 
 		return {
 			colourData: colourOpacity,
-			specularData: <Float32Array>refIndexedVec4(this.specularBase_, matIndex),
-			emissiveData: <Float32Array>refIndexedVec4(this.emissiveBase_, matIndex),
-			texScaleOffsetData: <Float32Array>refIndexedVec4(this.texScaleOffsetBase_, matIndex),
+			specularData: <Float32Array>va.refIndexedVec4(this.specularBase_, matIndex),
+			emissiveData: <Float32Array>va.refIndexedVec4(this.emissiveBase_, matIndex),
+			texScaleOffsetData: <Float32Array>va.refIndexedVec4(this.texScaleOffsetBase_, matIndex),
 
 			diffuseMap: this.diffuseMaps_[matIndex],
 			specularMap: this.specularMaps_[matIndex],

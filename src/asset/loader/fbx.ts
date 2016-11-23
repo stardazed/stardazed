@@ -5,12 +5,8 @@
 
 import { assert, copyValues } from "core/util";
 import { TypedArray } from "core/array";
-import { Float4 } from "math/primarray";
+import { vec2, vec3, mat3, quat, va } from "math/veclib";
 import { clamp01, deg2rad } from "math/util";
-import { vec2 } from "math/vec2";
-import { vec3 } from "math/vec3";
-import { quat } from "math/quat";
-import { mat3 } from "math/mat3";
 import { VertexField, VertexAttributeRole } from "mesh/types";
 import { VertexAttributeMapping, VertexAttributeStream, MeshBuilder } from "mesh/builder";
 import { AssetGroup, Model, Material, Texture2D, makeMaterial, makeModel } from "asset/types";
@@ -687,9 +683,9 @@ class FBXDocumentGraph {
 			}
 
 			// get the local transform
-			let preRot: Float4 = [0, 0, 0, 1];
-			let postRot: Float4 = [0, 0, 0, 1];
-			let localRot: Float4 = [0, 0, 0, 1];
+			let preRot: va.Float4 = [0, 0, 0, 1];
+			let postRot: va.Float4 = [0, 0, 0, 1];
+			let localRot: va.Float4 = [0, 0, 0, 1];
 			for (const c of fbxModel.children) {
 				const vecVal = <number[]>c.values;
 				if (c.name === "Lcl Translation") {

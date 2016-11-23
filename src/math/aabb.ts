@@ -3,24 +3,23 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { ConstFloat3, ConstFloat3x3, ConstFloat4x4, Float3 } from "math/primarray";
-import { vec3 } from "math/vec3";
+import { vec3, va } from "math/veclib";
 import { clamp } from "math/util";
 import { Float } from "core/numeric";
 
-export function setCenterAndSize(min: ConstFloat3, max: ConstFloat3, center: ConstFloat3, size: ConstFloat3): void {
+export function setCenterAndSize(min: va.ConstFloat3, max: va.ConstFloat3, center: va.ConstFloat3, size: va.ConstFloat3): void {
 	vec3.scaleAndAdd(min, center, size, -0.5);
 	vec3.scaleAndAdd(max, center, size, 0.5);
 }
 
 
-export function calculateCenterAndSize(center: ConstFloat3, size: ConstFloat3, min: ConstFloat3, max: ConstFloat3): void {
+export function calculateCenterAndSize(center: va.ConstFloat3, size: va.ConstFloat3, min: va.ConstFloat3, max: va.ConstFloat3): void {
 	vec3.subtract(size, max, min);
 	vec3.scaleAndAdd(center, min, size, 0.5);
 }
 
 
-export function encapsulatePoint(min: Float3, max: Float3, pt: ConstFloat3): void {
+export function encapsulatePoint(min: va.Float3, max: va.Float3, pt: va.ConstFloat3): void {
 	if (pt[0] < min[0]) { min[0] = pt[0]; }
 	if (pt[0] > max[0]) { max[0] = pt[0]; }
 
@@ -32,7 +31,7 @@ export function encapsulatePoint(min: Float3, max: Float3, pt: ConstFloat3): voi
 }
 
 
-export function encapsulateAABB(min: Float3, max: Float3, otherMin: ConstFloat3, otherMax: ConstFloat3): void {
+export function encapsulateAABB(min: va.Float3, max: va.Float3, otherMin: va.ConstFloat3, otherMax: va.ConstFloat3): void {
 	if (otherMin[0] < min[0]) { min[0] = otherMin[0]; }
 	if (otherMax[0] > max[0]) { max[0] = otherMax[0]; }
 
@@ -44,26 +43,26 @@ export function encapsulateAABB(min: Float3, max: Float3, otherMin: ConstFloat3,
 }
 
 
-export function containsPoint(min: ConstFloat3, max: ConstFloat3, pt: ConstFloat3): boolean {
+export function containsPoint(min: va.ConstFloat3, max: va.ConstFloat3, pt: va.ConstFloat3): boolean {
 	return	pt[0] >= min[0] && pt[1] >= min[1] && pt[2] >= min[2] &&
 			pt[0] <= max[0] && pt[1] <= max[1] && pt[2] <= max[2];
 }
 
 
-export function containsAABB(min: ConstFloat3, max: ConstFloat3, otherMin: ConstFloat3, otherMax: ConstFloat3): boolean {
+export function containsAABB(min: va.ConstFloat3, max: va.ConstFloat3, otherMin: va.ConstFloat3, otherMax: va.ConstFloat3): boolean {
 	return	otherMin[0] >= min[0] && otherMin[1] >= min[1] && otherMin[2] >= min[2] &&
 			otherMax[0] <= max[0] && otherMax[1] <= max[1] && otherMax[2] <= max[2];
 }
 
 
-export function intersectsAABB(min: ConstFloat3, max: ConstFloat3, otherMin: ConstFloat3, otherMax: ConstFloat3): boolean {
+export function intersectsAABB(min: va.ConstFloat3, max: va.ConstFloat3, otherMin: va.ConstFloat3, otherMax: va.ConstFloat3): boolean {
 	return	otherMin[0] <= max[0] && otherMax[0] >= min[0] &&
 			otherMin[1] <= max[1] && otherMax[1] >= min[1] &&
 			otherMin[2] <= max[2] && otherMax[2] >= min[2];
 }
 
 
-export function closestPoint(min: ConstFloat3, max: ConstFloat3, pt: ConstFloat3) {
+export function closestPoint(min: va.ConstFloat3, max: va.ConstFloat3, pt: va.ConstFloat3) {
 	return [
 		clamp(pt[0], min[0], max[0]),
 		clamp(pt[1], min[1], max[1]),
@@ -72,22 +71,22 @@ export function closestPoint(min: ConstFloat3, max: ConstFloat3, pt: ConstFloat3
 }
 
 
-export function size(min: ConstFloat3, max: ConstFloat3) {
+export function size(min: va.ConstFloat3, max: va.ConstFloat3) {
 	return vec3.subtract([0, 0, 0], max, min);
 }
 
 
-export function extents(min: ConstFloat3, max: ConstFloat3) {
+export function extents(min: va.ConstFloat3, max: va.ConstFloat3) {
 	return vec3.scale([], size(min, max), 0.5);
 }
 
 
-export function center(min: ConstFloat3, max: ConstFloat3) {
+export function center(min: va.ConstFloat3, max: va.ConstFloat3) {
 	return vec3.add([], min, extents(min, max));
 }
 
 
-export function transformMat3(destMin: Float3, destMax: Float3, sourceMin: ConstFloat3, sourceMax: ConstFloat3, mat: ConstFloat3x3) {
+export function transformMat3(destMin: va.Float3, destMax: va.Float3, sourceMin: va.ConstFloat3, sourceMax: va.ConstFloat3, mat: va.ConstFloat3x3) {
 	const destA = vec3.transformMat3([], sourceMin, mat);
 	const destB = vec3.transformMat3([], sourceMax, mat);
 	vec3.min(destMin, destA, destB);
@@ -95,7 +94,7 @@ export function transformMat3(destMin: Float3, destMax: Float3, sourceMin: Const
 }
 
 
-export function transformMat4(destMin: Float3, destMax: ConstFloat3, sourceMin: ConstFloat3, sourceMax: ConstFloat3, mat: ConstFloat4x4) {
+export function transformMat4(destMin: va.Float3, destMax: va.ConstFloat3, sourceMin: va.ConstFloat3, sourceMax: va.ConstFloat3, mat: va.ConstFloat4x4) {
 	const destA = vec3.transformMat4([], sourceMin, mat);
 	const destB = vec3.transformMat4([], sourceMax, mat);
 	vec3.min(destMin, destA, destB);
@@ -108,8 +107,8 @@ export class AABB {
 	public max: Float32Array;
 
 	constructor();
-	constructor(min: Float3, max: Float3);
-	constructor(min?: Float3, max?: Float3) {
+	constructor(min: va.Float3, max: va.Float3);
+	constructor(min?: va.Float3, max?: va.Float3) {
 		const data = new Float32Array(6);
 		this.min = data.subarray(0, 3);
 		this.max = data.subarray(3, 6);
@@ -124,23 +123,23 @@ export class AABB {
 		}
 	}
 
-	static fromCenterAndSize(center: ConstFloat3, size: ConstFloat3): AABB {
+	static fromCenterAndSize(center: va.ConstFloat3, size: va.ConstFloat3): AABB {
 		const min = <number[]>[];
 		const max = <number[]>[];
 		setCenterAndSize(min, max, center, size);
 		return new AABB(min, max);
 	}
 
-	setCenterAndSize(center: ConstFloat3, size: ConstFloat3) {
+	setCenterAndSize(center: va.ConstFloat3, size: va.ConstFloat3) {
 		setCenterAndSize(this.min, this.max, center, size);
 	}
 
-	setMinAndMax(min: ConstFloat3, max: ConstFloat3) {
+	setMinAndMax(min: va.ConstFloat3, max: va.ConstFloat3) {
 		this.min[0] = min[0]; this.min[1] = min[1]; this.min[2] = min[2];
 		this.max[0] = max[0]; this.max[1] = max[1]; this.max[2] = max[2];
 	}
 
-	encapsulatePoint(pt: ConstFloat3) {
+	encapsulatePoint(pt: va.ConstFloat3) {
 		encapsulatePoint(this.min, this.max, pt);
 	}
 
@@ -156,7 +155,7 @@ export class AABB {
 
 	// --
 
-	containsPoint(pt: ConstFloat3) {
+	containsPoint(pt: va.ConstFloat3) {
 		return containsPoint(this.min, this.max, pt);
 	}
 
@@ -168,7 +167,7 @@ export class AABB {
 		return intersectsAABB(this.min, this.max, bounds.min, bounds.max);
 	}
 
-	closestPoint(pt: ConstFloat3) {
+	closestPoint(pt: va.ConstFloat3) {
 		return closestPoint(this.min, this.max, pt);
 	}
 }

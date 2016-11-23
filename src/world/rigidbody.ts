@@ -5,9 +5,7 @@
 
 import { SInt32, Float } from "core/numeric";
 import { TypedArray } from "core/array";
-import { Float3, Float3x3, copyIndexedVec2, setIndexedVec2, copyIndexedVec3, setIndexedVec3, offsetOfIndexedVec3, copyIndexedMat3, setIndexedMat3 } from "math/primarray";
-import { vec3 } from "math/vec3";
-import { mat3 } from "math/mat3";
+import { vec3, mat3, va } from "math/veclib";
 import { MABField, MultiArrayBuffer, InvalidatePointers } from  "container/multiarraybuffer";
 import { Instance, InstanceRange, InstanceLinearRange, InstanceSet, InstanceArrayView, InstanceIterator, ComponentManager } from "world/instance";
 import { TransformManager, TransformInstance, TransformArrayView } from "world/transform";
@@ -23,7 +21,7 @@ export type RigidBodyArrayView = InstanceArrayView<RigidBodyManager>;
 
 export interface RigidBodyDescriptor {
 	mass: number;     // kg
-	hullSize?: Float3; // vec3: w,h,d (defaults to 1,1,1)
+	hullSize?: va.Float3; // vec3: w,h,d (defaults to 1,1,1)
 	// drag: number (0)
 	// angularDrag: number (0.05)
 	// kinematic: boolean (false)
@@ -98,11 +96,11 @@ export class RigidBodyManager implements ComponentManager<RigidBodyManager> {
 
 		// -- clear the rest
 		const zero3 = vec3.zero();
-		setIndexedVec3(this.velocityBase_, instance, zero3);
-		setIndexedVec3(this.forceBase_, instance, zero3);
+		va.setIndexedVec3(this.velocityBase_, instance, zero3);
+		va.setIndexedVec3(this.forceBase_, instance, zero3);
 
-		setIndexedVec3(this.angVelocityBase_, instance, zero3);
-		setIndexedVec3(this.torqueBase_, instance, zero3);
+		va.setIndexedVec3(this.angVelocityBase_, instance, zero3);
+		va.setIndexedVec3(this.torqueBase_, instance, zero3);
 
 		return instance;
 	}
@@ -141,12 +139,12 @@ export class RigidBodyManager implements ComponentManager<RigidBodyManager> {
 			const transform = this.transformBase_[index];
 
 			// discrete step vectors for the positional and angular changes
-			const dxdt = vec3.scale([], copyIndexedVec3(this.velocityBase_, index), dt);
-			const dpdt = vec3.scale([], copyIndexedVec3(this.forceBase_, index), dt);
+			const dxdt = vec3.scale([], va.copyIndexedVec3(this.velocityBase_, index), dt);
+			const dpdt = vec3.scale([], va.copyIndexedVec3(this.forceBase_, index), dt);
 			const inverseMass = this.inverseMass(index);
 
-			const dOdt = vec3.scale([], copyIndexedVec3(this.angVelocityBase_, index), dt);
-			const dTdt = vec3.scale([], copyIndexedVec3(this.torqueBase_, index), dt);
+			const dOdt = vec3.scale([], va.copyIndexedVec3(this.angVelocityBase_, index), dt);
+			const dTdt = vec3.scale([], va.copyIndexedVec3(this.torqueBase_, index), dt);
 			const inverseInertia = this.inverseInertia(index);
 
 			// apply discrete forces to transform
@@ -158,7 +156,7 @@ export class RigidBodyManager implements ComponentManager<RigidBodyManager> {
 			}
 
 			// update state
-			const indexVec3 = offsetOfIndexedVec3(index);
+			const indexVec3 = va.offsetOfIndexedVec3(index);
 			this.velocityBase_[indexVec3 + 0] += dpdt[0] * inverseMass;
 			this.velocityBase_[indexVec3 + 1] += dpdt[1] * inverseMass;
 			this.velocityBase_[indexVec3 + 2] += dpdt[2] * inverseMass;
@@ -169,8 +167,8 @@ export class RigidBodyManager implements ComponentManager<RigidBodyManager> {
 			this.angVelocityBase_[indexVec3 + 2] += torqueInvInvertia[2];
 
 			// clear sum force and torque (FIXME, make this a one-step clear all)
-			setIndexedVec3(this.forceBase_, index, zero3);
-			setIndexedVec3(this.torqueBase_, index, zero3);
+			va.setIndexedVec3(this.forceBase_, index, zero3);
+			va.setIndexedVec3(this.torqueBase_, index, zero3);
 		}
 	}
 
@@ -192,7 +190,7 @@ export class RigidBodyManager implements ComponentManager<RigidBodyManager> {
 
 	// -- constant state
 
-	setMass(inst: RigidBodyInstance, newMass: number, hullSize: Float3) {
+	setMass(inst: RigidBodyInstance, newMass: number, hullSize: va.Float3) {
 		const massOver12 = newMass / 12.0;
 
 		const ww = hullSize[0] * hullSize[0];
@@ -207,59 +205,59 @@ export class RigidBodyManager implements ComponentManager<RigidBodyManager> {
 		const invInertia = mat3.invert([], inertia);
 
 		// -- set all constant data
-		setIndexedVec2(this.massBase_, <number>inst, [newMass, 1 / newMass]);
+		va.setIndexedVec2(this.massBase_, <number>inst, [newMass, 1 / newMass]);
 		const doubleIndex = 2 * <number>inst;
-		setIndexedMat3(this.inertiaBase_, doubleIndex, inertia);
-		setIndexedMat3(this.inertiaBase_, doubleIndex + 1, invInertia);
+		va.setIndexedMat3(this.inertiaBase_, doubleIndex, inertia);
+		va.setIndexedMat3(this.inertiaBase_, doubleIndex + 1, invInertia);
 	}
 
 
 	mass(inst: RigidBodyInstance): number {
-		return copyIndexedVec2(this.massBase_, <number>inst)[0];
+		return va.copyIndexedVec2(this.massBase_, <number>inst)[0];
 	}
 
 	inverseMass(inst: RigidBodyInstance): number {
-		return copyIndexedVec2(this.massBase_, <number>inst)[1];
+		return va.copyIndexedVec2(this.massBase_, <number>inst)[1];
 	}
 
-	inertia(inst: RigidBodyInstance): Float3x3 {
-		return copyIndexedMat3(this.inertiaBase_, <number>inst * 2);
+	inertia(inst: RigidBodyInstance): va.Float3x3 {
+		return va.copyIndexedMat3(this.inertiaBase_, <number>inst * 2);
 	}
 
-	inverseInertia(inst: RigidBodyInstance): Float3x3 {
-		return copyIndexedMat3(this.inertiaBase_, 1 + <number>inst * 2);
+	inverseInertia(inst: RigidBodyInstance): va.Float3x3 {
+		return va.copyIndexedMat3(this.inertiaBase_, 1 + <number>inst * 2);
 	}
 
 
 	// -- dynamic state
 
-	velocity(inst: RigidBodyInstance): Float3 {
-		return copyIndexedVec3(this.velocityBase_, <number>inst);
+	velocity(inst: RigidBodyInstance): va.Float3 {
+		return va.copyIndexedVec3(this.velocityBase_, <number>inst);
 	}
 
-	setVelocity(inst: RigidBodyInstance, newVelocity: Float3) {
-		setIndexedVec3(this.velocityBase_, <number>inst, newVelocity);
+	setVelocity(inst: RigidBodyInstance, newVelocity: va.Float3) {
+		va.setIndexedVec3(this.velocityBase_, <number>inst, newVelocity);
 	}
 
-	angVelocity(inst: RigidBodyInstance): Float3 {
-		return copyIndexedVec3(this.angVelocityBase_, <number>inst);
+	angVelocity(inst: RigidBodyInstance): va.Float3 {
+		return va.copyIndexedVec3(this.angVelocityBase_, <number>inst);
 	}
 
-	setAngVelocity(inst: RigidBodyInstance, newAngVelocity: Float3) {
-		setIndexedVec3(this.angVelocityBase_, <number>inst, newAngVelocity);
+	setAngVelocity(inst: RigidBodyInstance, newAngVelocity: va.Float3) {
+		va.setIndexedVec3(this.angVelocityBase_, <number>inst, newAngVelocity);
 	}
 
 	stop(inst: RigidBodyInstance) {
 		const zero3 = vec3.zero();
-		setIndexedVec3(this.velocityBase_, <number>inst, zero3);
-		setIndexedVec3(this.angVelocityBase_, <number>inst, zero3);
+		va.setIndexedVec3(this.velocityBase_, <number>inst, zero3);
+		va.setIndexedVec3(this.angVelocityBase_, <number>inst, zero3);
 	}
 
 
 	// -- per timestep accumulated forces and torques
 
-	addForce(inst: RigidBodyInstance, force: Float3, forceCenterOffset?: Float3) {
-		const indexVec3 = offsetOfIndexedVec3(<number>inst);
+	addForce(inst: RigidBodyInstance, force: va.Float3, forceCenterOffset?: va.Float3) {
+		const indexVec3 = va.offsetOfIndexedVec3(<number>inst);
 		this.forceBase_[indexVec3 + 0] += force[0];
 		this.forceBase_[indexVec3 + 1] += force[1];
 		this.forceBase_[indexVec3 + 2] += force[2];
@@ -270,8 +268,8 @@ export class RigidBodyManager implements ComponentManager<RigidBodyManager> {
 		}
 	}
 
-	addTorque(inst: RigidBodyInstance, torque: Float3) {
-		const indexVec3 = offsetOfIndexedVec3(<number>inst);
+	addTorque(inst: RigidBodyInstance, torque: va.Float3) {
+		const indexVec3 = va.offsetOfIndexedVec3(<number>inst);
 		this.torqueBase_[indexVec3 + 0] += torque[0];
 		this.torqueBase_[indexVec3 + 1] += torque[1];
 		this.torqueBase_[indexVec3 + 2] += torque[2];

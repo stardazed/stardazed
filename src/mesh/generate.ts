@@ -5,11 +5,7 @@
 
 import { assert } from "core/util";
 import { clamp01 } from "math/util";
-import { Float3, Float4 } from "math/primarray";
-import { vec3 } from "math/vec3";
-import { quat } from "math/quat";
-import { mat3 } from "math/mat3";
-import { mat4 } from "math/mat4";
+import { vec3, mat3, mat4, quat, va } from "math/veclib";
 import { PrimitiveType, VertexAttributeRole } from "mesh/types";
 import { VertexAttribute, AttrList } from "mesh/layout";
 import { VertexBuffer, VertexBufferAttributeView } from "mesh/vertexbuffer";
@@ -38,9 +34,9 @@ export interface MeshGenerator {
 
 export interface TransformedMeshGen {
 	generator: MeshGenerator;
-	rotation?: Float4; // quat
-	translation?: Float3; // vec3
-	scale?: Float3; // vec3
+	rotation?: va.Float4; // quat
+	translation?: va.Float3; // vec3
+	scale?: va.Float3; // vec3
 }
 
 export type MeshGenSource = MeshGenerator | TransformedMeshGen;
@@ -387,7 +383,7 @@ export class Box implements MeshGenerator {
 		];
 
 		// topleft, topright, botright, botleft
-		const quad = (a: number, b: number, c: number, d: number, norm: Float3) => {
+		const quad = (a: number, b: number, c: number, d: number, norm: va.Float3) => {
 			if (this.inward_) {
 				vec3.negate(norm, norm);
 			}

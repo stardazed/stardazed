@@ -6,14 +6,9 @@
 import { assert } from "core/util";
 import { UInt8, SInt32, Float } from "core/numeric";
 import { TypedArray } from "core/array";
-import { Float3, Float4, Float3x3, Float4x4, refIndexedVec2, copyIndexedVec2, refIndexedVec4, copyIndexedVec4, setIndexedVec4 } from "math/primarray";
+import { vec3, vec4, mat3, mat4, quat, va } from "math/veclib";
 import { clamp01 } from "math/util";
 import { ProjectionSetup } from "math/projection";
-import { vec3 } from "math/vec3";
-import { vec4 } from "math/vec4";
-import { quat } from "math/quat";
-import { mat3 } from "math/mat3";
-import { mat4 } from "math/mat4";
 import { MABField, MultiArrayBuffer, InvalidatePointers } from  "container/multiarraybuffer";
 import { RenderContext } from "render/rendercontext";
 import { FrameBuffer } from "render/framebuffer";
@@ -32,11 +27,11 @@ export type LightArrayView = InstanceArrayView<LightManager>;
 
 export interface LightData {
 	type: number;
-	colourData: Float4;     // colour[3], amplitude
-	parameterData: Float4;  // ambIntensity, diffIntensity, range, cutoff
-	position_cam: Float4;   // position[3], shadowStrength
-	position_world: Float4; // position[3], 0
-	direction: Float4;      // direction[3], shadowBias
+	colourData: va.Float4;     // colour[3], amplitude
+	parameterData: va.Float4;  // ambIntensity, diffIntensity, range, cutoff
+	position_cam: va.Float4;   // position[3], shadowStrength
+	position_world: va.Float4; // position[3], 0
+	direction: va.Float4;      // direction[3], shadowBias
 }
 
 
@@ -48,7 +43,7 @@ export interface ShadowView {
 
 
 export interface FogDescriptor {
-	colour: Float3;
+	colour: va.Float3;
 	offset: number;        // 0+
 	depth: number;         // 0+,
 	density: number;       // 0..1
@@ -148,20 +143,20 @@ export class LightManager implements ComponentManager<LightManager> {
 		// -- colour and amplitude
 		this.typeBase_[instanceIx] = desc.type;
 		vec4.set(this.tempVec4_, desc.colour[0], desc.colour[1], desc.colour[2], 1.0);
-		setIndexedVec4(this.colourBase_, instanceIx, this.tempVec4_);
+		va.setIndexedVec4(this.colourBase_, instanceIx, this.tempVec4_);
 
 		// -- parameters, force 0 for unused fields for specified type
 		const range = (desc.range === undefined || desc.type == LightType.Directional) ? 0 : desc.range;
 		const cutoff = (desc.cutoff === undefined || desc.type != LightType.Spot) ? 0 : desc.cutoff;
 		vec4.set(this.tempVec4_, desc.ambientIntensity || 0, desc.diffuseIntensity, range, Math.cos(cutoff));
-		setIndexedVec4(this.parameterBase_, instanceIx, this.tempVec4_);
+		va.setIndexedVec4(this.parameterBase_, instanceIx, this.tempVec4_);
 
 		// -- shadow info
 		if ((desc.shadowType != undefined) && (desc.shadowType != ShadowType.None)) {
 			this.shadowTypeBase_[instanceIx] = desc.shadowType;
 			this.shadowQualityBase_[instanceIx] = desc.shadowQuality || ShadowQuality.Auto;
 
-			const paramData = refIndexedVec2(this.shadowParamBase_, instanceIx);
+			const paramData = va.refIndexedVec2(this.shadowParamBase_, instanceIx);
 			paramData[ShadowParam.Strength] = (desc.shadowStrength != undefined) ? clamp01(desc.shadowStrength) : 1.0;
 			paramData[ShadowParam.Bias] = (desc.shadowBias != undefined) ? clamp01(desc.shadowBias) : 0.05;
 		}
@@ -213,7 +208,7 @@ export class LightManager implements ComponentManager<LightManager> {
 		return this.transformMgr_.localPosition(this.transformBase_[<number>inst]);
 	}
 
-	setLocalPosition(inst: LightInstance, newPosition: Float3) {
+	setLocalPosition(inst: LightInstance, newPosition: va.Float3) {
 		this.transformMgr_.setPosition(this.transformBase_[<number>inst], newPosition);
 	}
 
@@ -223,7 +218,7 @@ export class LightManager implements ComponentManager<LightManager> {
 		return vec3.normalize([], vec3.transformMat3([], this.nullVec3_, rotMat));
 	}
 
-	setDirection(inst: LightInstance, newDirection: Float3) {
+	setDirection(inst: LightInstance, newDirection: va.Float3) {
 		const normalizedDir = vec3.normalize([], newDirection);
 		this.transformMgr_.setRotation(this.transformBase_[<number>inst], quat.rotationTo([], this.nullVec3_, normalizedDir));
 	}
@@ -237,8 +232,8 @@ export class LightManager implements ComponentManager<LightManager> {
 		const worldDirection = this.direction(inst);
 		const worldTarget = vec3.add([], worldPos, worldDirection);
 
-		let viewMatrix: Float4x4;
-		let projectionMatrix: Float4x4;
+		let viewMatrix: va.Float4x4;
+		let projectionMatrix: va.Float4x4;
 
 		const type = this.typeBase_[<number>inst];
 		if (type == LightType.Spot) {
@@ -288,10 +283,10 @@ export class LightManager implements ComponentManager<LightManager> {
 	// -- internal properties
 
 	colour(inst: LightInstance): number[] {
-		return copyIndexedVec4(this.colourBase_, <number>inst).slice(0, 3);
+		return va.copyIndexedVec4(this.colourBase_, <number>inst).slice(0, 3);
 	}
 
-	setColour(inst: LightInstance, newColour: Float3) {
+	setColour(inst: LightInstance, newColour: va.Float3) {
 		const offset = <number>inst * 4;
 		this.colourBase_[offset] = newColour[0];
 		this.colourBase_[offset + 1] = newColour[1];
@@ -384,10 +379,10 @@ export class LightManager implements ComponentManager<LightManager> {
 
 	// -- shader data
 
-	getData(inst: LightInstance, viewMatrix: Float4x4, viewNormalMatrix: Float3x3): LightData {
+	getData(inst: LightInstance, viewMatrix: va.Float4x4, viewNormalMatrix: va.Float3x3): LightData {
 		const transform = this.transformBase_[<number>inst];
 
-		const paramData = copyIndexedVec2(this.shadowParamBase_, <number>inst);
+		const paramData = va.copyIndexedVec2(this.shadowParamBase_, <number>inst);
 		const posAndStrength = new Float32Array(4);
 		const dirAndBias = new Float32Array(4);
 		const rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(transform));
@@ -404,8 +399,8 @@ export class LightManager implements ComponentManager<LightManager> {
 
 		return {
 			type: this.typeBase_[<number>inst],
-			colourData: refIndexedVec4(this.colourBase_, <number>inst),
-			parameterData: refIndexedVec4(this.parameterBase_, <number>inst),
+			colourData: va.refIndexedVec4(this.colourBase_, <number>inst),
+			parameterData: va.refIndexedVec4(this.parameterBase_, <number>inst),
 			position_cam: posAndStrength,
 			position_world: lightPosWorld.concat(0),
 			direction: dirAndBias

@@ -3,7 +3,7 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { Float4 } from "math/primarray";
+import { va } from "math/veclib";
 
 export const enum FrontFaceWinding {
 	Clockwise,
@@ -66,7 +66,7 @@ export interface Viewport {
 export interface RenderPassDescriptor {
 	clearMask: ClearMask;
 
-	clearColour: Float4;
+	clearColour: va.Float4;
 	clearDepth: number;
 	clearStencil: number;
 }

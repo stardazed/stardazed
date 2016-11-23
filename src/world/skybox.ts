@@ -4,9 +4,8 @@
 // https://github.com/stardazed/stardazed-tx
 
 import { assert } from "core/util";
-import { Float3 } from "math/primarray";
+import { mat4, va } from "math/veclib";
 import { ProjectionSetup } from "math/projection";
-import { mat4 } from "math/mat4";
 import { VertexAttributeRole, attrPosition3 } from "mesh/meshdata";
 import * as gen from "mesh/generate";
 import { PixelFormat } from "render/pixelformat";
@@ -86,7 +85,7 @@ export class Skybox {
 	}
 
 
-	setCenter(xyz: Float3) {
+	setCenter(xyz: va.Float3) {
 		this.transformMgr_.setPosition(this.txInstance_, xyz);
 	}
 

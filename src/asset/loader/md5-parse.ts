@@ -3,7 +3,7 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { Float2, Float3, Float4 } from "math/primarray";
+import { va } from "math/veclib";
 
 const enum TokenType {
 	Invalid,
@@ -247,7 +247,7 @@ class MD5Parser {
 
 
 // Note: this is NOT the same as the quat.calculateW function
-export function computeQuatW(q: Float4) {
+export function computeQuatW(q: va.Float4) {
 	const t = 1.0 - (q[0] * q[0]) - (q[1] * q[1]) - (q[2] * q[2]);
 
 	if (t < 0.0) {
@@ -262,7 +262,7 @@ export function computeQuatW(q: Float4) {
 export interface MD5MeshDelegate extends MD5ParserDelegate {
 	jointCount(count: number): void;
 	beginJoints(): void;
-	joint(name: string, index: number, parentIndex: number, modelPos: Float3, modelRot: Float4): void;
+	joint(name: string, index: number, parentIndex: number, modelPos: va.Float3, modelRot: va.Float4): void;
 	endJoints(): void;
 
 	meshCount(count: number): void;
@@ -271,13 +271,13 @@ export interface MD5MeshDelegate extends MD5ParserDelegate {
 	materialName(name: string): void;
 
 	vertexCount(count: number): void;
-	vertex(index: number, uv: Float2, weightOffset: number, weightCount: number): void;
+	vertex(index: number, uv: va.Float2, weightOffset: number, weightCount: number): void;
 
 	triangleCount(count: number): void;
-	triangle(index: number, indexes: Float3): void;
+	triangle(index: number, indexes: va.Float3): void;
 
 	weightCount(count: number): void;
-	weight(index: number, jointIndex: number, bias: number, jointPos: Float3): void;
+	weight(index: number, jointIndex: number, bias: number, jointPos: va.Float3): void;
 
 	endMesh(): void;
 }
@@ -536,11 +536,11 @@ export interface MD5AnimDelegate extends MD5ParserDelegate {
 	endHierarchy(): void;
 
 	beginBoundingBoxes(): void;
-	bounds(frameIndex: number, min: Float3, max: Float3): void;
+	bounds(frameIndex: number, min: va.Float3, max: va.Float3): void;
 	endBoundingBoxes(): void;
 
 	beginBaseFrame(): void;
-	baseJoint(index: number, jointPos: Float3, jointRot: Float4): void;
+	baseJoint(index: number, jointPos: va.Float3, jointRot: va.Float4): void;
 	endBaseFrame(): void;
 
 	frame(index: number, components: Float32Array): void;

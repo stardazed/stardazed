@@ -3,9 +3,8 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { setIndexedVec3 } from "math/primarray";
+import { vec3, va } from "math/veclib";
 import { clamp01 } from "math/util";
-import { vec3 } from "math/vec3";
 import { VertexField, VertexAttributeRole } from "mesh/types";
 import { MeshBuilder, VertexAttributeMapping, VertexAttributeStream } from "mesh/builder";
 import { AssetGroup, MaterialFlags, Material, Texture2D, UseMipMaps, makeTransform, makeMaterial, makeModel } from "asset/types";
@@ -338,7 +337,7 @@ function parseOBJSource(group: AssetGroup, preproc: OBJPreProcSource, hasColourA
 
 		// fill the colourValues list with the baseColour of each material
 		for (let matIx = 0; matIx < group.materials.length; ++matIx) {
-			setIndexedVec3(colourValues, matIx, group.materials[matIx].baseColour);
+			va.setIndexedVec3(colourValues, matIx, group.materials[matIx].baseColour);
 		}
 
 		streams.push({

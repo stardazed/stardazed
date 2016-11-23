@@ -6,9 +6,8 @@
 import { assert } from "core/util";
 import { SInt32, Float } from "core/numeric";
 import { ConstEnumArrayView } from "core/array";
-import { Float2, Float3, refIndexedVec4, copyIndexedVec4, setIndexedVec4 } from "math/primarray";
 import { clamp01 } from "math/util";
-import { vec4 } from "math/vec4";
+import { vec4, va } from "math/veclib";
 import { MABField, MultiArrayBuffer, InvalidatePointers } from  "container/multiarraybuffer";
 import { Texture } from "render/texture";
 import { Material } from "asset/types";
@@ -100,13 +99,13 @@ export class PBRMaterialManager implements ComponentManager<PBRMaterialManager> 
 
 		// compile baseColour and RMA fixed vars
 		vec4.set(this.tempVec4, desc.baseColour[0], desc.baseColour[1], desc.baseColour[2], 0);
-		setIndexedVec4(this.baseColourBase_, matIndex, this.tempVec4);
+		va.setIndexedVec4(this.baseColourBase_, matIndex, this.tempVec4);
 		vec4.set(this.tempVec4, clamp01(desc.roughness), clamp01(desc.metallic), 0, 0);
-		setIndexedVec4(this.materialBase_, matIndex, this.tempVec4);
+		va.setIndexedVec4(this.materialBase_, matIndex, this.tempVec4);
 
 		// pack texture scale and offset into 4-comp float
 		vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
-		setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
+		va.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
 		let flags: PBRMaterialFlags = 0;
 		if (desc.roughnessTexture) { flags |= PBRMaterialFlags.RoughnessMap; }
@@ -131,9 +130,9 @@ export class PBRMaterialManager implements ComponentManager<PBRMaterialManager> 
 	destroy(inst: PBRMaterialInstance) {
 		const matIndex = <number>inst;
 
-		setIndexedVec4(this.baseColourBase_, matIndex, vec4.zero());
-		setIndexedVec4(this.materialBase_, matIndex, vec4.zero());
-		setIndexedVec4(this.texScaleOffsetBase_, matIndex, vec4.zero());
+		va.setIndexedVec4(this.baseColourBase_, matIndex, vec4.zero());
+		va.setIndexedVec4(this.materialBase_, matIndex, vec4.zero());
+		va.setIndexedVec4(this.texScaleOffsetBase_, matIndex, vec4.zero());
 		this.flagsBase_[matIndex] = 0;
 		this.opacityBase_[matIndex] = 0;
 
@@ -165,7 +164,7 @@ export class PBRMaterialManager implements ComponentManager<PBRMaterialManager> 
 
 
 	// -- individual element field accessors
-	baseColour(inst: PBRMaterialInstance): Float3 {
+	baseColour(inst: PBRMaterialInstance): va.Float3 {
 		const offset = <number>inst * 4;
 		return [
 			this.baseColourBase_[offset],
@@ -174,7 +173,7 @@ export class PBRMaterialManager implements ComponentManager<PBRMaterialManager> 
 		];
 	}
 
-	setBaseColour(inst: PBRMaterialInstance, newColour: Float3) {
+	setBaseColour(inst: PBRMaterialInstance, newColour: va.Float3) {
 		const offset = <number>inst * 4;
 		this.baseColourBase_[offset]     = newColour[0];
 		this.baseColourBase_[offset + 1] = newColour[1];
@@ -219,24 +218,24 @@ export class PBRMaterialManager implements ComponentManager<PBRMaterialManager> 
 	}
 
 
-	textureScale(inst: PBRMaterialInstance): Float2 {
+	textureScale(inst: PBRMaterialInstance): va.Float2 {
 		const offset = <number>inst * 4;
 		return [this.texScaleOffsetBase_[offset], this.texScaleOffsetBase_[offset + 1]];
 	}
 
-	setTextureScale(inst: PBRMaterialInstance, newScale: Float2) {
+	setTextureScale(inst: PBRMaterialInstance, newScale: va.Float2) {
 		const offset = <number>inst * 4;
 		this.texScaleOffsetBase_[offset] = newScale[0];
 		this.texScaleOffsetBase_[offset + 1] = newScale[1];
 	}
 
 
-	textureOffset(inst: PBRMaterialInstance): Float2 {
+	textureOffset(inst: PBRMaterialInstance): va.Float2 {
 		const offset = <number>inst * 4;
 		return [this.texScaleOffsetBase_[offset + 2], this.texScaleOffsetBase_[offset + 3]];
 	}
 
-	setTextureOffset(inst: PBRMaterialInstance, newOffset: Float2) {
+	setTextureOffset(inst: PBRMaterialInstance, newOffset: va.Float2) {
 		const offset = <number>inst * 4;
 		this.texScaleOffsetBase_[offset + 2] = newOffset[0];
 		this.texScaleOffsetBase_[offset + 3] = newOffset[1];
@@ -269,13 +268,13 @@ export class PBRMaterialManager implements ComponentManager<PBRMaterialManager> 
 	getData(inst: PBRMaterialInstance): PBRMaterialData {
 		const matIndex = <number>inst;
 
-		const colourOpacity = new Float32Array(copyIndexedVec4(this.baseColourBase_, matIndex));
+		const colourOpacity = new Float32Array(va.copyIndexedVec4(this.baseColourBase_, matIndex));
 		colourOpacity[3] = this.opacityBase_[matIndex];
 
 		return {
 			colourData: colourOpacity,
-			materialParam: <Float32Array>refIndexedVec4(this.materialBase_, matIndex),
-			texScaleOffsetData: <Float32Array>refIndexedVec4(this.texScaleOffsetBase_, matIndex),
+			materialParam: <Float32Array>va.refIndexedVec4(this.materialBase_, matIndex),
+			texScaleOffsetData: <Float32Array>va.refIndexedVec4(this.texScaleOffsetBase_, matIndex),
 
 			albedoMap: this.albedoMaps_[matIndex],
 			materialMap: this.materialMaps_[matIndex],

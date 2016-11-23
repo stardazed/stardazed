@@ -3,10 +3,7 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { Float2, Float3, Float4, copyIndexedVec3, setIndexedVec3, setIndexedVec4 } from "math/primarray";
-import { vec3 } from "math/vec3";
-import { mat4 } from "math/mat4";
-import { quat } from "math/quat";
+import { vec3, mat4, quat, va } from "math/veclib";
 import { VertexField, VertexAttributeRole } from "mesh/types";
 import { VertexAttributeMapping, VertexAttributeStream, MeshBuilder } from "mesh/builder";
 import { MeshData, VertexBufferAttributeView } from "mesh/meshdata";
@@ -48,14 +45,14 @@ function constructBindPosePositions(vertexes: VertexData, weights: WeightData, j
 			const jix = weights.joints[wix];
 			const joint = joints[jix];
 			const bias = weights.biases[wix];
-			const weightPos = copyIndexedVec3(weights.positions, wix);
+			const weightPos = va.copyIndexedVec3(weights.positions, wix);
 
 			const weightRelPos = vec3.transformQuat([], weightPos, joint.rotation);
 			vec3.add(weightRelPos, weightRelPos, joint.position);
 			vec3.scaleAndAdd(vpos, vpos, weightRelPos, bias);
 		}
 
-		setIndexedVec3(positions, vix, vpos);
+		va.setIndexedVec3(positions, vix, vpos);
 	}
 
 	return positions;
@@ -81,14 +78,14 @@ function constructSkinnedMeshStreams(vertexes: VertexData, weights: WeightData) 
 		for (let wi = 0; wi < 4; ++wi) {
 			if (wi < weightCount) {
 				const jix = weights.joints[wi + weightStart];
-				const weightPos = copyIndexedVec3(weights.positions, wi + weightStart);
+				const weightPos = va.copyIndexedVec3(weights.positions, wi + weightStart);
 				weightPos[3] = weights.biases[wi + weightStart];
 
 				vji[wi] = jix;
-				setIndexedVec4(weightPosArray[wi], vix, weightPos);
+				va.setIndexedVec4(weightPosArray[wi], vix, weightPos);
 			}
 		}
-		setIndexedVec4(jointIndexes, vix, vji);
+		va.setIndexedVec4(jointIndexes, vix, vji);
 	}
 
 	const streams: VertexAttributeStream[] = [
@@ -151,7 +148,7 @@ export class MD5MeshBuilder implements parse.MD5MeshDelegate {
 
 	beginJoints() { /* ignored */ }
 
-	joint(name: string, index: number, parentIndex: number, modelPos: Float3, modelRot: Float4) {
+	joint(name: string, index: number, parentIndex: number, modelPos: va.Float3, modelRot: va.Float4) {
 		const jm = makeModel(name, index);
 		jm.joint = { root: parentIndex == -1 };
 		this.joints.push({
@@ -230,7 +227,7 @@ export class MD5MeshBuilder implements parse.MD5MeshDelegate {
 	}
 
 
-	vertex(index: number, uv: Float2, weightOffset: number, weightCount: number) {
+	vertex(index: number, uv: va.Float2, weightOffset: number, weightCount: number) {
 		// precondition: this.vertexes was set (vertexCount was called with non-zero count)
 		const io = index * 2;
 		this.vertexes!.uvs[io] = uv[0];
@@ -250,10 +247,10 @@ export class MD5MeshBuilder implements parse.MD5MeshDelegate {
 	}
 
 
-	triangle(index: number, indexes: Float3) {
+	triangle(index: number, indexes: va.Float3) {
 		// precondition: this.triangles was set (triangleCount was called with non-zero count)
 		// reverse winding order
-		setIndexedVec3(this.triangles!, index, [indexes[0], indexes[2], indexes[1]]);
+		va.setIndexedVec3(this.triangles!, index, [indexes[0], indexes[2], indexes[1]]);
 	}
 
 
@@ -271,11 +268,11 @@ export class MD5MeshBuilder implements parse.MD5MeshDelegate {
 	}
 
 
-	weight(index: number, jointIndex: number, bias: number, jointPos: Float3) {
+	weight(index: number, jointIndex: number, bias: number, jointPos: va.Float3) {
 		// precondition: this.weights was set (weightCount was called with non-zero count)
 		this.weights!.joints[index] = jointIndex;
 		this.weights!.biases[index] = bias;
-		setIndexedVec3(this.weights!.positions, index, jointPos);
+		va.setIndexedVec3(this.weights!.positions, index, jointPos);
 	}
 
 
@@ -303,7 +300,7 @@ export class MD5MeshBuilder implements parse.MD5MeshDelegate {
 			let pvi = 0;
 			let pi = 0;
 			while (triCount--) {
-				mb.addPolygon([pvi, pvi + 1, pvi + 2], copyIndexedVec3(this.triangles, pi));
+				mb.addPolygon([pvi, pvi + 1, pvi + 2], va.copyIndexedVec3(this.triangles, pi));
 				pvi += 3;
 				pi += 1;
 			}
@@ -413,8 +410,8 @@ interface AnimJoint {
 	index: number;
 	parentIndex: number;
 	mask: parse.MD5AnimMask;
-	basePos?: Float3;
-	baseRot?: Float4;
+	basePos?: va.Float3;
+	baseRot?: va.Float4;
 	anim?: JointAnimation;
 }
 
@@ -486,12 +483,12 @@ export class MD5AnimBuilder implements parse.MD5AnimDelegate {
 
 
 	beginBoundingBoxes() { /* ignored */ }
-	bounds(_frameIndex: number, _min: Float3, _max: Float3) { /* ignored */ }
+	bounds(_frameIndex: number, _min: va.Float3, _max: va.Float3) { /* ignored */ }
 	endBoundingBoxes() { /* ignored */ }
 
 
 	beginBaseFrame() { /* ignored */ }
-	baseJoint(index: number, jointPos: Float3, jointRot: Float4) {
+	baseJoint(index: number, jointPos: va.Float3, jointRot: va.Float4) {
 		this.joints_[index].basePos = jointPos;
 		this.joints_[index].baseRot = jointRot;
 
@@ -523,7 +520,7 @@ export class MD5AnimBuilder implements parse.MD5AnimDelegate {
 					finalPos[2] = components[compIx++];
 				}
 
-				setIndexedVec3(j.anim!.tracks[0].key, index, finalPos);
+				va.setIndexedVec3(j.anim!.tracks[0].key, index, finalPos);
 			}
 
 			if (j.mask & 56) {
@@ -541,7 +538,7 @@ export class MD5AnimBuilder implements parse.MD5AnimDelegate {
 				}
 
 				parse.computeQuatW(finalRot);
-				setIndexedVec4(j.anim!.tracks[arrIx].key, index, finalRot);
+				va.setIndexedVec4(j.anim!.tracks[arrIx].key, index, finalRot);
 			}
 		}
 	}

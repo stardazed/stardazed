@@ -3,14 +3,10 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { Float3, Float4 } from "math/primarray";
-import { vec3 } from "math/vec3";
-import { mat3 } from "math/mat3";
-import { mat4 } from "math/mat4";
-import { quat } from "math/quat";
+import { vec3, mat3, mat4, quat, va } from "math/veclib";
 import { MeshData, VertexAttributeRole, VertexBufferAttributeView } from "mesh/meshdata";
 
-export function scale(mesh: MeshData, scale: Float3) {
+export function scale(mesh: MeshData, scale: va.Float3) {
 	const posAttr = mesh.findFirstAttributeWithRole(VertexAttributeRole.Position);
 	if (posAttr) {
 		const posView = new VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
@@ -19,7 +15,7 @@ export function scale(mesh: MeshData, scale: Float3) {
 }
 
 
-export function translate(mesh: MeshData, globalDelta: Float3) {
+export function translate(mesh: MeshData, globalDelta: va.Float3) {
 	const posAttr = mesh.findFirstAttributeWithRole(VertexAttributeRole.Position);
 	if (posAttr) {
 		const posView = new VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
@@ -28,7 +24,7 @@ export function translate(mesh: MeshData, globalDelta: Float3) {
 }
 
 
-export function rotate(mesh: MeshData, rotation: Float4) {
+export function rotate(mesh: MeshData, rotation: va.Float4) {
 	const posAttr = mesh.findFirstAttributeWithRole(VertexAttributeRole.Position);
 	if (posAttr) {
 		const posView = new VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
@@ -43,7 +39,7 @@ export function rotate(mesh: MeshData, rotation: Float4) {
 }
 
 
-export function transform(mesh: MeshData, actions: { rotate?: Float4, translate?: Float3, scale?: Float3 }) {
+export function transform(mesh: MeshData, actions: { rotate?: va.Float4, translate?: va.Float3, scale?: va.Float3 }) {
 	const rotation = actions.rotate || quat.create();
 	const translation = actions.translate || vec3.zero();
 	const scale = actions.scale || vec3.one();

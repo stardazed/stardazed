@@ -4,7 +4,7 @@
 // https://github.com/stardazed/stardazed-tx
 
 import { assert } from "core/util";
-import { Float4 } from "math/primarray";
+import { va } from "math/veclib";
 import { PrimitiveType } from "mesh/types";
 import { IndexElementType, indexElementTypeSizeBytes } from "mesh/indexbuffer";
 import { RenderContext } from "render/rendercontext";
@@ -248,7 +248,7 @@ export class RenderPass {
 	}
 
 
-	setConstantBlendColour(colour4: Float4) {
+	setConstantBlendColour(colour4: va.Float4) {
 		assert(colour4.length >= 4);
 		this.rc.gl.blendColor(colour4[0], colour4[1], colour4[2], colour4[3]);
 	}

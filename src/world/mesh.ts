@@ -6,7 +6,7 @@
 import { assert, cloneStruct } from "core/util";
 import { SInt32 } from "core/numeric";
 import { ConstEnumArrayView } from "core/array";
-import { copyIndexedVec2, setIndexedVec2 } from "math/primarray";
+import { va } from "math/veclib";
 import { MABField, MultiArrayBuffer, InvalidatePointers } from  "container/multiarraybuffer";
 import { VertexField, VertexBuffer, IndexBuffer, PrimitiveType, PrimitiveGroup, MeshData, IndexElementType, VertexAttributeRole, vertexFieldElementCount, vertexFieldIsNormalized } from "mesh/meshdata";
 import { RenderContext } from "render/rendercontext";
@@ -291,14 +291,14 @@ export class MeshManager implements ComponentManager<MeshManager> {
 
 		const bufferCount = meshData.vertexBuffers.length + (meshData.indexBuffer !== null ? 1 : 0);
 		let bufferIndex = this.bufGLBuffers_.length;
-		setIndexedVec2(this.buffersOffsetCountBase_, instance, [bufferIndex, bufferCount]);
+		va.setIndexedVec2(this.buffersOffsetCountBase_, instance, [bufferIndex, bufferCount]);
 
 		const attrCount = meshData.vertexBuffers.map(vb => vb.attributeCount).reduce((sum, vbac) => sum + vbac, 0);
 		let attrIndex = this.attributeData_.count;
 		if (this.attributeData_.resize(attrIndex + attrCount) === InvalidatePointers.Yes) {
 			this.rebaseAttributes();
 		}
-		setIndexedVec2(this.attrsOffsetCountBase_, instance, [attrIndex, attrCount]);
+		va.setIndexedVec2(this.attrsOffsetCountBase_, instance, [attrIndex, attrCount]);
 
 		// -- allocate gpu vertex buffers and cache attribute mappings for fast binding
 		for (const vertexBuffer of meshData.vertexBuffers) {
@@ -358,7 +358,7 @@ export class MeshManager implements ComponentManager<MeshManager> {
 		if (this.primGroupData_.resize(primGroupIndex + primGroupCount) === InvalidatePointers.Yes) {
 			this.rebasePrimGroups();
 		}
-		setIndexedVec2(this.primGroupsOffsetCountBase_, instance, [primGroupIndex, primGroupCount]);
+		va.setIndexedVec2(this.primGroupsOffsetCountBase_, instance, [primGroupIndex, primGroupCount]);
 
 		let totalElementCount = 0;
 		let sharedPrimType = meshData.primitiveGroups[0].type;
@@ -491,7 +491,7 @@ export class MeshManager implements ComponentManager<MeshManager> {
 
 			if (this.featuresBase_[meshIx] & MeshFeatures.Indexes) {
 				// the index buffer, when present, is the last buffer in the list
-				const bufOC = copyIndexedVec2(this.buffersOffsetCountBase_, meshIx);
+				const bufOC = va.copyIndexedVec2(this.buffersOffsetCountBase_, meshIx);
 				const indexBuffer = this.bufGLBuffers_[bufOC[0] + bufOC[1] - 1];
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 			}
@@ -525,7 +525,7 @@ export class MeshManager implements ComponentManager<MeshManager> {
 	attributes(inst: MeshInstance): Map<VertexAttributeRole, MeshAttributeData> {
 		const attrs = new Map<VertexAttributeRole, MeshAttributeData>();
 		const meshIx = <number>inst;
-		const offsetCount = copyIndexedVec2(this.attrsOffsetCountBase_, meshIx);
+		const offsetCount = va.copyIndexedVec2(this.attrsOffsetCountBase_, meshIx);
 
 		for (let aix = 0; aix < offsetCount[1]; ++aix) {
 			const attrOffset = aix + offsetCount[0];
@@ -545,7 +545,7 @@ export class MeshManager implements ComponentManager<MeshManager> {
 	primitiveGroups(inst: MeshInstance) {
 		const primGroups: PrimitiveGroup[] = [];
 		const meshIx = <number>inst;
-		const offsetCount = copyIndexedVec2(this.primGroupsOffsetCountBase_, meshIx);
+		const offsetCount = va.copyIndexedVec2(this.primGroupsOffsetCountBase_, meshIx);
 
 		for (let pgix = 0; pgix < offsetCount[1]; ++pgix) {
 			const pgOffset = pgix + offsetCount[0];

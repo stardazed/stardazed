@@ -4,8 +4,7 @@
 // https://github.com/stardazed/stardazed-tx
 
 import { assert } from "core/util";
-import { copyIndexedVec3, setIndexedVec3 } from "math/primarray";
-import { vec3 } from "math/vec3";
+import { vec3, va } from "math/veclib";
 import { VertexAttributeRole } from "mesh/types";
 import { VertexBuffer, VertexBufferAttributeView } from "mesh/vertexbuffer";
 import { IndexBuffer, IndexBufferTriangleView, TriangleProxy } from "mesh/indexbuffer";
@@ -153,28 +152,28 @@ export function calcVertexTangentsViews(
 		// tan1[a] += sdir;
 		// tan1[b] += sdir;
 		// tan1[c] += sdir;
-		const tan1a = copyIndexedVec3(tan1, a);
-		const tan1b = copyIndexedVec3(tan1, b);
-		const tan1c = copyIndexedVec3(tan1, c);
-		setIndexedVec3(tan1, a, vec3.add(tan1a, tan1a, sdir));
-		setIndexedVec3(tan1, b, vec3.add(tan1b, tan1b, sdir));
-		setIndexedVec3(tan1, c, vec3.add(tan1c, tan1c, sdir));
+		const tan1a = va.copyIndexedVec3(tan1, a);
+		const tan1b = va.copyIndexedVec3(tan1, b);
+		const tan1c = va.copyIndexedVec3(tan1, c);
+		va.setIndexedVec3(tan1, a, vec3.add(tan1a, tan1a, sdir));
+		va.setIndexedVec3(tan1, b, vec3.add(tan1b, tan1b, sdir));
+		va.setIndexedVec3(tan1, c, vec3.add(tan1c, tan1c, sdir));
 
 		// tan2[a] += tdir;
 		// tan2[b] += tdir;
 		// tan2[c] += tdir;
-		const tan2a = copyIndexedVec3(tan2, a);
-		const tan2b = copyIndexedVec3(tan2, b);
-		const tan2c = copyIndexedVec3(tan2, c);
-		setIndexedVec3(tan2, a, vec3.add(tan2a, tan2a, tdir));
-		setIndexedVec3(tan2, b, vec3.add(tan2b, tan2b, tdir));
-		setIndexedVec3(tan2, c, vec3.add(tan2c, tan2c, tdir));
+		const tan2a = va.copyIndexedVec3(tan2, a);
+		const tan2b = va.copyIndexedVec3(tan2, b);
+		const tan2c = va.copyIndexedVec3(tan2, c);
+		va.setIndexedVec3(tan2, a, vec3.add(tan2a, tan2a, tdir));
+		va.setIndexedVec3(tan2, b, vec3.add(tan2b, tan2b, tdir));
+		va.setIndexedVec3(tan2, c, vec3.add(tan2c, tan2c, tdir));
 	});
 
 	for (let ix = 0; ix < vertexCount; ++ix) {
 		const n = normView.copyItem(ix);
-		const t = copyIndexedVec3(tan1, ix);
-		const t2 = copyIndexedVec3(tan2, ix);
+		const t = va.copyIndexedVec3(tan1, ix);
+		const t2 = va.copyIndexedVec3(tan2, ix);
 
 		// Gram-Schmidt orthogonalize, specify standard normal in case n or t = 0
 		const tangent = vec3.normalize([0, 0, 1], vec3.sub([], t, vec3.scale([], n, vec3.dot(n, t))));

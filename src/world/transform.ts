@@ -6,10 +6,7 @@
 import { assert } from "core/util";
 import { SInt32, Float } from "core/numeric";
 import { TypedArray, ArrayOfNumber } from "core/array";
-import { Float3, Float4, Float4x4, copyIndexedVec3, copyIndexedVec4, copyIndexedMat4, refIndexedMat4 } from "math/primarray";
-import { vec3 } from "math/vec3";
-import { quat } from "math/quat";
-import { mat4 } from "math/mat4";
+import { vec3, mat4, quat, va } from "math/veclib";
 import { MABField, MultiArrayBuffer, InvalidatePointers } from  "container/multiarraybuffer";
 import { Instance, InstanceRange, InstanceLinearRange, InstanceSet, InstanceArrayView, InstanceIterator, ComponentManager } from "world/instance";
 import { Entity, entityIndex } from "world/entity";
@@ -21,9 +18,9 @@ export type TransformIterator = InstanceIterator<TransformManager>;
 export type TransformArrayView = InstanceArrayView<TransformManager>;
 
 export interface TransformDescriptor {
-	position: Float3;
-	rotation?: Float4;
-	scale?: Float3;
+	position: va.Float3;
+	rotation?: va.Float4;
+	scale?: va.Float3;
 }
 
 
@@ -205,24 +202,24 @@ export class TransformManager implements ComponentManager<TransformManager> {
 	prevSibling(inst: TransformInstance): TransformInstance { return this.prevSiblingBase_[<number>inst]; }
 	nextSibling(inst: TransformInstance): TransformInstance { return this.nextSiblingBase_[<number>inst]; }
 
-	localPosition(inst: TransformInstance) { return copyIndexedVec3(this.positionBase_, <number>inst); }
-	localRotation(inst: TransformInstance) { return copyIndexedVec4(this.rotationBase_, <number>inst); }
-	localScale(inst: TransformInstance) { return copyIndexedVec3(this.scaleBase_, <number>inst); }
+	localPosition(inst: TransformInstance) { return va.copyIndexedVec3(this.positionBase_, <number>inst); }
+	localRotation(inst: TransformInstance) { return va.copyIndexedVec4(this.rotationBase_, <number>inst); }
+	localScale(inst: TransformInstance) { return va.copyIndexedVec3(this.scaleBase_, <number>inst); }
 
 	worldPosition(inst: TransformInstance): number[] {
 		const matOffset = <number>inst * 16;
 		return [this.worldMatrixBase_[matOffset + 12], this.worldMatrixBase_[matOffset + 13], this.worldMatrixBase_[matOffset + 14]];
 	}
 
-	localMatrix(inst: TransformInstance) { return refIndexedMat4(this.localMatrixBase_, <number>inst); }
-	worldMatrix(inst: TransformInstance) { return refIndexedMat4(this.worldMatrixBase_, <number>inst); }
+	localMatrix(inst: TransformInstance) { return va.refIndexedMat4(this.localMatrixBase_, <number>inst); }
+	worldMatrix(inst: TransformInstance) { return va.refIndexedMat4(this.worldMatrixBase_, <number>inst); }
 
-	copyLocalMatrix(inst: TransformInstance) { return copyIndexedMat4(this.localMatrixBase_, <number>inst); }
-	copyWorldMatrix(inst: TransformInstance) { return copyIndexedMat4(this.worldMatrixBase_, <number>inst); }
+	copyLocalMatrix(inst: TransformInstance) { return va.copyIndexedMat4(this.localMatrixBase_, <number>inst); }
+	copyWorldMatrix(inst: TransformInstance) { return va.copyIndexedMat4(this.worldMatrixBase_, <number>inst); }
 
 
 	// update the world matrices of inst and all of its children
-	private applyParentTransform(parentMatrix: Float4x4, inst: TransformInstance) {
+	private applyParentTransform(parentMatrix: va.Float4x4, inst: TransformInstance) {
 		const localMat = this.localMatrix(inst);
 		const worldMat = this.worldMatrix(inst);
 		mat4.multiply(worldMat, parentMatrix, localMat);
@@ -236,10 +233,10 @@ export class TransformManager implements ComponentManager<TransformManager> {
 
 
 	// two overloads: one with new matrix, one with transform components
-	setLocalMatrix(inst: TransformInstance, newLocalMatrix: Float4x4): void;
-	setLocalMatrix(inst: TransformInstance, newRotation: Float4, newPosition: Float3, newScale: Float3): void;
-	setLocalMatrix(inst: TransformInstance, localMatOrRot: ArrayOfNumber, newPosition?: Float3, newScale?: Float3) {
-		const localMat = refIndexedMat4(this.localMatrixBase_, <number>inst);
+	setLocalMatrix(inst: TransformInstance, newLocalMatrix: va.Float4x4): void;
+	setLocalMatrix(inst: TransformInstance, newRotation: va.Float4, newPosition: va.Float3, newScale: va.Float3): void;
+	setLocalMatrix(inst: TransformInstance, localMatOrRot: ArrayOfNumber, newPosition?: va.Float3, newScale?: va.Float3) {
+		const localMat = va.refIndexedMat4(this.localMatrixBase_, <number>inst);
 		if (arguments.length == 4) {
 			mat4.fromRotationTranslationScale(localMat, localMatOrRot, newPosition!, newScale!);
 		}
@@ -319,28 +316,28 @@ export class TransformManager implements ComponentManager<TransformManager> {
 	}
 
 
-	setPosition(inst: TransformInstance, newPosition: Float3) {
+	setPosition(inst: TransformInstance, newPosition: va.Float3) {
 		this.positionBase_.set(newPosition, <number>inst * vec3.ELEMENT_COUNT);
 		this.setLocalMatrix(inst, this.localRotation(inst), newPosition, this.localScale(inst));
 	}
 
-	setRotation(inst: TransformInstance, newRotation: Float4) {
+	setRotation(inst: TransformInstance, newRotation: va.Float4) {
 		this.rotationBase_.set(newRotation, <number>inst * quat.ELEMENT_COUNT);
 		this.setLocalMatrix(inst, newRotation, this.localPosition(inst), this.localScale(inst));
 	}
 
-	setPositionAndRotation(inst: TransformInstance, newPosition: Float3, newRotation: Float4) {
+	setPositionAndRotation(inst: TransformInstance, newPosition: va.Float3, newRotation: va.Float4) {
 		this.positionBase_.set(newPosition, <number>inst * vec3.ELEMENT_COUNT);
 		this.rotationBase_.set(newRotation, <number>inst * quat.ELEMENT_COUNT);
 		this.setLocalMatrix(inst, newRotation, newPosition, this.localScale(inst));
 	}
 
-	setScale(inst: TransformInstance, newScale: Float3) {
+	setScale(inst: TransformInstance, newScale: va.Float3) {
 		this.scaleBase_.set(newScale, <number>inst * vec3.ELEMENT_COUNT);
 		this.setLocalMatrix(inst, this.localRotation(inst), this.localPosition(inst), newScale);
 	}
 
-	setPositionAndRotationAndScale(inst: TransformInstance, newPosition: Float3, newRotation: Float4, newScale: Float3) {
+	setPositionAndRotationAndScale(inst: TransformInstance, newPosition: va.Float3, newRotation: va.Float4, newScale: va.Float3) {
 		this.positionBase_.set(newPosition, <number>inst * vec3.ELEMENT_COUNT);
 		this.rotationBase_.set(newRotation, <number>inst * quat.ELEMENT_COUNT);
 		this.scaleBase_.set(newScale, <number>inst * vec3.ELEMENT_COUNT);
@@ -350,20 +347,20 @@ export class TransformManager implements ComponentManager<TransformManager> {
 
 	// -- relative transform helpers
 
-	translate(inst: TransformInstance, localDelta3: Float3) {
+	translate(inst: TransformInstance, localDelta3: va.Float3) {
 		const pos = this.localPosition(inst);
 		this.setPosition(inst, [pos[0] + localDelta3[0], pos[1] + localDelta3[1], pos[2] + localDelta3[2]]);
 	}
 
-	rotate(inst: TransformInstance, localRot: Float4) {
+	rotate(inst: TransformInstance, localRot: va.Float4) {
 		this.setRotation(inst, quat.multiply([], this.localRotation(inst), localRot));
 	}
 
-	rotateRelWorld(inst: TransformInstance, worldRot: Float4) {
+	rotateRelWorld(inst: TransformInstance, worldRot: va.Float4) {
 		this.setRotation(inst, quat.multiply([], worldRot, this.localRotation(inst)));
 	}
 
-	rotateByAngles(inst: TransformInstance, localAng: Float3) {
+	rotateByAngles(inst: TransformInstance, localAng: va.Float3) {
 		const rot = this.localRotation(inst);
 		const q = quat.fromEuler(localAng[2], localAng[1], localAng[0]);
 		this.setRotation(inst, quat.multiply([], rot, q));

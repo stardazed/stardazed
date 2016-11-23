@@ -3,7 +3,7 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-import { Float4 } from "math/primarray";
+import { va } from "math/veclib";
 import { VertexAttributeRole } from "mesh/types";
 import { PixelFormat } from "render/pixelformat";
 
@@ -46,7 +46,7 @@ export interface ColourBlendingDescriptor {
 	destRGBFactor: BlendFactor;
 	destAlphaFactor: BlendFactor;
 
-	constantColour: Float4;
+	constantColour: va.Float4;
 }
 
 

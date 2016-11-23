@@ -19,10 +19,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
 import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "core/array";
-import { EPSILON } from "math/util";
-import { mat3 } from "math/mat3";
-import { vec3 } from "math/vec3";
-import { vec4 } from "math/vec4";
+import { EPSILON } from "./util";
+import { mat3 } from "./mat3";
+import { vec3 } from "./vec3";
+import { vec4 } from "./vec4";
 
 namespace quat {
 
