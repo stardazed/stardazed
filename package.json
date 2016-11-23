@@ -5,5 +5,11 @@
   "main": "stardazed-tx.ts",
   "repository": "git@github.com:stardazed/stardazed-tx.git",
   "author": "Arthur Langereis <puurtuur@me.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "rollup-stream": "^1.14.0",
+    "vinyl-source-stream": "^1.1.0"
+  }
 }
