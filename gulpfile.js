@@ -14,7 +14,17 @@ gulp.task("default", function() {
 	return rollup({
 		entry: "build/es5/stardazed-tx.js",
 		format: "iife",
-		moduleName: "sd"
+		moduleName: "sd",
+		plugins: [
+			{
+				// allow for TS module refs that are relative paths from the tsconfig src
+				resolveId: function(importee, importer) {
+					if (importee[0] !== "." && importee.indexOf(".") === -1) {
+						return __dirname + "/build/es5/" + importee + ".js";
+					}
+				}
+			}
+		]
 	})
 	.pipe(source("stardazed-tx.js"))
 	.pipe(gulp.dest("dist"));
