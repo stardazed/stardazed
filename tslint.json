@@ -1,7 +1,7 @@
 {
 	"rules": {
 		/* TypeScript Specific */
-		"adjacent-overload-signatures": false, // is buggy
+		"adjacent-overload-signatures": true, // let's try this again (was buggy)
 		"member-access": false,
 		"member-ordering": false,
 		"no-any": false,
@@ -51,7 +51,8 @@
 		"no-unsafe-finally": true,
 		"no-unused-expression": true,
 		"no-unused-new": true,
-		"no-var-keyword": false,
+		"no-var-keyword": true,
+		"prefer-for-of": true,
 		"radix": false,
 		"restrict-plus-operands": false, // sublimeliner-tslint does not enable type checking
 		"switch-default": false,
@@ -64,12 +65,14 @@
 		"linebreak-style": [true, "LF"],
 		"max-file-line-count": false,
 		"max-line-length": false,
-		"no-default-export": true,
+		"no-default-export": false,
 		"no-mergeable-namespace": false, // is buggy
 		"no-require-imports": true,
 		"no-trailing-whitespace": true,
 		"object-literal-sort-keys": false,
 		"trailing-comma": false,
+		"cyclomatic-complexity": [true, 30],
+		"completed-docs": false,
 
 		/* Style */
 		"align": [true, "parameters", "arguments", "statements"],
@@ -81,8 +84,8 @@
 		"jsdoc-format": true,
 		"new-parens": true,
 		"no-angle-bracket-type-assertion": false,
-		"no-consecutive-blank-lines": false,
-		"no-constructor-vars": false,
+		"no-consecutive-blank-lines": [true, 2],
+		"no-parameter-properties": false,
 		"object-literal-key-quotes": false,
 		"object-literal-shorthand": false,
 		"one-line": false,
@@ -91,6 +94,6 @@
 		"quotemark": [true, "double", "avoid-escape"],
 		"semicolon": [true, "always"],
 		"variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-trailing-underscore", "allow-pascal-case"],
-		"whitespace": ["check-branch", "check-decl", "check-operator", "check-module", "check-separator", "check-type"]
+		"whitespace": [true, "check-branch", "check-decl", "check-operator", "check-module", "check-separator", "check-type"]
 	}
 }

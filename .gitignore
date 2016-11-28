@@ -1,6 +1,5 @@
 .DS_Store
-build/*.js
-build/*.ts
-test/build/*.js
-test/inquisition/build/*.js
-test/inquisition/build/*.d.ts
+build/
+test/build/
+test/inquisition/build/
+node_modules

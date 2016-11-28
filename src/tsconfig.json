@@ -1,9 +1,13 @@
 {
     "compilerOptions": {
-        "module": "amd",
+        "module": "es6",
         "target": "es5",
-        "rootDir": "src",
-        "outFile": "../build/stardazed-tx.js",
+        "rootDir": ".",
+        "outDir": "../build/es5/",
+
+        "declaration": true,
+        "declarationDir": "../build/decls/",
+
         "noEmitOnError": true,
         "diagnostics": false,
         "listFiles": false,
@@ -17,14 +21,16 @@
         "noImplicitThis": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
+        "typeRoots": [
+            "../typings"
+        ],
 
         "lib": ["es5", "dom", "es2015.core", "es2015.iterable", "es2015.collection", "es2015.promise"],
         "skipLibCheck": true,
         "skipDefaultLibCheck": false,
  
         "removeComments": true,
-        "sourceMap": false,
-        "declaration": true
+        "sourceMap": false
     },
     "exclude": [
         "build"

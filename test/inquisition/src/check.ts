@@ -101,7 +101,7 @@ namespace inquisition {
 
 
 		export function throws(throwable: any, insideFn: () => void, message?: string) {
-			var didThrow = false;
+			let didThrow = false;
 			try {
 				insideFn();
 			}
