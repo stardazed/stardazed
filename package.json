@@ -9,6 +9,9 @@
   "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-concat": "^2.6.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-wrap": "^0.13.0",
+    "merge-stream": "^1.0.1",
     "rollup-stream": "^1.14.0",
     "vinyl-source-stream": "^1.1.0"
   }
