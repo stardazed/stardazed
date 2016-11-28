@@ -4,6 +4,10 @@
         "target": "es5",
         "rootDir": ".",
         "outDir": "../build/es5/",
+
+        "declaration": true,
+        "declarationDir": "../build/decls/",
+
         "noEmitOnError": true,
         "diagnostics": false,
         "listFiles": false,
@@ -26,8 +30,7 @@
         "skipDefaultLibCheck": false,
  
         "removeComments": true,
-        "sourceMap": false,
-        "declaration": false
+        "sourceMap": false
     },
     "exclude": [
         "build"
