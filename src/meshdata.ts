@@ -3,8 +3,6 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="../defs/webgl-ext.d.ts" />
-
 /// <reference path="core.ts" />
 /// <reference path="math.ts" />
 /// <reference path="numeric.ts" />
