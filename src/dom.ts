@@ -30,17 +30,21 @@ namespace sd.dom {
 	export function enable(sel: ElemSelector) { setDisabled(sel, false); }
 	export function disable(sel: ElemSelector) { setDisabled(sel, true); }
 
-	export function closest(sourceSel: ElemSelector, sel: string): HTMLElement | null {
-		var source = <Node>($1(sourceSel));
+	export function closest(sourceSel: ElemSelector, sel: string): HTMLElement | undefined {
+		let source = <HTMLElement | undefined>($1(sourceSel));
 
-		if ((<Element>source).closest) {
-			return <HTMLElement>(<Element>source).closest(sel);
+		if (! source) {
+			return undefined;
+		}
+
+		if (source.closest) {
+			return source.closest(sel) as HTMLElement;
 		}
 
 		do {
-			source = source.parentNode;
-			if (source.nodeType != Node.ELEMENT_NODE) {
-				return null;
+			source = source.parentNode ? source.parentNode as HTMLElement : undefined;
+			if (!source || source.nodeType !== Node.ELEMENT_NODE) {
+				return undefined;
 			}
 			const elem = <HTMLElement>source;
 			const matchFn = elem.matches || elem.webkitMatchesSelector || elem.msMatchesSelector;
@@ -49,10 +53,10 @@ namespace sd.dom {
 			}
 		} while (source);
 
-		return null;
+		return undefined;
 	}
 
-	export function nextElementSibling(elem: HTMLElement): HTMLElement | null {
+	export function nextElementSibling(elem: HTMLElement): HTMLElement | undefined {
 		while (elem) {
 			elem = <HTMLElement>(elem.nextSibling);
 			if (elem && elem.nodeType == Node.ELEMENT_NODE) {
@@ -60,7 +64,7 @@ namespace sd.dom {
 			}
 		}
 
-		return null;
+		return undefined;
 	}
 
 

@@ -114,7 +114,7 @@ namespace mrdoob {
 		}
 
 		updateGraph(elem: HTMLDivElement, value: number) {
-			const child = <HTMLDivElement>elem.appendChild(elem.firstChild);
+			const child = <HTMLDivElement>elem.appendChild(elem.firstChild!);
 			child.style.height = `${value}px`;
 		}
 
