@@ -1,4 +1,4 @@
-// dom.ts - DOM helpers and interface extensions
+// tools/dom - DOM helpers and interface extensions
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
