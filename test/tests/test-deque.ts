@@ -4,7 +4,7 @@
 
 group("Deque", () => {
 	beforeAll(() => {
-		return new Promise(resolve => {
+		return new Promise<void>(resolve => {
 			console.info("BEFORE_ALL");
 			setTimeout(resolve, 100);
 		});
