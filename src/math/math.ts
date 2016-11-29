@@ -4,7 +4,7 @@
 // https://github.com/stardazed/stardazed-tx
 
 /// <reference path="../../typings/veclib.d.ts" />
-/// <reference path="../core/numeric.ts" />
+/// <reference path="../core/array.ts" />
 
 namespace sd {
 	export const vec2 = veclib.vec2;
@@ -14,28 +14,6 @@ namespace sd {
 	export const mat2 = veclib.mat2;
 	export const mat3 = veclib.mat3;
 	export const mat4 = veclib.mat4;
-
-	export type MutableArrayLike<T> = veclib.MutableArrayLike<T>;
-
-	export type ArrayOfNumber = veclib.ArrayOfNumber;
-	export type ArrayOfConstNumber = veclib.ArrayOfConstNumber;
-
-	// types to use in function signatures to not have ArrayOfNumber everywhere
-	export type Float2 = ArrayOfNumber;
-	export type Float3 = ArrayOfNumber;
-	export type Float4 = ArrayOfNumber;
-
-	export type Float2x2 = ArrayOfNumber;
-	export type Float3x3 = ArrayOfNumber;
-	export type Float4x4 = ArrayOfNumber;
-
-	export type ConstFloat2 = ArrayOfConstNumber;
-	export type ConstFloat3 = ArrayOfConstNumber;
-	export type ConstFloat4 = ArrayOfConstNumber;
-
-	export type ConstFloat2x2 = ArrayOfConstNumber;
-	export type ConstFloat3x3 = ArrayOfConstNumber;
-	export type ConstFloat4x4 = ArrayOfConstNumber;
 } // ns sd
 
 

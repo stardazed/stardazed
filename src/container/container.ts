@@ -3,36 +3,8 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="../core/core.ts" />
+/// <reference path="../core/array.ts" />
 /// <reference path="../math/math.ts" />
-
-interface ArrayBufferConstructor {
-	// proposed for ES7
-	transfer(oldBuffer: ArrayBuffer, newByteLength?: number): ArrayBuffer;
-}
-
-if (! ArrayBuffer.transfer) {
-	ArrayBuffer.transfer = function(oldBuffer: ArrayBuffer, newByteLength?: number) {
-		// This placeholder implementation cannot detach `oldBuffer`'s storage
-		// but `oldBuffer` is to be treated as a moved-from value in C++ terms
-		// after calling transfer.
-
-		const oldByteLength = oldBuffer.byteLength;
-		newByteLength = newByteLength | 0;
-		sd.assert(newByteLength > 0);
-
-		if (newByteLength < oldByteLength) {
-			return oldBuffer.slice(0, newByteLength);
-		}
-
-		const oldBufferView = new Uint8Array(oldBuffer);
-		const newBufferView = new Uint8Array(newByteLength); // also creates new ArrayBuffer
-		newBufferView.set(oldBufferView);
-
-		return newBufferView.buffer;
-	};
-}
-
 
 namespace sd.container {
 
