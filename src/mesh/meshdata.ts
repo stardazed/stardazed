@@ -3,7 +3,6 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="../core/core.ts" />
 /// <reference path="../core/numeric.ts" />
 /// <reference path="../math/math.ts" />
 

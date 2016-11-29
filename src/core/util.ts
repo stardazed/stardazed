@@ -1,4 +1,4 @@
-// core - common helpers and types
+// core/util - common helpers and types
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
@@ -21,26 +21,26 @@ namespace sd {
 
 	// Shallow clone an object. Use only for simple struct types.
 	export function cloneStruct<T>(object: T): T {
-		const copy = {};
+		const copy: any = {};
 		Object.getOwnPropertyNames(object).forEach(name => {
-			(<any>copy)[name] = (<any>object)[name];
+			copy[name] = (object as any)[name];
 		});
-		return <T>copy;
+		return copy as T;
 	}
 
 
 	// Deep clone an object. Use only for simple struct types.
 	export function cloneStructDeep<T>(object: T): T {
-		const copy = {};
+		const copy: any = {};
 		Object.getOwnPropertyNames(object).forEach(name => {
-			if (typeof (<any>object)[name] === "object") {
-				(<any>copy)[name] = cloneStructDeep((<any>object)[name]);
+			if (typeof (object as any)[name] === "object") {
+				copy[name] = cloneStructDeep((object as any)[name]);
 			}
 			else {
-				(<any>copy)[name] = (<any>object)[name];
+				copy[name] = (object as any)[name];
 			}
 		});
-		return <T>copy;
+		return copy as T;
 	}
 
 
