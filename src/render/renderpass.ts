@@ -3,11 +3,6 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="renderpass-desc.ts"/>
-/// <reference path="pipeline.ts"/>
-/// <reference path="framebuffer.ts"/>
-/// <reference path="rendercontext.ts"/>
-
 namespace sd.render {
 
 	export function runRenderPass(rc: RenderContext, meshMgr: world.MeshManager, rpDesc: RenderPassDescriptor, frameBuffer: FrameBuffer | null, passFunc: (rp: RenderPass) => void) {

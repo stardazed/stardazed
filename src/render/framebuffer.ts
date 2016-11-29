@@ -3,10 +3,6 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="framebuffer-desc.ts"/>
-/// <reference path="texture.ts"/>
-/// <reference path="rendercontext.ts"/>
-
 namespace sd.render {
 
 	const fboBugs = {

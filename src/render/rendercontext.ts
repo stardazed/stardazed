@@ -4,7 +4,6 @@
 // https://github.com/stardazed/stardazed-tx
 
 /// <reference path="../../typings/webgl-ext.d.ts"/>
-/// <reference path="pixelformat.ts"/>
 
 namespace sd.render {
 

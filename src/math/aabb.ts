@@ -3,8 +3,6 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="math.ts" />
-
 namespace sd.math {
 
 	export namespace aabb {

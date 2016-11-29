@@ -4,7 +4,6 @@
 // https://github.com/stardazed/stardazed-tx
 
 /// <reference path="../../typings/veclib.d.ts" />
-/// <reference path="../core/array.ts" />
 
 namespace sd {
 	export const vec2 = veclib.vec2;

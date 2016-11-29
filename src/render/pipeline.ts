@@ -3,9 +3,6 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="pipeline-desc.ts"/>
-/// <reference path="rendercontext.ts"/>
-
 namespace sd.render {
 
 	function glBlendEqForBlendOperation(rc: RenderContext, op: BlendOperation) {

@@ -3,6 +3,9 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+/// <reference path="../core/util.ts" />
+/// <reference path="../math/math.ts" />
+
 namespace sd.container {
 
 	export interface MABField {

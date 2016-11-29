@@ -3,9 +3,6 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="../core/array.ts" />
-/// <reference path="../math/math.ts" />
-
 namespace sd.container {
 
 	export function copyElementRange<T>(src: ArrayLike<T>, srcOffset: number, srcCount: number, dest: MutableArrayLike<T>, destOffset: number) {
