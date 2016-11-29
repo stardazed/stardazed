@@ -1,7 +1,8 @@
-/**
- * @author mrdoob / http://mrdoob.com/
- * converted to TypeScript by Arthur Langereis (@zenmumbler)
- */
+// ext/stats - simple fps display
+// Part of Stardazed TX
+// (c) mrdoob / http://mrdoob.com/
+// converted to TypeScript for direct inclusion in SDTX by Arthur Langereis (@zenmumbler) 
+// https://github.com/stardazed/stardazed-tx
 
 namespace mrdoob {
 

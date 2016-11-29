@@ -1,9 +1,7 @@
-// mesh.ts - Mesh component
+// world/mesh - Mesh component
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
-
-/// <reference path="../render/rendercontext.ts"/>
 
 namespace sd.world {
 

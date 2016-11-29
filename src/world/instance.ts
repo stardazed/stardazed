@@ -1,4 +1,4 @@
-// instance - instances, ranges, iterators and manager interface
+// world/instance - instances, ranges, iterators and manager interface
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx

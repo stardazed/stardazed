@@ -1,4 +1,4 @@
-// AABB (Axis-Aligned Bounding Box)
+// math/aabb (Axis-Aligned Bounding Box)
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx

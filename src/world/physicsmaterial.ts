@@ -1,4 +1,4 @@
-// physicsmaterial - Physics Material asset
+// world/physicsmaterial - Physics Material asset
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx

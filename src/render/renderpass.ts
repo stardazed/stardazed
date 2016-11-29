@@ -1,4 +1,4 @@
-// renderpass - RenderPass objects
+// render/renderpass - RenderPass objects
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
@@ -23,8 +23,8 @@ namespace sd.render {
 			default:
 				assert(false, "Invalid IndexElementType");
 				return rc.gl.NONE;
-		}
 	}
+		}
 
 
 	function glTypeForPrimitiveType(rc: render.RenderContext, pt: meshdata.PrimitiveType) {

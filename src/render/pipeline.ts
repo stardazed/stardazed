@@ -1,4 +1,4 @@
-// pipeline - pipeline objects
+// render/pipeline - pipeline objects
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
