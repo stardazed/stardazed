@@ -1,9 +1,9 @@
-// asset-image.ts - built-in and custom image loaders
+// asset/loader/image - built-in and custom image loaders
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="asset.ts" />
+/// <reference path="../registry.ts" />
 
 namespace sd.asset {
 

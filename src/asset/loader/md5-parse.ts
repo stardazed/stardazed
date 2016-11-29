@@ -1,4 +1,4 @@
-// asset-md5-parse.ts - MD5 mesh and anim tokenizer and parsers
+// asset/loader/md5-parse - MD5 mesh and anim tokenizer and parsers
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx

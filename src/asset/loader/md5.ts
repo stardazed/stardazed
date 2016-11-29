@@ -1,9 +1,9 @@
-// asset-md5.ts - MD5 file import driver
+// asset/loader/md5 - MD5 file import driver
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="asset.ts" />
+/// <reference path="../registry.ts" />
 
 namespace sd.asset {
 

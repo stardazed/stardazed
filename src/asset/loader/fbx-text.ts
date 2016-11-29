@@ -1,4 +1,4 @@
-// asset-fbx-text.ts - FBX text file tokenizer and parser
+// asset/loader/fbx-text - FBX text file tokenizer and parser
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx

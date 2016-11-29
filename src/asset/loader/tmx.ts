@@ -1,7 +1,9 @@
-// asset-tmx - Tiled (mapeditor.org) TMX files and types
+// asset/loader/tmx - Tiled (mapeditor.org) TMX files and types
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
+
+/// <reference path="../registry.ts" />
 
 namespace sd.asset {
 

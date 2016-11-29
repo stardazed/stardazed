@@ -1,9 +1,9 @@
-// asset-obj.ts - Wavefront OBJ mesh file + MTL material file import
+// asset/loader/obj - Wavefront OBJ mesh file + MTL material file import
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="asset.ts" />
+/// <reference path="../registry.ts" />
 
 namespace sd.asset {
 

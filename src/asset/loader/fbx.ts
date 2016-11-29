@@ -1,9 +1,9 @@
-// asset-fbx.ts - FBX file import driver
+// asset/loader/fbx - FBX file import driver
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="asset.ts" />
+/// <reference path="../registry.ts" />
 
 namespace sd.asset {
 
@@ -339,7 +339,7 @@ namespace sd.asset {
 					};
 
 					if (fileData) {
-						const mime = tex.url ? mimeTypeOfURL(tex.url) : "";
+						const mime = tex.url ? mimeTypeForURL(tex.url) : "";
 						if (! mime) {
 							const err = `Cannot create texture, no mime-type found for file path ${tex.url}`;
 							if (options.allowMissingTextures) {
