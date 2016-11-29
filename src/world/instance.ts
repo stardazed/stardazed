@@ -55,7 +55,7 @@ namespace sd.world {
 		}
 
 		addRange(inst: Instance<Component>, count: number) {
-			var index = <number>inst;
+			let index = <number>inst;
 			const upto = index + count;
 			while (index < upto) {
 				this.data_.add(index);
@@ -74,7 +74,7 @@ namespace sd.world {
 		}
 
 		removeRange(inst: Instance<Component>, count: number) {
-			var index = <number>inst;
+			let index = <number>inst;
 			const upto = index + count;
 			while (index < upto) {
 				this.data_.delete(index);
@@ -134,7 +134,7 @@ namespace sd.world {
 		}
 
 		forEach(fn: (inst: Instance<Component>) => void, thisObj?: any): void {
-			var index = <number>this.first;
+			let index = <number>this.first;
 			const end = <number>this.last;
 
 			if (index > 0) {

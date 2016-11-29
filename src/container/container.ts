@@ -53,8 +53,8 @@ namespace sd.container {
 	export function appendArrayInPlace<T>(dest: Array<T>, source: Array<T>) {
 		const MAX_BLOCK_SIZE = 65535;
 
-		var offset = 0;
-		var itemsLeft = source.length;
+		let offset = 0;
+		let itemsLeft = source.length;
 
 		if (itemsLeft <= MAX_BLOCK_SIZE) {
 			dest.push.apply(dest, source);

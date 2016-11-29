@@ -30,9 +30,8 @@ namespace sd.container {
 		private elementSumSize_ = 0;
 		private data_: ArrayBuffer | null = null;
 
-
 		constructor(initialCapacity: number, fields: MABField[]) {
-			var totalOffset = 0;
+			let totalOffset = 0;
 			this.fields_ = fields.map(field => {
 				const curOffset = totalOffset;
 				const sizeBytes = field.type.byteSize * field.count;
@@ -85,7 +84,7 @@ namespace sd.container {
 			const newData = new ArrayBuffer(newCapacity * this.elementSumSize_);
 			assert(newData);
 
-			var invalidation = InvalidatePointers.No;
+			let invalidation = InvalidatePointers.No;
 			if (this.data_) {
 				// Since a capacity change will change the length of each array individually
 				// we need to re-layout the data in the new buffer.
@@ -130,7 +129,7 @@ namespace sd.container {
 
 
 		resize(newCount: number): InvalidatePointers {
-			var invalidation = InvalidatePointers.No;
+			let invalidation = InvalidatePointers.No;
 
 			if (newCount > this.capacity_) {
 				// automatically expand up to next highest power of 2 size
@@ -155,7 +154,7 @@ namespace sd.container {
 
 
 		extend(): InvalidatePointers {
-			var invalidation = InvalidatePointers.No;
+			let invalidation = InvalidatePointers.No;
 
 			if (this.count_ == this.capacity_) {
 				invalidation = this.reserve(this.capacity_ * 2);

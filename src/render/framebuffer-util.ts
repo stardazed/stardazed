@@ -30,7 +30,7 @@ namespace sd.render {
 		fbad.width = width;
 		fbad.height = height;
 
-		var pixFmt: PixelFormat;
+		let pixFmt: PixelFormat;
 		if (desc.pixelComponent == FBOPixelComponent.HalfFloat) {
 			pixFmt = PixelFormat.RGBA16F;
 		}

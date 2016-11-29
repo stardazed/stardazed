@@ -93,7 +93,7 @@ namespace sd.render {
 
 
 	export function makeRenderContext(canvas: HTMLCanvasElement): RenderContext | null {
-		var gl: WebGLRenderingContext | null;
+		let gl: WebGLRenderingContext | null;
 
 		// try and create the 3D context
 		const contextAttrs: WebGLContextAttributes = {

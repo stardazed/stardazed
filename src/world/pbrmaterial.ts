@@ -105,7 +105,7 @@ namespace sd.world {
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
-			var flags: PBRMaterialFlags = 0;
+			let flags: PBRMaterialFlags = 0;
 			if (desc.roughnessTexture) { flags |= PBRMaterialFlags.RoughnessMap; }
 			if (desc.metallicTexture) { flags |= PBRMaterialFlags.MetallicMap; }
 			if (desc.ambientOcclusionTexture) { flags |= PBRMaterialFlags.AmbientOcclusionMap; }

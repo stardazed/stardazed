@@ -104,8 +104,8 @@ namespace sd.world {
 			frameIndexB %= anim.frameCount;
 			ratio = math.clamp01(ratio);
 
-			var posA: sd.Float3 | null, posB: sd.Float3 | null, posI: sd.Float3 = [];
-			var rotA: sd.Float4 | null, rotB: sd.Float4 | null, rotI: sd.Float4 = [];
+			let posA: sd.Float3 | null, posB: sd.Float3 | null, posI: sd.Float3 = [];
+			let rotA: sd.Float4 | null, rotB: sd.Float4 | null, rotI: sd.Float4 = [];
 			for (const j of anim.jointAnims) {
 				posA = posB = null;
 				rotA = rotB = null;

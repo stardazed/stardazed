@@ -658,7 +658,7 @@ namespace sd.world {
 			if_all("	baseColour *= vertexColour_intp;", Features.VtxColour);
 
 
-			var hasRMAMap = false;
+			let hasRMAMap = false;
 			if (feat & (Features.MetallicMap | Features.RoughnessMap | Features.AOMap)) {
 				line("	vec4 matParam = texture2D(materialMap, si.UV);");
 				hasRMAMap = true;
@@ -831,7 +831,7 @@ namespace sd.world {
 
 
 		private featuresForMeshAndMaterial(mesh: world.MeshInstance, material: PBRMaterialInstance): Features {
-			var features = 0;
+			let features = 0;
 
 			const meshFeatures = this.meshMgr_.features(mesh);
 			if (meshFeatures & MeshFeatures.VertexColours) { features |= Features.VtxColour; }
@@ -883,7 +883,7 @@ namespace sd.world {
 			assert(materialCount >= maxLocalMatIndex - 1, "not enough PBRMaterialIndexes for this mesh");
 
 			// -- pre-calc global material indexes and program features for each group
-			var primGroupCount = this.primGroupData_.count;
+			let primGroupCount = this.primGroupData_.count;
 			this.primGroupOffsetBase_[modelIx] = this.primGroupData_.count;
 
 			// -- grow primitiveGroup metadata buffer if necessary
@@ -901,7 +901,7 @@ namespace sd.world {
 
 
 		setRenderFeatureEnabled(feature: RenderFeature, enable: boolean) {
-			var mask: Features = 0;
+			let mask: Features = 0;
 
 			if (feature == RenderFeature.AlbedoMaps) {
 				mask |= Features.AlbedoMap;
@@ -1002,7 +1002,7 @@ namespace sd.world {
 
 		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, lightingQuality: PBRLightingQuality, modelIx: number) {
 			const gl = this.rc.gl;
-			var drawCalls = 0;
+			let drawCalls = 0;
 
 			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
 
@@ -1125,7 +1125,7 @@ namespace sd.world {
 				return 0;
 			}
 
-			var drawCalls = 0;
+			let drawCalls = 0;
 
 			rp.setTexture(environmentMap, TextureBindPoint.Environment);
 			rp.setTexture(this.brdfLookupTex_, TextureBindPoint.BRDFLookup);

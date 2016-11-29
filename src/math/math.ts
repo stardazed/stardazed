@@ -139,8 +139,8 @@ namespace sd.math {
 		intersectsLineSegment(ptA: Float3, ptB: Float3): boolean {
 			const d = [ptB[0] - ptA[0], ptB[1] - ptA[1]];
 
-			var tmin = 0;
-			var tmax = 9999;
+			let tmin = 0;
+			let tmax = 9999;
 
 			for (let i = 0; i < 2; ++i) {
 				if (Math.abs(d[i]) < 0.00001) {

@@ -326,7 +326,7 @@ namespace sd.meshdata {
 		constructor(attrList: VertexAttribute[]) {
 			this.attributeCount_ = attrList.length;
 
-			var offset = 0, maxElemSize = 0;
+			let offset = 0, maxElemSize = 0;
 
 			// calculate positioning of successive attributes in linear item
 			this.attrs_ = attrList.map((attr: VertexAttribute): PositionedAttribute => {
@@ -488,9 +488,9 @@ namespace sd.meshdata {
 			const stride = this.stride_;
 			const elementSize = this.fieldNumType_.byteSize;
 			const firstIndex = this.firstItem_ + offset;
-			var offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * firstIndex) + this.attrOffset_;
-			var sourceIndex = 0;
-			var arrView: TypedArray;
+			let offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * firstIndex) + this.attrOffset_;
+			let sourceIndex = 0;
+			let arrView: TypedArray;
 
 			if (this.attrElementCount_ == 1) {
 				if (stride % elementSize == 0) {
@@ -598,7 +598,7 @@ namespace sd.meshdata {
 
 		copyItem(index: number): number[] {
 			index += this.firstItem_;
-			var offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * index) + this.attrOffset_;
+			let offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * index) + this.attrOffset_;
 			const result: number[] = [];
 
 			switch (this.attr_.field) {
@@ -813,7 +813,7 @@ namespace sd.meshdata {
 		// -- read/write indexes
 		typedBasePtr(baseIndexNr: number, elementCount: number): TypedIndexArray {
 			assert(this.storage_, "No storage allocated yet!");
-			var offsetBytes = this.storageOffsetBytes_ + this.indexElementSizeBytes_ * baseIndexNr;
+			let offsetBytes = this.storageOffsetBytes_ + this.indexElementSizeBytes_ * baseIndexNr;
 
 			if (this.indexElementType_ === IndexElementType.UInt32) {
 				return new Uint32Array(this.storage_!, offsetBytes, elementCount);
@@ -1136,7 +1136,7 @@ namespace sd.meshdata {
 		allocateSingleStorage(vertexBufferItemCounts: number[], elementType: IndexElementType, indexCount: number) {
 			assert(vertexBufferItemCounts.length === this.vertexBuffers.length, "Did not specify exactly 1 item count per VertexBuffer");
 
-			var totalBytes = 0;
+			let totalBytes = 0;
 			for (let vbix = 0; vbix < this.vertexBuffers.length; ++vbix) {
 				totalBytes += this.vertexBuffers[vbix].layout.bytesRequiredForVertexCount(vertexBufferItemCounts[vbix]);
 				totalBytes = math.alignUp(totalBytes, BufferAlignment.SubBuffer);
@@ -1150,7 +1150,7 @@ namespace sd.meshdata {
 
 			const storage = new ArrayBuffer(totalBytes);
 
-			var byteOffset = 0;
+			let byteOffset = 0;
 			for (let vbix = 0; vbix < this.vertexBuffers.length; ++vbix) {
 				this.vertexBuffers[vbix].suballocate(vertexBufferItemCounts[vbix], storage, byteOffset);
 				byteOffset += this.vertexBuffers[vbix].bufferSizeBytes;
@@ -1167,8 +1167,8 @@ namespace sd.meshdata {
 
 
 		findFirstAttributeWithRole(role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | null {
-			var pa: PositionedAttribute | null = null;
-			var avb: VertexBuffer | null = null;
+			let pa: PositionedAttribute | null = null;
+			let avb: VertexBuffer | null = null;
 
 			this.vertexBuffers.forEach((vb) => {
 				if (! pa) {

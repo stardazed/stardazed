@@ -44,8 +44,8 @@ namespace sd.meshdata.gen {
 		}
 
 		const genList = Array.isArray(gens) ? gens : [gens];
-		var totalVertexCount = 0;
-		var totalFaceCount = 0;
+		let totalVertexCount = 0;
+		let totalFaceCount = 0;
 
 		for (const genSource of genList) {
 			const generator: MeshGenerator = ("generator" in genSource) ? (<TransformedMeshGen>genSource).generator : <MeshGenerator>genSource;
@@ -76,7 +76,7 @@ namespace sd.meshdata.gen {
 		const triView = new IndexBufferTriangleView(mesh.indexBuffer);
 
 		// -- data add functions for the generators
-		var posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;
+		let posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;
 
 		const pos2: Vec3AddFn = (x: number, y: number, _z: number) => {
 			const v2 = posView.refItem(posIx);
@@ -287,7 +287,7 @@ namespace sd.meshdata.gen {
 			}
 
 			// -- faces
-			var baseIndex = 0;
+			let baseIndex = 0;
 			const vertexRowCount = this.segs_ + 1;
 
 			for (let z = 0; z < this.rows_; ++z) {
@@ -363,7 +363,7 @@ namespace sd.meshdata.gen {
 			const xh = this.xDiam_ / 2;
 			const yh = this.yDiam_ / 2;
 			const zh = this.zDiam_ / 2;
-			var curVtx = 0;
+			let curVtx = 0;
 
 			// unique positions
 			const p: number[][] = [
@@ -467,7 +467,7 @@ namespace sd.meshdata.gen {
 		}
 
 		get faceCount(): number {
-			var fc = (2 * this.segs_ * this.rows_);
+			let fc = (2 * this.segs_ * this.rows_);
 			if ((this.radiusA_ == 0) || (this.radiusB_ == 0)) {
 				fc -= this.segs_;
 			}
@@ -479,7 +479,7 @@ namespace sd.meshdata.gen {
 		}
 
 		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
-			var vix = 0;
+			let vix = 0;
 			const radiusDiff = this.radiusB_ - this.radiusA_;
 			const tau = Math.PI * 2;
 
@@ -567,7 +567,7 @@ namespace sd.meshdata.gen {
 		}
 
 		get faceCount(): number {
-			var fc = 2 * this.segs_ * this.rows_;
+			let fc = 2 * this.segs_ * this.rows_;
 			if (this.sliceFrom_ == 0.0) {
 				fc -= this.segs_;
 			}
@@ -589,7 +589,7 @@ namespace sd.meshdata.gen {
 			const piFrom = this.sliceFrom_ * pi;
 			const piSlice = slice * pi;
 
-			var vix = 0;
+			let vix = 0;
 			const openTop = this.sliceFrom_ > 0.0;
 			const openBottom = this.sliceTo_ < 1.0;
 
@@ -694,7 +694,7 @@ namespace sd.meshdata.gen {
 			const piFrom = this.sliceFrom_ * tau;
 			const piSlice = slice * tau;
 
-			var vix = 0;
+			let vix = 0;
 			const innerRadius = this.majorRadius_ - this.minorRadius_;
 
 			for (let row = 0; row <= this.rows_; ++row) {

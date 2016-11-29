@@ -288,9 +288,9 @@ namespace sd.asset {
 					});
 
 					const mb = new meshdata.MeshBuilder(positions, null, streams);
-					var triCount = this.triangles.length / 3;
-					var pvi = 0;
-					var pi = 0;
+					let triCount = this.triangles.length / 3;
+					let pvi = 0;
+					let pi = 0;
 					while (triCount--) {
 						mb.addPolygon([pvi, pvi + 1, pvi + 2], container.copyIndexedVec3(this.triangles, pi));
 						pvi += 3;
@@ -430,13 +430,13 @@ namespace sd.asset {
 				}
 				const hasPos = (j.mask & 7) != 0;
 				const hasRot = (j.mask & 56) != 0;
-				var components = 0;
+				let components = 0;
 				if (hasPos) { components += 3; }
 				if (hasRot) { components += 4; }
 
 				const buffer = new Float32Array(components * this.frameCount_);
 				const tracks: TransformAnimationTrack[] = [];
-				var offset = 0;
+				let offset = 0;
 
 				if (hasPos) {
 					tracks.push({
@@ -493,7 +493,7 @@ namespace sd.asset {
 
 
 			frame(index: number, components: Float32Array) {
-				var compIx = 0;
+				let compIx = 0;
 
 				for (let jix = 0; jix < this.joints_.length; ++jix) {
 					const j = this.joints_[jix];

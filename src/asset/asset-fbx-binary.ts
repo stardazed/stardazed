@@ -118,8 +118,8 @@ namespace sd.asset.fbx.parse {
 			const compressedSizeBytes = this.dataView_.getUint32(this.offset_ + 8, true);
 			this.offset_ += 12;
 
-			var array: TypedArray | null = null;
-			var dataSizeBytes = 0;
+			let array: TypedArray | null = null;
+			let dataSizeBytes = 0;
 
 			if (encoding == 0) {
 				dataSizeBytes = element.byteSize * arrayLength;
@@ -162,7 +162,7 @@ namespace sd.asset.fbx.parse {
 		private readValues(header: PropertyHeader): FBXValue[] {
 			const values: FBXValue[] = [];
 			const firstPropOffset = this.offset_;
-			var count = header.valueCount;
+			let count = header.valueCount;
 
 			while (count--) {
 				let val: FBXValue | null;

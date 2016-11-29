@@ -279,14 +279,14 @@ namespace sd.world {
 			}
 			const instance = this.instanceData_.count;
 
-			var meshFeatures: MeshFeatures = 0;
+			let meshFeatures: MeshFeatures = 0;
 
 			const bufferCount = meshData.vertexBuffers.length + (meshData.indexBuffer !== null ? 1 : 0);
-			var bufferIndex = this.bufGLBuffers_.length;
+			let bufferIndex = this.bufGLBuffers_.length;
 			container.setIndexedVec2(this.buffersOffsetCountBase_, instance, [bufferIndex, bufferCount]);
 
 			const attrCount = meshData.vertexBuffers.map(vb => vb.attributeCount).reduce((sum, vbac) => sum + vbac, 0);
-			var attrIndex = this.attributeData_.count;
+			let attrIndex = this.attributeData_.count;
 			if (this.attributeData_.resize(attrIndex + attrCount) === container.InvalidatePointers.Yes) {
 				this.rebaseAttributes();
 			}
@@ -346,14 +346,14 @@ namespace sd.world {
 			// -- cache primitive groups and metadata
 			const primGroupCount = meshData.primitiveGroups.length;
 			assert(primGroupCount > 0, "No primitive groups present in meshData");
-			var primGroupIndex = this.primGroupData_.count;
+			let primGroupIndex = this.primGroupData_.count;
 			if (this.primGroupData_.resize(primGroupIndex + primGroupCount) === container.InvalidatePointers.Yes) {
 				this.rebasePrimGroups();
 			}
 			container.setIndexedVec2(this.primGroupsOffsetCountBase_, instance, [primGroupIndex, primGroupCount]);
 
-			var totalElementCount = 0;
-			var sharedPrimType = meshData.primitiveGroups[0].type;
+			let totalElementCount = 0;
+			let sharedPrimType = meshData.primitiveGroups[0].type;
 
 			for (const pg of meshData.primitiveGroups) {
 				this.pgPrimTypeBase_[primGroupIndex] = pg.type;
@@ -438,8 +438,8 @@ namespace sd.world {
 		bind(inst: MeshInstance, toPipeline: render.Pipeline) {
 			const meshIx = <number>inst;
 			const gl = this.rctx_.gl;
-			var plVAO: WebGLVertexArrayObjectOES | undefined;
-			var needBinding = true;
+			let plVAO: WebGLVertexArrayObjectOES | undefined;
+			let needBinding = true;
 
 			if (this.pipelineVAOMaps_) {
 				// If we're using VAOs then each mesh has a VAO per Pipeline it is bound to.
@@ -462,7 +462,7 @@ namespace sd.world {
 			if (needBinding) {
 				const roleIndexes = toPipeline.attributePairs();
 				const attributes = this.attributes(inst);
-				var pair = roleIndexes.next();
+				let pair = roleIndexes.next();
 
 				while (! pair.done) {
 					const attrRole = pair.value![0];
@@ -499,7 +499,7 @@ namespace sd.world {
 				// -- explicitly disable all attributes specified in the pipeline
 				const gl = this.rctx_.gl;
 				const roleIndexes = fromPipeline.attributePairs();
-				var pair = roleIndexes.next();
+				let pair = roleIndexes.next();
 
 				while (! pair.done) {
 					const attrIndex = pair.value![1];

@@ -45,7 +45,7 @@ namespace sd {
 		private nextFrame(now: number) {
 			// if we exceed the max frame time then we will start introducing
 			// real lag and slowing the game down to catch up
-			var dt = (now - this.lastFrameTime_) / 1000.0;
+			let dt = (now - this.lastFrameTime_) / 1000.0;
 			if (dt > this.maxFrameDuration_) {
 				dt = this.maxFrameDuration_;
 			}

@@ -3,7 +3,7 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-declare var webkitAudioContext: {
+declare const webkitAudioContext: {
 	prototype: AudioContext;
 	new (): AudioContext;
 };

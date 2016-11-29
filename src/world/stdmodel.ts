@@ -834,7 +834,7 @@ namespace sd.world {
 
 
 		private featuresForMeshAndMaterial(mesh: MeshInstance, material: StdMaterialInstance): Features {
-			var features = 0;
+			let features = 0;
 
 			const meshFeatures = this.meshMgr_.features(mesh);
 			if (meshFeatures & MeshFeatures.VertexColours) { features |= Features.VtxColour; }
@@ -895,7 +895,7 @@ namespace sd.world {
 			assert(materialCount >= maxLocalMatIndex - 1, "not enough StdMaterialIndexes for this mesh");
 
 			// -- pre-calc global material indexes and program features for each group
-			var primGroupCount = this.primGroupData_.count;
+			let primGroupCount = this.primGroupData_.count;
 			this.primGroupOffsetBase_[modelIx] = this.primGroupData_.count;
 
 			// -- grow primitiveGroup metadata buffer if necessary
@@ -1007,7 +1007,7 @@ namespace sd.world {
 
 		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, fogSpec: world.FogDescriptor | null, modelIx: number) {
 			const gl = this.rc.gl;
-			var drawCalls = 0;
+			let drawCalls = 0;
 
 			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
 			if (! mesh) {
@@ -1031,7 +1031,7 @@ namespace sd.world {
 				const materialData = this.materialMgr_.getData(matInst);
 
 				// -- features are a combo of Material features and optional shadow
-				var features: Features = this.primGroupFeatureBase_[primGroupBase + pgIx];
+				let features: Features = this.primGroupFeatureBase_[primGroupBase + pgIx];
 				if (shadow) {
 					features |= Features.ShadowMap;
 					const shadowType = this.lightMgr_.shadowType(shadow.light);
@@ -1242,7 +1242,7 @@ namespace sd.world {
 
 
 		draw(range: StdModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, fogSpec: world.FogDescriptor | null, mode: RenderMode) {
-			var drawCalls = 0;
+			let drawCalls = 0;
 
 			if (mode == RenderMode.Forward) {
 				const iter = range.makeIterator();

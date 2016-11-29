@@ -57,7 +57,7 @@ namespace sd.world {
 		}
 
 		create(): Entity {
-			var index: number;
+			let index: number;
 
 			if (this.freedIndices_.count >= this.minFreedBuildup) {
 				index = this.freedIndices_.front;

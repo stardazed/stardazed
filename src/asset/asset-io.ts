@@ -139,8 +139,8 @@ namespace sd.asset {
 	export function convertBytesToString(bytes: Uint8Array) {
 		const maxBlockSize = 65536; // max parameter array size for use in Webkit
 		const strings: string[] = [];
-		var bytesLeft = bytes.length;
-		var offset = 0;
+		let bytesLeft = bytes.length;
+		let offset = 0;
 
 		while (bytesLeft > 0) {
 			const blockSize = Math.min(bytesLeft, maxBlockSize);

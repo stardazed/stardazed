@@ -52,7 +52,7 @@ namespace sd.render {
 
 
 	function glTextureMinificationFilter(rc: RenderContext, minFilter: TextureSizingFilter, mipFilter: TextureMipFilter) {
-		var glSizingFilter: number;
+		let glSizingFilter: number;
 
 		if (mipFilter == TextureMipFilter.None) {
 			if (minFilter == TextureSizingFilter.Nearest) {

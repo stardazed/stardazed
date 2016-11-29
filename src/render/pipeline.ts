@@ -73,7 +73,7 @@ namespace sd.render {
 			}
 
 			// -- can the GL support the required # of colour attachments?
-			var highestEnabledAttachment = -1;
+			let highestEnabledAttachment = -1;
 			this.colourPixelFormats_.slice(1).forEach((pf, ix) => {
 				if (pf != PixelFormat.None) {
 					highestEnabledAttachment = ix;

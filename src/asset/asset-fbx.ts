@@ -253,7 +253,7 @@ namespace sd.asset {
 
 				const id = node.objectID;
 				const subClass = node.objectSubClass;
-				var nodeSet = typeSetMap[node.name];
+				let nodeSet = typeSetMap[node.name];
 				assert(nodeSet != null, `Unknown object class ${node.name}`);
 
 				if (node.name == "Model") {
@@ -317,7 +317,7 @@ namespace sd.asset {
 						userRef: vidID,
 						useMipMaps: options.forceMipMapsOn ? render.UseMipMaps.Yes : render.UseMipMaps.No
 					};
-					var fileData: ArrayBuffer | null = null;
+					let fileData: ArrayBuffer | null = null;
 
 					for (const c of fbxVideo.children) {
 						if (c.name == "UseMipMap") {
@@ -415,7 +415,7 @@ namespace sd.asset {
 					mat.name = fbxMat.objectName;
 					mat.userRef = matID;
 
-					var haveFullDiffuse = false;
+					let haveFullDiffuse = false;
 
 					for (const c of fbxMat.children) {
 						if (c.name == "Diffuse") {
@@ -502,7 +502,7 @@ namespace sd.asset {
 
 
 			private makeLayerElementStream(layerElemNode: FBXNode): meshdata.VertexAttributeStream | null {
-				var valueArrayName: string, indexArrayName: string;
+				let valueArrayName: string, indexArrayName: string;
 				const stream: meshdata.VertexAttributeStream = {
 					name: "",
 					includeInMesh: true,
@@ -610,14 +610,14 @@ namespace sd.asset {
 
 
 			private buildMeshes(group: AssetGroup, _options: FBXResolveOptions) {
-				var tStreams = 0;
-				var tMeshData = 0;
+				let tStreams = 0;
+				let tMeshData = 0;
 
 				for (const geomID in this.geometryNodes) {
 					const fbxGeom = this.geometryNodes[geomID];
 					const streams: meshdata.VertexAttributeStream[] = [];
-					var positions: Float64Array | undefined;
-					var polygonIndexes: Int32Array | null = null;
+					let positions: Float64Array | undefined;
+					let polygonIndexes: Int32Array | null = null;
 
 					for (const c of fbxGeom.children) {
 						if (c.name == "Vertices") {
@@ -719,7 +719,7 @@ namespace sd.asset {
 					shadowStrength: 1
 				};
 
-				var fbxIntensity = 100;
+				let fbxIntensity = 100;
 
 				for (const c of lightAttrNode.children) {
 					if (c.name == "LightType") {
@@ -777,9 +777,9 @@ namespace sd.asset {
 					}
 
 					// get the local transform
-					var preRot: Float4 = [0, 0, 0, 1];
-					var postRot: Float4 = [0, 0, 0, 1];
-					var localRot: Float4 = [0, 0, 0, 1];
+					let preRot: Float4 = [0, 0, 0, 1];
+					let postRot: Float4 = [0, 0, 0, 1];
+					let localRot: Float4 = [0, 0, 0, 1];
 					for (const c of fbxModel.children) {
 						const vecVal = <number[]>c.values;
 						if (c.name == "Lcl Translation") {
@@ -866,7 +866,7 @@ namespace sd.asset {
 
 
 			private animPropForConnectionNames(curvePropName: string, modelPropName: string): AnimationProperty {
-				var ap = AnimationProperty.None;
+				let ap = AnimationProperty.None;
 
 				if (modelPropName == "Lcl Translation") {
 					if (curvePropName == "d|X") { ap = AnimationProperty.TranslationX; }
@@ -1108,7 +1108,7 @@ namespace sd.asset {
 					this.parseT0 = performance.now();
 				}
 
-				var skip = false;
+				let skip = false;
 
 				if (this.state == BuilderState.Root) {
 					if (name == "GlobalSettings") {
@@ -1225,7 +1225,7 @@ namespace sd.asset {
 	function parseFBXSource(filePath: string, source: string | ArrayBuffer): Promise<AssetGroup> {
 		const t0 = performance.now();
 		const del = new fbx.FBX7DocumentParser(filePath);
-		var parser: fbx.parse.FBXParser;
+		let parser: fbx.parse.FBXParser;
 		if (typeof source === "string") {
 			parser = new fbx.parse.FBXTextParser(source, del);
 		}

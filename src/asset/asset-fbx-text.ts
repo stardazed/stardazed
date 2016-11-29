@@ -50,7 +50,7 @@ namespace sd.asset.fbx.parse {
 
 
 		private skipWS() {
-			var c: string | null;
+			let c: string | null;
 			while (c = this.nextChar()) {
 				if (c != " " && c != "\t" && c != "\r" && c != "\n") {
 					break;
@@ -60,7 +60,7 @@ namespace sd.asset.fbx.parse {
 
 
 		private skipToLineEnd() {
-			var c: string | null;
+			let c: string | null;
 			while (c = this.nextChar()) {
 				if (c == "\r" || c == "\n") {
 					break;
@@ -82,8 +82,8 @@ namespace sd.asset.fbx.parse {
 			}
 
 			const tokenStart = this.offset_;
-			var tokenEnd = 0;
-			var c = this.lastChar_;
+			let tokenEnd = 0;
+			let c = this.lastChar_;
 
 			const invalid = (): Token => { return {
 				type: TokenType.Invalid,
@@ -266,7 +266,7 @@ namespace sd.asset.fbx.parse {
 			assert(this.values_.length > 0);
 
 			const blockName = <string>this.values_[0];
-			var blockAction = FBXBlockAction.Enter;
+			let blockAction = FBXBlockAction.Enter;
 
 			// The delegate contract does not care about "a:" pseudo-blocks or
 			// the "Properties70:" block
