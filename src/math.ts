@@ -3,10 +3,23 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+/// <reference path="../typings/veclib.d.ts" />
 /// <reference path="numeric.ts" />
 
-
 namespace sd {
+	export const vec2 = veclib.vec2;
+	export const vec3 = veclib.vec3;
+	export const vec4 = veclib.vec4;
+	export const quat = veclib.quat;
+	export const mat2 = veclib.mat2;
+	export const mat3 = veclib.mat3;
+	export const mat4 = veclib.mat4;
+
+	export type MutableArrayLike<T> = veclib.MutableArrayLike<T>;
+
+	export type ArrayOfNumber = veclib.ArrayOfNumber;
+	export type ArrayOfConstNumber = veclib.ArrayOfConstNumber;
+
 	// types to use in function signatures to not have ArrayOfNumber everywhere
 	export type Float2 = ArrayOfNumber;
 	export type Float3 = ArrayOfNumber;
