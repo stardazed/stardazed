@@ -16,7 +16,7 @@ namespace sd.world {
 	export class SkeletonManager {
 		private nextSkelID_ = 1;
 		private nextAnimID_ = 1;
-		private skels_ = new Map<SkeletonInstance, world.TransformInstance[]>();
+		private skels_ = new Map<SkeletonInstance, TransformInstance[]>();
 		private baseRotations_ = new Map<SkeletonInstance, sd.Float4[]>();
 		private anims_ = new Map<number, asset.SkeletonAnimation>();
 
@@ -24,14 +24,14 @@ namespace sd.world {
 		private jointDataTex_: render.Texture;
 
 
-		constructor(private rc: render.RenderContext, private transformMgr_: world.TransformManager) {
+		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager) {
 			// -- the compiled joint data texture and client copy
 			this.jointData_ = new Float32Array(256 * 256 * 4);
 			this.jointDataTex_ = new render.Texture(rc, render.makeTexDesc2DFloatLUT(this.jointData_, 256, 256));
 		}
 
 
-		createSkeleton(jointTransforms: world.TransformInstance[]): SkeletonInstance {
+		createSkeleton(jointTransforms: TransformInstance[]): SkeletonInstance {
 			const txm = this.transformMgr_;
 			this.skels_.set(this.nextSkelID_, jointTransforms.slice(0));
 			const baseRots: sd.Float4[] = [];
@@ -59,7 +59,7 @@ namespace sd.world {
 		}
 
 
-		private updateJointData(_inst: SkeletonInstance, skel: world.TransformInstance[]) {
+		private updateJointData(_inst: SkeletonInstance, skel: TransformInstance[]) {
 			const count = skel.length;
 			const txm = this.transformMgr_;
 			const texData = new Float32Array(256 * 16 * 4);

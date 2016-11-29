@@ -830,7 +830,7 @@ namespace sd.world {
 		}
 
 
-		private featuresForMeshAndMaterial(mesh: world.MeshInstance, material: PBRMaterialInstance): Features {
+		private featuresForMeshAndMaterial(mesh: MeshInstance, material: PBRMaterialInstance): Features {
 			let features = 0;
 
 			const meshFeatures = this.meshMgr_.features(mesh);
