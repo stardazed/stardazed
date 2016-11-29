@@ -1,9 +1,18 @@
-// asset-io.ts - Asset file helpers
+// asset/util - asset helpers and general dumping ground
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
 namespace sd.asset {
+
+	export function fileExtensionOfURL(url: URL | string): string {
+		const path = (url instanceof URL) ? url.href : url;
+		const lastDot = path.lastIndexOf(".");
+		if (lastDot > -1) {
+			return path.substr(lastDot + 1).toLowerCase();
+		}
+		return "";
+	}
 
 	export const enum FileLoadType {
 		ArrayBuffer = 1,
@@ -105,7 +114,7 @@ namespace sd.asset {
 	}
 
 
-	// TODO: temp
+	// TODO: temporary function, to be moved out / integrated elsewhere, etc.
 	export function resolveTextures(textures: (asset.Texture2D | null)[]) {
 		return Promise.all(textures.map(tex => {
 			if (! tex) {
@@ -126,7 +135,7 @@ namespace sd.asset {
 	}
 
 
-
+	// TODO: temporary function, to be moved out / integrated elsewhere, etc.
 	export function loadSoundFile(ac: audio.AudioContext, filePath: string): Promise<AudioBuffer> {
 		return loadFile(filePath, {
 			responseType: FileLoadType.ArrayBuffer

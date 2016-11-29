@@ -10,15 +10,6 @@ namespace sd.asset {
 	// --------------------------------------------------------------------
 	// url / path helpers
 
-	export function fileExtensionOfURL(url: URL | string): string {
-		const path = (url instanceof URL) ? url.href : url;
-		const lastDot = path.lastIndexOf(".");
-		if (lastDot > -1) {
-			return path.substr(lastDot + 1).toLowerCase();
-		}
-		return "";
-	}
-
 	export function mimeTypeOfURL(url: URL | string): string | undefined {
 		const extension = fileExtensionOfURL(url);
 		return mimeTypeForFileExtension(extension);
