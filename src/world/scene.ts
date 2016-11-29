@@ -13,7 +13,7 @@ namespace sd.world {
 		pbrModel?: PBRModelDescriptor;
 		rigidBody?: RigidBodyDescriptor;
 		collider?: ColliderDescriptor;
-		light?: LightDescriptor;
+		light?: asset.Light;
 	}
 
 

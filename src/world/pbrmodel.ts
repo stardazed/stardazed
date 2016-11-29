@@ -1099,22 +1099,22 @@ namespace sd.world {
 				const lightData = light && this.lightMgr_.getData(light, proj.viewMatrix, viewNormalMatrix);
 
 				if (lightData) {
-					assert(lightData.type != LightType.None);
+					assert(lightData.type != asset.LightType.None);
 
 					this.lightTypeArray_[lix] = lightData.type;
 					container.setIndexedVec4(this.lightColourArray_, lix, lightData.colourData);
 					container.setIndexedVec4(this.lightParamArray_, lix, lightData.parameterData);
 
-					if (lightData.type != LightType.Point) {
+					if (lightData.type != asset.LightType.Point) {
 						container.setIndexedVec4(this.lightDirectionArray_, lix, lightData.direction);
 					}
-					if (lightData.type != LightType.Directional) {
+					if (lightData.type != asset.LightType.Directional) {
 						container.setIndexedVec4(this.lightCamPositionArray_, lix, lightData.position_cam);
 						container.setIndexedVec4(this.lightWorldPositionArray_, lix, lightData.position_world);
 					}
 				}
 				else {
-					this.lightTypeArray_[lix] = LightType.None;
+					this.lightTypeArray_[lix] = asset.LightType.None;
 				}
 			}
 		}

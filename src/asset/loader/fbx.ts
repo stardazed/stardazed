@@ -702,10 +702,13 @@ namespace sd.asset {
 			}
 
 
-			private makeLightDescriptorFromFBXLight(lightAttrNode: FBXNode): world.LightDescriptor {
+			private makeLightAssetFromFBXLight(lightAttrNode: FBXNode): asset.Light {
 				// fbx defaults
-				const ld: world.LightDescriptor = {
-					type: world.LightType.Point,
+				const ld: asset.Light = {
+					name: lightAttrNode.name,
+					userRef: lightAttrNode.objectID,
+
+					type: asset.LightType.Point,
 					colour: [1, 1, 1],
 
 					ambientIntensity: 0,
@@ -714,8 +717,8 @@ namespace sd.asset {
 					range: 1,
 					cutoff: math.deg2rad(45 / 2),
 
-					shadowType: world.ShadowType.None,
-					shadowQuality: world.ShadowQuality.Auto,
+					shadowType: asset.ShadowType.None,
+					shadowQuality: asset.ShadowQuality.Auto,
 					shadowStrength: 1
 				};
 
@@ -725,13 +728,13 @@ namespace sd.asset {
 					if (c.name == "LightType") {
 						const fbxLightType = <number>c.values[0];
 						if (fbxLightType == 0) {
-							ld.type = world.LightType.Point;
+							ld.type = asset.LightType.Point;
 						}
 						else if (fbxLightType == 1) {
-							ld.type = world.LightType.Directional;
+							ld.type = asset.LightType.Directional;
 						}
 						else if (fbxLightType == 2) {
-							ld.type = world.LightType.Spot;
+							ld.type = asset.LightType.Spot;
 						}
 						else {
 							console.warn(`Invalid FBX light type: ${fbxLightType}`);
@@ -747,12 +750,12 @@ namespace sd.asset {
 						ld.cutoff = math.deg2rad(<number>c.values[0] / 2);
 					}
 					else if (c.name == "CastShadows") {
-						ld.shadowType = world.ShadowType.Soft;
+						ld.shadowType = asset.ShadowType.Soft;
 					}
 				}
 
 				// convert FBX intensity to something we can work with
-				if (ld.type == world.LightType.Directional) {
+				if (ld.type == asset.LightType.Directional) {
 					ld.diffuseIntensity = math.clamp01(fbxIntensity / 100);
 				}
 				else {
@@ -831,9 +834,7 @@ namespace sd.asset {
 								};
 							}
 							else if (connSubType == "Light") {
-								sdModel.light = {
-									descriptor: this.makeLightDescriptorFromFBXLight(conn.fromNode)
-								};
+								sdModel.light = this.makeLightAssetFromFBXLight(conn.fromNode);
 							}
 						}
 						else if (connType == "Model") {
