@@ -204,10 +204,37 @@ namespace sd.asset {
 	}
 
 
-	// TODO: how do I handle models, lights, cameras and generic nodes?
+	export const enum LightType {
+		None,
+		Directional,
+		Point,
+		Spot
+	}
 
-	export interface Light {
-		descriptor: world.LightDescriptor;
+	export const enum ShadowType {
+		None,
+		Hard,
+		Soft
+	}
+
+	export const enum ShadowQuality {
+		Auto
+	}
+
+	export interface Light extends Asset {
+		type: LightType;
+
+		colour: Float3;
+		diffuseIntensity: number;
+		ambientIntensity?: number;
+
+		range?: number;  // m   (point/spot only)
+		cutoff?: number; // rad (spot only)
+
+		shadowType?: ShadowType;
+		shadowQuality?: ShadowQuality;
+		shadowStrength?: number;  // 0..1
+		shadowBias?: number;      // 0.001..0.1
 	}
 
 

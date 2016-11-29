@@ -1,52 +1,15 @@
-// light - Light component
+// world/light - Light component
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
 namespace sd.world {
 
-	export const enum LightType {
-		None,
-		Directional,
-		Point,
-		Spot
-	}
-
-
-	export const enum ShadowType {
-		None,
-		Hard,
-		Soft
-	}
-
-
-	export const enum ShadowQuality {
-		Auto
-	}
-
-
 	export type LightInstance = Instance<LightManager>;
 	export type LightRange = InstanceRange<LightManager>;
 	export type LightSet = InstanceSet<LightManager>;
 	export type LightIterator = InstanceIterator<LightManager>;
 	export type LightArrayView = InstanceArrayView<LightManager>;
-
-	export interface LightDescriptor {
-		type: LightType;
-
-		colour: Float3;
-		diffuseIntensity: number;
-		ambientIntensity?: number;
-
-		range?: number;  // m   (point/spot only)
-		cutoff?: number; // rad (spot only)
-
-		shadowType?: ShadowType;
-		shadowQuality?: ShadowQuality;
-		shadowStrength?: number;  // 0..1
-		shadowBias?: number;      // 0.001..0.1
-	}
-
 
 	export interface LightData {
 		type: number;
@@ -142,13 +105,13 @@ namespace sd.world {
 		}
 
 
-		create(entity: Entity, desc: LightDescriptor): LightInstance {
+		create(entity: Entity, desc: asset.Light): LightInstance {
 			// -- validate parameters
-			assert(desc.type != LightType.None);
-			if (desc.type == LightType.Point) {
+			assert(desc.type != asset.LightType.None);
+			if (desc.type == asset.LightType.Point) {
 				assert((desc.range !== undefined) && (desc.range >= 0), "Point lights require a valid range");
 			}
-			else if (desc.type == LightType.Spot) {
+			else if (desc.type == asset.LightType.Spot) {
 				assert((desc.range !== undefined) && (desc.range >= 0), "Spot lights require a valid range (0+)");
 				assert((desc.cutoff !== undefined) && (desc.cutoff >= 0), "Spot lights require a valid cutoff arc (0+)");
 			}
@@ -169,15 +132,15 @@ namespace sd.world {
 			container.setIndexedVec4(this.colourBase_, instanceIx, this.tempVec4_);
 
 			// -- parameters, force 0 for unused fields for specified type
-			const range = (desc.range === undefined || desc.type == LightType.Directional) ? 0 : desc.range;
-			const cutoff = (desc.cutoff === undefined || desc.type != LightType.Spot) ? 0 : desc.cutoff;
+			const range = (desc.range === undefined || desc.type == asset.LightType.Directional) ? 0 : desc.range;
+			const cutoff = (desc.cutoff === undefined || desc.type != asset.LightType.Spot) ? 0 : desc.cutoff;
 			vec4.set(this.tempVec4_, desc.ambientIntensity || 0, desc.diffuseIntensity, range, Math.cos(cutoff));
 			container.setIndexedVec4(this.parameterBase_, instanceIx, this.tempVec4_);
 
 			// -- shadow info
-			if ((desc.shadowType != undefined) && (desc.shadowType != ShadowType.None)) {
+			if ((desc.shadowType != undefined) && (desc.shadowType != asset.ShadowType.None)) {
 				this.shadowTypeBase_[instanceIx] = desc.shadowType;
-				this.shadowQualityBase_[instanceIx] = desc.shadowQuality || ShadowQuality.Auto;
+				this.shadowQualityBase_[instanceIx] = desc.shadowQuality || asset.ShadowQuality.Auto;
 
 				const paramData = container.refIndexedVec2(this.shadowParamBase_, instanceIx);
 				paramData[ShadowParam.Strength] = (desc.shadowStrength != undefined) ? math.clamp01(desc.shadowStrength) : 1.0;
@@ -259,14 +222,14 @@ namespace sd.world {
 			let projectionMatrix: Float4x4;
 
 			const type = this.typeBase_[<number>inst];
-			if (type == LightType.Spot) {
+			if (type == asset.LightType.Spot) {
 				const farZ = this.range(inst);
 				const fov = this.cutoff(inst) * 2; // cutoff is half-angle
 				viewMatrix = mat4.lookAt([], worldPos, worldTarget, [0, 1, 0]); // FIXME: this can likely be done cheaper
 				projectionMatrix = mat4.perspective([], fov, viewportWidth / viewportHeight, nearZ, farZ);
 				// TODO: cache this matrix?
 			}
-			else if (type == LightType.Directional) {
+			else if (type == asset.LightType.Directional) {
 				viewMatrix = mat4.lookAt([], [0, 0, 0], worldDirection, [0, 1, 0]); // FIXME: this can likely be done cheaper
 				projectionMatrix = mat4.ortho([], -40, 40, -40, 40, -40, 40);
 			}
@@ -281,7 +244,7 @@ namespace sd.world {
 		}
 
 
-		private shadowFrameBufferOfQuality(rc: render.RenderContext, _quality: ShadowQuality) {
+		private shadowFrameBufferOfQuality(rc: render.RenderContext, _quality: asset.ShadowQuality) {
 			// TODO: each shadow quality level of shadows will have a dedicated, reusable FBO
 			if (! this.shadowFBO_) {
 				this.shadowFBO_ = render.makeShadowMapFrameBuffer(rc, 1024);
@@ -364,20 +327,20 @@ namespace sd.world {
 		}
 
 
-		shadowType(inst: LightInstance): ShadowType {
+		shadowType(inst: LightInstance): asset.ShadowType {
 			return this.shadowTypeBase_[<number>inst];
 		}
 
-		setShadowType(inst: LightInstance, newType: ShadowType) {
+		setShadowType(inst: LightInstance, newType: asset.ShadowType) {
 			this.shadowTypeBase_[<number>inst] = newType;
 		}
 
 
-		shadowQuality(inst: LightInstance): ShadowQuality {
+		shadowQuality(inst: LightInstance): asset.ShadowQuality {
 			return this.shadowQualityBase_[<number>inst];
 		}
 
-		setShadowQuality(inst: LightInstance, newQuality: ShadowQuality) {
+		setShadowQuality(inst: LightInstance, newQuality: asset.ShadowQuality) {
 			this.shadowQualityBase_[<number>inst] = newQuality;
 		}
 
