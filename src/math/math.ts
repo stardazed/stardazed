@@ -19,42 +19,33 @@ namespace sd {
 
 namespace sd.math {
 
+	// re-export some functions defined in veclib
+	export const clamp = veclib.clamp;
+	export const clamp01 = veclib.clamp01;
+	export const mix = veclib.mix;
+
+
 	// common functions
 	export function intRandom(maximum: number): number {
 		return (Math.random() * (maximum + 1)) | 0;
 	}
-
 
 	export function intRandomRange(minimum: number, maximum: number): number {
 		const diff = (maximum - minimum) | 0;
 		return minimum + intRandom(diff);
 	}
 
-
 	export function hertz(hz: number) {
 		return 1 / hz;
 	}
-
 
 	export function deg2rad(deg: number): number {
 		return deg * Math.PI / 180.0;
 	}
 
-
 	export function rad2deg(rad: number): number {
 		return rad * 180.0 / Math.PI;
 	}
-
-
-	export function clamp(n: number, min: number, max: number): number {
-		return Math.max(min, Math.min(max, n));
-	}
-
-
-	export function clamp01(n: number): number {
-		return Math.max(0.0, Math.min(1.0, n));
-	}
-
 
 	export function isPowerOf2(n: number) {
 		return (n & (n - 1)) == 0;
