@@ -1,6 +1,7 @@
 .DS_Store
-build/*.js
-build/*.ts
+.vscode
+dist/*.js
+dist/*.ts
 test/build/*.js
 test/inquisition/build/*.js
 test/inquisition/build/*.d.ts
