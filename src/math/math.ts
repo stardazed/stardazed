@@ -12,6 +12,7 @@ namespace sd {
 	export const vec4 = veclib.vec4;
 	export const quat = veclib.quat;
 	export const mat2 = veclib.mat2;
+	export const mat2d = veclib.mat2d;
 	export const mat3 = veclib.mat3;
 	export const mat4 = veclib.mat4;
 } // ns sd

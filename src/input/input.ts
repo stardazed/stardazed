@@ -3,6 +3,8 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+/// <reference path="../tools/dom.ts" />
+
 namespace sd.io {
 
 	export enum Key {

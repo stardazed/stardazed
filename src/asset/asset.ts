@@ -3,6 +3,8 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+/// <reference path="../core/util.ts" />
+
 namespace sd.asset {
 
 	// --------------------------------------------------------------------
