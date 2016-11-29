@@ -85,10 +85,10 @@ namespace sd.world {
 			this.entityMap_.set(ent, <RigidBodyInstance>instance);
 
 			// -- set constant data
-			this.setMass(instance, desc.mass, desc.hullSize || math.Vec3.one);
+			this.setMass(instance, desc.mass, desc.hullSize || vec3.one());
 
 			// -- clear the rest
-			const zero3 = math.Vec3.zero;
+			const zero3 = vec3.zero();
 			container.setIndexedVec3(this.velocityBase_, instance, zero3);
 			container.setIndexedVec3(this.forceBase_, instance, zero3);
 
@@ -124,7 +124,7 @@ namespace sd.world {
 		// -- simulation
 
 		simulate(range: RigidBodyRange, dt: number) {
-			const zero3 = math.Vec3.zero;
+			const zero3 = vec3.zero();
 
 			const iter = range.makeIterator();
 			while (iter.next()) {
@@ -241,7 +241,7 @@ namespace sd.world {
 		}
 
 		stop(inst: RigidBodyInstance) {
-			const zero3 = math.Vec3.zero;
+			const zero3 = vec3.zero();
 			container.setIndexedVec3(this.velocityBase_, <number>inst, zero3);
 			container.setIndexedVec3(this.angVelocityBase_, <number>inst, zero3);
 		}

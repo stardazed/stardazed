@@ -128,9 +128,10 @@ namespace sd.world {
 		destroy(inst: PBRMaterialInstance) {
 			const matIndex = <number>inst;
 
-			container.setIndexedVec4(this.baseColourBase_, matIndex, math.Vec4.zero);
-			container.setIndexedVec4(this.materialBase_, matIndex, math.Vec4.zero);
-			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, math.Vec4.zero);
+			const zero4 = vec4.zero();
+			container.setIndexedVec4(this.baseColourBase_, matIndex, zero4);
+			container.setIndexedVec4(this.materialBase_, matIndex, zero4);
+			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, zero4);
 			this.flagsBase_[matIndex] = 0;
 			this.opacityBase_[matIndex] = 0;
 

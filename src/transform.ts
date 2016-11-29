@@ -136,22 +136,23 @@ namespace sd.world {
 
 			if (descriptor) {
 				// optional descriptor fields
-				const rotation = descriptor.rotation || math.Quat.identity;
-				const scale = descriptor.scale || math.Vec3.one;
+				const rotation = descriptor.rotation || quat.create();
+				const scale = descriptor.scale || vec3.one();
 
-				this.positionBase_.set(descriptor.position, thisInstance * math.Vec3.elementCount);
-				this.rotationBase_.set(rotation, thisInstance * math.Quat.elementCount);
-				this.scaleBase_.set(scale, thisInstance * math.Vec3.elementCount);
+				this.positionBase_.set(descriptor.position, thisInstance * vec3.ELEMENT_COUNT);
+				this.rotationBase_.set(rotation, thisInstance * quat.ELEMENT_COUNT);
+				this.scaleBase_.set(scale, thisInstance * vec3.ELEMENT_COUNT);
 
 				this.setLocalMatrix(thisInstance, rotation, descriptor.position, scale);
 			}
 			else {
-				this.positionBase_.set(math.Vec3.zero, thisInstance * math.Quat.elementCount);
-				this.rotationBase_.set(math.Quat.identity, thisInstance * math.Quat.elementCount);
-				this.scaleBase_.set(math.Vec3.one, thisInstance * math.Vec3.elementCount);
+				this.positionBase_.set(vec3.zero(), thisInstance * quat.ELEMENT_COUNT);
+				this.rotationBase_.set(quat.create(), thisInstance * quat.ELEMENT_COUNT);
+				this.scaleBase_.set(vec3.one(), thisInstance * vec3.ELEMENT_COUNT);
 
-				this.localMatrixBase_.set(math.Mat4.identity, thisInstance * math.Mat4.elementCount);
-				this.worldMatrixBase_.set(math.Mat4.identity, thisInstance * math.Mat4.elementCount);
+				const mat4Identity = mat4.create();
+				this.localMatrixBase_.set(mat4Identity, thisInstance * mat4.ELEMENT_COUNT);
+				this.worldMatrixBase_.set(mat4Identity, thisInstance * mat4.ELEMENT_COUNT);
 			}
 
 			return thisInstance;
@@ -249,7 +250,7 @@ namespace sd.world {
 
 			// -- optimization for root-level, childless entities (of which I have seen there are many, but this may/will change)
 			if (parent || firstChild) {
-				const parentWorldMat = (parent == 0) ? math.Mat4.identity : this.worldMatrix(parent);
+				const parentWorldMat = (parent == 0) ? mat4.create() : this.worldMatrix(parent);
 				this.applyParentTransform(parentWorldMat, inst);
 			}
 			else {
@@ -317,30 +318,30 @@ namespace sd.world {
 
 
 		setPosition(inst: TransformInstance, newPosition: Float3) {
-			this.positionBase_.set(newPosition, <number>inst * math.Vec3.elementCount);
+			this.positionBase_.set(newPosition, <number>inst * vec3.ELEMENT_COUNT);
 			this.setLocalMatrix(inst, this.localRotation(inst), newPosition, this.localScale(inst));
 		}
 
 		setRotation(inst: TransformInstance, newRotation: Float4) {
-			this.rotationBase_.set(newRotation, <number>inst * math.Quat.elementCount);
+			this.rotationBase_.set(newRotation, <number>inst * quat.ELEMENT_COUNT);
 			this.setLocalMatrix(inst, newRotation, this.localPosition(inst), this.localScale(inst));
 		}
 
 		setPositionAndRotation(inst: TransformInstance, newPosition: Float3, newRotation: Float4) {
-			this.positionBase_.set(newPosition, <number>inst * math.Vec3.elementCount);
-			this.rotationBase_.set(newRotation, <number>inst * math.Quat.elementCount);
+			this.positionBase_.set(newPosition, <number>inst * vec3.ELEMENT_COUNT);
+			this.rotationBase_.set(newRotation, <number>inst * quat.ELEMENT_COUNT);
 			this.setLocalMatrix(inst, newRotation, newPosition, this.localScale(inst));
 		}
 
 		setScale(inst: TransformInstance, newScale: Float3) {
-			this.scaleBase_.set(newScale, <number>inst * math.Vec3.elementCount);
+			this.scaleBase_.set(newScale, <number>inst * vec3.ELEMENT_COUNT);
 			this.setLocalMatrix(inst, this.localRotation(inst), this.localPosition(inst), newScale);
 		}
 
 		setPositionAndRotationAndScale(inst: TransformInstance, newPosition: Float3, newRotation: Float4, newScale: Float3) {
-			this.positionBase_.set(newPosition, <number>inst * math.Vec3.elementCount);
-			this.rotationBase_.set(newRotation, <number>inst * math.Quat.elementCount);
-			this.scaleBase_.set(newScale, <number>inst * math.Vec3.elementCount);
+			this.positionBase_.set(newPosition, <number>inst * vec3.ELEMENT_COUNT);
+			this.rotationBase_.set(newRotation, <number>inst * quat.ELEMENT_COUNT);
+			this.scaleBase_.set(newScale, <number>inst * vec3.ELEMENT_COUNT);
 			this.setLocalMatrix(inst, newRotation, newPosition, newScale);
 		}
 

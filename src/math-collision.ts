@@ -95,7 +95,7 @@ namespace sd.math {
 
 
 	export function makePlaneFromPointAndNormal(p: Float3, normal: Float3): Plane {
-		const orthoNormal = arbitraryOrthogonalVec3(normal);
+		const orthoNormal = vec3.arbitraryOrthogonalVec(normal);
 		const b = vec3.add([], p, orthoNormal);
 		const c = vec3.add([], p, vec3.cross([], normal, orthoNormal));
 
