@@ -1,4 +1,4 @@
-// input - keyboard, mouse, controller
+// input/keyboard - keyboard input handling
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
