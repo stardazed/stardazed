@@ -1,10 +1,7 @@
-// meshdata.ts - mesh data
+// mesh/meshdata - mesh data
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
-
-/// <reference path="../core/numeric.ts" />
-/// <reference path="../math/math.ts" />
 
 namespace sd.meshdata {
 
@@ -1192,8 +1189,6 @@ namespace sd.meshdata {
 				}
 			});
 		}
-
-		// void genVertexTangents();
 	}
 
 } // ns sd.meshdata

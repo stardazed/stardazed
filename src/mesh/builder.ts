@@ -1,4 +1,4 @@
-// mesh-builder.ts - construct MeshData from normalized sources such as assets
+// mesh/builder - construct MeshData from normalized sources such as assets
 // Part of Stardazed TX
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx

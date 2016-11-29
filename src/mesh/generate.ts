@@ -1,11 +1,7 @@
-// mesh-gen.ts - mesh generators
+// mesh/generate - mesh generators
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
-
-/// <reference path="meshdata.ts" />
-/// <reference path="mesh-manip.ts" />
-
 
 namespace sd.meshdata.gen {
 

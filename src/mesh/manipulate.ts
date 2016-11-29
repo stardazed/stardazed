@@ -1,9 +1,7 @@
-// mesh-manip.ts - mesh manipulators
+// mesh/manipulate - mesh manipulators
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
-
-/// <reference path="meshdata.ts" />
 
 namespace sd.meshdata {
 
