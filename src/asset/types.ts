@@ -238,6 +238,14 @@ namespace sd.asset {
 	}
 
 
+	export interface FogDescriptor {
+		colour: Float3;
+		offset: number;        // 0+
+		depth: number;         // 0+,
+		density: number;       // 0..1
+	}
+
+
 	export interface Model extends Asset {
 		transform: Transform;
 		children: Model[];

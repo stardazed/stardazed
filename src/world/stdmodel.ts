@@ -1005,7 +1005,7 @@ namespace sd.world {
 		}
 
 
-		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, fogSpec: world.FogDescriptor | null, modelIx: number) {
+		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, fogSpec: asset.FogDescriptor | null, modelIx: number) {
 			const gl = this.rc.gl;
 			let drawCalls = 0;
 
@@ -1241,7 +1241,7 @@ namespace sd.world {
 		}
 
 
-		draw(range: StdModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, fogSpec: world.FogDescriptor | null, mode: RenderMode) {
+		draw(range: StdModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, fogSpec: asset.FogDescriptor | null, mode: RenderMode) {
 			let drawCalls = 0;
 
 			if (mode == RenderMode.Forward) {
