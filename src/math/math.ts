@@ -3,8 +3,8 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="../typings/veclib.d.ts" />
-/// <reference path="numeric.ts" />
+/// <reference path="../../typings/veclib.d.ts" />
+/// <reference path="../core/numeric.ts" />
 
 namespace sd {
 	export const vec2 = veclib.vec2;

@@ -4,7 +4,7 @@
 // https://github.com/stardazed/stardazed-tx
 
 /// <reference path="pixelformat.ts"/>
-/// <reference path="math.ts"/>
+/// <reference path="../math/math.ts"/>
 
 namespace sd.render {
 

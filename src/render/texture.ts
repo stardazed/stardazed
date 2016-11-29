@@ -3,9 +3,9 @@
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+/// <reference path="../math/math.ts"/>
 /// <reference path="texture-desc.ts"/>
 /// <reference path="rendercontext.ts"/>
-/// <reference path="math.ts"/>
 
 namespace sd.render {
 

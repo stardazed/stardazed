@@ -2,7 +2,7 @@
 // (c) 2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="../build/stardazed-tx.d.ts" />
+/// <reference path="../dist/stardazed-tx.d.ts" />
 /// <reference path="inquisition/build/inquisition.d.ts" />
 
 // alias first-level namespaces

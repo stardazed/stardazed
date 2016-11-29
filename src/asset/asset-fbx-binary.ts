@@ -6,7 +6,7 @@
 // Implementation partially based on research done by Campbell Barton of the Blender Foundation
 // See: http://code.blender.org/2013/08/fbx-binary-file-format-specification/
 
-/// <reference path="../typings/inflate.d.ts" />
+/// <reference path="../../typings/inflate.d.ts" />
 
 namespace sd.asset.fbx.parse {
 
