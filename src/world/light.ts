@@ -21,6 +21,14 @@ namespace sd.world {
 	}
 
 
+	export interface LightDataEx {
+		colourData: Float4;     // colour[3], type
+		position_cam: Float4;   // position[3], intensity
+		position_world: Float4; // position[3], range
+		direction: Float4;      // direction[3], cutoff
+	}
+
+
 	export interface ShadowView {
 		light: LightInstance;
 		lightProjection: ProjectionSetup;
@@ -48,6 +56,17 @@ namespace sd.world {
 
 
 	export class LightManager implements ComponentManager<LightManager> {
+		// this setup allows for a renderbuffer up to 4K (3840 * 2160)
+		// and a global list of up to 32768 active lights 
+		private readonly LUT_DIMENSION = 512;
+		private readonly LUT_LIGHTDATA_ROWS = 256;
+		private readonly LUT_INDEXLIST_ROWS = 240;
+		private readonly LUT_GRID_ROWS = 16;
+		private readonly TILE_DIMENSION = 32;
+
+		private data_: Float32Array;
+		private texture_: render.Texture;
+
 		private instanceData_: container.MultiArrayBuffer;
 
 		private entityBase_: TypedArray;
@@ -64,7 +83,12 @@ namespace sd.world {
 
 		private shadowFBO_: render.FrameBuffer | null = null;
 
-		constructor(private transformMgr_: TransformManager) {
+		constructor(rc: render.RenderContext, private transformMgr_: TransformManager) {
+			this.data_ = new Float32Array(4 * this.LUT_DIMENSION * this.LUT_DIMENSION);
+			const lutDesc = render.makeTexDesc2DFloatLUT(this.data_, this.LUT_DIMENSION, this.LUT_DIMENSION);
+			this.texture_ = new render.Texture(rc, lutDesc);
+
+
 			const initialCapacity = 256;
 
 			const fields: container.MABField[] = [

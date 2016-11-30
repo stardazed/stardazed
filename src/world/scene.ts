@@ -49,10 +49,10 @@ namespace sd.world {
 
 			this.entityMgr = new EntityManager();
 			this.transformMgr = new TransformManager();
-			this.lightMgr = new LightManager(this.transformMgr);
 
 			this.meshMgr = new MeshManager(rc);
 			this.skeletonMgr = new SkeletonManager(rc, this.transformMgr);
+			this.lightMgr = new LightManager(rc, this.transformMgr);
 
 			this.stdModelMgr = new StdModelManager(rc, this.transformMgr, this.meshMgr, this.skeletonMgr, this.lightMgr);
 			this.pbrModelMgr = new PBRModelManager(rc, this.transformMgr, this.meshMgr, this.lightMgr);
