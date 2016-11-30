@@ -150,7 +150,6 @@ namespace sd.world {
 		}
 
 
-
 		get count() { return this.instanceData_.count; }
 
 		valid(inst: StdMaterialInstance) {

@@ -4,7 +4,7 @@ Stardazed TX
 A library to enable quick development of custom 3D games in the browser.<br>
 All code runs in the browser, the library does *not* have or need a server component.
 
-Built in TypeScript, builds against TS 2.0 or newer, just run `tsc` somewhere inside the project dir.
+Built in TypeScript, builds against TS 2.1 or newer, just run `tsc` somewhere inside the project dir.
 
 **Project status**: *In Development (Pre-Alpha)*<br>
 Features and APIs still very much in flux, but functional and usable for actual development
