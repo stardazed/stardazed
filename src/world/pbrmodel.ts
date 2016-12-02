@@ -1090,36 +1090,6 @@ namespace sd.world {
 		}
 
 
-		updateLightData(proj: ProjectionSetup) {
-			const lights = this.activeLights_;
-			const viewNormalMatrix = mat3.normalFromMat4([], proj.viewMatrix);
-
-			for (let lix = 0; lix < MAX_FRAGMENT_LIGHTS; ++lix) {
-				const light = lix < lights.length ? lights[lix] : null;
-				const lightData = light && this.lightMgr_.getData(light, proj.viewMatrix, viewNormalMatrix);
-
-				if (lightData) {
-					assert(lightData.type != asset.LightType.None);
-
-					this.lightTypeArray_[lix] = lightData.type;
-					container.setIndexedVec4(this.lightColourArray_, lix, lightData.colourData);
-					container.setIndexedVec4(this.lightParamArray_, lix, lightData.parameterData);
-
-					if (lightData.type != asset.LightType.Point) {
-						container.setIndexedVec4(this.lightDirectionArray_, lix, lightData.direction);
-					}
-					if (lightData.type != asset.LightType.Directional) {
-						container.setIndexedVec4(this.lightCamPositionArray_, lix, lightData.position_cam);
-						container.setIndexedVec4(this.lightWorldPositionArray_, lix, lightData.position_world);
-					}
-				}
-				else {
-					this.lightTypeArray_[lix] = asset.LightType.None;
-				}
-			}
-		}
-
-
 		draw(range: PBRModelRange, rp: render.RenderPass, proj: ProjectionSetup, lightingQuality: PBRLightingQuality, environmentMap: render.Texture) {
 			if (! this.brdfLookupTex_) {
 				return 0;

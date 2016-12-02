@@ -225,8 +225,7 @@ namespace sd.asset {
 		type: LightType;
 
 		colour: Float3;
-		diffuseIntensity: number;
-		ambientIntensity?: number;
+		intensity: number;
 
 		range?: number;  // m   (point/spot only)
 		cutoff?: number; // rad (spot only)

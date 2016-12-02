@@ -711,8 +711,7 @@ namespace sd.asset {
 					type: asset.LightType.Point,
 					colour: [1, 1, 1],
 
-					ambientIntensity: 0,
-					diffuseIntensity: 1,
+					intensity: 1,
 
 					range: 1,
 					cutoff: math.deg2rad(45 / 2),
@@ -756,7 +755,7 @@ namespace sd.asset {
 
 				// convert FBX intensity to something we can work with
 				if (ld.type == asset.LightType.Directional) {
-					ld.diffuseIntensity = math.clamp01(fbxIntensity / 100);
+					ld.intensity = math.clamp01(fbxIntensity / 100);
 				}
 				else {
 					ld.range = fbxIntensity / 100;
