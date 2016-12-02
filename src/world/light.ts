@@ -23,8 +23,8 @@ namespace sd.world {
 
 	export interface LightDataEx {
 		colourData: Float4;     // colour[3], type
-		position_cam: Float4;   // position[3], intensity
-		position_world: Float4; // position[3], range
+		position_cam: Float4;   // position_cam[3], intensity
+		position_world: Float4; // position_world[3], range
 		direction: Float4;      // direction[3], cutoff
 	}
 
@@ -55,28 +55,35 @@ namespace sd.world {
 	}
 
 
+	// this setup allows for a renderbuffer up to 4K (3840 * 2160)
+	// and a global list of up to 32768 active lights 
+	const LUT_DIMENSION = 512;
+	const LUT_LIGHTDATA_ROWS = 256;
+	const LUT_INDEXLIST_ROWS = 240;
+	const LUT_GRID_ROWS = 16;
+	const TILE_DIMENSION = 32;
+
+	const MAX_LIGHTS = ((LUT_DIMENSION * LUT_LIGHTDATA_ROWS) / 4) | 0;
+	const MAX_SHADOWS = 256;
+
+
 	export class LightManager implements ComponentManager<LightManager> {
-		// this setup allows for a renderbuffer up to 4K (3840 * 2160)
-		// and a global list of up to 32768 active lights 
-		private readonly LUT_DIMENSION = 512;
-		private readonly LUT_LIGHTDATA_ROWS = 256;
-		private readonly LUT_INDEXLIST_ROWS = 240;
-		private readonly LUT_GRID_ROWS = 16;
-		private readonly TILE_DIMENSION = 32;
+		private instanceData_: container.FixedMultiArray;
+		private entityBase_: EntityArrayView;
+		private transformBase_: TransformArrayView;
 
-		private data_: Float32Array;
-		private texture_: render.Texture;
+		private lightData_: container.FixedMultiArray;
+		private globalLightData_: Float32Array;
+		private tileLightIndexes_: Float32Array;
+		private lightGrid_: Float32Array;
+		private lutTexture_: render.Texture;
 
-		private instanceData_: container.MultiArrayBuffer;
-
-		private entityBase_: TypedArray;
-		private transformBase_: TypedArray;
-		private typeBase_: TypedArray;
-		private colourBase_: TypedArray;
-		private parameterBase_: TypedArray;
-		private shadowTypeBase_: TypedArray;
-		private shadowQualityBase_: TypedArray;
-		private shadowParamBase_: TypedArray;
+		private shadowData_: container.FixedMultiArray;
+		private shadowLightIndexBase_: LightArrayView;
+		private shadowTypeBase_: ConstEnumArrayView<asset.ShadowType>;
+		private shadowQualityBase_: ConstEnumArrayView<asset.ShadowQuality>;
+		private shadowStrengthBase_: Float32Array;
+		private shadowBiasBase_: Float32Array;
 
 		private tempVec4_ = new Float32Array(4);
 		private nullVec3_ = new Float32Array(3); // used to convert directions to rotations
@@ -84,40 +91,45 @@ namespace sd.world {
 		private shadowFBO_: render.FrameBuffer | null = null;
 
 		constructor(rc: render.RenderContext, private transformMgr_: TransformManager) {
-			this.data_ = new Float32Array(4 * this.LUT_DIMENSION * this.LUT_DIMENSION);
-			const lutDesc = render.makeTexDesc2DFloatLUT(this.data_, this.LUT_DIMENSION, this.LUT_DIMENSION);
-			this.texture_ = new render.Texture(rc, lutDesc);
-
-
-			const initialCapacity = 256;
-
-			const fields: container.MABField[] = [
+			// linking info
+			const instFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transformInstance
-				{ type: UInt8, count: 1 }, // type
-				{ type: Float, count: 4 }, // colour[3], amplitude(0..1)
-				{ type: Float, count: 4 }, // ambientIntensity, diffuseIntensity, range(spot/point), cos(cutoff)(spot)
-				{ type: UInt8, count: 1 }, // shadowType
-				{ type: UInt8, count: 1 }, // shadowQuality
-				{ type: Float, count: 2 }, // shadowStrength, shadowBias
 			];
-
-			this.instanceData_ = new container.MultiArrayBuffer(initialCapacity, fields);
-			this.rebase();
-
-			vec3.set(this.nullVec3_, 1, 0, 0);
-		}
-
-
-		private rebase() {
+			this.instanceData_ = new container.FixedMultiArray(MAX_LIGHTS, instFields);
 			this.entityBase_ = this.instanceData_.indexedFieldView(0);
 			this.transformBase_ = this.instanceData_.indexedFieldView(1);
-			this.typeBase_ = this.instanceData_.indexedFieldView(2);
-			this.colourBase_ = this.instanceData_.indexedFieldView(3);
-			this.parameterBase_ = this.instanceData_.indexedFieldView(4);
-			this.shadowTypeBase_ = this.instanceData_.indexedFieldView(5);
-			this.shadowQualityBase_ = this.instanceData_.indexedFieldView(6);
-			this.shadowParamBase_ = this.instanceData_.indexedFieldView(7);
+
+			// light data texture
+			const lutFields: container.MABField[] = [
+				{ type: Float, count: 4 * LUT_LIGHTDATA_ROWS }, //
+				{ type: Float, count: 4 * LUT_INDEXLIST_ROWS },
+				{ type: Float, count: 4 * LUT_GRID_ROWS },
+			];
+			this.lightData_ = new container.FixedMultiArray(LUT_DIMENSION, lutFields);
+			this.globalLightData_ = this.lightData_.indexedFieldView(0);
+			this.tileLightIndexes_ = this.lightData_.indexedFieldView(1);
+			this.lightGrid_ = this.lightData_.indexedFieldView(2);
+
+			const lutDesc = render.makeTexDesc2DFloatLUT(new Float32Array(this.lightData_.data), LUT_DIMENSION, LUT_DIMENSION);
+			this.lutTexture_ = new render.Texture(rc, lutDesc);
+
+			// shadow data
+			const shadowFields: container.MABField[] = [
+				{ type: SInt32, count: 1 }, // lightIndex
+				{ type: SInt32, count: 1 }, // shadowType
+				{ type: SInt32, count: 1 }, // shadowQuality
+				{ type: SInt32, count: 1 }, // shadowStrength
+				{ type: SInt32, count: 1 }, // shadowBias
+			];
+			this.shadowData_ = new container.FixedMultiArray(MAX_SHADOWS, shadowFields);
+			this.shadowLightIndexBase_ = this.shadowData_.indexedFieldView(0);
+			this.shadowTypeBase_ = this.shadowData_.indexedFieldView(1);
+			this.shadowQualityBase_ = this.shadowData_.indexedFieldView(2);
+			this.shadowStrengthBase_ = this.shadowData_.indexedFieldView(3);
+			this.shadowBiasBase_ = this.shadowData_.indexedFieldView(4);
+
+			vec3.set(this.nullVec3_, 1, 0, 0);
 		}
 
 
@@ -296,29 +308,11 @@ namespace sd.world {
 		}
 
 
-		amplitude(inst: LightInstance) {
-			return this.colourBase_[(<number>inst * 4) + ColourParam.Amplitude];
-		}
-
-		setAmplitude(inst: LightInstance, newAmplitude: number) {
-			return this.colourBase_[(<number>inst * 4) + ColourParam.Amplitude] = newAmplitude;
-		}
-
-
-		ambientIntensity(inst: LightInstance) {
-			return this.parameterBase_[(<number>inst * 4) + LightParam.AmbIntensity];
-		}
-
-		setAmbientIntensity(inst: LightInstance, newIntensity: number) {
-			this.parameterBase_[(<number>inst * 4) + LightParam.AmbIntensity] = newIntensity;
-		}
-
-
-		diffuseIntensity(inst: LightInstance) {
+		intensity(inst: LightInstance) {
 			return this.parameterBase_[(<number>inst * 4) + LightParam.DiffIntensity];
 		}
 
-		setDiffuseIntensity(inst: LightInstance, newIntensity: number) {
+		setIntensity(inst: LightInstance, newIntensity: number) {
 			this.parameterBase_[(<number>inst * 4) + LightParam.DiffIntensity] = newIntensity;
 		}
 
@@ -376,37 +370,6 @@ namespace sd.world {
 
 		setShadowBias(inst: LightInstance, newBias: number) {
 			this.shadowParamBase_[(<number>inst * 2) + ShadowParam.Bias] = newBias;
-		}
-
-
-		// -- shader data
-
-		getData(inst: LightInstance, viewMatrix: Float4x4, viewNormalMatrix: Float3x3): LightData {
-			const transform = this.transformBase_[<number>inst];
-
-			const paramData = container.copyIndexedVec2(this.shadowParamBase_, <number>inst);
-			const posAndStrength = new Float32Array(4);
-			const dirAndBias = new Float32Array(4);
-			const rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(transform));
-
-			const lightPosWorld = this.transformMgr_.worldPosition(transform);
-			const lightPosCam = vec3.transformMat4([], lightPosWorld, viewMatrix);
-			const lightDirWorld = vec3.transformMat3([], this.nullVec3_, rotMat);
-			const lightDirCam = vec3.transformMat3([], lightDirWorld, viewNormalMatrix);
-
-			posAndStrength.set(lightPosCam, 0);
-			posAndStrength[3] = paramData[ShadowParam.Strength];
-			dirAndBias.set(vec3.normalize([], lightDirCam), 0);
-			dirAndBias[3] = paramData[ShadowParam.Bias];
-
-			return {
-				type: this.typeBase_[<number>inst],
-				colourData: container.refIndexedVec4(this.colourBase_, <number>inst),
-				parameterData: container.refIndexedVec4(this.parameterBase_, <number>inst),
-				position_cam: posAndStrength,
-				position_world: lightPosWorld.concat(0),
-				direction: dirAndBias
-			};
 		}
 	}
 
