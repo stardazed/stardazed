@@ -54,14 +54,9 @@ namespace sd.world {
 		colourMapUniform: WebGLUniformLocation | null;        // sampler2D
 		normalMapUniform: WebGLUniformLocation | null;        // sampler2D
 		specularMapUniform: WebGLUniformLocation | null;      // sampler2D
+		lightLUTUniform: WebGLUniformLocation | null;         // sampler2D
 
 		// -- lights
-		lightTypeArrayUniform: WebGLUniformLocation;      // int[MAX_FRAGMENT_LIGHTS]
-		lightCamPositionArrayUniform: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
-		lightWorldPositionArrayUniform: WebGLUniformLocation;  // vec4[MAX_FRAGMENT_LIGHTS]
-		lightDirectionArrayUniform: WebGLUniformLocation; // vec4[MAX_FRAGMENT_LIGHTS]
-		lightColourArrayUniform: WebGLUniformLocation;    // vec4[MAX_FRAGMENT_LIGHTS]
-		lightParamArrayUniform: WebGLUniformLocation;     // vec4[MAX_FRAGMENT_LIGHTS]
 		shadowCastingLightIndexUniform: WebGLUniformLocation | null; // int (-1..MAX_FRAGMENT_LIGHTS - 1)
 
 		// -- shadow
@@ -79,7 +74,8 @@ namespace sd.world {
 		Normal = 1, // xyz, height?
 		Specular = 2,
 		Shadow = 3,
-		JointData = 4
+		JointData = 4,
+		LightLUT = 5
 	}
 
 
@@ -88,10 +84,6 @@ namespace sd.world {
 	// \__ \  _/ _` |  _/ | '_ \/ -_) | | ' \/ -_)
 	// |___/\__\__,_|_| |_| .__/\___|_|_|_||_\___|
 	//                    |_|                     
-
-	// -- shader limits
-	const MAX_FRAGMENT_LIGHTS = 4;
-
 
 	class StdPipeline {
 		private cachedPipelines_ = new Map<number, render.Pipeline>();
@@ -223,21 +215,17 @@ namespace sd.world {
 				gl.uniform1i(program.jointIndexOffsetUniform, 0);
 			}
 
-			// -- light property arrays
-			program.lightTypeArrayUniform = gl.getUniformLocation(program, "lightTypes")!;
-			program.lightCamPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_cam")!;
-			program.lightWorldPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_world")!;
-			program.lightDirectionArrayUniform = gl.getUniformLocation(program, "lightDirections")!;
-			program.lightColourArrayUniform = gl.getUniformLocation(program, "lightColours")!;
-			program.lightParamArrayUniform = gl.getUniformLocation(program, "lightParams")!;
+			// -- light data texture and associated properties
+			program.lightLUTUniform = gl.getUniformLocation(program, "lightLUTSampler");
+			if (program.lightLUTUniform) {
+				gl.uniform1i(program.lightLUTUniform, TextureBindPoint.LightLUT);
+			}
+
 			program.shadowCastingLightIndexUniform = gl.getUniformLocation(program, "shadowCastingLightIndex");
 			if (program.shadowCastingLightIndexUniform) {
 				// if this exists, init to -1 to signify no shadow caster
 				gl.uniform1i(program.shadowCastingLightIndexUniform, -1);
 			}
-
-			// -- zero out light types
-			gl.uniform1iv(program.lightTypeArrayUniform, new Int32Array(MAX_FRAGMENT_LIGHTS));
 
 			// -- shadow properties
 			program.lightViewProjectionMatrixUniform = gl.getUniformLocation(program, "lightViewProjectionMatrix");
@@ -458,21 +446,14 @@ namespace sd.world {
 			line  ("const int SPEC_EXPONENT = 1;");
 
 			// -- light param constants
-			line  (`const int MAX_FRAGMENT_LIGHTS = ${MAX_FRAGMENT_LIGHTS};`);
-			line  ("const int LPARAM_AMBIENT_INTENSITY = 0;");
-			line  ("const int LPARAM_DIFFUSE_INTENSITY = 1;");
-			line  ("const int LPARAM_RANGE = 2;");
-			line  ("const int LPARAM_CUTOFF = 3;");
-			line  ("const int LPOS_STRENGTH = 3;");
-			line  ("const int LDIR_BIAS = 3;");
+			line  ("const int LPARAM_INTENSITY = 7;");
+			line  ("const int LPARAM_RANGE = 11;");
+			line  ("const int LPARAM_CUTOFF = 15;");
+			// line  ("const int LSHADOW_STRENGTH = 3;");
+			// line  ("const int LSHADOW_BIAS = 3;");
 
-			// -- lights (with 4 lights, this will take up 20 frag vector uniforms)
-			line  ("uniform int lightTypes[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightPositions_cam[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightPositions_world[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightDirections[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightColours[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
+			// -- light data
+			line  ("uniform sampler2D lightLUTSampler;");
 
 			// -- fog
 			if (feat & Features.Fog) {
@@ -489,11 +470,9 @@ namespace sd.world {
 
 			// -- calcLightShared()
 			line  ("vec3 calcLightShared(vec3 matColour, vec4 colour, vec4 param, float diffuseStrength, vec3 lightDirection, vec3 normal_cam) {");
-			line  ("	vec3 ambientContrib = colour.rgb * param[LPARAM_AMBIENT_INTENSITY];");
 			if_all("	vec3 emissiveContrib = emissiveData.rgb * emissiveData.w;", Features.Emissive);
-			if_all("	ambientContrib += emissiveContrib;", Features.Emissive);
 			line  ("	if (diffuseStrength <= 0.0) {");
-			line  ("		return ambientContrib;");
+			line  ("		return emissiveContrib;");
 			line  ("	}");
 			line  ("	float NdL = max(0.0, dot(normal_cam, -lightDirection));");
 			line  ("	vec3 diffuseContrib = colour.rgb * diffuseStrength * NdL * param[LPARAM_DIFFUSE_INTENSITY];");
@@ -513,10 +492,10 @@ namespace sd.world {
 				line("		specularStrength = pow(specularStrength, specular[SPEC_EXPONENT]) * diffuseStrength;"); // FIXME: not too sure about this (* diffuseStrength)
 				line("		specularContrib = specularColour * specularStrength * specular[SPEC_INTENSITY];");
 				line("	}");
-				line("	return (ambientContrib + (diffuseContrib + specularContrib)) * colour.w;"); // lightColour.w = lightAmplitude
+				line("	return diffuseContrib + specularContrib;");
 			}
 			else {
-				line("	return (ambientContrib + diffuseContrib) * colour.w;");
+				line("	return diffuseContrib;");
 			}
 			line  ("}");
 
@@ -531,7 +510,6 @@ namespace sd.world {
 			line  ("	return calcLightShared(matColour, colour, param, attenuation, lightDirection, normal_cam);");
 			line  ("}");
 
-
 			// -- calcSpotLight()
 			line  ("vec3 calcSpotLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 lightPos_world, vec4 lightDirection, vec3 normal_cam) {");
 			line  ("	vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam.xyz);");
@@ -544,10 +522,29 @@ namespace sd.world {
 			line  ("	return vec3(0.0);");
 			line  ("}");
 
-
 			// -- calcDirectionalLight()
 			line  ("vec3 calcDirectionalLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightDirection, vec3 normal_cam) {");
 			line  ("	return calcLightShared(matColour, colour, param, 1.0, lightDirection.xyz, normal_cam);");
+			line  ("}");
+
+
+			// -- LightEntry and getLightData()
+			line  ("struct LightEntry {");
+			line  ("	vec4 colourAndType;");
+			line  ("	vec4 positionCamAndIntensity;");
+			line  ("	vec4 positionWorldAndRange;");
+			line  ("	vec4 directionAndCutoff;");
+			line  ("}");
+
+			line  ("LightEntry getLightEntry(int lightIx) {}");
+			line  (`	float row = (floor(lightIx / 128.0) + 0.5) / 512.0;`);
+			line  (`	float col = (mod(lightIx, 128.0) * 4.0) + 0.5;`);
+			line  ("	LightEntry le;");
+			line  ("	le.colourAndType = texture2D(lightLUTSampler, vec2(col / 512.0, row));");
+			line  ("	le.positionCamAndIntensity = texture2D(lightLUTSampler, vec2((col + 1.0) / 512.0, row));");
+			line  ("	le.positionWorldAndRange = texture2D(lightLUTSampler, vec2((col + 2.0) / 512.0, row));");
+			line  ("	le.directionAndCutoff = texture2D(lightLUTSampler, vec2((col + 3.0) / 512.0, row));");
+			line  ("	return le;");
 			line  ("}");
 
 
@@ -644,8 +641,9 @@ namespace sd.world {
 			// -- calculate light arriving at the fragment
 			line  ("	vec3 totalLight = vec3(0.0);");
 
-			line  ("	for (int lightIx = 0; lightIx < MAX_FRAGMENT_LIGHTS; ++lightIx) {");
-			line  ("		int type = lightTypes[lightIx];");
+			line  ("	for (int lightIx = 0; lightIx < 64; ++lightIx) {");
+			line  ("		LightEntry lightData = getLightEntry(lightIx);");
+			line  ("		int type = lightData.colourAndType.w;");
 			line  ("		if (type == 0) break;");
 
 			line  ("		vec4 lightPos_cam = lightPositions_cam[lightIx];");     // all array accesses must be constant or a loop index
@@ -766,13 +764,6 @@ namespace sd.world {
 		private primGroupFeatureBase_: ConstEnumArrayView<Features>;
 
 		// -- for light uniform updates
-		private lightTypeArray_ = new Int32Array(MAX_FRAGMENT_LIGHTS);
-		private lightCamPositionArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private lightWorldPositionArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private lightDirectionArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private lightColourArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private lightParamArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private activeLights_: LightInstance[] = [];
 		private shadowCastingLightIndex_ = -1;
 
 		// -- for temp calculations
@@ -979,8 +970,6 @@ namespace sd.world {
 
 
 		setActiveLights(lights: LightInstance[], shadowCasterIndex: number) {
-			this.activeLights_ = lights.slice(0);
-
 			// -- 1 dynamic shadowing light at a time
 			shadowCasterIndex |= 0;
 			if (shadowCasterIndex < 0 || shadowCasterIndex >= lights.length) {
@@ -1099,13 +1088,8 @@ namespace sd.world {
 					rp.setTexture(this.skeletonMgr_.jointDataTexture, TextureBindPoint.JointData);
 				}
 
-				// -- light data FIXME: only update these when local light data was changed -> pos and rot can change as well
-				gl.uniform1iv(program.lightTypeArrayUniform, this.lightTypeArray_);
-				gl.uniform4fv(program.lightCamPositionArrayUniform, this.lightCamPositionArray_);
-				gl.uniform4fv(program.lightWorldPositionArrayUniform, this.lightWorldPositionArray_);
-				gl.uniform4fv(program.lightDirectionArrayUniform, this.lightDirectionArray_);
-				gl.uniform4fv(program.lightColourArrayUniform, this.lightColourArray_);
-				gl.uniform4fv(program.lightParamArrayUniform, this.lightParamArray_);
+				// -- light data
+				rp.setTexture(this.lightMgr_.lutTexture, TextureBindPoint.LightLUT);
 
 				// -- fog data (TODO: directly using descriptor)
 				if (fogSpec) {
@@ -1169,36 +1153,6 @@ namespace sd.world {
 
 			// -- drawcall count, always 1
 			return 1;
-		}
-
-
-		updateLightData(proj: ProjectionSetup) {
-			const lights = this.activeLights_;
-			const viewNormalMatrix = mat3.normalFromMat4([], proj.viewMatrix);
-
-			for (let lix = 0; lix < MAX_FRAGMENT_LIGHTS; ++lix) {
-				const light = lix < lights.length ? lights[lix] : null;
-				const lightData = light && this.lightMgr_.getData(light, proj.viewMatrix, viewNormalMatrix);
-
-				if (lightData) {
-					assert(lightData.type != asset.LightType.None);
-
-					this.lightTypeArray_[lix] = lightData.type;
-					container.setIndexedVec4(this.lightColourArray_, lix, lightData.colourData);
-					container.setIndexedVec4(this.lightParamArray_, lix, lightData.parameterData);
-
-					if (lightData.type != asset.LightType.Point) {
-						container.setIndexedVec4(this.lightDirectionArray_, lix, lightData.direction);
-					}
-					if (lightData.type != asset.LightType.Directional) {
-						container.setIndexedVec4(this.lightCamPositionArray_, lix, lightData.position_cam);
-						container.setIndexedVec4(this.lightWorldPositionArray_, lix, lightData.position_world);
-					}
-				}
-				else {
-					this.lightTypeArray_[lix] = asset.LightType.None;
-				}
-			}
 		}
 
 
