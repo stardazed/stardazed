@@ -1,4 +1,4 @@
-// container/multiarraybuffer - struct-of-arrays container for primitive types
+// container/multiarraybuffer - struct-of-arrays containers for primitive types
 // Part of Stardazed TX
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
@@ -23,6 +23,70 @@ namespace sd.container {
 	export const enum InvalidatePointers {
 		No,
 		Yes
+	}
+
+
+	function positionFields(fields: MABField[]): PositionedMABField[] {
+		let totalOffset = 0;
+		return fields.map(field => {
+			const curOffset = totalOffset;
+			const sizeBytes = field.type.byteSize * field.count;
+			totalOffset += sizeBytes;
+
+			return {
+				type: field.type,
+				count: field.count,
+				byteOffset: curOffset,
+				sizeBytes: sizeBytes
+			};
+		});
+	}
+
+
+	function clearBuffer(data: ArrayBuffer) {
+		const numDoubles = (data.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
+		const doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
+		const remainingBytes = data.byteLength - doublesByteSize;
+
+		// As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
+		const doubleView = new Float64Array(data);
+		const remainderView = new Uint8Array(data, doublesByteSize);
+		for (let d = 0; d < numDoubles; ++d) {
+			doubleView[d] = 0;
+		}
+		for (let b = 0; b < remainingBytes; ++b) {
+			remainderView[b] = 0;
+		}
+	}
+
+
+	export class FixedMultiArray {
+		private data_: ArrayBuffer;
+		private basePointers_: TypedArray[];
+
+		constructor(private capacity_: number, fields: MABField[]) {
+			const posFields = positionFields(fields);
+			const lastField = posFields[posFields.length - 1];
+			const elementSumSize = lastField.byteOffset + lastField.sizeBytes;
+
+			this.data_ = new ArrayBuffer(elementSumSize * capacity_);
+
+			this.basePointers_ = posFields.map(posField => {
+				const byteOffset = capacity_ * posField.byteOffset;
+				return new (posField.type.arrayType)(this.data_, byteOffset, capacity_ * posField.count);
+			});
+		}
+
+		get capacity() { return this.capacity_; }
+		get data() { return this.data_; }
+
+		clear() {
+			clearBuffer(this.data_);
+		}
+
+		indexedFieldView(index: number) {
+			return this.basePointers_[index];
+		}
 	}
 
 
@@ -113,21 +177,7 @@ namespace sd.container {
 
 		clear() {
 			this.count_ = 0;
-			const data = this.data_!;
-
-			const numDoubles = (data.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
-			const doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
-			const remainingBytes = data.byteLength - doublesByteSize;
-
-			// As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
-			const doubleView = new Float64Array(data);
-			const remainderView = new Uint8Array(data, doublesByteSize);
-			for (let d = 0; d < numDoubles; ++d) {
-				doubleView[d] = 0;
-			}
-			for (let b = 0; b < remainingBytes; ++b) {
-				remainderView[b] = 0;
-			}
+			clearBuffer(this.data_!);
 		}
 
 
