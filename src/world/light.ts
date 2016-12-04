@@ -212,6 +212,11 @@ namespace sd.world {
 
 		// -- derived properties
 
+		positionCameraSpace(inst: LightInstance) {
+			const posCamOffset = ((inst as number) * 16) + 4;
+			return this.globalLightData_.slice(posCamOffset, posCamOffset + 3);
+		}
+
 		projectionSetupForLight(inst: LightInstance, viewportWidth: number, viewportHeight: number, nearZ: number): ProjectionSetup | null {
 			const transform = this.transformBase_[<number>inst];
 			const worldPos = this.transformMgr_.worldPosition(transform);
