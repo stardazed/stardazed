@@ -7,6 +7,17 @@
 
 namespace sd.math {
 
+	// tslint:disable:whitespace
+	export function viewportMatrix(x: number, y: number, w: number, h: number, n: number, f: number): Float4x4 {
+		return mat4.transpose([], [
+			w/2, 0,   0,       w/2+x,
+			0,   h/2, 0,       h/2+y,
+			0,   0,   (f-n)/2, (f+n)/2,
+			0,   0,   0,       1
+		]);
+	}
+	// tslint:enable:whitespace
+
 	// imported from now-dead tiled-light branch
 	// used to determine what area of screenspace a (point) light would affect
 	export function screenSpaceBoundsForWorldCube(position: Float3, halfDim: number, cameraDir: Float3, viewMatrix: Float4x4, projectionViewMatrix: Float4x4, viewportMatrix: Float4x4, bounds: Rect) {
