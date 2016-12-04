@@ -20,7 +20,7 @@ namespace sd.math {
 
 	// imported from now-dead tiled-light branch
 	// used to determine what area of screenspace a (point) light would affect
-	export function screenSpaceBoundsForWorldCube(position: Float3, halfDim: number, cameraDir: Float3, viewMatrix: Float4x4, projectionViewMatrix: Float4x4, viewportMatrix: Float4x4, bounds: Rect) {
+	export function screenSpaceBoundsForWorldCube(outBounds: Rect, position: Float3, halfDim: number, cameraDir: Float3, viewMatrix: Float4x4, projectionViewMatrix: Float4x4, viewportMatrix: Float4x4) {
 		const lx = position[0];
 		const ly = position[1];
 		const lz = position[2];
@@ -55,9 +55,9 @@ namespace sd.math {
 		const centerLight = vec4.transformMat4([], [lx, ly, lz, 1.0], projectionViewMatrix);
 
 		// perspective divide
-		vec3.scale(leftLight, leftLight, 1.0 / leftLight[3]);
-		vec3.scale(upLight, upLight, 1.0 / upLight[3]);
-		vec3.scale(centerLight, centerLight, 1.0 / centerLight[3]);
+		vec4.scale(leftLight, leftLight, 1.0 / leftLight[3]);
+		vec4.scale(upLight, upLight, 1.0 / upLight[3]);
+		vec4.scale(centerLight, centerLight, 1.0 / centerLight[3]);
 
 		// project on 2d viewport
 		vec4.transformMat4(leftLight, leftLight, viewportMatrix);
@@ -75,10 +75,10 @@ namespace sd.math {
 		const rightx = centerLight[0] + lenw;
 		const topy = centerLight[1] + lenh;
 
-		bounds.left = leftx;
-		bounds.right = rightx;
-		bounds.bottom = bottomy;
-		bounds.top = topy;
+		outBounds.left = leftx;
+		outBounds.right = rightx;
+		outBounds.bottom = bottomy;
+		outBounds.top = topy;
 	}
 
 
@@ -117,7 +117,6 @@ namespace sd.math {
 	export function pointDistanceToPlane(point: Float3, plane: Plane) {
 		return vec3.dot(plane.normal, point) + plane.d;
 	}
-
 
 
 	// this whole BoundedPlane business is experimental and possibly a load of shite
