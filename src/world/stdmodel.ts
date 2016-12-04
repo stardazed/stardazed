@@ -637,18 +637,18 @@ namespace sd.world {
 				line("	poissonDisk[1] = vec2(0.94558609, -0.76890725);");
 				line("	poissonDisk[2] = vec2(-0.094184101, -0.92938870);");
 				line("	poissonDisk[3] = vec2(0.34495938, 0.29387760);");
-				line("	poissonDisk[4] = vec2( -0.91588581, 0.45771432 );");
-				line("	poissonDisk[5] = vec2( -0.81544232, -0.87912464 );");
-				line("	poissonDisk[6] = vec2( -0.38277543, 0.27676845 );");
-				line("	poissonDisk[7] = vec2( 0.97484398, 0.75648379 );");
-				line("	poissonDisk[8] = vec2( 0.44323325, -0.97511554 );");
-				line("	poissonDisk[9] = vec2( 0.53742981, -0.47373420 );");
-				line("	poissonDisk[10] = vec2( -0.26496911, -0.41893023 );");
-				line("	poissonDisk[11] = vec2( 0.79197514, 0.19090188 );");
-				line("	poissonDisk[12] = vec2( -0.24188840, 0.99706507 ); ");
-				line("	poissonDisk[13] = vec2( -0.81409955, 0.91437590 );");
-				line("	poissonDisk[14] = vec2( 0.19984126, 0.78641367 );");
-				line("	poissonDisk[15] = vec2( 0.14383161, -0.14100790 );");
+				line("	poissonDisk[4] = vec2(-0.91588581, 0.45771432);");
+				line("	poissonDisk[5] = vec2(-0.81544232, -0.87912464);");
+				line("	poissonDisk[6] = vec2(-0.38277543, 0.27676845);");
+				line("	poissonDisk[7] = vec2(0.97484398, 0.75648379);");
+				line("	poissonDisk[8] = vec2(0.44323325, -0.97511554);");
+				line("	poissonDisk[9] = vec2(0.53742981, -0.47373420);");
+				line("	poissonDisk[10] = vec2(-0.26496911, -0.41893023);");
+				line("	poissonDisk[11] = vec2(0.79197514, 0.19090188);");
+				line("	poissonDisk[12] = vec2(-0.24188840, 0.99706507); ");
+				line("	poissonDisk[13] = vec2(-0.81409955, 0.91437590);");
+				line("	poissonDisk[14] = vec2(0.19984126, 0.78641367);");
+				line("	poissonDisk[15] = vec2(0.14383161, -0.14100790);");
 			}
 
 			// -- normal in camera space, convert from tangent space
