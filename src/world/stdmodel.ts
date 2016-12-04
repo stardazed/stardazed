@@ -766,7 +766,7 @@ namespace sd.world {
 		private primGroupFeatureBase_: ConstEnumArrayView<Features>;
 
 		// -- for light uniform updates
-		private shadowCastingLightIndex_ = -1;
+		private shadowCastingLightIndex_: LightInstance = 0;
 
 		// -- for temp calculations
 		private modelViewMatrix_ = mat4.create();
@@ -971,14 +971,8 @@ namespace sd.world {
 		}
 
 
-		setActiveLights(lights: LightInstance[], shadowCasterIndex: number) {
-			// -- 1 dynamic shadowing light at a time
-			shadowCasterIndex |= 0;
-			if (shadowCasterIndex < 0 || shadowCasterIndex >= lights.length) {
-				// no shadow caster
-				shadowCasterIndex = -1;
-			}
-			this.shadowCastingLightIndex_ = shadowCasterIndex;
+		setShadowCaster(inst: LightInstance) {
+			this.shadowCastingLightIndex_ = inst;
 		}
 
 
@@ -1101,7 +1095,7 @@ namespace sd.world {
 
 				// -- shadow map and metadata
 				if (shadow) {
-					gl.uniform1i(program.shadowCastingLightIndexUniform, this.shadowCastingLightIndex_);
+					gl.uniform1i(program.shadowCastingLightIndexUniform, this.shadowCastingLightIndex_ as number);
 
 					rp.setTexture(shadow.shadowFBO.depthAttachmentTexture()!, TextureBindPoint.Shadow);
 
