@@ -770,7 +770,7 @@ namespace sd.world {
 			private rc: render.RenderContext,
 			private transformMgr_: TransformManager,
 			private meshMgr_: MeshManager,
-			private lightMgr_: LightManager
+			_lightMgr: LightManager
 		)
 		{
 			this.pbrPipeline_ = new PBRPipeline(rc);
