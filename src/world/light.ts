@@ -48,7 +48,7 @@ namespace sd.world {
 		private shadowFBO_: render.FrameBuffer | null = null;
 
 
-		constructor(rc: render.RenderContext, private transformMgr_: TransformManager) {
+		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager) {
 			this.count_ = 0;
 
 			// linking info
@@ -106,7 +106,6 @@ namespace sd.world {
 			this.shadowBiasBase_[instance] = desc.shadowBias || 0.002;
 
 			// light data
-			const gldIndex = instance * 16;
 			const gldData = new Float32Array(16);
 
 			// pixel0: colour[3], type
@@ -116,8 +115,8 @@ namespace sd.world {
 			// pixel2: position_world[3], range
 			container.setIndexedVec4(gldData, 2, [0, 0, 0, desc.range || 0]);
 			// pixel3: direction[3], cutoff
-			container.setIndexedVec4(gldData, 3, [0, 0, 0, desc.cutoff || 0]);
-			container.setIndexedMat4(this.globalLightData_, gldIndex, gldData);
+			container.setIndexedVec4(gldData, 3, [0, 0, 0, Math.cos(desc.cutoff || 0)]);
+			container.setIndexedMat4(this.globalLightData_, instance, gldData);
 
 			return instance;
 		}
@@ -165,6 +164,12 @@ namespace sd.world {
 					this.globalLightData_[dirOffset + 2] = lightDir_cam[2];
 				}
 			}
+
+			// update rows
+			const rowsUsed = Math.ceil((count + 1) / LUT_DIMENSION);
+			this.lutTexture_.bind();
+			this.rc.gl.texSubImage2D(this.lutTexture_.target, 0, 0, 0, LUT_DIMENSION, rowsUsed, this.rc.gl.RGBA, this.rc.gl.FLOAT, this.globalLightData_);
+			this.lutTexture_.unbind();
 		}
 
 		get lutTexture() {
