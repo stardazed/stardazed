@@ -402,7 +402,7 @@ namespace sd.world {
 			line  ("}");
 
 			// console.info("------ VERTEX");
-			// source.forEach((s) => console.info(s));
+			// console.info(source.map((l, ix) => (ix + 1) + ": " + l).join("\n") + "\n");
 
 			return source.join("\n") + "\n";
 		}
@@ -445,13 +445,6 @@ namespace sd.world {
 			line  ("const int SPEC_INTENSITY = 0;");
 			line  ("const int SPEC_EXPONENT = 1;");
 
-			// -- light param constants
-			line  ("const int LPARAM_INTENSITY = 7;");
-			line  ("const int LPARAM_RANGE = 11;");
-			line  ("const int LPARAM_CUTOFF = 15;");
-			// line  ("const int LSHADOW_STRENGTH = 3;");
-			// line  ("const int LSHADOW_BIAS = 3;");
-
 			// -- light data
 			line  ("uniform sampler2D lightLUTSampler;");
 
@@ -468,14 +461,40 @@ namespace sd.world {
 			// initialized in main() as GLSL ES 2 does not support array initializers
 			if_all("vec2 poissonDisk[16];", Features.SoftShadow);
 
+
+			// -- LightEntry and getLightData()
+			line  ("struct LightEntry {");
+			line  ("	vec4 colourAndType;");
+			line  ("	vec4 positionCamAndIntensity;");
+			line  ("	vec4 positionWorldAndRange;");
+			line  ("	vec4 directionAndCutoff;");
+			line  ("};");
+
+			line  ("LightEntry getLightEntry(float lightIx) {");
+			line  (`	float row = (floor(lightIx / 128.0) + 0.5) / 512.0;`);
+			line  (`	float col = (mod(lightIx, 128.0) * 4.0) + 0.5;`);
+			line  ("	LightEntry le;");
+			line  ("	le.colourAndType = texture2D(lightLUTSampler, vec2(col / 512.0, row));");
+			line  ("	le.positionCamAndIntensity = texture2D(lightLUTSampler, vec2((col + 1.0) / 512.0, row));");
+			line  ("	le.positionWorldAndRange = texture2D(lightLUTSampler, vec2((col + 2.0) / 512.0, row));");
+			line  ("	le.directionAndCutoff = texture2D(lightLUTSampler, vec2((col + 3.0) / 512.0, row));");
+			line  ("	return le;");
+			line  ("}");
+
+
 			// -- calcLightShared()
-			line  ("vec3 calcLightShared(vec3 matColour, vec4 colour, vec4 param, float diffuseStrength, vec3 lightDirection, vec3 normal_cam) {");
-			if_all("	vec3 emissiveContrib = emissiveData.rgb * emissiveData.w;", Features.Emissive);
+			line  ("vec3 calcLightShared(vec3 lightColour, float intensity, float diffuseStrength, vec3 lightDirection, vec3 normal_cam) {");
+			if (feat & Features.Emissive) {
+				line("	vec3 emissiveContrib = emissiveData.rgb * emissiveData.w;");
+			}
+			else {
+				line("	vec3 emissiveContrib = vec3(0.0);");
+			}
 			line  ("	if (diffuseStrength <= 0.0) {");
-			line  ("		return emissiveContrib;");
+			line  ("		return emissiveContrib * intensity;");
 			line  ("	}");
 			line  ("	float NdL = max(0.0, dot(normal_cam, -lightDirection));");
-			line  ("	vec3 diffuseContrib = colour.rgb * diffuseStrength * NdL * param[LPARAM_DIFFUSE_INTENSITY];");
+			line  ("	vec3 diffuseContrib = lightColour * diffuseStrength * NdL * intensity;");
 
 			if (feat & Features.Specular) {
 				line("	vec3 specularContrib = vec3(0.0);");
@@ -487,64 +506,62 @@ namespace sd.world {
 					line("		vec3 specularColour = texture2D(specularSampler, vertexUV_intp).xyz;");
 				}
 				else {
-					line("		vec3 specularColour = colour.rgb;");
+					line("		vec3 specularColour = lightColour;");
 				}
 				line("		specularStrength = pow(specularStrength, specular[SPEC_EXPONENT]) * diffuseStrength;"); // FIXME: not too sure about this (* diffuseStrength)
 				line("		specularContrib = specularColour * specularStrength * specular[SPEC_INTENSITY];");
 				line("	}");
-				line("	return diffuseContrib + specularContrib;");
+				line("	return emissiveContrib + diffuseContrib + specularContrib;");
 			}
 			else {
-				line("	return diffuseContrib;");
+				line("	return emissiveContrib + diffuseContrib;");
 			}
 			line  ("}");
 
 
 			// -- calcPointLight()
-			line  ("vec3 calcPointLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 lightPos_world, vec3 normal_cam) {");
+			line  ("vec3 calcPointLight(vec3 lightColour, float intensity, float range, vec3 lightPos_cam, vec3 lightPos_world, vec3 normal_cam) {");
 			line  ("	float distance = length(vertexPos_world - lightPos_world);"); // use world positions for distance as cam will warp coords
-			line  ("	vec3 lightDirection = normalize(vertexPos_cam - lightPos_cam.xyz);");
-			line  ("	float range = param[LPARAM_RANGE];");
+			line  ("	vec3 lightDirection = normalize(vertexPos_cam - lightPos_cam);");
 			line  ("	float attenuation = clamp(1.0 - distance * distance / (range * range), 0.0, 1.0);");
 			line  ("	attenuation *= attenuation;");
-			line  ("	return calcLightShared(matColour, colour, param, attenuation, lightDirection, normal_cam);");
+			line  ("	return calcLightShared(lightColour, intensity, attenuation, lightDirection, normal_cam);");
 			line  ("}");
 
 			// -- calcSpotLight()
-			line  ("vec3 calcSpotLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightPos_cam, vec3 lightPos_world, vec4 lightDirection, vec3 normal_cam) {");
-			line  ("	vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam.xyz);");
-			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection.xyz);");
-			line  ("	float cutoff = param[LPARAM_CUTOFF];");
+			line  ("vec3 calcSpotLight(vec3 lightColour, float intensity, float range, float cutoff, vec3 lightPos_cam, vec3 lightPos_world, vec3 lightDirection, vec3 normal_cam) {");
+			line  ("	vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam);");
+			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection);");
 			line  ("	if (spotCosAngle > cutoff) {");
-			line  ("		vec3 light = calcPointLight(lightIx, matColour, colour, param, lightPos_cam, lightPos_world, normal_cam);");
+			line  ("		vec3 light = calcPointLight(lightColour, intensity, range, lightPos_cam, lightPos_world, normal_cam);");
 			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);");
 			line  ("	}");
 			line  ("	return vec3(0.0);");
 			line  ("}");
 
-			// -- calcDirectionalLight()
-			line  ("vec3 calcDirectionalLight(int lightIx, vec3 matColour, vec4 colour, vec4 param, vec4 lightDirection, vec3 normal_cam) {");
-			line  ("	return calcLightShared(matColour, colour, param, 1.0, lightDirection.xyz, normal_cam);");
-			line  ("}");
+			// -- getLightContribution()
+			line  ("vec3 getLightContribution(LightEntry light, vec3 normal_cam) {");
+			line  ("	vec3 colour = light.colourAndType.xyz;");
+			line  ("	float type = light.colourAndType.w;");
+			line  ("	vec3 lightPos_cam = light.positionCamAndIntensity.xyz;");
+			line  ("	float intensity = light.positionCamAndIntensity.w;");
 
+			line  (`	if (type == ${asset.LightType.Directional}.0) {`);
+			line  ("		return calcLightShared(colour, intensity, 1.0, light.directionAndCutoff.xyz, normal_cam);");
+			line  ("	}");
 
-			// -- LightEntry and getLightData()
-			line  ("struct LightEntry {");
-			line  ("	vec4 colourAndType;");
-			line  ("	vec4 positionCamAndIntensity;");
-			line  ("	vec4 positionWorldAndRange;");
-			line  ("	vec4 directionAndCutoff;");
-			line  ("}");
+			line  ("	vec3 lightPos_world = light.positionWorldAndRange.xyz;");
+			line  ("	float range = light.positionWorldAndRange.w;");
+			line  (`	if (type == ${asset.LightType.Point}.0) {`);
+			line  ("		return calcPointLight(colour, intensity, range, lightPos_cam, lightPos_world, normal_cam);");
+			line  ("	}");
 
-			line  ("LightEntry getLightEntry(int lightIx) {}");
-			line  (`	float row = (floor(lightIx / 128.0) + 0.5) / 512.0;`);
-			line  (`	float col = (mod(lightIx, 128.0) * 4.0) + 0.5;`);
-			line  ("	LightEntry le;");
-			line  ("	le.colourAndType = texture2D(lightLUTSampler, vec2(col / 512.0, row));");
-			line  ("	le.positionCamAndIntensity = texture2D(lightLUTSampler, vec2((col + 1.0) / 512.0, row));");
-			line  ("	le.positionWorldAndRange = texture2D(lightLUTSampler, vec2((col + 2.0) / 512.0, row));");
-			line  ("	le.directionAndCutoff = texture2D(lightLUTSampler, vec2((col + 3.0) / 512.0, row));");
-			line  ("	return le;");
+			line  ("	float cutoff = light.directionAndCutoff.w;");
+			line  (`	if (type == ${asset.LightType.Spot}.0) {`);
+			line  ("		return calcSpotLight(colour, intensity, range, cutoff, lightPos_cam, lightPos_world, light.directionAndCutoff.xyz, normal_cam);");
+			line  ("	}");
+
+			line  ("	return vec3(0.0);"); // this would be bad
 			line  ("}");
 
 
@@ -641,28 +658,21 @@ namespace sd.world {
 			// -- calculate light arriving at the fragment
 			line  ("	vec3 totalLight = vec3(0.0);");
 
-			line  ("	for (int lightIx = 0; lightIx < 64; ++lightIx) {");
-			line  ("		LightEntry lightData = getLightEntry(lightIx);");
-			line  ("		int type = lightData.colourAndType.w;");
-			line  ("		if (type == 0) break;");
-
-			line  ("		vec4 lightPos_cam = lightPositions_cam[lightIx];");     // all array accesses must be constant or a loop index
-			line  ("		vec3 lightPos_world = lightPositions_world[lightIx].xyz;");
-			line  ("		vec4 lightDir_cam = lightDirections[lightIx];");        // keep w component (LDIR_BIAS)
-			line  ("		vec4 lightColour = lightColours[lightIx];");
-			line  ("		vec4 lightParam = lightParams[lightIx];");
+			line  ("	for (int lightIx = 1; lightIx < 64; ++lightIx) {");
+			line  ("		LightEntry lightData = getLightEntry(float(lightIx));");
+			line  ("		if (lightData.colourAndType.w <= 0.0) break;");
 
 			// shadow intensity
 			line  ("		float shadowFactor = 1.0;");
-
 			if (feat & Features.ShadowMap) {
 				line("		if (lightIx == shadowCastingLightIndex) {");
-				line("			float shadowBias = lightDir_cam[LDIR_BIAS];"); // shadow bias stored in light direction
+				line("			float shadowBias = 0.002;"); // FIXME: restore configurable param
+				line("			float shadowStrength = 1.0;"); // FIXME: restore configurable param
 				line("			float fragZ = (vertexPos_light.z - shadowBias) / vertexPos_light.w;");
 
 				if (feat & Features.SoftShadow) {
 					// well, soft-ish
-					line("			float strengthIncrement = lightPos_cam[LPOS_STRENGTH] / 16.0;");
+					line("			float strengthIncrement = shadowStrength / 16.0;"); // FIXME: restore configurable param
 					line("			for (int ssi = 0; ssi < 16; ++ssi) {");
 					line("				vec2 shadowSampleCoord = (vertexPos_light.xy / vertexPos_light.w) + (poissonDisk[ssi] / 550.0);");
 					line("				float shadowZ = texture2D(shadowSampler, shadowSampleCoord).z;");
@@ -674,22 +684,14 @@ namespace sd.world {
 				else {
 					line("			float shadowZ = texture2DProj(shadowSampler, vertexPos_light.xyw).z;");
 					line("			if (shadowZ < fragZ) {");
-					line("				shadowFactor = 1.0 - lightPos_cam[LPOS_STRENGTH];"); // shadow strength stored in light world pos
+					line("				shadowFactor = 1.0 - shadowStrength;"); // shadow strength stored in light world pos
 					line("			}");
 				}
 
 				line("		}"); // lightIx == shadowCastingLightIndex
 			}
 
-			line  ("		if (type == 1) {");
-			line  ("			totalLight += shadowFactor * calcDirectionalLight(lightIx, matColour, lightColour, lightParam, lightDir_cam, normal_cam);");
-			line  ("		}");
-			line  ("		else if (type == 2) {");
-			line  ("			totalLight += shadowFactor * calcPointLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, normal_cam);");
-			line  ("		}");
-			line  ("		else if (type == 3) {");
-			line  ("			totalLight += shadowFactor * calcSpotLight(lightIx, matColour, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, normal_cam);");
-			line  ("		}");
+			line  ("		totalLight += getLightContribution(lightData, normal_cam) * shadowFactor;");
 			line  ("	}");
 
 			// -- final colour result
@@ -704,7 +706,7 @@ namespace sd.world {
 			line  ("}");
 
 			// console.info(`------ FRAGMENT ${feat}`);
-			// source.forEach((s) => console.info(s));
+			// console.info(source.map((l, ix) => (ix + 1) + ": " + l).join("\n") + "\n");
 
 			return source.join("\n") + "\n";
 		}
