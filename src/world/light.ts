@@ -6,6 +6,9 @@
 namespace sd.world {
 
 	export type LightInstance = Instance<LightManager>;
+	export type LightRange = InstanceRange<LightManager>;
+	export type LightSet = InstanceSet<LightManager>;
+	export type LightIterator = InstanceIterator<LightManager>;
 	export type LightArrayView = InstanceArrayView<LightManager>;
 
 	export interface ShadowView {
@@ -23,12 +26,12 @@ namespace sd.world {
 	const LUT_GRID_ROWS = 16;
 	const LUT_HEIGHT = LUT_LIGHTDATA_ROWS + LUT_INDEXLIST_ROWS + LUT_GRID_ROWS; // 512
 
-	// const TILE_DIMENSION = 32;
+	const TILE_DIMENSION = 32;
 
 	const MAX_LIGHTS = ((LUT_WIDTH * LUT_LIGHTDATA_ROWS) / 5) | 0;
 
 
-	export class LightManager {
+	export class LightManager implements ComponentManager<LightManager> {
 		private instanceData_: container.FixedMultiArray;
 		private entityBase_: EntityArrayView;
 		private transformBase_: TransformArrayView;
@@ -41,6 +44,9 @@ namespace sd.world {
 		private lightGrid_: Float32Array;
 		private lutTexture_: render.Texture;
 		private count_: number;
+
+		private gridRowSets_: Set<number>[];
+		private rectStore_: math.RectStorage;
 
 		private nullVec3_ = new Float32Array(3); // used to convert directions to rotations
 
@@ -62,6 +68,10 @@ namespace sd.world {
 			this.transformBase_ = this.instanceData_.indexedFieldView(1);
 			this.shadowTypeBase_ = this.instanceData_.indexedFieldView(2);
 			this.shadowQualityBase_ = this.instanceData_.indexedFieldView(3);
+
+			// grid creation
+			this.gridRowSets_ = [];
+			this.rectStore_ = new math.RectStorage(Float, 64);
 
 			// light data texture
 			const lutFields: container.MABField[] = [
@@ -119,13 +129,66 @@ namespace sd.world {
 			// TBI
 		}
 
+		destroyRange(range: LightRange) {
+			const iter = range.makeIterator();
+			while (iter.next()) {
+				this.destroy(iter.current);
+			}
+		}
+
 
 		get count() { return this.count_; }
+
+		valid(inst: LightInstance) {
+			return (inst as number) > 0 && (inst as number) <= this.count_;
+		}
+
+		all(): LightRange {
+			return new InstanceLinearRange<LightManager>(1, this.count);
+		}
 
 
 		// -- actions
 
-		updateLightData(proj: ProjectionSetup) {
+		private updateLightGrid(projection: ProjectionSetup, viewport: render.Viewport) {
+			const vpWidth = this.rc.gl.drawingBufferWidth;
+			const vpHeight = this.rc.gl.drawingBufferHeight;
+			const tilesWide = Math.ceil(vpWidth / TILE_DIMENSION);
+			const tilesHigh = Math.ceil(vpHeight / TILE_DIMENSION);
+
+			// ensure size of and clear vertical sorting table
+			for (let row = 0; row < tilesHigh; ++row) {
+				if (this.gridRowSets_[row] === undefined) {
+					this.gridRowSets_[row] = new Set<number>();
+				}
+				else {
+					this.gridRowSets_[row].clear();
+				}
+			}
+
+			// ensure storage for SSB rects for lights
+			const count = this.count_;
+			if (count >= this.rectStore_.capacity) {
+				this.rectStore_ = new math.RectStorage(Float, count + 1);
+			}
+			const curRect = new math.RectStorageProxy(this.rectStore_, 1);
+
+			const MVP = mat4.multiply([], projection.projectionMatrix, projection.viewMatrix);
+			const viewportMatrix = math.viewportMatrix(viewport.originX, viewport.originY, viewport.width, viewport.height, viewport.nearZ, viewport.farZ);
+
+			// calc SSB for each rect
+			for (let lix = 1; lix <= count; ++lix) {
+				const lightType = this.type(lix); 
+				if (lightType === asset.LightType.Point) {
+					const lpos = this.transformMgr_.worldPosition(this.transformBase_[lix]);
+					const radius = this.range(lix);
+					math.screenSpaceBoundsForWorldCube(curRect, lpos, radius, camDir, projection.viewMatrix, MVP, viewportMatrix);
+					// ctx2D.strokeRect(ssb.left, 640 - ssb.top, ssb.right - ssb.left, ssb.top - ssb.bottom);
+				}
+			}
+		}
+
+		updateLightData(proj: ProjectionSetup, viewport: render.Viewport) {
 			const viewNormalMatrix = mat3.normalFromMat4([], proj.viewMatrix);
 
 			const count = this.count_;
@@ -158,6 +221,8 @@ namespace sd.world {
 					this.globalLightData_[dirOffset + 2] = lightDir_cam[2];
 				}
 			}
+
+			this.updateLightGrid(proj, viewport);
 
 			// update rows
 			const rowsUsed = Math.ceil((count + 1) / LUT_WIDTH);
