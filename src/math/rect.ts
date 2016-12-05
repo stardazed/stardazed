@@ -5,7 +5,51 @@
 
 namespace sd.math {
 
-	export class Rect {
+	export interface Rect {
+		left: number;
+		top: number;
+		right: number;
+		bottom: number;
+	}
+
+	export class RectStorage {
+		private data_: container.FixedMultiArray;
+		leftBase: TypedArray;
+		topBase: TypedArray;
+		rightBase: TypedArray;
+		bottomBase: TypedArray;
+
+		constructor(elementType: NumericType, capacity: number) {
+			const fields: container.MABField[] = [
+				{ type: elementType, count: 1 }, // left
+				{ type: elementType, count: 1 }, // top
+				{ type: elementType, count: 1 }, // right
+				{ type: elementType, count: 1 }, // bottom
+			];
+			this.data_ = new container.FixedMultiArray(capacity, fields);
+			this.leftBase = this.data_.indexedFieldView(0);
+			this.topBase = this.data_.indexedFieldView(1);
+			this.rightBase = this.data_.indexedFieldView(2);
+			this.bottomBase = this.data_.indexedFieldView(3);
+		}
+
+		get capacity() { return this.data_.capacity; }
+	}
+
+	export class RectStorageProxy implements Rect {
+		constructor(private storage_: RectStorage, public index: number) {}
+
+		get left() { return this.storage_.leftBase[this.index]; }
+		set left(newLeft: number) { this.storage_.leftBase[this.index] = newLeft; }
+		get top() { return this.storage_.topBase[this.index]; }
+		set top(newTop: number) { this.storage_.topBase[this.index] = newTop; }
+		get right() { return this.storage_.rightBase[this.index]; }
+		set right(newRight: number) { this.storage_.rightBase[this.index] = newRight; }
+		get bottom() { return this.storage_.bottomBase[this.index]; }
+		set bottom(newBottom: number) { this.storage_.bottomBase[this.index] = newBottom; }
+	}
+
+	export class RectEx implements Rect {
 		topLeft: Float32Array;
 		topRight: Float32Array;
 		bottomLeft: Float32Array;
