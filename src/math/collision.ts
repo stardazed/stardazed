@@ -9,12 +9,12 @@ namespace sd.math {
 
 	// tslint:disable:whitespace
 	export function viewportMatrix(x: number, y: number, w: number, h: number, n: number, f: number): Float4x4 {
-		return mat4.transpose([], [
-			w/2, 0,   0,       w/2+x,
-			0,   h/2, 0,       h/2+y,
-			0,   0,   (f-n)/2, (f+n)/2,
-			0,   0,   0,       1
-		]);
+		return [
+			w/2,   0,     0,       0,
+			0,     h/2,   0,       0,
+			0,     0,     (f-n)/2, 0,
+			w/2+x, h/2+y, (f+n)/2, 1
+		];
 	}
 	// tslint:enable:whitespace
 
