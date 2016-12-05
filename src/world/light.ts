@@ -17,14 +17,15 @@ namespace sd.world {
 
 	// this setup allows for a renderbuffer up to 4K (3840 * 2160)
 	// and a global list of up to 32768 active lights 
-	const LUT_DIMENSION = 512;
+	const LUT_WIDTH = 640;
 	const LUT_LIGHTDATA_ROWS = 256;
 	const LUT_INDEXLIST_ROWS = 240;
 	const LUT_GRID_ROWS = 16;
+	const LUT_HEIGHT = LUT_LIGHTDATA_ROWS + LUT_INDEXLIST_ROWS + LUT_GRID_ROWS; // 512
 
 	// const TILE_DIMENSION = 32;
 
-	const MAX_LIGHTS = ((LUT_DIMENSION * LUT_LIGHTDATA_ROWS) / 4) | 0;
+	const MAX_LIGHTS = ((LUT_WIDTH * LUT_LIGHTDATA_ROWS) / 5) | 0;
 
 
 	export class LightManager {
@@ -33,8 +34,6 @@ namespace sd.world {
 		private transformBase_: TransformArrayView;
 		private shadowTypeBase_: ConstEnumArrayView<asset.ShadowType>;
 		private shadowQualityBase_: ConstEnumArrayView<asset.ShadowQuality>;
-		private shadowStrengthBase_: Float32Array;
-		private shadowBiasBase_: Float32Array;
 
 		private lightData_: container.FixedMultiArray;
 		private globalLightData_: Float32Array;
@@ -57,16 +56,12 @@ namespace sd.world {
 				{ type: SInt32, count: 1 }, // transformInstance
 				{ type: SInt32, count: 1 }, // shadowType
 				{ type: SInt32, count: 1 }, // shadowQuality
-				{ type: SInt32, count: 1 }, // shadowStrength
-				{ type: SInt32, count: 1 }, // shadowBias
 			];
 			this.instanceData_ = new container.FixedMultiArray(MAX_LIGHTS, instFields);
 			this.entityBase_ = this.instanceData_.indexedFieldView(0);
 			this.transformBase_ = this.instanceData_.indexedFieldView(1);
 			this.shadowTypeBase_ = this.instanceData_.indexedFieldView(2);
 			this.shadowQualityBase_ = this.instanceData_.indexedFieldView(3);
-			this.shadowStrengthBase_ = this.instanceData_.indexedFieldView(4);
-			this.shadowBiasBase_ = this.instanceData_.indexedFieldView(5);
 
 			// light data texture
 			const lutFields: container.MABField[] = [
@@ -74,12 +69,12 @@ namespace sd.world {
 				{ type: Float, count: 4 * LUT_INDEXLIST_ROWS },
 				{ type: Float, count: 4 * LUT_GRID_ROWS },
 			];
-			this.lightData_ = new container.FixedMultiArray(LUT_DIMENSION, lutFields);
+			this.lightData_ = new container.FixedMultiArray(LUT_WIDTH, lutFields);
 			this.globalLightData_ = this.lightData_.indexedFieldView(0);
 			this.tileLightIndexes_ = this.lightData_.indexedFieldView(1);
 			this.lightGrid_ = this.lightData_.indexedFieldView(2);
 
-			const lutDesc = render.makeTexDesc2DFloatLUT(new Float32Array(this.lightData_.data), LUT_DIMENSION, LUT_DIMENSION);
+			const lutDesc = render.makeTexDesc2DFloatLUT(new Float32Array(this.lightData_.data), LUT_WIDTH, LUT_HEIGHT);
 			this.lutTexture_ = new render.Texture(rc, lutDesc);
 
 			vec3.set(this.nullVec3_, 1, 0, 0);
@@ -99,24 +94,23 @@ namespace sd.world {
 			this.entityBase_[instance] = entity;
 			this.transformBase_[instance] = this.transformMgr_.forEntity(entity);
 
-			// shadow data (all optional)
+			// non-shader shadow data (all optional)
 			this.shadowTypeBase_[instance] = desc.shadowType || asset.ShadowType.None;
 			this.shadowQualityBase_[instance] = desc.shadowQuality || asset.ShadowQuality.Auto;
-			this.shadowStrengthBase_[instance] = desc.shadowStrength || 1.0;
-			this.shadowBiasBase_[instance] = desc.shadowBias || 0.002;
 
-			// light data
-			const gldData = new Float32Array(16);
+			// write global light data
+			const gldV4Index = instance * 5;
 
 			// pixel0: colour[3], type
-			container.setIndexedVec4(gldData, 0, [desc.colour[0], desc.colour[1], desc.colour[2], desc.type]);
+			container.setIndexedVec4(this.globalLightData_, gldV4Index + 0, [desc.colour[0], desc.colour[1], desc.colour[2], desc.type]);
 			// pixel1: position_cam[3], intensity
-			container.setIndexedVec4(gldData, 1, [0, 0, 0, Math.max(0, desc.intensity)]);
+			container.setIndexedVec4(this.globalLightData_, gldV4Index + 1, [0, 0, 0, Math.max(0, desc.intensity)]);
 			// pixel2: position_world[3], range
-			container.setIndexedVec4(gldData, 2, [0, 0, 0, desc.range || 0]);
+			container.setIndexedVec4(this.globalLightData_, gldV4Index + 2, [0, 0, 0, desc.range || 0]);
 			// pixel3: direction[3], cutoff
-			container.setIndexedVec4(gldData, 3, [0, 0, 0, Math.cos(desc.cutoff || 0)]);
-			container.setIndexedMat4(this.globalLightData_, instance, gldData);
+			container.setIndexedVec4(this.globalLightData_, gldV4Index + 3, [0, 0, 0, Math.cos(desc.cutoff || 0)]);
+			// pixel4: shadowStrength, shadowBias, 0, 0
+			container.setIndexedVec4(this.globalLightData_, gldV4Index + 4, [desc.shadowStrength || 1.0, desc.shadowBias || 0.002, 0, 0]);
 
 			return instance;
 		}
@@ -143,12 +137,12 @@ namespace sd.world {
 					const lightPos_world = this.transformMgr_.worldPosition(transform);
 					const lightPos_cam = vec3.transformMat4([], lightPos_world, proj.viewMatrix);
 
-					const posCamOffset = (lix * 16) + 4;
+					const posCamOffset = (lix * 20) + 4;
 					this.globalLightData_[posCamOffset] = lightPos_cam[0];
 					this.globalLightData_[posCamOffset + 1] = lightPos_cam[1];
 					this.globalLightData_[posCamOffset + 2] = lightPos_cam[2];
 
-					const posWorldOffset = (lix * 16) + 8;
+					const posWorldOffset = (lix * 20) + 8;
 					this.globalLightData_[posWorldOffset] = lightPos_world[0];
 					this.globalLightData_[posWorldOffset + 1] = lightPos_world[1];
 					this.globalLightData_[posWorldOffset + 2] = lightPos_world[2];
@@ -158,7 +152,7 @@ namespace sd.world {
 					const lightDir_world = vec3.transformMat3([], this.nullVec3_, rotMat);
 					const lightDir_cam = vec3.transformMat3([], lightDir_world, viewNormalMatrix);
 
-					const dirOffset = (lix * 16) + 12;
+					const dirOffset = (lix * 20) + 12;
 					this.globalLightData_[dirOffset] = lightDir_cam[0];
 					this.globalLightData_[dirOffset + 1] = lightDir_cam[1];
 					this.globalLightData_[dirOffset + 2] = lightDir_cam[2];
@@ -166,9 +160,9 @@ namespace sd.world {
 			}
 
 			// update rows
-			const rowsUsed = Math.ceil((count + 1) / LUT_DIMENSION);
+			const rowsUsed = Math.ceil((count + 1) / LUT_WIDTH);
 			this.lutTexture_.bind();
-			this.rc.gl.texSubImage2D(this.lutTexture_.target, 0, 0, 0, LUT_DIMENSION, rowsUsed, this.rc.gl.RGBA, this.rc.gl.FLOAT, this.globalLightData_);
+			this.rc.gl.texSubImage2D(this.lutTexture_.target, 0, 0, 0, LUT_WIDTH, rowsUsed, this.rc.gl.RGBA, this.rc.gl.FLOAT, this.globalLightData_);
 			this.lutTexture_.unbind();
 		}
 
@@ -213,7 +207,7 @@ namespace sd.world {
 		// -- derived properties
 
 		positionCameraSpace(inst: LightInstance) {
-			const posCamOffset = ((inst as number) * 16) + 4;
+			const posCamOffset = ((inst as number) * 20) + 4;
 			return this.globalLightData_.slice(posCamOffset, posCamOffset + 3);
 		}
 
@@ -273,18 +267,18 @@ namespace sd.world {
 
 		// -- internal properties
 		type(inst: LightInstance): asset.LightType {
-			const offset = ((inst as number) * 16) + 3;
+			const offset = ((inst as number) * 20) + 3;
 			return this.globalLightData_[offset];
 		}
 
 
 		colour(inst: LightInstance): number[] {
-			const v4Index = ((inst as number) * 4) + 0;
+			const v4Index = ((inst as number) * 5) + 0;
 			return container.copyIndexedVec4(this.globalLightData_, v4Index).slice(0, 3);
 		}
 
 		setColour(inst: LightInstance, newColour: Float3) {
-			const offset = (inst as number) * 16;
+			const offset = (inst as number) * 20;
 			this.globalLightData_[offset] = newColour[0];
 			this.globalLightData_[offset + 1] = newColour[1];
 			this.globalLightData_[offset + 2] = newColour[2];
@@ -292,35 +286,35 @@ namespace sd.world {
 
 
 		intensity(inst: LightInstance) {
-			const offset = ((inst as number) * 16) + 7;
+			const offset = ((inst as number) * 20) + 7;
 			return this.globalLightData_[offset];
 		}
 
 		setIntensity(inst: LightInstance, newIntensity: number) {
-			const offset = ((inst as number) * 16) + 7;
+			const offset = ((inst as number) * 20) + 7;
 			this.globalLightData_[offset] = newIntensity;
 		}
 
 
 		range(inst: LightInstance) {
-			const offset = ((inst as number) * 16) + 11;
+			const offset = ((inst as number) * 20) + 11;
 			return this.globalLightData_[offset];
 		}
 
 		setRange(inst: LightInstance, newRange: number) {
-			const offset = ((inst as number) * 16) + 11;
+			const offset = ((inst as number) * 20) + 11;
 			this.globalLightData_[offset] = newRange;
 		}
 
 
 		// cutoff is stored as the cosine of the angle for quick usage in the shader
 		cutoff(inst: LightInstance) {
-			const offset = ((inst as number) * 16) + 15;
+			const offset = ((inst as number) * 20) + 15;
 			return Math.acos(this.globalLightData_[offset]);
 		}
 
 		setCutoff(inst: LightInstance, newCutoff: number) {
-			const offset = ((inst as number) * 16) + 11;
+			const offset = ((inst as number) * 20) + 11;
 			this.globalLightData_[offset] = Math.cos(newCutoff);
 		}
 
@@ -346,20 +340,24 @@ namespace sd.world {
 
 
 		shadowStrength(inst: LightInstance): number {
-			return this.shadowStrengthBase_[inst as number];
+			const offset = ((inst as number) * 20) + 16;
+			return this.globalLightData_[offset];
 		}
 
 		setShadowStrength(inst: LightInstance, newStrength: number) {
-			this.shadowStrengthBase_[inst as number] = newStrength;
+			const offset = ((inst as number) * 20) + 16;
+			this.globalLightData_[offset] = newStrength;
 		}
 
 
 		shadowBias(inst: LightInstance): number {
-			return this.shadowBiasBase_[inst as number];
+			const offset = ((inst as number) * 20) + 17;
+			return this.globalLightData_[offset];
 		}
 
 		setShadowBias(inst: LightInstance, newBias: number) {
-			this.shadowBiasBase_[inst as number] = newBias;
+			const offset = ((inst as number) * 20) + 16;
+			this.globalLightData_[offset] = newBias;
 		}
 	}
 
