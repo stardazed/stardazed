@@ -468,16 +468,18 @@ namespace sd.world {
 			line  ("	vec4 positionCamAndIntensity;");
 			line  ("	vec4 positionWorldAndRange;");
 			line  ("	vec4 directionAndCutoff;");
+			line  ("	vec4 shadowStrengthBias;");
 			line  ("};");
 
 			line  ("LightEntry getLightEntry(float lightIx) {");
 			line  (`	float row = (floor(lightIx / 128.0) + 0.5) / 512.0;`);
-			line  (`	float col = (mod(lightIx, 128.0) * 4.0) + 0.5;`);
+			line  (`	float col = (mod(lightIx, 128.0) * 5.0) + 0.5;`);
 			line  ("	LightEntry le;");
-			line  ("	le.colourAndType = texture2D(lightLUTSampler, vec2(col / 512.0, row));");
-			line  ("	le.positionCamAndIntensity = texture2D(lightLUTSampler, vec2((col + 1.0) / 512.0, row));");
-			line  ("	le.positionWorldAndRange = texture2D(lightLUTSampler, vec2((col + 2.0) / 512.0, row));");
-			line  ("	le.directionAndCutoff = texture2D(lightLUTSampler, vec2((col + 3.0) / 512.0, row));");
+			line  ("	le.colourAndType = texture2D(lightLUTSampler, vec2(col / 640.0, row));");
+			line  ("	le.positionCamAndIntensity = texture2D(lightLUTSampler, vec2((col + 1.0) / 640.0, row));");
+			line  ("	le.positionWorldAndRange = texture2D(lightLUTSampler, vec2((col + 2.0) / 640.0, row));");
+			line  ("	le.directionAndCutoff = texture2D(lightLUTSampler, vec2((col + 3.0) / 640.0, row));");
+			line  ("	le.shadowStrengthBias = texture2D(lightLUTSampler, vec2((col + 4.0) / 640.0, row));");
 			line  ("	return le;");
 			line  ("}");
 
@@ -666,13 +668,13 @@ namespace sd.world {
 			line  ("		float shadowFactor = 1.0;");
 			if (feat & Features.ShadowMap) {
 				line("		if (lightIx == shadowCastingLightIndex) {");
-				line("			float shadowBias = 0.002;"); // FIXME: restore configurable param
-				line("			float shadowStrength = 1.0;"); // FIXME: restore configurable param
+				line("			float shadowStrength = lightData.shadowStrengthBias.x;");
+				line("			float shadowBias = lightData.shadowStrengthBias.y;");
 				line("			float fragZ = (vertexPos_light.z - shadowBias) / vertexPos_light.w;");
 
 				if (feat & Features.SoftShadow) {
 					// well, soft-ish
-					line("			float strengthIncrement = shadowStrength / 16.0;"); // FIXME: restore configurable param
+					line("			float strengthIncrement = shadowStrength / 16.0;");
 					line("			for (int ssi = 0; ssi < 16; ++ssi) {");
 					line("				vec2 shadowSampleCoord = (vertexPos_light.xy / vertexPos_light.w) + (poissonDisk[ssi] / 550.0);");
 					line("				float shadowZ = texture2D(shadowSampler, shadowSampleCoord).z;");
@@ -684,7 +686,7 @@ namespace sd.world {
 				else {
 					line("			float shadowZ = texture2DProj(shadowSampler, vertexPos_light.xyw).z;");
 					line("			if (shadowZ < fragZ) {");
-					line("				shadowFactor = 1.0 - shadowStrength;"); // shadow strength stored in light world pos
+					line("				shadowFactor = 1.0 - shadowStrength;");
 					line("			}");
 				}
 
