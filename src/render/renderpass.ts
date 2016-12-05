@@ -70,6 +70,7 @@ namespace sd.render {
 	export class RenderPass {
 		private pipeline_: Pipeline | null = null;
 		private mesh_: world.MeshInstance = 0;
+		private viewport_: Viewport | null = null;
 
 		// TEMPORARY: this class will be broken up, so as of now this stuff is all hacky and deprecated
 		// with dependencies up the wazoo
@@ -210,6 +211,12 @@ namespace sd.render {
 				this.rc.gl.viewport(viewport.originX, viewport.originY, viewport.width, viewport.height);
 			}
 			this.rc.gl.depthRange(viewport.nearZ, viewport.farZ);
+
+			this.viewport_ = viewport;
+		}
+
+		viewport(): Viewport | null {
+			return this.viewport_;
 		}
 
 		setScissorRect(rect: ScissorRect) {
