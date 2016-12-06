@@ -205,11 +205,10 @@ namespace sd.render {
 		setViewPort(viewport: Viewport) {
 			// shortcut for restoring viewport to normal by passing w,h = 0,0
 			if (viewport.width == 0 && viewport.height == 0) {
-				this.rc.gl.viewport(0, 0, this.rc.gl.drawingBufferWidth, this.rc.gl.drawingBufferHeight);
+				viewport.width = this.rc.gl.drawingBufferWidth;
+				viewport.height = this.rc.gl.drawingBufferHeight;
 			}
-			else {
-				this.rc.gl.viewport(viewport.originX, viewport.originY, viewport.width, viewport.height);
-			}
+			this.rc.gl.viewport(viewport.originX, viewport.originY, viewport.width, viewport.height);
 			this.rc.gl.depthRange(viewport.nearZ, viewport.farZ);
 
 			this.viewport_ = viewport;
