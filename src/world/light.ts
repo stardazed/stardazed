@@ -188,13 +188,19 @@ namespace sd.world {
 					math.screenSpaceBoundsForWorldCube(ssb, lpos, radius, camDir, projection.viewMatrix, MVP, viewportMatrix);
 
 					// create a span for this rect in the rows it occupies
-					const rowTop = math.clamp(Math.floor((vpHeight - ssb.top) / TILE_DIMENSION), 0, tilesHigh - 1);
-					const rowBottom = math.clamp(Math.floor((vpHeight - ssb.bottom) / TILE_DIMENSION), 0, tilesHigh - 1);
-					const colLeft = math.clamp(Math.floor(ssb.left / TILE_DIMENSION), 0, tilesWide - 1);
-					const colRight = math.clamp(Math.floor(ssb.right / TILE_DIMENSION), 0, tilesWide - 1);
+					const rowTop = Math.floor((vpHeight - ssb.top) / TILE_DIMENSION);
+					const rowBottom = Math.floor((vpHeight - ssb.bottom) / TILE_DIMENSION);
+					const colLeft = Math.floor(ssb.left / TILE_DIMENSION);
+					const colRight = Math.floor(ssb.right / TILE_DIMENSION);
 
-					for (let row = rowTop; row <= rowBottom; ++row) {
-						this.gridRowSpans_[row].push({ lightIndex: lix, fromCol: colLeft, toCol: colRight });
+					if (rowTop < tilesHigh && rowBottom >= 0 && colLeft < tilesWide && colRight > 0) {
+						const rowFrom = math.clamp(rowTop, 0, tilesHigh - 1);
+						const rowTo = math.clamp(rowBottom, 0, tilesHigh - 1);
+						const colFrom = math.clamp(colLeft, 0, tilesWide - 1);
+						const colTo = math.clamp(colRight, 0, tilesWide - 1);
+						for (let row = rowFrom; row <= rowTo; ++row) {
+							this.gridRowSpans_[row].push({ lightIndex: lix, fromCol: colFrom, toCol: colTo });
+						}
 					}
 				}
 				else {
@@ -210,8 +216,8 @@ namespace sd.world {
 
 			for (let row = 0; row < tilesHigh; ++row) {
 				const spans = this.gridRowSpans_[row];
-				// spans.sort((a, b) => a.fromCol - b.fromCol);
 
+				// add full screen and and light spans to the grid
 				for (let col = 0; col < tilesWide; ++col) {
 					for (const fsLight of fullscreenLights) {
 						this.tileLightIndexes_[nextLightIndexOffset] = fsLight;
@@ -283,7 +289,7 @@ namespace sd.world {
 			const vpHeight = this.rc.gl.drawingBufferHeight;
 			const tilesWide = Math.ceil(vpWidth / TILE_DIMENSION);
 			const tilesHigh = Math.ceil(vpHeight / TILE_DIMENSION);
-			const gridRowsUsed = (tilesWide * tilesHigh) / LUT_WIDTH;
+			const gridRowsUsed = Math.ceil((tilesWide * tilesHigh) / LUT_WIDTH);
 
 			this.lutTexture_.bind();
 			this.rc.gl.texSubImage2D(this.lutTexture_.target, 0, 0, 0, LUT_WIDTH, gllRowsUsed, this.rc.gl.RGBA, this.rc.gl.FLOAT, this.globalLightData_);
