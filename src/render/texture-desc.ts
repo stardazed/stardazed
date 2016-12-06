@@ -172,7 +172,7 @@ namespace sd.render {
 				maxAnisotropy: 1,
 				minFilter: render.TextureSizingFilter.Nearest,
 				magFilter: render.TextureSizingFilter.Nearest,
-				mipFilter: render.TextureMipFilter.Nearest
+				mipFilter: render.TextureMipFilter.None
 			},
 			dim: render.makePixelDimensions(width, height),
 			mipmaps: 1,
