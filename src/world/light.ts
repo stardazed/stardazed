@@ -30,6 +30,12 @@ namespace sd.world {
 
 	const MAX_LIGHTS = ((LUT_WIDTH * LUT_LIGHTDATA_ROWS) / 5) | 0;
 
+	interface LightGridSpan {
+		lightIndex: number;
+		fromCol: number;
+		toCol: number;
+	}
+
 
 	export class LightManager implements ComponentManager<LightManager> {
 		private instanceData_: container.FixedMultiArray;
@@ -45,7 +51,7 @@ namespace sd.world {
 		private lutTexture_: render.Texture;
 		private count_: number;
 
-		private gridRowSets_: Set<number>[];
+		private gridRowSpans_: LightGridSpan[][];
 		private rectStore_: math.RectStorage;
 
 		private nullVec3_ = new Float32Array(3); // used to convert directions to rotations
@@ -70,7 +76,7 @@ namespace sd.world {
 			this.shadowQualityBase_ = this.instanceData_.indexedFieldView(3);
 
 			// grid creation
-			this.gridRowSets_ = [];
+			this.gridRowSpans_ = [];
 			this.rectStore_ = new math.RectStorage(Float, 64);
 
 			// light data texture
@@ -150,47 +156,91 @@ namespace sd.world {
 
 		// -- actions
 
-		private updateLightGrid(projection: ProjectionSetup, viewport: render.Viewport) {
+		private updateLightGrid(projection: ProjectionSetup, viewport: render.Viewport, camDir: Float3) {
 			const vpWidth = this.rc.gl.drawingBufferWidth;
 			const vpHeight = this.rc.gl.drawingBufferHeight;
 			const tilesWide = Math.ceil(vpWidth / TILE_DIMENSION);
 			const tilesHigh = Math.ceil(vpHeight / TILE_DIMENSION);
-
-			// ensure size of and clear vertical sorting table
-			for (let row = 0; row < tilesHigh; ++row) {
-				if (this.gridRowSets_[row] === undefined) {
-					this.gridRowSets_[row] = new Set<number>();
-				}
-				else {
-					this.gridRowSets_[row].clear();
-				}
-			}
-
-			// ensure storage for SSB rects for lights
 			const count = this.count_;
-			if (count >= this.rectStore_.capacity) {
-				this.rectStore_ = new math.RectStorage(Float, count + 1);
-			}
-			const curRect = new math.RectStorageProxy(this.rectStore_, 1);
 
+			// reset grid row light index table
+			for (let row = 0; row < tilesHigh; ++row) {
+				this.gridRowSpans_[row] = [];
+			}
+
+			// indexes of non-measured lights
+			const fullscreenLights: number[] = [];
+
+			// matrix setup for ssb calculation
+			const ssb: math.Rect = { left: 0, top: 0, right: 0, bottom: 0 };
 			const MVP = mat4.multiply([], projection.projectionMatrix, projection.viewMatrix);
 			const viewportMatrix = math.viewportMatrix(viewport.originX, viewport.originY, viewport.width, viewport.height, viewport.nearZ, viewport.farZ);
 
-			// calc SSB for each rect
+			// calculate light SSBs and fill the grid row table with rect references 
 			for (let lix = 1; lix <= count; ++lix) {
-				const lightType = this.type(lix); 
+				const lightType = this.type(lix);
+
 				if (lightType === asset.LightType.Point) {
+					// calculate screen space bounds based on a simple point and radius cube
 					const lpos = this.transformMgr_.worldPosition(this.transformBase_[lix]);
 					const radius = this.range(lix);
-					math.screenSpaceBoundsForWorldCube(curRect, lpos, radius, camDir, projection.viewMatrix, MVP, viewportMatrix);
-					// ctx2D.strokeRect(ssb.left, 640 - ssb.top, ssb.right - ssb.left, ssb.top - ssb.bottom);
+					// the resulting rect has the bottom-left as origin (bottom < top)
+					math.screenSpaceBoundsForWorldCube(ssb, lpos, radius, camDir, projection.viewMatrix, MVP, viewportMatrix);
+
+					// create a span for this rect in the rows it occupies
+					const rowTop = math.clamp(Math.floor((vpHeight - ssb.top) / TILE_DIMENSION), 0, tilesHigh - 1);
+					const rowBottom = math.clamp(Math.floor((vpHeight - ssb.bottom) / TILE_DIMENSION), 0, tilesHigh - 1);
+					const colLeft = math.clamp(Math.floor(ssb.left / TILE_DIMENSION), 0, tilesWide - 1);
+					const colRight = math.clamp(Math.floor(ssb.right / TILE_DIMENSION), 0, tilesWide - 1);
+
+					for (let row = rowTop; row <= rowBottom; ++row) {
+						this.gridRowSpans_[row].push({ lightIndex: lix, fromCol: colLeft, toCol: colRight });
+					}
+				}
+				else {
+					// for non-point lights just indicate that they occupy the entire screen
+					fullscreenLights.push(lix);
 				}
 			}
+
+			// finally, populate the light grid and index tables
+			let cellLightIndexOffset = 0;
+			let nextLightIndexOffset = 0;
+			let cellGridOffset = 0;
+
+			for (let row = 0; row < tilesHigh; ++row) {
+				const spans = this.gridRowSpans_[row];
+				// spans.sort((a, b) => a.fromCol - b.fromCol);
+
+				for (let col = 0; col < tilesWide; ++col) {
+					for (const fsLight of fullscreenLights) {
+						this.tileLightIndexes_[nextLightIndexOffset] = fsLight;
+						nextLightIndexOffset += 4;
+					}
+					for (const span of spans) {
+						if (span.fromCol <= col && span.toCol >= col) {
+							this.tileLightIndexes_[nextLightIndexOffset] = span.lightIndex;
+							nextLightIndexOffset += 4;
+						}
+					}
+
+					// update grid pixel for this cell with x = offset, y = size, z = 0, w = 0
+					this.lightGrid_[cellGridOffset] = cellLightIndexOffset >> 2;
+					this.lightGrid_[cellGridOffset + 1] = (nextLightIndexOffset - cellLightIndexOffset) >> 2;
+					cellGridOffset += 4;
+
+					cellLightIndexOffset = nextLightIndexOffset;
+				}
+			}
+
+			return nextLightIndexOffset >> 2;
 		}
 
-		updateLightData(proj: ProjectionSetup, viewport: render.Viewport) {
+
+		updateLightData(proj: ProjectionSetup, viewport: render.Viewport, camDir: Float3) {
 			const viewNormalMatrix = mat3.normalFromMat4([], proj.viewMatrix);
 
+			// calculate world and camera space vectors of each light
 			const count = this.count_;
 			for (let lix = 1; lix <= count; ++lix) {
 				const type = this.type(lix);
@@ -222,12 +272,23 @@ namespace sd.world {
 				}
 			}
 
-			this.updateLightGrid(proj, viewport);
+			// recalculate grid
+			const indexPixelsUsed = this.updateLightGrid(proj, viewport, camDir);
 
-			// update rows
-			const rowsUsed = Math.ceil((count + 1) / LUT_WIDTH);
+			// update texture data
+			const gllRowsUsed = Math.ceil((count + 1) / LUT_WIDTH);
+			const indexRowsUsed = Math.ceil(indexPixelsUsed / LUT_WIDTH);
+
+			const vpWidth = this.rc.gl.drawingBufferWidth;
+			const vpHeight = this.rc.gl.drawingBufferHeight;
+			const tilesWide = Math.ceil(vpWidth / TILE_DIMENSION);
+			const tilesHigh = Math.ceil(vpHeight / TILE_DIMENSION);
+			const gridRowsUsed = (tilesWide * tilesHigh) / LUT_WIDTH;
+
 			this.lutTexture_.bind();
-			this.rc.gl.texSubImage2D(this.lutTexture_.target, 0, 0, 0, LUT_WIDTH, rowsUsed, this.rc.gl.RGBA, this.rc.gl.FLOAT, this.globalLightData_);
+			this.rc.gl.texSubImage2D(this.lutTexture_.target, 0, 0, 0, LUT_WIDTH, gllRowsUsed, this.rc.gl.RGBA, this.rc.gl.FLOAT, this.globalLightData_);
+			this.rc.gl.texSubImage2D(this.lutTexture_.target, 0, 0, LUT_LIGHTDATA_ROWS, LUT_WIDTH, indexRowsUsed, this.rc.gl.RGBA, this.rc.gl.FLOAT, this.tileLightIndexes_);
+			this.rc.gl.texSubImage2D(this.lutTexture_.target, 0, 0, LUT_LIGHTDATA_ROWS + LUT_INDEXLIST_ROWS, LUT_WIDTH, gridRowsUsed, this.rc.gl.RGBA, this.rc.gl.FLOAT, this.lightGrid_);
 			this.lutTexture_.unbind();
 		}
 
