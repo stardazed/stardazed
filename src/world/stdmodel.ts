@@ -471,6 +471,7 @@ namespace sd.world {
 			line  ("	vec4 shadowStrengthBias;");
 			line  ("};");
 
+			// -- getLightEntry()
 			line  ("LightEntry getLightEntry(float lightIx) {");
 			line  (`	float row = (floor(lightIx / 128.0) + 0.5) / 512.0;`);
 			line  (`	float col = (mod(lightIx, 128.0) * 5.0) + 0.5;`);
@@ -481,6 +482,25 @@ namespace sd.world {
 			line  ("	le.directionAndCutoff = texture2D(lightLUTSampler, vec2((col + 3.0) / 640.0, row));");
 			line  ("	le.shadowStrengthBias = texture2D(lightLUTSampler, vec2((col + 4.0) / 640.0, row));");
 			line  ("	return le;");
+			line  ("}");
+
+			// -- getLightIndex()
+			line  ("float getLightIndex(float listIndex) {");
+			line  (`	float liRow = (floor(listIndex / 640.0) + 256.0 + 0.5) / 512.0;`);
+			line  (`	float liCol = (mod(listIndex, 640.0) + 0.5) / 640.0;`);
+
+			line  ("	return texture2D(lightLUTSampler, vec2(liCol, liRow)).x;");
+			line  ("}");
+
+			// -- getLightGridCell()
+			line  ("vec2 getLightGridCell(vec2 fragCoord) {");
+			line  ("	vec2 lightGridPos = fragCoord / 32.0;");
+			line  ("	float lightGridIndex = (lightGridPos.y * 36.0) + lightGridPos.x;");
+
+			line  (`	float lgRow = (floor(lightGridIndex / 640.0) + 256.0 + 240.0 + 0.5) / 512.0;`);
+			line  (`	float lgCol = (mod(lightGridIndex, 640.0) + 0.5) / 640.0;`);
+
+			line  ("	return texture2D(lightLUTSampler, vec2(lgCol, lgRow)).xy;");
 			line  ("}");
 
 
