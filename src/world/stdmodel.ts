@@ -494,7 +494,7 @@ namespace sd.world {
 
 			// -- getLightGridCell()
 			line  ("vec2 getLightGridCell(vec2 fragCoord) {");
-			line  ("	vec2 lightGridPos = fragCoord / 32.0;");
+			line  ("	vec2 lightGridPos = vec2(floor(fragCoord.x / 32.0), floor(fragCoord.y / 32.0));");
 			line  ("	float lightGridIndex = (lightGridPos.y * 36.0) + lightGridPos.x;");
 
 			line  (`	float lgRow = (floor(lightGridIndex / 640.0) + 256.0 + 240.0 + 0.5) / 512.0;`);
@@ -679,9 +679,16 @@ namespace sd.world {
 
 			// -- calculate light arriving at the fragment
 			line  ("	vec3 totalLight = vec3(0.0);");
+			line  ("	vec2 fragCoord = vec2(gl_FragCoord.x, 640.0 - gl_FragCoord.y);");
+			line  ("	vec2 lightOffsetCount = getLightGridCell(fragCoord);");
+			line  ("	int lightListOffset = int(lightOffsetCount.x);");
+			line  ("	int lightListCount = int(lightOffsetCount.y);");
 
-			line  ("	for (int lightIx = 1; lightIx < 64; ++lightIx) {");
-			line  ("		LightEntry lightData = getLightEntry(float(lightIx));");
+			line  ("	for (int llix = 0; llix < 128; ++llix) {");
+			line  ("		if (llix == lightListCount) break;"); // hack to overcome gles2 limitation where loops need constant max counters 
+
+			line  ("		float lightIx = getLightIndex(float(lightListOffset + llix));");
+			line  ("		LightEntry lightData = getLightEntry(lightIx);");
 			line  ("		if (lightData.colourAndType.w <= 0.0) break;");
 
 			// shadow intensity
