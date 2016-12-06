@@ -49,6 +49,23 @@ namespace sd.math {
 		set bottom(newBottom: number) { this.storage_.bottomBase[this.index] = newBottom; }
 	}
 
+	export function setRectLTRB(r: Rect, left: number, top: number, right: number, bottom: number) {
+		r.left = left;
+		r.top = top;
+		r.right = right;
+		r.bottom = bottom;
+	}
+
+	export function setRectLTWH(r: Rect, left: number, top: number, width: number, height: number) {
+		r.left = left;
+		r.top = top;
+		r.right = left + width;
+		r.bottom = top + height;
+	}
+
+	// ------
+
+	// FIXME: the following class is only used by an old test project, to be refactored
 	export class RectEx implements Rect {
 		topLeft: Float32Array;
 		topRight: Float32Array;
