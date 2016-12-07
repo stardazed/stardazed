@@ -486,10 +486,16 @@ namespace sd.world {
 
 			// -- getLightIndex()
 			line  ("float getLightIndex(float listIndex) {");
-			line  (`	float liRow = (floor(listIndex / 640.0) + 256.0 + 0.5) / 512.0;`);
-			line  (`	float liCol = (mod(listIndex, 640.0) + 0.5) / 640.0;`);
-
-			line  ("	return texture2D(lightLUTSampler, vec2(liCol, liRow)).x;");
+			line  (`	float liRow = (floor(listIndex / 2560.0) + 256.0 + 0.5) / 512.0;`);
+			line  (`	float rowElementIndex = mod(listIndex, 2560.0);`);
+			line  (`	float liCol = (floor(rowElementIndex / 4.0) + 0.5) / 640.0;`);
+			line  (`	float element = floor(mod(rowElementIndex, 4.0));`);
+			line  ("	vec4 packedIndices = texture2D(lightLUTSampler, vec2(liCol, liRow));");
+			// gles2: only constant index accesses allowed
+			line  ("	if (element < 1.0) return packedIndices[0];");
+			line  ("	if (element < 2.0) return packedIndices[1];");
+			line  ("	if (element < 3.0) return packedIndices[2];");
+			line  ("	return packedIndices[3];");
 			line  ("}");
 
 			// -- getLightGridCell()
@@ -497,10 +503,13 @@ namespace sd.world {
 			line  ("	vec2 lightGridPos = vec2(floor(fragCoord.x / 32.0), floor(fragCoord.y / 32.0));");
 			line  ("	float lightGridIndex = (lightGridPos.y * 36.0) + lightGridPos.x;");
 
-			line  (`	float lgRow = (floor(lightGridIndex / 640.0) + 256.0 + 240.0 + 0.5) / 512.0;`);
-			line  (`	float lgCol = (mod(lightGridIndex, 640.0) + 0.5) / 640.0;`);
-
-			line  ("	return texture2D(lightLUTSampler, vec2(lgCol, lgRow)).xy;");
+			line  (`	float lgRow = (floor(lightGridIndex / 1280.0) + 256.0 + 240.0 + 0.5) / 512.0;`);
+			line  (`	float rowPairIndex = mod(lightGridIndex, 1280.0);`);
+			line  (`	float lgCol = (floor(rowPairIndex / 2.0) + 0.5) / 640.0;`);
+			line  (`	float pair = floor(mod(rowPairIndex, 2.0));`);
+			line  ("	vec4 cellPair = texture2D(lightLUTSampler, vec2(lgCol, lgRow));");
+			line  ("	if (pair < 1.0) return cellPair.xy;");
+			line  ("	return cellPair.zw;");
 			line  ("}");
 
 

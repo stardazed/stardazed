@@ -255,27 +255,27 @@ namespace sd.world {
 				for (let col = 0; col < tilesWide; ++col) {
 					for (const fsLight of fullscreenLights) {
 						this.tileLightIndexes_[nextLightIndexOffset] = fsLight;
-						nextLightIndexOffset += 4;
+						nextLightIndexOffset += 1;
 					}
 					for (const span of spans) {
 						if (span.fromCol <= col && span.toCol >= col) {
 							this.tileLightIndexes_[nextLightIndexOffset] = span.lightIndex;
-							nextLightIndexOffset += 4;
+							nextLightIndexOffset += 1;
 						}
 					}
 
 					// update grid pixel for this cell with x = offset, y = size, z = 0, w = 0
-					this.lightGrid_[cellGridOffset] = cellLightIndexOffset >> 2;
-					this.lightGrid_[cellGridOffset + 1] = (nextLightIndexOffset - cellLightIndexOffset) >> 2;
-					cellGridOffset += 4;
+					this.lightGrid_[cellGridOffset] = cellLightIndexOffset;
+					this.lightGrid_[cellGridOffset + 1] = nextLightIndexOffset - cellLightIndexOffset;
+					cellGridOffset += 2;
 
 					cellLightIndexOffset = nextLightIndexOffset;
 				}
 			}
 
 			return {
-				indexPixelsUsed: nextLightIndexOffset >> 2,
-				gridRowsUsed: Math.ceil((tilesWide * tilesHigh) / LUT_WIDTH)
+				indexPixelsUsed: Math.ceil(nextLightIndexOffset / 4),
+				gridRowsUsed: Math.ceil((tilesWide * tilesHigh) / 2 / LUT_WIDTH)
 			};
 		}
 
