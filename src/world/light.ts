@@ -191,10 +191,9 @@ namespace sd.world {
 		}
 
 		private updateLightGrid(range: LightRange, projection: ProjectionSetup, viewport: render.Viewport) {
-			const vpWidth = this.rc.gl.drawingBufferWidth;
 			const vpHeight = this.rc.gl.drawingBufferHeight;
-			const tilesWide = Math.ceil(vpWidth / TILE_DIMENSION);
-			const tilesHigh = Math.ceil(vpHeight / TILE_DIMENSION);
+			const tilesWide = this.lutTilesWide;
+			const tilesHigh = this.lutTilesHigh;
 
 			// reset grid row light index table
 			for (let row = 0; row < tilesHigh; ++row) {
@@ -298,8 +297,8 @@ namespace sd.world {
 				const transform = this.transformBase_[lix];
 
 				if (type != asset.LightType.Directional) {
-					const lightPos_world = this.transformMgr_.worldPosition(transform);
-					const lightPos_cam = vec3.transformMat4([], lightPos_world, proj.viewMatrix);
+					const lightPos_world = this.transformMgr_.worldPosition(transform); // tslint:disable-line:variable-name
+					const lightPos_cam = vec3.transformMat4([], lightPos_world, proj.viewMatrix); // tslint:disable-line:variable-name
 
 					const posCamOffset = (lix * 20) + 4;
 					this.globalLightData_[posCamOffset] = lightPos_cam[0];
@@ -313,8 +312,8 @@ namespace sd.world {
 				}
 				if (type != asset.LightType.Point) {
 					const rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(transform));
-					const lightDir_world = vec3.transformMat3([], this.nullVec3_, rotMat);
-					const lightDir_cam = vec3.transformMat3([], lightDir_world, viewNormalMatrix);
+					const lightDir_world = vec3.transformMat3([], this.nullVec3_, rotMat); // tslint:disable-line:variable-name
+					const lightDir_cam = vec3.transformMat3([], lightDir_world, viewNormalMatrix); // tslint:disable-line:variable-name
 
 					const dirOffset = (lix * 20) + 12;
 					this.globalLightData_[dirOffset] = lightDir_cam[0];
@@ -339,6 +338,21 @@ namespace sd.world {
 
 		get lutTexture() {
 			return this.lutTexture_;
+		}
+
+		private get lutTilesWide() {
+			return Math.ceil(this.rc.gl.drawingBufferWidth / TILE_DIMENSION);
+		}
+
+		private get lutTilesHigh() {
+			return Math.ceil(this.rc.gl.drawingBufferHeight / TILE_DIMENSION);
+		}
+
+		get lutParam() {
+			// gridWidth, vpHeight
+			return new Float32Array([
+				this.lutTilesWide, this.rc.gl.drawingBufferHeight
+			]);
 		}
 
 

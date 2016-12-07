@@ -54,10 +54,11 @@ namespace sd.world {
 		colourMapUniform: WebGLUniformLocation | null;        // sampler2D
 		normalMapUniform: WebGLUniformLocation | null;        // sampler2D
 		specularMapUniform: WebGLUniformLocation | null;      // sampler2D
-		lightLUTUniform: WebGLUniformLocation | null;         // sampler2D
 
 		// -- lights
-		shadowCastingLightIndexUniform: WebGLUniformLocation | null; // int (-1..MAX_FRAGMENT_LIGHTS - 1)
+		lightLUTUniform: WebGLUniformLocation | null;         // sampler2D
+		lightLUTParamUniform: WebGLUniformLocation | null;    // vec4
+		shadowCastingLightIndexUniform: WebGLUniformLocation | null; // int (-1..32767)
 
 		// -- shadow
 		lightViewProjectionMatrixUniform: WebGLUniformLocation | null; // mat4
@@ -220,6 +221,8 @@ namespace sd.world {
 			if (program.lightLUTUniform) {
 				gl.uniform1i(program.lightLUTUniform, TextureBindPoint.LightLUT);
 			}
+
+			program.lightLUTParamUniform = gl.getUniformLocation(program, "lightLUTParam");
 
 			program.shadowCastingLightIndexUniform = gl.getUniformLocation(program, "shadowCastingLightIndex");
 			if (program.shadowCastingLightIndexUniform) {
@@ -439,6 +442,8 @@ namespace sd.world {
 			if_all("uniform sampler2D diffuseSampler;", Features.DiffuseMap);
 			if_all("uniform sampler2D normalSampler;", Features.NormalMap);
 			if_all("uniform sampler2D specularSampler;", Features.SpecularMap);
+
+			// -- shadow
 			if_all("uniform sampler2D shadowSampler;", Features.ShadowMap);
 			if_all("uniform int shadowCastingLightIndex;", Features.ShadowMap);
 
@@ -447,6 +452,7 @@ namespace sd.world {
 
 			// -- light data
 			line  ("uniform sampler2D lightLUTSampler;");
+			line  ("uniform vec2 lightLUTParam;");
 
 			// -- fog
 			if (feat & Features.Fog) {
@@ -501,7 +507,7 @@ namespace sd.world {
 			// -- getLightGridCell()
 			line  ("vec2 getLightGridCell(vec2 fragCoord) {");
 			line  ("	vec2 lightGridPos = vec2(floor(fragCoord.x / 32.0), floor(fragCoord.y / 32.0));");
-			line  ("	float lightGridIndex = (lightGridPos.y * 36.0) + lightGridPos.x;");
+			line  ("	float lightGridIndex = (lightGridPos.y * lightLUTParam.x) + lightGridPos.x;");
 
 			line  (`	float lgRow = (floor(lightGridIndex / 1280.0) + 256.0 + 240.0 + 0.5) / 512.0;`);
 			line  (`	float rowPairIndex = mod(lightGridIndex, 1280.0);`);
@@ -689,7 +695,7 @@ namespace sd.world {
 
 			// -- calculate light arriving at the fragment
 			line  ("	vec3 totalLight = vec3(0.0);");
-			line  ("	vec2 fragCoord = vec2(gl_FragCoord.x, 640.0 - gl_FragCoord.y);");
+			line  ("	vec2 fragCoord = vec2(gl_FragCoord.x, lightLUTParam.y - gl_FragCoord.y);");
 			line  ("	vec2 lightOffsetCount = getLightGridCell(fragCoord);");
 			line  ("	int lightListOffset = int(lightOffsetCount.x);");
 			line  ("	int lightListCount = int(lightOffsetCount.y);");
@@ -1125,6 +1131,7 @@ namespace sd.world {
 
 				// -- light data
 				rp.setTexture(this.lightMgr_.lutTexture, TextureBindPoint.LightLUT);
+				gl.uniform2fv(program.lightLUTParamUniform!, this.lightMgr_.lutParam);
 
 				// -- fog data (TODO: directly using descriptor)
 				if (fogSpec) {
