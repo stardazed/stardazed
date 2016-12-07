@@ -507,6 +507,7 @@ namespace sd.world {
 			line  (`	float rowPairIndex = mod(lightGridIndex, 1280.0);`);
 			line  (`	float lgCol = (floor(rowPairIndex / 2.0) + 0.5) / 640.0;`);
 			line  (`	float pair = floor(mod(rowPairIndex, 2.0));`);
+			// gles2: only constant index accesses allowed
 			line  ("	vec4 cellPair = texture2D(lightLUTSampler, vec2(lgCol, lgRow));");
 			line  ("	if (pair < 1.0) return cellPair.xy;");
 			line  ("	return cellPair.zw;");

@@ -18,8 +18,10 @@ namespace sd.world {
 	}
 
 
-	// this setup allows for a renderbuffer up to 4K (3840 * 2160)
-	// and a global list of up to 32768 active lights 
+	// This setup allows for a renderbuffer > 5K (5120x2880)
+	// a global list of up to 32768 active lights and
+	// an average of ~300 active lights per tile at 1920x1080
+	// I will add smaller LUT texture options later (320x256, 160x128) 
 	const LUT_WIDTH = 640;
 	const LUT_LIGHTDATA_ROWS = 256;
 	const LUT_INDEXLIST_ROWS = 240;
@@ -27,7 +29,6 @@ namespace sd.world {
 	const LUT_HEIGHT = LUT_LIGHTDATA_ROWS + LUT_INDEXLIST_ROWS + LUT_GRID_ROWS; // 512
 
 	const TILE_DIMENSION = 32;
-
 	const MAX_LIGHTS = ((LUT_WIDTH * LUT_LIGHTDATA_ROWS) / 5) | 0;
 
 	interface LightGridSpan {
