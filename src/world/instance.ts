@@ -26,7 +26,7 @@ namespace sd.world {
 
 
 	export interface InstanceIterator<Component> {
-		readonly current: Instance<Component>;
+		current: Instance<Component>;
 		next(): boolean;
 	}
 

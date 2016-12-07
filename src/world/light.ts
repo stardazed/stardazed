@@ -189,12 +189,11 @@ namespace sd.world {
 			outBounds.bottom = min[1];
 		}
 
-		private updateLightGrid(projection: ProjectionSetup, viewport: render.Viewport) {
+		private updateLightGrid(range: LightRange, projection: ProjectionSetup, viewport: render.Viewport) {
 			const vpWidth = this.rc.gl.drawingBufferWidth;
 			const vpHeight = this.rc.gl.drawingBufferHeight;
 			const tilesWide = Math.ceil(vpWidth / TILE_DIMENSION);
 			const tilesHigh = Math.ceil(vpHeight / TILE_DIMENSION);
-			const count = this.count_;
 
 			// reset grid row light index table
 			for (let row = 0; row < tilesHigh; ++row) {
@@ -209,8 +208,10 @@ namespace sd.world {
 			const viewportMatrix = math.viewportMatrix(viewport.originX, viewport.originY, viewport.width, viewport.height, viewport.nearZ, viewport.farZ);
 			const VPP = mat4.multiply([], viewportMatrix, projection.projectionMatrix);
 
-			// calculate light SSBs and fill the grid row table with rect references 
-			for (let lix = 1; lix <= count; ++lix) {
+			// calculate light SSBs and fill the grid row table with rect references
+			const iter = range.makeIterator();
+			while (iter.next()) {
+				const lix = iter.current as number;
 				const lightType = this.type(lix);
 
 				if (lightType === asset.LightType.Point) {
@@ -272,16 +273,26 @@ namespace sd.world {
 				}
 			}
 
-			return nextLightIndexOffset >> 2;
+			return {
+				indexPixelsUsed: nextLightIndexOffset >> 2,
+				gridRowsUsed: Math.ceil((tilesWide * tilesHigh) / LUT_WIDTH)
+			};
 		}
 
 
-		updateLightData(proj: ProjectionSetup, viewport: render.Viewport) {
+		prepareLightsForRender(range: LightRange, proj: ProjectionSetup, viewport: render.Viewport) {
 			const viewNormalMatrix = mat3.normalFromMat4([], proj.viewMatrix);
 
 			// calculate world and camera space vectors of each light
-			const count = this.count_;
-			for (let lix = 1; lix <= count; ++lix) {
+			let highestLightIndex = 0;
+			const iter = range.makeIterator();
+
+			while (iter.next()) {
+				const lix = iter.current as number;
+				if (lix > highestLightIndex) {
+					highestLightIndex = lix;
+				}
+
 				const type = this.type(lix);
 				const transform = this.transformBase_[lix];
 
@@ -312,17 +323,11 @@ namespace sd.world {
 			}
 
 			// recalculate grid
-			const indexPixelsUsed = this.updateLightGrid(proj, viewport);
+			const { indexPixelsUsed, gridRowsUsed } = this.updateLightGrid(range, proj, viewport);
 
 			// update texture data
-			const gllRowsUsed = Math.ceil((count + 1) / LUT_WIDTH);
+			const gllRowsUsed = Math.ceil(highestLightIndex / LUT_WIDTH);
 			const indexRowsUsed = Math.ceil(indexPixelsUsed / LUT_WIDTH);
-
-			const vpWidth = this.rc.gl.drawingBufferWidth;
-			const vpHeight = this.rc.gl.drawingBufferHeight;
-			const tilesWide = Math.ceil(vpWidth / TILE_DIMENSION);
-			const tilesHigh = Math.ceil(vpHeight / TILE_DIMENSION);
-			const gridRowsUsed = Math.ceil((tilesWide * tilesHigh) / LUT_WIDTH);
 
 			this.lutTexture_.bind();
 			this.rc.gl.texSubImage2D(this.lutTexture_.target, 0, 0, 0, LUT_WIDTH, gllRowsUsed, this.rc.gl.RGBA, this.rc.gl.FLOAT, this.globalLightData_);
