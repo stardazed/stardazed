@@ -6,18 +6,18 @@
 namespace sd.world {
 
 	export interface Instance<Component> extends Number {
-		__C?: Component;
+		readonly __C?: Component;
 	}
 
 
 	export interface InstanceArrayView<Component> {
-		length: number;
+		readonly length: number;
 		[index: number]: Instance<Component>;
 	}
 
 
 	export interface InstanceRange<Component> {
-		empty: boolean;
+		readonly empty: boolean;
 		has(inst: Instance<Component>): boolean;
 
 		makeIterator(): InstanceIterator<Component>;
@@ -26,7 +26,7 @@ namespace sd.world {
 
 
 	export interface InstanceIterator<Component> {
-		current: Instance<Component>;
+		readonly current: Instance<Component>;
 		next(): boolean;
 	}
 
@@ -148,7 +148,7 @@ namespace sd.world {
 
 
 	export interface ComponentManager<Component> {
-		count: number;
+		readonly count: number;
 
 		valid(inst: Instance<Component>): boolean;
 
