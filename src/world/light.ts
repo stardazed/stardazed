@@ -154,9 +154,42 @@ namespace sd.world {
 		}
 
 
-		// -- actions
+		// -- light data calc
 
-		private updateLightGrid(projection: ProjectionSetup, viewport: render.Viewport, camDir: Float3) {
+		private projectPointLight(outBounds: math.Rect, center: Float3, range: number, projectionViewportMatrix: Float4x4) {
+			const cx = center[0];
+			const cy = center[1];
+			const cz = center[2];
+
+			const vertices: number[][] = [
+				[cx - range, cy - range, cz - range, 1.0],
+				[cx - range, cy - range, cz + range, 1.0],
+				[cx - range, cy + range, cz - range, 1.0],
+				[cx - range, cy + range, cz + range, 1.0],
+				[cx + range, cy - range, cz - range, 1.0],
+				[cx + range, cy - range, cz + range, 1.0],
+				[cx + range, cy + range, cz - range, 1.0],
+				[cx + range, cy + range, cz + range, 1.0]
+			];
+
+			const min = [sd.Float.max, sd.Float.max];
+			const max = [-sd.Float.max, -sd.Float.max];
+			const sp = [0, 0, 0, 0];
+
+			for (let vix = 0; vix < 8; ++vix) {
+				vec4.transformMat4(sp, vertices[vix], projectionViewportMatrix);
+				vec4.scale(sp, sp, 1.0 / sp[3]);
+				vec2.min(min, min, sp);
+				vec2.max(max, max, sp);
+			}
+
+			outBounds.left = min[0];
+			outBounds.top = max[1];
+			outBounds.right = max[0];
+			outBounds.bottom = min[1];
+		}
+
+		private updateLightGrid(projection: ProjectionSetup, viewport: render.Viewport) {
 			const vpWidth = this.rc.gl.drawingBufferWidth;
 			const vpHeight = this.rc.gl.drawingBufferHeight;
 			const tilesWide = Math.ceil(vpWidth / TILE_DIMENSION);
@@ -173,8 +206,8 @@ namespace sd.world {
 
 			// matrix setup for ssb calculation
 			const ssb: math.Rect = { left: 0, top: 0, right: 0, bottom: 0 };
-			const MVP = mat4.multiply([], projection.projectionMatrix, projection.viewMatrix);
 			const viewportMatrix = math.viewportMatrix(viewport.originX, viewport.originY, viewport.width, viewport.height, viewport.nearZ, viewport.farZ);
+			const VPP = mat4.multiply([], viewportMatrix, projection.projectionMatrix);
 
 			// calculate light SSBs and fill the grid row table with rect references 
 			for (let lix = 1; lix <= count; ++lix) {
@@ -182,10 +215,10 @@ namespace sd.world {
 
 				if (lightType === asset.LightType.Point) {
 					// calculate screen space bounds based on a simple point and radius cube
-					const lpos = this.transformMgr_.worldPosition(this.transformBase_[lix]);
+					const lcpos = this.positionCameraSpace(lix);
 					const radius = this.range(lix);
 					// the resulting rect has the bottom-left as origin (bottom < top)
-					math.screenSpaceBoundsForWorldCube(ssb, lpos, radius, camDir, projection.viewMatrix, MVP, viewportMatrix);
+					this.projectPointLight(ssb, lcpos, radius, VPP);
 
 					// create a span for this rect in the rows it occupies
 					const rowTop = Math.floor((vpHeight - ssb.top) / TILE_DIMENSION);
@@ -243,7 +276,7 @@ namespace sd.world {
 		}
 
 
-		updateLightData(proj: ProjectionSetup, viewport: render.Viewport, camDir: Float3) {
+		updateLightData(proj: ProjectionSetup, viewport: render.Viewport) {
 			const viewNormalMatrix = mat3.normalFromMat4([], proj.viewMatrix);
 
 			// calculate world and camera space vectors of each light
@@ -279,7 +312,7 @@ namespace sd.world {
 			}
 
 			// recalculate grid
-			const indexPixelsUsed = this.updateLightGrid(proj, viewport, camDir);
+			const indexPixelsUsed = this.updateLightGrid(proj, viewport);
 
 			// update texture data
 			const gllRowsUsed = Math.ceil((count + 1) / LUT_WIDTH);
