@@ -1051,9 +1051,9 @@ namespace sd.asset {
 				const defaults: FBXResolveOptions = {
 					allowMissingTextures: true,
 					forceMipMapsOn: true,
-					removeUnusedBones: true
+					removeUnusedBones: true,
+					...options
 				};
-				copyValues(defaults, options || {});
 
 				return this.loadTextures(new AssetGroup(), defaults)
 				.then((group) => {

@@ -43,11 +43,4 @@ namespace sd {
 		return copy as T;
 	}
 
-
-	export function copyValues(dest: any, source: any) {
-		Object.getOwnPropertyNames(source).forEach(name => {
-			dest[name] = source[name];
-		});
-	}
-
 } // ns sd
