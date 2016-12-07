@@ -25,9 +25,6 @@ namespace sd.math {
 		const ly = position[1];
 		const lz = position[2];
 
-		// const vec3Dir = vec3.sub([], center, eye);
-		// const cam_dir = vec3.normalize([], vec3Dir);
-
 		const camUp = vec3.normalize([], [viewMatrix[4], viewMatrix[5], viewMatrix[6]]);
 		const camLeft = vec3.cross([], camUp, cameraDir);
 		vec3.normalize(camLeft, camLeft);
