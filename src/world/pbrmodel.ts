@@ -26,6 +26,7 @@ namespace sd.world {
 
 		NormalMap                  = 1 << 8,  // RGB channels of NormalHeight
 		HeightMap                  = 1 << 9,  // A channel of NormalHeight
+		ShadowMap                  = 1 << 10,
 	}
 
 	const LightingQualityBitShift = 2;
@@ -62,6 +63,10 @@ namespace sd.world {
 		lightLUTUniform: WebGLUniformLocation | null;      // sampler2D
 		lightLUTParamUniform: WebGLUniformLocation | null; // vec4
 		shadowCastingLightIndexUniform: WebGLUniformLocation | null; // int (0..32767)
+
+		// -- shadow
+		lightViewProjectionMatrixUniform: WebGLUniformLocation | null; // mat4
+		shadowMapUniform: WebGLUniformLocation | null;        // sampler2D/Cube
 	}
 
 
@@ -71,7 +76,8 @@ namespace sd.world {
 		NormalHeight = 2,
 		Environment = 3,
 		BRDFLookup = 4,
-		LightLUT = 5
+		LightLUT = 5,
+		Shadow = 6
 	}
 
 
@@ -83,7 +89,7 @@ namespace sd.world {
 
 	class PBRPipeline {
 		private cachedPipelines_ = new Map<number, render.Pipeline>();
-		// private shadowPipeline_: render.Pipeline | null = null;
+		private shadowPipeline_: render.Pipeline | null = null;
 		private featureMask_: Features = 0x7fffffff;
 
 		constructor(private rc: render.RenderContext) {
@@ -194,17 +200,59 @@ namespace sd.world {
 
 			program.lightLUTParamUniform = gl.getUniformLocation(program, "lightLUTParam");
 
+			// -- shadow properties
 			program.shadowCastingLightIndexUniform = gl.getUniformLocation(program, "shadowCastingLightIndex");
 			if (program.shadowCastingLightIndexUniform) {
 				// if this exists, init to -1 to signify no shadow caster
 				gl.uniform1i(program.shadowCastingLightIndexUniform, -1);
 			}
+			program.shadowMapUniform = gl.getUniformLocation(program, "shadowSampler");
+			if (program.shadowMapUniform) {
+				gl.uniform1i(program.shadowMapUniform, TextureBindPoint.Shadow);
+			}
+			program.lightViewProjectionMatrixUniform = gl.getUniformLocation(program, "lightViewProjectionMatrix");
 
 			gl.useProgram(null);
 
 			this.cachedPipelines_.set(feat, pipeline);
 			return pipeline;
 		}
+
+
+		shadowPipeline() {
+			if (this.shadowPipeline_ == null) {
+				const pld = render.makePipelineDescriptor();
+				pld.depthPixelFormat = render.PixelFormat.Depth24I;
+				pld.vertexShader = render.makeShader(this.rc, this.rc.gl.VERTEX_SHADER, this.shadowVertexSource);
+				pld.fragmentShader = render.makeShader(this.rc, this.rc.gl.FRAGMENT_SHADER, this.shadowFragmentSource);
+				pld.attributeNames.set(meshdata.VertexAttributeRole.Position, "vertexPos_model");
+				// pld.writeMask.red = pld.writeMask.green = pld.writeMask.blue = pld.writeMask.alpha = false;
+
+				this.shadowPipeline_ = new render.Pipeline(this.rc, pld);
+
+				const program = this.shadowPipeline_.program as PBRGLProgram;
+				program.mvpMatrixUniform = this.rc.gl.getUniformLocation(program, "modelViewProjectionMatrix")!;
+			}
+
+			return this.shadowPipeline_;
+		}
+
+
+		private shadowVertexSource = [
+			"attribute vec3 vertexPos_model;",
+			"uniform mat4 modelViewProjectionMatrix;",
+			"void main() {",
+			"	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);",
+			"}"
+		].join("");
+
+
+		private shadowFragmentSource = [
+			"precision highp float;",
+			"void main() {",
+			"	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);",
+			"}"
+		].join("");
 
 
 		private vertexShaderSource(feat: number) {
@@ -226,6 +274,7 @@ namespace sd.world {
 			line  ("varying vec3 vertexNormal_cam;");
 			line  ("varying vec3 vertexPos_world;");
 			line  ("varying vec3 vertexPos_cam;");
+			if_all("varying vec4 vertexPos_light;", Features.ShadowMap);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
@@ -233,6 +282,7 @@ namespace sd.world {
 			line  ("uniform mat4 modelMatrix;");
 			line  ("uniform mat4 modelViewMatrix;");
 			line  ("uniform mat4 modelViewProjectionMatrix;");
+			if_all("uniform mat4 lightViewProjectionMatrix;", Features.ShadowMap);
 			line  ("uniform mat3 normalMatrix;");
 
 			if_all("uniform vec4 texScaleOffset;", Features.VtxUV);
@@ -244,6 +294,7 @@ namespace sd.world {
 			line  ("	vertexPos_world = (modelMatrix * vec4(vertexPos_model, 1.0)).xyz;");
 			line  ("	vertexNormal_cam = normalMatrix * vertexNormal;");
 			line  ("	vertexPos_cam = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;");
+			if_all("	vertexPos_light = lightViewProjectionMatrix * modelMatrix * vec4(vertexPos_model, 1.0);", Features.ShadowMap);
 			if_all("	vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;", Features.VtxUV);
 			if_all("	vertexColour_intp = vertexColour;", Features.VtxColour);
 			line  ("}");
@@ -275,6 +326,7 @@ namespace sd.world {
 			line  ("varying vec3 vertexPos_world;");
 			line  ("varying vec3 vertexNormal_cam;");
 			line  ("varying vec3 vertexPos_cam;");
+			if_all("varying vec4 vertexPos_light;", Features.ShadowMap);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
@@ -300,6 +352,10 @@ namespace sd.world {
 			line  ("const float PI = 3.141592654;");
 			line  ("const float PHONG_DIFFUSE = 1.0 / PI;");
 
+			// -- shadow
+			if_all("uniform sampler2D shadowSampler;", Features.ShadowMap);
+			if_all("uniform int shadowCastingLightIndex;", Features.ShadowMap);
+			if_all("vec2 poissonDisk[16];", Features.ShadowMap);
 
 			// -- light data
 			line  ("uniform sampler2D lightLUTSampler;");
@@ -720,6 +776,26 @@ namespace sd.world {
 				line("	matParam[MAT_ROUGHNESS] = materialParam[MAT_ROUGHNESS];");
 			}
 
+			if (feat & Features.ShadowMap) {
+				// -- init global poisson sample array (GLSL ES 2 does not support array initializers)
+				line("	poissonDisk[0] = vec2(-0.94201624, -0.39906216);");
+				line("	poissonDisk[1] = vec2(0.94558609, -0.76890725);");
+				line("	poissonDisk[2] = vec2(-0.094184101, -0.92938870);");
+				line("	poissonDisk[3] = vec2(0.34495938, 0.29387760);");
+				line("	poissonDisk[4] = vec2(-0.91588581, 0.45771432);");
+				line("	poissonDisk[5] = vec2(-0.81544232, -0.87912464);");
+				line("	poissonDisk[6] = vec2(-0.38277543, 0.27676845);");
+				line("	poissonDisk[7] = vec2(0.97484398, 0.75648379);");
+				line("	poissonDisk[8] = vec2(0.44323325, -0.97511554);");
+				line("	poissonDisk[9] = vec2(0.53742981, -0.47373420);");
+				line("	poissonDisk[10] = vec2(-0.26496911, -0.41893023);");
+				line("	poissonDisk[11] = vec2(0.79197514, 0.19090188);");
+				line("	poissonDisk[12] = vec2(-0.24188840, 0.99706507); ");
+				line("	poissonDisk[13] = vec2(-0.81409955, 0.91437590);");
+				line("	poissonDisk[14] = vec2(0.19984126, 0.78641367);");
+				line("	poissonDisk[15] = vec2(0.14383161, -0.14100790);");
+			}
+
 			// -- calculate light arriving at the fragment
 			line  ("	vec3 totalLight = calcLightIBL(baseColour, matParam, si);");
 			line  ("	vec2 fragCoord = vec2(gl_FragCoord.x, lightLUTParam.y - gl_FragCoord.y);");
@@ -735,6 +811,24 @@ namespace sd.world {
 			line  ("		if (lightData.colourAndType.w <= 0.0) break;");
 
 			line  ("		float shadowFactor = 1.0;");
+			if (feat & Features.ShadowMap) {
+				line("		if (int(lightIx) == shadowCastingLightIndex) {");
+				line("			float shadowStrength = lightData.shadowStrengthBias.x;");
+				line("			float shadowBias = lightData.shadowStrengthBias.y;");
+				line("			float fragZ = (vertexPos_light.z - shadowBias) / vertexPos_light.w;");
+
+				line("			float strengthIncrement = shadowStrength / 16.0;");
+				line("			for (int ssi = 0; ssi < 16; ++ssi) {");
+				line("				vec2 shadowSampleCoord = (vertexPos_light.xy / vertexPos_light.w) + (poissonDisk[ssi] / 550.0);");
+				line("				float shadowZ = texture2D(shadowSampler, shadowSampleCoord).z;");
+				line("				if (shadowZ < fragZ) {");
+				line("					shadowFactor -= strengthIncrement;");
+				line("				}");
+				line("			}");
+
+				line("		}"); // lightIx == shadowCastingLightIndex
+			}
+
 			line  ("		totalLight += getLightContribution(lightData, baseColour, matParam, si) * shadowFactor;");
 			line  ("	}");
 
@@ -796,7 +890,7 @@ namespace sd.world {
 		private modelViewProjectionMatrix_ = mat4.create();
 		private normalMatrix_ = mat3.create();
 		private lightNormalMatrix_ = mat3.create();
-		// private lightViewProjectionMatrix_ = mat4.create();
+		private lightViewProjectionMatrix_ = mat4.create();
 
 
 		constructor(
@@ -1039,7 +1133,37 @@ namespace sd.world {
 		}
 
 
-		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, lightingQuality: PBRLightingQuality, modelIx: number) {
+		private drawSingleShadow(rp: render.RenderPass, proj: ProjectionSetup, shadowPipeline: render.Pipeline, modelIx: number) {
+			const gl = this.rc.gl;
+			const program = <PBRGLProgram>(shadowPipeline.program);
+			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
+			rp.setMesh(mesh);
+
+			// -- calc MVP and set
+			const modelMatrix = this.transformMgr_.worldMatrix(this.transformBase_[modelIx]);
+			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
+			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
+			gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);
+
+			// -- draw full mesh
+			const uniformPrimType = this.meshMgr_.uniformPrimitiveType(mesh);
+			if (uniformPrimType !== meshdata.PrimitiveType.None) {
+				const totalElementCount = this.meshMgr_.totalElementCount(mesh);
+				const indexElementType = this.meshMgr_.indexBufferElementType(mesh);
+				if (indexElementType !== meshdata.IndexElementType.None) {
+					rp.drawIndexedPrimitives(uniformPrimType, indexElementType, 0, totalElementCount);
+				}
+				else {
+					rp.drawPrimitives(uniformPrimType, 0, totalElementCount);
+				}
+			}
+
+			// -- drawcall count, always 1
+			return 1;
+		}
+
+
+		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, lightingQuality: PBRLightingQuality, modelIx: number) {
 			const gl = this.rc.gl;
 			let drawCalls = 0;
 
@@ -1063,6 +1187,10 @@ namespace sd.world {
 				// -- features are a combo of Material features and optional shadow
 				let features: Features = this.primGroupFeatureBase_[primGroupBase + pgIx];
 				features |= lightingQuality << LightingQualityBitShift;
+				if (shadow) {
+					features |= Features.ShadowMap;
+				}
+
 				const pipeline = this.pbrPipeline_.pipelineForFeatures(features);
 				rp.setPipeline(pipeline);
 				rp.setMesh(mesh);
@@ -1109,6 +1237,19 @@ namespace sd.world {
 				rp.setTexture(this.lightMgr_.lutTexture, TextureBindPoint.LightLUT);
 				gl.uniform2fv(program.lightLUTParamUniform!, this.lightMgr_.lutParam);
 
+				// -- shadow map and metadata
+				if (shadow) {
+					gl.uniform1i(program.shadowCastingLightIndexUniform, this.shadowCastingLightIndex_ as number);
+
+					rp.setTexture(shadow.shadowFBO.depthAttachmentTexture()!, TextureBindPoint.Shadow);
+
+					mat4.multiply(this.lightViewProjectionMatrix_, shadow.lightProjection.projectionMatrix, shadow.lightProjection.viewMatrix);
+					const lightBiasMat = mat4.multiply([], mat4.fromTranslation([], [.5, .5, .5]), mat4.fromScaling([], [.5, .5, .5]));
+					mat4.multiply(this.lightViewProjectionMatrix_, lightBiasMat, this.lightViewProjectionMatrix_);
+
+					gl.uniformMatrix4fv(program.lightViewProjectionMatrixUniform!, false, this.lightViewProjectionMatrix_);
+				}
+
 				// -- draw
 				const indexElementType = this.meshMgr_.indexBufferElementType(mesh);
 				if (indexElementType !== meshdata.IndexElementType.None) {
@@ -1124,36 +1265,20 @@ namespace sd.world {
 			return drawCalls;
 		}
 
-/*
-		updateLightData(lm: LightManager) {
-			const lights = this.activeLights_;
 
-			for (let lix = 0; lix < MAX_FRAGMENT_LIGHTS; ++lix) {
-				const light = lix < lights.length ? lights[lix] : 0;
+		drawShadows(range: PBRModelRange, rp: render.RenderPass, proj: ProjectionSetup) {
+			const shadowPipeline = this.pbrPipeline_.shadowPipeline();
+			rp.setPipeline(shadowPipeline);
 
-				if (light) {
-					const lType = lm.type(light);
-					this.lightTypeArray_[lix] = lType;
-
-					container.setIndexedVec4(this.lightColourArray_, lix, lm.colour(light).concat(1));
-					container.setIndexedVec4(this.lightParamArray_, lix, [0, lm.intensity(light), lm.range(light), lm.cutoff(light)]);
-					if (lType != asset.LightType.Point) {
-						container.setIndexedVec4(this.lightDirectionArray_, lix, lm.direction(light).concat(0));
-					}
-					if (lType != asset.LightType.Directional) {
-						const camPos = lm.positionCameraSpace(light);
-						container.setIndexedVec4(this.lightCamPositionArray_, lix, new Float32Array([camPos[0], camPos[1], camPos[2], 0]));
-						container.setIndexedVec4(this.lightWorldPositionArray_, lix, lm.worldPosition(light).concat(0));
-					}
-				}
-				else {
-					this.lightTypeArray_[lix] = asset.LightType.None;
+			const iter = range.makeIterator();
+			while (iter.next()) {
+				if (this.enabledBase_[<number>iter.current]) {
+					this.drawSingleShadow(rp, proj, shadowPipeline, <number>iter.current);
 				}
 			}
 		}
-*/
 
-		draw(range: PBRModelRange, rp: render.RenderPass, proj: ProjectionSetup, lightingQuality: PBRLightingQuality, environmentMap: render.Texture) {
+		draw(range: PBRModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, lightingQuality: PBRLightingQuality, environmentMap: render.Texture) {
 			if (! this.brdfLookupTex_) {
 				return 0;
 			}
@@ -1165,7 +1290,7 @@ namespace sd.world {
 
 			const iter = range.makeIterator();
 			while (iter.next()) {
-				drawCalls += this.drawSingleForward(rp, proj, lightingQuality, <number>iter.current);
+				drawCalls += this.drawSingleForward(rp, proj, shadow, lightingQuality, <number>iter.current);
 			}
 
 			return drawCalls;
