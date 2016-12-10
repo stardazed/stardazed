@@ -770,7 +770,6 @@ namespace sd.world {
 			private rc: render.RenderContext,
 			private transformMgr_: TransformManager,
 			private meshMgr_: MeshManager,
-			_lightMgr: LightManager
 		)
 		{
 			this.pbrPipeline_ = new PBRPipeline(rc);
@@ -1087,6 +1086,34 @@ namespace sd.world {
 			}
 
 			return drawCalls;
+		}
+
+
+		updateLightData(lm: LightManager) {
+			const lights = this.activeLights_;
+
+			for (let lix = 0; lix < MAX_FRAGMENT_LIGHTS; ++lix) {
+				const light = lix < lights.length ? lights[lix] : 0;
+
+				if (light) {
+					const lType = lm.type(light);
+					this.lightTypeArray_[lix] = lType;
+
+					container.setIndexedVec4(this.lightColourArray_, lix, lm.colour(light).concat(1));
+					container.setIndexedVec4(this.lightParamArray_, lix, [0, lm.intensity(light), lm.range(light), lm.cutoff(light)]);
+					if (lType != asset.LightType.Point) {
+						container.setIndexedVec4(this.lightDirectionArray_, lix, lm.direction(light).concat(0));
+					}
+					if (lType != asset.LightType.Directional) {
+						const camPos = lm.positionCameraSpace(light);
+						container.setIndexedVec4(this.lightCamPositionArray_, lix, new Float32Array([camPos[0], camPos[1], camPos[2], 0]));
+						container.setIndexedVec4(this.lightWorldPositionArray_, lix, lm.worldPosition(light).concat(0));
+					}
+				}
+				else {
+					this.lightTypeArray_[lix] = asset.LightType.None;
+				}
+			}
 		}
 
 

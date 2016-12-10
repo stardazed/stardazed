@@ -377,6 +377,10 @@ namespace sd.world {
 			this.transformMgr_.setPosition(this.transformBase_[<number>inst], newPosition);
 		}
 
+		worldPosition(inst: LightInstance): number[] {
+			return this.transformMgr_.worldPosition(this.transformBase_[<number>inst]);
+		}
+
 
 		direction(inst: LightInstance) {
 			const rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(this.transformBase_[<number>inst]));
