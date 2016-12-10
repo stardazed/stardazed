@@ -115,7 +115,7 @@ namespace sd.asset {
 
 
 	// TODO: temporary function, to be moved out / integrated elsewhere, etc.
-	export function resolveTextures(textures: (asset.Texture2D | null)[]) {
+	export function resolveTextures(rc: render.RenderContext, textures: (asset.Texture2D | null)[]) {
 		return Promise.all(textures.map(tex => {
 			if (! tex) {
 				return null;
@@ -126,6 +126,7 @@ namespace sd.asset {
 
 			return loadImageURL(tex.url).then(img => {
 				tex.descriptor = render.makeTexDesc2DFromImageSource(img, tex.useMipMaps);
+				tex.texture = new render.Texture(rc, tex.descriptor);
 				return tex;
 			}).catch(error => {
 				console.warn("resolveTextures error: ", error);

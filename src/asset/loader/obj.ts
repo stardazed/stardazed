@@ -70,6 +70,7 @@ namespace sd.asset {
 		const lines = text.split("\n");
 		let tokens: string[];
 		let curMat: Material | null = null;
+		const urlTexMap = new Map<string, asset.Texture2D>();
 
 		const checkArgCount = function(c: number) {
 			const ok = (c === tokens.length - 1);
@@ -164,11 +165,14 @@ namespace sd.asset {
 						case "disp": {
 							const texSpec = parseMTLTextureSpec(tokens);
 							if (texSpec) {
-								const texAsset: Texture2D = {
-									name: `${curMat.name}_${directive}`,
-									url: new URL(texSpec.relPath, filePath),
-									useMipMaps: render.UseMipMaps.Yes
-								};
+								const texURL = new URL(texSpec.relPath, filePath);
+								const texAsset: Texture2D = (urlTexMap.has(texURL.href))
+									? urlTexMap.get(texURL.href)!
+									: {
+										name: `${curMat.name}_${directive}`,
+										url: texURL,
+										useMipMaps: render.UseMipMaps.Yes
+									};
 
 								// SD only supports a single offset/scale pair so these will overwrite previous ones
 								if (texSpec.texOffset) {
@@ -186,15 +190,28 @@ namespace sd.asset {
 								}
 								else if (directive === "map_Pr") { curMat.roughnessTexture = texAsset; }
 								else if (directive === "map_Pm") { curMat.metallicTexture = texAsset; }
-								else if (directive === "norm") { curMat.normalTexture = texAsset; }
+								else if (directive === "norm") {
+									curMat.normalTexture = texAsset;
+									if (curMat.normalTexture === curMat.heightTexture) {
+										curMat.flags |= MaterialFlags.normalAlphaIsHeight;
+									}
+								}
 								else if (directive === "map_d") {
 									curMat.transparencyTexture = texAsset;
 									curMat.flags |= MaterialFlags.isTranslucent;
 								}
 								else if (directive === "map_Tr") { /* warn: not supported */ }
-								else if (directive === "bump" || directive === "disp") { curMat.heightTexture = texAsset; }
+								else if (directive === "bump" || directive === "disp") {
+									curMat.heightTexture = texAsset;
+									if (curMat.normalTexture === curMat.heightTexture) {
+										curMat.flags |= MaterialFlags.normalAlphaIsHeight;
+									}
+								}
 
-								group.addTexture(texAsset);
+								if (! urlTexMap.has(texURL.href)) {
+									urlTexMap.set(texURL.href, texAsset);
+									group.addTexture(texAsset);
+								}
 							}
 							else {
 								// TODO: warn
