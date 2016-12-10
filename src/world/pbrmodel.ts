@@ -59,13 +59,9 @@ namespace sd.world {
 		brdfLookupMapUniform: WebGLUniformLocation;
 
 		// -- lights
-		lightTypeArrayUniform: WebGLUniformLocation;          // int[MAX_FRAGMENT_LIGHTS]
-		lightCamPositionArrayUniform: WebGLUniformLocation;   // vec4[MAX_FRAGMENT_LIGHTS]
-		lightWorldPositionArrayUniform: WebGLUniformLocation; // vec4[MAX_FRAGMENT_LIGHTS]
-		lightDirectionArrayUniform: WebGLUniformLocation;     // vec4[MAX_FRAGMENT_LIGHTS]
-		lightColourArrayUniform: WebGLUniformLocation;        // vec4[MAX_FRAGMENT_LIGHTS]
-		lightParamArrayUniform: WebGLUniformLocation;         // vec4[MAX_FRAGMENT_LIGHTS]
-		shadowCastingLightIndexUniform: WebGLUniformLocation | null;   // int (-1..MAX_FRAGMENT_LIGHTS - 1)
+		lightLUTUniform: WebGLUniformLocation | null;      // sampler2D
+		lightLUTParamUniform: WebGLUniformLocation | null; // vec4
+		shadowCastingLightIndexUniform: WebGLUniformLocation | null; // int (0..32767)
 	}
 
 
@@ -75,6 +71,7 @@ namespace sd.world {
 		NormalHeight = 2,
 		Environment = 3,
 		BRDFLookup = 4,
+		LightLUT = 5
 	}
 
 
@@ -83,10 +80,6 @@ namespace sd.world {
 	// |  _/ _ \   /  _/ | '_ \/ -_) | | ' \/ -_)
 	// |_| |___/_|_\_| |_| .__/\___|_|_|_||_\___|
 	//                   |_|                     
-
-	// -- shader limits
-	const MAX_FRAGMENT_LIGHTS = 4;
-
 
 	class PBRPipeline {
 		private cachedPipelines_ = new Map<number, render.Pipeline>();
@@ -193,21 +186,19 @@ namespace sd.world {
 				gl.uniform1i(program.brdfLookupMapUniform, TextureBindPoint.BRDFLookup);
 			}
 
-			// -- light property arrays
-			program.lightTypeArrayUniform = gl.getUniformLocation(program, "lightTypes")!;
-			program.lightCamPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_cam")!;
-			program.lightWorldPositionArrayUniform = gl.getUniformLocation(program, "lightPositions_world")!;
-			program.lightDirectionArrayUniform = gl.getUniformLocation(program, "lightDirections")!;
-			program.lightColourArrayUniform = gl.getUniformLocation(program, "lightColours")!;
-			program.lightParamArrayUniform = gl.getUniformLocation(program, "lightParams")!;
+			// -- light data texture and associated properties
+			program.lightLUTUniform = gl.getUniformLocation(program, "lightLUTSampler");
+			if (program.lightLUTUniform) {
+				gl.uniform1i(program.lightLUTUniform, TextureBindPoint.LightLUT);
+			}
+
+			program.lightLUTParamUniform = gl.getUniformLocation(program, "lightLUTParam");
+
 			program.shadowCastingLightIndexUniform = gl.getUniformLocation(program, "shadowCastingLightIndex");
 			if (program.shadowCastingLightIndexUniform) {
 				// if this exists, init to -1 to signify no shadow caster
 				gl.uniform1i(program.shadowCastingLightIndexUniform, -1);
 			}
-
-			// -- zero out light types
-			gl.uniform1iv(program.lightTypeArrayUniform, new Int32Array(MAX_FRAGMENT_LIGHTS));
 
 			gl.useProgram(null);
 
@@ -305,25 +296,65 @@ namespace sd.world {
 			line  ("const int MAT_METALLIC = 1;");
 			line  ("const int MAT_AMBIENT_OCCLUSION = 2;");
 
-			// -- light param constants
-			line  (`const int MAX_FRAGMENT_LIGHTS = ${MAX_FRAGMENT_LIGHTS};`);
-			line  ("const int LPARAM_INTENSITY = 1;");
-			line  ("const int LPARAM_RANGE = 2;");
-			line  ("const int LPARAM_CUTOFF = 3;");
-			line  ("const int LPOS_STRENGTH = 3;");
-			line  ("const int LDIR_BIAS = 3;");
-
 			// -- general constants
-			line("const float PI = 3.141592654;");
-			line("const float PHONG_DIFFUSE = 1.0 / PI;");
+			line  ("const float PI = 3.141592654;");
+			line  ("const float PHONG_DIFFUSE = 1.0 / PI;");
 
-			// -- lights (with 4 lights, this will take up 20 frag vector uniforms)
-			line  ("uniform int lightTypes[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightPositions_cam[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightPositions_world[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightDirections[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightColours[MAX_FRAGMENT_LIGHTS];");
-			line  ("uniform vec4 lightParams[MAX_FRAGMENT_LIGHTS];");
+
+			// -- light data
+			line  ("uniform sampler2D lightLUTSampler;");
+			line  ("uniform vec2 lightLUTParam;");
+
+			// -- LightEntry and getLightData()
+			line  ("struct LightEntry {");
+			line  ("	vec4 colourAndType;");
+			line  ("	vec4 positionCamAndIntensity;");
+			line  ("	vec4 positionWorldAndRange;");
+			line  ("	vec4 directionAndCutoff;");
+			line  ("	vec4 shadowStrengthBias;");
+			line  ("};");
+
+			// -- getLightEntry()
+			line  ("LightEntry getLightEntry(float lightIx) {");
+			line  (`	float row = (floor(lightIx / 128.0) + 0.5) / 512.0;`);
+			line  (`	float col = (mod(lightIx, 128.0) * 5.0) + 0.5;`);
+			line  ("	LightEntry le;");
+			line  ("	le.colourAndType = texture2D(lightLUTSampler, vec2(col / 640.0, row));");
+			line  ("	le.positionCamAndIntensity = texture2D(lightLUTSampler, vec2((col + 1.0) / 640.0, row));");
+			line  ("	le.positionWorldAndRange = texture2D(lightLUTSampler, vec2((col + 2.0) / 640.0, row));");
+			line  ("	le.directionAndCutoff = texture2D(lightLUTSampler, vec2((col + 3.0) / 640.0, row));");
+			line  ("	le.shadowStrengthBias = texture2D(lightLUTSampler, vec2((col + 4.0) / 640.0, row));");
+			line  ("	return le;");
+			line  ("}");
+
+			// -- getLightIndex()
+			line  ("float getLightIndex(float listIndex) {");
+			line  (`	float liRow = (floor(listIndex / 2560.0) + 256.0 + 0.5) / 512.0;`);
+			line  (`	float rowElementIndex = mod(listIndex, 2560.0);`);
+			line  (`	float liCol = (floor(rowElementIndex / 4.0) + 0.5) / 640.0;`);
+			line  (`	float element = floor(mod(rowElementIndex, 4.0));`);
+			line  ("	vec4 packedIndices = texture2D(lightLUTSampler, vec2(liCol, liRow));");
+			// gles2: only constant index accesses allowed
+			line  ("	if (element < 1.0) return packedIndices[0];");
+			line  ("	if (element < 2.0) return packedIndices[1];");
+			line  ("	if (element < 3.0) return packedIndices[2];");
+			line  ("	return packedIndices[3];");
+			line  ("}");
+
+			// -- getLightGridCell()
+			line  ("vec2 getLightGridCell(vec2 fragCoord) {");
+			line  ("	vec2 lightGridPos = vec2(floor(fragCoord.x / 32.0), floor(fragCoord.y / 32.0));");
+			line  ("	float lightGridIndex = (lightGridPos.y * lightLUTParam.x) + lightGridPos.x;");
+
+			line  (`	float lgRow = (floor(lightGridIndex / 1280.0) + 256.0 + 240.0 + 0.5) / 512.0;`);
+			line  (`	float rowPairIndex = mod(lightGridIndex, 1280.0);`);
+			line  (`	float lgCol = (floor(rowPairIndex / 2.0) + 0.5) / 640.0;`);
+			line  (`	float pair = floor(mod(rowPairIndex, 2.0));`);
+			// gles2: only constant index accesses allowed
+			line  ("	vec4 cellPair = texture2D(lightLUTSampler, vec2(lgCol, lgRow));");
+			line  ("	if (pair < 1.0) return cellPair.xy;");
+			line  ("	return cellPair.zw;");
+			line  ("}");
 
 
 			// -- utility
@@ -560,7 +591,7 @@ namespace sd.world {
 
 
 			// -- calcLightShared()
-			line("vec3 calcLightShared(vec3 baseColour, vec4 matParam, vec4 lightColour, float diffuseStrength, vec3 lightDirection_cam, SurfaceInfo si) {");
+			line("vec3 calcLightShared(vec3 baseColour, vec4 matParam, vec3 lightColour, float diffuseStrength, vec3 lightDirection_cam, SurfaceInfo si) {");
 			line("	vec3 V = si.V;");
 			line("	vec3 N = si.N;");
 			line("	vec3 L = -lightDirection_cam;");
@@ -601,7 +632,7 @@ namespace sd.world {
 			line("	vec3 diffref = (vec3(1.0) - specfresnel) * PHONG_DIFFUSE * NdL;");
 
 			// direct light
-			line("	vec3 light_color = lightColour.rgb * diffuseStrength;");
+			line("	vec3 light_color = lightColour * diffuseStrength;");
 			line("	vec3 reflected_light = specref * light_color;");
 			line("	vec3 diffuse_light = diffref * light_color;");
 
@@ -611,36 +642,51 @@ namespace sd.world {
 
 
 			// -- calcPointLight()
-			line  ("vec3 calcPointLight(vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec3 lightPos_cam, vec3 lightPos_world, SurfaceInfo si) {");
+			line  ("vec3 calcPointLight(vec3 baseColour, vec4 matParam, vec3 lightColour, float intensity, float range, vec3 lightPos_cam, vec3 lightPos_world, SurfaceInfo si) {");
 			line  ("	float distance = length(vertexPos_world - lightPos_world);"); // use world positions for distance as cam will warp coords
 			line  ("	vec3 lightDirection_cam = normalize(vertexPos_cam - lightPos_cam);");
-			line  ("	float range = lightParam[LPARAM_RANGE];");
-			// line  ("	float attenuation = 1.0 - pow(clamp(distance / lightParam[LPARAM_RANGE], 0.0, 1.0), 2.0);");
 			line  ("	float attenuation = clamp(1.0 - distance * distance / (range * range), 0.0, 1.0);");
 			line  ("	attenuation *= attenuation;");
-			// line  ("    attenuation *= dot(si.N, -lightDirection_cam);");
-			line  ("    float diffuseStrength = lightParam[LPARAM_INTENSITY] * attenuation;");
+			line  ("    float diffuseStrength = intensity * attenuation;");
 			line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection_cam, si);");
 			line  ("}");
 
 
 			// -- calcSpotLight()
-			line  ("vec3 calcSpotLight(vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec3 lightPos_cam, vec3 lightPos_world, vec3 lightDirection, SurfaceInfo si) {");
+			line  ("vec3 calcSpotLight(vec3 baseColour, vec4 matParam, vec3 lightColour, float intensity, float range, float cutoff, vec3 lightPos_cam, vec3 lightPos_world, vec3 lightDirection, SurfaceInfo si) {");
 			line  ("	vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam);");
 			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection);");
-			line  ("	float cutoff = lightParam[LPARAM_CUTOFF];");
 			line  ("	if (spotCosAngle > cutoff) {");
-			line  ("		vec3 light = calcPointLight(baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, si);");
+			line  ("		vec3 light = calcPointLight(baseColour, matParam, lightColour, intensity, range, lightPos_cam, lightPos_world, si);");
 			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);");
 			line  ("	}");
 			line  ("	return vec3(0.0);");
 			line  ("}");
 
 
-			// -- calcDirectionalLight()
-			line  ("vec3 calcDirectionalLight(vec3 baseColour, vec4 matParam, vec4 lightColour, vec4 lightParam, vec3 lightDirection, SurfaceInfo si) {");
-			line  ("	float diffuseStrength = lightParam[LPARAM_INTENSITY] * dot(si.N, -lightDirection);");
-			line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection, si);");
+			// -- getLightContribution()
+			line  ("vec3 getLightContribution(LightEntry light, vec3 baseColour, vec4 matParam, SurfaceInfo si) {");
+			line  ("	vec3 colour = light.colourAndType.xyz;");
+			line  ("	float type = light.colourAndType.w;");
+			line  ("	vec3 lightPos_cam = light.positionCamAndIntensity.xyz;");
+			line  ("	float intensity = light.positionCamAndIntensity.w;");
+
+			line  (`	if (type == ${asset.LightType.Directional}.0) {`);
+			line  ("		return calcLightShared(baseColour, matParam, colour, 1.0, light.directionAndCutoff.xyz, si);");
+			line  ("	}");
+
+			line  ("	vec3 lightPos_world = light.positionWorldAndRange.xyz;");
+			line  ("	float range = light.positionWorldAndRange.w;");
+			line  (`	if (type == ${asset.LightType.Point}.0) {`);
+			line  ("		return calcPointLight(baseColour, matParam, colour, intensity, range, lightPos_cam, lightPos_world, si);");
+			line  ("	}");
+
+			line  ("	float cutoff = light.directionAndCutoff.w;");
+			line  (`	if (type == ${asset.LightType.Spot}.0) {`);
+			line  ("		return calcSpotLight(baseColour, matParam, colour, intensity, range, cutoff, lightPos_cam, lightPos_world, light.directionAndCutoff.xyz, si);");
+			line  ("	}");
+
+			line  ("	return vec3(0.0);"); // this would be bad
 			line  ("}");
 
 
@@ -676,26 +722,20 @@ namespace sd.world {
 
 			// -- calculate light arriving at the fragment
 			line  ("	vec3 totalLight = calcLightIBL(baseColour, matParam, si);");
+			line  ("	vec2 fragCoord = vec2(gl_FragCoord.x, lightLUTParam.y - gl_FragCoord.y);");
+			line  ("	vec2 lightOffsetCount = getLightGridCell(fragCoord);");
+			line  ("	int lightListOffset = int(lightOffsetCount.x);");
+			line  ("	int lightListCount = int(lightOffsetCount.y);");
 
-			line  ("	for (int lightIx = 0; lightIx < MAX_FRAGMENT_LIGHTS; ++lightIx) {");
-			line  ("		int type = lightTypes[lightIx];");
-			line  ("		if (type == 0) break;");
+			line  ("	for (int llix = 0; llix < 128; ++llix) {");
+			line  ("		if (llix == lightListCount) break;"); // hack to overcome gles2 limitation where loops need constant max counters 
 
-			line  ("		vec3 lightPos_cam = lightPositions_cam[lightIx].xyz;");
-			line  ("		vec3 lightPos_world = lightPositions_world[lightIx].xyz;");
-			line  ("		vec3 lightDir_cam = lightDirections[lightIx].xyz;");
-			line  ("		vec4 lightColour = lightColours[lightIx];");
-			line  ("		vec4 lightParam = lightParams[lightIx];");
+			line  ("		float lightIx = getLightIndex(float(lightListOffset + llix));");
+			line  ("		LightEntry lightData = getLightEntry(lightIx);");
+			line  ("		if (lightData.colourAndType.w <= 0.0) break;");
 
-			line  ("		if (type == 1) {");
-			line  ("			totalLight += calcDirectionalLight(baseColour, matParam, lightColour, lightParam, lightDir_cam, si);");
-			line  ("		}");
-			line  ("		else if (type == 2) {");
-			line  ("			totalLight += calcPointLight(baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, si);");
-			line  ("		}");
-			line  ("		else if (type == 3) {");
-			line  ("			totalLight += calcSpotLight(baseColour, matParam, lightColour, lightParam, lightPos_cam, lightPos_world, lightDir_cam, si);");
-			line  ("		}");
+			line  ("		float shadowFactor = 1.0;");
+			line  ("		totalLight += getLightContribution(lightData, baseColour, matParam, si) * shadowFactor;");
 			line  ("	}");
 
 			if_all("	totalLight *= matParam[MAT_AMBIENT_OCCLUSION];", Features.AOMap);
@@ -749,14 +789,7 @@ namespace sd.world {
 		private brdfLookupTex_: render.Texture | null = null;
 
 		// -- for light uniform updates
-		private lightTypeArray_ = new Int32Array(MAX_FRAGMENT_LIGHTS);
-		private lightCamPositionArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private lightWorldPositionArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private lightDirectionArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private lightColourArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private lightParamArray_ = new Float32Array(MAX_FRAGMENT_LIGHTS * 4);
-		private activeLights_: LightInstance[] = [];
-		private shadowCastingLightIndex_ = -1;
+		private shadowCastingLightIndex_: LightInstance = 0;
 
 		// -- for temp calculations
 		private modelViewMatrix_ = mat4.create();
@@ -770,6 +803,7 @@ namespace sd.world {
 			private rc: render.RenderContext,
 			private transformMgr_: TransformManager,
 			private meshMgr_: MeshManager,
+			private lightMgr_: LightManager
 		)
 		{
 			this.pbrPipeline_ = new PBRPipeline(rc);
@@ -986,16 +1020,22 @@ namespace sd.world {
 		}
 
 
-		setActiveLights(lights: LightInstance[], shadowCasterIndex: number) {
-			this.activeLights_ = lights.slice(0);
+		setShadowCaster(inst: LightInstance) {
+			this.shadowCastingLightIndex_ = inst;
+		}
 
-			// -- 1 dynamic shadowing light at a time
-			shadowCasterIndex |= 0;
-			if (shadowCasterIndex < 0 || shadowCasterIndex >= lights.length) {
-				// no shadow caster
-				shadowCasterIndex = -1;
+
+		disableRenderFeature(f: RenderFeature) {
+			if (f == RenderFeature.NormalMaps) {
+				this.pbrPipeline_.disableFeatures(Features.NormalMap);
 			}
-			this.shadowCastingLightIndex_ = shadowCasterIndex;
+		}
+
+
+		enableRenderFeature(f: RenderFeature) {
+			if (f == RenderFeature.NormalMaps) {
+				this.pbrPipeline_.enableFeatures(Features.NormalMap);
+			}
 		}
 
 
@@ -1065,13 +1105,9 @@ namespace sd.world {
 					rp.setTexture(materialData.normalHeightMap!, TextureBindPoint.NormalHeight);
 				}
 
-				// -- light data FIXME: only update these when local light data was changed -> pos and rot can change as well
-				gl.uniform1iv(program.lightTypeArrayUniform, this.lightTypeArray_);
-				gl.uniform4fv(program.lightCamPositionArrayUniform, this.lightCamPositionArray_);
-				gl.uniform4fv(program.lightWorldPositionArrayUniform, this.lightWorldPositionArray_);
-				gl.uniform4fv(program.lightDirectionArrayUniform, this.lightDirectionArray_);
-				gl.uniform4fv(program.lightColourArrayUniform, this.lightColourArray_);
-				gl.uniform4fv(program.lightParamArrayUniform, this.lightParamArray_);
+				// -- light data
+				rp.setTexture(this.lightMgr_.lutTexture, TextureBindPoint.LightLUT);
+				gl.uniform2fv(program.lightLUTParamUniform!, this.lightMgr_.lutParam);
 
 				// -- draw
 				const indexElementType = this.meshMgr_.indexBufferElementType(mesh);
@@ -1088,7 +1124,7 @@ namespace sd.world {
 			return drawCalls;
 		}
 
-
+/*
 		updateLightData(lm: LightManager) {
 			const lights = this.activeLights_;
 
@@ -1115,7 +1151,7 @@ namespace sd.world {
 				}
 			}
 		}
-
+*/
 
 		draw(range: PBRModelRange, rp: render.RenderPass, proj: ProjectionSetup, lightingQuality: PBRLightingQuality, environmentMap: render.Texture) {
 			if (! this.brdfLookupTex_) {

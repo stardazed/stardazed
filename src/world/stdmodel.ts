@@ -58,7 +58,7 @@ namespace sd.world {
 		// -- lights
 		lightLUTUniform: WebGLUniformLocation | null;         // sampler2D
 		lightLUTParamUniform: WebGLUniformLocation | null;    // vec4
-		shadowCastingLightIndexUniform: WebGLUniformLocation | null; // int (-1..32767)
+		shadowCastingLightIndexUniform: WebGLUniformLocation | null; // int (0..32767)
 
 		// -- shadow
 		lightViewProjectionMatrixUniform: WebGLUniformLocation | null; // mat4
