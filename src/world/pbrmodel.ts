@@ -398,10 +398,10 @@ namespace sd.world {
 				line("	// current depth of the layer");
 				line("	float curLayerHeight = 0.0;");
 				line("	// shift of texture coordinates for each layer");
-				line("	vec2 dtex = -0.08 * V.xy / V.z / numLayers;");
+				line("	vec2 dtex = -0.02 * V.xy / V.z / numLayers;");
 
 				line("	// current texture coordinates");
-				line("	vec2 currentTextureCoords = T + (0.04 * V.xy / V.z / numLayers);");
+				line("	vec2 currentTextureCoords = T + (0.01 * V.xy / V.z / numLayers);");
 
 				line("	// depth from heightmap");
 				line("	float heightFromTexture = texture2D(normalHeightMap, currentTextureCoords).a;");
