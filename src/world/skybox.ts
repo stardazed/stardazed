@@ -88,6 +88,7 @@ namespace sd.world {
 			rp.setTexture(this.texture_, 0);
 			rp.setMesh(this.mesh_);
 			rp.setDepthTest(render.DepthTest.LessOrEqual);
+			rp.setFaceCulling(render.FaceCulling.Disabled);
 
 			// -- mvp
 			mat4.multiply(this.modelViewProjectionMatrix_, proj.viewMatrix, this.transformMgr_.worldMatrix(this.txInstance_));
