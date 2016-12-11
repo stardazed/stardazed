@@ -42,6 +42,7 @@ namespace sd.world {
 		private instanceData_: container.FixedMultiArray;
 		private entityBase_: EntityArrayView;
 		private transformBase_: TransformArrayView;
+		private enabledBase_: Uint8Array;
 		private shadowTypeBase_: ConstEnumArrayView<asset.ShadowType>;
 		private shadowQualityBase_: ConstEnumArrayView<asset.ShadowQuality>;
 
@@ -52,8 +53,9 @@ namespace sd.world {
 		private lutTexture_: render.Texture;
 		private count_: number;
 
+		private enabledSet_: LightSet;
+
 		private gridRowSpans_: LightGridSpan[][];
-		private rectStore_: math.RectStorage;
 
 		private nullVec3_ = new Float32Array(3); // used to convert directions to rotations
 
@@ -63,22 +65,26 @@ namespace sd.world {
 		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager) {
 			this.count_ = 0;
 
-			// linking info
+			// instance info
 			const instFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transformInstance
+				{ type: UInt8,  count: 1 }, // enabled
 				{ type: SInt32, count: 1 }, // shadowType
 				{ type: SInt32, count: 1 }, // shadowQuality
 			];
 			this.instanceData_ = new container.FixedMultiArray(MAX_LIGHTS, instFields);
 			this.entityBase_ = this.instanceData_.indexedFieldView(0);
 			this.transformBase_ = this.instanceData_.indexedFieldView(1);
-			this.shadowTypeBase_ = this.instanceData_.indexedFieldView(2);
-			this.shadowQualityBase_ = this.instanceData_.indexedFieldView(3);
+			this.enabledBase_ = this.instanceData_.indexedFieldView(2);
+			this.shadowTypeBase_ = this.instanceData_.indexedFieldView(3);
+			this.shadowQualityBase_ = this.instanceData_.indexedFieldView(4);
+
+			// keep track of enabled set of lights for quick access
+			this.enabledSet_ = new InstanceSet<LightManager>();
 
 			// grid creation
 			this.gridRowSpans_ = [];
-			this.rectStore_ = new math.RectStorage(Float, 64);
 
 			// light data texture
 			const lutFields: container.MABField[] = [
@@ -110,6 +116,10 @@ namespace sd.world {
 			// linking
 			this.entityBase_[instance] = entity;
 			this.transformBase_[instance] = this.transformMgr_.forEntity(entity);
+
+			// all light start out enabled
+			this.enabledBase_[instance] = 1;
+			this.enabledSet_.add(instance);
 
 			// non-shader shadow data (all optional)
 			this.shadowTypeBase_[instance] = desc.shadowType || asset.ShadowType.None;
@@ -153,7 +163,9 @@ namespace sd.world {
 		all(): LightRange {
 			return new InstanceLinearRange<LightManager>(1, this.count);
 		}
-
+		allEnabled(): LightRange {
+			return this.enabledSet_;
+		}
 
 		// -- light data calc
 
@@ -364,6 +376,26 @@ namespace sd.world {
 
 		transform(inst: LightInstance): TransformInstance {
 			return this.transformBase_[<number>inst];
+		}
+
+
+		// -- enabledness
+
+		enabled(inst: LightInstance): boolean {
+			return this.enabledBase_[inst as number] === 1;
+		}
+
+		setEnabled(inst: LightInstance, newEnabled: boolean) {
+			const newVal = +newEnabled;
+			if (this.enabledBase_[inst as number] !== newVal) {
+				this.enabledBase_[inst as number] = newVal;
+				if (newEnabled) {
+					this.enabledSet_.add(inst);
+				}
+				else {
+					this.enabledSet_.remove(inst);
+				}
+			}
 		}
 
 
