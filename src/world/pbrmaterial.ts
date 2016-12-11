@@ -189,6 +189,32 @@ namespace sd.world {
 			this.baseColourBase_[offset + 2] = newColour[2];
 		}
 
+		emissiveColour(inst: PBRMaterialInstance): Float3 {
+			const offset = <number>inst * 4;
+			return [
+				this.emissiveBase_[offset],
+				this.emissiveBase_[offset + 1],
+				this.emissiveBase_[offset + 2]
+			];
+		}
+
+		setEmissiveColour(inst: PBRMaterialInstance, newColour: Float3) {
+			const offset = <number>inst * 4;
+			this.emissiveBase_[offset]     = newColour[0];
+			this.emissiveBase_[offset + 1] = newColour[1];
+			this.emissiveBase_[offset + 2] = newColour[2];
+		}
+
+		emissiveIntensity(inst: PBRMaterialInstance) {
+			const offset = (<number>inst * 4) + 3;
+			return this.emissiveBase_[offset];
+		}
+
+		setEmissiveIntensity(inst: PBRMaterialInstance, newIntensity: number) {
+			const offset = (<number>inst * 4) + 3;
+			this.emissiveBase_[offset] = newIntensity;
+		}
+
 
 		metallic(inst: PBRMaterialInstance): number {
 			assert(0 === (this.flagsBase_[<number>inst] & PBRMaterialFlags.SpecularSetup), "Material must be in metallic setup");
@@ -282,9 +308,9 @@ namespace sd.world {
 
 			return {
 				colourData: colourOpacity,
-				materialParam: <Float32Array>container.refIndexedVec4(this.materialBase_, matIndex),
-				emissiveData: <Float32Array>container.refIndexedVec4(this.emissiveBase_, matIndex),
-				texScaleOffsetData: <Float32Array>container.refIndexedVec4(this.texScaleOffsetBase_, matIndex),
+				materialParam: container.refIndexedVec4(this.materialBase_, matIndex),
+				emissiveData: container.refIndexedVec4(this.emissiveBase_, matIndex),
+				texScaleOffsetData: container.refIndexedVec4(this.texScaleOffsetBase_, matIndex),
 
 				albedoMap: this.albedoMaps_[matIndex],
 				materialMap: this.materialMaps_[matIndex],
