@@ -107,25 +107,28 @@ namespace sd.world {
 
 
 	export class InstanceLinearRange<Component> implements InstanceRange<Component> {
-		constructor(private first: Instance<Component>, private last: Instance<Component>) {
+		constructor(private first_: Instance<Component>, private last_: Instance<Component>) {
 			// valid ranges require first >= 1 and last >= first
 			// invalid ranges are just treated as empty
 		}
 
 		get empty() {
-			return this.first == 0 || this.last < this.first;
+			return this.first_ == 0 || this.last_ < this.first_;
 		}
+
+		get first() { return this.first_; }
+		get last() { return this.last_; }
 
 		has(inst: Instance<Component>): boolean {
 			const index = <number>inst;
-			return index >= <number>this.first && index <= <number>this.last;
+			return index >= <number>this.first_ && index <= <number>this.last_;
 		}
 
 		makeIterator(): InstanceIterator<Component> {
-			const end = this.last;
+			const end = this.last_;
 
 			return {
-				current: <Instance<Component>>(<number>this.first - 1),
+				current: <Instance<Component>>(<number>this.first_ - 1),
 				next: function(this: InstanceIterator<Component>) {
 					this.current = <Instance<Component>>(<number>this.current + 1);
 					return this.current > 0 && this.current <= end;
@@ -134,8 +137,8 @@ namespace sd.world {
 		}
 
 		forEach(fn: (inst: Instance<Component>) => void, thisObj?: any): void {
-			let index = <number>this.first;
-			const end = <number>this.last;
+			let index = <number>this.first_;
+			const end = <number>this.last_;
 
 			if (index > 0) {
 				while (index <= end) {
