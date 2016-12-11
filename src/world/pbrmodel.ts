@@ -697,15 +697,9 @@ namespace sd.world {
 			line("	vec3 light_color = lightColour * diffuseStrength;");
 			line("	vec3 reflected_light = specref * light_color;");
 			line("	vec3 diffuse_light = diffref * light_color;");
-			if (feat & Features.Emissive) {
-				line("	vec3 emissive_light = emissiveData.rgb * emissiveData.w;");
-			}
-			else {
-				line("	vec3 emissive_light = vec3(0.0);");
-			}
 
 			// final result
-			line("	return (diffuse_light + emissive_light) * mix(baseColour, vec3(0.0), metallic) + reflected_light;");
+			line("	return diffuse_light * mix(baseColour, vec3(0.0), metallic) + reflected_light;");
 			line("}");
 
 
@@ -810,6 +804,10 @@ namespace sd.world {
 
 			// -- calculate light arriving at the fragment
 			line  ("	vec3 totalLight = calcLightIBL(baseColour, matParam, si);");
+			if (feat & Features.Emissive) {
+				line("	totalLight += (emissiveData.rgb * emissiveData.w) * baseColour;");
+			}
+
 			line  ("	vec2 fragCoord = vec2(gl_FragCoord.x, lightLUTParam.y - gl_FragCoord.y);");
 			line  ("	vec2 lightOffsetCount = getLightGridCell(fragCoord);");
 			line  ("	int lightListOffset = int(lightOffsetCount.x);");
