@@ -1127,6 +1127,10 @@ namespace sd.world {
 		}
 
 
+		shadowCaster(): LightInstance {
+			return this.shadowCastingLightIndex_;
+		}
+
 		setShadowCaster(inst: LightInstance) {
 			this.shadowCastingLightIndex_ = inst;
 		}
