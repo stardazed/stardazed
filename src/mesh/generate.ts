@@ -318,8 +318,8 @@ namespace sd.meshdata.gen {
 		depth: number;  // float, dimension in Z
 
 		inward: boolean;
-
-		// subdivU, subdivV: number
+		uvRange?: Float2;
+		uvOffset?: Float2;
 	}
 
 	export function cubeDescriptor(diam: number, inward = false): BoxDescriptor {
@@ -330,6 +330,8 @@ namespace sd.meshdata.gen {
 		private xDiam_: number;
 		private yDiam_: number;
 		private zDiam_: number;
+		private uvRange_: Float2;
+		private uvOffset_: Float2;
 		private inward_: boolean;
 
 		constructor(desc: BoxDescriptor) {
@@ -341,6 +343,9 @@ namespace sd.meshdata.gen {
 			assert(this.xDiam_ > 0);
 			assert(this.yDiam_ > 0);
 			assert(this.zDiam_ > 0);
+
+			this.uvRange_ = desc.uvRange ? [desc.uvRange[0], desc.uvRange[1]] : [1, 1];
+			this.uvOffset_ = desc.uvOffset ? [desc.uvOffset[0], desc.uvOffset[1]] : [0, 0];
 		}
 
 		get vertexCount(): number {
@@ -359,6 +364,10 @@ namespace sd.meshdata.gen {
 			const xh = this.xDiam_ / 2;
 			const yh = this.yDiam_ / 2;
 			const zh = this.zDiam_ / 2;
+			const uA = this.uvOffset_[0];
+			const uB = this.uvOffset_[0] + this.uvRange_[0];
+			const vA = this.uvOffset_[1];
+			const vB = this.uvOffset_[1] + this.uvRange_[1];
 			let curVtx = 0;
 
 			// unique positions
@@ -391,11 +400,11 @@ namespace sd.meshdata.gen {
 				normal(norm[0], norm[1], norm[2]);
 				normal(norm[0], norm[1], norm[2]);
 
-				// each cube quad shows texture fully
-				uv(1, 0);
-				uv(0, 0);
-				uv(0, 1);
-				uv(1, 1);
+				// each cube quad shows texture fully by default
+				uv(uB, vA);
+				uv(uA, vA);
+				uv(uA, vB);
+				uv(uB, vB);
 
 				// ccw faces
 				if (this.inward_) {
