@@ -50,7 +50,7 @@ namespace sd.world {
 
 
 		private rebase() {
-			this.typeBase_ = <Int32Array>this.instanceData_.indexedFieldView(0);
+			this.typeBase_ = this.instanceData_.indexedFieldView(0);
 			this.entityBase_ = this.instanceData_.indexedFieldView(1);
 			this.physMatBase_ = this.instanceData_.indexedFieldView(2);
 		}

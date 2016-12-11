@@ -303,9 +303,9 @@ namespace sd.world {
 
 			return {
 				colourData: colourOpacity,
-				specularData: <Float32Array>container.refIndexedVec4(this.specularBase_, matIndex),
-				emissiveData: <Float32Array>container.refIndexedVec4(this.emissiveBase_, matIndex),
-				texScaleOffsetData: <Float32Array>container.refIndexedVec4(this.texScaleOffsetBase_, matIndex),
+				specularData: container.refIndexedVec4(this.specularBase_, matIndex),
+				emissiveData: container.refIndexedVec4(this.emissiveBase_, matIndex),
+				texScaleOffsetData: container.refIndexedVec4(this.texScaleOffsetBase_, matIndex),
 
 				diffuseMap: this.diffuseMaps_[matIndex],
 				specularMap: this.specularMaps_[matIndex],
