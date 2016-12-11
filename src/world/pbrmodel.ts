@@ -19,14 +19,17 @@ namespace sd.world {
 
 		LightingQuality            = 1 << 2 | 1 << 3,  // 2-bit number, higher is better
 
-		AlbedoMap                  = 1 << 4,  // RGB channels of Albedo
-		RoughnessMap               = 1 << 5,  // R channel of RMA
-		MetallicMap                = 1 << 6,  // G channel of RMA
-		AOMap                      = 1 << 7,  // B channel of RMA
+		Emissive                   = 1 << 4,
 
-		NormalMap                  = 1 << 8,  // RGB channels of NormalHeight
-		HeightMap                  = 1 << 9,  // A channel of NormalHeight
-		ShadowMap                  = 1 << 10,
+		AlbedoMap                  = 1 << 5,  // RGB channels of Albedo
+		RoughnessMap               = 1 << 6,  // R channel of RMA
+		MetallicMap                = 1 << 7,  // G channel of RMA
+		AOMap                      = 1 << 8,  // B channel of RMA
+
+		NormalMap                  = 1 << 9,  // RGB channels of NormalHeight
+		HeightMap                  = 1 << 10, // A channel of NormalHeight
+
+		ShadowMap                  = 1 << 11,
 	}
 
 	const LightingQualityBitShift = 2;
@@ -48,6 +51,7 @@ namespace sd.world {
 
 		// -- mesh material
 		baseColourUniform: WebGLUniformLocation;         // vec4
+		emissiveDataUniform: WebGLUniformLocation;       // vec4
 		materialUniform: WebGLUniformLocation;           // vec4
 		texScaleOffsetUniform: WebGLUniformLocation;     // vec4
 
@@ -154,6 +158,7 @@ namespace sd.world {
 
 			// -- material properties (assert presence for now)
 			program.baseColourUniform = gl.getUniformLocation(program, "baseColour")!;
+			program.emissiveDataUniform = gl.getUniformLocation(program, "emissiveData")!;
 			program.materialUniform = gl.getUniformLocation(program, "materialParam")!;
 			program.texScaleOffsetUniform = gl.getUniformLocation(program, "texScaleOffset")!;
 
@@ -336,6 +341,7 @@ namespace sd.world {
 
 			// -- material
 			line  ("uniform vec4 baseColour;");
+			if_all("uniform vec4 emissiveData;", Features.Emissive);
 			line  ("uniform vec4 materialParam;");
 
 			if_all("uniform sampler2D albedoMap;", Features.AlbedoMap);
@@ -691,9 +697,15 @@ namespace sd.world {
 			line("	vec3 light_color = lightColour * diffuseStrength;");
 			line("	vec3 reflected_light = specref * light_color;");
 			line("	vec3 diffuse_light = diffref * light_color;");
+			if (feat & Features.Emissive) {
+				line("	vec3 emissive_light = emissiveData.rgb * emissiveData.w;");
+			}
+			else {
+				line("	vec3 emissive_light = vec3(0.0);");
+			}
 
 			// final result
-			line("	return diffuse_light * mix(baseColour, vec3(0.0), metallic) + reflected_light;");
+			line("	return diffuse_light * mix(baseColour, vec3(0.0), metallic) + reflected_light + emissive_light;");
 			line("}");
 
 
@@ -965,6 +977,7 @@ namespace sd.world {
 			if (meshFeatures & MeshFeatures.VertexUVs) { features |= Features.VtxUV; }
 
 			const matFlags = this.materialMgr_.flags(material);
+			if (matFlags & PBRMaterialFlags.Emissive) { features |= Features.Emissive; }
 
 			if (this.materialMgr_.albedoMap(material)) {
 				features |= Features.AlbedoMap;
@@ -1216,7 +1229,9 @@ namespace sd.world {
 				// -- set material uniforms
 				gl.uniform4fv(program.baseColourUniform, materialData.colourData);
 				gl.uniform4fv(program.materialUniform, materialData.materialParam);
-
+				if (features & Features.Emissive) {
+					gl.uniform4fv(program.emissiveDataUniform, materialData.emissiveData);
+				}
 				if (features & Features.VtxUV) {
 					gl.uniform4fv(program.texScaleOffsetUniform, materialData.texScaleOffsetData);
 				}

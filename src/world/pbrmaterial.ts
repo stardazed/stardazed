@@ -13,21 +13,23 @@ namespace sd.world {
 
 	export const enum PBRMaterialFlags {
 		SpecularSetup = 1 << 0,  // Metallic/Roughness if clear, Specular/Smoothness if set
+		Emissive = 1 << 1,
 
 		// RMA components
-		RoughnessMap = 1 << 1,
-		MetallicMap = 1 << 2,
-		AmbientOcclusionMap = 1 << 3,
+		RoughnessMap = 1 << 2,
+		MetallicMap = 1 << 3,
+		AmbientOcclusionMap = 1 << 4,
 
 		// NormalHeight components
-		NormalMap = 1 << 4,
-		HeightMap = 1 << 5
+		NormalMap = 1 << 5,
+		HeightMap = 1 << 6
 	}
 
 
 	export interface PBRMaterialData {
 		colourData: Float32Array;     // baseColour(rgb), opacity
 		materialParam: Float32Array;  // roughness, metallic, 0, 0 | specular(rgb), roughness
+		emissiveData: Float32Array;   // emissive(rgb), emissiveIntensity
 		texScaleOffsetData: Float32Array; // scale(xy), offset(xy)
 		albedoMap: render.Texture | null;
 		materialMap: render.Texture | null;
@@ -58,6 +60,7 @@ namespace sd.world {
 
 		private baseColourBase_: Float32Array;
 		private materialBase_: Float32Array;
+		private emissiveBase_: Float32Array;
 		private texScaleOffsetBase_: Float32Array;
 		private opacityBase_: Float32Array;
 		private flagsBase_: ConstEnumArrayView<PBRMaterialFlags>;
@@ -70,6 +73,7 @@ namespace sd.world {
 			const fields: container.MABField[] = [
 				{ type: Float, count: 4 },  // baseColour[3], 0
 				{ type: Float, count: 4 },  // roughness, metallic, 0, 0
+				{ type: Float, count: 4 },  // emissiveColour[3], emissiveIntensity
 				{ type: Float, count: 4 },  // textureScale[2], textureOffset[2]
 				{ type: Float, count: 1 },  // opacity
 				{ type: SInt32, count: 1 }, // flags
@@ -83,9 +87,10 @@ namespace sd.world {
 		private rebase() {
 			this.baseColourBase_ = this.instanceData_.indexedFieldView(0);
 			this.materialBase_ = this.instanceData_.indexedFieldView(1);
-			this.texScaleOffsetBase_ = this.instanceData_.indexedFieldView(2);
-			this.opacityBase_ = this.instanceData_.indexedFieldView(3);
-			this.flagsBase_ = this.instanceData_.indexedFieldView(4);
+			this.emissiveBase_ = this.instanceData_.indexedFieldView(2);
+			this.texScaleOffsetBase_ = this.instanceData_.indexedFieldView(3);
+			this.opacityBase_ = this.instanceData_.indexedFieldView(4);
+			this.flagsBase_ = this.instanceData_.indexedFieldView(5);
 		}
 
 
@@ -101,11 +106,16 @@ namespace sd.world {
 			vec4.set(this.tempVec4, math.clamp01(desc.roughness), math.clamp01(desc.metallic), 0, 0);
 			container.setIndexedVec4(this.materialBase_, matIndex, this.tempVec4);
 
+			// emissive
+			vec4.set(this.tempVec4, desc.emissiveColour[0], desc.emissiveColour[1], desc.emissiveColour[2], desc.emissiveIntensity);
+			container.setIndexedVec4(this.emissiveBase_, matIndex, this.tempVec4);
+
 			// pack texture scale and offset into 4-comp float
 			vec4.set(this.tempVec4, desc.textureScale[0], desc.textureScale[1], desc.textureOffset[0], desc.textureOffset[1]);
 			container.setIndexedVec4(this.texScaleOffsetBase_, matIndex, this.tempVec4);
 
 			let flags: PBRMaterialFlags = 0;
+			if (desc.flags & asset.MaterialFlags.usesEmissive) { flags |= PBRMaterialFlags.Emissive; }
 			if (desc.roughnessTexture) { flags |= PBRMaterialFlags.RoughnessMap; }
 			if (desc.metallicTexture) { flags |= PBRMaterialFlags.MetallicMap; }
 			if (desc.ambientOcclusionTexture) { flags |= PBRMaterialFlags.AmbientOcclusionMap; }
@@ -273,6 +283,7 @@ namespace sd.world {
 			return {
 				colourData: colourOpacity,
 				materialParam: <Float32Array>container.refIndexedVec4(this.materialBase_, matIndex),
+				emissiveData: <Float32Array>container.refIndexedVec4(this.emissiveBase_, matIndex),
 				texScaleOffsetData: <Float32Array>container.refIndexedVec4(this.texScaleOffsetBase_, matIndex),
 
 				albedoMap: this.albedoMaps_[matIndex],
