@@ -1127,6 +1127,16 @@ namespace sd.world {
 		}
 
 
+		// FIXME: temp direct access to internal mat mgr
+		materialRange(inst: PBRModelInstance): InstanceLinearRange<PBRMaterialManager> {
+			const offsetCount = container.copyIndexedVec2(this.materialOffsetCountBase_, inst as number);
+			const matFromIndex = this.materials_[offsetCount[0]];
+			return new InstanceLinearRange<PBRMaterialManager>(matFromIndex, (matFromIndex as number) + offsetCount[1] - 1);
+		}
+
+		get materialManager() { return this.materialMgr_; }
+		// /FIXME
+
 		shadowCaster(): LightInstance {
 			return this.shadowCastingLightIndex_;
 		}
