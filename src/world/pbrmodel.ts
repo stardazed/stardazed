@@ -705,7 +705,7 @@ namespace sd.world {
 			}
 
 			// final result
-			line("	return diffuse_light * mix(baseColour, vec3(0.0), metallic) + reflected_light + emissive_light;");
+			line("	return (diffuse_light + emissive_light) * mix(baseColour, vec3(0.0), metallic) + reflected_light;");
 			line("}");
 
 
