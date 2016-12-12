@@ -27,18 +27,22 @@ namespace sd.world {
 	export class TransformManager implements ComponentManager<TransformManager> {
 		private instanceData_: container.MultiArrayBuffer;
 
-		private entityBase_: TypedArray;
+		private entityBase_: EntityArrayView;
 
-		private parentBase_: TypedArray;
-		private firstChildBase_: TypedArray;
-		private prevSiblingBase_: TypedArray;
-		private nextSiblingBase_: TypedArray;
+		private parentBase_: TransformArrayView;
+		private firstChildBase_: TransformArrayView;
+		private prevSiblingBase_: TransformArrayView;
+		private nextSiblingBase_: TransformArrayView;
 
-		private positionBase_: TypedArray;
-		private rotationBase_: TypedArray;
-		private scaleBase_: TypedArray;
-		private localMatrixBase_: TypedArray;
-		private worldMatrixBase_: TypedArray;
+		private positionBase_: Float32Array;
+		private rotationBase_: Float32Array;
+		private scaleBase_: Float32Array;
+		private localMatrixBase_: Float32Array;
+		private worldMatrixBase_: Float32Array;
+
+		private readonly defaultPos_: ConstFloat3 = vec3.zero();
+		private readonly defaultRot_: ConstFloat4 = quat.create();
+		private readonly defaultScale_: ConstFloat3 = vec3.one();
 
 		constructor() {
 			const instanceFields: container.MABField[] = [
@@ -97,24 +101,27 @@ namespace sd.world {
 
 			if (descOrParent) {
 				if (typeof descOrParent == "number") {
-					parentInstance = <number>descOrParent;
+					parentInstance = descOrParent as number;
 				}
 				else {
 					descriptor = <TransformDescriptor>descOrParent;
-					parentInstance = <number>parent; // can be null
+					parentInstance = parent as number; // can be 0
 				}
+			}
+			else if (typeof parent === "number") {
+				parentInstance = parent as number;
 			}
 
 			if (parentInstance) {
 				this.parentBase_[thisInstance] = parentInstance;
-				let myPrevSibling = this.firstChildBase_[parentInstance];
+				let myPrevSibling = this.firstChildBase_[parentInstance] as number;
 
 				if (myPrevSibling) {
 					assert(this.prevSiblingBase_[myPrevSibling] == 0, "firstChild cannot have prev siblings");
 
 					// find end of child chain
 					while (this.nextSiblingBase_[myPrevSibling] != 0) {
-						myPrevSibling = this.nextSiblingBase_[myPrevSibling];
+						myPrevSibling = this.nextSiblingBase_[myPrevSibling] as number;
 					}
 
 					// append self to parent's child list
@@ -136,8 +143,8 @@ namespace sd.world {
 
 			if (descriptor) {
 				// optional descriptor fields
-				const rotation = descriptor.rotation || quat.create();
-				const scale = descriptor.scale || vec3.one();
+				const rotation = descriptor.rotation || this.defaultRot_;
+				const scale = descriptor.scale || this.defaultScale_;
 
 				this.positionBase_.set(descriptor.position, thisInstance * vec3.ELEMENT_COUNT);
 				this.rotationBase_.set(rotation, thisInstance * quat.ELEMENT_COUNT);
@@ -146,13 +153,11 @@ namespace sd.world {
 				this.setLocalMatrix(thisInstance, rotation, descriptor.position, scale);
 			}
 			else {
-				this.positionBase_.set(vec3.zero(), thisInstance * quat.ELEMENT_COUNT);
-				this.rotationBase_.set(quat.create(), thisInstance * quat.ELEMENT_COUNT);
-				this.scaleBase_.set(vec3.one(), thisInstance * vec3.ELEMENT_COUNT);
+				this.positionBase_.set(this.defaultPos_, thisInstance * quat.ELEMENT_COUNT);
+				this.rotationBase_.set(this.defaultRot_, thisInstance * quat.ELEMENT_COUNT);
+				this.scaleBase_.set(this.defaultScale_, thisInstance * vec3.ELEMENT_COUNT);
 
-				const mat4Identity = mat4.create();
-				this.localMatrixBase_.set(mat4Identity, thisInstance * mat4.ELEMENT_COUNT);
-				this.worldMatrixBase_.set(mat4Identity, thisInstance * mat4.ELEMENT_COUNT);
+				this.setLocalMatrix(thisInstance, this.defaultRot_, this.defaultPos_, this.defaultScale_);
 			}
 
 			return thisInstance;
@@ -225,10 +230,10 @@ namespace sd.world {
 			const worldMat = this.worldMatrix(inst);
 			mat4.multiply(worldMat, parentMatrix, localMat);
 
-			let child = this.firstChildBase_[<number>inst];
+			let child = this.firstChildBase_[<number>inst] as number;
 			while (child != 0) {
 				this.applyParentTransform(worldMat, child);
-				child = this.nextSiblingBase_[child];
+				child = this.nextSiblingBase_[child] as number;
 			}
 		}
 
@@ -260,16 +265,16 @@ namespace sd.world {
 
 
 		private removeFromParent(inst: TransformInstance) {
-			const index = <number>inst;
-			const parentIndex = this.parentBase_[index];
+			const index = inst as number;
+			const parentIndex = this.parentBase_[index] as number;
 
 			if (! parentIndex) {
 				return;
 			}
 
 			const firstChild = this.firstChildBase_[parentIndex];
-			const prevSibling = this.prevSiblingBase_[index];
-			const nextSibling = this.nextSiblingBase_[index];
+			const prevSibling = this.prevSiblingBase_[index] as number;
+			const nextSibling = this.nextSiblingBase_[index] as number;
 
 			if (firstChild == index) {
 				this.firstChildBase_[parentIndex] = nextSibling;
@@ -294,13 +299,13 @@ namespace sd.world {
 			this.removeFromParent(inst);
 
 			if (parentIndex) {
-				this.parentBase_[thisIndex] = parentIndex;
-				let myPrevSibling = this.firstChildBase_[parentIndex];
+				this.parentBase_[thisIndex] = parentIndex as number;
+				let myPrevSibling = this.firstChildBase_[parentIndex] as number;
 
 				if (myPrevSibling) {
 					// find end of child chain
 					while (this.nextSiblingBase_[myPrevSibling] != 0) {
-						myPrevSibling = this.nextSiblingBase_[myPrevSibling];
+						myPrevSibling = this.nextSiblingBase_[myPrevSibling] as number;
 					}
 
 					// append self to parent's child list
