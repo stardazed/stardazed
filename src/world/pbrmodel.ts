@@ -836,6 +836,12 @@ namespace sd.world {
 				line("				}");
 				line("			}");
 
+				// line("			float shadowZ = texture2DProj(shadowSampler, vertexPos_light.xyw).z;");
+				// line("			if (shadowZ < fragZ) {");
+				// line("				baseColour = vec3(1, 0, 0);");
+				// line("				shadowFactor = .5;");
+				// line("			}");
+
 				line("		}"); // lightIx == shadowCastingLightIndex
 			}
 
