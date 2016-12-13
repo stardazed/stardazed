@@ -880,6 +880,7 @@ namespace sd.world {
 		private entityBase_: EntityArrayView;
 		private transformBase_: TransformArrayView;
 		private enabledBase_: Uint8Array;
+		private shadowCastFlagsBase_: Uint8Array;
 		private materialOffsetCountBase_: Int32Array;
 		private primGroupOffsetBase_: Int32Array;
 
@@ -917,6 +918,7 @@ namespace sd.world {
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transform
 				{ type: UInt8,  count: 1 }, // enabled
+				{ type: UInt8,  count: 1 }, // shadowCastFlags
 				{ type: SInt32, count: 1 }, // materialOffsetCount ([0]: offset, [1]: count)
 				{ type: SInt32, count: 1 }, // primGroupOffset (offset into primGroupMaterials_ and primGroupFeatures_)
 			];
@@ -956,8 +958,9 @@ namespace sd.world {
 			this.entityBase_ = this.instanceData_.indexedFieldView(0);
 			this.transformBase_ = this.instanceData_.indexedFieldView(1);
 			this.enabledBase_ = this.instanceData_.indexedFieldView(2);
-			this.materialOffsetCountBase_ = this.instanceData_.indexedFieldView(3);
-			this.primGroupOffsetBase_ = <Int32Array>this.instanceData_.indexedFieldView(4);
+			this.shadowCastFlagsBase_ = this.instanceData_.indexedFieldView(3);
+			this.materialOffsetCountBase_ = this.instanceData_.indexedFieldView(4);
+			this.primGroupOffsetBase_ = <Int32Array>this.instanceData_.indexedFieldView(5);
 		}
 
 
@@ -1069,6 +1072,7 @@ namespace sd.world {
 			this.entityBase_[ix] = <number>entity;
 			this.transformBase_[ix] = <number>this.transformMgr_.forEntity(entity);
 			this.enabledBase_[ix] = +true;
+			this.shadowCastFlagsBase_[ix] = +(desc.castsShadows === undefined ? true : desc.castsShadows);
 
 			// -- save material indexes
 			container.setIndexedVec2(this.materialOffsetCountBase_, ix, [this.materials_.length, desc.materials.length]);
@@ -1299,8 +1303,9 @@ namespace sd.world {
 
 			const iter = range.makeIterator();
 			while (iter.next()) {
-				if (this.enabledBase_[<number>iter.current]) {
-					this.drawSingleShadow(rp, proj, shadowPipeline, <number>iter.current);
+				const index = iter.current as number;
+				if (this.enabledBase_[index] && this.shadowCastFlagsBase_[index]) {
+					this.drawSingleShadow(rp, proj, shadowPipeline, index);
 				}
 			}
 		}
