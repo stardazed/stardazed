@@ -143,7 +143,7 @@ namespace sd.render {
 
 		const resultMapDesc = makeTexDescCube(PixelFormat.RGBA8, baseWidth, UseMipMaps.Yes);
 		const resultEnvMap = new render.Texture(rc, resultMapDesc);
-		const mipCount = resultEnvMap.mipmaps - 2; // ignore the 1x1 and 2x2 levels
+		const mipCount = resultEnvMap.mipmaps;
 		const resultGLPixelFormat = glImageFormatForPixelFormat(rc, resultEnvMap.pixelFormat);
 
 		const levelWidths: number[] = [];
