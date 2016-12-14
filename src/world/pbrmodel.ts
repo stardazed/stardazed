@@ -1059,6 +1059,9 @@ namespace sd.world {
 			else if (feature == RenderFeature.HeightMaps) {
 				mask |= Features.HeightMap;
 			}
+			else if (feature == RenderFeature.Emissive) {
+				mask |= Features.Emissive;
+			}
 
 			if (enable) {
 				this.pbrPipeline_.enableFeatures(mask);

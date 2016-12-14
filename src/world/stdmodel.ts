@@ -788,7 +788,8 @@ namespace sd.world {
 	export const enum RenderFeature {
 		AlbedoMaps,
 		NormalMaps,
-		HeightMaps
+		HeightMaps,
+		Emissive
 	}
 
 
