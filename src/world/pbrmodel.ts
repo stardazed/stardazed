@@ -597,7 +597,7 @@ namespace sd.world {
 				line("	float k = roughness * roughness * 0.5;");
 				line("	float V = NdV * (1.0 - k) + k;");
 				line("	float L = NdL * (1.0 - k) + k;");
-				line("	return 0.25 / (V * L);");
+				line("	return 0.25 / max(0.0001, V * L);"); // avoid infinity as it screws up stuff rather royally, likely not best way though
 				line("}");
 			}
 
@@ -606,14 +606,14 @@ namespace sd.world {
 				line("vec3 phong_specular(vec3 V, vec3 L, vec3 N, vec3 specular, float roughness) {");
 				line("	vec3 R = reflect(-L, N);");
 				line("	float spec = max(0.0, dot(V, R));");
-				line("	float k = 1.999 / (roughness * roughness);");
+				line("	float k = 1.999 / max(0.0001, roughness * roughness);");
 				line("	return min(1.0, 3.0 * 0.0398 * k) * pow(spec, min(10000.0, k)) * specular;");
 				line("}");
 			}
 			else if (lightingQuality == PBRLightingQuality.Blinn) {
 				// simple blinn specular calculation with normalization
 				line("vec3 blinn_specular(float NdH, vec3 specular, float roughness) {");
-				line("	float k = 1.999 / (roughness * roughness);");
+				line("	float k = 1.999 / max(0.0001, roughness * roughness);");
 				line("	return min(1.0, 3.0 * 0.0398 * k) * pow(NdH, min(10000.0, k)) * specular;");
 				line("}");
 			}
@@ -772,7 +772,8 @@ namespace sd.world {
 				hasRMAMap = true;
 			}
 			else {
-				line("	vec4 matParam = materialParam;");
+				// copy roughness and metallic fixed values from param
+				line("	vec4 matParam = vec4(materialParam.xy, 0, 0);");
 			}
 
 			if (hasRMAMap && (feat & Features.MetallicMap) == 0) {
