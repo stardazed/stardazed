@@ -170,6 +170,15 @@ namespace sd.world {
 		// -- light data calc
 
 		private projectPointLight(outBounds: math.Rect, center: Float3, range: number, projectionViewportMatrix: Float4x4) {
+			// if the camera is inside the range of the point light, just apply it to the full screen
+			if (vec3.length(center) <= range * 1.3) { // apply some fudge factors because I'm tired
+				outBounds.left = 0;
+				outBounds.top = 5000;
+				outBounds.right = 5000;
+				outBounds.bottom = 0;
+				return;
+			}
+
 			const cx = center[0];
 			const cy = center[1];
 			const cz = center[2];
@@ -185,15 +194,17 @@ namespace sd.world {
 				[cx + range, cy + range, cz + range, 1.0]
 			];
 
-			const min = [sd.Float.max, sd.Float.max];
-			const max = [-sd.Float.max, -sd.Float.max];
+			const min = [50000, 50000];
+			const max = [-50000, -50000];
 			const sp = [0, 0, 0, 0];
 
 			for (let vix = 0; vix < 8; ++vix) {
-				vec4.transformMat4(sp, vertices[vix], projectionViewportMatrix);
-				vec4.scale(sp, sp, 1.0 / sp[3]);
-				vec2.min(min, min, sp);
-				vec2.max(max, max, sp);
+				if (vertices[vix][2] <= 0.2) { // apply some fudge factors because I'm tired
+					vec4.transformMat4(sp, vertices[vix], projectionViewportMatrix);
+					vec4.scale(sp, sp, 1.0 / sp[3]);
+					vec2.min(min, min, sp);
+					vec2.max(max, max, sp);
+				}
 			}
 
 			outBounds.left = min[0];
