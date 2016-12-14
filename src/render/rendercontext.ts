@@ -96,7 +96,9 @@ namespace sd.render {
 
 		// try and create the 3D context
 		const contextAttrs: WebGLContextAttributes = {
-			antialias: true
+			antialias: false,
+			depth: true,
+			alpha: false
 		};
 		try {
 			gl = canvas.getContext("webgl", contextAttrs);
