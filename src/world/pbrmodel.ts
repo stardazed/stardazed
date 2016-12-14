@@ -806,7 +806,7 @@ namespace sd.world {
 			// -- calculate light arriving at the fragment
 			line  ("	vec3 totalLight = calcLightIBL(baseColour, matParam, si);");
 			if (feat & Features.Emissive) {
-				line("	totalLight += (emissiveData.rgb * emissiveData.w) * mix(baseColour, vec3(0.0), matParam[MAT_METALLIC]);");
+				line("	totalLight += (emissiveData.rgb * emissiveData.w);");
 			}
 
 			line  ("	vec2 fragCoord = vec2(gl_FragCoord.x, lightLUTParam.y - gl_FragCoord.y);");
