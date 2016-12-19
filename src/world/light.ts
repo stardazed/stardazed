@@ -456,13 +456,13 @@ namespace sd.world {
 			if (type == asset.LightType.Spot) {
 				const farZ = this.range(inst);
 				const fov = this.cutoff(inst) * 2; // cutoff is half-angle
-				viewMatrix = mat4.lookAt([], worldPos, worldTarget, [0, 1, 0]); // FIXME: this can likely be done cheaper
-				projectionMatrix = mat4.perspective([], fov, viewportWidth / viewportHeight, nearZ, farZ);
+				viewMatrix = mat4.lookAt(new Float32Array(16), worldPos, worldTarget, [0, 1, 0]); // FIXME: this can likely be done cheaper
+				projectionMatrix = mat4.perspective(new Float32Array(16), fov, viewportWidth / viewportHeight, nearZ, farZ);
 				// TODO: cache this matrix?
 			}
 			else if (type == asset.LightType.Directional) {
-				viewMatrix = mat4.lookAt([], [0, 0, 0], worldDirection, [0, 1, 0]); // FIXME: this can likely be done cheaper
-				projectionMatrix = mat4.ortho([], -40, 40, -40, 40, -40, 40);
+				viewMatrix = mat4.lookAt(new Float32Array(16), [0, 0, 0], worldDirection, [0, 1, 0]); // FIXME: this can likely be done cheaper
+				projectionMatrix = mat4.ortho(new Float32Array(16), -40, 40, -40, 40, -40, 40);
 			}
 			else {
 				return null;
@@ -478,7 +478,7 @@ namespace sd.world {
 		private shadowFrameBufferOfQuality(rc: render.RenderContext, _quality: asset.ShadowQuality) {
 			// TODO: each shadow quality level of shadows will have a dedicated, reusable FBO
 			if (! this.shadowFBO_) {
-				this.shadowFBO_ = render.makeShadowMapFrameBuffer(rc, 1024);
+				this.shadowFBO_ = render.makeShadowMapFrameBuffer(rc, 512);
 			}
 
 			return this.shadowFBO_;
