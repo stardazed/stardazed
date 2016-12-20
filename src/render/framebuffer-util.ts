@@ -75,15 +75,15 @@ namespace sd.render {
 
 
 	export function canUseShadowMaps(rc: RenderContext) {
-		return !!rc.extDepthTexture;
+		return (rc.extTextureFloat && rc.extDerivatives);
 	}
 
 
 	export function makeShadowMapFrameBuffer(rc: RenderContext, dimension: number) {
 		return makeSquareFrameBuffer(rc, dimension, {
-			colourCount: 0,
+			colourCount: 1,
 			useDepth: true,
-			depthReadback: true
+			depthReadback: false
 		});
 	}
 
