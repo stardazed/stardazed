@@ -16,6 +16,22 @@ namespace sd.render {
 	}
 
 
+	export function pixelFormatForFBOPixelComponent(fbopc: FBOPixelComponent) {
+		if (fbopc == FBOPixelComponent.Integer) {
+			return PixelFormat.RGB8;
+		}
+		if (fbopc == FBOPixelComponent.Float) {
+			return PixelFormat.RGBA32F;
+		}
+		if (fbopc == FBOPixelComponent.HalfFloat) {
+			return PixelFormat.RGBA16F;
+		}
+
+		assert(false, `Unknown FBO pixel component: ${fbopc}`);
+		return PixelFormat.None;
+	}
+
+
 	export interface DefaultFBODesc {
 		colourCount: number;
 		pixelComponent?: FBOPixelComponent;
@@ -30,16 +46,7 @@ namespace sd.render {
 		fbad.width = width;
 		fbad.height = height;
 
-		let pixFmt: PixelFormat;
-		if (desc.pixelComponent == FBOPixelComponent.HalfFloat) {
-			pixFmt = PixelFormat.RGBA16F;
-		}
-		else if (desc.pixelComponent == FBOPixelComponent.Float) {
-			pixFmt = PixelFormat.RGBA32F;
-		}
-		else {
-			pixFmt = PixelFormat.RGB8;
-		}
+		const pixFmt = pixelFormatForFBOPixelComponent(desc.pixelComponent || FBOPixelComponent.Integer);
 
 		container.fill(fbad.colourPixelFormats, pixFmt, desc.colourCount);
 		if (desc.useDepth) {

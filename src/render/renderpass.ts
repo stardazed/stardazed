@@ -23,8 +23,8 @@ namespace sd.render {
 			default:
 				assert(false, "Invalid IndexElementType");
 				return rc.gl.NONE;
-	}
 		}
+	}
 
 
 	function glTypeForPrimitiveType(rc: render.RenderContext, pt: meshdata.PrimitiveType) {
