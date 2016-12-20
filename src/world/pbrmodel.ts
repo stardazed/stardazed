@@ -7,8 +7,12 @@
 // https://gist.github.com/galek/53557375251e1a942dfa by Nick Galko
 // which in turn used certain functions from the Unreal 4 Engine Source
 // as indicated by comments.
+
 // Normal perturbation method by Christian Schüler
 // http://www.thetenthplanet.de/archives/1180
+
+// Uses code and ideas by Florian Bösch (@pyalot), e.g.
+// http://codeflow.org/entries/2013/feb/15/soft-shadow-mapping/
 
 namespace sd.world {
 
@@ -744,7 +748,7 @@ namespace sd.world {
 			line  ("	float spotCosAngle = dot(lightToPoint, lightDirection);");
 			line  ("	if (spotCosAngle > cutoff) {");
 			line  ("		vec3 light = calcPointLight(baseColour, matParam, lightColour, intensity, range, lightPos_cam, lightPos_world, si);");
-			line  ("		return light * smoothstep(cutoff, cutoff + 0.006, spotCosAngle);");
+			line  ("		return light * smoothstep(cutoff, cutoff + 0.01, spotCosAngle);");
 			line  ("	}");
 			line  ("	return vec3(0.0);");
 			line  ("}");
