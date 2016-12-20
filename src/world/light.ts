@@ -15,6 +15,7 @@ namespace sd.world {
 		light: LightInstance;
 		lightProjection: ProjectionSetup;
 		shadowFBO: render.FrameBuffer;
+		filteredTexture?: render.Texture;
 	}
 
 
@@ -478,7 +479,7 @@ namespace sd.world {
 		private shadowFrameBufferOfQuality(rc: render.RenderContext, _quality: asset.ShadowQuality) {
 			// TODO: each shadow quality level of shadows will have a dedicated, reusable FBO
 			if (! this.shadowFBO_) {
-				this.shadowFBO_ = render.makeShadowMapFrameBuffer(rc, 512);
+				this.shadowFBO_ = render.makeShadowMapFrameBuffer(rc, 1024);
 			}
 
 			return this.shadowFBO_;

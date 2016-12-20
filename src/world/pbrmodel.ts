@@ -1299,7 +1299,7 @@ namespace sd.world {
 				if (shadow) {
 					gl.uniform1i(program.shadowCastingLightIndexUniform, this.shadowCastingLightIndex_ as number);
 
-					rp.setTexture(shadow.shadowFBO.colourAttachmentTexture(0)!, TextureBindPoint.Shadow);
+					rp.setTexture(shadow.filteredTexture || shadow.shadowFBO.colourAttachmentTexture(0)!, TextureBindPoint.Shadow);
 
 					// mat4.multiply(this.lightViewProjectionMatrix_, shadow.lightProjection.projectionMatrix, shadow.lightProjection.viewMatrix);
 					// const lightBiasMat = mat4.multiply([], mat4.fromTranslation([], [.5, .5, .5]), mat4.fromScaling([], [.5, .5, .5]));
