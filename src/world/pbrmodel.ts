@@ -804,7 +804,7 @@ namespace sd.world {
 
 
 			if (feat & Features.AlbedoMap) {
-				line("	vec3 baseColour = texture2D(albedoMap, si.UV).rgb * baseColour.rgb;");
+				line("	vec3 baseColour = sqrt(texture2D(albedoMap, si.UV).rgb) * baseColour.rgb;");
 			}
 			else {
 				line("	vec3 baseColour = baseColour.rgb;");
@@ -870,7 +870,7 @@ namespace sd.world {
 			if_all("	totalLight *= matParam[MAT_AMBIENT_OCCLUSION];", Features.AOMap);
 
 			// -- final lightColour result
-			line  ("	gl_FragColor = vec4(totalLight, 1.0);");
+			line  ("	gl_FragColor = vec4(pow(totalLight, vec3(2.2)), 1.0);");
 			line  ("}");
 
 			return source.join("\n") + "\n";
