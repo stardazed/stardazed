@@ -762,7 +762,7 @@ namespace sd.world {
 			line  ("	float intensity = light.positionCamAndIntensity.w;");
 
 			line  (`	if (type == ${asset.LightType.Directional}.0) {`);
-			line  ("		return calcLightShared(baseColour, matParam, colour, 1.0, light.directionAndCutoff.xyz, si);");
+			line  ("		return calcLightShared(baseColour, matParam, colour, intensity, light.directionAndCutoff.xyz, si);");
 			line  ("	}");
 
 			line  ("	vec3 lightPos_world = light.positionWorldAndRange.xyz;");
