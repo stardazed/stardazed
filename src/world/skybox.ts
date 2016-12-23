@@ -34,7 +34,7 @@ namespace sd.world {
 			"varying vec3 vertexUV_intp;",
 			"uniform samplerCube skyboxMap;",
 			"void main() {",
-			"	gl_FragColor = textureCube(skyboxMap, vertexUV_intp);",
+			"	gl_FragColor = pow(textureCube(skyboxMap, vertexUV_intp), vec4(1.0 / 2.2));",
 			"}"
 		].join("\n");
 
