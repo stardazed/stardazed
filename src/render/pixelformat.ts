@@ -124,11 +124,11 @@ namespace sd.render {
 			case PixelFormat.RGBA8:
 				return gl.RGBA;
 
-			// sRGB
+			// sRGB -- silently fall back to standard RGB if not available (availability in browsers is ~100%)
 			case PixelFormat.SRGB8:
-				return rc.extSRGB ? rc.extSRGB.SRGB_EXT : gl.NONE;
+				return rc.extSRGB ? rc.extSRGB.SRGB_EXT : gl.RGB;
 			case PixelFormat.SRGB8_Alpha8:
-				return rc.extSRGB ? rc.extSRGB.SRGB_ALPHA_EXT : gl.NONE;
+				return rc.extSRGB ? rc.extSRGB.SRGB_ALPHA_EXT : gl.RGB;
 
 			// Float
 			case PixelFormat.RGBA16F:
@@ -187,7 +187,7 @@ namespace sd.render {
 
 			case PixelFormat.SRGB8:
 			case PixelFormat.SRGB8_Alpha8:
-				return rc.extSRGB ? gl.UNSIGNED_BYTE : gl.NONE;
+				return gl.UNSIGNED_BYTE;
 
 			case PixelFormat.RGB_5_6_5:
 				return gl.UNSIGNED_SHORT_5_6_5;
