@@ -11,12 +11,19 @@ namespace sd.asset {
 	}
 
 
+	export const enum ColourSpace {
+		sRGB,
+		Linear
+	}
+
+
 	export interface Texture2D extends Asset {
 		url?: URL;
 
 		useMipMaps?: render.UseMipMaps;
 		descriptor?: render.TextureDescriptor;
 		texture?: render.Texture;
+		colourSpace: ColourSpace;
 	}
 
 
