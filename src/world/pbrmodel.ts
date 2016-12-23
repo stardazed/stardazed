@@ -651,9 +651,9 @@ namespace sd.world {
 				// line("	float D = D_blinn(roughness, NdH);");
 				line("	float D = D_GGX(roughness, NdH);");
 				line("	float G = G_schlick(roughness, NdV, NdL);");
-				// line("	float rim = mix(1.0 - roughness * 0.9, 1.0, NdV);"); // I cannot tell if this does anything at all
-				// line("	return (1.0 / rim) * specular * G * D;");
-				line("	return specular * G * D;");
+				line("	float rim = mix(1.0 - roughness * 0.9, 1.0, NdV);"); // I cannot tell if this does anything at all
+				line("	return (1.0 / rim) * specular * G * D;");
+				// line("	return specular * G * D;");
 				line("}");
 			}
 
@@ -719,7 +719,8 @@ namespace sd.world {
 			line("	specref *= vec3(NdL);");
 
 			// diffuse contribition is common for all lighting models
-			line("	vec3 diffref = (vec3(1.0) - specfresnel) * PHONG_DIFFUSE * NdL;");
+			line("	vec3 diffref = (vec3(1.0) - specfresnel) * NdL * NdL;"); // this matches Unity rendering by ogling
+			// originally: line("	vec3 diffref = (vec3(1.0) - specfresnel) * PHONG_DIFFUSE * NdL;");
 
 			// direct light
 			line("	vec3 light_color = lightColour * diffuseStrength;");
@@ -804,7 +805,7 @@ namespace sd.world {
 
 
 			if (feat & Features.AlbedoMap) {
-				line("	vec3 baseColour = sqrt(texture2D(albedoMap, si.UV).rgb) * baseColour.rgb;");
+				line("	vec3 baseColour = texture2D(albedoMap, si.UV).rgb * baseColour.rgb;");
 			}
 			else {
 				line("	vec3 baseColour = baseColour.rgb;");
@@ -870,7 +871,8 @@ namespace sd.world {
 			if_all("	totalLight *= matParam[MAT_AMBIENT_OCCLUSION];", Features.AOMap);
 
 			// -- final lightColour result
-			line  ("	gl_FragColor = vec4(pow(totalLight, vec3(2.2)), 1.0);");
+			line  ("	gl_FragColor = vec4(pow(totalLight, vec3(1.0 / 2.2)), 1.0);");
+			// line  ("	gl_FragColor = vec4(totalLight, 1.0);");
 			line  ("}");
 
 			return source.join("\n") + "\n";
@@ -967,7 +969,7 @@ namespace sd.world {
 		private loadBRDFLUTTexture() {
 			const img = new Image();
 			img.onload = () => {
-				const td = render.makeTexDesc2DFromImageSource(img, render.UseMipMaps.No);
+				const td = render.makeTexDesc2DFromImageSource(img, asset.ColourSpace.Linear, render.UseMipMaps.No); // TODO: investigate what the colour space really is
 				td.sampling.repeatS = render.TextureRepeatMode.ClampToEdge;
 				td.sampling.repeatT = render.TextureRepeatMode.ClampToEdge;
 				this.brdfLookupTex_ = new render.Texture(this.rc, td);
