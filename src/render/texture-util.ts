@@ -40,7 +40,7 @@ namespace sd.render {
 						++loaded;
 
 						if (loaded == 6) {
-							const td = render.makeTexDescCubeFromImageSources(images);
+							const td = render.makeTexDescCubeFromImageSources(images, asset.ColourSpace.sRGB);
 							const texture = new render.Texture(rc, td);
 							resolve(texture);
 						}

@@ -183,7 +183,7 @@ namespace sd.render {
 
 	export function makeTexDescCube(pixelFormat: PixelFormat, dimension: number, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
 		const sampler = makeSamplerDescriptor();
-		sampler.mipFilter = TextureMipFilter.Linear;
+		sampler.mipFilter = mipmapped == UseMipMaps.Yes ? TextureMipFilter.Linear : TextureMipFilter.None;
 		sampler.repeatS = TextureRepeatMode.ClampToEdge;
 		sampler.repeatT = TextureRepeatMode.ClampToEdge;
 
@@ -198,14 +198,15 @@ namespace sd.render {
 	}
 
 
-	export function makeTexDescCubeFromImageSources(sources: TextureImageSource[], mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
+	export function makeTexDescCubeFromImageSources(sources: TextureImageSource[], colourSpace: asset.ColourSpace, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
 		const sampler = makeSamplerDescriptor();
+		sampler.mipFilter = mipmapped == UseMipMaps.Yes ? TextureMipFilter.Linear : TextureMipFilter.None;
 		sampler.repeatS = TextureRepeatMode.ClampToEdge;
 		sampler.repeatT = TextureRepeatMode.ClampToEdge;
 
 		return {
 			textureClass: TextureClass.TexCube,
-			pixelFormat: PixelFormat.RGBA8,
+			pixelFormat: colourSpace === asset.ColourSpace.sRGB ? PixelFormat.SRGB8_Alpha8 : PixelFormat.RGBA8,
 			usageHint: TextureUsageHint.Normal,
 			sampling: sampler,
 			dim: makePixelDimensions(sources[0].width, sources[0].height),
