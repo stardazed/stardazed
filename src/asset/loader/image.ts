@@ -82,7 +82,8 @@ namespace sd.asset {
 
 		ag.addTexture({
 			name: name,
-			descriptor: render.makeTexDesc2DFromImageSource(image)
+			descriptor: render.makeTexDesc2DFromImageSource(image, asset.ColourSpace.sRGB),
+			colourSpace: asset.ColourSpace.sRGB
 		});
 
 		return ag;

@@ -146,12 +146,12 @@ namespace sd.render {
 	}
 
 
-	export function makeTexDesc2DFromImageSource(source: TextureImageSource, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
+	export function makeTexDesc2DFromImageSource(source: TextureImageSource, colourSpace: asset.ColourSpace, mipmapped: UseMipMaps = UseMipMaps.No): TextureDescriptor {
 		const maxDim = Math.max(source.width, source.height);
 
 		return {
 			textureClass: TextureClass.Tex2D,
-			pixelFormat: PixelFormat.RGBA8,
+			pixelFormat: colourSpace === asset.ColourSpace.sRGB ? PixelFormat.SRGB8_Alpha8 : PixelFormat.RGBA8,
 			usageHint: TextureUsageHint.Normal,
 			sampling: makeSamplerDescriptor(),
 			dim: makePixelDimensions(source.width, source.height),

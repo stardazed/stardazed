@@ -315,6 +315,7 @@ namespace sd.asset {
 					const tex: Texture2D = {
 						name: fbxVideo.objectName,
 						userRef: vidID,
+						colourSpace: asset.ColourSpace.Linear, // FIXME
 						useMipMaps: options.forceMipMapsOn ? render.UseMipMaps.Yes : render.UseMipMaps.No
 					};
 					let fileData: ArrayBuffer | null = null;
@@ -335,7 +336,7 @@ namespace sd.asset {
 					}
 
 					const makeTexDesc = (img: render.TextureImageSource) => {
-						return render.makeTexDesc2DFromImageSource(img, tex.useMipMaps);
+						return render.makeTexDesc2DFromImageSource(img, asset.ColourSpace.sRGB, tex.useMipMaps);
 					};
 
 					if (fileData) {

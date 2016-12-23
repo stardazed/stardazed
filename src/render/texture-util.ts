@@ -10,7 +10,7 @@ namespace sd.render {
 			const image = new Image();
 
 			image.onload = function() {
-				const td = render.makeTexDesc2DFromImageSource(image, render.useMipMaps(mipmaps));
+				const td = render.makeTexDesc2DFromImageSource(image, asset.ColourSpace.sRGB, render.useMipMaps(mipmaps));
 				const texture = new render.Texture(rc, td);
 				resolve(texture);
 			};

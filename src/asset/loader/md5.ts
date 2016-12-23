@@ -194,7 +194,8 @@ namespace sd.asset {
 						this.textures_.set(name, {
 							name: name,
 							url: new URL(name, this.filePath),
-							useMipMaps: render.UseMipMaps.No
+							useMipMaps: render.UseMipMaps.No,
+							colourSpace: asset.ColourSpace.sRGB
 						});
 					}
 					m.albedoTexture = this.textures_.get(name);
@@ -367,7 +368,7 @@ namespace sd.asset {
 
 					fileProms.push(
 						loadImageURL(tex.url).then(img => {
-							tex.descriptor = render.makeTexDesc2DFromImageSource(img, tex.useMipMaps);
+							tex.descriptor = render.makeTexDesc2DFromImageSource(img, asset.ColourSpace.sRGB, tex.useMipMaps);
 							return tex;
 						}).catch(error => {
 							console.warn(error);

@@ -171,7 +171,8 @@ namespace sd.asset {
 									: {
 										name: `${curMat.name}_${directive}`,
 										url: texURL,
-										useMipMaps: render.UseMipMaps.Yes
+										useMipMaps: render.UseMipMaps.Yes,
+										colourSpace: (["map_Kd", "map_Ks", "map_Ke"].indexOf(directive) > -1 ? asset.ColourSpace.sRGB : asset.ColourSpace.Linear),
 									};
 
 								// SD only supports a single offset/scale pair so these will overwrite previous ones

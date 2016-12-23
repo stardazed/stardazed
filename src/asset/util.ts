@@ -125,7 +125,7 @@ namespace sd.asset {
 			}
 
 			return loadImageURL(tex.url).then(img => {
-				tex.descriptor = render.makeTexDesc2DFromImageSource(img, tex.useMipMaps);
+				tex.descriptor = render.makeTexDesc2DFromImageSource(img, tex.colourSpace, tex.useMipMaps);
 				tex.texture = new render.Texture(rc, tex.descriptor);
 				return tex;
 			}).catch(error => {
