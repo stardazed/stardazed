@@ -26,7 +26,7 @@ namespace sd.world {
 
 
 	export interface InstanceIterator<Component> {
-		current: Instance<Component>;
+		readonly current: Instance<Component>;
 		next(): boolean;
 	}
 
@@ -106,6 +106,20 @@ namespace sd.world {
 	}
 
 
+	class InstanceLinearIterator<Component> implements InstanceIterator<Component> {
+		current: Instance<Component>;
+
+		constructor(first: Instance<Component>, private last_: Instance<Component>) {
+			this.current = first;
+		}
+
+		next() {
+			this.current = (this.current as number + 1) as Instance<Component>;
+			return this.current > 0 && this.current <= this.last_;
+		}
+	}
+
+
 	export class InstanceLinearRange<Component> implements InstanceRange<Component> {
 		constructor(private first_: Instance<Component>, private last_: Instance<Component>) {
 			// valid ranges require first >= 1 and last >= first
@@ -125,15 +139,7 @@ namespace sd.world {
 		}
 
 		makeIterator(): InstanceIterator<Component> {
-			const end = this.last_;
-
-			return {
-				current: <Instance<Component>>(<number>this.first_ - 1),
-				next: function(this: InstanceIterator<Component>) {
-					this.current = <Instance<Component>>(<number>this.current + 1);
-					return this.current > 0 && this.current <= end;
-				}
-			};
+			return new InstanceLinearIterator(this.first_, this.last_);
 		}
 
 		forEach(fn: (inst: Instance<Component>) => void, thisObj?: any): void {

@@ -434,7 +434,7 @@ namespace sd.world {
 
 
 		bind(inst: MeshInstance, toPipeline: render.Pipeline) {
-			const meshIx = <number>inst;
+			const meshIx = inst as number;
 			const gl = this.rctx_.gl;
 			let plVAO: WebGLVertexArrayObjectOES | undefined;
 			let needBinding = true;
@@ -463,8 +463,7 @@ namespace sd.world {
 				let pair = roleIndexes.next();
 
 				while (! pair.done) {
-					const attrRole = pair.value![0];
-					const attrIndex = pair.value![1];
+					const [attrRole, attrIndex] = pair.value!;
 
 					const meshAttr = attributes.get(attrRole);
 					if (meshAttr) {
