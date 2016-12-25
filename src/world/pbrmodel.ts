@@ -736,7 +736,7 @@ namespace sd.world {
 			line  ("vec3 calcPointLight(vec3 baseColour, vec4 matParam, vec3 lightColour, float intensity, float range, vec3 lightPos_cam, vec3 lightPos_world, SurfaceInfo si) {");
 			line  ("	float distance = length(vertexPos_world.xyz - lightPos_world);"); // use world positions for distance as cam will warp coords
 			line  ("	vec3 lightDirection_cam = normalize(vertexPos_cam - lightPos_cam);");
-			line  ("	float attenuation = clamp(1.0 - distance * distance / (range * range), 0.0, 1.0);");
+			line  ("	float attenuation = clamp(1.0 - distance / range, 0.0, 1.0);");
 			line  ("	attenuation *= attenuation;");
 			line  ("    float diffuseStrength = intensity * attenuation;");
 			line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection_cam, si);");
