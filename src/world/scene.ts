@@ -6,7 +6,7 @@
 namespace sd.world {
 
 	export interface EntityDescriptor {
-		transform?: TransformDescriptor;
+		transform?: asset.Transform;
 		parent?: TransformInstance;
 		mesh?: asset.Mesh;
 		stdModel?: StdModelDescriptor;

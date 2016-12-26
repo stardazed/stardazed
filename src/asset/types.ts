@@ -121,8 +121,8 @@ namespace sd.asset {
 
 	export interface Transform {
 		position: Float3;
-		rotation: Float4; // quat
-		scale: Float3;
+		rotation?: Float4; // quat
+		scale?: Float3;
 	}
 
 	export function makeTransform(): Transform {

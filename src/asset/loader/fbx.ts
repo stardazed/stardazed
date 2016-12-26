@@ -789,7 +789,7 @@ namespace sd.asset {
 							vec3.copy(sdModel.transform.position, vecVal);
 						}
 						else if (c.name == "Lcl Scaling") {
-							vec3.copy(sdModel.transform.scale, vecVal);
+							vec3.copy(sdModel.transform.scale!, vecVal);
 						}
 						else if (c.name == "Lcl Rotation") {
 							localRot = quat.fromEuler(math.deg2rad(vecVal[2]), math.deg2rad(vecVal[1]),	math.deg2rad(vecVal[0]));

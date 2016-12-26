@@ -39,7 +39,7 @@ namespace sd.asset {
 					const bias = weights.biases[wix];
 					const weightPos = container.copyIndexedVec3(weights.positions, wix);
 
-					const weightRelPos = vec3.transformQuat([], weightPos, joint.rotation);
+					const weightRelPos = vec3.transformQuat([], weightPos, joint.rotation!);
 					vec3.add(weightRelPos, weightRelPos, joint.position);
 					vec3.scaleAndAdd(vpos, vpos, weightRelPos, bias);
 				}
@@ -151,7 +151,7 @@ namespace sd.asset {
 				this.flatJointModels.set(index, jm);
 
 				vec3.copy(jm.transform.position, modelPos);
-				quat.copy(jm.transform.rotation, modelRot);
+				quat.copy(jm.transform.rotation!, modelRot);
 
 				if (parentIndex > -1) {
 					const pj = this.joints[parentIndex];
@@ -159,10 +159,10 @@ namespace sd.asset {
 					pjm.children.push(jm);
 					jm.parent = pjm;
 
-					const invParentQuat = quat.invert([], pj.rotation);
-					quat.mul(jm.transform.rotation, invParentQuat, jm.transform.rotation);
+					const invParentQuat = quat.invert([], pj.rotation!);
+					quat.mul(jm.transform.rotation!, invParentQuat, jm.transform.rotation!);
 
-					const parentMat = mat4.fromRotationTranslation([], pj.rotation, pj.position);
+					const parentMat = mat4.fromRotationTranslation([], pj.rotation!, pj.position);
 					const invParentMat = mat4.invert([], parentMat);
 					vec3.transformMat4(jm.transform.position, jm.transform.position, invParentMat);
 				}
@@ -348,7 +348,7 @@ namespace sd.asset {
 							const joint = joints[weights.joints[woff + j]];
 
 							// finalNormal += (normal * joint.rotation) * weight.bias;
-							vec3.scaleAndAdd(finalNormal, finalNormal, vec3.transformQuat([], normalRef, quat.invert([], joint.rotation)), bias);
+							vec3.scaleAndAdd(finalNormal, finalNormal, vec3.transformQuat([], normalRef, quat.invert([], joint.rotation!)), bias);
 						}
 
 						// update normal in-place
@@ -487,7 +487,7 @@ namespace sd.asset {
 
 				const xf = makeTransform();
 				vec3.copy(xf.position, jointPos);
-				quat.copy(xf.rotation, jointRot);
+				quat.copy(xf.rotation!, jointRot);
 				this.baseFrame_.push(xf);
 			}
 			endBaseFrame() { /* ignored */ }

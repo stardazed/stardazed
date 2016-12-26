@@ -17,13 +17,6 @@ namespace sd.world {
 	export type TransformIterator = InstanceIterator<TransformManager>;
 	export type TransformArrayView = InstanceArrayView<TransformManager>;
 
-	export interface TransformDescriptor {
-		position: Float3;
-		rotation?: Float4;
-		scale?: Float3;
-	}
-
-
 	export class TransformManager implements ComponentManager<TransformManager> {
 		private instanceData_: container.MultiArrayBuffer;
 
@@ -83,8 +76,8 @@ namespace sd.world {
 
 
 		create(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
-		create(linkedEntity: Entity, desc?: TransformDescriptor, parent?: TransformInstance): TransformInstance;
-		create(linkedEntity: Entity, descOrParent?: TransformDescriptor | TransformInstance, parent?: TransformInstance): TransformInstance {
+		create(linkedEntity: Entity, desc?: asset.Transform, parent?: TransformInstance): TransformInstance;
+		create(linkedEntity: Entity, descOrParent?: asset.Transform | TransformInstance, parent?: TransformInstance): TransformInstance {
 			const entIndex = entityIndex(linkedEntity);
 
 			if (this.instanceData_.count < entIndex) {
@@ -95,7 +88,7 @@ namespace sd.world {
 
 			const thisInstance = entIndex;
 			let parentInstance = 0;
-			let descriptor: TransformDescriptor | null = null;
+			let descriptor: asset.Transform | null = null;
 
 			this.entityBase_[thisInstance] = <number>linkedEntity;
 
@@ -104,7 +97,7 @@ namespace sd.world {
 					parentInstance = descOrParent as number;
 				}
 				else {
-					descriptor = <TransformDescriptor>descOrParent;
+					descriptor = descOrParent as asset.Transform;
 					parentInstance = parent as number; // can be 0
 				}
 			}
