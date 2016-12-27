@@ -54,8 +54,6 @@ namespace sd.world {
 		private lutTexture_: render.Texture;
 		private count_: number;
 
-		private enabledSet_: LightSet;
-
 		private gridRowSpans_: LightGridSpan[][];
 
 		private nullVec3_ = new Float32Array(3); // used to convert directions to rotations
@@ -80,9 +78,6 @@ namespace sd.world {
 			this.enabledBase_ = this.instanceData_.indexedFieldView(2);
 			this.shadowTypeBase_ = this.instanceData_.indexedFieldView(3);
 			this.shadowQualityBase_ = this.instanceData_.indexedFieldView(4);
-
-			// keep track of enabled set of lights for quick access
-			this.enabledSet_ = new InstanceSet<LightManager>();
 
 			// grid creation
 			this.gridRowSpans_ = [];
@@ -120,7 +115,6 @@ namespace sd.world {
 
 			// all light start out enabled
 			this.enabledBase_[instance] = 1;
-			this.enabledSet_.add(instance);
 
 			// non-shader shadow data (all optional)
 			this.shadowTypeBase_[instance] = desc.shadowType || asset.ShadowType.None;
@@ -163,9 +157,6 @@ namespace sd.world {
 
 		all(): LightRange {
 			return new InstanceLinearRange<LightManager>(1, this.count);
-		}
-		allEnabled(): LightRange {
-			return this.enabledSet_;
 		}
 
 		// -- light data calc
@@ -401,12 +392,6 @@ namespace sd.world {
 			const newVal = +newEnabled;
 			if (this.enabledBase_[inst as number] !== newVal) {
 				this.enabledBase_[inst as number] = newVal;
-				if (newEnabled) {
-					this.enabledSet_.add(inst);
-				}
-				else {
-					this.enabledSet_.remove(inst);
-				}
 			}
 		}
 

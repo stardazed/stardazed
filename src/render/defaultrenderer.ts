@@ -51,7 +51,7 @@ namespace sd.render {
 			rpdMain.clearMask = render.ClearMask.ColourDepth;
 
 			render.runRenderPass(this.rc, this.scene.meshMgr, rpdMain, null, rp => {
-				this.scene.lightMgr.prepareLightsForRender(this.scene.lightMgr.allEnabled(), camera, rp.viewport()!);
+				this.scene.lightMgr.prepareLightsForRender(this.scene.lightMgr.all(), camera, rp.viewport()!);
 
 				rp.setDepthTest(render.DepthTest.Less);
 				rp.setFaceCulling(render.FaceCulling.Back);

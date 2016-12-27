@@ -767,8 +767,6 @@ namespace sd.asset {
 					ld.intensity = fbxIntensity / 250;
 				}
 
-				console.info({...ld});
-
 				return ld;
 			}
 
