@@ -723,6 +723,7 @@ namespace sd.asset {
 				};
 
 				let fbxIntensity = 100;
+				let fbxDecayType = 1; // linear
 
 				for (const c of lightAttrNode.children) {
 					if (c.name == "LightType") {
@@ -744,23 +745,29 @@ namespace sd.asset {
 						vec3.copy(ld.colour, <number[]>c.values);
 					}
 					else if (c.name == "Intensity") {
-						fbxIntensity = <number>c.values[0];
+						fbxIntensity = c.values[0] as number;
 					}
 					else if (c.name == "OuterAngle") {
-						ld.cutoff = math.deg2rad(<number>c.values[0] / 2);
+						ld.cutoff = math.deg2rad(c.values[0] as number / 2);
 					}
 					else if (c.name == "CastShadows") {
 						ld.shadowType = asset.ShadowType.Soft;
+					}
+					else if (c.name == "DecayType") {
+						fbxDecayType = c.values[0] as number;
 					}
 				}
 
 				// convert FBX intensity to something we can work with
 				if (ld.type == asset.LightType.Directional) {
-					ld.intensity = math.clamp01(fbxIntensity / 100);
+					ld.intensity = 2; // math.clamp01(fbxIntensity / 100);
 				}
 				else {
-					ld.range = fbxIntensity / 100;
+					ld.range = Math.sqrt(fbxIntensity) * 2;
+					ld.intensity = fbxIntensity / 250;
 				}
+
+				console.info({...ld});
 
 				return ld;
 			}
