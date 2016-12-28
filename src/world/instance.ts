@@ -16,6 +16,12 @@ namespace sd.world {
 	}
 
 
+	export interface InstanceIterator<Component> {
+		readonly current: Instance<Component>;
+		next(): boolean;
+	}
+
+
 	export interface InstanceRange<Component> {
 		readonly empty: boolean;
 		has(inst: Instance<Component>): boolean;
@@ -25,10 +31,124 @@ namespace sd.world {
 	}
 
 
-	export interface InstanceIterator<Component> {
-		readonly current: Instance<Component>;
-		next(): boolean;
+	export interface ComponentManager<Component> {
+		readonly count: number;
+
+		valid(inst: Instance<Component>): boolean;
+
+		destroy(inst: Instance<Component>): void;
+		destroyRange(range: InstanceRange<Component>): void;
+
+		all(): InstanceRange<Component>;
 	}
+
+
+	// -------
+
+
+	class InstanceLinearIterator<Component> implements InstanceIterator<Component> {
+		current: Instance<Component>;
+
+		constructor(first: Instance<Component>, private last_: Instance<Component>) {
+			this.current = first;
+		}
+
+		next() {
+			this.current = (this.current as number + 1) as Instance<Component>;
+			return this.current > 0 && this.current <= this.last_;
+		}
+	}
+
+
+	export class InstanceLinearRange<Component> implements InstanceRange<Component> {
+		constructor(private first_: Instance<Component>, private last_: Instance<Component>) {
+			// valid ranges require first >= 1 and last >= first
+			// invalid ranges are just treated as empty
+		}
+
+		get empty() {
+			return this.first_ < 1 || this.last_ < this.first_;
+		}
+
+		get front() { return this.first_; }
+		get back() { return this.last_; }
+
+		has(inst: Instance<Component>): boolean {
+			return inst >= this.first_ && inst <= this.last_;
+		}
+
+		makeIterator(): InstanceIterator<Component> {
+			return new InstanceLinearIterator(this.first_, this.last_);
+		}
+
+		forEach(fn: (inst: Instance<Component>) => void, thisObj?: any): void {
+			let index = this.first_ as number;
+			const end = this.last_ as number;
+
+			if (index > 0) {
+				while (index <= end) {
+					fn.call(thisObj, <Instance<Component>>index);
+					++index;
+				}
+			}
+		}
+	}
+
+
+	// -------
+
+
+	class InstanceArrayIterator<Component> implements InstanceIterator<Component> {
+		private index_ = -1;
+
+		constructor(private readonly array_: Instance<Component>[]) {}
+
+		get current() {
+			return this.array_[this.index_];
+		}
+
+		next() {
+			this.index_ += 1;
+			return this.index_ < this.array_.length;
+		}
+	}
+
+
+	export class InstanceArrayRange<Component> implements InstanceRange<Component> {
+		private readonly data_: Instance<Component>[];
+
+		constructor(array: Instance<Component>[]) {
+			this.data_ = array;
+		}
+
+		get empty() {
+			return this.data_.length === 0;
+		}
+
+		get front() { return this.data_[0]; }
+		get back() { return this.data_[this.data_.length - 1]; }
+
+		has(inst: Instance<Component>) {
+			return this.data_.indexOf(inst) > -1;
+		}
+
+		makeIterator(): InstanceIterator<Component> {
+			return new InstanceArrayIterator(this.data_);
+		}
+
+		forEach(fn: (inst: Instance<Component>) => void, thisObj?: any): void {
+			let index = 0;
+			const end = this.data_.length;
+
+			while (index < end) {
+				fn.call(thisObj, this.data_[index]);
+				++index;
+			}
+		}
+	}
+
+
+	// -------
 
 
 	class InstanceSetIterator<Component> implements InstanceIterator<Component> {
@@ -103,68 +223,6 @@ namespace sd.world {
 		forEach(fn: (inst: Instance<Component>) => void, thisObj?: any) {
 			this.data_.forEach(fn, thisObj || this);
 		}
-	}
-
-
-	class InstanceLinearIterator<Component> implements InstanceIterator<Component> {
-		current: Instance<Component>;
-
-		constructor(first: Instance<Component>, private last_: Instance<Component>) {
-			this.current = first;
-		}
-
-		next() {
-			this.current = (this.current as number + 1) as Instance<Component>;
-			return this.current > 0 && this.current <= this.last_;
-		}
-	}
-
-
-	export class InstanceLinearRange<Component> implements InstanceRange<Component> {
-		constructor(private first_: Instance<Component>, private last_: Instance<Component>) {
-			// valid ranges require first >= 1 and last >= first
-			// invalid ranges are just treated as empty
-		}
-
-		get empty() {
-			return this.first_ == 0 || this.last_ < this.first_;
-		}
-
-		get first() { return this.first_; }
-		get last() { return this.last_; }
-
-		has(inst: Instance<Component>): boolean {
-			const index = <number>inst;
-			return index >= <number>this.first_ && index <= <number>this.last_;
-		}
-
-		makeIterator(): InstanceIterator<Component> {
-			return new InstanceLinearIterator(this.first_, this.last_);
-		}
-
-		forEach(fn: (inst: Instance<Component>) => void, thisObj?: any): void {
-			let index = <number>this.first_;
-			const end = <number>this.last_;
-
-			if (index > 0) {
-				while (index <= end) {
-					fn.call(thisObj, <Instance<Component>>index);
-					++index;
-				}
-			}
-		}
-	}
-
-
-	export interface ComponentManager<Component> {
-		readonly count: number;
-
-		valid(inst: Instance<Component>): boolean;
-
-		destroy(inst: Instance<Component>): void;
-		destroyRange(range: InstanceRange<Component>): void;
-
-		all(): InstanceRange<Component>;
 	}
 
 } // ns sd.world
