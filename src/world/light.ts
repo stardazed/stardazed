@@ -113,7 +113,7 @@ namespace sd.world {
 			this.entityBase_[instance] = entity;
 			this.transformBase_[instance] = this.transformMgr_.forEntity(entity);
 
-			// all light start out enabled
+			// all lights start out enabled
 			this.enabledBase_[instance] = 1;
 
 			// non-shader shadow data (all optional)
@@ -186,8 +186,8 @@ namespace sd.world {
 				[cx + range, cy + range, cz + range, 1.0]
 			];
 
-			const min = [50000, 50000];
-			const max = [-50000, -50000];
+			const min = [100000, 100000];
+			const max = [-100000, -100000];
 			const sp = [0, 0, 0, 0];
 
 			for (let vix = 0; vix < 8; ++vix) {

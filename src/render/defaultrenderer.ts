@@ -57,7 +57,6 @@ namespace sd.render {
 				rp.setFaceCulling(render.FaceCulling.Back);
 
 				// this.scene.pbrModelMgr.draw(this.scene.pbrModelMgr.all(), rp, camera, spotShadow, world.PBRLightingQuality.CookTorrance, this.assets_.tex.reflectCubeSpace);
-
 				// this.skyBox_.draw(rp, camera);
 			});
 		}
