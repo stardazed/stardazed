@@ -159,6 +159,7 @@ namespace sd.world {
 			return new InstanceLinearRange<LightManager>(1, this.count);
 		}
 
+
 		// -- light data calc
 
 		private projectPointLight(outBounds: math.Rect, center: Float3, range: number, projectionViewportMatrix: Float4x4) {
@@ -186,7 +187,7 @@ namespace sd.world {
 				[cx + range, cy + range, cz + range, 1.0]
 			];
 
-			const min = [100000, 100000];
+			const min = [ 100000,  100000];
 			const max = [-100000, -100000];
 			const sp = [0, 0, 0, 0];
 
@@ -204,6 +205,7 @@ namespace sd.world {
 			outBounds.right = max[0];
 			outBounds.bottom = min[1];
 		}
+
 
 		private updateLightGrid(range: LightRange, projection: ProjectionSetup, viewport: render.Viewport) {
 			const vpHeight = this.rc.gl.drawingBufferHeight;
@@ -351,6 +353,7 @@ namespace sd.world {
 			this.lutTexture_.unbind();
 		}
 
+
 		get lutTexture() {
 			return this.lutTexture_;
 		}
@@ -484,6 +487,7 @@ namespace sd.world {
 
 
 		// -- internal properties
+
 		type(inst: LightInstance): asset.LightType {
 			const offset = ((inst as number) * 20) + 3;
 			return this.globalLightData_[offset];
@@ -532,7 +536,7 @@ namespace sd.world {
 		}
 
 		setCutoff(inst: LightInstance, newCutoff: number) {
-			const offset = ((inst as number) * 20) + 11;
+			const offset = ((inst as number) * 20) + 15;
 			this.globalLightData_[offset] = Math.cos(newCutoff);
 		}
 
@@ -574,7 +578,7 @@ namespace sd.world {
 		}
 
 		setShadowBias(inst: LightInstance, newBias: number) {
-			const offset = ((inst as number) * 20) + 16;
+			const offset = ((inst as number) * 20) + 17;
 			this.globalLightData_[offset] = newBias;
 		}
 	}
