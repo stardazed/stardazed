@@ -22,7 +22,7 @@ namespace sd.world {
 	// This setup allows for a renderbuffer > 5K (5120x2880)
 	// a global list of up to 32768 active lights and
 	// an average of ~300 active lights per tile at 1920x1080
-	// I will add smaller LUT texture options later (320x256, 160x128) 
+	// I will add smaller LUT texture options later (320x256, 160x128)
 	const LUT_WIDTH = 640;
 	const LUT_LIGHTDATA_ROWS = 256;
 	const LUT_INDEXLIST_ROWS = 240;
