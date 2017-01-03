@@ -50,7 +50,7 @@ namespace sd.world {
 		current: Instance<Component>;
 
 		constructor(first: Instance<Component>, private last_: Instance<Component>) {
-			this.current = first;
+			this.current = first as number - 1;
 		}
 
 		next() {
