@@ -159,6 +159,19 @@ namespace sd.world {
 			return new InstanceLinearRange<LightManager>(1, this.count);
 		}
 
+		// [AL] temporary
+		allEnabled(): LightRange {
+			const on: LightInstance[] = [];
+			const all = this.all().makeIterator();
+			while (all.next()) {
+				const l = all.current;
+				if (this.enabledBase_[l as number]) {
+					on.push(all.current);
+				}
+			}
+			return new InstanceArrayRange(on);
+		}
+
 
 		// -- light data calc
 
