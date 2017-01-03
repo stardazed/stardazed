@@ -1,6 +1,6 @@
 // world/pbrmodel - PBR model component and Pipeline
 // Part of Stardazed TX
-// (c) 2016 by Arthur Langereis - @zenmumbler
+// (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
 // Implementation based off:

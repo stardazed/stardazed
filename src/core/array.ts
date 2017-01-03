@@ -1,6 +1,6 @@
 // core/array - types and helpers for array-likes
 // Part of Stardazed TX
-// (c) 2015-2016 by Arthur Langereis - @zenmumbler
+// (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
 // global type augmentations

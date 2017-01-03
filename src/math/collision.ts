@@ -1,6 +1,6 @@
 // math/collision - intersection tests of primitives
 // Part of Stardazed TX
-// (c) 2015-2016 by Arthur Langereis - @zenmumbler
+// (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
 // portions based on text and sources from Real-Time Collision Detection by Christer Ericson
