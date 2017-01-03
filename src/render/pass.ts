@@ -148,7 +148,7 @@ namespace sd.render {
 					mediump vec2 v_rgbSE;
 					mediump vec2 v_rgbM;
 
-					vec2 fragCoord = vec2(gl_FragCoord.x, viewportSize.y - gl_FragCoord.y);
+					vec2 fragCoord = gl_FragCoord.xy;
 					vec2 uv = vec2(fragCoord / viewportSize);
 
 					texcoords(fragCoord, viewportSize, v_rgbNW, v_rgbNE, v_rgbSW, v_rgbSE, v_rgbM);
@@ -175,7 +175,7 @@ namespace sd.render {
 				rp.setTexture(source, 0);
 				rp.setMesh(this.quad_);
 
-				rc.gl.uniform2f(this.viewportUniform_, rc.gl.drawingBufferWidth, rc.gl.drawingBufferWidth);
+				rc.gl.uniform2f(this.viewportUniform_, rc.gl.drawingBufferWidth, rc.gl.drawingBufferHeight);
 
 				const primGroup0 = meshMgr.primitiveGroups(this.quad_)[0];
 				rp.drawIndexedPrimitives(primGroup0.type, meshMgr.indexBufferElementType(this.quad_), 0, primGroup0.elementCount);
