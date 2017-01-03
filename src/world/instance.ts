@@ -101,7 +101,7 @@ namespace sd.world {
 	class InstanceArrayIterator<Component> implements InstanceIterator<Component> {
 		private index_ = -1;
 
-		constructor(private readonly array_: Instance<Component>[]) {}
+		constructor(private readonly array_: ReadonlyArray<Instance<Component>>) {}
 
 		get current() {
 			return this.array_[this.index_];
@@ -115,25 +115,25 @@ namespace sd.world {
 
 
 	export class InstanceArrayRange<Component> implements InstanceRange<Component> {
-		private readonly data_: Instance<Component>[];
+		private readonly data_: container.SortedArray<Instance<Component>>;
 
 		constructor(array: Instance<Component>[]) {
-			this.data_ = array;
+			this.data_ = new container.SortedArray<Instance<Component>>(array);
 		}
 
 		get empty() {
 			return this.data_.length === 0;
 		}
 
-		get front() { return this.data_[0]; }
-		get back() { return this.data_[this.data_.length - 1]; }
+		get front() { return this.data_.array[0]; }
+		get back() { return this.data_.array[this.data_.length - 1]; }
 
 		has(inst: Instance<Component>) {
-			return this.data_.indexOf(inst) > -1;
+			return this.data_.array.indexOf(inst) > -1;
 		}
 
 		makeIterator(): InstanceIterator<Component> {
-			return new InstanceArrayIterator(this.data_);
+			return new InstanceArrayIterator(this.data_.array);
 		}
 
 		forEach(fn: (inst: Instance<Component>) => void, thisObj?: any): void {
@@ -141,7 +141,7 @@ namespace sd.world {
 			const end = this.data_.length;
 
 			while (index < end) {
-				fn.call(thisObj, this.data_[index]);
+				fn.call(thisObj, this.data_.array[index]);
 				++index;
 			}
 		}
