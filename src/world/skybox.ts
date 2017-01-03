@@ -71,6 +71,12 @@ namespace sd.world {
 			this.txInstance_ = this.transformMgr_.create(entity);
 		}
 
+		get entity() {
+			return this.entity_;
+		}
+		get transform() {
+			return this.txInstance_;
+		}
 
 		setCenter(xyz: Float3) {
 			this.transformMgr_.setPosition(this.txInstance_, xyz);
