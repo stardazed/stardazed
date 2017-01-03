@@ -1,6 +1,6 @@
 // asset/loader/obj - Wavefront OBJ mesh file + MTL material file import
 // Part of Stardazed TX
-// (c) 2015-2016 by Arthur Langereis - @zenmumbler
+// (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
 /// <reference path="../registry.ts" />

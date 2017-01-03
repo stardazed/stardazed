@@ -1,6 +1,6 @@
 // input/keyboard - keyboard input handling
 // Part of Stardazed TX
-// (c) 2015-2016 by Arthur Langereis - @zenmumbler
+// (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
 /// <reference path="../tools/dom.ts" />

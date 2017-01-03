@@ -1,6 +1,6 @@
 // asset/loader/fbx-text - FBX text file tokenizer and parser
 // Part of Stardazed TX
-// (c) 2016 by Arthur Langereis - @zenmumbler
+// (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
 namespace sd.asset.fbx.parse {

@@ -1,6 +1,6 @@
 // asset/loader/image - built-in and custom image loaders
 // Part of Stardazed TX
-// (c) 2016 by Arthur Langereis - @zenmumbler
+// (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
 /// <reference path="../registry.ts" />
