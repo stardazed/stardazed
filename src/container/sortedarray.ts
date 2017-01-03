@@ -7,7 +7,7 @@ namespace sd.container {
 
 	export function lowerBound<T>(array: ArrayLike<T>, value: T) {
 		let count = array.length;
-		let it = -1;
+		let it: number;
 		let first = 0;
 
 		while (count > 0) {
@@ -27,7 +27,7 @@ namespace sd.container {
 
 	export function upperBound<T>(array: ArrayLike<T>, value: T) {
 		let count = array.length;
-		let it = -1;
+		let it: number;
 		let first = 0;
 
 		while (count > 0) {
@@ -71,7 +71,7 @@ namespace sd.container {
 
 		insert(value: T) {
 			let successor = lowerBound(this.data_, value);
-			this.data_.splice(successor, 0, value); // successor can be -1 for the empty array but that will work normally
+			this.data_.splice(successor, 0, value);
 		}
 
 		insertMultiple(values: T[]) {
