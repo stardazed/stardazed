@@ -671,6 +671,11 @@ namespace sd.world {
 			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, 4.0).xyz;");
 			line("	vec3 envspec = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 5.0).xyz;");
 
+			if (! this.rc.extSRGB) {
+				line("	envdiff = pow(envdiff, vec3(2.2));");
+				line("	envspec = pow(envspec, vec3(2.2));");
+			}
+
 			// terms
 			line("	vec3 iblspec = min(vec3(0.99), fresnel_factor(specularColour, si.NdV) * brdf.x + brdf.y);");
 			line("	vec3 reflected_light = iblspec * envspec;");
