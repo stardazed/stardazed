@@ -29,14 +29,20 @@ namespace sd.world {
 			"}"
 		].join("\n");
 
-		private fragmentSource = [
-			"precision mediump float;",
-			"varying vec3 vertexUV_intp;",
-			"uniform samplerCube skyboxMap;",
-			"void main() {",
-			"	gl_FragColor = pow(textureCube(skyboxMap, vertexUV_intp), vec4(1.0 / 2.2));",
-			"}"
-		].join("\n");
+		private fragmentSource(rc: render.RenderContext) {
+			return `
+				precision mediump float;
+				varying vec3 vertexUV_intp;
+				uniform samplerCube skyboxMap;
+				void main() {
+			` + (rc.extSRGB ? `
+					gl_FragColor = pow(textureCube(skyboxMap, vertexUV_intp), vec4(1.0 / 2.2));
+			` : `
+					gl_FragColor = textureCube(skyboxMap, vertexUV_intp);
+			`) + `
+				}
+			`;
+		}
 
 
 		constructor(private rc: render.RenderContext, private transformMgr_: TransformManager, meshMgr: MeshManager, private texture_: render.Texture) {
@@ -45,7 +51,7 @@ namespace sd.world {
 			pld.colourPixelFormats[0] = render.PixelFormat.RGBA8;
 			// pld.depthPixelFormat = render.PixelFormat.Depth24_Stencil8; // uhh..
 			pld.vertexShader = render.makeShader(rc, rc.gl.VERTEX_SHADER, this.vertexSource);
-			pld.fragmentShader = render.makeShader(rc, rc.gl.FRAGMENT_SHADER, this.fragmentSource);
+			pld.fragmentShader = render.makeShader(rc, rc.gl.FRAGMENT_SHADER, this.fragmentSource(rc));
 			pld.attributeNames.set(meshdata.VertexAttributeRole.Position, "vertexPos_model");
 
 			this.pipeline_ = new render.Pipeline(rc, pld);
