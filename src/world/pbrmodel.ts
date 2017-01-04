@@ -806,6 +806,9 @@ namespace sd.world {
 
 			if (feat & Features.AlbedoMap) {
 				line("	vec3 baseColour = texture2D(albedoMap, si.UV).rgb * baseColour.rgb;");
+				if (! this.rc.extSRGB) {
+					line("	baseColour = pow(baseColour, vec3(2.2));");
+				}
 			}
 			else {
 				line("	vec3 baseColour = baseColour.rgb;");
@@ -872,7 +875,6 @@ namespace sd.world {
 
 			// -- final lightColour result
 			line  ("	gl_FragColor = vec4(pow(totalLight, vec3(1.0 / 2.2)), 1.0);");
-			// line  ("	gl_FragColor = vec4(totalLight, 1.0);");
 			line  ("}");
 
 			return source.join("\n") + "\n";
