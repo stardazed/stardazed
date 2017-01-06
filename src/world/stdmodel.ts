@@ -124,7 +124,6 @@ namespace sd.world {
 			const fragmentSource = this.fragmentShaderSource(feat);
 
 			const pld = render.makePipelineDescriptor();
-			pld.colourPixelFormats[0] = render.PixelFormat.RGBA8;
 			pld.vertexShader = render.makeShader(this.rc, gl.VERTEX_SHADER, vertexSource);
 			pld.fragmentShader = render.makeShader(this.rc, gl.FRAGMENT_SHADER, fragmentSource);
 
@@ -247,11 +246,9 @@ namespace sd.world {
 		shadowPipeline() {
 			if (this.shadowPipeline_ == null) {
 				const pld = render.makePipelineDescriptor();
-				pld.depthPixelFormat = render.PixelFormat.Depth24I;
 				pld.vertexShader = render.makeShader(this.rc, this.rc.gl.VERTEX_SHADER, this.shadowVertexSource);
 				pld.fragmentShader = render.makeShader(this.rc, this.rc.gl.FRAGMENT_SHADER, this.shadowFragmentSource);
 				pld.attributeNames.set(meshdata.VertexAttributeRole.Position, "vertexPos_model");
-				// pld.writeMask.red = pld.writeMask.green = pld.writeMask.blue = pld.writeMask.alpha = false;
 
 				this.shadowPipeline_ = new render.Pipeline(this.rc, pld);
 

@@ -47,9 +47,6 @@ namespace sd.render {
 
 
 	export class Pipeline {
-		private colourPixelFormats_: PixelFormat[];
-		private depthPixelFormat_: PixelFormat;
-		private stencilPixelFormat_: PixelFormat;
 		private writeMask_: ColourWriteMask | null;
 		private depthMask_: boolean;
 		private blending_: ColourBlendingDescriptor;
@@ -57,9 +54,6 @@ namespace sd.render {
 		private attrRoleIndexMap_: Map<meshdata.VertexAttributeRole, number>;
 
 		constructor(private rc: RenderContext, desc: PipelineDescriptor) {
-			this.colourPixelFormats_ = desc.colourPixelFormats.slice(0);
-			this.depthPixelFormat_ = desc.depthPixelFormat;
-			this.stencilPixelFormat_ = desc.stencilPixelFormat;
 			this.writeMask_ = cloneStruct(desc.writeMask);
 			this.depthMask_ = desc.depthMask;
 			this.blending_ = cloneStruct(desc.blending);
@@ -67,17 +61,6 @@ namespace sd.render {
 			// -- check if the colour mask does anything and, if not, disable it
 			if (this.writeMask_.red && this.writeMask_.green && this.writeMask_.blue && this.writeMask_.alpha) {
 				this.writeMask_ = null;
-			}
-
-			// -- can the GL support the required # of colour attachments?
-			let highestEnabledAttachment = -1;
-			this.colourPixelFormats_.slice(1).forEach((pf, ix) => {
-				if (pf != PixelFormat.None) {
-					highestEnabledAttachment = ix;
-				}
-			});
-			if (highestEnabledAttachment >= maxColourAttachments(rc)) {
-				assert(false, `This GL only supports up to ${maxColourAttachments(rc)} attachment(s)`);
 			}
 
 			// -- create program and find attribute locations
@@ -142,11 +125,6 @@ namespace sd.render {
 			}
 		}
 
-
-		// -- observers
-		get colourPixelFormats() { return this.colourPixelFormats_.slice(0); }
-		get depthPixelFormat() { return this.depthPixelFormat_; }
-		get stencilPixelFormat() { return this.stencilPixelFormat_; }
 
 		// FIXME: this is bad
 		get blendConstantAlpha() { return this.blending_.constantColour[3]; }

@@ -60,14 +60,9 @@ namespace sd.render {
 
 
 	export interface PipelineDescriptor {
-		colourPixelFormats: PixelFormat[];
-
 		writeMask: ColourWriteMask;
 		depthMask: boolean;
 		blending: ColourBlendingDescriptor;
-
-		depthPixelFormat: PixelFormat;
-		stencilPixelFormat: PixelFormat;
 
 		vertexShader?: WebGLShader;
 		fragmentShader?: WebGLShader;
@@ -104,17 +99,7 @@ namespace sd.render {
 
 
 	export function makePipelineDescriptor(): PipelineDescriptor {
-		const cpf: PixelFormat[] = [];
-		for (let k = 0; k < 8; ++k) {
-			cpf.push(PixelFormat.None);
-		}
-		Object.seal(cpf); // fixed length array FIXME: necessary?
-
 		return {
-			colourPixelFormats: cpf,
-			depthPixelFormat: PixelFormat.None,
-			stencilPixelFormat: PixelFormat.None,
-
 			writeMask: makeColourWriteMask(),
 			depthMask: true,
 			blending: makeColourBlendingDescriptor(),

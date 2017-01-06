@@ -110,7 +110,6 @@ namespace sd.render {
 
 			// -- pipeline
 			const pld = makePipelineDescriptor();
-			pld.colourPixelFormats[0] = PixelFormat.RGBA8;
 			pld.vertexShader = makeShader(rc, rc.gl.VERTEX_SHADER, vertexSource);
 			pld.fragmentShader = makeShader(rc, rc.gl.FRAGMENT_SHADER, fragmentSource(rc, numSamples));
 			pld.attributeNames.set(meshdata.VertexAttributeRole.Position, "vertexPos_model");

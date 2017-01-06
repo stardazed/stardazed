@@ -18,7 +18,6 @@ namespace sd.render {
 
 			// -- pipeline
 			const pld = makePipelineDescriptor();
-			pld.colourPixelFormats[0] = PixelFormat.RGBA8;
 
 			pld.vertexShader = makeShader(rc, rc.gl.VERTEX_SHADER, `
 				attribute vec2 vertexPos_device;
@@ -198,7 +197,6 @@ namespace sd.render {
 
 			// -- pipeline
 			const pld = makePipelineDescriptor();
-			pld.colourPixelFormats[0] = pixelFormatForFBOPixelComponent(pixelComponent);
 
 			pld.vertexShader = makeShader(rc, rc.gl.VERTEX_SHADER, `
 				attribute vec2 vertexPos_device;
