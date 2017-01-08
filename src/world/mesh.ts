@@ -63,6 +63,24 @@ namespace sd.world {
 		}
 	}
 
+
+	// export const enum BufferUpdateFrequency {
+	// 	Never,
+	// 	Occasionally,
+	// 	Frequently
+	// }
+
+
+	// function glUsageForBufferUpdateFrequency(rc: render.RenderContext, freq: BufferUpdateFrequency) {
+	// 	if (freq === BufferUpdateFrequency.Never) {
+	// 		return rc.gl.STATIC_DRAW;
+	// 	}
+	// 	else if (freq == BufferUpdateFrequency.Occasionally) {
+	// 		return rc.gl.DYNAMIC_DRAW;
+	// 	}
+	// 	return rc.gl.STREAM_DRAW;
+	// }
+
 	/*
 
 	TODO: check meshes against max attr count
@@ -97,56 +115,6 @@ namespace sd.world {
 		vertexField: meshdata.VertexField;
 		offset: number;
 		stride: number;
-	}
-
-
-	//  __  __        _    ___                 _      _           
-	// |  \/  |___ __| |_ |   \ ___ ___ __ _ _(_)_ __| |_ ___ _ _ 
-	// | |\/| / -_|_-< ' \| |) / -_|_-</ _| '_| | '_ \  _/ _ \ '_|
-	// |_|  |_\___/__/_||_|___/\___/__/\__|_| |_| .__/\__\___/_|  
-	//                                          |_|               
-
-	export const enum BufferUpdateFrequency {
-		Never,
-		Occasionally,
-		Frequently
-	}
-
-
-	export interface VertexBufferBinding {
-		vertexBuffer: meshdata.VertexBuffer;
-		updateFrequency: BufferUpdateFrequency;
-		// TODO: add instancing divisor counts for each attrib
-	}
-
-
-	export interface IndexBufferBinding {
-		indexBuffer: meshdata.IndexBuffer | null;
-		updateFrequency: BufferUpdateFrequency;
-	}
-
-
-	export interface MeshDescriptor {
-		vertexBindings: VertexBufferBinding[];
-		indexBinding: IndexBufferBinding;
-		primitiveGroups: meshdata.PrimitiveGroup[];
-	}
-
-
-	export function makeMeshDescriptor(data: meshdata.MeshData): MeshDescriptor {
-		return {
-			vertexBindings: data.vertexBuffers.map(vb => ({
-				vertexBuffer: vb,
-				updateFrequency: BufferUpdateFrequency.Never
-			})),
-
-			indexBinding: {
-				indexBuffer: data.indexBuffer,
-				updateFrequency: BufferUpdateFrequency.Never
-			},
-
-			primitiveGroups: data.primitiveGroups.map(pg => cloneStruct(pg))
-		};
 	}
 
 
