@@ -5,35 +5,6 @@
 
 namespace sd.render {
 
-	function glRenderBufferInternalFormatForPixelFormat(rc: RenderContext, format: PixelFormat) {
-		const gl = rc.gl;
-
-		switch (format) {
-			// sRGB
-			case PixelFormat.SRGB8_Alpha8:
-				return rc.extSRGB ? rc.extSRGB.SRGB8_ALPHA8_EXT : gl.NONE;
-
-			// Packed
-			case PixelFormat.RGB_5_6_5:
-				return gl.RGB565;
-			case PixelFormat.RGBA_4_4_4_4:
-				return gl.RGBA4;
-			case PixelFormat.RGBA_5_5_5_1:
-				return gl.RGB5_A1;
-
-			// Depth / Stencil
-			case PixelFormat.Depth16I:
-				return gl.DEPTH_COMPONENT16;
-			case PixelFormat.Stencil8:
-				return gl.STENCIL_INDEX8;
-
-			default:
-				// unsupported RenderBuffer pixel format
-				return gl.NONE;
-		}
-	}
-
-
 	function glTextureRepeatMode(rc: RenderContext, repeat: TextureRepeatMode) {
 		switch (repeat) {
 			case TextureRepeatMode.Repeat: return rc.gl.REPEAT;
@@ -127,30 +98,8 @@ namespace sd.render {
 		private mipmaps_: number;
 		private pixelFormat_: PixelFormat;
 		private sampler_: SamplerDescriptor;
-		private resource_: WebGLTexture | WebGLRenderbuffer;
+		private resource_: WebGLTexture;
 		private glTarget_: number;
-
-
-		private createRenderBuffer() {
-			const gl = this.rc.gl;
-
-			assert(this.mipmaps == 1, "Cannot create RenderBuffers with multiple levels");
-
-			// RenderBuffers in WebGL are restricted to 16-bit colour, 16-bit depth or 8-bit stencil formats
-			const sizedFormat = glRenderBufferInternalFormatForPixelFormat(this.rc, this.pixelFormat_);
-			if (sizedFormat == gl.NONE) {
-				// fallback to normal texture if not compatible
-				console.warn("Incompatible PixelFormat for RenderBuffer: falling back to Tex2D");
-				this.createTex2D();
-			}
-			else {
-				this.glTarget_ = gl.RENDERBUFFER;
-				const rb = gl.createRenderbuffer()!; // TODO: handle resource allocation failure
-				gl.bindRenderbuffer(this.glTarget_, rb);
-				gl.renderbufferStorage(this.glTarget_, sizedFormat, this.width, this.height);
-				gl.bindRenderbuffer(this.glTarget_, null);
-			}
-		}
 
 
 		private createTex2D(pixelData?: TextureImageData[]) {
@@ -292,67 +241,48 @@ namespace sd.render {
 
 			// -- create resource
 			if (desc.textureClass == TextureClass.Tex2D) {
-				if (desc.usageHint == TextureUsageHint.RenderTargetOnly) {
-					assert(desc.pixelData == null, "RenderBuffers cannot be initialized with pixeldata");
-					this.createRenderBuffer();
-				}
-				else {
-					this.createTex2D(desc.pixelData);
-				}
+				this.createTex2D(desc.pixelData);
 			}
 			else {
 				this.createTexCube(desc.pixelData);
 			}
 
 			// -- apply sampling parameters
-			if (this.glTarget_ != gl.RENDERBUFFER) {
-				rc.gl.bindTexture(this.glTarget_, <WebGLTexture>this.resource_);
+			gl.bindTexture(this.glTarget_, this.resource_);
 
-				// -- wrapping
-				gl.texParameteri(this.glTarget_, gl.TEXTURE_WRAP_S, glTextureRepeatMode(rc, this.sampler_.repeatS));
-				gl.texParameteri(this.glTarget_, gl.TEXTURE_WRAP_T, glTextureRepeatMode(rc, this.sampler_.repeatS));
+			// -- wrapping
+			gl.texParameteri(this.glTarget_, gl.TEXTURE_WRAP_S, glTextureRepeatMode(rc, this.sampler_.repeatS));
+			gl.texParameteri(this.glTarget_, gl.TEXTURE_WRAP_T, glTextureRepeatMode(rc, this.sampler_.repeatS));
 
-				// -- mini-/magnification
-				if (this.mipmaps_ == 1) {
-					this.sampler_.mipFilter = TextureMipFilter.None;
-				}
-				gl.texParameteri(this.glTarget_, rc.gl.TEXTURE_MIN_FILTER, glTextureMinificationFilter(rc, this.sampler_.minFilter, this.sampler_.mipFilter));
-				gl.texParameteri(this.glTarget_, rc.gl.TEXTURE_MAG_FILTER, glTextureMagnificationFilter(rc, this.sampler_.magFilter));
-
-				// -- anisotropy
-				if (rc.extTexAnisotropy) {
-					const anisotropy = math.clamp(this.sampler_.maxAnisotropy, 1, maxAllowedAnisotropy(rc));
-					gl.texParameterf(this.glTarget_, rc.extTexAnisotropy.TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
-				}
-
-				rc.gl.bindTexture(this.glTarget_, null);
+			// -- mini-/magnification
+			if (this.mipmaps_ == 1) {
+				this.sampler_.mipFilter = TextureMipFilter.None;
 			}
+			gl.texParameteri(this.glTarget_, gl.TEXTURE_MIN_FILTER, glTextureMinificationFilter(rc, this.sampler_.minFilter, this.sampler_.mipFilter));
+			gl.texParameteri(this.glTarget_, gl.TEXTURE_MAG_FILTER, glTextureMagnificationFilter(rc, this.sampler_.magFilter));
+
+			// -- anisotropy
+			if (rc.extTexAnisotropy) {
+				const anisotropy = math.clamp(this.sampler_.maxAnisotropy, 1, maxAllowedAnisotropy(rc));
+				gl.texParameterf(this.glTarget_, rc.extTexAnisotropy.TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+			}
+
+			rc.gl.bindTexture(this.glTarget_, null);
 		}
 
 
 		// -- binding
 		bind() {
-			if (this.glTarget_ == this.rc.gl.RENDERBUFFER) {
-				this.rc.gl.bindRenderbuffer(this.rc.gl.RENDERBUFFER, <WebGLRenderbuffer>this.resource_);
-			}
-			else {
-				this.rc.gl.bindTexture(this.glTarget_, <WebGLTexture>this.resource_);
-			}
+			this.rc.gl.bindTexture(this.glTarget_, this.resource_);
 		}
 
-
 		unbind() {
-			if (this.glTarget_ == this.rc.gl.RENDERBUFFER) {
-				this.rc.gl.bindRenderbuffer(this.rc.gl.RENDERBUFFER, null);
-			}
-			else {
-				this.rc.gl.bindTexture(this.glTarget_, null);
-			}
+			this.rc.gl.bindTexture(this.glTarget_, null);
 		}
 
 
 		// -- observers
-		get dim() { return cloneStruct(this.dim_); }
+		get dim() { return { ...this.dim_ }; }
 		get width() { return this.dim_.width; }
 		get height() { return this.dim_.height; }
 
@@ -360,14 +290,7 @@ namespace sd.render {
 		get isMipMapped() { return this.mipmaps_ > 1; }
 
 		get pixelFormat() { return this.pixelFormat_; }
-
 		get textureClass() { return this.textureClass_; };
-		get clientWritable() {
-			return this.glTarget_ != this.rc.gl.RENDERBUFFER; // later also != TEXTURE_2D_MULTISAMPLE
-		}
-		get renderTargetOnly() {
-			return this.glTarget_ == this.rc.gl.RENDERBUFFER;
-		}
 
 		// -- gl-specific observers
 		get resource() { return this.resource_; }

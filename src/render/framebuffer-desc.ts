@@ -31,16 +31,12 @@ namespace sd.render {
 		height: number;
 
 		colourPixelFormats: PixelFormat[];
-		colourUsageHints: TextureUsageHint[];
 
 		// The implementation may create a combined depth/stencil texture if it
 		// fits the profile of the provided texture formats, or you can make it
 		// explicit by setting both to the same DepthStencil PixelFormat.
 		depthPixelFormat: PixelFormat;
 		stencilPixelFormat: PixelFormat;
-
-		depthUsageHint: TextureUsageHint;
-		stencilUsageHint: TextureUsageHint;
 	}
 
 
@@ -70,29 +66,20 @@ namespace sd.render {
 
 	export function makeFrameBufferAllocationDescriptor(numColourAttachments: number): FrameBufferAllocationDescriptor {
 		const apf: PixelFormat[] = [];
-		const auh: TextureUsageHint[] = [];
 		for (let k = 0; k < 8; ++k) {
 			// set default pixelformat for requested colour attachments to RGBA8
 			apf.push((k < numColourAttachments) ? PixelFormat.RGBA8 : PixelFormat.None);
-			auh.push(TextureUsageHint.Normal);
 		}
 		Object.seal(apf); // fixed length arrays
-		Object.seal(auh);
 
 		return {
 			width: 0,
 			height: 0,
 
 			colourPixelFormats: apf,
-			colourUsageHints: auh,
 
 			depthPixelFormat: PixelFormat.None,
-			stencilPixelFormat: PixelFormat.None,
-
-			// As depth and stencil buffers are almost exclusively used in
-			// FBO environments, their default hint is set accordingly.
-			depthUsageHint: TextureUsageHint.RenderTargetOnly,
-			stencilUsageHint: TextureUsageHint.RenderTargetOnly
+			stencilPixelFormat: PixelFormat.None
 		};
 	}
 

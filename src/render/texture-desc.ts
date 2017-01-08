@@ -13,12 +13,6 @@ namespace sd.render {
 	}
 
 
-	export const enum TextureUsageHint {
-		Normal,
-		RenderTargetOnly
-	}
-
-
 	export const enum UseMipMaps {
 		No = 0,
 		Yes = 1
@@ -81,7 +75,6 @@ namespace sd.render {
 	export interface TextureDescriptor {
 		textureClass: TextureClass;
 		pixelFormat: PixelFormat;
-		usageHint: TextureUsageHint;
 		sampling: SamplerDescriptor;
 		dim: PixelDimensions;
 		mipmaps: number;
@@ -124,7 +117,6 @@ namespace sd.render {
 		return {
 			textureClass: TextureClass.Tex2D,
 			pixelFormat: PixelFormat.None,
-			usageHint: TextureUsageHint.Normal,
 			sampling: makeSamplerDescriptor(),
 			dim: makePixelDimensions(0, 0),
 			mipmaps: 1
@@ -138,7 +130,6 @@ namespace sd.render {
 		return {
 			textureClass: TextureClass.Tex2D,
 			pixelFormat: pixelFormat,
-			usageHint: TextureUsageHint.Normal,
 			sampling: makeSamplerDescriptor(),
 			dim: makePixelDimensions(width, height),
 			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(maxDim) : 1
@@ -152,7 +143,6 @@ namespace sd.render {
 		return {
 			textureClass: TextureClass.Tex2D,
 			pixelFormat: colourSpace === asset.ColourSpace.sRGB ? PixelFormat.SRGB8_Alpha8 : PixelFormat.RGBA8,
-			usageHint: TextureUsageHint.Normal,
 			sampling: makeSamplerDescriptor(),
 			dim: makePixelDimensions(source.width, source.height),
 			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(maxDim) : 1,
@@ -165,7 +155,6 @@ namespace sd.render {
 		return {
 			textureClass: render.TextureClass.Tex2D,
 			pixelFormat: render.PixelFormat.RGBA32F,
-			usageHint: render.TextureUsageHint.Normal,
 			sampling: {
 				repeatS: render.TextureRepeatMode.ClampToEdge,
 				repeatT: render.TextureRepeatMode.ClampToEdge,
@@ -190,7 +179,6 @@ namespace sd.render {
 		return {
 			textureClass: TextureClass.TexCube,
 			pixelFormat: pixelFormat,
-			usageHint: TextureUsageHint.Normal,
 			sampling: sampler,
 			dim: makePixelDimensions(dimension, dimension),
 			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(dimension) : 1
@@ -207,7 +195,6 @@ namespace sd.render {
 		return {
 			textureClass: TextureClass.TexCube,
 			pixelFormat: colourSpace === asset.ColourSpace.sRGB ? PixelFormat.SRGB8_Alpha8 : PixelFormat.RGBA8,
-			usageHint: TextureUsageHint.Normal,
 			sampling: sampler,
 			dim: makePixelDimensions(sources[0].width, sources[0].height),
 			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(sources[0].width) : 1,

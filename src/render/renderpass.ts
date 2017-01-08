@@ -253,7 +253,6 @@ namespace sd.render {
 
 			gl.activeTexture(gl.TEXTURE0 + bindPoint);
 			if (texture) {
-				assert(! texture.renderTargetOnly);
 				texture.bind();
 			}
 			else {

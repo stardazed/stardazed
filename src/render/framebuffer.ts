@@ -6,11 +6,11 @@
 namespace sd.render {
 
 	const fboBugs = {
-		mustHaveAColourAtt: <(boolean | null)>null
+		mustHaveAColourAtt: <(boolean | undefined)>undefined
 	};
 
 	function fboMustHaveAColourAttachment(rc: RenderContext) {
-		if (fboBugs.mustHaveAColourAtt === null) {
+		if (fboBugs.mustHaveAColourAtt === undefined) {
 			const gl = rc.gl;
 			const fboBinding = gl.getParameter(gl.FRAMEBUFFER_BINDING);
 
@@ -35,7 +35,7 @@ namespace sd.render {
 			fboBugs.mustHaveAColourAtt = (fbStatus != gl.FRAMEBUFFER_COMPLETE);
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, fboBinding);
-			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 
 			gl.deleteFramebuffer(fbo);
 			gl.deleteRenderbuffer(depthBuf);
@@ -67,7 +67,6 @@ namespace sd.render {
 				texDesc.sampling.repeatS = texDesc.sampling.repeatT = TextureRepeatMode.ClampToEdge;
 				texDesc.sampling.mipFilter = TextureMipFilter.None;
 				texDesc.pixelFormat = desc.colourPixelFormats[colourAttIndex];
-				texDesc.usageHint = desc.colourUsageHints[colourAttIndex];
 
 				const attachment = fbDesc.colourAttachments[colourAttIndex];
 				attachment.texture = new Texture(rc, texDesc);
@@ -88,20 +87,16 @@ namespace sd.render {
 		if (pixelFormatIsDepthStencilFormat(desc.depthPixelFormat)) {
 			// explicit combined format
 			assert(desc.depthPixelFormat == desc.stencilPixelFormat);
-			assert(desc.depthUsageHint == desc.stencilUsageHint);
 			combinedFormat = desc.depthPixelFormat;
 		}
 		else {
 			// if depth is not a DS format, then stencil cannot be a DS format either
 			assert(! pixelFormatIsDepthStencilFormat(desc.stencilPixelFormat));
 
-			// in order to be combined, the usage hints must be the same
-			if (desc.depthUsageHint == desc.stencilUsageHint) {
-				// check for available depth/stencil format combinations
-				if (desc.stencilPixelFormat == PixelFormat.Stencil8) {
-					if (desc.depthPixelFormat == PixelFormat.Depth24I) {
-						combinedFormat = PixelFormat.Depth24_Stencil8;
-					}
+			// check for available depth/stencil format combinations
+			if (desc.stencilPixelFormat == PixelFormat.Stencil8) {
+				if (desc.depthPixelFormat == PixelFormat.Depth24I) {
+					combinedFormat = PixelFormat.Depth24_Stencil8;
 				}
 			}
 		}
@@ -116,7 +111,6 @@ namespace sd.render {
 
 		if (combinedFormat != PixelFormat.None) {
 			dsTex.pixelFormat = combinedFormat;
-			dsTex.usageHint = desc.depthUsageHint;
 			const depthStencil = new Texture(rc, dsTex);
 
 			fbDesc.depthAttachment.texture = depthStencil;
@@ -125,12 +119,10 @@ namespace sd.render {
 		else {
 			if (desc.depthPixelFormat != PixelFormat.None) {
 				dsTex.pixelFormat = desc.depthPixelFormat;
-				dsTex.usageHint = desc.depthUsageHint;
 				fbDesc.depthAttachment.texture = new Texture(rc, dsTex);
 			}
 			if (desc.stencilPixelFormat != PixelFormat.None) {
 				dsTex.pixelFormat = desc.stencilPixelFormat;
-				dsTex.usageHint = desc.stencilUsageHint;
 				fbDesc.stencilAttachment.texture = new Texture(rc, dsTex);
 			}
 		}
@@ -151,25 +143,17 @@ namespace sd.render {
 			const texture = attachment.texture!;
 			assert(texture, "Tried to attach a null texture");
 
-			if (texture.target == gl.RENDERBUFFER) {
-				assert(attachment.level == 0, "renderbuffers do not have mipmaps");
-				assert(attachment.layer == 0, "renderbuffers do not have layers");
+			const tex = texture.resource;
+			assert(attachment.level == 0, "WebGL 1 does not allow mapping of texture level > 0");
+			assert(attachment.level < texture.mipmaps);
 
-				gl.framebufferRenderbuffer(gl.FRAMEBUFFER, glAttachment, gl.RENDERBUFFER, <WebGLRenderbuffer>texture.resource);
+			let glTarget = gl.TEXTURE_2D;
+			if (texture.textureClass == TextureClass.TexCube) {
+				assert(attachment.layer >= 0 && attachment.layer <= 5, "layer is not a valid CubeMapFace index");
+				glTarget = gl.TEXTURE_CUBE_MAP_POSITIVE_X + attachment.layer;
 			}
-			else {
-				const tex = <WebGLTexture>texture.resource;
-				assert(attachment.level == 0, "WebGL 1 does not allow mapping of texture level > 0");
-				assert(attachment.level < texture.mipmaps);
 
-				let glTarget = gl.TEXTURE_2D;
-				if (texture.textureClass == TextureClass.TexCube) {
-					assert(attachment.layer >= 0 && attachment.layer <= 5, "layer is not a valid CubeMapFace index");
-					glTarget = gl.TEXTURE_CUBE_MAP_POSITIVE_X + attachment.layer;
-				}
-
-				gl.framebufferTexture2D(gl.FRAMEBUFFER, glAttachment, glTarget, tex, attachment.level);
-			}
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, glAttachment, glTarget, tex, attachment.level);
 		}
 
 
