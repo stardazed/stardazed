@@ -1,45 +1,7 @@
-// Type definitions for WebGL Extensions
-// Project: http://webgl.org/
-// Definitions by: Arthur Langereis <https://github.com/zenmumbler/>
-// Definitions: https://github.com/stardazed/stardazed-tx/defs
-
-// These definitions go beyond those already defined in TS 2.0.3 stdlib
-// All non-draft WebGL 1.0 extensions and prefixed extension names are
-// covered.
-// Some missing parameters for getContext and attributes for
-// WebGLContextAttributes are added as well, copied over from
-// Shane S. Anderson's definitions file.
-
-// Add 'branding' to the WebGL types to ensure that accidental assignments aren't made.
-// For example, var program: WebGLProgram = gl.createShader(...);
-interface WebGLObject { readonly __WebGLObject: void; }
-interface WebGLBuffer { readonly __WebGLBuffer: void; }
-interface WebGLFramebuffer { readonly __WebGLFramebuffer: void; }
-interface WebGLProgram { readonly __WebGLProgram: void; }
-interface WebGLRenderbuffer { readonly __WebGLRenderbuffer: void; }
-interface WebGLShader { readonly __WebGLShader: void; }
-interface WebGLTexture { readonly __WebGLTexture: void; }
-interface WebGLUniformLocation { readonly __WebGLUniformLocation: void; }
-
-
-interface WebGLContextAttributes {
-	// the following attribute is missing from TypeScript 2.0.2's lib.d.ts
-	preferLowPowerToHighPerformance?: boolean;
-
-	// all others duplicated here for reference
-	/*
-	failIfMajorPerformanceCaveat?: boolean;
-	alpha?: boolean;
-    depth?: boolean;
-    stencil?: boolean;
-    antialias?: boolean;
-    premultipliedAlpha?: boolean;
-    preserveDrawingBuffer?: boolean;
-	*/
-
-	// For the meanings and default values of these attributes, see the full spec at:
-	// https://www.khronos.org/registry/webgl/specs/latest/1.0/index.html#5.2
-}
+// typings/webgl-ext - WebGL 1 extension definitions
+// Part of Stardazed TX
+// (c) 2015-2017 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed-tx
 
 interface WebGLRenderingContext {
 	getExtension(name: "ANGLE_instanced_arrays"): ANGLEInstancedArrays;
@@ -84,6 +46,18 @@ interface WebGLRenderingContext {
 	getExtension(name: "MOZ_WEBGL_lose_context"): WebGLLoseContext;
 }
 
+
+// WebGL 1 Type Branding
+interface WebGLObject { readonly __WebGLObject: void; }
+interface WebGLBuffer { readonly __WebGLBuffer: void; }
+interface WebGLFramebuffer { readonly __WebGLFramebuffer: void; }
+interface WebGLProgram { readonly __WebGLProgram: void; }
+interface WebGLRenderbuffer { readonly __WebGLRenderbuffer: void; }
+interface WebGLShader { readonly __WebGLShader: void; }
+interface WebGLTexture { readonly __WebGLTexture: void; }
+interface WebGLUniformLocation { readonly __WebGLUniformLocation: void; }
+
+// WebGL 1 Extensions
 interface ANGLEInstancedArrays {
 	readonly VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE: number;
 
