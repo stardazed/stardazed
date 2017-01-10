@@ -51,7 +51,6 @@ namespace sd.world {
 		mvMatrixUniform: WebGLUniformLocation | null;   // mat4
 		mvpMatrixUniform: WebGLUniformLocation;         // mat4
 		normalMatrixUniform: WebGLUniformLocation;      // mat3
-		lightNormalMatrixUniform: WebGLUniformLocation | null; // mat3
 
 		// -- mesh material
 		baseColourUniform: WebGLUniformLocation;         // vec4
@@ -165,7 +164,6 @@ namespace sd.world {
 			program.mvMatrixUniform = gl.getUniformLocation(program, "modelViewMatrix");
 			program.mvpMatrixUniform = gl.getUniformLocation(program, "modelViewProjectionMatrix")!;
 			program.normalMatrixUniform = gl.getUniformLocation(program, "normalMatrix")!;
-			program.lightNormalMatrixUniform = gl.getUniformLocation(program, "lightNormalMatrix");
 
 			// -- material properties (assert presence for now)
 			program.baseColourUniform = gl.getUniformLocation(program, "baseColour")!;
@@ -356,13 +354,11 @@ namespace sd.world {
 			line  ("varying vec4 vertexPos_world;");
 			line  ("varying vec3 vertexNormal_cam;");
 			line  ("varying vec3 vertexPos_cam;");
-			if_all("varying vec4 vertexPos_light;", Features.ShadowMap);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
 			// Uniforms
 			line  ("uniform mat3 normalMatrix;");
-			line  ("uniform mat3 lightNormalMatrix;");
 
 			// -- material
 			line  ("uniform vec4 baseColour;");
@@ -857,7 +853,6 @@ namespace sd.world {
 			line  ("		float shadowFactor = 1.0;");
 			if (feat & Features.ShadowMap) {
 				line("		if (int(lightIx) == shadowCastingLightIndex) {");
-
 				line("			float shadowStrength = lightData.shadowStrengthBias.x;");
 				line("			float shadowBias = lightData.shadowStrengthBias.y;");
 
@@ -867,8 +862,7 @@ namespace sd.world {
 				line("			vec2 lightUV = lightDeviceNormal * 0.5 + 0.5;");
 				line("			float lightTest = clamp(length(lightPos) / 12.0, 0.0, 1.0);");
 				line("			shadowFactor = VSM(lightUV, lightTest, shadowStrength, shadowBias);");
-
-				line("		}"); // lightIx == shadowCastingLightIndex
+				line("		}");
 			}
 
 			line  ("		totalLight += getLightContribution(lightData, baseColour, matParam, si) * shadowFactor;");
@@ -932,7 +926,6 @@ namespace sd.world {
 		private modelViewMatrix_ = mat4.create();
 		private modelViewProjectionMatrix_ = mat4.create();
 		private normalMatrix_ = mat3.create();
-		private lightNormalMatrix_ = mat3.create();
 		// private lightViewProjectionMatrix_ = mat4.create();
 
 
@@ -1273,11 +1266,6 @@ namespace sd.world {
 
 				if (program.mvMatrixUniform) {
 					gl.uniformMatrix4fv(program.mvMatrixUniform, false, this.modelViewMatrix_);
-				}
-
-				if (program.lightNormalMatrixUniform) {
-					mat3.normalFromMat4(this.lightNormalMatrix_, proj.viewMatrix);
-					gl.uniformMatrix3fv(program.lightNormalMatrixUniform, false, this.lightNormalMatrix_);
 				}
 
 				// -- set material uniforms

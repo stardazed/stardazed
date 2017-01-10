@@ -24,7 +24,6 @@ namespace sd.world {
 		// HeightMap                  = 0x000800, // Either this or NormalMap + NormalAlphaIsHeight
 
 		ShadowMap       = 0x001000,
-		SoftShadow      = 0x002000,
 		Fog             = 0x004000,
 		Translucency    = 0x008000,
 
@@ -39,7 +38,6 @@ namespace sd.world {
 		mvMatrixUniform: WebGLUniformLocation | null;  // mat4
 		mvpMatrixUniform: WebGLUniformLocation;        // mat4
 		normalMatrixUniform: WebGLUniformLocation;     // mat3
-		lightNormalMatrixUniform: WebGLUniformLocation | null; // mat3
 
 		// -- skinning
 		jointDataUniform: WebGLUniformLocation | null;        // sampler2D 
@@ -61,12 +59,20 @@ namespace sd.world {
 		shadowCastingLightIndexUniform: WebGLUniformLocation | null; // int (0..32767)
 
 		// -- shadow
-		lightViewProjectionMatrixUniform: WebGLUniformLocation | null; // mat4
+		lightProjMatrixUniform: WebGLUniformLocation | null; // mat4
+		lightViewMatrixUniform: WebGLUniformLocation | null; // mat4
 		shadowMapUniform: WebGLUniformLocation | null;        // sampler2D/Cube
 
 		// -- fog
 		fogColourUniform: WebGLUniformLocation | null;        // vec4 (rgb, 0)
 		fogParamsUniform: WebGLUniformLocation | null;        // vec4 (start, depth, density, 0)
+	}
+
+
+	interface ShadowProgram extends WebGLProgram {
+		modelMatrixUniform: WebGLUniformLocation;       // mat4
+		lightViewProjectionMatrixUniform: WebGLUniformLocation;   // mat4
+		lightViewMatrixUniform: WebGLUniformLocation;         // mat4
 	}
 
 
@@ -181,7 +187,6 @@ namespace sd.world {
 			program.mvMatrixUniform = gl.getUniformLocation(program, "modelViewMatrix");
 			program.mvpMatrixUniform = gl.getUniformLocation(program, "modelViewProjectionMatrix")!;
 			program.normalMatrixUniform = gl.getUniformLocation(program, "normalMatrix")!;
-			program.lightNormalMatrixUniform = gl.getUniformLocation(program, "lightNormalMatrix");
 
 			// -- material properties
 			program.mainColourUniform = gl.getUniformLocation(program, "mainColour")!;
@@ -223,14 +228,19 @@ namespace sd.world {
 
 			program.lightLUTParamUniform = gl.getUniformLocation(program, "lightLUTParam");
 
+			// -- shadow properties
 			program.shadowCastingLightIndexUniform = gl.getUniformLocation(program, "shadowCastingLightIndex");
 			if (program.shadowCastingLightIndexUniform) {
 				// if this exists, init to -1 to signify no shadow caster
 				gl.uniform1i(program.shadowCastingLightIndexUniform, -1);
 			}
+			program.shadowMapUniform = gl.getUniformLocation(program, "shadowSampler");
+			if (program.shadowMapUniform) {
+				gl.uniform1i(program.shadowMapUniform, TextureBindPoint.Shadow);
+			}
+			program.lightProjMatrixUniform = gl.getUniformLocation(program, "lightProjMatrix");
+			program.lightViewMatrixUniform = gl.getUniformLocation(program, "lightViewMatrix");
 
-			// -- shadow properties
-			program.lightViewProjectionMatrixUniform = gl.getUniformLocation(program, "lightViewProjectionMatrix");
 
 			// -- fog properties
 			program.fogColourUniform = gl.getUniformLocation(program, "fogColour");
@@ -252,29 +262,47 @@ namespace sd.world {
 
 				this.shadowPipeline_ = new render.Pipeline(this.rc, pld);
 
-				const program = <StdGLProgram>this.shadowPipeline_.program;
-				program.mvpMatrixUniform = this.rc.gl.getUniformLocation(program, "modelViewProjectionMatrix")!;
+				const program = this.shadowPipeline_.program as ShadowProgram;
+				program.modelMatrixUniform = this.rc.gl.getUniformLocation(program, "modelMatrix")!;
+				program.lightViewProjectionMatrixUniform = this.rc.gl.getUniformLocation(program, "lightViewProjectionMatrix")!;
+				program.lightViewMatrixUniform = this.rc.gl.getUniformLocation(program, "lightViewMatrix")!;
 			}
 
 			return this.shadowPipeline_;
 		}
 
 
-		private shadowVertexSource = [
-			"attribute vec3 vertexPos_model;",
-			"uniform mat4 modelViewProjectionMatrix;",
-			"void main() {",
-			"	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);",
-			"}"
-		].join("");
+		private shadowVertexSource = `
+			attribute vec3 vertexPos_model;
+
+			varying vec4 vertexPos_world;
+
+			uniform mat4 modelMatrix;
+			uniform mat4 lightViewProjectionMatrix;
+
+			void main() {
+				vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);
+				gl_Position = lightViewProjectionMatrix * vertexPos_world;
+			}
+		`.trim();
 
 
-		private shadowFragmentSource = [
-			"precision highp float;",
-			"void main() {",
-			"	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);",
-			"}"
-		].join("");
+		private shadowFragmentSource = `
+			#extension GL_OES_standard_derivatives : enable
+			precision highp float;
+
+			varying vec4 vertexPos_world;
+
+			uniform mat4 lightViewMatrix;
+
+			void main() {
+				vec3 lightPos = (lightViewMatrix * vertexPos_world).xyz;
+				float depth = clamp(length(lightPos) / 12.0, 0.0, 1.0);
+				float dx = dFdx(depth);
+				float dy = dFdy(depth);
+				gl_FragColor = vec4(depth, depth * depth + 0.25 * (dx * dy + dy * dy), 0.0, 1.0);
+			}
+		`.trim();
 
 
 		private vertexShaderSource(feat: number) {
@@ -303,9 +331,8 @@ namespace sd.world {
 
 			// Out
 			line  ("varying vec3 vertexNormal_cam;");
-			line  ("varying vec3 vertexPos_world;");
+			line  ("varying vec4 vertexPos_world;");
 			line  ("varying vec3 vertexPos_cam;");
-			if_all("varying vec4 vertexPos_light;", Features.ShadowMap);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
 
@@ -313,7 +340,6 @@ namespace sd.world {
 			line  ("uniform mat4 modelMatrix;");
 			line  ("uniform mat4 modelViewMatrix;");
 			line  ("uniform mat4 modelViewProjectionMatrix;");
-			if_all("uniform mat4 lightViewProjectionMatrix;", Features.ShadowMap);
 			line  ("uniform mat3 normalMatrix;");
 
 			if_all("uniform vec4 texScaleOffset;", Features.VtxUV);
@@ -393,10 +419,9 @@ namespace sd.world {
 			}
 
 			line  ("	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);");
-			line  ("	vertexPos_world = (modelMatrix * vec4(vertexPos_model, 1.0)).xyz;");
+			line  ("	vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);");
 			line  ("	vertexNormal_cam = normalMatrix * vertexNormal_final;");
 			line  ("	vertexPos_cam = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;");
-			if_all("	vertexPos_light = lightViewProjectionMatrix * modelMatrix * vec4(vertexPos_model, 1.0);", Features.ShadowMap);
 			if_all("	vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;", Features.VtxUV);
 			if_all("	vertexColour_intp = vertexColour;", Features.VtxColour);
 			line  ("}");
@@ -422,15 +447,11 @@ namespace sd.world {
 			line  ("precision highp float;");
 
 			// In
-			line  ("varying vec3 vertexPos_world;");
+			line  ("varying vec4 vertexPos_world;");
 			line  ("varying vec3 vertexNormal_cam;");
 			line  ("varying vec3 vertexPos_cam;");
-			if_all("varying vec4 vertexPos_light;", Features.ShadowMap);
 			if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
 			if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
-
-			// Uniforms
-			line  ("uniform mat3 lightNormalMatrix;");
 
 			// -- material
 			line  ("uniform vec4 mainColour;");
@@ -441,6 +462,8 @@ namespace sd.world {
 			if_all("uniform sampler2D specularSampler;", Features.SpecularMap);
 
 			// -- shadow
+			if_all("uniform mat4 lightViewMatrix;", Features.ShadowMap);
+			if_all("uniform mat4 lightProjMatrix;", Features.ShadowMap);
 			if_all("uniform sampler2D shadowSampler;", Features.ShadowMap);
 			if_all("uniform int shadowCastingLightIndex;", Features.ShadowMap);
 
@@ -460,9 +483,6 @@ namespace sd.world {
 				line("uniform vec4 fogColour;");
 				line("uniform vec4 fogParams;");
 			}
-
-			// initialized in main() as GLSL ES 2 does not support array initializers
-			if_all("vec2 poissonDisk[16];", Features.SoftShadow);
 
 
 			// -- LightEntry and getLightData()
@@ -519,15 +539,6 @@ namespace sd.world {
 
 			// -- calcLightShared()
 			line  ("vec3 calcLightShared(vec3 lightColour, float intensity, float diffuseStrength, vec3 lightDirection, vec3 normal_cam) {");
-			if (feat & Features.Emissive) {
-				line("	vec3 emissiveContrib = emissiveData.rgb * emissiveData.w;");
-			}
-			else {
-				line("	vec3 emissiveContrib = vec3(0.0);");
-			}
-			line  ("	if (diffuseStrength <= 0.0) {");
-			line  ("		return emissiveContrib * intensity;");
-			line  ("	}");
 			line  ("	float NdL = max(0.0, dot(normal_cam, -lightDirection));");
 			line  ("	vec3 diffuseContrib = lightColour * diffuseStrength * NdL * intensity;");
 
@@ -546,21 +557,21 @@ namespace sd.world {
 				line("		specularStrength = pow(specularStrength, specular[SPEC_EXPONENT]) * diffuseStrength;"); // FIXME: not too sure about this (* diffuseStrength)
 				line("		specularContrib = specularColour * specularStrength * specular[SPEC_INTENSITY];");
 				line("	}");
-				line("	return emissiveContrib + diffuseContrib + specularContrib;");
+				line("	return diffuseContrib + specularContrib;");
 			}
 			else {
-				line("	return emissiveContrib + diffuseContrib;");
+				line("	return diffuseContrib;");
 			}
 			line  ("}");
 
 
 			// -- calcPointLight()
 			line  ("vec3 calcPointLight(vec3 lightColour, float intensity, float range, vec3 lightPos_cam, vec3 lightPos_world, vec3 normal_cam) {");
-			line  ("	float distance = length(vertexPos_world - lightPos_world);"); // use world positions for distance as cam will warp coords
-			line  ("	vec3 lightDirection = normalize(vertexPos_cam - lightPos_cam);");
-			line  ("	float attenuation = clamp(1.0 - distance * distance / (range * range), 0.0, 1.0);");
+			line  ("	float distance = length(vertexPos_world.xyz - lightPos_world);"); // use world positions for distance as cam will warp coords
+			line  ("	vec3 lightDirection_cam = normalize(vertexPos_cam - lightPos_cam);");
+			line  ("	float attenuation = clamp(1.0 - distance / range, 0.0, 1.0);");
 			line  ("	attenuation *= attenuation;");
-			line  ("	return calcLightShared(lightColour, intensity, attenuation, lightDirection, normal_cam);");
+			line  ("	return calcLightShared(lightColour, intensity, attenuation, lightDirection_cam, normal_cam);");
 			line  ("}");
 
 			// -- calcSpotLight()
@@ -623,9 +634,27 @@ namespace sd.world {
 				line("	// V, the view vector (vertex to eye)");
 				line("	vec3 map = texture2D(normalSampler, uv).xyz * 2.0 - 1.0;");
 				line("	map.y = -map.y;");
-				line("	mat3 TBN = cotangentFrame(N, -V, uv);");
+				line("	mat3 TBN = cotangentFrame(N, V, uv);");
 				line("	return normalize(TBN * map);");
 				line("}");
+			}
+
+
+			if (feat & Features.ShadowMap) {
+				line(`
+					float linstep(float low, float high, float v) {
+						return clamp((v-low) / (high-low), 0.0, 1.0);
+					}
+
+					float VSM(vec2 uv, float compare, float strength, float bias) {
+						vec2 moments = texture2D(shadowSampler, uv).xy;
+						float p = smoothstep(compare - bias, compare, moments.x);
+						float variance = max(moments.y - moments.x*moments.x, -0.001);
+						float d = compare - moments.x;
+						float p_max = linstep(0.2, 1.0, variance / (variance + d*d));
+						return clamp(max(p, p_max), 0.0, 1.0);
+					}
+				`);
 			}
 
 
@@ -666,32 +695,16 @@ namespace sd.world {
 				line("	vec3 matColour = mainColour.rgb;");
 			}
 
-			if (feat & Features.SoftShadow) {
-				// -- init global poisson sample array (GLSL ES 2 does not support array initializers)
-				line("	poissonDisk[0] = vec2(-0.94201624, -0.39906216);");
-				line("	poissonDisk[1] = vec2(0.94558609, -0.76890725);");
-				line("	poissonDisk[2] = vec2(-0.094184101, -0.92938870);");
-				line("	poissonDisk[3] = vec2(0.34495938, 0.29387760);");
-				line("	poissonDisk[4] = vec2(-0.91588581, 0.45771432);");
-				line("	poissonDisk[5] = vec2(-0.81544232, -0.87912464);");
-				line("	poissonDisk[6] = vec2(-0.38277543, 0.27676845);");
-				line("	poissonDisk[7] = vec2(0.97484398, 0.75648379);");
-				line("	poissonDisk[8] = vec2(0.44323325, -0.97511554);");
-				line("	poissonDisk[9] = vec2(0.53742981, -0.47373420);");
-				line("	poissonDisk[10] = vec2(-0.26496911, -0.41893023);");
-				line("	poissonDisk[11] = vec2(0.79197514, 0.19090188);");
-				line("	poissonDisk[12] = vec2(-0.24188840, 0.99706507); ");
-				line("	poissonDisk[13] = vec2(-0.81409955, 0.91437590);");
-				line("	poissonDisk[14] = vec2(0.19984126, 0.78641367);");
-				line("	poissonDisk[15] = vec2(0.14383161, -0.14100790);");
-			}
-
 			// -- normal in camera space, convert from tangent space
 			line  ("	vec3 normal_cam = normalize(vertexNormal_cam);");
-			if_all("	normal_cam = perturbNormal(normal_cam, -vertexPos_cam, vertexUV_intp);", Features.NormalMap);
+			if_all("	normal_cam = perturbNormal(normal_cam, vertexPos_cam, vertexUV_intp);", Features.NormalMap);
 
 			// -- calculate light arriving at the fragment
 			line  ("	vec3 totalLight = vec3(0.0);");
+			if (feat & Features.Emissive) {
+				line("	totalLight += (emissiveData.rgb * emissiveData.w);");
+			}
+
 			line  ("	vec2 fragCoord = vec2(gl_FragCoord.x, lightLUTParam.y - gl_FragCoord.y);");
 			line  ("	vec2 lightOffsetCount = getLightGridCell(fragCoord);");
 			line  ("	int lightListOffset = int(lightOffsetCount.x);");
@@ -704,33 +717,19 @@ namespace sd.world {
 			line  ("		LightEntry lightData = getLightEntry(lightIx);");
 			line  ("		if (lightData.colourAndType.w <= 0.0) break;");
 
-			// shadow intensity
 			line  ("		float shadowFactor = 1.0;");
 			if (feat & Features.ShadowMap) {
-				line("		if (lightIx == shadowCastingLightIndex) {");
+				line("		if (int(lightIx) == shadowCastingLightIndex) {");
 				line("			float shadowStrength = lightData.shadowStrengthBias.x;");
 				line("			float shadowBias = lightData.shadowStrengthBias.y;");
-				line("			float fragZ = (vertexPos_light.z - shadowBias) / vertexPos_light.w;");
 
-				if (feat & Features.SoftShadow) {
-					// well, soft-ish
-					line("			float strengthIncrement = shadowStrength / 16.0;");
-					line("			for (int ssi = 0; ssi < 16; ++ssi) {");
-					line("				vec2 shadowSampleCoord = (vertexPos_light.xy / vertexPos_light.w) + (poissonDisk[ssi] / 550.0);");
-					line("				float shadowZ = texture2D(shadowSampler, shadowSampleCoord).z;");
-					line("				if (shadowZ < fragZ) {");
-					line("					shadowFactor -= strengthIncrement;");
-					line("				}");
-					line("			}");
-				}
-				else {
-					line("			float shadowZ = texture2DProj(shadowSampler, vertexPos_light.xyw).z;");
-					line("			if (shadowZ < fragZ) {");
-					line("				shadowFactor = 1.0 - shadowStrength;");
-					line("			}");
-				}
-
-				line("		}"); // lightIx == shadowCastingLightIndex
+				line("			vec3 lightPos = (lightViewMatrix * vertexPos_world).xyz;");
+				line("			vec4 lightDevice = lightProjMatrix * vec4(lightPos, 1.0);");
+				line("			vec2 lightDeviceNormal = lightDevice.xy / lightDevice.w;");
+				line("			vec2 lightUV = lightDeviceNormal * 0.5 + 0.5;");
+				line("			float lightTest = clamp(length(lightPos) / 12.0, 0.0, 1.0);");
+				line("			shadowFactor = VSM(lightUV, lightTest, shadowStrength, shadowBias);");
+				line("		}");
 			}
 
 			line  ("		totalLight += getLightContribution(lightData, normal_cam) * shadowFactor;");
@@ -739,12 +738,15 @@ namespace sd.world {
 			// -- final colour result
 			if (feat & Features.Fog) {
 				line("	float fogDensity = clamp((length(vertexPos_cam) - fogParams[FOGPARAM_START]) / fogParams[FOGPARAM_DEPTH], 0.0, fogParams[FOGPARAM_DENSITY]);");
-				line("	gl_FragColor = vec4(mix(totalLight * matColour, fogColour.rgb, fogDensity), 1.0);"); // TODO: make Fog and translucency mut.ex.
+				line("	totalLight = mix(totalLight * matColour, fogColour.rgb, fogDensity);");
+				// line("	fragOpacity = 1.0;"); // TODO: make Fog and translucency mut.ex.
 			}
 			else {
-				line("	gl_FragColor = vec4(totalLight * matColour, fragOpacity);");
+				line("	totalLight = totalLight * matColour;");
 			}
 
+			// -- final lightColour result
+			line  ("	gl_FragColor = vec4(pow(totalLight, vec3(1.0 / 2.2)), fragOpacity);");
 			line  ("}");
 
 			// console.info(`------ FRAGMENT ${feat}`);
@@ -815,8 +817,6 @@ namespace sd.world {
 		private modelViewMatrix_ = mat4.create();
 		private modelViewProjectionMatrix_ = mat4.create();
 		private normalMatrix_ = mat3.create();
-		private lightNormalMatrix_ = mat3.create();
-		private lightViewProjectionMatrix_ = mat4.create();
 
 
 		constructor(
@@ -1014,6 +1014,10 @@ namespace sd.world {
 		}
 
 
+		shadowCaster(): LightInstance {
+			return this.shadowCastingLightIndex_;
+		}
+
 		setShadowCaster(inst: LightInstance) {
 			this.shadowCastingLightIndex_ = inst;
 		}
@@ -1062,10 +1066,6 @@ namespace sd.world {
 				let features: Features = this.primGroupFeatureBase_[primGroupBase + pgIx];
 				if (shadow) {
 					features |= Features.ShadowMap;
-					const shadowType = this.lightMgr_.shadowType(shadow.light);
-					if (shadowType == asset.ShadowType.Soft) {
-						features |= Features.SoftShadow;
-					}
 				}
 
 				if (fogSpec) {
@@ -1093,11 +1093,6 @@ namespace sd.world {
 
 				if (program.mvMatrixUniform) {
 					gl.uniformMatrix4fv(program.mvMatrixUniform, false, this.modelViewMatrix_);
-				}
-
-				if (program.lightNormalMatrixUniform) {
-					mat3.normalFromMat4(this.lightNormalMatrix_, proj.viewMatrix);
-					gl.uniformMatrix3fv(program.lightNormalMatrixUniform, false, this.lightNormalMatrix_);
 				}
 
 				// -- set material uniforms
@@ -1141,13 +1136,14 @@ namespace sd.world {
 				if (shadow) {
 					gl.uniform1i(program.shadowCastingLightIndexUniform, this.shadowCastingLightIndex_ as number);
 
-					rp.setTexture(shadow.shadowFBO.depthAttachmentTexture()!, TextureBindPoint.Shadow);
+					rp.setTexture(shadow.filteredTexture || shadow.shadowFBO.colourAttachmentTexture(0)!, TextureBindPoint.Shadow);
 
-					mat4.multiply(this.lightViewProjectionMatrix_, shadow.lightProjection.projectionMatrix, shadow.lightProjection.viewMatrix);
-					const lightBiasMat = mat4.multiply([], mat4.fromTranslation([], [.5, .5, .5]), mat4.fromScaling([], [.5, .5, .5]));
-					mat4.multiply(this.lightViewProjectionMatrix_, lightBiasMat, this.lightViewProjectionMatrix_);
+					// mat4.multiply(this.lightViewProjectionMatrix_, shadow.lightProjection.projectionMatrix, shadow.lightProjection.viewMatrix);
+					// const lightBiasMat = mat4.multiply([], mat4.fromTranslation([], [.5, .5, .5]), mat4.fromScaling([], [.5, .5, .5]));
+					// mat4.multiply(this.lightViewProjectionMatrix_, lightBiasMat, this.lightViewProjectionMatrix_);
 
-					gl.uniformMatrix4fv(program.lightViewProjectionMatrixUniform!, false, this.lightViewProjectionMatrix_);
+					gl.uniformMatrix4fv(program.lightViewMatrixUniform!, false, shadow.lightProjection.viewMatrix as Float32Array);
+					gl.uniformMatrix4fv(program.lightProjMatrixUniform!, false, shadow.lightProjection.projectionMatrix as Float32Array);
 				}
 
 				// -- draw

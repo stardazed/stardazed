@@ -5,12 +5,12 @@
 
 namespace sd.render {
 
-	export function loadSimpleTexture(rc: RenderContext, filePath: string, mipmaps = false): Promise<render.Texture> {
+	export function loadSimpleTexture(rc: RenderContext, filePath: string, mipmaps = false, colourSpace = asset.ColourSpace.sRGB): Promise<render.Texture> {
 		return new Promise<render.Texture>(function(resolve, reject) {
 			const image = new Image();
 
 			image.onload = function() {
-				const td = render.makeTexDesc2DFromImageSource(image, asset.ColourSpace.sRGB, render.useMipMaps(mipmaps));
+				const td = render.makeTexDesc2DFromImageSource(image, colourSpace, render.useMipMaps(mipmaps));
 				const texture = new render.Texture(rc, td);
 				resolve(texture);
 			};
