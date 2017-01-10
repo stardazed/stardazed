@@ -1164,15 +1164,18 @@ namespace sd.world {
 
 		private drawSingleShadow(rp: render.RenderPass, proj: ProjectionSetup, shadowPipeline: render.Pipeline, modelIx: number) {
 			const gl = this.rc.gl;
-			const program = <StdGLProgram>(shadowPipeline.program);
+			const program = shadowPipeline.program as ShadowProgram;
 			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
 			rp.setMesh(mesh);
 
 			// -- calc MVP and set
 			const modelMatrix = this.transformMgr_.worldMatrix(this.transformBase_[modelIx]);
 			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
-			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
-			gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);
+			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, proj.viewMatrix);
+
+			gl.uniformMatrix4fv(program.modelMatrixUniform, false, modelMatrix);
+			gl.uniformMatrix4fv(program.lightViewMatrixUniform, false, proj.viewMatrix as Float32Array);
+			gl.uniformMatrix4fv(program.lightViewProjectionMatrixUniform, false, this.modelViewProjectionMatrix_);
 
 			// -- draw full mesh
 			const uniformPrimType = this.meshMgr_.uniformPrimitiveType(mesh);
