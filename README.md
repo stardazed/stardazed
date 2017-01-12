@@ -40,7 +40,7 @@ Features
 
 ### Renderer
 - Metallic-setup PBR materials with RMA, normal, height and albedo map support
-- Forward shader with many fragment lights and shadowmap-based VSM shadows
+- Forward shader with tiled lighting and shadowmap-based VSM shadows
 - Hardware vertex skinning for skinned models
 - Optimized generation of shaders for models with different features
 
