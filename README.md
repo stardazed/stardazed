@@ -63,4 +63,4 @@ to see what we're working on.
 ---
 
 License: MIT License<br>
-(c) 2015-2016 by Arthur Langereis ([@zenmumbler](https://twitter.com/zenmumbler))
+(c) 2015-Present by Arthur Langereis ([@zenmumbler](https://twitter.com/zenmumbler))
