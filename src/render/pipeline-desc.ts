@@ -34,8 +34,6 @@ namespace sd.render {
 
 
 	export interface ColourBlendingDescriptor {
-		enabled: boolean;
-
 		rgbBlendOp: BlendOperation;
 		alphaBlendOp: BlendOperation;
 
@@ -60,9 +58,9 @@ namespace sd.render {
 
 
 	export interface PipelineDescriptor {
-		writeMask: ColourWriteMask;
+		colourMask?: ColourWriteMask;
 		depthMask: boolean;
-		blending: ColourBlendingDescriptor;
+		blending?: ColourBlendingDescriptor;
 
 		vertexShader?: WebGLShader;
 		fragmentShader?: WebGLShader;
@@ -73,8 +71,6 @@ namespace sd.render {
 
 	export function makeColourBlendingDescriptor(): ColourBlendingDescriptor {
 		return {
-			enabled: false,
-
 			rgbBlendOp: BlendOperation.Add,
 			alphaBlendOp: BlendOperation.Add,
 
@@ -100,9 +96,9 @@ namespace sd.render {
 
 	export function makePipelineDescriptor(): PipelineDescriptor {
 		return {
-			writeMask: makeColourWriteMask(),
+			colourMask: undefined,
 			depthMask: true,
-			blending: makeColourBlendingDescriptor(),
+			blending: undefined,
 
 			attributeNames: new Map<meshdata.VertexAttributeRole, string>()
 		};

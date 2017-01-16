@@ -47,21 +47,16 @@ namespace sd.render {
 
 
 	export class Pipeline {
-		private writeMask_: ColourWriteMask | null;
+		private writeMask_?: ColourWriteMask;
 		private depthMask_: boolean;
-		private blending_: ColourBlendingDescriptor;
+		private blending_?: ColourBlendingDescriptor;
 		private program_: WebGLProgram;
 		private attrRoleIndexMap_: Map<meshdata.VertexAttributeRole, number>;
 
 		constructor(private rc: RenderContext, desc: PipelineDescriptor) {
-			this.writeMask_ = cloneStruct(desc.writeMask);
+			this.writeMask_ = desc.colourMask ? cloneStruct(desc.colourMask) : undefined;
 			this.depthMask_ = desc.depthMask;
-			this.blending_ = cloneStruct(desc.blending);
-
-			// -- check if the colour mask does anything and, if not, disable it
-			if (this.writeMask_.red && this.writeMask_.green && this.writeMask_.blue && this.writeMask_.alpha) {
-				this.writeMask_ = null;
-			}
+			this.blending_ = desc.blending ? cloneStruct(desc.blending) : undefined;
 
 			// -- create program and find attribute locations
 			this.program_ = makeProgram(rc, desc.vertexShader, desc.fragmentShader);
@@ -88,7 +83,7 @@ namespace sd.render {
 				gl.depthMask(this.depthMask_);
 			}
 
-			if (this.blending_.enabled) {
+			if (this.blending_) {
 				gl.enable(gl.BLEND);
 
 				const rgbEq = glBlendEqForBlendOperation(this.rc, this.blending_.rgbBlendOp);
@@ -118,17 +113,12 @@ namespace sd.render {
 				gl.depthMask(true);
 			}
 
-			if (this.blending_.enabled) {
+			if (this.blending_) {
 				gl.disable(gl.BLEND);
 				gl.blendEquation(gl.FUNC_ADD);
 				gl.blendFunc(gl.ONE, gl.ZERO);
 			}
 		}
-
-
-		// FIXME: this is bad
-		get blendConstantAlpha() { return this.blending_.constantColour[3]; }
-		set blendConstantAlpha(newAlpha: number) { this.blending_.constantColour[3] = math.clamp01(newAlpha); }
 
 		get program() { return this.program_; }
 

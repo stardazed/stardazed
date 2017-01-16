@@ -1,0 +1,40 @@
+const enum DSAttachmentReq {
+	DontCare,
+	Required
+}
+
+Pipeline.create({
+	vertexShader: `
+		void main() {}
+	`,
+	fragmentShader: `
+		precision highp float;
+		void main() {}
+	`,
+	attributes: {
+		"vertexPos_model": meshdata.VertexAttrRole.Position
+	},
+	colourBuffers: [PixelFormat.RGBA8],
+	depthBuffer: DSAttachmentReq.DontCare,
+	stencilBuffer: DSAttachmentReq.DontCare
+});
+
+
+Materials.create({
+	name: "something",
+	pipeline: p1,
+
+	colourMask: { red: false, green: true, blue: true, alpha: true },
+	depthMask:
+});
+
+
+update:
+	parallel foreach 
+
+mainPass:
+	drawCalls.sort();
+	for each drawCall as dc
+		if dc.material !== curMaterial
+			applyMaterial(dc.material)
+
