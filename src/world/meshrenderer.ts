@@ -28,14 +28,6 @@ namespace sd.world {
 		private primGroupMaterialBase_: PBRMaterialArrayView;
 		private primGroupFeatureBase_: ConstEnumArrayView<Features>;
 
-		// -- for light uniform updates
-		private shadowCastingLightIndex_: LightInstance = 0;
-
-		// -- for temp calculations
-		private modelViewMatrix_ = mat4.create();
-		private modelViewProjectionMatrix_ = mat4.create();
-		private normalMatrix_ = mat3.create();
-
 
 		constructor(
 			private rc: render.RenderContext,
@@ -83,45 +75,6 @@ namespace sd.world {
 		}
 
 
-		private featuresForMeshAndMaterial(mesh: MeshInstance, material: PBRMaterialInstance): Features {
-			let features = 0;
-
-			const meshFeatures = this.meshMgr_.features(mesh);
-			if (meshFeatures & MeshFeatures.VertexColours) { features |= Features.VtxColour; }
-			if (meshFeatures & MeshFeatures.VertexUVs) { features |= Features.VtxUV; }
-
-			const matFlags = this.materialMgr_.flags(material);
-			if (matFlags & PBRMaterialFlags.Emissive) { features |= Features.Emissive; }
-
-			if (this.materialMgr_.albedoMap(material)) {
-				features |= Features.AlbedoMap;
-			}
-
-			if (this.materialMgr_.normalHeightMap(material)) {
-				if (matFlags & PBRMaterialFlags.NormalMap) {
-					features |= Features.NormalMap;
-				}
-				if (matFlags & PBRMaterialFlags.HeightMap) {
-					features |= Features.HeightMap;
-				}
-			}
-
-			if (this.materialMgr_.materialMap(material)) {
-				if (matFlags & PBRMaterialFlags.RoughnessMap) {
-					features |= Features.RoughnessMap;
-				}
-				if (matFlags & PBRMaterialFlags.MetallicMap) {
-					features |= Features.MetallicMap;
-				}
-				if (matFlags & PBRMaterialFlags.AmbientOcclusionMap) {
-					features |= Features.AOMap;
-				}
-			}
-
-			return features;
-		}
-
-
 		private updatePrimGroups(modelIx: number) {
 			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
 			if (! mesh) {
@@ -151,31 +104,6 @@ namespace sd.world {
 				this.primGroupMaterialBase_[primGroupCount] = this.materials_[materialsOffset + group.materialIx];
 				primGroupCount += 1;
 			});
-		}
-
-
-		setRenderFeatureEnabled(feature: RenderFeature, enable: boolean) {
-			let mask: Features = 0;
-
-			if (feature == RenderFeature.AlbedoMaps) {
-				mask |= Features.AlbedoMap;
-			}
-			else if (feature == RenderFeature.NormalMaps) {
-				mask |= Features.NormalMap;
-			}
-			else if (feature == RenderFeature.HeightMaps) {
-				mask |= Features.HeightMap;
-			}
-			else if (feature == RenderFeature.Emissive) {
-				mask |= Features.Emissive;
-			}
-
-			if (enable) {
-				this.pbrPipeline_.enableFeatures(mask);
-			}
-			else {
-				this.pbrPipeline_.disableFeatures(mask);
-			}
 		}
 
 
@@ -259,173 +187,6 @@ namespace sd.world {
 		setShadowCaster(inst: LightInstance) {
 			this.shadowCastingLightIndex_ = inst;
 		}
-
-
-		private drawSingleShadow(rp: render.RenderPass, proj: ProjectionSetup, shadowPipeline: render.Pipeline, modelIx: number) {
-			const gl = this.rc.gl;
-			const program = shadowPipeline.program as ShadowProgram;
-			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
-			rp.setMesh(mesh);
-
-			// -- calc MVP and set
-			const modelMatrix = this.transformMgr_.worldMatrix(this.transformBase_[modelIx]);
-			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
-			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, proj.viewMatrix);
-
-			gl.uniformMatrix4fv(program.modelMatrixUniform, false, modelMatrix);
-			gl.uniformMatrix4fv(program.lightViewMatrixUniform, false, proj.viewMatrix as Float32Array);
-			gl.uniformMatrix4fv(program.lightViewProjectionMatrixUniform, false, this.modelViewProjectionMatrix_);
-
-			// -- draw full mesh
-			const uniformPrimType = this.meshMgr_.uniformPrimitiveType(mesh);
-			if (uniformPrimType !== meshdata.PrimitiveType.None) {
-				const totalElementCount = this.meshMgr_.totalElementCount(mesh);
-				const indexElementType = this.meshMgr_.indexBufferElementType(mesh);
-				if (indexElementType !== meshdata.IndexElementType.None) {
-					rp.drawIndexedPrimitives(uniformPrimType, indexElementType, 0, totalElementCount);
-				}
-				else {
-					rp.drawPrimitives(uniformPrimType, 0, totalElementCount);
-				}
-			}
-
-			// -- drawcall count, always 1
-			return 1;
-		}
-
-
-		private drawSingleForward(rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, lightingQuality: PBRLightingQuality, modelIx: number) {
-			const gl = this.rc.gl;
-			let drawCalls = 0;
-
-			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
-
-			// -- calc transform matrices
-			const modelMatrix = this.transformMgr_.worldMatrix(this.transformBase_[modelIx]);
-			mat4.multiply(this.modelViewMatrix_, proj.viewMatrix, modelMatrix);
-			mat4.multiply(this.modelViewProjectionMatrix_, proj.projectionMatrix, this.modelViewMatrix_);
-
-			// -- draw all groups
-			const meshPrimitiveGroups = this.meshMgr_.primitiveGroups(mesh);
-			const primGroupBase = this.primGroupOffsetBase_[modelIx];
-			const primGroupCount = meshPrimitiveGroups.length;
-
-			for (let pgIx = 0; pgIx < primGroupCount; ++pgIx) {
-				const primGroup = meshPrimitiveGroups[pgIx];
-				const matInst: PBRMaterialInstance = this.primGroupMaterialBase_[primGroupBase + pgIx];
-				const materialData = this.materialMgr_.getData(matInst);
-
-				// -- features are a combo of Material features and optional shadow
-				let features: Features = this.primGroupFeatureBase_[primGroupBase + pgIx];
-				features |= lightingQuality << LightingQualityBitShift;
-				if (shadow) {
-					features |= Features.ShadowMap;
-				}
-
-				const pipeline = this.pbrPipeline_.pipelineForFeatures(features);
-				rp.setPipeline(pipeline);
-				rp.setMesh(mesh);
-
-				// -- set transform and normal uniforms
-				const program = <PBRGLProgram>(pipeline.program);
-
-				// model, mvp and normal matrices are always present
-				gl.uniformMatrix4fv(program.modelMatrixUniform, false, <Float32Array>modelMatrix);
-				gl.uniformMatrix4fv(program.mvpMatrixUniform, false, this.modelViewProjectionMatrix_);
-				mat3.normalFromMat4(this.normalMatrix_, this.modelViewMatrix_);
-				gl.uniformMatrix3fv(program.normalMatrixUniform, false, this.normalMatrix_);
-
-				if (program.mvMatrixUniform) {
-					gl.uniformMatrix4fv(program.mvMatrixUniform, false, this.modelViewMatrix_);
-				}
-
-				// -- set material uniforms
-				gl.uniform4fv(program.baseColourUniform, materialData.colourData);
-				gl.uniform4fv(program.materialUniform, materialData.materialParam);
-				if (features & Features.Emissive) {
-					gl.uniform4fv(program.emissiveDataUniform, materialData.emissiveData);
-				}
-				if (features & Features.VtxUV) {
-					gl.uniform4fv(program.texScaleOffsetUniform, materialData.texScaleOffsetData);
-				}
-
-				// these texture arguments are assumed to exist if the feature flag is set
-				// TODO: check every time?
-				if (features & Features.AlbedoMap) {
-					rp.setTexture(materialData.albedoMap!, TextureBindPoint.Albedo);
-				}
-				if (features & (Features.RoughnessMap | Features.MetallicMap | Features.AOMap)) {
-					rp.setTexture(materialData.materialMap!, TextureBindPoint.Material);
-				}
-				if (features & Features.NormalMap) {
-					rp.setTexture(materialData.normalHeightMap!, TextureBindPoint.NormalHeight);
-				}
-
-				// -- light data
-				rp.setTexture(this.lightMgr_.lutTexture, TextureBindPoint.LightLUT);
-				gl.uniform2fv(program.lightLUTParamUniform!, this.lightMgr_.lutParam);
-
-				// -- shadow map and metadata
-				if (shadow) {
-					gl.uniform1i(program.shadowCastingLightIndexUniform, this.shadowCastingLightIndex_ as number);
-
-					rp.setTexture(shadow.filteredTexture || shadow.shadowFBO.colourAttachmentTexture(0)!, TextureBindPoint.Shadow);
-
-					// mat4.multiply(this.lightViewProjectionMatrix_, shadow.lightProjection.projectionMatrix, shadow.lightProjection.viewMatrix);
-					// const lightBiasMat = mat4.multiply([], mat4.fromTranslation([], [.5, .5, .5]), mat4.fromScaling([], [.5, .5, .5]));
-					// mat4.multiply(this.lightViewProjectionMatrix_, lightBiasMat, this.lightViewProjectionMatrix_);
-
-					gl.uniformMatrix4fv(program.lightViewMatrixUniform!, false, shadow.lightProjection.viewMatrix as Float32Array);
-					gl.uniformMatrix4fv(program.lightProjMatrixUniform!, false, shadow.lightProjection.projectionMatrix as Float32Array);
-				}
-
-				// -- draw
-				const indexElementType = this.meshMgr_.indexBufferElementType(mesh);
-				if (indexElementType !== meshdata.IndexElementType.None) {
-					rp.drawIndexedPrimitives(primGroup.type, indexElementType, primGroup.fromElement, primGroup.elementCount);
-				}
-				else {
-					rp.drawPrimitives(primGroup.type, primGroup.fromElement, primGroup.elementCount);
-				}
-
-				drawCalls += 1;
-			}
-
-			return drawCalls;
-		}
-
-
-		drawShadows(range: PBRModelRange, rp: render.RenderPass, proj: ProjectionSetup) {
-			const shadowPipeline = this.pbrPipeline_.shadowPipeline();
-			rp.setPipeline(shadowPipeline);
-
-			const iter = range.makeIterator();
-			while (iter.next()) {
-				const index = iter.current as number;
-				if (this.enabledBase_[index] && this.shadowCastFlagsBase_[index]) {
-					this.drawSingleShadow(rp, proj, shadowPipeline, index);
-				}
-			}
-		}
-
-		draw(range: PBRModelRange, rp: render.RenderPass, proj: ProjectionSetup, shadow: ShadowView | null, lightingQuality: PBRLightingQuality, environmentMap: render.Texture) {
-			if (! this.brdfLookupTex_) {
-				return 0;
-			}
-
-			let drawCalls = 0;
-
-			rp.setTexture(environmentMap, TextureBindPoint.Environment);
-			rp.setTexture(this.brdfLookupTex_, TextureBindPoint.BRDFLookup);
-
-			const iter = range.makeIterator();
-			while (iter.next()) {
-				drawCalls += this.drawSingleForward(rp, proj, shadow, lightingQuality, <number>iter.current);
-			}
-
-			return drawCalls;
-		}
 	}
-
 
 } // ns sd.world
