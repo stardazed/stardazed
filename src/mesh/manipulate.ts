@@ -1,4 +1,4 @@
-// mesh/manipulate - mesh manipulators
+// meshdata/manipulate - meshdata manipulators
 // Part of Stardazed TX
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx

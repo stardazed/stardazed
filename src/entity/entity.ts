@@ -1,9 +1,9 @@
-// world/entity - entities and shared interfaces
+// entity/entity - entities and shared interfaces
 // Part of Stardazed TX
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-namespace sd.world {
+namespace sd.entity {
 
 	export type Entity = Instance<EntityManager>;
 	export type EntityArrayView = InstanceArrayView<EntityManager>;

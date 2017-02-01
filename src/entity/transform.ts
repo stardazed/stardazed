@@ -1,23 +1,23 @@
-// world/transform - Transform component
+// entity/transform - Transform component
 // Part of Stardazed TX
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-namespace sd.world {
+namespace sd.entity {
 
-	//  _____                  __               __  __                             
-	// |_   _| _ __ _ _ _  ___/ _|___ _ _ _ __ |  \/  |__ _ _ _  __ _ __ _ ___ _ _ 
-	//   | || '_/ _` | ' \(_-<  _/ _ \ '_| '  \| |\/| / _` | ' \/ _` / _` / -_) '_|
-	//   |_||_| \__,_|_||_/__/_| \___/_| |_|_|_|_|  |_\__,_|_||_\__,_\__, \___|_|  
-	//                                                               |___/         
+	//  _____                  __               
+	// |_   _| _ __ _ _ _  ___/ _|___ _ _ _ __  
+	//   | || '_/ _` | ' \(_-<  _/ _ \ '_| '  \ 
+	//   |_||_| \__,_|_||_/__/_| \___/_| |_|_|_|
+	//                                          
 
-	export type TransformInstance = Instance<TransformManager>;
-	export type TransformRange = InstanceRange<TransformManager>;
-	export type TransformSet = InstanceSet<TransformManager>;
-	export type TransformIterator = InstanceIterator<TransformManager>;
-	export type TransformArrayView = InstanceArrayView<TransformManager>;
+	export type TransformInstance = Instance<Transform>;
+	export type TransformRange = InstanceRange<Transform>;
+	export type TransformSet = InstanceSet<Transform>;
+	export type TransformIterator = InstanceIterator<Transform>;
+	export type TransformArrayView = InstanceArrayView<Transform>;
 
-	export class TransformManager implements ComponentManager<TransformManager> {
+	export class Transform implements Component<Transform> {
 		private instanceData_: container.MultiArrayBuffer;
 
 		private entityBase_: EntityArrayView;
@@ -177,7 +177,7 @@ namespace sd.world {
 		}
 
 		all(): TransformRange {
-			return new InstanceLinearRange<TransformManager>(1, this.count);
+			return new InstanceLinearRange<Transform>(1, this.count);
 		}
 
 
