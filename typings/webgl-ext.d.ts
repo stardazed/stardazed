@@ -122,17 +122,17 @@ interface OESTextureHalfFloatLinear {
 	readonly __OESTextureHalfFloatLinear: void;
 }
 
-interface WebGLVertexArrayObjectOES extends WebGLObject {
-	readonly __WebGLVertexArrayObjectOES: void;
+interface WebGLVertexArrayObject extends WebGLObject { // defined without OES suffix for compat with WebGL2
+	readonly __WebGLVertexArrayObject: void;
 }
 
 interface OESVertexArrayObject {
 	readonly VERTEX_ARRAY_BINDING_OES: number;
 
-	createVertexArrayOES(): WebGLVertexArrayObjectOES;
-	deleteVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES): void;
-	isVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES): boolean;
-	bindVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES | null): void;
+	createVertexArrayOES(): WebGLVertexArrayObject | null;
+	deleteVertexArrayOES(arrayObject: WebGLVertexArrayObject): void;
+	isVertexArrayOES(arrayObject: WebGLVertexArrayObject): boolean;
+	bindVertexArrayOES(arrayObject: WebGLVertexArrayObject | null): void;
 }
 
 interface WebGLColorBufferFloat {
