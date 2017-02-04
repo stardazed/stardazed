@@ -1,21 +1,321 @@
-// typings/webgl2 - WebGL 2 additional types and functions
+// typings/webgl - WebGL 1 extension definitions, WebGL 2 full definition and extensions
 // Part of Stardazed TX
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
+// WebGL Helper Types
+type TextureImageSource = ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement;
+type TextureImageData = ArrayBufferView | TextureImageSource;
+
+
 interface HTMLCanvasElement {
-	getContext(contextId: "webgl2", contextAttributes?: WebGLContextAttributes): WebGL2RenderingContext | null;
+	getContext(contextId: "webgl" | "experimental-webgl", contextAttributes?: WebGLContextAttributes): (WebGLRenderingContext & WebGL1Extensions) | null;
+}
+
+interface WebGL1Extensions {
+	getExtension(name: "ANGLE_instanced_arrays"): ANGLEInstancedArrays;
+
+	getExtension(name: "EXT_blend_minmax"): EXTBlendMinMax;
+	getExtension(name: "EXT_color_buffer_half_float"): EXTColorBufferHalfFloat;
+	getExtension(name: "EXT_frag_depth"): EXTFragDepth;
+	getExtension(name: "EXT_sRGB"): EXTsRGB;
+	getExtension(name: "EXT_shader_texture_lod"): EXTShaderTextureLOD;
+	getExtension(name: "EXT_texture_filter_anisotropic"): EXTTextureFilterAnisotropic;
+
+	getExtension(name: "OES_element_index_uint"): OESElementIndexUint;
+	getExtension(name: "OES_standard_derivatives"): OESStandardDerivatives;
+	getExtension(name: "OES_texture_float"): OESTextureFloat;
+	getExtension(name: "OES_texture_float_linear"): OESTextureFloatLinear;
+	getExtension(name: "OES_texture_half_float"): OESTextureHalfFloat;
+	getExtension(name: "OES_texture_half_float_linear"): OESTextureHalfFloatLinear;
+	getExtension(name: "OES_vertex_array_object"): OESVertexArrayObject;
+
+	getExtension(name: "WEBGL_color_buffer_float"): WebGLColorBufferFloat;
+	getExtension(name: "WEBGL_compressed_texture_atc"): WebGLCompressedTextureATC;
+	getExtension(name: "WEBGL_compressed_texture_etc1"): WebGLCompressedTextureETC1;
+	getExtension(name: "WEBGL_compressed_texture_pvrtc"): WebGLCompressedTexturePVRTC;
+	getExtension(name: "WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
+	getExtension(name: "WEBGL_debug_renderer_info"): WebGLDebugRendererInfo;
+	getExtension(name: "WEBGL_debug_shaders"): WebGLDebugShaders;
+	getExtension(name: "WEBGL_depth_texture"): WebGLDepthTexture;
+	getExtension(name: "WEBGL_draw_buffers"): WebGLDrawBuffers;
+	getExtension(name: "WEBGL_lose_context"): WebGLLoseContext;
+
+	// Prefixed versions appearing in the wild as per September 2015
+
+	getExtension(name: "WEBKIT_EXT_texture_filter_anisotropic"): EXTTextureFilterAnisotropic;
+	getExtension(name: "WEBKIT_WEBGL_compressed_texture_atc"): WebGLCompressedTextureATC;
+	getExtension(name: "WEBKIT_WEBGL_compressed_texture_pvrtc"): WebGLCompressedTexturePVRTC;
+	getExtension(name: "WEBKIT_WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
+	getExtension(name: "WEBKIT_WEBGL_depth_texture"): WebGLDepthTexture;
+	getExtension(name: "WEBKIT_WEBGL_lose_context"): WebGLLoseContext;
+
+	getExtension(name: "MOZ_WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
+	getExtension(name: "MOZ_WEBGL_depth_texture"): WebGLDepthTexture;
+	getExtension(name: "MOZ_WEBGL_lose_context"): WebGLLoseContext;
+}
+
+interface WebGL2Extensions {
+	getExtension(name: "EXT_disjoint_timer_query"): EXTDisjointTimerQuery;
+
+	getExtension(name: "WEBGL_color_buffer_float"): WebGLColorBufferFloat;
+	getExtension(name: "WEBGL_compressed_texture_atc"): WebGLCompressedTextureATC;
+	getExtension(name: "WEBGL_compressed_texture_etc1"): WebGLCompressedTextureETC1;
+	getExtension(name: "WEBGL_compressed_texture_pvrtc"): WebGLCompressedTexturePVRTC;
+	getExtension(name: "WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
+	getExtension(name: "WEBGL_debug_renderer_info"): WebGLDebugRendererInfo;
+	getExtension(name: "WEBGL_debug_shaders"): WebGLDebugShaders;
+	getExtension(name: "WEBGL_lose_context"): WebGLLoseContext;
+
+	getExtension(name: "MOZ_WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
+	getExtension(name: "MOZ_WEBGL_lose_context"): WebGLLoseContext;
 }
 
 
+// WebGL 1 Type Branding
+interface WebGLObject { readonly __WebGLObject: void; }
+interface WebGLBuffer { readonly __WebGLBuffer: void; }
+interface WebGLFramebuffer { readonly __WebGLFramebuffer: void; }
+interface WebGLProgram { readonly __WebGLProgram: void; }
+interface WebGLRenderbuffer { readonly __WebGLRenderbuffer: void; }
+interface WebGLShader { readonly __WebGLShader: void; }
+interface WebGLTexture { readonly __WebGLTexture: void; }
+interface WebGLUniformLocation { readonly __WebGLUniformLocation: void; }
+
+// WebGL 1 Extensions
+interface ANGLEInstancedArrays {
+	readonly VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE: number;
+
+	drawArraysInstancedANGLE(mode: number, first: number, count: number, primcount: number): void;
+	drawElementsInstancedANGLE(mode: number, count: number, type: number, offset: number, primcount: number): void;
+	vertexAttribDivisorANGLE(index: number, divisor: number): void;
+}
+
+interface EXTBlendMinMax {
+	readonly MIN_EXT: number;
+	readonly MAX_EXT: number;
+}
+
+interface EXTColorBufferHalfFloat {
+	readonly RGBA16F_EXT: number;
+	readonly RGB16F_EXT: number;
+	readonly FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT: number;
+	readonly UNSIGNED_NORMALIZED_EXT: number;
+}
+
+interface EXTFragDepth {
+	readonly __EXTFragDepth: void;
+}
+
+interface EXTsRGB {
+	readonly SRGB_EXT: number;
+	readonly SRGB_ALPHA_EXT: number;
+	readonly SRGB8_ALPHA8_EXT: number;
+	readonly FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING_EXT: number;
+}
+
+interface EXTShaderTextureLOD {
+	readonly __EXTShaderTextureLOD: void;
+}
+
+interface EXTTextureFilterAnisotropic {
+	readonly TEXTURE_MAX_ANISOTROPY_EXT: number;
+	readonly MAX_TEXTURE_MAX_ANISOTROPY_EXT: number;
+}
+
+interface OESElementIndexUint {
+	readonly __OESElementIndexUint: void;
+}
+
+interface OESStandardDerivatives {
+	readonly FRAGMENT_SHADER_DERIVATIVE_HINT_OES: number;
+}
+
+interface OESTextureFloat {
+	readonly __OESTextureFloat: void;
+}
+
+interface OESTextureFloatLinear {
+	readonly __OESTextureFloatLinear: void;
+}
+
+interface OESTextureHalfFloat {
+	readonly HALF_FLOAT_OES: number;
+}
+
+interface OESTextureHalfFloatLinear {
+	readonly __OESTextureHalfFloatLinear: void;
+}
+
+interface WebGLVertexArrayObjectOES extends WebGLObject {
+	readonly __WebGLVertexArrayObjectOES: void;
+}
+
+interface OESVertexArrayObject {
+	readonly VERTEX_ARRAY_BINDING_OES: number;
+
+	createVertexArrayOES(): WebGLVertexArrayObjectOES | null;
+	deleteVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES | null): void;
+	isVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES | null): boolean;
+	bindVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES | null): void;
+}
+
+interface WebGLColorBufferFloat {
+	readonly RGBA32F_EXT: number;
+	readonly FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT: number;
+	readonly UNSIGNED_NORMALIZED_EXT: number;
+}
+
+interface WebGLCompressedTextureATC {
+	readonly COMPRESSED_RGB_ATC_WEBGL: number;
+	readonly COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL: number;
+	readonly COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL: number;
+}
+
+interface WebGLCompressedTextureETC1 {
+	readonly COMPRESSED_RGB_ETC1_WEBGL: number;
+}
+
+interface WebGLCompressedTexturePVRTC {
+	readonly COMPRESSED_RGB_PVRTC_4BPPV1_IMG: number;
+	readonly COMPRESSED_RGB_PVRTC_2BPPV1_IMG: number;
+	readonly COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: number;
+	readonly COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: number;
+}
+
+interface WebGLCompressedTextureS3TC {
+	readonly COMPRESSED_RGB_S3TC_DXT1_EXT: number;
+	readonly COMPRESSED_RGBA_S3TC_DXT1_EXT: number;
+	readonly COMPRESSED_RGBA_S3TC_DXT3_EXT: number;
+	readonly COMPRESSED_RGBA_S3TC_DXT5_EXT: number;
+}
+
+interface WebGLDebugRendererInfo {
+	readonly UNMASKED_VENDOR_WEBGL: number;
+	readonly UNMASKED_RENDERER_WEBGL: number;
+}
+
+interface WebGLDebugShaders {
+	getTranslatedShaderSource(shader: WebGLShader): string;
+}
+
+interface WebGLDepthTexture {
+	readonly UNSIGNED_INT_24_8_WEBGL: number;
+}
+
+interface WebGLDrawBuffers {
+	readonly COLOR_ATTACHMENT0_WEBGL: number;
+	readonly COLOR_ATTACHMENT1_WEBGL: number;
+	readonly COLOR_ATTACHMENT2_WEBGL: number;
+	readonly COLOR_ATTACHMENT3_WEBGL: number;
+	readonly COLOR_ATTACHMENT4_WEBGL: number;
+	readonly COLOR_ATTACHMENT5_WEBGL: number;
+	readonly COLOR_ATTACHMENT6_WEBGL: number;
+	readonly COLOR_ATTACHMENT7_WEBGL: number;
+	readonly COLOR_ATTACHMENT8_WEBGL: number;
+	readonly COLOR_ATTACHMENT9_WEBGL: number;
+	readonly COLOR_ATTACHMENT10_WEBGL: number;
+	readonly COLOR_ATTACHMENT11_WEBGL: number;
+	readonly COLOR_ATTACHMENT12_WEBGL: number;
+	readonly COLOR_ATTACHMENT13_WEBGL: number;
+	readonly COLOR_ATTACHMENT14_WEBGL: number;
+	readonly COLOR_ATTACHMENT15_WEBGL: number;
+
+	readonly DRAW_BUFFER0_WEBGL: number;
+	readonly DRAW_BUFFER1_WEBGL: number;
+	readonly DRAW_BUFFER2_WEBGL: number;
+	readonly DRAW_BUFFER3_WEBGL: number;
+	readonly DRAW_BUFFER4_WEBGL: number;
+	readonly DRAW_BUFFER5_WEBGL: number;
+	readonly DRAW_BUFFER6_WEBGL: number;
+	readonly DRAW_BUFFER7_WEBGL: number;
+	readonly DRAW_BUFFER8_WEBGL: number;
+	readonly DRAW_BUFFER9_WEBGL: number;
+	readonly DRAW_BUFFER10_WEBGL: number;
+	readonly DRAW_BUFFER11_WEBGL: number;
+	readonly DRAW_BUFFER12_WEBGL: number;
+	readonly DRAW_BUFFER13_WEBGL: number;
+	readonly DRAW_BUFFER14_WEBGL: number;
+	readonly DRAW_BUFFER15_WEBGL: number;
+
+	readonly MAX_COLOR_ATTACHMENTS_WEBGL: number;
+	readonly MAX_DRAW_BUFFERS_WEBGL: number;
+
+	drawBuffersWEBGL(buffers: number[]): void;
+}
+
+interface WebGLLoseContext {
+	loseContext(): void;
+	restoreContext(): void;
+}
+
+
+// ------------------------------------------------------------------------
+// __      __   _     ___ _      ___ 
+// \ \    / /__| |__ / __| |    |_  )
+//  \ \/\/ / -_) '_ \ (_ | |__   / / 
+//   \_/\_/\___|_.__/\___|____| /___|
+//                                   
+// ------------------------------------------------------------------------
+
+interface HTMLCanvasElement {
+	getContext(contextId: "webgl2", contextAttributes?: WebGLContextAttributes): (WebGL2RenderingContext & WebGL2Extensions) | null;
+}
+
+interface WebGL2Extensions {
+	getExtension(name: "EXT_color_buffer_float"): EXTColorBufferFloat;
+	getExtension(name: "EXT_disjoint_timer_query"): EXTDisjointTimerQuery;
+	getExtension(name: "EXT_texture_filter_anisotropic"): EXTTextureFilterAnisotropic;
+
+	getExtension(name: "OES_texture_float_linear"): OESTextureFloatLinear;
+
+	getExtension(name: "WEBGL_compressed_texture_atc"): WebGLCompressedTextureATC;
+	getExtension(name: "WEBGL_compressed_texture_etc1"): WebGLCompressedTextureETC1;
+	getExtension(name: "WEBGL_compressed_texture_pvrtc"): WebGLCompressedTexturePVRTC;
+	getExtension(name: "WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
+	getExtension(name: "WEBGL_debug_renderer_info"): WebGLDebugRendererInfo;
+	getExtension(name: "WEBGL_debug_shaders"): WebGLDebugShaders;
+	getExtension(name: "WEBGL_lose_context"): WebGLLoseContext;
+
+	getExtension(name: "MOZ_WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
+	getExtension(name: "MOZ_WEBGL_lose_context"): WebGLLoseContext;
+}
+
+interface EXTColorBufferFloat extends WebGLObject {
+	readonly __EXTColorBufferFloat: void;
+}
+
+interface WebGLTimerQueryEXT extends WebGLObject {
+	readonly __WebGLTimerQueryEXT: void;
+}
+
+interface EXTDisjointTimerQuery {
+  readonly QUERY_COUNTER_BITS_EXT: number;
+  readonly CURRENT_QUERY_EXT: number;
+  readonly QUERY_RESULT_EXT: number;
+  readonly QUERY_RESULT_AVAILABLE_EXT: number;
+  readonly TIME_ELAPSED_EXT: number;
+  readonly TIMESTAMP_EXT: number;
+  readonly GPU_DISJOINT_EXT: number;
+
+  createQueryEXT(): WebGLTimerQueryEXT | null;
+  deleteQueryEXT(query: WebGLTimerQueryEXT | null): void;
+  isQueryEXT(query: WebGLTimerQueryEXT | null): void;
+  beginQueryEXT(target: number, query: WebGLTimerQueryEXT): void;
+  endQueryEXT(target: number): void;
+  queryCounterEXT(query: WebGLTimerQueryEXT, target: number): void;
+  getQueryEXT(target: number, pname: number): any;
+  getQueryObjectEXT(query: WebGLTimerQueryEXT, pname: number): any;
+}
+
+
+// WebGL 2 Type Branding
 interface WebGLQuery extends WebGLObject { readonly __WebGLQuery: void; }
 interface WebGLSampler extends WebGLObject { readonly __WebGLSampler: void; }
 interface WebGLSync extends WebGLObject { readonly __WebGLSync: void; }
 interface WebGLTransformFeedback extends WebGLObject { readonly __WebGLTransformFeedback: void; }
 interface WebGLVertexArrayObject extends WebGLObject { readonly __WebGLVertexArrayObject: void; }
 
-type TextureImageSource = ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement;
-type TextureImageData = ArrayBufferView | TextureImageSource;
 
 interface WebGL2RenderingContext extends WebGLRenderingContext {
 	/* Buffer objects */
@@ -51,10 +351,10 @@ interface WebGL2RenderingContext extends WebGLRenderingContext {
 	texStorage3D(target: number, levels: number, internalformat: number, width: number, height: number, depth: number): void;
 
 	// WebGL1 legacy entrypoints:
-	texImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, format: number, type: number, pixels: ArrayBufferView?): void;
+	texImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, format: number, type: number, pixels: ArrayBufferView | null): void;
 	texImage2D(target: number, level: number, internalformat: number, format: number, type: number, source: TextureImageSource); // May throw DOMException
 
-	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, type: number, pixels: ArrayBufferView?): void;
+	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, type: number, pixels: ArrayBufferView | null): void;
 	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, format: number, type: number, source: TextureImageSource); // May throw DOMException
 
 	// WebGL2 entrypoints:
@@ -64,7 +364,7 @@ interface WebGL2RenderingContext extends WebGLRenderingContext {
 
 	texImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, format: number, type: number, pboOffset: number): void;
 	texImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, format: number, type: number, source: TextureImageSource); // May throw DOMException
-	texImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, format: number, type: number, srcData: ArrayBufferView?): void;
+	texImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, format: number, type: number, srcData: ArrayBufferView | null): void;
 	texImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, format: number, type: number, srcData: ArrayBufferView, srcOffset: number): void;
 
 	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, type: number, pboOffset: number): void;
@@ -93,37 +393,37 @@ interface WebGL2RenderingContext extends WebGLRenderingContext {
 	getFragDataLocation(program: WebGLProgram, name: string): number;
 
 	/* Uniforms */
-	uniform1ui(location: WebGLUniformLocation?, v0: number): void;
-	uniform2ui(location: WebGLUniformLocation?, v0: number, v1: number): void;
-	uniform3ui(location: WebGLUniformLocation?, v0: number, v1: number, v2: number): void;
-	uniform4ui(location: WebGLUniformLocation?, v0: number, v1: number, v2: number, v3: number): void;
+	uniform1ui(location: WebGLUniformLocation, v0: number): void;
+	uniform2ui(location: WebGLUniformLocation, v0: number, v1: number): void;
+	uniform3ui(location: WebGLUniformLocation, v0: number, v1: number, v2: number): void;
+	uniform4ui(location: WebGLUniformLocation, v0: number, v1: number, v2: number, v3: number): void;
 
-	uniform1fv(location: WebGLUniformLocation?, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniform2fv(location: WebGLUniformLocation?, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniform3fv(location: WebGLUniformLocation?, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniform4fv(location: WebGLUniformLocation?, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniform1fv(location: WebGLUniformLocation, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniform2fv(location: WebGLUniformLocation, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniform3fv(location: WebGLUniformLocation, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniform4fv(location: WebGLUniformLocation, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
 
-	uniform1iv(location: WebGLUniformLocation?, data: Int32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniform2iv(location: WebGLUniformLocation?, data: Int32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniform3iv(location: WebGLUniformLocation?, data: Int32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniform4iv(location: WebGLUniformLocation?, data: Int32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniform1iv(location: WebGLUniformLocation, data: Int32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniform2iv(location: WebGLUniformLocation, data: Int32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniform3iv(location: WebGLUniformLocation, data: Int32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniform4iv(location: WebGLUniformLocation, data: Int32Array | number[], srcOffset?: number, srcLength?: number): void;
 
-	uniform1uiv(location: WebGLUniformLocation?, data: Uint32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniform2uiv(location: WebGLUniformLocation?, data: Uint32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniform3uiv(location: WebGLUniformLocation?, data: Uint32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniform4uiv(location: WebGLUniformLocation?, data: Uint32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniform1uiv(location: WebGLUniformLocation, data: Uint32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniform2uiv(location: WebGLUniformLocation, data: Uint32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniform3uiv(location: WebGLUniformLocation, data: Uint32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniform4uiv(location: WebGLUniformLocation, data: Uint32Array | number[], srcOffset?: number, srcLength?: number): void;
 
-	uniformMatrix2fv(location: WebGLUniformLocation?, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniformMatrix3x2fv(location: WebGLUniformLocation?, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniformMatrix4x2fv(location: WebGLUniformLocation?, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniformMatrix2fv(location: WebGLUniformLocation, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniformMatrix3x2fv(location: WebGLUniformLocation, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniformMatrix4x2fv(location: WebGLUniformLocation, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
 
-	uniformMatrix2x3fv(location: WebGLUniformLocation?, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniformMatrix3fv(location: WebGLUniformLocation?, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniformMatrix4x3fv(location: WebGLUniformLocation?, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniformMatrix2x3fv(location: WebGLUniformLocation, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniformMatrix3fv(location: WebGLUniformLocation, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniformMatrix4x3fv(location: WebGLUniformLocation, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
 
-	uniformMatrix2x4fv(location: WebGLUniformLocation?, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniformMatrix3x4fv(location: WebGLUniformLocation?, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
-	uniformMatrix4fv(location: WebGLUniformLocation?, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniformMatrix2x4fv(location: WebGLUniformLocation, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniformMatrix3x4fv(location: WebGLUniformLocation, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
+	uniformMatrix4fv(location: WebGLUniformLocation, transpose: boolean, data: Float32Array | number[], srcOffset?: number, srcLength?: number): void;
 
 	/* Vertex attribs */
 	vertexAttribI4i(index: number, x: number, y: number, z: number, w: number): void;
@@ -140,7 +440,7 @@ interface WebGL2RenderingContext extends WebGLRenderingContext {
 
 	/* Reading back pixels */
 	// WebGL1:
-	readPixels(x: number, y: number, width: number, height: number, format: number, type: number, dstData: ArrayBufferView?): void;
+	readPixels(x: number, y: number, width: number, height: number, format: number, type: number, dstData: ArrayBufferView | null): void;
 	// WebGL2:
 	readPixels(x: number, y: number, width: number, height: number, format: number, type: number, offset: number): void;
 	readPixels(x: number, y: number, width: number, height: number, format: number, type: number, dstData: ArrayBufferView, dstOffset: number): void;
@@ -167,7 +467,7 @@ interface WebGL2RenderingContext extends WebGLRenderingContext {
 	createSampler(): WebGLSampler | null;
 	deleteSampler(sampler: WebGLSampler | null): void;
 	isSampler(sampler: WebGLSampler | null): boolean;
-	bindSampler(unit: number, sampler: WebGLSampler?): void;
+	bindSampler(unit: number, sampler: WebGLSampler | null): void;
 	samplerParameteri(sampler: WebGLSampler, pname: number, param: number): void;
 	samplerParameterf(sampler: WebGLSampler, pname: number, param: number): void;
 	getSamplerParameter(sampler: WebGLSampler, pname: number): any;

@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed-tx
 
-/// <reference path="../../typings/webgl-ext.d.ts"/>
+/// <reference path="../../typings/webgl.d.ts"/>
 
 namespace sd.render {
 
