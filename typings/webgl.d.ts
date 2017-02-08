@@ -55,22 +55,6 @@ interface WebGL1Extensions {
 	getExtension(name: "MOZ_WEBGL_lose_context"): WebGLLoseContext;
 }
 
-interface WebGL2Extensions {
-	getExtension(name: "EXT_disjoint_timer_query"): EXTDisjointTimerQuery;
-
-	getExtension(name: "WEBGL_color_buffer_float"): WebGLColorBufferFloat;
-	getExtension(name: "WEBGL_compressed_texture_atc"): WebGLCompressedTextureATC;
-	getExtension(name: "WEBGL_compressed_texture_etc1"): WebGLCompressedTextureETC1;
-	getExtension(name: "WEBGL_compressed_texture_pvrtc"): WebGLCompressedTexturePVRTC;
-	getExtension(name: "WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
-	getExtension(name: "WEBGL_debug_renderer_info"): WebGLDebugRendererInfo;
-	getExtension(name: "WEBGL_debug_shaders"): WebGLDebugShaders;
-	getExtension(name: "WEBGL_lose_context"): WebGLLoseContext;
-
-	getExtension(name: "MOZ_WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
-	getExtension(name: "MOZ_WEBGL_lose_context"): WebGLLoseContext;
-}
-
 
 // WebGL 1 Type Branding
 interface WebGLObject { readonly __WebGLObject: void; }
@@ -86,8 +70,8 @@ interface WebGLUniformLocation { readonly __WebGLUniformLocation: void; }
 interface ANGLEInstancedArrays {
 	readonly VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE: number;
 
-	drawArraysInstancedANGLE(mode: number, first: number, count: number, primcount: number): void;
-	drawElementsInstancedANGLE(mode: number, count: number, type: number, offset: number, primcount: number): void;
+	drawArraysInstancedANGLE(mode: number, first: number, count: number, instanceCount: number): void;
+	drawElementsInstancedANGLE(mode: number, count: number, type: number, offset: number, instanceCount: number): void;
 	vertexAttribDivisorANGLE(index: number, divisor: number): void;
 }
 
