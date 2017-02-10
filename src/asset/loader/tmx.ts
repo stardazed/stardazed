@@ -16,7 +16,7 @@ namespace sd.asset {
 
 		constructor(layerNode: Node) {
 			const layerText = (layerNode.textContent || "").trim();
-			const byteView = new Uint8Array(atob(layerText).split("").map(c => { return c.charCodeAt(0); }));
+			const byteView = new Uint8Array(atob(layerText).split("").map(c => c.charCodeAt(0)));
 			this.tileData = new Uint32Array(byteView.buffer);
 
 			for (const attr of [].slice.call(layerNode.attributes, 0)) {
@@ -64,8 +64,12 @@ namespace sd.asset {
 	}
 
 
-	export type TMXLayerSet = { [name: string]: TMXLayer; };
-	export type TMXObjectGroupSet = { [name: string]: TMXObjectGroup; };
+	export interface TMXLayerSet {
+		[name: string]: TMXLayer;
+	}
+	export interface TMXObjectGroupSet {
+		[name: string]: TMXObjectGroup;
+	}
 
 
 	export class TMXData {

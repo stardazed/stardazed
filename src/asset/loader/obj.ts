@@ -366,7 +366,7 @@ namespace sd.asset {
 		const builder = new meshdata.MeshBuilder(positions, positionIndexes, streams);
 
 
-		// convert a face index to zero-based int or -1 for empty index	
+		// convert a face index to zero-based int or -1 for empty index
 		function fxtoi(fx: string) { return (+fx) - 1; }
 
 		for (const line of preproc.lines) {

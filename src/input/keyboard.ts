@@ -57,7 +57,7 @@ namespace sd.io {
 
 		// The extra check in the key handlers for the timeStamp was added
 		// after I encountered a rare, but frequently enough occuring bug
-		// where, when a key is pressed for a longer time so that repeat 
+		// where, when a key is pressed for a longer time so that repeat
 		// keydown events are fired, _very_ occasionally the last keydown
 		// would be fired with the same timeStamp as the keyup event but
 		// the event handler for that last down event was fired AFTER the

@@ -182,7 +182,6 @@ namespace sd.asset {
 	// -- /DEPRECATED?
 
 
-
 	export const enum TransformAnimationField {
 		None,
 		Translation,
