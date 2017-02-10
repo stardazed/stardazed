@@ -88,8 +88,7 @@ namespace sd {
 	}
 
 	export interface TypedArrayConstructor {
-		new (length: number): TypedArray;
-		new (array: ArrayLike<number>): TypedArray;
+		new (lengthOrArray: number | ArrayLike<number>): TypedArray;
 		new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray; // tslint:disable-line
 	}
 

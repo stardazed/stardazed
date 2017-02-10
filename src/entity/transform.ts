@@ -5,11 +5,11 @@
 
 namespace sd.entity {
 
-	//  _____                  __               
-	// |_   _| _ __ _ _ _  ___/ _|___ _ _ _ __  
-	//   | || '_/ _` | ' \(_-<  _/ _ \ '_| '  \ 
+	//  _____                  __
+	// |_   _| _ __ _ _ _  ___/ _|___ _ _ _ __
+	//   | || '_/ _` | ' \(_-<  _/ _ \ '_| '  \
 	//   |_||_| \__,_|_||_/__/_| \___/_| |_|_|_|
-	//                                          
+	//
 
 	export type TransformInstance = Instance<Transform>;
 	export type TransformRange = InstanceRange<Transform>;

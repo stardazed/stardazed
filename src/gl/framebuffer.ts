@@ -30,7 +30,7 @@ namespace sd.render {
 
 			// This bug occurs on Mac OS X in Safari 9 and Chrome 45, it is due to faulty
 			// setup of DRAW and READ buffer bindings in the underlying GL4 context.
-			// Bugs have been filed.		
+			// Bugs have been filed.
 			const fbStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
 			fboBugs.mustHaveAColourAtt = (fbStatus != gl.FRAMEBUFFER_COMPLETE);
 

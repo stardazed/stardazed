@@ -3,15 +3,15 @@
 		/* TypeScript Specific */
 		"adjacent-overload-signatures": false, // is buggy
 		"member-access": false,
-		"member-ordering": false,
+		"member-ordering": [false],
 		"no-any": false,
-		"no-inferrable-types": true,
+		"no-inferrable-types": [true],
 		"no-internal-module": true,
 		"no-namespace": false,
 		"no-reference": false,
 		"no-var-requires": true,
-		"only-arrow-functions": false,
-		"typedef": false,
+		"only-arrow-functions": [false],
+		"typedef": [false],
 		"typedef-whitespace": [
 			true,
 			{
@@ -30,6 +30,29 @@
 			}
 		],
 
+		// added in v4.2
+		"callable-types": true,
+		"interface-over-type-literal": true,
+		"no-empty-interface": true,
+		"no-string-throw": true,
+
+		// added in v4.3
+		"import-spacing": true,
+		"space-before-function-paren": [true, {
+			"anonymous": "never",
+			"asyncArrow": "always",
+			"constructor": "never",
+			"method": "never",
+			"named": "never"
+		}],
+		"typeof-compare": true,
+		"unified-signatures": true,
+
+		// added in v4.4
+		"arrow-return-shorthand": true,
+		"no-unnecessary-initializer": true,
+		"no-misused-new": true,
+
 		/* Functionality */
 		"ban": false,
 		"curly": true,
@@ -38,7 +61,7 @@
 		"no-arg": true,
 		"no-bitwise": false,
 		"no-conditional-assignment": false,
-		"no-console": false,
+		"no-console": [false],
 		"no-construct": true,
 		"no-debugger": false,
 		"no-duplicate-variable": true,
@@ -62,32 +85,31 @@
 		"eofline": true,
 		"indent": [true, "tabs"],
 		"linebreak-style": [true, "LF"],
-		"max-file-line-count": false,
-		"max-line-length": false,
+		"max-file-line-count": [false],
+		"max-line-length": [false],
 		"no-default-export": false,
 		"no-mergeable-namespace": false, // is buggy
 		"no-require-imports": true,
 		"no-trailing-whitespace": true,
 		"object-literal-sort-keys": false,
-		"trailing-comma": false,
+		"trailing-comma": [false],
 
 		/* Style */
 		"align": [true, "parameters", "arguments", "statements"],
 		"arrow-parens": false,
 		"class-name": true,
 		"comment-format": [true, "check-space"],
-		"file-header": false,
+		"file-header": [false],
 		"interface-name": [true, "never-prefix"],
 		"jsdoc-format": true,
 		"new-parens": true,
 		"no-angle-bracket-type-assertion": false,
 		"no-consecutive-blank-lines": [true, 2],
-		"no-constructor-vars": false,
-		"object-literal-key-quotes": false,
+		"object-literal-key-quotes": [false],
 		"object-literal-shorthand": false,
-		"one-line": false,
-		"one-variable-per-declaration": false,
-		"ordered-imports": false,
+		"one-line": [false],
+		"one-variable-per-declaration": [false],
+		"ordered-imports": [false],
 		"quotemark": [true, "double", "avoid-escape"],
 		"semicolon": [true, "always"],
 		"variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-trailing-underscore", "allow-pascal-case"],

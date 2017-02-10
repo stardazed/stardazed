@@ -166,7 +166,9 @@ namespace sd.asset {
 		}
 
 
-		type FBXNodeSet = { [id: number]: FBXNode };
+		interface FBXNodeSet {
+			[id: number]: FBXNode;
+		}
 
 
 		interface FBXConnection {
@@ -664,7 +666,7 @@ namespace sd.asset {
 							vertexIndexArray.push(~vi);
 							mb.addPolygon(polygonVertexIndexArray, vertexIndexArray);
 
-							// next polygon							
+							// next polygon
 							polygonVertexIndexArray = [];
 							vertexIndexArray = [];
 						}

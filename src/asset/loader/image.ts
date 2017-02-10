@@ -109,11 +109,11 @@ namespace sd.asset {
 	// const missingTexture = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwAQMAAABtzGvEAAAABlBMVEX/AN8AAAA/lLvMAAAAFElEQVR4AWMAgv///w96Csoc9BQAKFKPcQjw3h8AAAAASUVORK5CYII=";
 
 
-	//  ___      _ _ _       _      
-	// | _ )_  _(_) | |_ ___(_)_ _  
-	// | _ \ || | | |  _|___| | ' \ 
+	//  ___      _ _ _       _
+	// | _ )_  _(_) | |_ ___(_)_ _
+	// | _ \ || | | |  _|___| | ' \
 	// |___/\_,_|_|_|\__|   |_|_||_|
-	//                              
+	//
 
 	export function loadBuiltInImageFromURL(url: URL) {
 		return new Promise<HTMLImageElement>(function(resolve, reject) {
@@ -178,11 +178,11 @@ namespace sd.asset {
 	registerLoadersForMIMEType("image/gif", builtInImageLoader, builtInImageLoader);
 
 
-	//  _____ ___   _   
-	// |_   _/ __| /_\  
-	//   | || (_ |/ _ \ 
+	//  _____ ___   _
+	// |_   _/ __| /_\
+	//   | || (_ |/ _ \
 	//   |_| \___/_/ \_\
-	//                  
+	//
 
 	let nativeTGASupport: boolean | null = null;
 

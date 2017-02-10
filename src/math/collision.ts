@@ -137,7 +137,7 @@ namespace sd.math {
 		const wx = Math.abs(Math.sin(Math.acos(bp.normal[0])));
 		const wz = Math.abs(Math.sin(Math.acos(bp.normal[2])));
 
-		// give plane a depth of 1mm 
+		// give plane a depth of 1mm
 		return [
 			Math.max(0.001, bp.size[0] * wx),
 			Math.max(0.001, (bp.normal[0] * bp.size[0]) + (bp.normal[2] * bp.size[1])),

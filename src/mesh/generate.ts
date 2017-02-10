@@ -5,11 +5,11 @@
 
 namespace sd.meshdata.gen {
 
-	//  __  __        _    ___                       _           
-	// |  \/  |___ __| |_ / __|___ _ _  ___ _ _ __ _| |_ ___ _ _ 
+	//  __  __        _    ___                       _
+	// |  \/  |___ __| |_ / __|___ _ _  ___ _ _ __ _| |_ ___ _ _
 	// | |\/| / -_|_-< ' \ (_ / -_) ' \/ -_) '_/ _` |  _/ _ \ '_|
-	// |_|  |_\___/__/_||_\___\___|_||_\___|_| \__,_|\__\___/_|  
-	//                                                          
+	// |_|  |_\___/__/_||_\___\___|_||_\___|_| \__,_|\__\___/_|
+	//
 
 	export type Vec2AddFn = (u: number, v: number) => void;
 	export type Vec3AddFn = (x: number, y: number, z: number) => void;
@@ -164,11 +164,11 @@ namespace sd.meshdata.gen {
 	}
 
 
-	//   ___               _ 
+	//   ___               _
 	//  / _ \ _  _ __ _ __| |
 	// | (_) | || / _` / _` |
 	//  \__\_\\_,_\__,_\__,_|
-	// 						 
+	//
 
 	export class Quad implements MeshGenerator {
 		constructor(private width_ = 1, private height_ = 1) {
@@ -215,11 +215,11 @@ namespace sd.meshdata.gen {
 	}
 
 
-	//  ___ _               
-	// | _ \ |__ _ _ _  ___ 
+	//  ___ _
+	// | _ \ |__ _ _ _  ___
 	// |  _/ / _` | ' \/ -_)
 	// |_| |_\__,_|_||_\___|
-	//                      
+	//
 
 	export type PlaneYGenerator = (x: number, z: number) => number;
 
@@ -306,11 +306,11 @@ namespace sd.meshdata.gen {
 	}
 
 
-	//  ___          
+	//  ___
 	// | _ ) _____ __
 	// | _ \/ _ \ \ /
 	// |___/\___/_\_\
-	//               
+	//
 
 	export interface BoxDescriptor {
 		width: number;  // float, dimension in X
@@ -431,11 +431,11 @@ namespace sd.meshdata.gen {
 	}
 
 
-	//   ___              
-	//  / __|___ _ _  ___ 
+	//   ___
+	//  / __|___ _ _  ___
 	// | (__/ _ \ ' \/ -_)
 	//  \___\___/_||_\___|
-	//                    
+	//
 
 	export interface ConeDescriptor {
 		radiusA: number; // float, 0..
@@ -531,11 +531,11 @@ namespace sd.meshdata.gen {
 	}
 
 
-	//  ___      _                
-	// / __|_ __| |_  ___ _ _ ___ 
+	//  ___      _
+	// / __|_ __| |_  ___ _ _ ___
 	// \__ \ '_ \ ' \/ -_) '_/ -_)
 	// |___/ .__/_||_\___|_| \___|
-	//     |_|                    
+	//     |_|
 
 	export interface SphereDescriptor {
 		radius: number;     // float
@@ -639,11 +639,11 @@ namespace sd.meshdata.gen {
 	}
 
 
-	//  _____                
+	//  _____
 	// |_   _|__ _ _ _  _ ___
 	//   | |/ _ \ '_| || (_-<
 	//   |_|\___/_|  \_,_/__/
-	//                       
+	//
 
 	export interface TorusDescriptor {
 		minorRadius: number; // float, >= 0
