@@ -383,7 +383,7 @@ namespace sd.meshdata {
 
 	export class VertexBuffer implements ClientBuffer {
 		private layout_: VertexLayout;
-		private itemCount_ = 0;
+		private vertexCount_ = 0;
 		private storageOffsetBytes_ = 0;
 		private storage_: ArrayBuffer | null = null;
 
@@ -392,7 +392,7 @@ namespace sd.meshdata {
 				this.layout_ = attrs;
 			}
 			else {
-				this.layout_ = new VertexLayout(<VertexAttribute[]>attrs);
+				this.layout_ = new VertexLayout(attrs);
 			}
 		}
 
@@ -401,8 +401,8 @@ namespace sd.meshdata {
 		get layout() { return this.layout_; }
 		get strideBytes() { return this.layout_.vertexSizeBytes; }
 		get attributeCount() { return this.layout_.attributeCount; }
-		get itemCount() { return this.itemCount_; }
-		get bufferSizeBytes() { return this.strideBytes * this.itemCount_; }
+		get vertexCount() { return this.vertexCount_; }
+		get bufferSizeBytes() { return this.strideBytes * this.vertexCount_; }
 		get bufferLocalOffsetBytes() { return this.storageOffsetBytes_; }
 		get buffer() { return this.storage_; }
 
@@ -410,32 +410,19 @@ namespace sd.meshdata {
 			if (this.storage_) {
 				return new Uint8Array(this.storage_, this.storageOffsetBytes_, this.bufferSizeBytes);
 			}
-
 			return null;
 		}
 
-		allocate(itemCount: number) {
-			this.itemCount_ = itemCount;
-			this.storage_ = new ArrayBuffer(this.layout_.bytesRequiredForVertexCount(itemCount));
+		allocate(vertexCount: number) {
+			this.vertexCount_ = vertexCount;
+			this.storage_ = new ArrayBuffer(this.layout_.bytesRequiredForVertexCount(vertexCount));
 			this.storageOffsetBytes_ = 0;
 		}
 
-		suballocate(itemCount: number, insideBuffer: ArrayBuffer, atByteOffset: number) {
-			this.itemCount_ = itemCount;
+		suballocate(vertexCount: number, insideBuffer: ArrayBuffer, atByteOffset: number) {
+			this.vertexCount_ = vertexCount;
 			this.storage_ = insideBuffer;
 			this.storageOffsetBytes_ = atByteOffset;
-		}
-
-		// -- attribute access pass-through
-
-		hasAttributeWithRole(role: VertexAttributeRole) {
-			return this.layout_.hasAttributeWithRole(role);
-		}
-		attrByRole(role: VertexAttributeRole) {
-			return this.layout_.attrByRole(role);
-		}
-		attrByIndex(index: number) {
-			return this.layout_.attrByIndex(index);
 		}
 	}
 
@@ -464,9 +451,9 @@ namespace sd.meshdata {
 			assert(this.buffer_, "Tried to create a view on an unallocated buffer");
 
 			this.dataView_ = new DataView(this.buffer_);
-			this.viewItemCount_ = itemCount < 0 ? (this.vertexBuffer_.itemCount - this.firstItem_) : itemCount;
+			this.viewItemCount_ = itemCount < 0 ? (this.vertexBuffer_.vertexCount - this.firstItem_) : itemCount;
 
-			assert(this.firstItem_ + this.viewItemCount_ <= this.vertexBuffer_.itemCount, "view item range is bigger than buffer");
+			assert(this.firstItem_ + this.viewItemCount_ <= this.vertexBuffer_.vertexCount, "view item range is bigger than buffer");
 		}
 
 		forEach(callback: (item: TypedArray) => void) {
@@ -619,21 +606,10 @@ namespace sd.meshdata {
 			return result;
 		}
 
-		get count() {
-			return this.viewItemCount_;
-		}
-
-		get elementCount() {
-			return this.attrElementCount_;
-		}
-
-		get baseVertex() {
-			return this.firstItem_;
-		}
-
-		get vertexBuffer() {
-			return this.vertexBuffer_;
-		}
+		get count() { return this.viewItemCount_; }
+		get elementCount() { return this.attrElementCount_; }
+		get baseVertex() { return this.firstItem_; }
+		get vertexBuffer() { return this.vertexBuffer_; }
 
 		subView(fromItem: number, subItemCount: number) {
 			return new VertexBufferAttributeView(this.vertexBuffer_, this.attr_, this.firstItem_ + fromItem, subItemCount);
@@ -927,8 +903,8 @@ namespace sd.meshdata {
 	// FIXME: once we have triview for non-indexed meshes, make param optional and create proper view
 
 	export function calcVertexNormals(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer) {
-		const posAttr = vertexBuffer.attrByRole(VertexAttributeRole.Position);
-		const normAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
+		const posAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.Position);
+		const normAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.Normal);
 
 		if (posAttr && normAttr) {
 			const posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
@@ -989,10 +965,10 @@ namespace sd.meshdata {
 
 
 	export function calcVertexTangents(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer, uvSet = VertexAttributeRole.UV0) {
-		const posAttr = vertexBuffer.attrByRole(VertexAttributeRole.Position);
-		const normAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
-		const uvAttr = vertexBuffer.attrByRole(uvSet);
-		const tanAttr = vertexBuffer.attrByRole(VertexAttributeRole.Tangent);
+		const posAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.Position);
+		const normAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.Normal);
+		const uvAttr = vertexBuffer.layout.attrByRole(uvSet);
+		const tanAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.Tangent);
 
 		if (posAttr && normAttr && uvAttr && tanAttr) {
 			const posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
@@ -1167,7 +1143,7 @@ namespace sd.meshdata {
 
 			this.vertexBuffers.forEach((vb) => {
 				if (! pa) {
-					pa = vb.attrByRole(role);
+					pa = vb.layout.attrByRole(role);
 					if (pa) {
 						avb = vb;
 					}

@@ -62,10 +62,10 @@ namespace sd.meshdata.gen {
 		mesh.allocateSingleStorage([totalVertexCount], indexElementType, totalFaceCount * 3);
 
 		// -- views into various attributes and the index buffer
-		const normalAttr = vertexBuffer.attrByRole(VertexAttributeRole.Normal);
-		const texAttr = vertexBuffer.attrByRole(VertexAttributeRole.UV);
+		const normalAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.Normal);
+		const texAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.UV);
 
-		const posView = new VertexBufferAttributeView(vertexBuffer, vertexBuffer.attrByRole(VertexAttributeRole.Position)!);
+		const posView = new VertexBufferAttributeView(vertexBuffer, vertexBuffer.layout.attrByRole(VertexAttributeRole.Position)!);
 		const normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
 		const texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
 
