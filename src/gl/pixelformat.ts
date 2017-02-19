@@ -1,7 +1,7 @@
 // render/pixelformat - pixel formats and traits
-// Part of Stardazed TX
+// Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
-// https://github.com/stardazed/stardazed-tx
+// https://github.com/stardazed/stardazed
 
 namespace sd.render {
 
@@ -217,7 +217,7 @@ namespace sd.render {
 	}
 
 
-	// In SD, PixelCoordinate and PixelDimensions are defined in PixelBuffer, not present yet in SDTX
+	// In SD-Native, PixelCoordinate and PixelDimensions are defined in PixelBuffer, not present yet in SD
 
 	export interface PixelCoordinate {
 		x: number;

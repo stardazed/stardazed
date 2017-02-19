@@ -4,7 +4,7 @@
         "target": "es5",
 
         "rootDir": "src",
-        "outFile": "../dist/stardazed-tx.js",
+        "outFile": "../dist/stardazed.js",
         "declaration": true,
         "sourceMap": false,
         "removeComments": true,

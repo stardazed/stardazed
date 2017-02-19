@@ -1,7 +1,7 @@
 // numeric.ts - numeric types, traits and array helpers
-// Part of Stardazed TX
+// Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
-// https://github.com/stardazed/stardazed-tx
+// https://github.com/stardazed/stardazed
 // this file is placed first in the compiled output so the retained license block follows:
 /*! Copyright (c) 2015-2016 Arthur Langereis
 

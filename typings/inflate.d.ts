@@ -1,7 +1,7 @@
 // Definition file for the inflate.js file
-// Part of Stardazed TX
+// Part of Stardazed
 // (c) 2015-2016 by Arthur Langereis - @zenmumbler
-// https://github.com/stardazed/stardazed-tx
+// https://github.com/stardazed/stardazed
 
 // inflate.js (c) 2013 by Gildas Lormeau, part of the zip.js library
 // See: https://gildas-lormeau.github.io/zip.js/

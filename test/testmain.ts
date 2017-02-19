@@ -1,8 +1,8 @@
-// Part of Stardazed TX
+// Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
-// https://github.com/stardazed/stardazed-tx
+// https://github.com/stardazed/stardazed
 
-/// <reference path="../dist/stardazed-tx.d.ts" />
+/// <reference path="../dist/stardazed.d.ts" />
 /// <reference path="inquisition/build/inquisition.d.ts" />
 
 // alias first-level namespaces

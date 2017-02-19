@@ -1,7 +1,7 @@
 // asset/loader/tmx - Tiled (mapeditor.org) TMX files and types
-// Part of Stardazed TX
+// Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
-// https://github.com/stardazed/stardazed-tx
+// https://github.com/stardazed/stardazed
 
 /// <reference path="../registry.ts" />
 

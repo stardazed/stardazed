@@ -1,7 +1,7 @@
 // mesh/meshdata - mesh data
-// Part of Stardazed TX
+// Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
-// https://github.com/stardazed/stardazed-tx
+// https://github.com/stardazed/stardazed
 
 namespace sd.meshdata {
 
