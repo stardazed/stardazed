@@ -1,5 +1,5 @@
-Stardazed TX
-============
+Stardazed
+=========
 
 A library to enable quick development of custom 3D games in the browser.<br>
 All code runs in the browser, the library does *not* have or need a server component.
@@ -57,7 +57,7 @@ Features
 Development is ongoing continuously, check the
 [blog](http://blog.stardazed.club/) and our
 [twitter](https://twitter.com/clubstardazed) and the
-[GH project page](https://github.com/stardazed/stardazed-tx/projects/1)
+[GH project page](https://github.com/stardazed/stardazed/projects/1)
 to see what we're working on.
 
 ---
