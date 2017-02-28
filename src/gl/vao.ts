@@ -5,7 +5,7 @@
 
 namespace sd.render {
 
-	function glTypeForVertexField(rc: render.RenderContext, vf: meshdata.VertexField) {
+	export function glTypeForVertexField(rc: render.RenderContext, vf: meshdata.VertexField) {
 		switch (vf) {
 			case meshdata.VertexField.Float:
 			case meshdata.VertexField.Floatx2:
@@ -65,11 +65,7 @@ namespace sd.render {
 
 
 	export class VAO {
-		constructor(rc: RenderContext) {
-		}
-
-		create() {
-
+		constructor(public rc: RenderContext) {
 		}
 	}
 

@@ -68,6 +68,10 @@ namespace sd {
 		entries(): IterableIterator<[number, number]>;
 		keys(): IterableIterator<number>;
 		values(): IterableIterator<number>;
+
+		// es2016.includes extensions
+		[Symbol.toStringTag]: any;
+		includes(searchElement: number, fromIndex?: number): boolean;
 	}
 
 	export interface TypedArray extends TypedArrayBase {
@@ -89,7 +93,7 @@ namespace sd {
 
 	export interface TypedArrayConstructor {
 		new (lengthOrArray: number | ArrayLike<number>): TypedArray;
-		new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray; // tslint:disable-line
+		new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
 	}
 
 	// helper type for enums stored in Int32Arrays

@@ -111,7 +111,7 @@ namespace sd.meshdata {
 		private streams_: VertexAttributeStream[];
 
 
-		constructor(positions: Float32Array, positionIndexes: Uint32Array | null, streams: VertexAttributeStream[]) {
+		constructor(positions: Float32Array | Float64Array, positionIndexes: Uint32Array | null, streams: VertexAttributeStream[]) {
 			// create a local copy of the streams array so we can modify it
 			this.streams_ = streams.slice(0);
 
