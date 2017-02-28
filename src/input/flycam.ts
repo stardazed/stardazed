@@ -95,7 +95,7 @@ namespace sd.io {
 			});
 
 			dom.on(window, "deviceorientation", (evt: DeviceOrientationEvent) => {
-				this.deviceTilt_ = evt.beta * Math.sign(evt.gamma || 0);
+				this.deviceTilt_ = evt.beta! * Math.sign(evt.gamma || 0);
 			});
 			dom.on(window, "touchstart", (_evt: TouchEvent) => {
 				this.deviceTouch_ = true;

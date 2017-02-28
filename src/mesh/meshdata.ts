@@ -284,7 +284,7 @@ namespace sd.meshdata {
 			return {
 				field: fieldOrAttr,
 				role: roleOrOffset,
-				offset: offset | 0
+				offset: offset! | 0
 			};
 		}
 		else {

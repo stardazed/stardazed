@@ -163,29 +163,30 @@ namespace sd.asset.md5.parse {
 				this.offset_--;
 				const token = this.source.substring(tokenStart, tokenEnd);
 
-				if ((firstChar >= "A" && firstChar <= "Z") || (firstChar >= "a" && firstChar <= "z")) {
-					// unquoted strings starting with an alpha char are keys
-					return {
-						type: TokenType.Key,
-						offset: tokenStart,
-						val: token.substr(0, token.length).toLowerCase() // assuming MD5 keys are case-insensitive
-					};
-				}
-				else if (firstChar == "-" || (firstChar >= "0" && firstChar <= "9")) {
-					// numbers are either ints or floats
-					const num = parseFloat(token);
-					if (isNaN(num)) {
-						return invalid();
+				if (firstChar !== null) {
+					if ((firstChar >= "A" && firstChar <= "Z") || (firstChar >= "a" && firstChar <= "z")) {
+						// unquoted strings starting with an alpha char are keys
+						return {
+							type: TokenType.Key,
+							offset: tokenStart,
+							val: token.substr(0, token.length).toLowerCase() // assuming MD5 keys are case-insensitive
+						};
 					}
-					return {
-						type: TokenType.Number,
-						offset: tokenStart,
-						val: num
-					};
+					else if (firstChar == "-" || (firstChar >= "0" && firstChar <= "9")) {
+						// numbers are either ints or floats
+						const num = parseFloat(token);
+						if (isNaN(num)) {
+							return invalid();
+						}
+						return {
+							type: TokenType.Number,
+							offset: tokenStart,
+							val: num
+						};
+					}
 				}
-				else {
-					return invalid();
-				}
+
+				return invalid();
 			}
 		}
 	}

@@ -149,62 +149,63 @@ namespace sd.asset.fbx.parse {
 				this.offset_--;
 				const token = this.source.substring(tokenStart, tokenEnd);
 
-				if ((firstChar >= "A" && firstChar <= "Z") || (firstChar >= "a" && firstChar <= "z")) {
-					// A non-quoted string starting with alphabetic character can only be a Label...
-					// ...except for the "Shading" property which has an unquoted string (T or Y) as a value
-					if (token == "T" || token == "Y") {
-						return {
-							type: TokenType.String,
-							offset: tokenStart,
-							val: token
-						};
-					}
-					if (token.length < 2 || (token[token.length - 1] != ":")) {
-						return invalid();
-					}
-
-					// TODO: verify that only correct chars are used in label [a-zA-Z0-9]
-					return {
-						type: TokenType.Key,
-						offset: tokenStart,
-						val: token.substr(0, token.length - 1)
-					};
-				}
-				else if (firstChar == "*" || firstChar == "-" || (firstChar >= "0" && firstChar <= "9")) {
-					// Numbers are either int32s, floats or the count of a following array.
-					// Counts are indicated by having an * prefix.
-
-					if (firstChar == "*") {
-						if (token.length < 2) {
+				if (firstChar !== null) {
+					if ((firstChar >= "A" && firstChar <= "Z") || (firstChar >= "a" && firstChar <= "z")) {
+						// A non-quoted string starting with alphabetic character can only be a Label...
+						// ...except for the "Shading" property which has an unquoted string (T or Y) as a value
+						if (token == "T" || token == "Y") {
+							return {
+								type: TokenType.String,
+								offset: tokenStart,
+								val: token
+							};
+						}
+						if (token.length < 2 || (token[token.length - 1] != ":")) {
 							return invalid();
 						}
+
+						// TODO: verify that only correct chars are used in label [a-zA-Z0-9]
+						return {
+							type: TokenType.Key,
+							offset: tokenStart,
+							val: token.substr(0, token.length - 1)
+						};
+					}
+					else if (firstChar == "*" || firstChar == "-" || (firstChar >= "0" && firstChar <= "9")) {
+						// Numbers are either int32s, floats or the count of a following array.
+						// Counts are indicated by having an * prefix.
+
+						if (firstChar == "*") {
+							if (token.length < 2) {
+								return invalid();
+							}
+							else {
+								const count = parseFloat(token.substr(1));
+								if (isNaN(count) || count != (count | 0) || count < 1) {
+									return invalid();
+								}
+								return {
+									type: TokenType.ArrayCount,
+									offset: tokenStart,
+									val: count | 0
+								};
+							}
+						}
 						else {
-							const count = parseFloat(token.substr(1));
-							if (isNaN(count) || count != (count | 0) || count < 1) {
+							const num = parseFloat(token);
+							if (isNaN(num)) {
 								return invalid();
 							}
 							return {
-								type: TokenType.ArrayCount,
+								type: TokenType.Number,
 								offset: tokenStart,
-								val: count | 0
+								val: num
 							};
 						}
 					}
-					else {
-						const num = parseFloat(token);
-						if (isNaN(num)) {
-							return invalid();
-						}
-						return {
-							type: TokenType.Number,
-							offset: tokenStart,
-							val: num
-						};
-					}
 				}
-				else {
-					return invalid();
-				}
+
+				return invalid();
 			}
 		}
 	}
