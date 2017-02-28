@@ -219,7 +219,7 @@ namespace sd.meshdata {
 			else {
 				for (let streamIx = 0; streamIx < this.streamCount_; ++streamIx) {
 					const stream = this.streams_[streamIx];
-					const elemCount = stream.elementCount;
+					const elemCount = stream.elementCount!;
 					const array = this.vertexData_[streamIx];
 					const fieldIndex = streamIndexes[streamIx];
 					let values: ArrayOfNumber = stream.values!; // TODO: is this guaranteed to exist in this loop?
@@ -335,7 +335,7 @@ namespace sd.meshdata {
 			// copy vertex streams
 			for (let six = 0; six < meshAttributeStreams.length; ++six) {
 				const streamData = this.vertexData_[six];
-				const attribute = vb.attrByIndex(six);
+				const attribute = vb.layout.attrByIndex(six);
 				if (attribute) {
 					const view = new VertexBufferAttributeView(vb, attribute);
 					view.copyValuesFrom(streamData, this.vertexCount_);
