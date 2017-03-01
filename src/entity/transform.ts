@@ -11,13 +11,19 @@ namespace sd.entity {
 	//   |_||_| \__,_|_||_/__/_| \___/_| |_|_|_|
 	//
 
-	export type TransformInstance = Instance<Transform>;
-	export type TransformRange = InstanceRange<Transform>;
-	export type TransformSet = InstanceSet<Transform>;
-	export type TransformIterator = InstanceIterator<Transform>;
-	export type TransformArrayView = InstanceArrayView<Transform>;
+	export interface Transform {
+		position: Float3;
+		rotation?: Float4; // quat
+		scale?: Float3;
+	}
 
-	export class Transform implements Component<Transform> {
+	export type TransformInstance = Instance<TransformComponent>;
+	export type TransformRange = InstanceRange<TransformComponent>;
+	export type TransformSet = InstanceSet<TransformComponent>;
+	export type TransformIterator = InstanceIterator<TransformComponent>;
+	export type TransformArrayView = InstanceArrayView<TransformComponent>;
+
+	export class TransformComponent implements Component<TransformComponent> {
 		private instanceData_: container.MultiArrayBuffer;
 
 		private entityBase_: EntityArrayView;
@@ -76,8 +82,8 @@ namespace sd.entity {
 
 
 		create(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
-		create(linkedEntity: Entity, desc?: asset.Transform, parent?: TransformInstance): TransformInstance;
-		create(linkedEntity: Entity, descOrParent?: asset.Transform | TransformInstance, parent?: TransformInstance): TransformInstance {
+		create(linkedEntity: Entity, desc?: Transform, parent?: TransformInstance): TransformInstance;
+		create(linkedEntity: Entity, descOrParent?: Transform | TransformInstance, parent?: TransformInstance): TransformInstance {
 			const entIndex = entityIndex(linkedEntity);
 
 			if (this.instanceData_.count < entIndex) {
@@ -88,7 +94,7 @@ namespace sd.entity {
 
 			const thisInstance = entIndex;
 			let parentInstance = 0;
-			let descriptor: asset.Transform | null = null;
+			let descriptor: Transform | null = null;
 
 			this.entityBase_[thisInstance] = <number>linkedEntity;
 
@@ -97,7 +103,7 @@ namespace sd.entity {
 					parentInstance = descOrParent as number;
 				}
 				else {
-					descriptor = descOrParent as asset.Transform;
+					descriptor = descOrParent as Transform;
 					parentInstance = parent as number; // can be 0
 				}
 			}
@@ -177,7 +183,7 @@ namespace sd.entity {
 		}
 
 		all(): TransformRange {
-			return new InstanceLinearRange<Transform>(1, this.count);
+			return new InstanceLinearRange<TransformComponent>(1, this.count);
 		}
 
 
