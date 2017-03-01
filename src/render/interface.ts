@@ -5,7 +5,7 @@
 
 namespace sd.render {
 
-	const enum ResourceType {
+	export const enum ResourceType {
 		Texture = 1,
 		Sampler,
 		RenderTarget,
@@ -16,12 +16,12 @@ namespace sd.render {
 		Shader
 	}
 
-	interface RenderResourceCommandBuffer {
-		alloc(tex: TextureDescriptor): void;
-		alloc(sampler: SamplerDescriptor): void;
+	export interface RenderResourceCommandBuffer {
+		alloc(tex: Texture): void;
+		alloc(sampler: Sampler): void;
 	}
 
-	interface RenderDevice {
+	export interface RenderDevice {
 
 	}
 
