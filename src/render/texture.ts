@@ -58,6 +58,7 @@ namespace sd.render {
 		};
 	}
 
+
 	export function makeCubemapSampler(mipmapped: boolean): Sampler {
 		return {
 			...makeSampler(),
@@ -97,9 +98,11 @@ namespace sd.render {
 	}
 
 
-	export const enum UseMipMaps {
-		No = 0,
-		Yes = 1
+	export const enum MipMaps {
+		Keep,
+		Strip,
+		Regenerate,
+		Reserve
 	}
 
 
@@ -132,12 +135,13 @@ namespace sd.render {
 		textureClass: TextureClass;
 		pixelFormat: image.PixelFormat;
 		dim: image.PixelDimensions;
-		mipmaps: number;
-		layers: number;
+		mipmaps: MipMaps;
+		maxMipLevel?: number;
+		layers?: number;
 
 		// If omitted, new textures will be created with zeroed data.
 		// If included, the number of entries MUST equal `layers` for Tex2D, `dim.depth` for Tex3D and 6 * `layers` for TexCube classes.
-		pixelData?: TextureImageData[];
+		pixelData?: image.PixelDataProvider[];
 	}
 
 
@@ -151,35 +155,29 @@ namespace sd.render {
 			textureClass: TextureClass.Tex2D,
 			pixelFormat: image.PixelFormat.None,
 			dim: image.makePixelDimensions(0, 0),
-			mipmaps: 1,
-			layers: 1
+			mipmaps: MipMaps.Keep
 		};
 	}
 
 
-	export function makeTex2D(pixelFormat: image.PixelFormat, width: number, height: number, mipmapped: UseMipMaps = UseMipMaps.No): Texture {
-		const maxDim = Math.max(width, height);
-
+	export function makeTex2D(pixelFormat: image.PixelFormat, width: number, height: number, mipmaps: MipMaps = MipMaps.Keep): Texture {
 		return {
 			textureClass: TextureClass.Tex2D,
 			pixelFormat: pixelFormat,
 			dim: image.makePixelDimensions(width, height),
-			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(maxDim) : 1,
-			layers: 1
+			mipmaps
 		};
 	}
 
 
-	export function makeTex2DFromImageSource(source: TextureImageSource, colourSpace: image.ColourSpace, mipmapped: UseMipMaps = UseMipMaps.No): Texture {
-		const maxDim = Math.max(source.width, source.height);
-
+	export function makeTex2DFromProvider(provider: image.PixelDataProvider, colourSpace: image.ColourSpace, mipmaps: MipMaps = MipMaps.Keep): Texture {
 		return {
 			textureClass: TextureClass.Tex2D,
 			pixelFormat: colourSpace === image.ColourSpace.sRGB ? image.PixelFormat.SRGB8_Alpha8 : image.PixelFormat.RGBA8,
-			dim: image.makePixelDimensions(source.width, source.height),
-			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(maxDim) : 1,
+			dim: image.makePixelDimensions(provider.dim.width, provider.dim.height),
+			mipmaps,
 			layers: 1,
-			pixelData: [source]
+			pixelData: [provider]
 		};
 	}
 
@@ -189,31 +187,33 @@ namespace sd.render {
 			textureClass: TextureClass.Tex2D,
 			pixelFormat: image.PixelFormat.RGBA32F,
 			dim: image.makePixelDimensions(width, height),
-			mipmaps: 1,
-			layers: 1,
-			pixelData: [sourceData]
+			mipmaps: MipMaps.Keep,
+			pixelData: [image.providerForSingleBuffer({
+				data: sourceData,
+				dim: image.makePixelDimensions(width, height),
+				colourSpace: image.ColourSpace.Linear,
+				format: image.PixelFormat.RGBA32F
+			})]
 		};
 	}
 
 
-	export function makeTexCube(pixelFormat: image.PixelFormat, dimension: number, mipmapped: UseMipMaps = UseMipMaps.No): Texture {
+	export function makeTexCube(pixelFormat: image.PixelFormat, dimension: number, mipmaps: MipMaps = MipMaps.Keep): Texture {
 		return {
 			textureClass: TextureClass.TexCube,
 			pixelFormat: pixelFormat,
 			dim: image.makePixelDimensions(dimension, dimension),
-			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(dimension) : 1,
-			layers: 1
+			mipmaps
 		};
 	}
 
 
-	export function makeTexCubeFromImageSources(sources: TextureImageSource[], colourSpace: image.ColourSpace, mipmapped: UseMipMaps = UseMipMaps.No): Texture {
+	export function makeTexCubeFromProviders(sources: image.PixelDataProvider[], colourSpace: image.ColourSpace, mipmaps: MipMaps = MipMaps.Keep): Texture {
 		return {
 			textureClass: TextureClass.TexCube,
 			pixelFormat: colourSpace === image.ColourSpace.sRGB ? image.PixelFormat.SRGB8_Alpha8 : image.PixelFormat.RGBA8,
-			dim: image.makePixelDimensions(sources[0].width, sources[0].height),
-			mipmaps: (mipmapped == UseMipMaps.Yes) ? maxMipLevelsForDimension(sources[0].width) : 1,
-			layers: 1,
+			dim: image.makePixelDimensions(sources[0].dim.width, sources[0].dim.height),
+			mipmaps,
 			pixelData: sources
 		};
 	}
