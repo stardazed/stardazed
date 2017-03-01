@@ -30,13 +30,13 @@ namespace sd.render {
 		width: number;
 		height: number;
 
-		colourPixelFormats: PixelFormat[];
+		colourPixelFormats: image.PixelFormat[];
 
 		// The implementation may create a combined depth/stencil texture if it
 		// fits the profile of the provided texture formats, or you can make it
 		// explicit by setting both to the same DepthStencil PixelFormat.
-		depthPixelFormat: PixelFormat;
-		stencilPixelFormat: PixelFormat;
+		depthPixelFormat: image.PixelFormat;
+		stencilPixelFormat: image.PixelFormat;
 	}
 
 
@@ -65,10 +65,10 @@ namespace sd.render {
 
 
 	export function makeFrameBufferAllocationDescriptor(numColourAttachments: number): FrameBufferAllocationDescriptor {
-		const apf: PixelFormat[] = [];
+		const apf: image.PixelFormat[] = [];
 		for (let k = 0; k < 8; ++k) {
 			// set default pixelformat for requested colour attachments to RGBA8
-			apf.push((k < numColourAttachments) ? PixelFormat.RGBA8 : PixelFormat.None);
+			apf.push((k < numColourAttachments) ? image.PixelFormat.RGBA8 : image.PixelFormat.None);
 		}
 		Object.seal(apf); // fixed length arrays
 
@@ -78,8 +78,8 @@ namespace sd.render {
 
 			colourPixelFormats: apf,
 
-			depthPixelFormat: PixelFormat.None,
-			stencilPixelFormat: PixelFormat.None
+			depthPixelFormat: image.PixelFormat.None,
+			stencilPixelFormat: image.PixelFormat.None
 		};
 	}
 
