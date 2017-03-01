@@ -197,11 +197,6 @@ namespace sd.render {
 
 
 	export function makeTexCube(pixelFormat: image.PixelFormat, dimension: number, mipmapped: UseMipMaps = UseMipMaps.No): Texture {
-		const sampler = makeSampler();
-		sampler.mipFilter = mipmapped == UseMipMaps.Yes ? TextureMipFilter.Linear : TextureMipFilter.None;
-		sampler.repeatS = TextureRepeatMode.ClampToEdge;
-		sampler.repeatT = TextureRepeatMode.ClampToEdge;
-
 		return {
 			textureClass: TextureClass.TexCube,
 			pixelFormat: pixelFormat,
@@ -213,11 +208,6 @@ namespace sd.render {
 
 
 	export function makeTexCubeFromImageSources(sources: TextureImageSource[], colourSpace: image.ColourSpace, mipmapped: UseMipMaps = UseMipMaps.No): Texture {
-		const sampler = makeSampler();
-		sampler.mipFilter = mipmapped == UseMipMaps.Yes ? TextureMipFilter.Linear : TextureMipFilter.None;
-		sampler.repeatS = TextureRepeatMode.ClampToEdge;
-		sampler.repeatT = TextureRepeatMode.ClampToEdge;
-
 		return {
 			textureClass: TextureClass.TexCube,
 			pixelFormat: colourSpace === image.ColourSpace.sRGB ? image.PixelFormat.SRGB8_Alpha8 : image.PixelFormat.RGBA8,
