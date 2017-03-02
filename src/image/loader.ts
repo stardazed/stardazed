@@ -1,9 +1,67 @@
-// image/buitin - built-in image providers
+// image/loader - image loading frontend
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 namespace sd.image {
+
+	let nativeTGASupport: boolean | null = null;
+
+	function checkNativeTGASupport(): Promise<boolean> {
+		if (nativeTGASupport === null) {
+			return new Promise((resolve, _) => {
+				const img = new Image();
+				img.onload = () => { nativeTGASupport = true; resolve(true); };
+				img.onerror = () => { nativeTGASupport = false; resolve(false); };
+				img.src = "data:image/tga;base64,AAACAAAAAAAAAAAAAQABABgA////";
+			});
+		}
+
+		return Promise.resolve(nativeTGASupport);
+	}
+
+	function tgaLoader(source: URL | ArrayBufferView): Promise<PixelDataProvider> {
+		if (source instanceof URL) {
+			return checkNativeTGASupport().then(supported => {
+				if (supported) {
+					return loadBuiltInImageFromURL(source).then(image => {
+						return image;
+					});
+				}
+				else {
+					return loadFile(source.href, { responseType: FileLoadType.ArrayBuffer }).then((buf: ArrayBuffer) => {
+						return loadTGAImageFromBufferView(buf);
+					});
+				}
+			});
+		}
+		else {
+			return checkNativeTGASupport().then(supported => {
+				if (supported) {
+					return loadBuiltInImageFromBuffer(source, mimeType).then(image => {
+						return image;
+					});
+				}
+				else {
+					return Promise.resolve(loadTGAImageFromBufferView(source));
+				}
+			});
+		}
+	}
+
+	function loadImage(source: URL | ArrayBufferView, mimeType?: string): Promise<PixelDataProvider> {
+		if (! mimeType) {
+			const extension = fileExtensionOfURL(url);
+			mimeType = mimeTypeForFileExtension(extension);
+		}
+		if (! mimeType) {
+			return Promise.reject(`Cannot determine mime-type of '${url}'`);
+		}
+	}
+
+
+
+	// ----
 
 	export function loadImageURL(url: URL, mimeType?: string): Promise<ImageData | HTMLImageElement> {
 		if (! mimeType) {
@@ -48,29 +106,6 @@ namespace sd.image {
 				}
 			});
 		}
-	}
-
-
-	export function imageData(image: HTMLImageElement): ImageData {
-		const cvs = document.createElement("canvas");
-		cvs.width = image.width;
-		cvs.height = image.height;
-		const tc = cvs.getContext("2d")!;
-		tc.drawImage(image, 0, 0);
-
-		return tc.getImageData(0, 0, image.width, image.height);
-	}
-
-
-	export function loadImageDataURL(url: URL): Promise<ImageData> {
-		return loadImageURL(url).then(function(imageOrData) {
-			if ("data" in imageOrData) {
-				return <ImageData>imageOrData;
-			}
-			else {
-				return imageData(<HTMLImageElement>imageOrData);
-			}
-		});
 	}
 
 
