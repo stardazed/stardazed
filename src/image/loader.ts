@@ -29,7 +29,7 @@ namespace sd.image {
 					});
 				}
 				else {
-					return loadFile(source.href, { responseType: FileLoadType.ArrayBuffer }).then((buf: ArrayBuffer) => {
+					return io.loadFile(source.href, { responseType: io.FileLoadType.ArrayBuffer }).then((buf: ArrayBuffer) => {
 						return loadTGAImageFromBufferView(buf);
 					});
 				}
@@ -49,9 +49,9 @@ namespace sd.image {
 		}
 	}
 
-	function loadImage(source: URL | ArrayBufferView, mimeType?: string): Promise<PixelDataProvider> {
+	export function loadImage(source: URL | ArrayBufferView, mimeType?: string): Promise<PixelDataProvider> {
 		if (! mimeType) {
-			const extension = fileExtensionOfURL(url);
+			const extension = io.fileExtensionOfURL(url);
 			mimeType = mimeTypeForFileExtension(extension);
 		}
 		if (! mimeType) {
@@ -60,10 +60,10 @@ namespace sd.image {
 	}
 
 
-
 	// ----
 
-	export function loadImageURL(url: URL, mimeType?: string): Promise<ImageData | HTMLImageElement> {
+
+	function loadImageURL(url: URL, mimeType?: string): Promise<ImageData | HTMLImageElement> {
 		if (! mimeType) {
 			const extension = fileExtensionOfURL(url);
 			mimeType = mimeTypeForFileExtension(extension);
@@ -90,7 +90,7 @@ namespace sd.image {
 	}
 
 
-	export function loadImageFromBuffer(buffer: ArrayBuffer, mimeType: string): Promise<ImageData | HTMLImageElement> {
+	function loadImageFromBuffer(buffer: ArrayBuffer, mimeType: string): Promise<ImageData | HTMLImageElement> {
 		const loader = bufferLoaderForMIMEType(mimeType);
 		if (! loader) {
 			return Promise.reject(`No buffer loader available for mime-type '${mimeType}'`);
@@ -115,7 +115,7 @@ namespace sd.image {
 	// |___/\_,_|_|_|\__|   |_|_||_|
 	//
 
-	export function loadBuiltInImageFromURL(url: URL) {
+	function loadBuiltInImageFromURL(url: URL) {
 		return new Promise<HTMLImageElement>(function(resolve, reject) {
 			const image = new Image();
 			image.onload = () => {
@@ -135,7 +135,7 @@ namespace sd.image {
 	}
 
 
-	export function loadBuiltInImageFromBuffer(buffer: ArrayBuffer, mimeType: string) {
+	function loadBuiltInImageFromBuffer(buffer: ArrayBuffer, mimeType: string) {
 		return new Promise<HTMLImageElement>(function(resolve, reject) {
 			const blob = new Blob([buffer], { type: mimeType });
 
@@ -165,4 +165,4 @@ namespace sd.image {
 		});
 	}
 
-} // ns sd.asset
+} // ns sd.image
