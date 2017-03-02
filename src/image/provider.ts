@@ -24,6 +24,10 @@ namespace sd.image {
 		return { width, height, depth };
 	}
 
+	export function dimensionAtMipLevel(dim: number, level: number) {
+		return Math.max(1, (dim | 0) >> (level | 0));
+	}
+
 
 	export function dataSizeBytesForPixelFormatAndDimensions(format: PixelFormat, dim: PixelDimensions) {
 		const elementSize = pixelFormatBytesPerElement(format);
