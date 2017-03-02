@@ -5,22 +5,6 @@
 
 namespace sd.image {
 
-	let nativeTGASupport: boolean | null = null;
-
-	function checkNativeTGASupport(): Promise<boolean> {
-		if (nativeTGASupport === null) {
-			return new Promise((resolve, _) => {
-				const img = new Image();
-				img.onload = () => { nativeTGASupport = true; resolve(true); };
-				img.onerror = () => { nativeTGASupport = false; resolve(false); };
-				img.src = "data:image/tga;base64,AAACAAAAAAAAAAAAAQABABgA////";
-			});
-		}
-
-		return Promise.resolve(nativeTGASupport);
-	}
-
-
 	const enum TGAImageType /* uint8 */ {
 		None = 0,
 		Paletted = 1,
@@ -31,37 +15,35 @@ namespace sd.image {
 		CompressedBit = 32
 	}
 
-	/*
-		struct TGAFileHeader {
-		0	uint8  identLengthUnused;
-		1	uint8  usePalette;
-		2	TGAImageType imageType;
-		3	uint16 firstPaletteIndex;
-		5	uint16 paletteEntryCount;
-		7	uint8  paletteBits;
-		8	uint16 originX;
-		10	uint16 originY;
-		12	uint16 width;
-		14	uint16 height;
-		16	uint8  bitDepth;
-		17	uint8  flagsUnused;
-		} __attribute__((__packed__));
-	*/
+	const enum TGAFileHeader {
+		identLengthUnused = 0, // uint8
+		usePalette = 1, // uint8
+		imageType = 2, // TGAImageType
+		firstPaletteIndex = 3, // uint16
+		paletteEntryCount = 5, // uint16
+		paletteBits = 7, // uint8
+		originX = 8, // uint16
+		originY = 10, // uint16
+		width = 12, // uint16
+		height = 14, // uint16
+		bitDepth = 16, // uint8
+		flagsUnused = 17, // uint8
+	}
 
-	export function loadTGAImageFromBufferView(view: ArrayBufferView): ImageData {
+	function loadTGAImageFromBufferView(view: ArrayBufferView): ImageData {
 		const headerView = new DataView(view.buffer, view.byteOffset, 18);
-		const identLengthUnused = headerView.getUint8(0);
-		const usePalette = headerView.getUint8(1);
-		const imageType: TGAImageType = headerView.getUint8(2);
+		const identLengthUnused = headerView.getUint8(TGAFileHeader.identLengthUnused);
+		const usePalette = headerView.getUint8(TGAFileHeader.usePalette);
+		const imageType: TGAImageType = headerView.getUint8(TGAFileHeader.imageType);
 
 		// -- we only support a subset of TGA image types, namely those used in game pipelines
 		assert(identLengthUnused === 0, "Unsupported TGA format.");
 		assert(usePalette === 0, "Paletted TGA images are not supported.");
 		assert((imageType & TGAImageType.CompressedBit) === 0, "Compressed TGA images are not supported.");
 
-		const width = headerView.getUint16(12, true);
-		const height = headerView.getUint16(14, true);
-		const bitDepth = headerView.getUint8(16);
+		const width = headerView.getUint16(TGAFileHeader.width, true);
+		const height = headerView.getUint16(TGAFileHeader.height, true);
+		const bitDepth = headerView.getUint8(TGAFileHeader.bitDepth);
 		let bytesPerPixel = 0;
 
 		if ((imageType & 7) == TGAImageType.RGB) {
@@ -184,7 +166,16 @@ namespace sd.image {
 
 
 	export class TGADataProvider implements PixelDataProvider {
-		constructor(private data_: HTMLImageElement | ImageData) {}
+		private data_: HTMLImageElement | ImageData;
+
+		constructor(source: HTMLImageElement | ArrayBufferView) {
+			if (source instanceof HTMLImageElement) {
+				this.data_ = source;
+			}
+			else {
+				this.data_ = loadTGAImageFromBufferView(source);
+			}
+		}
 
 		get format() { return PixelFormat.RGBA8; }
 		get colourSpace() { return ColourSpace.Linear; }
@@ -201,36 +192,6 @@ namespace sd.image {
 				dim: { ...this.dim },
 				data: this.data_
 			};
-		}
-	}
-
-
-	export function tgaLoader(source: URL | ArrayBufferView): Promise<PixelDataProvider> {
-		if (source instanceof URL) {
-			return checkNativeTGASupport().then(supported => {
-				if (supported) {
-					return loadBuiltInImageFromURL(source).then(image => {
-						return image;
-					});
-				}
-				else {
-					return loadFile(source.href, { responseType: FileLoadType.ArrayBuffer }).then((buf: ArrayBuffer) => {
-						return loadTGAImageFromBufferView(buf);
-					});
-				}
-			});
-		}
-		else {
-			return checkNativeTGASupport().then(supported => {
-				if (supported) {
-					return loadBuiltInImageFromBuffer(source, mimeType).then(image => {
-						return image;
-					});
-				}
-				else {
-					return Promise.resolve(loadTGAImageFromBufferView(source));
-				}
-			});
 		}
 	}
 

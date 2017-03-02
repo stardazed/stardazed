@@ -5,7 +5,7 @@
 
 namespace sd.image {
 
-	const enum DDSPixelFormatOffset {
+	const enum DDSPixelFormatOffsets {
 		dwSize = 0, // uint32
 		dwFlags = 4, // uint32
 		dwFourCC = 8, // uint32
@@ -16,7 +16,7 @@ namespace sd.image {
 		dwABitMask = 28, // uint32
 	};
 
-	const enum DDSOffset {
+	const enum DDSOffsets {
 		dwCookie = 0, // fourcc
 		dwSize = 4, // uint32
 		dwFlags = 8, // uint32
@@ -49,29 +49,29 @@ namespace sd.image {
 		constructor(view: ArrayBufferView) {
 			const headerView = new DataView(view.buffer, view.byteOffset, 128);
 
-			const cookie = headerView.getUint32(DDSOffset.dwCookie, true);
+			const cookie = headerView.getUint32(DDSOffsets.dwCookie, true);
 			assert(cookie === fourCharCode("DDS "), "Not a DDS document");
 
-			let dataSize = headerView.getUint32(DDSOffset.dwPitchOrLinearSize, true);
-			if (headerView.getUint32(DDSOffset.dwMipMapCount, true) > 1) {
+			let dataSize = headerView.getUint32(DDSOffsets.dwPitchOrLinearSize, true);
+			if (headerView.getUint32(DDSOffsets.dwMipMapCount, true) > 1) {
 				dataSize *= 2;
 			}
 
 			this.data_ = new Uint8ClampedArray(view.buffer, view.byteOffset + 128, dataSize);
 
-			switch (headerView.getUint32(DDSOffset.ddspf + DDSPixelFormatOffset.dwFourCC, true)) {
+			switch (headerView.getUint32(DDSOffsets.ddspf + DDSPixelFormatOffsets.dwFourCC, true)) {
 				case fourCharCode("DXT1"): this.format_ = PixelFormat.RGBA_DXT1; break;
 				case fourCharCode("DXT3"): this.format_ = PixelFormat.RGBA_DXT3; break;
 				case fourCharCode("DXT5"): this.format_ = PixelFormat.RGBA_DXT5; break;
 				default:
-					assert(false, "unknown data format of DDS file");
+					assert(false, "Unsupported pixel format of DDS file");
 					this.format_ = PixelFormat.None;
 					break;
 			}
 
-			this.mipMaps_ = headerView.getUint32(DDSOffset.dwMipMapCount, true);
-			this.width_ = headerView.getUint32(DDSOffset.dwWidth, true);
-			this.height_ = headerView.getUint32(DDSOffset.dwHeight, true);
+			this.mipMaps_ = headerView.getUint32(DDSOffsets.dwMipMapCount, true);
+			this.width_ = headerView.getUint32(DDSOffsets.dwWidth, true);
+			this.height_ = headerView.getUint32(DDSOffsets.dwHeight, true);
 		}
 
 		get format() { return this.format_; }
@@ -87,14 +87,13 @@ namespace sd.image {
 		}
 
 		pixelBufferForLevel(level: number): PixelBuffer | null {
-			if (level < 0 || level >= this.mipMaps_) {
+			if (level < 0 || level >= this.mipMaps_ || this.format_ === PixelFormat.None) {
 				return null;
 			}
 
-			// FIXME: return empty image if imageformat is none
-			let offset = 0;
+			let mipOffset = 0;
 			for (let lv = 0; lv < level; ++lv) {
-				offset += this.dataSizeForLevel(lv);
+				mipOffset += this.dataSizeForLevel(lv);
 			}
 
 			const mipWidth = dimensionAtMipLevel(this.width_, level);
@@ -104,7 +103,7 @@ namespace sd.image {
 				format: this.format,
 				colourSpace: this.colourSpace,
 				dim: makePixelDimensions(mipWidth, mipHeight),
-				data: new Uint8ClampedArray(this.data_.buffer, this.data_.byteOffset + offset, this.dataSizeForLevel(level))
+				data: new Uint8ClampedArray(this.data_.buffer, this.data_.byteOffset + mipOffset, this.dataSizeForLevel(level))
 			};
 		}
 	}
