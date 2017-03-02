@@ -1,11 +1,11 @@
-// input/keyboard - keyboard input handling
+// control/keyboard - keyboard input handling
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 /// <reference path="../tools/dom.ts" />
 
-namespace sd.io {
+namespace sd.control {
 
 	export enum Key {
 		UP = 38,
@@ -139,4 +139,4 @@ namespace sd.io {
 	// -- exported devices
 	export const keyboard: Keyboard = new KeyboardImpl();
 
-} // ns sd.io
+} // ns sd.control

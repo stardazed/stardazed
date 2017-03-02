@@ -1,9 +1,9 @@
-// input/flycam - convenience functions for free flying entity controller
+// control/flycam - convenience functions for free flying entity controller
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.io {
+namespace sd.control {
 
 	export class FlyCam {
 		private pos_ = [0, 0, 0];
@@ -133,4 +133,4 @@ namespace sd.io {
 		}
 	}
 
-} // ns sd
+} // ns sd.control
