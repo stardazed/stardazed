@@ -14,6 +14,10 @@ namespace sd.io {
 		return "";
 	}
 
+	export function localURL(path: string) {
+		return new URL(path, document.baseURI!);
+	}
+
 	export const enum FileLoadType {
 		ArrayBuffer = 1,
 		Blob,
@@ -41,8 +45,8 @@ namespace sd.io {
 	}
 
 
-	export function loadFile(url: URL | string, opts?: FileLoadOptions) {
-		return new Promise<any>(function(resolve, reject) {
+	export function loadFile<R>(url: URL | string, opts?: FileLoadOptions) {
+		return new Promise<R>(function(resolve, reject) {
 			opts = opts || {};
 
 			const xhr = new XMLHttpRequest();
