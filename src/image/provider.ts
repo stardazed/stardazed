@@ -36,8 +36,8 @@ namespace sd.image {
 
 		if (pixelFormatIsCompressed(format)) {
 			// DXT 1, 3, 5
-			columns = ((dim.width + 3) / 4);
-			rows    = ((dim.height + 3) / 4);
+			columns = ((dim.width + 3) >> 2);
+			rows    = ((dim.height + 3) >> 2);
 		}
 
 		return dim.depth * rows * columns * elementSize;
@@ -76,6 +76,10 @@ namespace sd.image {
 		readonly mipMapCount: number;
 
 		pixelBufferForLevel(level: number): PixelBuffer | null;
+	}
+
+	export interface PixelDataProviderClass {
+		new (...args: any[]): PixelDataProvider;
 	}
 
 	export function providerForSingleBuffer(buffer: PixelBuffer): PixelDataProvider {
