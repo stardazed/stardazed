@@ -8,21 +8,29 @@ namespace sd.render {
 	export const enum ResourceType {
 		Texture = 1,
 		Sampler,
-		RenderTarget,
-		VertexLayout,
-		VertexStream,
-		IndexStream,
-		ConstantBuffer,
-		Shader
+		// RenderTarget,
+		// VertexLayout,
+		// VertexStream,
+		// IndexStream,
+		// ConstantBuffer,
+		// Shader
 	}
 
+	export interface RenderResourceBase {
+		readonly renderResourceType: ResourceType;
+		renderResourceHandle?: number;
+	}
+
+	export type RenderResource = Texture | Sampler;
+
 	export interface RenderResourceCommandBuffer {
-		alloc(tex: Texture): void;
-		alloc(sampler: Sampler): void;
+		alloc(resource: RenderResource): void;
+		dealloc(resource: RenderResource): void;
 	}
 
 	export interface RenderDevice {
-
+		makeResourceCommandBuffer(): RenderResourceCommandBuffer;
+		dispatch(rrcb: RenderResourceCommandBuffer): void;
 	}
 
-} // ns sd
+} // ns sd.render
