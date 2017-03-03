@@ -52,12 +52,8 @@ namespace sd.image {
 			const cookie = headerView.getUint32(DDSOffsets.dwCookie, true);
 			assert(cookie === fourCharCode("DDS "), "Not a DDS document");
 
-			let dataSize = headerView.getUint32(DDSOffsets.dwPitchOrLinearSize, true);
-			if (headerView.getUint32(DDSOffsets.dwMipMapCount, true) > 1) {
-				dataSize *= 2;
-			}
-
-			this.data_ = new Uint8ClampedArray(view.buffer, view.byteOffset + 128, dataSize);
+			this.width_ = headerView.getUint32(DDSOffsets.dwWidth, true);
+			this.height_ = headerView.getUint32(DDSOffsets.dwHeight, true);
 
 			switch (headerView.getUint32(DDSOffsets.ddspf + DDSPixelFormatOffsets.dwFourCC, true)) {
 				case fourCharCode("DXT1"): this.format_ = PixelFormat.RGBA_DXT1; break;
@@ -70,8 +66,9 @@ namespace sd.image {
 			}
 
 			this.mipMaps_ = headerView.getUint32(DDSOffsets.dwMipMapCount, true);
-			this.width_ = headerView.getUint32(DDSOffsets.dwWidth, true);
-			this.height_ = headerView.getUint32(DDSOffsets.dwHeight, true);
+			const dataSize = this.dataOffsetForLevel(this.mipMaps_);
+
+			this.data_ = new Uint8ClampedArray(view.buffer, view.byteOffset + 128, dataSize);
 		}
 
 		get format() { return this.format_; }
@@ -79,11 +76,19 @@ namespace sd.image {
 		get mipMapCount() { return this.mipMaps_; }
 		get dim() { return makePixelDimensions(this.width_, this.height_); }
 
-		dataSizeForLevel(level: number) {
+		private dataSizeForLevel(level: number) {
 			const mipWidth = dimensionAtMipLevel(this.width_, level);
 			const mipHeight = dimensionAtMipLevel(this.height_, level);
 
 			return dataSizeBytesForPixelFormatAndDimensions(this.format_, makePixelDimensions(mipWidth, mipHeight));
+		}
+
+		private dataOffsetForLevel(level: number) {
+			let mipOffset = 0;
+			for (let lv = 0; lv < level; ++lv) {
+				mipOffset += this.dataSizeForLevel(lv);
+			}
+			return mipOffset;
 		}
 
 		pixelBufferForLevel(level: number): PixelBuffer | null {
