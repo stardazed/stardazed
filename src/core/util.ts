@@ -3,6 +3,9 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
+/// <reference path="./numeric.ts" />
+
+
 interface Console {
 	// Safari-specific debugging extension
 	takeHeapSnapshot(): void;
@@ -16,16 +19,6 @@ namespace sd {
 			console.error(msg || "assertion failed");
 			throw new Error(msg || "assertion failed");
 		}
-	}
-
-
-	// Shallow clone an object. Use only for simple struct types.
-	export function cloneStruct<T>(object: T): T {
-		const copy: any = {};
-		Object.getOwnPropertyNames(object).forEach(name => {
-			copy[name] = (object as any)[name];
-		});
-		return copy as T;
 	}
 
 
