@@ -5,6 +5,14 @@
 
 namespace sd.image {
 
+	export function loadImage(url: URL, extension?: string): Promise<PixelDataProvider>;
+	export function loadImage(buffer: ArrayBufferView, extension: string): Promise<PixelDataProvider>;
+	export function loadImage(source: URL | ArrayBufferView, extension?: string): Promise<PixelDataProvider> {
+		return (source instanceof URL) ? loadImageFromURL(source) : loadImageFromBufferView(source, extension!);
+	}
+
+	// ----
+
 	let nativeTGASupport: boolean | null = null;
 
 	function checkNativeTGASupport(): Promise<boolean> {
@@ -20,95 +28,54 @@ namespace sd.image {
 		return Promise.resolve(nativeTGASupport);
 	}
 
-	function tgaLoader(source: URL | ArrayBufferView): Promise<PixelDataProvider> {
-		if (source instanceof URL) {
+	function loadImageFromURL(url: URL, extension?: string): Promise<PixelDataProvider> {
+		if (! extension) {
+			extension = io.fileExtensionOfURL(url);
+		}
+		if (! extension) {
+			return Promise.reject(`Cannot determine file type of '${url}'`);
+		}
+
+		if (extension === "dds") {
+			return io.loadFile<ArrayBuffer>(url.href, { responseType: io.FileLoadType.ArrayBuffer })
+				.then(buf => {
+					return new DDSDataProvider(new Uint8ClampedArray(buf));
+				});
+		}
+
+		if (extension === "tga") {
 			return checkNativeTGASupport().then(supported => {
 				if (supported) {
-					return loadBuiltInImageFromURL(source).then(image => {
-						return image;
-					});
+					return loadBuiltInImageFromURL(url);
 				}
-				else {
-					return io.loadFile(source.href, { responseType: io.FileLoadType.ArrayBuffer }).then((buf: ArrayBuffer) => {
-						return loadTGAImageFromBufferView(buf);
+				return io.loadFile<ArrayBuffer>(url.href, { responseType: io.FileLoadType.ArrayBuffer })
+					.then<PixelDataProvider>(buf => {
+						return new TGADataProvider(new Uint8ClampedArray(buf));
 					});
-				}
 			});
 		}
-		else {
+
+		return loadBuiltInImageFromURL(url);
+	}
+
+
+	function loadImageFromBufferView(view: ArrayBufferView, extension: string): Promise<PixelDataProvider> {
+		if (extension === "tga") {
 			return checkNativeTGASupport().then(supported => {
 				if (supported) {
-					return loadBuiltInImageFromBuffer(source, mimeType).then(image => {
-						return image;
-					});
+					return loadBuiltInImageFromBufferView(view, extension);
 				}
 				else {
-					return Promise.resolve(loadTGAImageFromBufferView(source));
+					return new TGADataProvider(view);
 				}
 			});
 		}
-	}
 
-	export function loadImage(url: URL, mimeType?: string): Promise<PixelDataProvider>;
-	export function loadImage(buffer: ArrayBufferView, mimeType: string): Promise<PixelDataProvider>;
-	export function loadImage(source: URL | ArrayBufferView, mimeType?: string): Promise<PixelDataProvider> {
-		return (source instanceof URL) ? loadImageFromURL(source) : loadImageFromBufferView(source, mimeType!);
-		// if (! mimeType) {
-		// 	const extension = io.fileExtensionOfURL(url);
-		// 	mimeType = mimeTypeForFileExtension(extension);
-		// }
-		// if (! mimeType) {
-		// 	return Promise.reject(`Cannot determine mime-type of '${url}'`);
-		// }
-	}
-
-
-	// ----
-
-
-	function loadImageFromURL(url: URL, mimeType?: string): Promise<PixelDataProvider> {
-		if (! mimeType) {
-			const extension = io.fileExtensionOfURL(url);
-			mimeType = mimeTypeForFileExtension(extension);
-		}
-		if (! mimeType) {
-			return Promise.reject(`Cannot determine mime-type of '${url}'`);
+		if (extension === "dds") {
+			return Promise.resolve(new DDSDataProvider(view));
 		}
 
-		const loader = urlLoaderForMIMEType(mimeType);
-		if (! loader) {
-			return Promise.reject(`No buffer loader available for mime-type '${mimeType}'`);
-		}
-		else {
-			return loader(url, mimeType).then(group => {
-				const tex = group.textures[0];
-				if (tex && tex.descriptor && tex.descriptor.pixelData && (tex.descriptor.pixelData.length === 1)) {
-					return tex.descriptor.pixelData[0];
-				}
-				else {
-					throw new Error("Internal error in image loader.");
-				}
-			});
-		}
-	}
-
-
-	function loadImageFromBufferView(view: ArrayBufferView, mimeType: string): Promise<PixelDataProvider> {
-		const loader = bufferLoaderForMIMEType(mimeType);
-		if (! loader) {
-			return Promise.reject(`No buffer loader available for mime-type '${mimeType}'`);
-		}
-		else {
-			return loader(view, mimeType).then(group => {
-				const tex = group.textures[0];
-				if (tex && tex.descriptor && tex.descriptor.pixelData && (tex.descriptor.pixelData.length === 1)) {
-					return tex.descriptor.pixelData[0];
-				}
-				else {
-					throw new Error("Internal error in image loader.");
-				}
-			});
-		}
+		return loadBuiltInImageFromBufferView(view, extension);
 	}
 
 
@@ -118,11 +85,42 @@ namespace sd.image {
 	// |___/\_,_|_|_|\__|   |_|_||_|
 	//
 
+	class HTMLImageDataProvider implements PixelDataProvider {
+		readonly colourSpace: ColourSpace;
+		readonly format: PixelFormat;
+		readonly dim: PixelDimensions;
+		readonly mipMapCount = 1;
+
+		constructor(private image_: HTMLImageElement, extension?: string) {
+			if (! extension) {
+				const realSrc = image_.currentSrc || image_.src;
+				extension = io.fileExtensionOfURL(realSrc);
+			}
+
+			this.colourSpace = (["jpg", "png"].indexOf(extension) > -1) ? ColourSpace.sRGB : ColourSpace.Linear;
+			this.format = (this.colourSpace === ColourSpace.sRGB) ? PixelFormat.SRGB8_Alpha8 : PixelFormat.RGBA8;
+			this.dim = makePixelDimensions(image_.width, image_.height);
+		}
+
+		pixelBufferForLevel(level: number): PixelBuffer | null {
+			if (level !== 0) {
+				return null;
+			}
+
+			return {
+				colourSpace: this.colourSpace,
+				format: this.format,
+				dim: { ...this.dim },
+				data: this.image_
+			};
+		}
+	}
+
 	function loadBuiltInImageFromURL(url: URL) {
-		return new Promise<HTMLImageElement>(function(resolve, reject) {
+		return new Promise<PixelDataProvider>(function(resolve, reject) {
 			const image = new Image();
 			image.onload = () => {
-				resolve(image);
+				resolve(new HTMLImageDataProvider(image));
 			};
 			image.onerror = () => {
 				reject(`${url.href} doesn't exist or is not supported`);
@@ -138,33 +136,25 @@ namespace sd.image {
 	}
 
 
-	function loadBuiltInImageFromBuffer(buffer: ArrayBuffer, mimeType: string) {
-		return new Promise<HTMLImageElement>(function(resolve, reject) {
-			const blob = new Blob([buffer], { type: mimeType });
+	function loadBuiltInImageFromBufferView(view: ArrayBufferView, extension: string) {
+		return new Promise<PixelDataProvider>(function(resolve, reject) {
+			const blob = new Blob([view], { type: extension });
 
 			io.BlobReader.readAsDataURL(blob).then(
 				dataURL => {
-					const img = new Image();
-					img.onload = () => {
-						resolve(img);
+					const image = new Image();
+					image.onload = () => {
+						resolve(new HTMLImageDataProvider(image));
 					};
-					img.onerror = () => {
+					image.onerror = () => {
 						reject("Bad or unsupported image data.");
 					};
-					img.src = dataURL;
+					image.src = dataURL;
 				},
 				error => {
 					reject(error);
 				}
 			);
-		});
-	}
-
-
-	function builtInImageLoader(source: URL | ArrayBuffer, mimeType: string) {
-		const imagePromise = (source instanceof URL) ? loadBuiltInImageFromURL(source) : loadBuiltInImageFromBuffer(source, mimeType);
-		return imagePromise.then(img => {
-			return assetGroupForImage(img);
 		});
 	}
 
