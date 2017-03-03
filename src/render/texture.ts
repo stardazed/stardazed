@@ -25,7 +25,7 @@ namespace sd.render {
 	}
 
 
-	export interface Sampler {
+	export interface Sampler extends RenderResourceBase {
 		repeatS: TextureRepeatMode;
 		repeatT: TextureRepeatMode;
 		repeatR: TextureRepeatMode;
@@ -43,6 +43,8 @@ namespace sd.render {
 
 	export function makeSampler(): Sampler {
 		return {
+			renderResourceType: ResourceType.Sampler,
+
 			repeatS: TextureRepeatMode.Repeat,
 			repeatT: TextureRepeatMode.Repeat,
 			repeatR: TextureRepeatMode.Repeat,
@@ -131,7 +133,7 @@ namespace sd.render {
 	export type TextureImageData = ArrayBufferView | TextureImageSource;
 
 
-	export interface Texture {
+	export interface Texture extends RenderResourceBase {
 		textureClass: TextureClass;
 		pixelFormat: image.PixelFormat;
 		dim: image.PixelDimensions;
@@ -152,6 +154,7 @@ namespace sd.render {
 
 	export function makeTexture(): Texture {
 		return {
+			renderResourceType: ResourceType.Texture,
 			textureClass: TextureClass.Tex2D,
 			pixelFormat: image.PixelFormat.None,
 			dim: image.makePixelDimensions(0, 0),
@@ -162,6 +165,7 @@ namespace sd.render {
 
 	export function makeTex2D(pixelFormat: image.PixelFormat, width: number, height: number, mipmaps: MipMaps = MipMaps.Keep): Texture {
 		return {
+			renderResourceType: ResourceType.Texture,
 			textureClass: TextureClass.Tex2D,
 			pixelFormat: pixelFormat,
 			dim: image.makePixelDimensions(width, height),
@@ -172,11 +176,11 @@ namespace sd.render {
 
 	export function makeTex2DFromProvider(provider: image.PixelDataProvider, colourSpace: image.ColourSpace, mipmaps: MipMaps = MipMaps.Keep): Texture {
 		return {
+			renderResourceType: ResourceType.Texture,
 			textureClass: TextureClass.Tex2D,
 			pixelFormat: colourSpace === image.ColourSpace.sRGB ? image.PixelFormat.SRGB8_Alpha8 : image.PixelFormat.RGBA8,
 			dim: image.makePixelDimensions(provider.dim.width, provider.dim.height),
 			mipmaps,
-			layers: 1,
 			pixelData: [provider]
 		};
 	}
@@ -184,6 +188,7 @@ namespace sd.render {
 
 	export function makeTex2DFloatLUT(sourceData: Float32Array, width: number, height: number): Texture {
 		return {
+			renderResourceType: ResourceType.Texture,
 			textureClass: TextureClass.Tex2D,
 			pixelFormat: image.PixelFormat.RGBA32F,
 			dim: image.makePixelDimensions(width, height),
@@ -200,6 +205,7 @@ namespace sd.render {
 
 	export function makeTexCube(pixelFormat: image.PixelFormat, dimension: number, mipmaps: MipMaps = MipMaps.Keep): Texture {
 		return {
+			renderResourceType: ResourceType.Texture,
 			textureClass: TextureClass.TexCube,
 			pixelFormat: pixelFormat,
 			dim: image.makePixelDimensions(dimension, dimension),
@@ -210,6 +216,7 @@ namespace sd.render {
 
 	export function makeTexCubeFromProviders(sources: image.PixelDataProvider[], colourSpace: image.ColourSpace, mipmaps: MipMaps = MipMaps.Keep): Texture {
 		return {
+			renderResourceType: ResourceType.Texture,
 			textureClass: TextureClass.TexCube,
 			pixelFormat: colourSpace === image.ColourSpace.sRGB ? image.PixelFormat.SRGB8_Alpha8 : image.PixelFormat.RGBA8,
 			dim: image.makePixelDimensions(sources[0].dim.width, sources[0].dim.height),
