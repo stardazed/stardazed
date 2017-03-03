@@ -23,13 +23,21 @@ namespace sd.render {
 
 	export type RenderResource = Texture | Sampler;
 
-	export interface RenderResourceCommandBuffer {
-		alloc(resource: RenderResource): void;
-		dealloc(resource: RenderResource): void;
+	export class RenderResourceCommandBuffer {
+		constructor() {
+
+		}
+
+		alloc(resource: RenderResource) {
+
+		}
+
+		dealloc(resource: RenderResource) {
+
+		}
 	}
 
 	export interface RenderDevice {
-		makeResourceCommandBuffer(): RenderResourceCommandBuffer;
 		dispatch(rrcb: RenderResourceCommandBuffer): void;
 	}
 
