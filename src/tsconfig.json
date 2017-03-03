@@ -1,31 +1,30 @@
 {
-    "compilerOptions": {
-        "module": "amd",
-        "target": "es5",
+	"compilerOptions": {
+		"module": "amd",
+		"target": "es5",
 
-        "rootDir": "src",
-        "outFile": "../dist/stardazed.js",
-        "declaration": true,
-        "sourceMap": false,
-        "removeComments": true,
+		"outFile": "../dist/stardazed.js",
+		"declaration": true,
+		"sourceMap": false,
+		"removeComments": true,
 
-        "noEmitOnError": true,
-        "alwaysStrict": true,
-        "noImplicitAny": true,
-        "suppressImplicitAnyIndexErrors": false,
-        "noImplicitReturns": true,
-        "forceConsistentCasingInFileNames": true,
-        "noFallthroughCasesInSwitch": false,
-        "strictNullChecks": true,
-        "noImplicitThis": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
+		"noEmitOnError": true,
+		"alwaysStrict": true,
+		"noImplicitAny": true,
+		"suppressImplicitAnyIndexErrors": false,
+		"noImplicitReturns": true,
+		"forceConsistentCasingInFileNames": true,
+		"noFallthroughCasesInSwitch": false,
+		"strictNullChecks": true,
+		"noImplicitThis": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
 
-        "lib": ["es5", "dom", "es2015", "es2016", "es2017"],
-        "skipLibCheck": true,
-        "skipDefaultLibCheck": false
-    },
-    "exclude": [
-        "build"
-    ]
+		"lib": ["es5", "dom", "es2015", "es2016", "es2017"],
+		"skipLibCheck": true,
+		"skipDefaultLibCheck": false
+	},
+	"exclude": [
+		"build"
+	]
 }
