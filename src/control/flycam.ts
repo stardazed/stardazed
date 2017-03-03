@@ -112,16 +112,16 @@ namespace sd.control {
 			const maxAccel = 0.8;
 			let accel = 0, sideAccel = 0;
 
-			if (io.keyboard.down(io.Key.UP) || io.keyboard.down(io.Key.W)) {
+			if (control.keyboard.down(control.Key.UP) || control.keyboard.down(control.Key.W)) {
 				accel = maxAccel;
 			}
-			else if (io.keyboard.down(io.Key.DOWN) || io.keyboard.down(io.Key.S)) {
+			else if (control.keyboard.down(control.Key.DOWN) || control.keyboard.down(control.Key.S)) {
 				accel = -maxAccel;
 			}
-			if (io.keyboard.down(io.Key.LEFT) || io.keyboard.down(io.Key.A)) {
+			if (control.keyboard.down(control.Key.LEFT) || control.keyboard.down(control.Key.A)) {
 				sideAccel = -maxAccel;
 			}
-			else if (io.keyboard.down(io.Key.RIGHT) || io.keyboard.down(io.Key.D)) {
+			else if (control.keyboard.down(control.Key.RIGHT) || control.keyboard.down(control.Key.D)) {
 				sideAccel = maxAccel;
 			}
 			if (this.deviceTouch_) {
