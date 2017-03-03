@@ -166,15 +166,10 @@ namespace sd.image {
 
 
 	export class TGADataProvider implements PixelDataProvider {
-		private data_: HTMLImageElement | ImageData;
+		private data_: ImageData;
 
-		constructor(source: HTMLImageElement | ArrayBufferView) {
-			if (source instanceof HTMLImageElement) {
-				this.data_ = source;
-			}
-			else {
-				this.data_ = loadTGAImageFromBufferView(source);
-			}
+		constructor(source: ArrayBufferView) {
+			this.data_ = loadTGAImageFromBufferView(source);
 		}
 
 		get format() { return PixelFormat.RGBA8; }

@@ -49,23 +49,26 @@ namespace sd.image {
 		}
 	}
 
+	export function loadImage(url: URL, mimeType?: string): Promise<PixelDataProvider>;
+	export function loadImage(buffer: ArrayBufferView, mimeType: string): Promise<PixelDataProvider>;
 	export function loadImage(source: URL | ArrayBufferView, mimeType?: string): Promise<PixelDataProvider> {
-		if (! mimeType) {
-			const extension = io.fileExtensionOfURL(url);
-			mimeType = mimeTypeForFileExtension(extension);
-		}
-		if (! mimeType) {
-			return Promise.reject(`Cannot determine mime-type of '${url}'`);
-		}
+		return (source instanceof URL) ? loadImageFromURL(source) : loadImageFromBufferView(source, mimeType!);
+		// if (! mimeType) {
+		// 	const extension = io.fileExtensionOfURL(url);
+		// 	mimeType = mimeTypeForFileExtension(extension);
+		// }
+		// if (! mimeType) {
+		// 	return Promise.reject(`Cannot determine mime-type of '${url}'`);
+		// }
 	}
 
 
 	// ----
 
 
-	function loadImageURL(url: URL, mimeType?: string): Promise<ImageData | HTMLImageElement> {
+	function loadImageFromURL(url: URL, mimeType?: string): Promise<PixelDataProvider> {
 		if (! mimeType) {
-			const extension = fileExtensionOfURL(url);
+			const extension = io.fileExtensionOfURL(url);
 			mimeType = mimeTypeForFileExtension(extension);
 		}
 		if (! mimeType) {
@@ -90,13 +93,13 @@ namespace sd.image {
 	}
 
 
-	function loadImageFromBuffer(buffer: ArrayBuffer, mimeType: string): Promise<ImageData | HTMLImageElement> {
+	function loadImageFromBufferView(view: ArrayBufferView, mimeType: string): Promise<PixelDataProvider> {
 		const loader = bufferLoaderForMIMEType(mimeType);
 		if (! loader) {
 			return Promise.reject(`No buffer loader available for mime-type '${mimeType}'`);
 		}
 		else {
-			return loader(buffer, mimeType).then(group => {
+			return loader(view, mimeType).then(group => {
 				const tex = group.textures[0];
 				if (tex && tex.descriptor && tex.descriptor.pixelData && (tex.descriptor.pixelData.length === 1)) {
 					return tex.descriptor.pixelData[0];
@@ -139,7 +142,7 @@ namespace sd.image {
 		return new Promise<HTMLImageElement>(function(resolve, reject) {
 			const blob = new Blob([buffer], { type: mimeType });
 
-			BlobReader.readAsDataURL(blob).then(
+			io.BlobReader.readAsDataURL(blob).then(
 				dataURL => {
 					const img = new Image();
 					img.onload = () => {
