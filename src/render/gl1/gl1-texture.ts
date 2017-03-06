@@ -260,16 +260,63 @@ namespace sd.render {
 	}
 
 
+	function calcMipLevels(texture: Texture, provider: image.PixelDataProvider | undefined) {
+		if (texture.mipmapMode === MipMapMode.Strip) {
+			return 1;
+		}
+
+		const providerMips = provider ? provider.mipMapCount : 1;
+		const mipLimit = Math.min(texture.maxMipLevel || 255, maxMipLevelsForDimension(Math.max(texture.dim.width, texture.dim.height)));
+
+		if (texture.mipmapMode === MipMapMode.Keep) {
+			return Math.min(providerMips, mipLimit);
+		}
+
+		return mipLimit;
+	}
+
+
+	function allocTextureLayer(rd: GL1RenderDevice, texture: Texture, provider: image.PixelDataProvider | undefined, target: number) {
+		const gl = rd.gl;
+
+		const { width, height } = texture.dim;
+		const glTexPixelFormat = gl1ImageFormatForPixelFormat(rd, texture.pixelFormat);
+		const glTexPixelType = gl1PixelDataTypeForPixelFormat(rd, texture.pixelFormat);
+
+		if (image.pixelFormatIsCompressed(texture.pixelFormat)) {
+			assert(provider, "GL1: Compressed textures MUST provide pixelData");
+			let mipCount = provider!.mipMapCount;
+			if (texture.maxMipLevel !== undefined) {
+				mipCount = Math.min(texture.maxMipLevel, mipCount);
+			}
+
+			gl.compressedTexImage2D(target, 0, glTexPixelFormat, width, height, 0, <ArrayBufferView>texPixelData);
+		}
+		else {
+			if ((provider === undefined) || ("byteLength" in texPixelData)) {
+				// either no data or raw pixel data
+				gl.texImage2D(target, 0, glTexPixelFormat, w, h, 0, glTexPixelFormat, glTexPixelType, <ArrayBufferView>texPixelData);
+			}
+			else {
+				// a TexImageSource was provided
+				const tis = <TextureImageSource>texPixelData;
+				assert((tis.width == w) && (tis.height == h), "GL1: Tex2D imageSource's size does not match descriptor");
+				gl.texImage2D(target, 0, glTexPixelFormat, glTexPixelFormat, glTexPixelType, <any>tis);
+			}
+		}
+	}
+
+
 	function createTex2D(rd: GL1RenderDevice, texture: Texture) {
 		const gl = rd.gl;
 		const pixelData = texture.pixelData;
 
 		// -- input checks
-		assert((pixelData == null) || (pixelData.length === 1), "GL1: Tex2D pixelData array must contain 1 item or be omitted completely.");
-		const texPixelData = (pixelData && pixelData[0]) || null;
+		assert((pixelData === undefined) || (pixelData.length === 1), "GL1: Tex2D pixelData array must contain 1 item or be omitted completely.");
+		const texProvider = (pixelData && pixelData[0]);
 
 		if (image.pixelFormatIsCompressed(texture.pixelFormat)) {
-			assert(texPixelData && ("byteLength" in texPixelData), "GL1: Compressed textures MUST provide pixelData");
+			assert(texProvider && ("byteLength" in texProvider.), "GL1: Compressed textures MUST provide pixelData");
 		}
 
 		const glPixelFormat = gl1ImageFormatForPixelFormat(rd, texture.pixelFormat);
@@ -287,7 +334,7 @@ namespace sd.render {
 			gl.compressedTexImage2D(target, 0, glPixelFormat, w, h, 0, <ArrayBufferView>texPixelData);
 		}
 		else {
-			if ((texPixelData == null) || ("byteLength" in texPixelData)) {
+			if ((texProvider === undefined) || ("byteLength" in texPixelData)) {
 				// either no data or raw pixel data
 				gl.texImage2D(target, 0, glPixelFormat, w, h, 0, glPixelFormat, glPixelType, <ArrayBufferView>texPixelData);
 			}
