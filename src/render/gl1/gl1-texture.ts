@@ -113,21 +113,17 @@ namespace sd.render {
 
 
 	function gl1TargetForTexture(rd: GL1RenderDevice, texture: Texture) {
-		if (texture.layers! > 1 || texture.textureClass === TextureClass.Tex3D) {
-			assert(false, "GL1: unsupported texture format");
-			return rd.gl.NONE;
-		}
-		if (texture.textureClass === TextureClass.Tex2D) {
+		if (texture.textureClass === TextureClass.Normal) {
 			return rd.gl.TEXTURE_2D;
 		}
-		if (texture.textureClass === TextureClass.TexCube) {
+		if (texture.textureClass === TextureClass.CubeMap) {
 			return rd.gl.TEXTURE_CUBE_MAP;
 		}
 		return rd.gl.NONE;
 	}
 
 
-	function glTextureRepeatMode(rd: GL1RenderDevice, repeat: TextureRepeatMode) {
+	function gl1TextureRepeatMode(rd: GL1RenderDevice, repeat: TextureRepeatMode) {
 		switch (repeat) {
 			case TextureRepeatMode.Repeat: return rd.gl.REPEAT;
 			case TextureRepeatMode.MirroredRepeat: return rd.gl.MIRRORED_REPEAT;
@@ -189,21 +185,21 @@ namespace sd.render {
 	};
 
 
-	function maxTextureDimension(rd: GL1RenderDevice, texClass: TextureClass) {
-		if (textureLimits.maxDimension == 0) {
+	function gl1MaxTextureDimension(rd: GL1RenderDevice, texClass: TextureClass) {
+		if (textureLimits.maxDimension === 0) {
 			textureLimits.maxDimension = rd.gl.getParameter(rd.gl.MAX_TEXTURE_SIZE);
 			textureLimits.maxDimensionCube = rd.gl.getParameter(rd.gl.MAX_CUBE_MAP_TEXTURE_SIZE);
 		}
 
-		if (texClass == TextureClass.TexCube) {
+		if (texClass == TextureClass.CubeMap) {
 			return textureLimits.maxDimensionCube;
 		}
 		return textureLimits.maxDimension;
 	}
 
 
-	function maxAllowedAnisotropy(rd: GL1RenderDevice) {
-		if (textureLimits.maxAnisotropy == 0) {
+	function gl1MaxAllowedAnisotropy(rd: GL1RenderDevice) {
+		if (textureLimits.maxAnisotropy === 0) {
 			textureLimits.maxAnisotropy =
 				rd.extTexAnisotropy ?
 				rd.gl.getParameter(rd.extTexAnisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT) :
@@ -239,8 +235,8 @@ namespace sd.render {
 		gl.bindTexture(target, this.resource_);
 
 		// -- wrapping
-		gl.texParameteri(target, gl.TEXTURE_WRAP_S, glTextureRepeatMode(rd, sampler.repeatS));
-		gl.texParameteri(target, gl.TEXTURE_WRAP_T, glTextureRepeatMode(rd, sampler.repeatS));
+		gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl1TextureRepeatMode(rd, sampler.repeatS));
+		gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl1TextureRepeatMode(rd, sampler.repeatS));
 
 		// -- mini-/magnification
 		if (this.mipmaps_ === 1) {
@@ -251,7 +247,7 @@ namespace sd.render {
 
 		// -- anisotropy
 		if (rd.extTexAnisotropy) {
-			const anisotropy = math.clamp(sampler.maxAnisotropy, 1, maxAllowedAnisotropy(rd));
+			const anisotropy = math.clamp(sampler.maxAnisotropy, 1, gl1MaxAllowedAnisotropy(rd));
 			gl.texParameterf(target, rd.extTexAnisotropy.TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 		}
 
@@ -269,15 +265,15 @@ namespace sd.render {
 		const pixelData = texture.pixelData;
 
 		// -- input checks
-		assert((pixelData == null) || (pixelData.length == 1), "GL1: Tex2D pixelData array must contain 1 item or be omitted completely.");
+		assert((pixelData == null) || (pixelData.length === 1), "GL1: Tex2D pixelData array must contain 1 item or be omitted completely.");
 		const texPixelData = (pixelData && pixelData[0]) || null;
+
+		if (image.pixelFormatIsCompressed(texture.pixelFormat)) {
+			assert(texPixelData && ("byteLength" in texPixelData), "GL1: Compressed textures MUST provide pixelData");
+		}
 
 		const glPixelFormat = gl1ImageFormatForPixelFormat(rd, texture.pixelFormat);
 		const glPixelType = gl1PixelDataTypeForPixelFormat(rd, texture.pixelFormat);
-
-		if (image.pixelFormatIsCompressed(this.pixelFormat_)) {
-			assert(texPixelData && ("byteLength" in texPixelData), "GL1: Compressed textures MUST provide pixelData");
-		}
 
 		// -- create resource
 		const { width: w, height: h } = texture.dim;
@@ -309,6 +305,8 @@ namespace sd.render {
 		}
 
 		gl.bindTexture(target, null);
+
+		return tex;
 	}
 
 
@@ -361,67 +359,25 @@ namespace sd.render {
 		}
 
 		gl.bindTexture(target, null);
+
+		return tex;
 	}
 
 
-	function socko(rd: GL1RenderDevice, texture: Texture) {
-		// -- check input
-		assert(this.mipmaps_ > 0);
-		assert(this.width > 0);
-		assert(this.height > 0);
+	export function gl1CreateTexture(rd: GL1RenderDevice, texture: Texture) {
+		// -- general validity checks
+		assert(texture.dim.width > 0);
+		assert(texture.dim.height > 0);
+		assert(texture.dim.depth === 1); // GL1 does not support 3D textures
+		assert(texture.layers === undefined || texture.layers === 1); // GL1 only supports single-layer textures
 
-		assert(this.width <= maxTextureDimension(rd, this.textureClass_));
-		assert(this.height <= maxTextureDimension(rd, this.textureClass_));
+		assert(texture.dim.width <= gl1MaxTextureDimension(rd, texture.textureClass));
+		assert(texture.dim.height <= gl1MaxTextureDimension(rd, texture.textureClass));
 
-		// -- WebGL imposes several restrictions on Non-Power-of-Two textures
-		const npot = !(math.isPowerOf2(this.width) && math.isPowerOf2(this.height));
-		if (npot) {
-			if (this.sampler_.repeatS != TextureRepeatMode.ClampToEdge || this.sampler_.repeatT != TextureRepeatMode.ClampToEdge) {
-				console.warn("NPOT textures cannot repeat, overriding with ClampToEdge", texture);
-				this.sampler_.repeatS = TextureRepeatMode.ClampToEdge;
-				this.sampler_.repeatT = TextureRepeatMode.ClampToEdge;
-			}
-			if (this.mipmaps_ > 1) {
-				console.warn("NPOT textures cannot have mipmaps, setting levels to 1", texture);
-				this.mipmaps_ = 1;
-			}
-			if (this.sampler_.mipFilter != TextureMipFilter.None) {
-				console.warn("NPOT textures cannot have mipmaps, overriding with MipFilter.None", texture);
-				this.sampler_.mipFilter = TextureMipFilter.None;
-			}
+		if (texture.textureClass === TextureClass.CubeMap) {
+			return createTexCube(rd, texture);
 		}
-
-		const gl = rd.gl;
-
-		// -- create resource
-		if (texture.textureClass == TextureClass.Tex2D) {
-			this.createTex2D(texture.pixelData);
-		}
-		else {
-			this.createTexCube(texture.pixelData);
-		}
-
-		// -- apply sampling parameters
-		gl.bindTexture(this.glTarget_, this.resource_);
-
-		// -- wrapping
-		gl.texParameteri(this.glTarget_, gl.TEXTURE_WRAP_S, glTextureRepeatMode(rd, this.sampler_.repeatS));
-		gl.texParameteri(this.glTarget_, gl.TEXTURE_WRAP_T, glTextureRepeatMode(rd, this.sampler_.repeatS));
-
-		// -- mini-/magnification
-		if (this.mipmaps_ == 1) {
-			this.sampler_.mipFilter = TextureMipFilter.None;
-		}
-		gl.texParameteri(this.glTarget_, gl.TEXTURE_MIN_FILTER, gl1TextureMinificationFilter(rd, this.sampler_.minFilter, this.sampler_.mipFilter));
-		gl.texParameteri(this.glTarget_, gl.TEXTURE_MAG_FILTER, gl1TextureMagnificationFilter(rd, this.sampler_.magFilter));
-
-		// -- anisotropy
-		if (rd.extTexAnisotropy) {
-			const anisotropy = math.clamp(this.sampler_.maxAnisotropy, 1, maxAllowedAnisotropy(rd));
-			gl.texParameterf(this.glTarget_, rd.extTexAnisotropy.TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
-		}
-
-		rd.gl.bindTexture(this.glTarget_, null);
+		return createTex2D(rd, texture);
 	}
 
 } // ns sd.render
