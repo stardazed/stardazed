@@ -40,6 +40,11 @@ namespace sd.render {
 	}
 
 	export interface RenderDevice {
+		readonly supportsArrayTextures: boolean;
+		readonly supportsDepthTextures: boolean;
+
+		readonly maxColourAttachments: number;
+
 		dispatch(rrcb: RenderResourceCommandBuffer[]): void;
 	}
 
