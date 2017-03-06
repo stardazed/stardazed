@@ -100,8 +100,7 @@ namespace sd.render {
 	export const enum MipMapMode {
 		Keep,
 		Strip,
-		Regenerate,
-		Reserve
+		Regenerate
 	}
 
 
