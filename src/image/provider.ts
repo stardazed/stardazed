@@ -70,7 +70,7 @@ namespace sd.image {
 
 
 	export interface PixelDataProvider {
-		readonly format: PixelFormat;
+		readonly pixelFormat: PixelFormat;
 		readonly colourSpace: ColourSpace;
 		readonly dim: Readonly<PixelDimensions>;
 		readonly mipMapCount: number;
@@ -84,7 +84,7 @@ namespace sd.image {
 
 	export function providerForSingleBuffer(buffer: PixelBuffer): PixelDataProvider {
 		return {
-			format: buffer.format,
+			pixelFormat: buffer.format,
 			colourSpace: buffer.colourSpace,
 			dim: buffer.dim,
 			mipMapCount: 1,

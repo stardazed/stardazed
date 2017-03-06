@@ -172,7 +172,7 @@ namespace sd.image {
 			this.data_ = loadTGAImageFromBufferView(source);
 		}
 
-		get format() { return PixelFormat.RGBA8; }
+		get pixelFormat() { return PixelFormat.RGBA8; }
 		get colourSpace() { return ColourSpace.Linear; }
 		get mipMapCount() { return 1; }
 		get dim() { return makePixelDimensions(this.data_.width, this.data_.height); }
@@ -182,7 +182,7 @@ namespace sd.image {
 				return null;
 			}
 			return {
-				format: this.format,
+				format: this.pixelFormat,
 				colourSpace: this.colourSpace,
 				dim: { ...this.dim },
 				data: this.data_

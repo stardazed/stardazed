@@ -71,7 +71,7 @@ namespace sd.image {
 			this.data_ = new Uint8ClampedArray(view.buffer, view.byteOffset + 128, dataSize);
 		}
 
-		get format() { return this.format_; }
+		get pixelFormat() { return this.format_; }
 		get colourSpace() { return ColourSpace.Linear; }
 		get mipMapCount() { return this.mipMaps_; }
 		get dim() { return makePixelDimensions(this.width_, this.height_); }
@@ -105,7 +105,7 @@ namespace sd.image {
 			const mipHeight = dimensionAtMipLevel(this.height_, level);
 
 			return {
-				format: this.format,
+				format: this.pixelFormat,
 				colourSpace: this.colourSpace,
 				dim: makePixelDimensions(mipWidth, mipHeight),
 				data: new Uint8ClampedArray(this.data_.buffer, this.data_.byteOffset + mipOffset, this.dataSizeForLevel(level))

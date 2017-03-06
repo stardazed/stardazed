@@ -87,7 +87,7 @@ namespace sd.image {
 
 	class HTMLImageDataProvider implements PixelDataProvider {
 		readonly colourSpace: ColourSpace;
-		readonly format: PixelFormat;
+		readonly pixelFormat: PixelFormat;
 		readonly dim: PixelDimensions;
 		readonly mipMapCount = 1;
 
@@ -98,7 +98,7 @@ namespace sd.image {
 			}
 
 			this.colourSpace = (["jpg", "png"].indexOf(extension) > -1) ? ColourSpace.sRGB : ColourSpace.Linear;
-			this.format = (this.colourSpace === ColourSpace.sRGB) ? PixelFormat.SRGB8_Alpha8 : PixelFormat.RGBA8;
+			this.pixelFormat = (this.colourSpace === ColourSpace.sRGB) ? PixelFormat.SRGB8_Alpha8 : PixelFormat.RGBA8;
 			this.dim = makePixelDimensions(image_.width, image_.height);
 		}
 
@@ -109,7 +109,7 @@ namespace sd.image {
 
 			return {
 				colourSpace: this.colourSpace,
-				format: this.format,
+				format: this.pixelFormat,
 				dim: { ...this.dim },
 				data: this.image_
 			};
