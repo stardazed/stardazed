@@ -90,7 +90,7 @@
 		"no-default-export": false,
 		"no-mergeable-namespace": false, // is buggy
 		"no-require-imports": true,
-		"no-trailing-whitespace": true,
+		"no-trailing-whitespace": false,
 		"object-literal-sort-keys": false,
 		"trailing-comma": [false],
 
