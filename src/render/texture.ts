@@ -92,15 +92,12 @@ namespace sd.render {
 
 
 	export const enum TextureClass {
-		None,
-
-		Tex2D,
-		Tex3D,
-		TexCube
+		Normal,
+		CubeMap
 	}
 
 
-	export const enum MipMaps {
+	export const enum MipMapMode {
 		Keep,
 		Strip,
 		Regenerate,
@@ -137,12 +134,12 @@ namespace sd.render {
 		textureClass: TextureClass;
 		pixelFormat: image.PixelFormat;
 		dim: image.PixelDimensions;
-		mipmaps: MipMaps;
+		mipmapMode: MipMapMode;
 		maxMipLevel?: number;
 		layers?: number;
 
 		// If omitted, new textures will be created with zeroed data.
-		// If included, the number of entries MUST equal `layers` for Tex2D, `dim.depth` for Tex3D and 6 * `layers` for TexCube classes.
+		// If included, the number of entries MUST equal `layers` * `dim.depth` for normal and 6 * `layers` for cubemap textures.
 		pixelData?: image.PixelDataProvider[];
 	}
 
@@ -155,32 +152,32 @@ namespace sd.render {
 	export function makeTexture(): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
-			textureClass: TextureClass.Tex2D,
+			textureClass: TextureClass.Normal,
 			pixelFormat: image.PixelFormat.None,
 			dim: image.makePixelDimensions(0, 0),
-			mipmaps: MipMaps.Keep
+			mipmapMode: MipMapMode.Keep
 		};
 	}
 
 
-	export function makeTex2D(pixelFormat: image.PixelFormat, width: number, height: number, mipmaps: MipMaps = MipMaps.Keep): Texture {
+	export function makeTex2D(pixelFormat: image.PixelFormat, width: number, height: number, mipmapMode: MipMapMode = MipMapMode.Keep): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
-			textureClass: TextureClass.Tex2D,
+			textureClass: TextureClass.Normal,
 			pixelFormat: pixelFormat,
 			dim: image.makePixelDimensions(width, height),
-			mipmaps
+			mipmapMode
 		};
 	}
 
 
-	export function makeTex2DFromProvider(provider: image.PixelDataProvider, colourSpace: image.ColourSpace, mipmaps: MipMaps = MipMaps.Keep): Texture {
+	export function makeTex2DFromProvider(provider: image.PixelDataProvider, colourSpace: image.ColourSpace, mipmapMode: MipMapMode = MipMapMode.Keep): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
-			textureClass: TextureClass.Tex2D,
+			textureClass: TextureClass.Normal,
 			pixelFormat: colourSpace === image.ColourSpace.sRGB ? image.PixelFormat.SRGB8_Alpha8 : image.PixelFormat.RGBA8,
 			dim: image.makePixelDimensions(provider.dim.width, provider.dim.height),
-			mipmaps,
+			mipmapMode,
 			pixelData: [provider]
 		};
 	}
@@ -189,10 +186,10 @@ namespace sd.render {
 	export function makeTex2DFloatLUT(sourceData: Float32Array, width: number, height: number): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
-			textureClass: TextureClass.Tex2D,
+			textureClass: TextureClass.Normal,
 			pixelFormat: image.PixelFormat.RGBA32F,
 			dim: image.makePixelDimensions(width, height),
-			mipmaps: MipMaps.Keep,
+			mipmapMode: MipMapMode.Keep,
 			pixelData: [image.providerForSingleBuffer({
 				data: sourceData,
 				dim: image.makePixelDimensions(width, height),
@@ -203,24 +200,24 @@ namespace sd.render {
 	}
 
 
-	export function makeTexCube(pixelFormat: image.PixelFormat, dimension: number, mipmaps: MipMaps = MipMaps.Keep): Texture {
+	export function makeTexCube(pixelFormat: image.PixelFormat, dimension: number, mipmapMode: MipMapMode = MipMapMode.Keep): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
-			textureClass: TextureClass.TexCube,
+			textureClass: TextureClass.CubeMap,
 			pixelFormat: pixelFormat,
 			dim: image.makePixelDimensions(dimension, dimension),
-			mipmaps
+			mipmapMode
 		};
 	}
 
 
-	export function makeTexCubeFromProviders(sources: image.PixelDataProvider[], colourSpace: image.ColourSpace, mipmaps: MipMaps = MipMaps.Keep): Texture {
+	export function makeTexCubeFromProviders(sources: image.PixelDataProvider[], colourSpace: image.ColourSpace, mipmapMode: MipMapMode = MipMapMode.Keep): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
-			textureClass: TextureClass.TexCube,
+			textureClass: TextureClass.CubeMap,
 			pixelFormat: colourSpace === image.ColourSpace.sRGB ? image.PixelFormat.SRGB8_Alpha8 : image.PixelFormat.RGBA8,
 			dim: image.makePixelDimensions(sources[0].dim.width, sources[0].dim.height),
-			mipmaps,
+			mipmapMode,
 			pixelData: sources
 		};
 	}
