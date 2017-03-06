@@ -100,11 +100,14 @@ namespace sd.render {
 		}
 
 
+		// -- capabilities
+		get supportsArrayTextures() { return false; }
+		get supportsDepthTextures() { return false; }
+
 		get maxColourAttachments() {
 			if (this.maxColourAttachments_ === 0) {
 				this.maxColourAttachments_ = this.extDrawBuffers ? this.gl.getParameter(this.extDrawBuffers.MAX_COLOR_ATTACHMENTS_WEBGL) : 1;
 			}
-
 			return this.maxColourAttachments_;
 		}
 
@@ -229,11 +232,26 @@ namespace sd.render {
 		private linkedSamplers_: number[] = [];
 
 		private allocTexture(texture: Texture) {
-			
+			let index: number;
+			if (this.freedTextures_.length) {
+				index = this.freedTextures_.pop()!;
+			}
+			else {
+				index = this.nextTextureIndex_;
+				this.nextTextureIndex_ += 1;
+			}
+
+			this.linkedSamplers_[index] = 0;
+			this.textures_[index] = gl1CreateTexture(this, texture); // TODO: handle allocation failure
 		}
 
 		private freeTexture(texture: Texture) {
+			const { index } = this.decodeHandle(texture.renderResourceHandle!);
+			texture.renderResourceHandle = 0;
 
+			this.gl.deleteTexture(this.textures_[index]!);
+			this.linkedSamplers_[index] = 0;
+			this.freedSamplers_.push(index);
 		}
 	}
 
