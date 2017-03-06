@@ -24,21 +24,23 @@ namespace sd.render {
 	export type RenderResource = Texture | Sampler;
 
 	export class RenderResourceCommandBuffer {
-		constructor() {
-
-		}
+		private readonly allocList_: RenderResource[] = [];
+		private readonly freeList_: RenderResource[] = [];
 
 		alloc(resource: RenderResource) {
-
+			this.allocList_.push(resource);
 		}
 
-		dealloc(resource: RenderResource) {
-
+		free(resource: RenderResource) {
+			this.freeList_.push(resource);
 		}
+
+		get allocList() { return this.allocList_; }
+		get freeList() { return this.freeList_; }
 	}
 
 	export interface RenderDevice {
-		dispatch(rrcb: RenderResourceCommandBuffer): void;
+		dispatch(rrcb: RenderResourceCommandBuffer[]): void;
 	}
 
 } // ns sd.render
