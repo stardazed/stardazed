@@ -255,11 +255,6 @@ namespace sd.render {
 	}
 
 
-	function applyMipMaps(rd: GL1RenderDevice) {
-
-	}
-
-
 	function calcMipLevels(texture: Texture, provider: image.PixelDataProvider | undefined) {
 		if (texture.mipmapMode === MipMapMode.Strip) {
 			return {
@@ -275,7 +270,7 @@ namespace sd.render {
 			return {
 				providerMips: Math.min(providerMips, mipLimit),
 				generatedMips: 0
-			}
+			};
 		}
 
 		// mipmapMode === Regenerate
@@ -286,12 +281,10 @@ namespace sd.render {
 	}
 
 
-	function allocTextureLayer(rd: GL1RenderDevice, texture: Texture, provider: image.PixelDataProvider | undefined, target: number) {
+	function allocTextureLayer(rd: GL1RenderDevice, texture: Texture, provider: image.PixelDataProvider | undefined, providerMips: number, target: number) {
 		const gl = rd.gl;
 
 		const { width, height } = texture.dim;
-		const providerMips = provider ? provider.mipMapCount : 1;
-		const targetMips = calcMipLevels(texture, provider);
 		const glTexPixelFormat = gl1ImageFormatForPixelFormat(rd, texture.pixelFormat);
 		const glTexPixelType = gl1PixelDataTypeForPixelFormat(rd, texture.pixelFormat);
 
@@ -315,7 +308,7 @@ namespace sd.render {
 				else {
 					// a TexImageSource was provided
 					const tis = pixData as TextureImageSource;
-					assert((tis.width == width) && (tis.height == height), "GL1: Tex2D imageSource's size does not match descriptor");
+					assert((tis.width == width) && (tis.height == height), "GL1: imageSource's size does not match descriptor");
 					gl.texImage2D(target, mip, glTexPixelFormat, glTexPixelFormat, glTexPixelType, <any>tis);
 				}
 			}
@@ -323,106 +316,64 @@ namespace sd.render {
 	}
 
 
-	function createTex2D(rd: GL1RenderDevice, texture: Texture) {
+	function createPlainTexture(rd: GL1RenderDevice, texture: Texture) {
 		const gl = rd.gl;
 		const pixelData = texture.pixelData;
 
 		// -- input checks
-		assert((pixelData === undefined) || (pixelData.length === 1), "GL1: Tex2D pixelData array must contain 1 item or be omitted completely.");
-		const texProvider = (pixelData && pixelData[0]);
-
-		if (image.pixelFormatIsCompressed(texture.pixelFormat)) {
-			assert(texProvider && ("byteLength" in texProvider.), "GL1: Compressed textures MUST provide pixelData");
-		}
-
-		const glPixelFormat = gl1ImageFormatForPixelFormat(rd, texture.pixelFormat);
-		const glPixelType = gl1PixelDataTypeForPixelFormat(rd, texture.pixelFormat);
+		assert((pixelData == null) || (pixelData.length == 1), "GL1: Normal pixelData array must contain 1 item or be omitted completely.");
 
 		// -- create resource
-		const { width: w, height: h } = texture.dim;
-		assert(w == h, "GL1: TexCube textures MUST have the same width and height");
 		const tex = gl.createTexture()!; // TODO: handle resource allocation failure
 		const target = gl.TEXTURE_2D;
 		gl.bindTexture(target, tex);
 
 		// -- allocate and fill pixel storage
-		if (image.pixelFormatIsCompressed(texture.pixelFormat)) {
-			gl.compressedTexImage2D(target, 0, glPixelFormat, w, h, 0, <ArrayBufferView>texPixelData);
-		}
-		else {
-			if ((texProvider === undefined) || ("byteLength" in texPixelData)) {
-				// either no data or raw pixel data
-				gl.texImage2D(target, 0, glPixelFormat, w, h, 0, glPixelFormat, glPixelType, <ArrayBufferView>texPixelData);
-			}
-			else {
-				// a TexImageSource was provided
-				const tis = <TextureImageSource>texPixelData;
-				assert((tis.width == w) && (tis.height == h), "GL1: Tex2D imageSource's size does not match descriptor");
-				gl.texImage2D(target, 0, glPixelFormat, glPixelFormat, glPixelType, <any>tis);
-			}
-		}
+		const provider = pixelData && pixelData[0];
+		const { providerMips, generatedMips } = calcMipLevels(texture, provider);
+		allocTextureLayer(rd, texture, provider, providerMips, target);
 
-		// -- generate mipmaps if requested (TODO: user provided mipmaps not supported)
-		if (texture.mipmaps_ > 1) {
+		// -- generate mipmaps if requested
+		if (generatedMips > 0) {
 			gl.generateMipmap(target);
 		}
 
 		gl.bindTexture(target, null);
-
 		return tex;
 	}
 
 
-	function createTexCube(rd: GL1RenderDevice, texture: Texture) {
+	function createCubeMapTexture(rd: GL1RenderDevice, texture: Texture) {
 		const gl = rd.gl;
 		const pixelData = texture.pixelData;
 
 		// -- input checks
-		assert((pixelData == null) || (pixelData.length == 6), "GL1: TexCube pixelData array must contain 6 items or be omitted completely.");
-
-		const glPixelFormat = gl1ImageFormatForPixelFormat(rd, texture.pixelFormat);
-		const glPixelType = gl1PixelDataTypeForPixelFormat(rd, texture.pixelFormat);
+		const { width, height } = texture.dim;
+		assert(width === height, "GL1: TexCube textures MUST have the same width and height");
+		assert((pixelData == null) || (pixelData.length == 6), "GL1: CubeMap pixelData array must contain 6 items or be omitted completely.");
 
 		// -- create resource
-		const { width: w, height: h } = texture.dim;
 		const tex = gl.createTexture()!; // TODO: handle resource allocation failure
 		const target = gl.TEXTURE_CUBE_MAP;
 		gl.bindTexture(target, tex);
 
 		// -- allocate and fill pixel storage
-		if (image.pixelFormatIsCompressed(texture.pixelFormat)) {
-			assert(pixelData && (pixelData.length == 6), "GL1: Compressed textures MUST provide pixelData");
-
-			for (let layer = 0; layer < 6; ++layer) {
-				const layerPixels = pixelData![layer];
-				assert(layerPixels && ("byteLength" in layerPixels), `GL1: pixelData source ${layer} for compressed TexCube is not an ArrayBufferView`);
-				gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer, 0, glPixelFormat, w, h, 0, <ArrayBufferView>layerPixels);
+		let shouldGenMips = false;
+		for (let layer = 0; layer < 6; ++layer) {
+			const provider = pixelData && pixelData[layer];
+			const { providerMips, generatedMips } = calcMipLevels(texture, provider);
+			if (generatedMips > 0) {
+				shouldGenMips = true;
 			}
-		}
-		else {
-			for (let layer = 0; layer < 6; ++layer) {
-				const texPixelData = (pixelData && pixelData[layer]) || null;
-
-				if ((texPixelData == null) || ("byteLength" in texPixelData)) {
-					// either no data or raw pixel data
-					gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer, 0, glPixelFormat, w, h, 0, glPixelFormat, glPixelType, <ArrayBufferView>texPixelData);
-				}
-				else {
-					// a TexImageSource was provided
-					const tis = <TextureImageSource>texPixelData;
-					assert((tis.width == w) && (tis.height == h), `GL1: TexCube pixelData ${layer}'s size does not match descriptor`);
-					gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer, 0, glPixelFormat, glPixelFormat, glPixelType, <any>texPixelData);
-				}
-			}
+			allocTextureLayer(rd, texture, provider, providerMips, gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer);
 		}
 
-		// -- generate mipmaps if requested (TODO: user provided mipmaps not supported)
-		if (this.mipmaps_ > 1) {
-			gl.generateMipmap(this.glTarget_);
+		// -- generate mipmaps if requested
+		if (shouldGenMips) {
+			gl.generateMipmap(target);
 		}
 
 		gl.bindTexture(target, null);
-
 		return tex;
 	}
 
@@ -438,9 +389,9 @@ namespace sd.render {
 		assert(texture.dim.height <= gl1MaxTextureDimension(rd, texture.textureClass));
 
 		if (texture.textureClass === TextureClass.CubeMap) {
-			return createTexCube(rd, texture);
+			return createCubeMapTexture(rd, texture);
 		}
-		return createTex2D(rd, texture);
+		return createPlainTexture(rd, texture);
 	}
 
 } // ns sd.render
