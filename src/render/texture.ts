@@ -98,7 +98,7 @@ namespace sd.render {
 
 
 	export const enum MipMapMode {
-		Keep,
+		Source,
 		Strip,
 		Regenerate
 	}
@@ -154,12 +154,12 @@ namespace sd.render {
 			textureClass: TextureClass.Normal,
 			pixelFormat: image.PixelFormat.None,
 			dim: image.makePixelDimensions(0, 0),
-			mipmapMode: MipMapMode.Keep
+			mipmapMode: MipMapMode.Source
 		};
 	}
 
 
-	export function makeTex2D(pixelFormat: image.PixelFormat, width: number, height: number, mipmapMode: MipMapMode = MipMapMode.Keep): Texture {
+	export function makeTex2D(pixelFormat: image.PixelFormat, width: number, height: number, mipmapMode: MipMapMode = MipMapMode.Source): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
 			textureClass: TextureClass.Normal,
@@ -170,7 +170,7 @@ namespace sd.render {
 	}
 
 
-	export function makeTex2DFromProvider(provider: image.PixelDataProvider, colourSpace: image.ColourSpace, mipmapMode: MipMapMode = MipMapMode.Keep): Texture {
+	export function makeTex2DFromProvider(provider: image.PixelDataProvider, colourSpace: image.ColourSpace, mipmapMode: MipMapMode = MipMapMode.Source): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
 			textureClass: TextureClass.Normal,
@@ -188,7 +188,7 @@ namespace sd.render {
 			textureClass: TextureClass.Normal,
 			pixelFormat: image.PixelFormat.RGBA32F,
 			dim: image.makePixelDimensions(width, height),
-			mipmapMode: MipMapMode.Keep,
+			mipmapMode: MipMapMode.Source,
 			pixelData: [image.providerForSingleBuffer({
 				data: sourceData,
 				dim: image.makePixelDimensions(width, height),
@@ -199,7 +199,7 @@ namespace sd.render {
 	}
 
 
-	export function makeTexCube(pixelFormat: image.PixelFormat, dimension: number, mipmapMode: MipMapMode = MipMapMode.Keep): Texture {
+	export function makeTexCube(pixelFormat: image.PixelFormat, dimension: number, mipmapMode: MipMapMode = MipMapMode.Source): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
 			textureClass: TextureClass.CubeMap,
@@ -210,7 +210,7 @@ namespace sd.render {
 	}
 
 
-	export function makeTexCubeFromProviders(sources: image.PixelDataProvider[], colourSpace: image.ColourSpace, mipmapMode: MipMapMode = MipMapMode.Keep): Texture {
+	export function makeTexCubeFromProviders(sources: image.PixelDataProvider[], colourSpace: image.ColourSpace, mipmapMode: MipMapMode = MipMapMode.Source): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
 			textureClass: TextureClass.CubeMap,
