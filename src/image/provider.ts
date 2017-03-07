@@ -75,7 +75,7 @@ namespace sd.image {
 		readonly dim: Readonly<PixelDimensions>;
 		readonly mipMapCount: number;
 
-		pixelBufferForLevel(level: number): PixelBuffer | null;
+		pixelBufferForLevel(level: number): PixelBuffer | undefined;
 	}
 
 	export interface PixelDataProviderClass {
@@ -88,7 +88,7 @@ namespace sd.image {
 			colourSpace: buffer.colourSpace,
 			dim: buffer.dim,
 			mipMapCount: 1,
-			pixelBufferForLevel: (level) => level === 0 ? buffer : null
+			pixelBufferForLevel: (level) => level === 0 ? buffer : undefined
 		};
 	}
 

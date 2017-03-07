@@ -177,9 +177,9 @@ namespace sd.image {
 		get mipMapCount() { return 1; }
 		get dim() { return makePixelDimensions(this.data_.width, this.data_.height); }
 
-		pixelBufferForLevel(level: number): PixelBuffer | null {
+		pixelBufferForLevel(level: number): PixelBuffer | undefined {
 			if (level !== 0) {
-				return null;
+				return undefined;
 			}
 			return {
 				format: this.pixelFormat,

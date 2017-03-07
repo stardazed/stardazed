@@ -91,9 +91,9 @@ namespace sd.image {
 			return mipOffset;
 		}
 
-		pixelBufferForLevel(level: number): PixelBuffer | null {
+		pixelBufferForLevel(level: number): PixelBuffer | undefined {
 			if (level < 0 || level >= this.mipMaps_ || this.format_ === PixelFormat.None) {
-				return null;
+				return undefined;
 			}
 
 			let mipOffset = 0;
