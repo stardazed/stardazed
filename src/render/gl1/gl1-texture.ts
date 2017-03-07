@@ -262,17 +262,27 @@ namespace sd.render {
 
 	function calcMipLevels(texture: Texture, provider: image.PixelDataProvider | undefined) {
 		if (texture.mipmapMode === MipMapMode.Strip) {
-			return 1;
+			return {
+				providerMips: 1,
+				generatedMips: 0
+			};
 		}
 
 		const providerMips = provider ? provider.mipMapCount : 1;
 		const mipLimit = Math.min(texture.maxMipLevel || 255, maxMipLevelsForDimension(Math.max(texture.dim.width, texture.dim.height)));
 
-		if (texture.mipmapMode === MipMapMode.Keep) {
-			return Math.min(providerMips, mipLimit);
+		if (texture.mipmapMode === MipMapMode.Source) {
+			return {
+				providerMips: Math.min(providerMips, mipLimit),
+				generatedMips: 0
+			}
 		}
 
-		return mipLimit;
+		// mipmapMode === Regenerate
+		return {
+			providerMips: 1,
+			generatedMips: mipLimit - 1
+		};
 	}
 
 
@@ -286,7 +296,7 @@ namespace sd.render {
 		const glTexPixelType = gl1PixelDataTypeForPixelFormat(rd, texture.pixelFormat);
 
 		if (image.pixelFormatIsCompressed(texture.pixelFormat)) {
-			assert(provider, "GL1: Compressed textures MUST provide pixelData");
+			assert(provider !== undefined, "GL1: Compressed textures MUST provide pixelData");
 
 			for (let mip = 0; mip < providerMips; ++mip) {
 				const pixBuf = provider!.pixelBufferForLevel(mip);
@@ -294,15 +304,20 @@ namespace sd.render {
 			}
 		}
 		else {
-			if ((provider === undefined) || ("byteLength" in texPixelData)) {
-				// either no data or raw pixel data
-				gl.texImage2D(target, 0, glTexPixelFormat, width, height, 0, glTexPixelFormat, glTexPixelType, <ArrayBufferView>texPixelData);
-			}
-			else {
-				// a TexImageSource was provided
-				const tis = <TextureImageSource>texPixelData;
-				assert((tis.width == w) && (tis.height == h), "GL1: Tex2D imageSource's size does not match descriptor");
-				gl.texImage2D(target, 0, glTexPixelFormat, glTexPixelFormat, glTexPixelType, <any>tis);
+			for (let mip = 0; mip < providerMips; ++mip) {
+				const pixBuf = provider ? provider.pixelBufferForLevel(mip) : undefined;
+				const pixData = pixBuf ? pixBuf.data : undefined;
+
+				if ((pixData === undefined) || ("byteLength" in pixData)) {
+					// either no data or raw pixel data
+					gl.texImage2D(target, mip, glTexPixelFormat, width, height, 0, glTexPixelFormat, glTexPixelType, pixData as (ArrayBufferView | undefined));
+				} 
+				else {
+					// a TexImageSource was provided
+					const tis = pixData as TextureImageSource;
+					assert((tis.width == width) && (tis.height == height), "GL1: Tex2D imageSource's size does not match descriptor");
+					gl.texImage2D(target, mip, glTexPixelFormat, glTexPixelFormat, glTexPixelType, <any>tis);
+				}
 			}
 		}
 	}
