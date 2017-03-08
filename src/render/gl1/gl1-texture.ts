@@ -210,39 +210,69 @@ namespace sd.render {
 	}
 
 
-	function applySampler(rd: GL1RenderDevice, texture: Texture, sampler: Sampler) {
+	function gl1CalcMipLevels(texture: Texture, provider: image.PixelDataProvider | undefined) {
+		if (texture.mipmapMode === MipMapMode.Strip) {
+			return {
+				providerMips: 1,
+				generatedMips: 0
+			};
+		}
+
+		const mipLimit = Math.min(texture.maxMipLevel || 255, maxMipLevelsForDimension(Math.max(texture.dim.width, texture.dim.height)));
+		let providerMips = provider ? provider.mipMapCount : 1;
+		let generatedMips = 0;
+
+		if (texture.mipmapMode === MipMapMode.Source) {
+			providerMips = Math.min(providerMips, mipLimit);
+		}
+		else {
+			// mipmapMode === Regenerate
+			providerMips = 1;
+			generatedMips = mipLimit - 1;
+		}
+
+		// WebGL 1 disallows mipmaps on Non-Power-of-Two textures
+		const npot = image.isNonPowerOfTwo(texture.dim);
+		if (npot) {
+			if (providerMips + generatedMips > 1) {
+				console.warn("GL1: restricting NPOT texture to 1 mip", texture);
+				providerMips = 1;
+				generatedMips = 0;
+			}
+		}
+
+		return { providerMips, generatedMips };
+	}
+
+
+	export function applySampler(rd: GL1RenderDevice, texture: Texture, sampler: Sampler) {
 		const gl = rd.gl;
 		const target = gl1TargetForTexture(rd, texture);
 
+		let { repeatS, repeatT, mipFilter } = sampler;
+
 		// -- WebGL 1 imposes several restrictions on Non-Power-of-Two textures
-		const npot = !(math.isPowerOf2(texture.dim.width) && math.isPowerOf2(texture.dim.height));
+		const npot = image.isNonPowerOfTwo(texture.dim);
 		if (npot) {
-			if (sampler.repeatS != TextureRepeatMode.ClampToEdge || sampler.repeatT != TextureRepeatMode.ClampToEdge) {
+			if (repeatS !== TextureRepeatMode.ClampToEdge || repeatT !== TextureRepeatMode.ClampToEdge) {
 				console.warn("NPOT textures cannot repeat, overriding with ClampToEdge", texture);
-				sampler.repeatS = TextureRepeatMode.ClampToEdge;
-				sampler.repeatT = TextureRepeatMode.ClampToEdge;
+				repeatS = TextureRepeatMode.ClampToEdge;
+				repeatT = TextureRepeatMode.ClampToEdge;
 			}
-			if (this.mipmaps_ > 1) {
-				console.warn("NPOT textures cannot have mipmaps, setting levels to 1", texture);
-				this.mipmaps_ = 1;
-			}
-			if (sampler.mipFilter != TextureMipFilter.None) {
+			if (mipFilter !== TextureMipFilter.None) {
 				console.warn("NPOT textures cannot have mipmaps, overriding with MipFilter.None", texture);
-				sampler.mipFilter = TextureMipFilter.None;
+				mipFilter = TextureMipFilter.None;
 			}
 		}
 
-		gl.bindTexture(target, this.resource_);
+		// gl.bindTexture(target, this.resource_);
 
 		// -- wrapping
-		gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl1TextureRepeatMode(rd, sampler.repeatS));
-		gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl1TextureRepeatMode(rd, sampler.repeatS));
+		gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl1TextureRepeatMode(rd, repeatS));
+		gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl1TextureRepeatMode(rd, repeatT));
 
 		// -- mini-/magnification
-		if (this.mipmaps_ === 1) {
-			sampler.mipFilter = TextureMipFilter.None;
-		}
-		gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl1TextureMinificationFilter(rd, sampler.minFilter, sampler.mipFilter));
+		gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl1TextureMinificationFilter(rd, sampler.minFilter, mipFilter));
 		gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl1TextureMagnificationFilter(rd, sampler.magFilter));
 
 		// -- anisotropy
@@ -251,33 +281,7 @@ namespace sd.render {
 			gl.texParameterf(target, rd.extTexAnisotropy.TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 		}
 
-		rd.gl.bindTexture(target, null);
-	}
-
-
-	function calcMipLevels(texture: Texture, provider: image.PixelDataProvider | undefined) {
-		if (texture.mipmapMode === MipMapMode.Strip) {
-			return {
-				providerMips: 1,
-				generatedMips: 0
-			};
-		}
-
-		const providerMips = provider ? provider.mipMapCount : 1;
-		const mipLimit = Math.min(texture.maxMipLevel || 255, maxMipLevelsForDimension(Math.max(texture.dim.width, texture.dim.height)));
-
-		if (texture.mipmapMode === MipMapMode.Source) {
-			return {
-				providerMips: Math.min(providerMips, mipLimit),
-				generatedMips: 0
-			};
-		}
-
-		// mipmapMode === Regenerate
-		return {
-			providerMips: 1,
-			generatedMips: mipLimit - 1
-		};
+		// rd.gl.bindTexture(target, null);
 	}
 
 
@@ -330,7 +334,7 @@ namespace sd.render {
 
 		// -- allocate and fill pixel storage
 		const provider = pixelData && pixelData[0];
-		const { providerMips, generatedMips } = calcMipLevels(texture, provider);
+		const { providerMips, generatedMips } = gl1CalcMipLevels(texture, provider);
 		allocTextureLayer(rd, texture, provider, providerMips, target);
 
 		// -- generate mipmaps if requested
@@ -361,7 +365,7 @@ namespace sd.render {
 		let shouldGenMips = false;
 		for (let layer = 0; layer < 6; ++layer) {
 			const provider = pixelData && pixelData[layer];
-			const { providerMips, generatedMips } = calcMipLevels(texture, provider);
+			const { providerMips, generatedMips } = gl1CalcMipLevels(texture, provider);
 			if (generatedMips > 0) {
 				shouldGenMips = true;
 			}

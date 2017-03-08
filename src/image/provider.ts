@@ -28,6 +28,10 @@ namespace sd.image {
 		return Math.max(1, (dim | 0) >> (level | 0));
 	}
 
+	export function isNonPowerOfTwo(dim: PixelDimensions) {
+		return !(math.isPowerOf2(dim.width) && math.isPowerOf2(dim.height));
+	}
+
 
 	export function dataSizeBytesForPixelFormatAndDimensions(format: PixelFormat, dim: PixelDimensions) {
 		const elementSize = pixelFormatBytesPerElement(format);
