@@ -148,7 +148,12 @@ namespace sd.render {
 		}
 
 
-		dispatch(rrcb: RenderResourceCommandBuffer[]) {
+		dispatch(_rcb: RenderCommandBuffer) {
+
+		}
+
+
+		dispatchResource(rrcb: RenderResourceCommandBuffer[]) {
 			for (const cb of rrcb) {
 				for (const resource of cb.allocList) {
 					if (resource.renderResourceHandle) {
