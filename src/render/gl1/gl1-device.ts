@@ -248,6 +248,7 @@ namespace sd.render {
 
 			this.linkedSamplers_[index] = 0;
 			this.textures_[index] = gl1CreateTexture(this, texture); // TODO: handle allocation failure
+			texture.renderResourceHandle = this.encodeHandle(ResourceType.Texture, index);
 		}
 
 		private freeTexture(texture: Texture) {
@@ -256,7 +257,7 @@ namespace sd.render {
 
 			this.gl.deleteTexture(this.textures_[index]!);
 			this.linkedSamplers_[index] = 0;
-			this.freedSamplers_.push(index);
+			this.freedTextures_.push(index);
 		}
 	}
 

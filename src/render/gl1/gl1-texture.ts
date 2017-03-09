@@ -296,8 +296,8 @@ namespace sd.render {
 			assert(provider !== undefined, "GL1: Compressed textures MUST provide pixelData");
 
 			for (let mip = 0; mip < providerMips; ++mip) {
-				const pixBuf = provider!.pixelBufferForLevel(mip);
-				gl.compressedTexImage2D(target, mip, glTexPixelFormat, width, height, 0, pixBuf!.data as ArrayBufferView);
+				const pixBuf = provider!.pixelBufferForLevel(mip)!;
+				gl.compressedTexImage2D(target, mip, glTexPixelFormat, pixBuf.dim.width, pixBuf.dim.height, 0, pixBuf.data as ArrayBufferView);
 			}
 		}
 		else {
@@ -307,7 +307,7 @@ namespace sd.render {
 
 				if ((pixData === undefined) || ("byteLength" in pixData)) {
 					// either no data or raw pixel data
-					gl.texImage2D(target, mip, glTexPixelFormat, width, height, 0, glTexPixelFormat, glTexPixelType, pixData as (ArrayBufferView | undefined));
+					gl.texImage2D(target, mip, glTexPixelFormat, pixBuf ? pixBuf.dim.width : width, pixBuf ? pixBuf.dim.height : height, 0, glTexPixelFormat, glTexPixelType, pixData as (ArrayBufferView | undefined));
 				} 
 				else {
 					// a TexImageSource was provided
