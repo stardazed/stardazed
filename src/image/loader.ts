@@ -102,14 +102,14 @@ namespace sd.image {
 			this.dim = makePixelDimensions(image_.width, image_.height);
 		}
 
-		pixelBufferForLevel(level: number): PixelBuffer | null {
+		pixelBufferForLevel(level: number): PixelBuffer | undefined {
 			if (level !== 0) {
-				return null;
+				return undefined;
 			}
 
 			return {
 				colourSpace: this.colourSpace,
-				format: this.pixelFormat,
+				pixelFormat: this.pixelFormat,
 				dim: { ...this.dim },
 				data: this.image_
 			};

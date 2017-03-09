@@ -105,7 +105,7 @@ namespace sd.image {
 			const mipHeight = dimensionAtMipLevel(this.height_, level);
 
 			return {
-				format: this.pixelFormat,
+				pixelFormat: this.pixelFormat,
 				colourSpace: this.colourSpace,
 				dim: makePixelDimensions(mipWidth, mipHeight),
 				data: new Uint8ClampedArray(this.data_.buffer, this.data_.byteOffset + mipOffset, this.dataSizeForLevel(level))

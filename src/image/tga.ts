@@ -182,7 +182,7 @@ namespace sd.image {
 				return undefined;
 			}
 			return {
-				format: this.pixelFormat,
+				pixelFormat: this.pixelFormat,
 				colourSpace: this.colourSpace,
 				dim: { ...this.dim },
 				data: this.data_

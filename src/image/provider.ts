@@ -49,14 +49,14 @@ namespace sd.image {
 
 
 	export interface PixelBuffer {
-		readonly format: PixelFormat;
+		readonly pixelFormat: PixelFormat;
 		readonly colourSpace: ColourSpace;
 		readonly dim: Readonly<PixelDimensions>;
 		readonly data: TextureImageData;
 	}
 
 	export function pixelBufferBytesPerRow(pb: PixelBuffer) {
-		return dataSizeBytesForPixelFormatAndDimensions(pb.format, makePixelDimensions(pb.dim.width));
+		return dataSizeBytesForPixelFormatAndDimensions(pb.pixelFormat, makePixelDimensions(pb.dim.width));
 	}
 
 	export function pixelBufferRequiredRowAlignment(pb: PixelBuffer) {
@@ -65,11 +65,11 @@ namespace sd.image {
 	}
 
 	export function pixelBufferBytesPerLayer(pb: PixelBuffer) {
-		return dataSizeBytesForPixelFormatAndDimensions(pb.format, makePixelDimensions(pb.dim.width, pb.dim.height));
+		return dataSizeBytesForPixelFormatAndDimensions(pb.pixelFormat, makePixelDimensions(pb.dim.width, pb.dim.height));
 	}
 
 	export function pixelBufferSizeBytes(pb: PixelBuffer) {
-		return dataSizeBytesForPixelFormatAndDimensions(pb.format, pb.dim);
+		return dataSizeBytesForPixelFormatAndDimensions(pb.pixelFormat, pb.dim);
 	}
 
 
@@ -88,7 +88,7 @@ namespace sd.image {
 
 	export function providerForSingleBuffer(buffer: PixelBuffer): PixelDataProvider {
 		return {
-			pixelFormat: buffer.format,
+			pixelFormat: buffer.pixelFormat,
 			colourSpace: buffer.colourSpace,
 			dim: buffer.dim,
 			mipMapCount: 1,
