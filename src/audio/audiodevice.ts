@@ -1,4 +1,4 @@
-// audio/audiocontext - web audio interfaces
+// audio/device - audio interfaces
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -13,17 +13,15 @@ interface Window {
 	AudioContext?: typeof AudioContext;
 }
 
-type NativeAudioContext = AudioContext;
-
 
 namespace sd.audio {
 
-	export interface AudioContext {
-		ctx: NativeAudioContext;
+	export interface AudioDevice {
+		ctx: AudioContext;
 	}
 
 
-	export function makeAudioBufferFromData(ac: AudioContext, data: ArrayBuffer): Promise<AudioBuffer> {
+	export function makeAudioBufferFromData(ac: AudioDevice, data: ArrayBuffer): Promise<AudioBuffer> {
 		return new Promise<AudioBuffer>((resolve, reject) => {
 			ac.ctx.decodeAudioData(
 				data,
@@ -38,7 +36,7 @@ namespace sd.audio {
 	}
 
 
-	export function makeAudioContext(): audio.AudioContext | null {
+	export function makeAudioDevice(): AudioDevice | null {
 		const ac = window.AudioContext ? new (window.AudioContext)() : (window.webkitAudioContext ? new webkitAudioContext() : null);
 
 		if (ac) {
