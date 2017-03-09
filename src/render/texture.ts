@@ -170,11 +170,11 @@ namespace sd.render {
 	}
 
 
-	export function makeTex2DFromProvider(provider: image.PixelDataProvider, colourSpace: image.ColourSpace, mipmapMode: MipMapMode = MipMapMode.Source): Texture {
+	export function makeTex2DFromProvider(provider: image.PixelDataProvider, mipmapMode: MipMapMode = MipMapMode.Source): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
 			textureClass: TextureClass.Normal,
-			pixelFormat: colourSpace === image.ColourSpace.sRGB ? image.PixelFormat.SRGB8_Alpha8 : image.PixelFormat.RGBA8,
+			pixelFormat: provider.pixelFormat,
 			dim: image.makePixelDimensions(provider.dim.width, provider.dim.height),
 			mipmapMode,
 			pixelData: [provider]
@@ -193,7 +193,7 @@ namespace sd.render {
 				data: sourceData,
 				dim: image.makePixelDimensions(width, height),
 				colourSpace: image.ColourSpace.Linear,
-				format: image.PixelFormat.RGBA32F
+				pixelFormat: image.PixelFormat.RGBA32F
 			})]
 		};
 	}
