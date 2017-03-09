@@ -313,7 +313,7 @@ namespace sd.render {
 					// a TexImageSource was provided
 					const tis = pixData as TextureImageSource;
 					assert((tis.width == width) && (tis.height == height), "GL1: imageSource's size does not match descriptor");
-					gl.texImage2D(target, mip, glTexPixelFormat, glTexPixelFormat, glTexPixelType, <any>tis);
+					gl.texImage2D(target, mip, glTexPixelFormat, glTexPixelFormat, glTexPixelType, tis);
 				}
 			}
 		}

@@ -210,11 +210,13 @@ namespace sd.render {
 	}
 
 
-	export function makeTexCubeFromProviders(sources: image.PixelDataProvider[], colourSpace: image.ColourSpace, mipmapMode: MipMapMode = MipMapMode.Source): Texture {
+	export function makeTexCubeFromProviders(sources: image.PixelDataProvider[], mipmapMode: MipMapMode = MipMapMode.Source): Texture {
+		assert(sources.length === 6, "Must pass 6 providers for CubeMap texture.");
+
 		return {
 			renderResourceType: ResourceType.Texture,
 			textureClass: TextureClass.CubeMap,
-			pixelFormat: colourSpace === image.ColourSpace.sRGB ? image.PixelFormat.SRGB8_Alpha8 : image.PixelFormat.RGBA8,
+			pixelFormat: sources[0].pixelFormat,
 			dim: image.makePixelDimensions(sources[0].dim.width, sources[0].dim.height),
 			mipmapMode,
 			pixelData: sources

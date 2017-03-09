@@ -47,8 +47,8 @@ namespace sd.render {
 
 		readonly maxColourAttachments: number;
 
-		dispatchResource(rrcb: RenderResourceCommandBuffer[]): void;
-		dispatch(rcb: RenderCommandBuffer): void;
+		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]): void;
+		dispatch(rcb: RenderCommandBuffer | RenderCommandBuffer[]): void;
 	}
 
 } // ns sd.render
