@@ -262,6 +262,10 @@ namespace sd.render {
 			this.linkedSamplers_[index] = 0;
 			this.freedTextures_.push(index);
 		}
+
+		// -- Mesh Streams
+
+		
 	}
 
 } // ns sd.render
