@@ -30,14 +30,14 @@ namespace sd.meshdata {
 	}
 
 	export interface TriangleProxy {
-		index(index: 0 | 1 | 2): number;
+		index(index: number): number;
 		a(): number;
 		b(): number;
 		c(): number;
 	}
 
 	export interface MutableTriangleProxy extends TriangleProxy {
-		setIndex(index: 0 | 1 | 2, newValue: number): void;
+		setIndex(index: number, newValue: number): void;
 		setA(newValue: number): void;
 		setB(newValue: number): void;
 		setC(newValue: number): void;

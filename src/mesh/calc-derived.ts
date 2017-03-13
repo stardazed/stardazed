@@ -36,7 +36,7 @@ namespace sd.meshdata {
 		const lineA = vec3.create(), lineB = vec3.create();
 		const faceNormal = vec3.create(), temp = vec3.create();
 
-		triView.forEach((face: IndexedTriangleProxy) => {
+		triView.forEach((face: TriangleProxy) => {
 			const posA = posView.copyItem(face.a() - baseVertex);
 			const posB = posView.copyItem(face.b() - baseVertex);
 			const posC = posView.copyItem(face.c() - baseVertex);

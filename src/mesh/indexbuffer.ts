@@ -214,7 +214,7 @@ namespace sd.meshdata {
 	}
 
 
-	export class IndexedTriangleProxy implements MutableTriangleProxy {
+	class IndexedTriangleProxy implements MutableTriangleProxy {
 		private data_: TypedIndexArray;
 
 		constructor(data: TypedIndexArray, triangleIndex: number) {
@@ -251,7 +251,7 @@ namespace sd.meshdata {
 			}
 		}
 
-		forEach(callback: (proxy: IndexedTriangleProxy) => void) {
+		forEach(callback: (proxy: TriangleProxy) => void) {
 			const primCount = this.toTriangle_ - this.fromTriangle_;
 			const basePtr = this.indexBuffer_.typedBasePtr(this.fromTriangle_ * 3, primCount * 3);
 
