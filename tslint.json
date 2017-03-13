@@ -53,6 +53,14 @@
 		"no-unnecessary-initializer": true,
 		"no-misused-new": true,
 
+		// added in v4.5
+		"no-import-side-effect": true,
+		"match-default-export-name": true,
+		"no-non-null-assertion": false,
+		"ban-types": [false],
+		"no-duplicate-super": false,
+		"newline-before-return": false,
+
 		/* Functionality */
 		"ban": false,
 		"curly": true,
