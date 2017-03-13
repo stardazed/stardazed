@@ -195,7 +195,7 @@ namespace sd.meshdata {
 
 
 	export function vertexFieldIsNormalized(vf: VertexField) {
-		return (vf & 0x80) != 0;
+		return (vf & 0x80) !== 0;
 	}
 
 
