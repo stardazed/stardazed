@@ -26,8 +26,8 @@ namespace inquisition {
 		constructor(options: AssertionErrorOptions) {
 			let actualString = options.actual;
 			let expectedString = options.expected;
-			try { actualString = JSON.stringify(options.actual); } catch(e) { }
-			try { expectedString = JSON.stringify(options.expected); } catch(e) { }
+			try { actualString = JSON.stringify(options.actual); } catch (e) { }
+			try { expectedString = JSON.stringify(options.expected); } catch (e) { }
 			const exprMessage = `${actualString} ${options.operator} ${expectedString}`;
 			const message = options.message ? `${options.message} (${exprMessage})` : exprMessage;
 
@@ -109,7 +109,7 @@ namespace inquisition {
 			try {
 				insideFn();
 			}
-			catch(e) {
+			catch (e) {
 				didThrow = true;
 				if (typeof throwable === "function") {
 					// handle immediate values
