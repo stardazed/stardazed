@@ -12,7 +12,6 @@ import world = sd.world;
 import render = sd.render;
 import meshdata = sd.meshdata;
 import dom = sd.dom;
-import asset = sd.asset;
 import container = sd.container;
 import audio = sd.audio;
 
