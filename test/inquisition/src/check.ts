@@ -24,7 +24,11 @@ namespace inquisition {
 		public operator: string;
 
 		constructor(options: AssertionErrorOptions) {
-			const exprMessage = `${options.actual} ${options.operator} ${options.expected}`;
+			let actualString = options.actual;
+			let expectedString = options.expected;
+			try { actualString = JSON.stringify(options.actual); } catch(e) { }
+			try { expectedString = JSON.stringify(options.expected); } catch(e) { }
+			const exprMessage = `${actualString} ${options.operator} ${expectedString}`;
 			const message = options.message ? `${options.message} (${exprMessage})` : exprMessage;
 
 			super(message);
