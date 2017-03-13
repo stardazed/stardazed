@@ -4,7 +4,7 @@
 // https://github.com/stardazed/stardazed
 
 namespace sd.render {
-
+/*
 	function gl1TypeForVertexField(rc: render.GL1RenderDevice, vf: meshdata.VertexField) {
 		switch (vf) {
 			case meshdata.VertexField.Float:
@@ -186,5 +186,5 @@ namespace sd.render {
 
 		return instance;
 	}
-
+*/
 } // ns sd.render
