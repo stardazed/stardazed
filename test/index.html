@@ -15,9 +15,12 @@
 </head>
 <body>
 	<h3>Stardazed Test Results</h3>
+	<p id="timestamp"></p>
 	<pre></pre>
 
 	<script>
+		const time = new Date();
+		document.getElementById("timestamp").textContent = time.toISOString();
 		const report = new inquisition.SimpleTestReport();
 		inquisition.runAll(report).then(() => {
 			document.querySelector("pre").textContent = report.result;
