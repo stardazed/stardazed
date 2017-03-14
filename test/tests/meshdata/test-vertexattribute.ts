@@ -74,4 +74,106 @@ group("meshdata.VertexAttribute", () => {
 			});
 		});
 	});
+
+	group("AttrList", () => {
+		test("Pos3Norm3", () => {
+			const { Pos3Norm3 } = sd.meshdata.AttrList;
+			const attrs = Pos3Norm3();
+			check.truthy(Array.isArray(attrs));
+			check.equal(attrs.length, 2);
+
+			check.structuralEqual(attrs[0], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Position
+			});
+			check.structuralEqual(attrs[1], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Normal
+			});
+		});
+		test("Pos3Norm3Colour3", () => {
+			const { Pos3Norm3Colour3 } = sd.meshdata.AttrList;
+			const attrs = Pos3Norm3Colour3();
+			check.truthy(Array.isArray(attrs));
+			check.equal(attrs.length, 3);
+
+			check.structuralEqual(attrs[0], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Position
+			});
+			check.structuralEqual(attrs[1], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Normal
+			});
+			check.structuralEqual(attrs[2], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Colour
+			});
+		});
+		test("Pos3Norm3UV2", () => {
+			const { Pos3Norm3UV2 } = sd.meshdata.AttrList;
+			const attrs = Pos3Norm3UV2();
+			check.truthy(Array.isArray(attrs));
+			check.equal(attrs.length, 3);
+
+			check.structuralEqual(attrs[0], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Position
+			});
+			check.structuralEqual(attrs[1], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Normal
+			});
+			check.structuralEqual(attrs[2], {
+				field: VertexField.Floatx2,
+				role: VertexAttributeRole.UV
+			});
+		});
+		test("Pos3Norm3Colour3UV2", () => {
+			const { Pos3Norm3Colour3UV2 } = sd.meshdata.AttrList;
+			const attrs = Pos3Norm3Colour3UV2();
+			check.truthy(Array.isArray(attrs));
+			check.equal(attrs.length, 4);
+
+			check.structuralEqual(attrs[0], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Position
+			});
+			check.structuralEqual(attrs[1], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Normal
+			});
+			check.structuralEqual(attrs[2], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Colour
+			});
+			check.structuralEqual(attrs[3], {
+				field: VertexField.Floatx2,
+				role: VertexAttributeRole.UV
+			});
+		});
+		test("Pos3Norm3UV2Tan3", () => {
+			const { Pos3Norm3UV2Tan3 } = sd.meshdata.AttrList;
+			const attrs = Pos3Norm3UV2Tan3();
+			check.truthy(Array.isArray(attrs));
+			check.equal(attrs.length, 4);
+
+			check.structuralEqual(attrs[0], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Position
+			});
+			check.structuralEqual(attrs[1], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Normal
+			});
+			check.structuralEqual(attrs[2], {
+				field: VertexField.Floatx2,
+				role: VertexAttributeRole.UV
+			});
+			check.structuralEqual(attrs[3], {
+				field: VertexField.Floatx3,
+				role: VertexAttributeRole.Tangent
+			});
+		});
+	});
 });
