@@ -103,6 +103,15 @@ namespace inquisition {
 			if (t > u) { fail(t, u, "<=", message); }
 		}
 
+		export function structuralEqual<T extends object>(source: T, expect: Partial<T>) {
+			for (const k in expect) {
+				if (expect.hasOwnProperty(k)) {
+					const e = expect[k];
+					const a = source[k];
+					equal(a, e);
+				}
+			}
+		}
 
 		export function throws(throwable: any, insideFn: () => void, message?: string) {
 			let didThrow = false;
