@@ -1,0 +1,77 @@
+// Part of Stardazed
+// (c) 2015-2017 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed
+
+group("meshdata.VertexAttribute", () => {
+	const { VertexField, VertexAttributeRole } = sd.meshdata;
+
+	group("attr-helpers", () => {
+		test("attrPosition2", () => {
+			const { attrPosition2 } = sd.meshdata;
+			const attr = attrPosition2();
+			check.equal(attr.field, VertexField.Floatx2);
+			check.equal(attr.role, VertexAttributeRole.Position);
+		});
+		test("attrPosition3", () => {
+			const { attrPosition3 } = sd.meshdata;
+			const attr = attrPosition3();
+			check.equal(attr.field, VertexField.Floatx3);
+			check.equal(attr.role, VertexAttributeRole.Position);
+		});
+		test("attrNormal3", () => {
+			const { attrNormal3 } = sd.meshdata;
+			const attr = attrNormal3();
+			check.equal(attr.field, VertexField.Floatx3);
+			check.equal(attr.role, VertexAttributeRole.Normal);
+		});
+		test("attrColour3", () => {
+			const { attrColour3 } = sd.meshdata;
+			const attr = attrColour3();
+			check.equal(attr.field, VertexField.Floatx3);
+			check.equal(attr.role, VertexAttributeRole.Colour);
+		});
+		test("attrUV2", () => {
+			const { attrUV2 } = sd.meshdata;
+			const attr = attrUV2();
+			check.equal(attr.field, VertexField.Floatx2);
+			check.equal(attr.role, VertexAttributeRole.UV);
+			check.equal(attr.role, VertexAttributeRole.UV0); // UV0 must eq UV
+		});
+		test("attrTangent3", () => {
+			const { attrTangent3 } = sd.meshdata;
+			const attr = attrTangent3();
+			check.equal(attr.field, VertexField.Floatx3);
+			check.equal(attr.role, VertexAttributeRole.Tangent);
+		});
+		test("attrJointIndexes", () => {
+			const { attrJointIndexes } = sd.meshdata;
+			const attr = attrJointIndexes();
+			check.equal(attr.field, VertexField.SInt32x4);
+			check.equal(attr.role, VertexAttributeRole.JointIndexes);
+		});
+		test("attrWeightedPos-good", () => {
+			const { attrWeightedPos } = sd.meshdata;
+			const attr0 = attrWeightedPos(0);
+			check.equal(attr0.field, VertexField.Floatx4);
+			check.equal(attr0.role, VertexAttributeRole.WeightedPos0);
+			const attr1 = attrWeightedPos(1);
+			check.equal(attr1.field, VertexField.Floatx4);
+			check.equal(attr1.role, VertexAttributeRole.WeightedPos1);
+			const attr2 = attrWeightedPos(2);
+			check.equal(attr2.field, VertexField.Floatx4);
+			check.equal(attr2.role, VertexAttributeRole.WeightedPos2);
+			const attr3 = attrWeightedPos(3);
+			check.equal(attr3.field, VertexField.Floatx4);
+			check.equal(attr3.role, VertexAttributeRole.WeightedPos3);
+		});
+		test("attrWeightedPos-outOfRange", () => {
+			const { attrWeightedPos } = sd.meshdata;
+			check.throws(Error, () => {
+				attrWeightedPos(-1);
+			});
+			check.throws(Error, () => {
+				attrWeightedPos(4);
+			});
+		});
+	});
+});

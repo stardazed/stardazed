@@ -2,7 +2,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-group("meshdata.vertexField", () => {
+group("meshdata.VertexField", () => {
 	const { VertexField } = sd.meshdata;
 
 	test("elementCount", () => {

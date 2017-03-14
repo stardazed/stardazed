@@ -27,6 +27,6 @@
     },
     "include": [
         "testmain.ts",
-        "tests/*.ts"
+        "tests/**/*.ts"
     ]
 }
