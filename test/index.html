@@ -7,11 +7,14 @@
 	<!-- SD -->
 	<script src="../ext/veclib.js"></script>
 	<script src="../ext/inflate.js"></script>
-	<script src="../dist/stardazed.js"></script>
+	<script src="../dist/stardazed.js" data-cover></script>
 
 	<!-- IQ -->
 	<script src="inquisition/build/inquisition.js"></script>
 	<script src="build/sd-tests.js"></script>
+
+	<!-- Coverage -->
+	<script src="blanket.min.js" data-cover-flags="branchTracking" data-cover-adapter="inq-blanket.js"></script>
 </head>
 <body>
 	<h3>Stardazed Test Results</h3>
@@ -19,8 +22,7 @@
 	<pre></pre>
 
 	<script>
-		const time = new Date();
-		document.getElementById("timestamp").textContent = time.toISOString();
+		document.getElementById("timestamp").textContent = (new Date()).toISOString();
 		const report = new inquisition.SimpleTestReport();
 		inquisition.runAll(report).then(() => {
 			document.querySelector("pre").textContent = report.result;
