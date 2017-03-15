@@ -3,10 +3,8 @@
 // https://github.com/stardazed/stardazed
 
 group("meshdata.VertexField", () => {
-	const { VertexField } = sd.meshdata;
-
 	test("elementCount", () => {
-		const { vertexFieldElementCount } = sd.meshdata;
+		const { VertexField, vertexFieldElementCount } = sd.meshdata;
 
 		check.equal(vertexFieldElementCount(VertexField.Undefined), 0);
 
@@ -59,7 +57,7 @@ group("meshdata.VertexField", () => {
 	});
 
 	test("numericType", () => {
-		const { vertexFieldNumericType } = sd.meshdata;
+		const { VertexField, vertexFieldNumericType } = sd.meshdata;
 		const { Float, UInt32, UInt16, UInt8, SInt32, SInt16, SInt8 } = sd;
 
 		check.equal(vertexFieldNumericType(VertexField.Undefined), null);
@@ -113,7 +111,7 @@ group("meshdata.VertexField", () => {
 	});
 
 	test("elementSizeBytes", () => {
-		const { vertexFieldElementSizeBytes } = sd.meshdata;
+		const { VertexField, vertexFieldElementSizeBytes } = sd.meshdata;
 
 		check.equal(vertexFieldElementSizeBytes(VertexField.Undefined), 0);
 
@@ -166,7 +164,7 @@ group("meshdata.VertexField", () => {
 	});
 
 	test("sizeBytes", () => {
-		const { vertexFieldSizeBytes } = sd.meshdata;
+		const { VertexField, vertexFieldSizeBytes } = sd.meshdata;
 
 		check.equal(vertexFieldSizeBytes(VertexField.Undefined), 0);
 
@@ -219,7 +217,7 @@ group("meshdata.VertexField", () => {
 	});
 
 	test("isNormalized", () => {
-		const { vertexFieldIsNormalized } = sd.meshdata;
+		const { VertexField, vertexFieldIsNormalized } = sd.meshdata;
 
 		check.equal(vertexFieldIsNormalized(VertexField.Undefined), false);
 

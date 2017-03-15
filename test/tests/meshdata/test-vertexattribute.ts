@@ -3,54 +3,52 @@
 // https://github.com/stardazed/stardazed
 
 group("meshdata.VertexAttribute", () => {
-	const { VertexField, VertexAttributeRole } = sd.meshdata;
-
 	group("attr-helpers", () => {
 		test("attrPosition2", () => {
-			const { attrPosition2 } = sd.meshdata;
+			const { VertexField, VertexAttributeRole, attrPosition2 } = sd.meshdata;
 			const attr = attrPosition2();
 			check.equal(attr.field, VertexField.Floatx2);
 			check.equal(attr.role, VertexAttributeRole.Position);
 		});
 		test("attrPosition3", () => {
-			const { attrPosition3 } = sd.meshdata;
+			const { VertexField, VertexAttributeRole, attrPosition3 } = sd.meshdata;
 			const attr = attrPosition3();
 			check.equal(attr.field, VertexField.Floatx3);
 			check.equal(attr.role, VertexAttributeRole.Position);
 		});
 		test("attrNormal3", () => {
-			const { attrNormal3 } = sd.meshdata;
+			const { VertexField, VertexAttributeRole, attrNormal3 } = sd.meshdata;
 			const attr = attrNormal3();
 			check.equal(attr.field, VertexField.Floatx3);
 			check.equal(attr.role, VertexAttributeRole.Normal);
 		});
 		test("attrColour3", () => {
-			const { attrColour3 } = sd.meshdata;
+			const { VertexField, VertexAttributeRole, attrColour3 } = sd.meshdata;
 			const attr = attrColour3();
 			check.equal(attr.field, VertexField.Floatx3);
 			check.equal(attr.role, VertexAttributeRole.Colour);
 		});
 		test("attrUV2", () => {
-			const { attrUV2 } = sd.meshdata;
+			const { VertexField, VertexAttributeRole, attrUV2 } = sd.meshdata;
 			const attr = attrUV2();
 			check.equal(attr.field, VertexField.Floatx2);
 			check.equal(attr.role, VertexAttributeRole.UV);
 			check.equal(attr.role, VertexAttributeRole.UV0); // UV0 must eq UV
 		});
 		test("attrTangent3", () => {
-			const { attrTangent3 } = sd.meshdata;
+			const { VertexField, VertexAttributeRole, attrTangent3 } = sd.meshdata;
 			const attr = attrTangent3();
 			check.equal(attr.field, VertexField.Floatx3);
 			check.equal(attr.role, VertexAttributeRole.Tangent);
 		});
 		test("attrJointIndexes", () => {
-			const { attrJointIndexes } = sd.meshdata;
+			const { VertexField, VertexAttributeRole, attrJointIndexes } = sd.meshdata;
 			const attr = attrJointIndexes();
 			check.equal(attr.field, VertexField.SInt32x4);
 			check.equal(attr.role, VertexAttributeRole.JointIndexes);
 		});
 		test("attrWeightedPos-good", () => {
-			const { attrWeightedPos } = sd.meshdata;
+			const { VertexField, VertexAttributeRole, attrWeightedPos } = sd.meshdata;
 			const attr0 = attrWeightedPos(0);
 			check.equal(attr0.field, VertexField.Floatx4);
 			check.equal(attr0.role, VertexAttributeRole.WeightedPos0);
@@ -77,6 +75,7 @@ group("meshdata.VertexAttribute", () => {
 
 	group("AttrList", () => {
 		test("Pos3Norm3", () => {
+			const { VertexField, VertexAttributeRole } = sd.meshdata;
 			const { Pos3Norm3 } = sd.meshdata.AttrList;
 			const attrs = Pos3Norm3();
 			check.truthy(Array.isArray(attrs));
@@ -92,6 +91,7 @@ group("meshdata.VertexAttribute", () => {
 			});
 		});
 		test("Pos3Norm3Colour3", () => {
+			const { VertexField, VertexAttributeRole } = sd.meshdata;
 			const { Pos3Norm3Colour3 } = sd.meshdata.AttrList;
 			const attrs = Pos3Norm3Colour3();
 			check.truthy(Array.isArray(attrs));
@@ -130,6 +130,7 @@ group("meshdata.VertexAttribute", () => {
 			});
 		});
 		test("Pos3Norm3Colour3UV2", () => {
+			const { VertexField, VertexAttributeRole } = sd.meshdata;
 			const { Pos3Norm3Colour3UV2 } = sd.meshdata.AttrList;
 			const attrs = Pos3Norm3Colour3UV2();
 			check.truthy(Array.isArray(attrs));
@@ -153,6 +154,7 @@ group("meshdata.VertexAttribute", () => {
 			});
 		});
 		test("Pos3Norm3UV2Tan3", () => {
+			const { VertexField, VertexAttributeRole } = sd.meshdata;
 			const { Pos3Norm3UV2Tan3 } = sd.meshdata.AttrList;
 			const attrs = Pos3Norm3UV2Tan3();
 			check.truthy(Array.isArray(attrs));
@@ -177,3 +179,4 @@ group("meshdata.VertexAttribute", () => {
 		});
 	});
 });
+			const { VertexField, VertexAttributeRole } = sd.meshdata;
