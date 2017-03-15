@@ -44,7 +44,7 @@
 
 		error(err, innerMsg) {
 			blanket.onTestDone(1, false);
-			this.superReport_.error(msg, innerMsg);
+			this.superReport_.error(err, innerMsg);
 		}
 
 		get passes() { return this.superReport_.passes; }
