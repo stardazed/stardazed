@@ -1,4 +1,4 @@
-// meshdata/layout - vertex fields and layout
+// meshdata/layout - vertex fields and buffer layout
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -272,91 +272,94 @@ namespace sd.meshdata {
 	}
 
 
-	// __   __       _           _                       _
-	// \ \ / /__ _ _| |_ _____ _| |   __ _ _  _ ___ _  _| |_
-	//  \ V / -_) '_|  _/ -_) \ / |__/ _` | || / _ \ || |  _|
-	//   \_/\___|_|  \__\___/_\_\____\__,_|\_, \___/\_,_|\__|
-	//                                     |__/
+	// __   __       _           ___       __  __         _                       _   
+	// \ \ / /__ _ _| |_ _____ _| _ )_  _ / _|/ _|___ _ _| |   __ _ _  _ ___ _  _| |_ 
+	//  \ V / -_) '_|  _/ -_) \ / _ \ || |  _|  _/ -_) '_| |__/ _` | || / _ \ || |  _|
+	//   \_/\___|_|  \__\___/_\_\___/\_,_|_| |_| \___|_| |____\__,_|\_, \___/\_,_|\__|
+	//                                                              |__/              
 
 	export interface PositionedAttribute extends VertexAttribute {
+		readonly bufferIndex: number;
 		readonly offset: number;
 	}
 
+	export class VertexBufferLayout {
+		// TODO: add instancing parameters
+		readonly attributes: Readonly<PositionedAttribute>[];
+		readonly stride: number;
 
-	function makePositionedAttr(vf: VertexField, ar: VertexAttributeRole, offset: number): PositionedAttribute;
-	function makePositionedAttr(attr: VertexAttribute, offset: number): PositionedAttribute;
-	function makePositionedAttr(fieldOrAttr: VertexField | VertexAttribute, roleOrOffset: VertexAttributeRole | number, offset?: number): PositionedAttribute {
-		if (typeof fieldOrAttr === "number") {
-			return {
-				field: fieldOrAttr,
-				role: roleOrOffset,
-				offset: offset! | 0
-			};
+		constructor(attributes: PositionedAttribute[], stride: number) {
+			assert(attributes.length > 0, "Cannot create an empty VertexBufferLayout");
+			assert(stride > 0, "stride must be positive");
+
+			this.attributes = attributes;
+			this.stride = stride;
 		}
-		else {
-			return {
-				field: fieldOrAttr.field,
-				role: fieldOrAttr.role,
-				offset: roleOrOffset | 0
-			};
+
+		bytesRequiredForVertexCount(vertexCount: number): number {
+			return vertexCount * this.stride;
+		}
+
+		attrByRole(role: VertexAttributeRole): PositionedAttribute | undefined {
+			return this.attributes.find(pa => pa.role === role);
+		}
+
+		attrByIndex(index: number): PositionedAttribute | undefined {
+			return this.attributes[index] || null;
+		}
+
+		hasAttributeWithRole(role: VertexAttributeRole): boolean {
+			return this.attrByRole(role) !== undefined;
 		}
 	}
-
 
 	function alignFieldOnSize(size: number, offset: number) {
 		const mask = math.roundUpPowerOf2(size) - 1;
 		return (offset + mask) & ~mask;
 	}
 
-
 	function alignVertexField(field: VertexField, offset: number) {
 		return alignFieldOnSize(vertexFieldElementSizeBytes(field), offset);
 	}
 
+	export function makeStandardVertexBufferLayout(attrList: VertexAttribute[], bufferIndex = 0): VertexBufferLayout {
+		let offset = 0, maxElemSize = 0;
 
-	export class VertexLayout {
-		private attributeCount_ = 0;
-		private vertexSizeBytes_ = 0;
-		private attrs_: PositionedAttribute[];
+		// calculate positioning of successive attributes in linear item
+		const attributes = attrList.map((attr: VertexAttribute): PositionedAttribute => {
+			const size = vertexFieldSizeBytes(attr.field);
+			maxElemSize = Math.max(maxElemSize, vertexFieldElementSizeBytes(attr.field));
 
-		constructor(attrList: VertexAttribute[]) {
-			this.attributeCount_ = attrList.length;
+			const alignedOffset = alignVertexField(attr.field, offset);
+			offset = alignedOffset + size;
+			return {
+				field: attr.field,
+				role: attr.role,
+				bufferIndex,
+				offset
+			};
+		});
 
-			let offset = 0, maxElemSize = 0;
+		// align full item size on boundary of biggest element in attribute list, with min of float boundary
+		maxElemSize = Math.max(Float32Array.BYTES_PER_ELEMENT, maxElemSize);
+		const stride = alignFieldOnSize(maxElemSize, offset);
 
-			// calculate positioning of successive attributes in linear item
-			this.attrs_ = attrList.map((attr: VertexAttribute): PositionedAttribute => {
-				const size = vertexFieldSizeBytes(attr.field);
-				maxElemSize = Math.max(maxElemSize, vertexFieldElementSizeBytes(attr.field));
+		return new VertexBufferLayout(attributes, stride);
+	}
 
-				const alignedOffset = alignVertexField(attr.field, offset);
-				offset = alignedOffset + size;
-				return makePositionedAttr(attr, alignedOffset);
-			});
 
-			// align full item size on boundary of biggest element in attribute list, with min of float boundary
-			maxElemSize = Math.max(Float32Array.BYTES_PER_ELEMENT, maxElemSize);
-			this.vertexSizeBytes_ = alignFieldOnSize(maxElemSize, offset);
-		}
+	// __   __       _           _                       _   
+	// \ \ / /__ _ _| |_ _____ _| |   __ _ _  _ ___ _  _| |_ 
+	//  \ V / -_) '_|  _/ -_) \ / |__/ _` | || / _ \ || |  _|
+	//   \_/\___|_|  \__\___/_\_\____\__,_|\_, \___/\_,_|\__|
+	//                                     |__/              
 
-		get attributeCount() { return this.attributeCount_; }
-		get vertexSizeBytes() { return this.vertexSizeBytes_; }
+	export class VertexLayout implements render.RenderResourceBase {
+		readonly renderResourceType = render.ResourceType.VertexLayout;
+		readonly layouts: VertexBufferLayout[];
 
-		bytesRequiredForVertexCount(vertexCount: number): number {
-			return vertexCount * this.vertexSizeBytes_;
-		}
-
-		attrByRole(role: VertexAttributeRole): PositionedAttribute | null {
-			const attr = this.attrs_.find(pa => pa.role == role);
-			return attr || null;
-		}
-
-		attrByIndex(index: number): PositionedAttribute | null {
-			return this.attrs_[index] || null;
-		}
-
-		hasAttributeWithRole(role: VertexAttributeRole): boolean {
-			return this.attrByRole(role) != null;
+		constructor(layouts: VertexBufferLayout[]) {
+			this.layouts = layouts;
 		}
 	}
 
