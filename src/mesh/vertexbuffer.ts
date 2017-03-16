@@ -6,25 +6,20 @@
 namespace sd.meshdata {
 
 	export class VertexBuffer {
-		private layout_: VertexLayout;
+		private layout_: VertexBufferLayout;
 		private vertexCount_ = 0;
 		private storageOffsetBytes_ = 0;
 		private storage_: ArrayBuffer | null = null;
 
-		constructor(attrs: VertexAttribute[] | VertexLayout) {
-			if (attrs instanceof VertexLayout) {
-				this.layout_ = attrs;
-			}
-			else {
-				this.layout_ = new VertexLayout(attrs);
-			}
+		constructor(layout: VertexBufferLayout) {
+			this.layout_ = layout;
 		}
 
 		// -- buffer data management
 
 		get layout() { return this.layout_; }
-		get strideBytes() { return this.layout_.vertexSizeBytes; }
-		get attributeCount() { return this.layout_.attributeCount; }
+		get strideBytes() { return this.layout_.stride; }
+		get attributeCount() { return this.layout_.attributes.length; }
 		get vertexCount() { return this.vertexCount_; }
 		get bufferSizeBytes() { return this.strideBytes * this.vertexCount_; }
 		get bufferLocalOffsetBytes() { return this.storageOffsetBytes_; }
@@ -114,7 +109,7 @@ namespace sd.meshdata {
 		private viewItemCount_: number;
 
 		constructor(private vertexBuffer_: VertexBuffer, private attr_: PositionedAttribute, private firstItem_ = 0, itemCount = -1) {
-			this.stride_ = this.vertexBuffer_.layout.vertexSizeBytes;
+			this.stride_ = this.vertexBuffer_.layout.stride;
 			this.attrOffset_ = attr_.offset;
 			this.attrElementCount_ = vertexFieldElementCount(attr_.field);
 

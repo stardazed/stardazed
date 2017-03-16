@@ -98,8 +98,8 @@ namespace sd.meshdata {
 		}
 
 
-		findFirstAttributeWithRole(role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | null {
-			let pa: PositionedAttribute | null = null;
+		findFirstAttributeWithRole(role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | undefined {
+			let pa: PositionedAttribute | undefined;
 			let avb: VertexBuffer | null = null;
 
 			this.vertexBuffers.forEach((vb) => {
@@ -114,14 +114,14 @@ namespace sd.meshdata {
 			if (pa && avb) {
 				return { vertexBuffer: avb, attr: pa };
 			}
-			return null;
+			return undefined;
 		}
 
 		// derived vertex data generation
 		genVertexNormals() {
-			this.vertexBuffers.forEach((vertexBuffer) => {
+			this.vertexBuffers.forEach((_vertexBuffer) => {
 				if (this.indexBuffer) {
-					calcVertexNormals(vertexBuffer, this.indexBuffer);
+					// calcVertexNormals(vertexBuffer, this.indexBuffer);
 				}
 			});
 		}

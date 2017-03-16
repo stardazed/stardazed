@@ -51,7 +51,8 @@ namespace sd.meshdata.gen {
 
 		// -- create vertex and index buffers for combined mesh
 		const mesh = new MeshData();
-		const vertexBuffer = new VertexBuffer(attrList);
+		const layout = makeStandardVertexBufferLayout(attrList);
+		const vertexBuffer = new VertexBuffer(layout);
 		mesh.vertexBuffers.push(vertexBuffer);
 		mesh.indexBuffer = new IndexBuffer();
 		const indexElementType = minimumIndexElementTypeForVertexCount(totalVertexCount);

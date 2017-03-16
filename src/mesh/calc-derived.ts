@@ -4,7 +4,6 @@
 // https://github.com/stardazed/stardazed
 
 namespace sd.meshdata {
-
 	// FIXME: once we have triview for non-indexed meshes, make param optional and create proper view
 
 	export function calcVertexNormals(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer) {
@@ -185,5 +184,4 @@ namespace sd.meshdata {
 			vec3.copy(tanView.refItem(ix), tangent);
 		}
 	}
-
 } // ns.meshdata
