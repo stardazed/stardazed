@@ -111,6 +111,7 @@ group("meshdata.VertexAttribute", () => {
 			});
 		});
 		test("Pos3Norm3UV2", () => {
+			const { VertexField, VertexAttributeRole } = sd.meshdata;
 			const { Pos3Norm3UV2 } = sd.meshdata.AttrList;
 			const attrs = Pos3Norm3UV2();
 			check.truthy(Array.isArray(attrs));
@@ -179,4 +180,4 @@ group("meshdata.VertexAttribute", () => {
 		});
 	});
 });
-			const { VertexField, VertexAttributeRole } = sd.meshdata;
+
