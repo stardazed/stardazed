@@ -2,29 +2,48 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-group("meshdata.VertexLayout", () => {
-	test("construct-with-empty-array", () => {
-		const { VertexLayout } = sd.meshdata;
+group("meshdata.VertexBufferLayout", () => {
+	group("", () => {
+		test("construct-with-empty-array-yields-exception", () => {
+			const { VertexBufferLayout } = sd.meshdata;
 
-		const vl = new VertexLayout([]);
-		check.equal(vl.attributeCount, 0);
-		check.equal(vl.vertexSizeBytes, 0);
+			check.throws(Error, () => {
+				// tslint:disable-next-line:no-unused-new
+				new VertexBufferLayout([], 1);
+			});
+		});
+		test("construct-with-bad-stride-yields-exception", () => {
+			const { VertexField, VertexAttributeRole, VertexBufferLayout } = sd.meshdata;
+
+			check.throws(Error, () => {
+				// tslint:disable-next-line:no-unused-new
+				new VertexBufferLayout(
+					[{
+						bufferIndex: 0,
+						field: VertexField.Float,
+						offset: 0,
+						role: VertexAttributeRole.Position
+					}],
+					0
+				);
+			});
+		});
 	});
 	test("construct-with-std-attrs", () => {
-		const { AttrList, VertexLayout } = sd.meshdata;
+		const { AttrList, VertexBufferLayout } = sd.meshdata;
 
-		let vl = new VertexLayout(AttrList.Pos3Norm3Colour3());
+		let vl = new VertexBufferLayout(AttrList.Pos3Norm3Colour3());
 		check.equal(vl.attributeCount, 3);
 		check.equal(vl.vertexSizeBytes, 12 + 12 + 12);
 
-		vl = new VertexLayout(AttrList.Pos3Norm3UV2Tan3());
+		vl = new VertexBufferLayout(AttrList.Pos3Norm3UV2Tan3());
 		check.equal(vl.attributeCount, 4);
 		check.equal(vl.vertexSizeBytes, 12 + 12 + 8 + 12);
 	});
 
 	test("bytesRequiredForVertexCount", () => {
-		const { AttrList, VertexLayout } = sd.meshdata;
-		const vl = new VertexLayout(AttrList.Pos3Norm3Colour3());
+		const { AttrList, VertexBufferLayout } = sd.meshdata;
+		const vl = new VertexBufferLayout(AttrList.Pos3Norm3Colour3());
 		check.equal(vl.bytesRequiredForVertexCount(0), 0);
 		check.equal(vl.bytesRequiredForVertexCount(1), vl.vertexSizeBytes);
 		check.equal(vl.bytesRequiredForVertexCount(1000), vl.vertexSizeBytes * 1000);
@@ -35,8 +54,8 @@ group("meshdata.VertexLayout", () => {
 	});
 
 	test("attrByRole", () => {
-		const { VertexAttributeRole, AttrList, VertexLayout } = sd.meshdata;
-		const vl = new VertexLayout(AttrList.Pos3Norm3Colour3());
+		const { VertexAttributeRole, AttrList, VertexBufferLayout } = sd.meshdata;
+		const vl = new VertexBufferLayout(AttrList.Pos3Norm3Colour3());
 
 		const ap = vl.attrByRole(VertexAttributeRole.Position);
 		check.present(ap);
@@ -56,8 +75,8 @@ group("meshdata.VertexLayout", () => {
 	});
 
 	test("attrByIndex", () => {
-		const { AttrList, VertexLayout } = sd.meshdata;
-		const vl = new VertexLayout(AttrList.Pos3Norm3UV2());
+		const { AttrList, VertexBufferLayout } = sd.meshdata;
+		const vl = new VertexBufferLayout(AttrList.Pos3Norm3UV2());
 
 		check.present(vl.attrByIndex(0));
 		check.present(vl.attrByIndex(1));
@@ -69,8 +88,8 @@ group("meshdata.VertexLayout", () => {
 	});
 
 	test("hasAttributeWithRole", () => {
-		const { VertexAttributeRole, VertexLayout, AttrList } = sd.meshdata;
-		const vl = new VertexLayout(AttrList.Pos3Norm3UV2());
+		const { VertexAttributeRole, VertexBufferLayout, AttrList } = sd.meshdata;
+		const vl = new VertexBufferLayout(AttrList.Pos3Norm3UV2());
 
 		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.Position), true);
 		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.Normal), true);
@@ -83,8 +102,8 @@ group("meshdata.VertexLayout", () => {
 	});
 
 	test("hasAttributeWithRole-implies-attrByRole-non-null", () => {
-		const { VertexLayout, VertexAttributeRole, attrWeightedPos, attrJointIndexes, attrColour3 } = sd.meshdata;
-		const vl = new VertexLayout([
+		const { VertexBufferLayout, VertexAttributeRole, attrWeightedPos, attrJointIndexes, attrColour3 } = sd.meshdata;
+		const vl = new VertexBufferLayout([
 			attrWeightedPos(0),
 			attrWeightedPos(2),
 			attrJointIndexes(),
@@ -108,8 +127,8 @@ group("meshdata.VertexLayout", () => {
 	});
 
 	test("no-implicit-position-or-normal", () => {
-		const { VertexLayout, VertexAttributeRole, attrWeightedPos, attrJointIndexes } = sd.meshdata;
-		const vl = new VertexLayout([
+		const { VertexBufferLayout, VertexAttributeRole, attrWeightedPos, attrJointIndexes } = sd.meshdata;
+		const vl = new VertexBufferLayout([
 			attrWeightedPos(0),
 			attrWeightedPos(1),
 			attrJointIndexes()
@@ -123,8 +142,8 @@ group("meshdata.VertexLayout", () => {
 	});
 
 	test("ordered-and-aligned-layout", () => {
-		const { VertexLayout, VertexAttributeRole, VertexField, vertexFieldSizeBytes } = sd.meshdata;
-		const vl = new VertexLayout([
+		const { VertexBufferLayout, VertexAttributeRole, VertexField, vertexFieldSizeBytes } = sd.meshdata;
+		const vl = new VertexBufferLayout([
 			{ field: VertexField.Norm_SInt8x3, role: VertexAttributeRole.Position },
 			{ field: VertexField.SInt16x2, role: VertexAttributeRole.UV },
 			{ field: VertexField.Floatx2, role: VertexAttributeRole.Colour },
