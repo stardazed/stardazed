@@ -5,7 +5,7 @@
 
 namespace sd.meshdata {
 
-	export class VertexBuffer implements ClientBuffer {
+	export class VertexBuffer {
 		private layout_: VertexLayout;
 		private vertexCount_ = 0;
 		private storageOffsetBytes_ = 0;

@@ -120,7 +120,7 @@ namespace sd.meshdata {
 	}
 
 
-	export class IndexBuffer implements ClientBuffer {
+	export class IndexBuffer {
 		private indexElementType_ = IndexElementType.None;
 		private indexCount_ = 0;
 		private indexElementSizeBytes_ = 0;

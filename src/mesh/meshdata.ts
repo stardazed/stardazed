@@ -5,20 +5,6 @@
 
 namespace sd.meshdata {
 
-	//   ___ _ _         _   ___       __  __
-	//  / __| (_)___ _ _| |_| _ )_  _ / _|/ _|___ _ _
-	// | (__| | / -_) ' \  _| _ \ || |  _|  _/ -_) '_|
-	//  \___|_|_\___|_||_\__|___/\_,_|_| |_| \___|_|
-	//
-
-	export interface ClientBuffer {
-		readonly bufferSizeBytes: number;
-		readonly bufferLocalOffsetBytes: number;
-		readonly buffer: ArrayBuffer | null;
-		bufferView(): ArrayBufferView | null;
-	}
-
-
 	// --- TriangleProxy and TriangleView
 
 	export interface Triangle {
