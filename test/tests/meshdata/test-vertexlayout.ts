@@ -214,8 +214,8 @@ group("meshdata", () => {
 	group("VertexLayout", () => {
 		test("empty-list-allowed", () => {
 			const { VertexLayout } = sd.meshdata;
-			// tslint:disable-next-line:no-unused-new
-			new VertexLayout([]);
+			const vl = new VertexLayout([]);
+			check.equal(vl.layouts.length, 0);
 		});
 		test("clones-layouts-array", () => {
 			const { VertexLayout, makeStandardVertexBufferLayout, AttrList } = sd.meshdata;
