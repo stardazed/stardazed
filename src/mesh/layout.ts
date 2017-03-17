@@ -89,8 +89,18 @@ namespace sd.meshdata {
 		readonly offset: number;
 	}
 
-	export class VertexBufferLayout {
+	export interface VertexBufferLayout {
 		// TODO: add instancing parameters
+		readonly attributes: Readonly<PositionedAttribute>[];
+		readonly stride: number;
+
+		bytesRequiredForVertexCount(vertexCount: number): number;
+		attrByRole(role: VertexAttributeRole): PositionedAttribute | undefined;
+		attrByIndex(index: number): PositionedAttribute | undefined;
+		hasAttributeWithRole(role: VertexAttributeRole): boolean;
+	}
+
+	class VertexBufferLayoutImpl implements VertexBufferLayout {
 		readonly attributes: Readonly<PositionedAttribute>[];
 		readonly stride: number;
 
@@ -98,26 +108,29 @@ namespace sd.meshdata {
 			assert(attributes.length > 0, "Cannot create an empty VertexBufferLayout");
 			assert(stride > 0, "stride must be positive");
 
-			this.attributes = attributes;
+			this.attributes = [...attributes];
 			this.stride = stride;
 		}
 
-		bytesRequiredForVertexCount(vertexCount: number): number {
+		bytesRequiredForVertexCount(vertexCount: number) {
 			return vertexCount * this.stride;
 		}
 
-		attrByRole(role: VertexAttributeRole): PositionedAttribute | undefined {
+		attrByRole(role: VertexAttributeRole) {
 			return this.attributes.find(pa => pa.role === role);
 		}
 
-		attrByIndex(index: number): PositionedAttribute | undefined {
+		attrByIndex(index: number) {
 			return this.attributes[index] || null;
 		}
 
-		hasAttributeWithRole(role: VertexAttributeRole): boolean {
+		hasAttributeWithRole(role: VertexAttributeRole) {
 			return this.attrByRole(role) !== undefined;
 		}
 	}
+
+
+	// ---- default buffer layout calc func
 
 	function alignFieldOnSize(size: number, offset: number) {
 		const mask = math.roundUpPowerOf2(size) - 1;
@@ -142,7 +155,7 @@ namespace sd.meshdata {
 				field: attr.field,
 				role: attr.role,
 				bufferIndex,
-				offset
+				offset: alignedOffset
 			};
 		});
 
@@ -150,7 +163,7 @@ namespace sd.meshdata {
 		maxElemSize = Math.max(Float32Array.BYTES_PER_ELEMENT, maxElemSize);
 		const stride = alignFieldOnSize(maxElemSize, offset);
 
-		return new VertexBufferLayout(attributes, stride);
+		return new VertexBufferLayoutImpl(attributes, stride);
 	}
 
 
