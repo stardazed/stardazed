@@ -38,6 +38,18 @@ group("meshdata", () => {
 			check.greater(vbl.stride, 0);
 		});
 
+		test("clones-attribute-data", () => {
+			const { makeStandardVertexBufferLayout, AttrList, VertexField, VertexAttributeRole } = sd.meshdata;
+			const attrs = AttrList.Pos3Norm3();
+			const vbl = makeStandardVertexBufferLayout(attrs);
+
+			attrs[0].field = VertexField.Norm_SInt16x2;
+			attrs[1].role = VertexAttributeRole.JointIndexes;
+
+			check.equal(vbl.attributes[0].field, VertexField.Floatx3);
+			check.equal(vbl.attributes[1].role, VertexAttributeRole.Normal);
+		});
+
 		test("expected-aligned-layout", () => {
 			const { makeStandardVertexBufferLayout, VertexAttributeRole, VertexField } = sd.meshdata;
 
@@ -196,6 +208,28 @@ group("meshdata", () => {
 			check.equal(vl.hasAttributeWithRole(VertexAttributeRole.WeightedPos3), false);
 			check.notPresent(vl.attrByRole(VertexAttributeRole.WeightedPos1));
 			check.notPresent(vl.attrByRole(VertexAttributeRole.WeightedPos3));
+		});
+	});
+
+	group("VertexLayout", () => {
+		test("empty-list-allowed", () => {
+			const { VertexLayout } = sd.meshdata;
+			// tslint:disable-next-line:no-unused-new
+			new VertexLayout([]);
+		});
+		test("clones-layouts-array", () => {
+			const { VertexLayout, makeStandardVertexBufferLayout, AttrList } = sd.meshdata;
+			const vbl = makeStandardVertexBufferLayout(AttrList.Pos3Norm3());
+			const layouts = [vbl];
+			const vl = new VertexLayout(layouts);
+			layouts.push(makeStandardVertexBufferLayout(AttrList.Pos3Norm3Colour3()));
+
+			check.equal(vl.layouts.length, 1);
+		});
+		test("has-correct-render-resource-type", () => {
+			const { VertexLayout } = sd.meshdata;
+			const vl = new VertexLayout([]);
+			check.equal(vl.renderResourceType, sd.render.ResourceType.VertexLayout);
 		});
 	});
 });

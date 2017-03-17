@@ -36,8 +36,8 @@ namespace sd.meshdata {
 	// -- A VertexAttribute is a Field with a certain Role inside a VertexBuffer
 
 	export interface VertexAttribute {
-		readonly field: VertexField;
-		readonly role: VertexAttributeRole;
+		field: VertexField;
+		role: VertexAttributeRole;
 	}
 
 
@@ -85,8 +85,8 @@ namespace sd.meshdata {
 	//                                                              |__/              
 
 	export interface PositionedAttribute extends VertexAttribute {
-		readonly bufferIndex: number;
-		readonly offset: number;
+		bufferIndex: number;
+		offset: number;
 	}
 
 	export interface VertexBufferLayout {
@@ -178,7 +178,7 @@ namespace sd.meshdata {
 		readonly layouts: VertexBufferLayout[];
 
 		constructor(layouts: VertexBufferLayout[]) {
-			this.layouts = layouts;
+			this.layouts = [...layouts];
 		}
 	}
 
