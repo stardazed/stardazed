@@ -2,169 +2,200 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-group("meshdata.VertexBufferLayout", () => {
-	group("", () => {
-		test("construct-with-empty-array-yields-exception", () => {
-			const { VertexBufferLayout } = sd.meshdata;
-
+group("meshdata", () => {
+	group("makeStandardVertexBufferLayout", () => {
+		test("throws-on-empty-args-list", () => {
+			const { makeStandardVertexBufferLayout } = sd.meshdata;
 			check.throws(Error, () => {
-				// tslint:disable-next-line:no-unused-new
-				new VertexBufferLayout([], 1);
+				makeStandardVertexBufferLayout([]);
 			});
 		});
-		test("construct-with-bad-stride-yields-exception", () => {
-			const { VertexField, VertexAttributeRole, VertexBufferLayout } = sd.meshdata;
 
-			check.throws(Error, () => {
-				// tslint:disable-next-line:no-unused-new
-				new VertexBufferLayout(
-					[{
-						bufferIndex: 0,
-						field: VertexField.Float,
-						offset: 0,
-						role: VertexAttributeRole.Position
-					}],
-					0
-				);
-			});
+		test("retains-arg-order", () => {
+			const { VertexField, VertexAttributeRole, makeStandardVertexBufferLayout } = sd.meshdata;
+
+			const attrs: sd.meshdata.VertexAttribute[] = [
+				{
+					field: VertexField.Float,
+					role: VertexAttributeRole.Position
+				},
+				{
+					field: VertexField.Floatx2,
+					role: VertexAttributeRole.Material
+				}
+			];
+
+			const vbl = makeStandardVertexBufferLayout(attrs, 8);
+			check.equal(vbl.attributes.length, 2);
+			check.structuralEqual(vbl.attributes[0], attrs[0]);
+			check.structuralEqual(vbl.attributes[1], attrs[1]);
+		});
+
+		test("basics", () => {
+			const { makeStandardVertexBufferLayout, AttrList } = sd.meshdata;
+			const vbl = makeStandardVertexBufferLayout(AttrList.Pos3Norm3());
+			check.equal(vbl.attributes.length, 2);
+			check.greater(vbl.stride, 0);
+		});
+
+		test("expected-aligned-layout", () => {
+			const { makeStandardVertexBufferLayout, VertexAttributeRole, VertexField } = sd.meshdata;
+
+			const vl = makeStandardVertexBufferLayout([
+				{ field: VertexField.Norm_SInt8x3, role: VertexAttributeRole.Position },
+				{ field: VertexField.SInt16x2, role: VertexAttributeRole.UV },
+				{ field: VertexField.Floatx2, role: VertexAttributeRole.Colour },
+				{ field: VertexField.Float, role: VertexAttributeRole.UV1 }
+			]);
+			check.equal(vl.attributes.length, 4, "should have 4 attrs");
+
+			check.equal(vl.attributes[0].offset, 0, "attr 0 at offset 0");
+			check.equal(vl.attributes[1].offset, 4, "attr 1 at offset 4");
+			check.equal(vl.attributes[2].offset, 8, "attr 2 at offset 8");
+			check.equal(vl.attributes[3].offset, 16, "attr 3 at offset 16");
+			check.equal(vl.stride, 20, "20-byte stride");
+		});
+
+		test("sets-bufferIndex-on-all-attrs", () => {
+			const { makeStandardVertexBufferLayout, AttrList } = sd.meshdata;
+
+			const vl = makeStandardVertexBufferLayout(AttrList.Pos3Norm3Colour3UV2(), 3);
+			check.equal(vl.attributes.length, 4);
+			check.equal(vl.attributes[0].bufferIndex, 3);
+			check.equal(vl.attributes[1].bufferIndex, 3);
+			check.equal(vl.attributes[2].bufferIndex, 3);
+			check.equal(vl.attributes[3].bufferIndex, 3);
+		});
+
+		test("default-bufferIndex-is-0", () => {
+			const { makeStandardVertexBufferLayout, AttrList } = sd.meshdata;
+
+			const vl = makeStandardVertexBufferLayout(AttrList.Pos3Norm3UV2Tan3());
+			check.equal(vl.attributes.length, 4);
+			check.equal(vl.attributes[0].bufferIndex, 0);
+			check.equal(vl.attributes[1].bufferIndex, 0);
+			check.equal(vl.attributes[2].bufferIndex, 0);
+			check.equal(vl.attributes[3].bufferIndex, 0);
+		});
+
+		test("layout-of-float-aligned-attrs", () => {
+			const { AttrList, makeStandardVertexBufferLayout } = sd.meshdata;
+
+			const vl1 = makeStandardVertexBufferLayout(AttrList.Pos3Norm3Colour3());
+			check.equal(vl1.attributes.length, 3);
+			check.equal(vl1.stride, 12 + 12 + 12);
+
+			const vl2 = makeStandardVertexBufferLayout(AttrList.Pos3Norm3UV2Tan3(), 1);
+			check.equal(vl2.attributes.length, 4);
+			check.equal(vl2.stride, 12 + 12 + 8 + 12);
+		});
+
+		test("no-implicit-position-or-normal", () => {
+			const { makeStandardVertexBufferLayout, VertexAttributeRole, attrWeightedPos, attrJointIndexes } = sd.meshdata;
+			const vl = makeStandardVertexBufferLayout([
+				attrWeightedPos(0),
+				attrWeightedPos(1),
+				attrJointIndexes()
+			]);
+
+			check.equal(vl.hasAttributeWithRole(VertexAttributeRole.Position), false);
+			check.equal(vl.hasAttributeWithRole(VertexAttributeRole.Normal), false);
+
+			check.notPresent(vl.attrByRole(VertexAttributeRole.Position));
+			check.notPresent(vl.attrByRole(VertexAttributeRole.Normal));
 		});
 	});
-	test("construct-with-std-attrs", () => {
-		const { AttrList, VertexBufferLayout } = sd.meshdata;
 
-		let vl = new VertexBufferLayout(AttrList.Pos3Norm3Colour3());
-		check.equal(vl.attributeCount, 3);
-		check.equal(vl.vertexSizeBytes, 12 + 12 + 12);
+	group("VertexBufferLayout", () => {
+		let vbl: sd.meshdata.VertexBufferLayout;
 
-		vl = new VertexBufferLayout(AttrList.Pos3Norm3UV2Tan3());
-		check.equal(vl.attributeCount, 4);
-		check.equal(vl.vertexSizeBytes, 12 + 12 + 8 + 12);
-	});
+		before(() => {
+			vbl = sd.meshdata.makeStandardVertexBufferLayout(sd.meshdata.AttrList.Pos3Norm3Colour3UV2());
+		});
 
-	test("bytesRequiredForVertexCount", () => {
-		const { AttrList, VertexBufferLayout } = sd.meshdata;
-		const vl = new VertexBufferLayout(AttrList.Pos3Norm3Colour3());
-		check.equal(vl.bytesRequiredForVertexCount(0), 0);
-		check.equal(vl.bytesRequiredForVertexCount(1), vl.vertexSizeBytes);
-		check.equal(vl.bytesRequiredForVertexCount(1000), vl.vertexSizeBytes * 1000);
-		check.equal(vl.bytesRequiredForVertexCount(1024 * 1024), vl.vertexSizeBytes * 1024 * 1024);
+		test("bytesRequiredForVertexCount", () => {
+			check.equal(vbl.bytesRequiredForVertexCount(0), 0);
+			check.equal(vbl.bytesRequiredForVertexCount(1), vbl.stride);
+			check.equal(vbl.bytesRequiredForVertexCount(1000), vbl.stride * 1000);
+			check.equal(vbl.bytesRequiredForVertexCount(1024 * 1024), vbl.stride * 1024 * 1024);
 
-		// does not check for negative counts yet
-		check.equal(vl.bytesRequiredForVertexCount(-1), -vl.vertexSizeBytes);
-	});
+			// does not check for negative counts yet
+			check.equal(vbl.bytesRequiredForVertexCount(-1), -vbl.stride);
+		});
 
-	test("attrByRole", () => {
-		const { VertexAttributeRole, AttrList, VertexBufferLayout } = sd.meshdata;
-		const vl = new VertexBufferLayout(AttrList.Pos3Norm3Colour3());
+		test("attrByRole", () => {
+			const { VertexAttributeRole } = sd.meshdata;
+			const ap = vbl.attrByRole(VertexAttributeRole.Position);
+			check.present(ap, "should have position");
+			check.equal(ap!.role, VertexAttributeRole.Position);
 
-		const ap = vl.attrByRole(VertexAttributeRole.Position);
-		check.present(ap);
-		check.equal(ap!.role, VertexAttributeRole.Position);
+			const an = vbl.attrByRole(VertexAttributeRole.Normal);
+			check.present(an, "should have normal");
+			check.equal(an!.role, VertexAttributeRole.Normal);
 
-		const an = vl.attrByRole(VertexAttributeRole.Normal);
-		check.present(an);
-		check.equal(an!.role, VertexAttributeRole.Normal);
+			const ac = vbl.attrByRole(VertexAttributeRole.Colour);
+			check.present(ac, "should have colour");
+			check.equal(ac!.role, VertexAttributeRole.Colour);
 
-		const ac = vl.attrByRole(VertexAttributeRole.Colour);
-		check.present(ac);
-		check.equal(ac!.role, VertexAttributeRole.Colour);
+			const au = vbl.attrByRole(VertexAttributeRole.UV);
+			check.present(au, "should have uv");
+			check.equal(au!.role, VertexAttributeRole.UV);
 
-		check.notPresent(vl.attrByRole(VertexAttributeRole.None));
-		check.notPresent(vl.attrByRole(VertexAttributeRole.UV));
-		check.notPresent(vl.attrByRole(VertexAttributeRole.JointIndexes));
-	});
+			check.notPresent(vbl.attrByRole(VertexAttributeRole.None));
+			check.notPresent(vbl.attrByRole(VertexAttributeRole.JointIndexes));
+			check.notPresent(vbl.attrByRole(VertexAttributeRole.Material));
+		});
 
-	test("attrByIndex", () => {
-		const { AttrList, VertexBufferLayout } = sd.meshdata;
-		const vl = new VertexBufferLayout(AttrList.Pos3Norm3UV2());
+		test("attrByIndex", () => {
+			check.present(vbl.attrByIndex(0), "should have attr 0");
+			check.present(vbl.attrByIndex(1), "should have attr 1");
+			check.present(vbl.attrByIndex(2), "should have attr 2");
+			check.present(vbl.attrByIndex(3), "should have attr 3");
 
-		check.present(vl.attrByIndex(0));
-		check.present(vl.attrByIndex(1));
-		check.present(vl.attrByIndex(2));
+			check.notPresent(vbl.attrByIndex(-1), "should not have attr -1");
+			check.notPresent(vbl.attrByIndex(4), "should have attr 4");
+			check.notPresent(vbl.attrByIndex(1.5), "should have react to non-integer indexes");
+		});
 
-		check.notPresent(vl.attrByIndex(-1));
-		check.notPresent(vl.attrByIndex(3));
-		check.notPresent(vl.attrByIndex(1.5));
-	});
+		test("hasAttributeWithRole", () => {
+			const { VertexAttributeRole } = sd.meshdata;
 
-	test("hasAttributeWithRole", () => {
-		const { VertexAttributeRole, VertexBufferLayout, AttrList } = sd.meshdata;
-		const vl = new VertexBufferLayout(AttrList.Pos3Norm3UV2());
+			check.equal(vbl.hasAttributeWithRole(VertexAttributeRole.Position), true);
+			check.equal(vbl.hasAttributeWithRole(VertexAttributeRole.Normal), true);
+			check.equal(vbl.hasAttributeWithRole(VertexAttributeRole.Colour), true);
+			check.equal(vbl.hasAttributeWithRole(VertexAttributeRole.UV), true);
 
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.Position), true);
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.Normal), true);
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.UV), true);
+			check.equal(vbl.hasAttributeWithRole(VertexAttributeRole.None), false);
+			check.equal(vbl.hasAttributeWithRole(VertexAttributeRole.Tangent), false);
+			check.equal(vbl.hasAttributeWithRole(VertexAttributeRole.UV1), false);
+			check.equal(vbl.hasAttributeWithRole(VertexAttributeRole.WeightedPos0), false);
+		});
 
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.Tangent), false);
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.Colour), false);
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.UV1), false);
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.WeightedPos0), false);
-	});
+		test("hasAttributeWithRole-implies-attrByRole-non-null", () => {
+			// use different layout for this test
+			const { makeStandardVertexBufferLayout } = sd.meshdata;
+			const { VertexAttributeRole, attrWeightedPos, attrJointIndexes, attrColour3 } = sd.meshdata;
+			const vl = makeStandardVertexBufferLayout([
+				attrWeightedPos(0),
+				attrWeightedPos(2),
+				attrJointIndexes(),
+				attrColour3()
+			]);
 
-	test("hasAttributeWithRole-implies-attrByRole-non-null", () => {
-		const { VertexBufferLayout, VertexAttributeRole, attrWeightedPos, attrJointIndexes, attrColour3 } = sd.meshdata;
-		const vl = new VertexBufferLayout([
-			attrWeightedPos(0),
-			attrWeightedPos(2),
-			attrJointIndexes(),
-			attrColour3()
-		]);
+			check.equal(vl.hasAttributeWithRole(VertexAttributeRole.WeightedPos0), true);
+			check.equal(vl.hasAttributeWithRole(VertexAttributeRole.WeightedPos2), true);
+			check.equal(vl.hasAttributeWithRole(VertexAttributeRole.JointIndexes), true);
+			check.equal(vl.hasAttributeWithRole(VertexAttributeRole.Colour), true);
 
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.WeightedPos0), true);
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.WeightedPos2), true);
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.JointIndexes), true);
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.Colour), true);
+			check.present(vl.attrByRole(VertexAttributeRole.WeightedPos0));
+			check.present(vl.attrByRole(VertexAttributeRole.WeightedPos2));
+			check.present(vl.attrByRole(VertexAttributeRole.JointIndexes));
+			check.present(vl.attrByRole(VertexAttributeRole.Colour));
 
-		check.present(vl.attrByRole(VertexAttributeRole.WeightedPos0));
-		check.present(vl.attrByRole(VertexAttributeRole.WeightedPos2));
-		check.present(vl.attrByRole(VertexAttributeRole.JointIndexes));
-		check.present(vl.attrByRole(VertexAttributeRole.Colour));
-
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.WeightedPos1), false);
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.WeightedPos3), false);
-		check.notPresent(vl.attrByRole(VertexAttributeRole.WeightedPos1));
-		check.notPresent(vl.attrByRole(VertexAttributeRole.WeightedPos3));
-	});
-
-	test("no-implicit-position-or-normal", () => {
-		const { VertexBufferLayout, VertexAttributeRole, attrWeightedPos, attrJointIndexes } = sd.meshdata;
-		const vl = new VertexBufferLayout([
-			attrWeightedPos(0),
-			attrWeightedPos(1),
-			attrJointIndexes()
-		]);
-
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.Position), false);
-		check.equal(vl.hasAttributeWithRole(VertexAttributeRole.Normal), false);
-
-		check.notPresent(vl.attrByRole(VertexAttributeRole.Position));
-		check.notPresent(vl.attrByRole(VertexAttributeRole.Normal));
-	});
-
-	test("ordered-and-aligned-layout", () => {
-		const { VertexBufferLayout, VertexAttributeRole, VertexField, vertexFieldSizeBytes } = sd.meshdata;
-		const vl = new VertexBufferLayout([
-			{ field: VertexField.Norm_SInt8x3, role: VertexAttributeRole.Position },
-			{ field: VertexField.SInt16x2, role: VertexAttributeRole.UV },
-			{ field: VertexField.Floatx2, role: VertexAttributeRole.Colour },
-			{ field: VertexField.Float, role: VertexAttributeRole.UV1 }
-		]);
-		check.equal(vl.attributeCount, 4);
-
-		let prevOffset = 0;
-		let prevSize = 0;
-		const pattr0 = vl.attrByIndex(0)!;
-		check.equal(pattr0.offset, 0, "expect first attr to be at offset 0");
-
-		for (let ai = 1; ai < 4; ++ai) {
-			const pattr = vl.attrByIndex(ai)!;
-			check.greater(pattr.offset, prevOffset);
-			check.greaterEqual(pattr.offset - prevOffset, prevSize, "expect minimum distance to be field size");
-
-			prevSize = vertexFieldSizeBytes(pattr.field);
-			prevOffset = pattr.offset;
-		}
-
-		check.greaterEqual(vl.vertexSizeBytes, prevOffset + prevSize, "full vertex minimum size of all aligned field");
+			check.equal(vl.hasAttributeWithRole(VertexAttributeRole.WeightedPos1), false);
+			check.equal(vl.hasAttributeWithRole(VertexAttributeRole.WeightedPos3), false);
+			check.notPresent(vl.attrByRole(VertexAttributeRole.WeightedPos1));
+			check.notPresent(vl.attrByRole(VertexAttributeRole.WeightedPos3));
+		});
 	});
 });
