@@ -104,7 +104,10 @@ namespace inquisition {
 					throw new Error("Lost Active test");
 				})
 				.catch(err => {
-					if (err instanceof AssertionError) {
+					if (("name" in err) && (err.name === "AssertionError")) {
+						this.report.failure(err.message);
+					}
+					else if (("name" in err) && (err.name === "SkipError")) {
 						this.report.failure(err.message);
 					}
 					else {
