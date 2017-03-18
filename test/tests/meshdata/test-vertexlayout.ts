@@ -280,6 +280,7 @@ group("meshdata", () => {
 			check.equal(vl.layouts.length, 3, "3 layouts");
 			check.equal(vl.layouts[0].attributes.length, 2, "layout0 2 attrs");
 			check.equal(vl.layouts[1].attributes.length, 4, "layout1 4 attrs");
+			check.equal(vl.layouts[2].attributes.length, 2, "layout2 2 attrs");
 
 			check.equal(vl.layouts[0].attributes[0].bufferIndex, 0, "l0a0 buffer 0");
 			check.equal(vl.layouts[0].attributes[1].bufferIndex, 0, "l0a1 buffer 0");
