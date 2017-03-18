@@ -3,6 +3,17 @@
 // https://github.com/stardazed/stardazed
 
 group("meshdata.VertexAttribute", () => {
+	test("isVertexAttribute", () => {
+		const { isVertexAttribute } = sd.meshdata;
+		check.equal(isVertexAttribute({ field: 0, role: 0 }), true);
+		check.equal(isVertexAttribute({ field: "0", role: 0 }), false, "bad field type");
+		check.equal(isVertexAttribute({ field: 0, role: true }), false, "bad role type");
+		check.equal(isVertexAttribute({ field: null, role: null }), false, "nulled attributes");
+		check.equal(isVertexAttribute({ role: 0 }), false, "missing field type");
+		check.equal(isVertexAttribute({ field: 0 }), false, "missing role type");
+		check.equal(isVertexAttribute({}), false, "empty object");
+	});
+
 	group("attr-helpers", () => {
 		test("attrPosition2", () => {
 			const { VertexField, VertexAttributeRole, attrPosition2 } = sd.meshdata;
