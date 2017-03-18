@@ -232,4 +232,65 @@ group("meshdata", () => {
 			check.equal(vl.renderResourceType, sd.render.ResourceType.VertexLayout);
 		});
 	});
+
+	group("makeStandardVertexLayout", () => {
+		test("empty-list-yields-empty-layout", () => {
+			const { makeStandardVertexLayout } = sd.meshdata;
+
+			const vl = makeStandardVertexLayout([]);
+			check.equal(vl.layouts.length, 0);
+		});
+
+		test("single-array-yields-1-layout", () => {
+			const { makeStandardVertexLayout, AttrList } = sd.meshdata;
+
+			const vl = makeStandardVertexLayout(AttrList.Pos3Norm3());
+			check.equal(vl.layouts.length, 1);
+			check.equal(vl.layouts[0].attributes.length, 2);
+		});
+
+		test("single-array-is-at-bufferIndex-0", () => {
+			const { makeStandardVertexLayout, AttrList } = sd.meshdata;
+
+			const vl = makeStandardVertexLayout(AttrList.Pos3Norm3Colour3());
+			check.equal(vl.layouts.length, 1);
+			check.equal(vl.layouts[0].attributes.length, 3);
+			check.equal(vl.layouts[0].attributes[0].bufferIndex, 0, "l0a0 buffer 0");
+			check.equal(vl.layouts[0].attributes[1].bufferIndex, 0, "l0a1 buffer 0");
+			check.equal(vl.layouts[0].attributes[2].bufferIndex, 0, "l0a2 buffer 0");
+		});
+
+		test("multiple-arrays-yield-multi-layout", () => {
+			const { makeStandardVertexLayout, AttrList } = sd.meshdata;
+
+			const vl = makeStandardVertexLayout([AttrList.Pos3Norm3(), AttrList.Pos3Norm3UV2Tan3()]);
+			check.equal(vl.layouts.length, 2, "2 layouts");
+			check.equal(vl.layouts[0].attributes.length, 2, "layout0 2 attrs");
+			check.equal(vl.layouts[1].attributes.length, 4, "layout1 4 attrs");
+		});
+
+		test("bufferIndexes-line-up-with-layout-array-order", () => {
+			const { makeStandardVertexLayout, AttrList } = sd.meshdata;
+
+			const vl = makeStandardVertexLayout([
+				AttrList.Pos3Norm3(),
+				AttrList.Pos3Norm3UV2Tan3(),
+				AttrList.Pos3Norm3()
+			]);
+			check.equal(vl.layouts.length, 3, "3 layouts");
+			check.equal(vl.layouts[0].attributes.length, 2, "layout0 2 attrs");
+			check.equal(vl.layouts[1].attributes.length, 4, "layout1 4 attrs");
+
+			check.equal(vl.layouts[0].attributes[0].bufferIndex, 0, "l0a0 buffer 0");
+			check.equal(vl.layouts[0].attributes[1].bufferIndex, 0, "l0a1 buffer 0");
+
+			check.equal(vl.layouts[1].attributes[0].bufferIndex, 1, "l1a0 buffer 1");
+			check.equal(vl.layouts[1].attributes[1].bufferIndex, 1, "l1a1 buffer 1");
+			check.equal(vl.layouts[1].attributes[2].bufferIndex, 1, "l1a2 buffer 1");
+			check.equal(vl.layouts[1].attributes[3].bufferIndex, 1, "l1a3 buffer 1");
+
+			check.equal(vl.layouts[2].attributes[0].bufferIndex, 2, "l2a0 buffer 2");
+			check.equal(vl.layouts[2].attributes[1].bufferIndex, 2, "l2a1 buffer 2");
+		});
+	});
 });
