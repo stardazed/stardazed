@@ -46,58 +46,6 @@ namespace sd.meshdata {
 	}
 
 
-	class DirectTriangleProxy implements meshdata.TriangleProxy {
-		index(index: number) {
-			return this.baseIndex_ + index;
-		}
-		a() { return this.baseIndex_; }
-		b() { return this.baseIndex_ + 1; }
-		c() { return this.baseIndex_ + 2; }
-
-		baseIndex_: number = 0; // tslint:disable-line
-		setTriangleIndex(tri: number) { this.baseIndex_ = tri * 3; }
-	}
-
-
-	export class DirectTriangleView implements TriangleView {
-		readonly mutable = false;
-		readonly count: number = 0; // tslint:disable-line
-
-		constructor(vertexCount: number, private fromTriangle_ = -1, private toTriangle_ = -1) {
-			this.count = primitiveCountForElementCount(PrimitiveType.Triangle, vertexCount);
-
-			if (this.fromTriangle_ < 0) {
-				this.fromTriangle_ = 0;
-			}
-			if (this.fromTriangle_ >= this.count) {
-				this.fromTriangle_ = this.count - 1;
-			}
-			if ((this.toTriangle_ < 0) || (this.toTriangle_ > this.count)) {
-				this.toTriangle_ = this.count;
-			}
-		}
-
-		forEach(callback: (proxy: TriangleProxy) => void) {
-			const primCount = this.toTriangle_ - this.fromTriangle_;
-			const dtp = new DirectTriangleProxy();
-
-			for (let tri = 0; tri < primCount; ++tri) {
-				dtp.setTriangleIndex(tri + this.fromTriangle_);
-				callback(dtp);
-			}
-		}
-
-		refItem(triangleIndex: number): Triangle {
-			const baseIndex = triangleIndex * 3;
-			return [baseIndex, baseIndex + 1, baseIndex + 2];
-		}
-
-		subView(fromTriangle: number, triangleCount: number): TriangleView {
-			return new DirectTriangleView(this.count * 3, this.fromTriangle_ + fromTriangle, this.fromTriangle_ + fromTriangle + triangleCount);
-		}
-	}
-
-
 	export class VertexBufferAttributeView {
 		private stride_: number;
 		private attrOffset_: number;
