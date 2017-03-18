@@ -40,6 +40,10 @@ namespace sd.meshdata {
 		role: VertexAttributeRole;
 	}
 
+	export function isVertexAttribute(va: object): va is VertexAttribute {
+		return typeof (va as any).field === "number" && typeof (va as any).role === "number";
+	}
+
 
 	// -- VertexAttribute shortcuts for common types
 
@@ -180,6 +184,24 @@ namespace sd.meshdata {
 		constructor(layouts: VertexBufferLayout[]) {
 			this.layouts = [...layouts];
 		}
+	}
+
+	export function makeStandardVertexLayout(attrLists: VertexAttribute[] | VertexAttribute[][]) {
+		const layouts: VertexBufferLayout[] = [];
+		
+		if (attrLists.length > 0) {
+			if (isVertexAttribute(attrLists[0])) {
+				layouts.push(makeStandardVertexBufferLayout(attrLists as VertexAttribute[]));
+			}
+			else {
+				for (let bufferIndex = 0; bufferIndex < attrLists.length; ++bufferIndex) {
+					const list = attrLists[bufferIndex] as VertexAttribute[];
+					layouts.push(makeStandardVertexBufferLayout(list, bufferIndex));
+				}
+			}
+		}
+
+		return new VertexLayout(layouts);
 	}
 
 } // ns sd.meshdata
