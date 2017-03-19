@@ -178,7 +178,7 @@ namespace sd.meshdata {
 	//                                     |__/              
 
 	export class VertexLayout implements render.RenderResourceBase {
-		readonly renderResourceType = render.ResourceType.VertexLayout;
+		get renderResourceType() { return render.ResourceType.VertexLayout; }
 		readonly layouts: VertexBufferLayout[];
 
 		constructor(layouts: VertexBufferLayout[]) {

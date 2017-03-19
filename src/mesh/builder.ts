@@ -323,22 +323,21 @@ namespace sd.meshdata {
 			// of the vertexData arrays, so no need for mapping etc.
 			const meshAttributeStreams = this.streams_.filter(s => s.includeInMesh);
 			const attrs = meshAttributeStreams.map(s => s.attr!);
-			const meshData = new MeshData();
-			const layout = makeStandardVertexBufferLayout(attrs);
 
 			// allocate as single buffer — TODO: give options for separate client buffers if wanted / needed
-			const vb = new VertexBuffer(layout);
-			meshData.vertexBuffers.push(vb);
-			const indexElemType = meshdata.minimumIndexElementTypeForVertexCount(this.vertexCount_);
-			meshData.indexBuffer = new IndexBuffer();
-			meshData.allocateSingleStorage([this.vertexMapping_.size], indexElemType, this.triangleCount_ * 3);
+			const mesh = allocateMeshData({
+				layout: makeStandardVertexLayout(attrs),
+				vertexCount: this.vertexCount_,
+				indexCount: this.triangleCount_ * 3
+			});
+			const layout = mesh.layout.layouts[0];
 
 			// copy vertex streams
 			for (let six = 0; six < meshAttributeStreams.length; ++six) {
 				const streamData = this.vertexData_[six];
-				const attribute = vb.layout.attrByIndex(six);
+				const attribute = layout.attrByIndex(six);
 				if (attribute) {
-					const view = new VertexBufferAttributeView(vb, attribute);
+					const view = new VertexBufferAttributeView(mesh.vertexBuffers[0], attribute);
 					view.copyValuesFrom(streamData, this.vertexCount_);
 				}
 				// FIXME else unexpected()
@@ -354,7 +353,7 @@ namespace sd.meshdata {
 					container.appendArrayInPlace(mergedIndexes, indexes);
 					const groupElementCount = indexes.length;
 
-					meshData.primitiveGroups.push({
+					mesh.primitiveGroups.push({
 						type: PrimitiveType.Triangle,
 						fromElement: nextElementIndex,
 						elementCount: groupElementCount,
@@ -365,9 +364,9 @@ namespace sd.meshdata {
 				}
 			});
 
-			meshData.indexBuffer!.setIndexes(0, mergedIndexes.length, mergedIndexes);
+			mesh.indexBuffer!.setIndexes(0, mergedIndexes.length, mergedIndexes);
 
-			return meshData;
+			return mesh;
 		}
 	}
 

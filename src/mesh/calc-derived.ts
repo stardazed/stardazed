@@ -6,9 +6,9 @@
 namespace sd.meshdata {
 	// FIXME: once we have triview for non-indexed meshes, make param optional and create proper view
 
-	export function calcVertexNormals(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer) {
-		const posAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.Position);
-		const normAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.Normal);
+	export function calcVertexNormals(layout: VertexBufferLayout, vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer) {
+		const posAttr = layout.attrByRole(VertexAttributeRole.Position);
+		const normAttr = layout.attrByRole(VertexAttributeRole.Normal);
 
 		if (posAttr && normAttr) {
 			const posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
@@ -68,11 +68,11 @@ namespace sd.meshdata {
 	}
 
 
-	export function calcVertexTangents(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer, uvSet = VertexAttributeRole.UV0) {
-		const posAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.Position);
-		const normAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.Normal);
-		const uvAttr = vertexBuffer.layout.attrByRole(uvSet);
-		const tanAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.Tangent);
+	export function calcVertexTangents(layout: VertexBufferLayout, vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer, uvSet = VertexAttributeRole.UV0) {
+		const posAttr = layout.attrByRole(VertexAttributeRole.Position);
+		const normAttr = layout.attrByRole(VertexAttributeRole.Normal);
+		const uvAttr = layout.attrByRole(uvSet);
+		const tanAttr = layout.attrByRole(VertexAttributeRole.Tangent);
 
 		if (posAttr && normAttr && uvAttr && tanAttr) {
 			const posView = new VertexBufferAttributeView(vertexBuffer, posAttr);

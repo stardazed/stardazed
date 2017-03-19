@@ -22,51 +22,67 @@ namespace sd.meshdata {
 		SubBuffer = 8
 	}
 
+	export interface MeshDataAllocOptions {
+		layout: VertexLayout;
+		vertexCount: number;
+		indexCount: number;
+	}
+
+	export function allocateMeshData(options: MeshDataAllocOptions): MeshData {
+		let totalBytes = 0;
+		for (let vbix = 0; vbix < options.layout.layouts.length; ++vbix) {
+			totalBytes += options.layout.layouts[vbix].bytesRequiredForVertexCount(options.vertexCount);
+			totalBytes = math.alignUp(totalBytes, BufferAlignment.SubBuffer);
+		}
+		if (options.indexCount > 0) {
+			const elementType = minimumIndexElementTypeForVertexCount(options.vertexCount);
+			totalBytes += bytesRequiredForIndexCount(elementType, options.indexCount);
+			totalBytes = math.alignUp(totalBytes, BufferAlignment.SubBuffer);
+		}
+
+		assert(totalBytes > 0, "Nothing to allocate!");
+
+		const md = new MeshData();
+		md.layout = options.layout;
+		const storage = new ArrayBuffer(totalBytes);
+
+		let byteOffset = 0;
+		for (let vbix = 0; vbix < options.layout.layouts.length; ++vbix) {
+			const subSize = options.layout.layouts[vbix].bytesRequiredForVertexCount(options.vertexCount);
+			const subStorage = new Uint8ClampedArray(storage, byteOffset, subSize);
+			const vb = new VertexBuffer(options.vertexCount, options.layout.layouts[vbix].stride, subStorage);
+			md.vertexBuffers.push(vb);
+
+			byteOffset += subSize;
+			byteOffset = math.alignUp(byteOffset, BufferAlignment.SubBuffer);
+		}
+		if (options.indexCount) {
+			const elementType = minimumIndexElementTypeForVertexCount(options.vertexCount);
+			const indexSize = bytesRequiredForIndexCount(elementType, options.indexCount);
+
+			md.indexBuffer = new IndexBuffer();
+			md.indexBuffer.suballocate(elementType, options.indexCount, storage, byteOffset);
+			byteOffset += indexSize;
+			byteOffset = math.alignUp(byteOffset, BufferAlignment.SubBuffer);
+		}
+
+		assert(totalBytes === byteOffset, "Mismatch of precalculated and actual buffer sizes");
+		return md;
+	}
+
 	export class MeshData {
+		layout: VertexLayout;
 		vertexBuffers: VertexBuffer[] = [];
 		indexBuffer: IndexBuffer | null = null;
 		primitiveGroups: PrimitiveGroup[] = [];
-
-		allocateSingleStorage(vertexBufferItemCounts: number[], elementType: IndexElementType, indexCount: number) {
-			assert(vertexBufferItemCounts.length === this.vertexBuffers.length, "Did not specify exactly 1 item count per VertexBuffer");
-
-			let totalBytes = 0;
-			for (let vbix = 0; vbix < this.vertexBuffers.length; ++vbix) {
-				totalBytes += this.vertexBuffers[vbix].layout.bytesRequiredForVertexCount(vertexBufferItemCounts[vbix]);
-				totalBytes = math.alignUp(totalBytes, BufferAlignment.SubBuffer);
-			}
-			if (this.indexBuffer) {
-				totalBytes += bytesRequiredForIndexCount(elementType, indexCount);
-				totalBytes = math.alignUp(totalBytes, BufferAlignment.SubBuffer);
-			}
-
-			assert(totalBytes > 0, "Nothing to allocate!");
-
-			const storage = new ArrayBuffer(totalBytes);
-
-			let byteOffset = 0;
-			for (let vbix = 0; vbix < this.vertexBuffers.length; ++vbix) {
-				this.vertexBuffers[vbix].suballocate(vertexBufferItemCounts[vbix], storage, byteOffset);
-				byteOffset += this.vertexBuffers[vbix].bufferSizeBytes;
-				byteOffset = math.alignUp(byteOffset, BufferAlignment.SubBuffer);
-			}
-			if (this.indexBuffer) {
-				this.indexBuffer.suballocate(elementType, indexCount, storage, byteOffset);
-				byteOffset += this.indexBuffer.bufferSizeBytes;
-				byteOffset = math.alignUp(byteOffset, BufferAlignment.SubBuffer);
-			}
-
-			assert(totalBytes === byteOffset, "Mismatch of precalculated and actual buffer sizes");
-		}
-
 
 		findFirstAttributeWithRole(role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | undefined {
 			let pa: PositionedAttribute | undefined;
 			let avb: VertexBuffer | null = null;
 
-			this.vertexBuffers.forEach((vb) => {
+			this.vertexBuffers.forEach((vb, index) => {
 				if (! pa) {
-					pa = vb.layout.attrByRole(role);
+					pa = this.layout!.layouts[index].attrByRole(role);
 					if (pa) {
 						avb = vb;
 					}

@@ -50,27 +50,23 @@ namespace sd.meshdata.gen {
 		}
 
 		// -- create vertex and index buffers for combined mesh
-		const mesh = new MeshData();
-		const layout = makeStandardVertexBufferLayout(attrList);
-		const vertexBuffer = new VertexBuffer(layout);
-		mesh.vertexBuffers.push(vertexBuffer);
-		mesh.indexBuffer = new IndexBuffer();
-		const indexElementType = minimumIndexElementTypeForVertexCount(totalVertexCount);
-
-		// TODO: give option for separate client buffers? Useful?
-		// vertexBuffer.allocate(totalVertexCount);
-		// mesh.indexBuffer.allocate(PrimitiveType.Triangle, indexElementType, totalFaceCount);
-		mesh.allocateSingleStorage([totalVertexCount], indexElementType, totalFaceCount * 3);
+		const mesh = allocateMeshData({
+			layout: makeStandardVertexLayout(attrList),
+			vertexCount: totalVertexCount,
+			indexCount: totalFaceCount * 3
+		});
+		const layout = mesh.layout.layouts[0];
+		const vertexBuffer = mesh.vertexBuffers[0];
 
 		// -- views into various attributes and the index buffer
-		const normalAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.Normal);
-		const texAttr = vertexBuffer.layout.attrByRole(VertexAttributeRole.UV);
+		const normalAttr = layout.attrByRole(VertexAttributeRole.Normal);
+		const texAttr = layout.attrByRole(VertexAttributeRole.UV);
 
-		const posView = new VertexBufferAttributeView(vertexBuffer, vertexBuffer.layout.attrByRole(VertexAttributeRole.Position)!);
+		const posView = new VertexBufferAttributeView(mesh.vertexBuffers[0], layout.attrByRole(VertexAttributeRole.Position)!);
 		const normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
 		const texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
 
-		const triView = new IndexBufferTriangleView(mesh.indexBuffer);
+		const triView = new IndexBufferTriangleView(mesh.indexBuffer!);
 
 		// -- data add functions for the generators
 		let posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;

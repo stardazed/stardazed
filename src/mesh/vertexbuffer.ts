@@ -5,43 +5,32 @@
 
 namespace sd.meshdata {
 
-	export class VertexBuffer {
-		private layout_: VertexBufferLayout;
-		private vertexCount_ = 0;
-		private storageOffsetBytes_ = 0;
-		private storage_: ArrayBuffer | null = null;
+	export class VertexBuffer implements render.RenderResourceBase {
+		get renderResourceType() { return render.ResourceType.VertexStream; }
 
-		constructor(layout: VertexBufferLayout) {
-			this.layout_ = layout;
+		readonly storage: Uint8ClampedArray;
+		readonly vertexCount: number;
+		readonly stride: number;
+
+		get sizeBytes() {
+			return this.vertexCount * this.stride;
 		}
 
-		// -- buffer data management
+		constructor(vertexCount: number, stride: number, usingStorage?: Uint8ClampedArray) {
+			vertexCount = vertexCount | 0;
+			stride = stride | 0;
+			assert(vertexCount > 0);
+			assert(stride > 0);
+			this.vertexCount = vertexCount;
+			this.stride = stride;
 
-		get layout() { return this.layout_; }
-		get strideBytes() { return this.layout_.stride; }
-		get attributeCount() { return this.layout_.attributes.length; }
-		get vertexCount() { return this.vertexCount_; }
-		get bufferSizeBytes() { return this.strideBytes * this.vertexCount_; }
-		get bufferLocalOffsetBytes() { return this.storageOffsetBytes_; }
-		get buffer() { return this.storage_; }
-
-		bufferView(): ArrayBufferView | null {
-			if (this.storage_) {
-				return new Uint8Array(this.storage_, this.storageOffsetBytes_, this.bufferSizeBytes);
+			if (usingStorage) {
+				assert(usingStorage.byteLength >= this.sizeBytes, "Not enough space in supplied storage");
+				this.storage = usingStorage;
 			}
-			return null;
-		}
-
-		allocate(vertexCount: number) {
-			this.vertexCount_ = vertexCount;
-			this.storage_ = new ArrayBuffer(this.layout_.bytesRequiredForVertexCount(vertexCount));
-			this.storageOffsetBytes_ = 0;
-		}
-
-		suballocate(vertexCount: number, insideBuffer: ArrayBuffer, atByteOffset: number) {
-			this.vertexCount_ = vertexCount;
-			this.storage_ = insideBuffer;
-			this.storageOffsetBytes_ = atByteOffset;
+			else {
+				this.storage = new Uint8ClampedArray(this.sizeBytes);
+			}
 		}
 	}
 
@@ -57,7 +46,7 @@ namespace sd.meshdata {
 		private viewItemCount_: number;
 
 		constructor(private vertexBuffer_: VertexBuffer, private attr_: PositionedAttribute, private firstItem_ = 0, itemCount = -1) {
-			this.stride_ = this.vertexBuffer_.layout.stride;
+			this.stride_ = this.vertexBuffer_.stride;
 			this.attrOffset_ = attr_.offset;
 			this.attrElementCount_ = vertexFieldElementCount(attr_.field);
 
@@ -66,8 +55,7 @@ namespace sd.meshdata {
 			assert(this.fieldNumType_, "Unknown attribute field type");
 			this.typedViewCtor_ = this.fieldNumType_.arrayType;
 
-			this.buffer_ = this.vertexBuffer_.buffer!;
-			assert(this.buffer_, "Tried to create a view on an unallocated buffer");
+			this.buffer_ = this.vertexBuffer_.storage.buffer;
 
 			this.dataView_ = new DataView(this.buffer_);
 			this.viewItemCount_ = itemCount < 0 ? (this.vertexBuffer_.vertexCount - this.firstItem_) : itemCount;
@@ -90,7 +78,7 @@ namespace sd.meshdata {
 			const stride = this.stride_;
 			const elementSize = this.fieldNumType_.byteSize;
 			const firstIndex = this.firstItem_ + offset;
-			let offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * firstIndex) + this.attrOffset_;
+			let offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * firstIndex) + this.attrOffset_;
 			let sourceIndex = 0;
 			let arrView: TypedArray;
 
@@ -194,13 +182,13 @@ namespace sd.meshdata {
 
 		refItem(index: number): TypedArray {
 			index += this.firstItem_;
-			const offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * index) + this.attrOffset_;
+			const offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attrOffset_;
 			return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.attrElementCount_);
 		}
 
 		copyItem(index: number): number[] {
 			index += this.firstItem_;
-			let offsetBytes = this.vertexBuffer_.bufferLocalOffsetBytes + (this.stride_ * index) + this.attrOffset_;
+			let offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attrOffset_;
 			const result: number[] = [];
 
 			switch (this.attr_.field) {
