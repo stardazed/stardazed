@@ -4,7 +4,7 @@
 
 group("meshdata", () => {
 	group("VertexBuffer", () => {
-		test("invalid-count-or-stride-throws", () => {
+		test("construct-throws-on-invalid-count-or-stride", () => {
 			const { VertexBuffer } = sd.meshdata;
 			const storage = new Uint8ClampedArray(16);
 			check.throws(Error, () => new VertexBuffer(0, 4));
@@ -28,7 +28,7 @@ group("meshdata", () => {
 			check.equal(vb2.stride, 100);
 		});
 
-		test("construct-without-storage-creates-one-of-proper-size", () => {
+		test("construct-without-storage-creates-one-of-fitting-size", () => {
 			const { VertexBuffer } = sd.meshdata;
 			const vb = new VertexBuffer(128, 12);
 			check.present(vb.storage);
