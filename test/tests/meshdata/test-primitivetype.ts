@@ -68,6 +68,8 @@ group("meshdata", () => {
 
 		test("elementCountForPrimitiveCount", () => {
 			const { PrimitiveType, elementCountForPrimitiveCount } = sd.meshdata;
+			check.throws(Error, () => elementCountForPrimitiveCount(PrimitiveType.Point, -1), "throws on negative count");
+
 			check.equal(elementCountForPrimitiveCount(PrimitiveType.Point, 0), 0, "point 0");
 			check.equal(elementCountForPrimitiveCount(PrimitiveType.Point, 1), 1, "point 1");
 			check.equal(elementCountForPrimitiveCount(PrimitiveType.Point, 1000), 1000, "point 1000");
@@ -91,6 +93,8 @@ group("meshdata", () => {
 
 		test("primitiveCountForElementCount", () => {
 			const { PrimitiveType, primitiveCountForElementCount } = sd.meshdata;
+			check.throws(Error, () => primitiveCountForElementCount(PrimitiveType.Point, -1), "throws on negative count");
+
 			check.equal(primitiveCountForElementCount(PrimitiveType.Point, 0), 0, "point 0");
 			check.equal(primitiveCountForElementCount(PrimitiveType.Point, 1), 1, "point 1");
 			check.equal(primitiveCountForElementCount(PrimitiveType.Point, 1000), 1000, "point 1000");
@@ -113,9 +117,5 @@ group("meshdata", () => {
 			check.equal(primitiveCountForElementCount(PrimitiveType.TriangleStrip, 3), 1, "trianglestrip 3");
 			check.equal(primitiveCountForElementCount(PrimitiveType.TriangleStrip, 1002), 1000, "trianglestrip 1002");
 		});
-	});
-
-	group("IndexBuffer", () => {
-
 	});
 });
