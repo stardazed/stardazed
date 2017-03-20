@@ -170,6 +170,9 @@ namespace sd.render {
 						case ResourceType.Texture:
 							this.allocTexture(resource as Texture);
 							break;
+						case ResourceType.VertexLayout:
+							this.allocVertexLayout(resource as meshdata.VertexLayout);
+							break;
 						default:
 							break;
 					}
@@ -186,6 +189,9 @@ namespace sd.render {
 							break;
 						case ResourceType.Texture:
 							this.freeTexture(resource as Texture);
+							break;
+						case ResourceType.VertexLayout:
+							this.freeVertexLayout(resource as meshdata.VertexLayout);
 							break;
 						default:
 							break;
@@ -208,7 +214,7 @@ namespace sd.render {
 
 		// -- Sampler
 
-		private samplers_: Sampler[] = [];
+		private samplers_: (Sampler | undefined)[] = [];
 		private nextSamplerIndex_ = 0;
 		private freedSamplers_: number[] = [];
 
@@ -227,9 +233,10 @@ namespace sd.render {
 		}
 
 		private freeSampler(sampler: Sampler) {
-			const resourceInfo = this.decodeHandle(sampler.renderResourceHandle!);
+			const { index } = this.decodeHandle(sampler.renderResourceHandle!);
 			sampler.renderResourceHandle = 0;
-			this.freedSamplers_.push(resourceInfo.index);
+			this.samplers_[index] = undefined;
+			this.freedSamplers_.push(index);
 		}
 
 		// -- Texture
@@ -259,13 +266,37 @@ namespace sd.render {
 			texture.renderResourceHandle = 0;
 
 			this.gl.deleteTexture(this.textures_[index]!);
+			this.textures_[index] = undefined;
 			this.linkedSamplers_[index] = 0;
 			this.freedTextures_.push(index);
 		}
 
-		// -- Mesh Streams
+		// -- VertexLayout
 
-		
+		private vertexLayouts_: (meshdata.VertexLayout | undefined)[] = [];
+		private nextVertexLayoutIndex_ = 0;
+		private freedVertexLayouts_: number[] = [];
+
+		private allocVertexLayout(layout: meshdata.VertexLayout) {
+			let index: number;
+			if (this.freedVertexLayouts_.length) {
+				index = this.freedVertexLayouts_.pop()!;
+			}
+			else {
+				index = this.nextVertexLayoutIndex_;
+				this.nextVertexLayoutIndex_ += 1;
+			}
+
+			this.vertexLayouts_[index] = layout;
+			layout.renderResourceHandle = this.encodeHandle(ResourceType.VertexLayout, index);
+		}
+
+		private freeVertexLayout(layout: meshdata.VertexLayout) {
+			const { index } = this.decodeHandle(layout.renderResourceHandle!);
+			layout.renderResourceHandle = 0;
+			this.vertexLayouts_[index] = undefined;
+			this.freedVertexLayouts_.push(index);
+		}
 	}
 
 } // ns sd.render
