@@ -59,9 +59,10 @@ namespace sd.meshdata {
 		if (options.indexCount) {
 			const elementType = minimumIndexElementTypeForVertexCount(options.vertexCount);
 			const indexSize = bytesRequiredForIndexCount(elementType, options.indexCount);
+			const subSize = bytesRequiredForIndexCount(elementType, options.indexCount);
+			const subStorage = new Uint8ClampedArray(storage, byteOffset, subSize);
 
-			md.indexBuffer = new IndexBuffer();
-			md.indexBuffer.suballocate(elementType, options.indexCount, storage, byteOffset);
+			md.indexBuffer = new IndexBuffer(elementType, options.indexCount, subStorage);
 			byteOffset += indexSize;
 			byteOffset = math.alignUp(byteOffset, BufferAlignment.SubBuffer);
 		}
