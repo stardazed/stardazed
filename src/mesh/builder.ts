@@ -324,7 +324,7 @@ namespace sd.meshdata {
 			const meshAttributeStreams = this.streams_.filter(s => s.includeInMesh);
 			const attrs = meshAttributeStreams.map(s => s.attr!);
 
-			// allocate as single buffer — TODO: give options for separate client buffers if wanted / needed
+			// allocate as single buffer
 			const mesh = allocateMeshData({
 				layout: makeStandardVertexLayout(attrs),
 				vertexCount: this.vertexCount_,

@@ -140,7 +140,8 @@ namespace sd.meshdata {
 		private indexElementSizeBytes_: number;
 
 		constructor(elementType: IndexElementType, indexCount: number, usingStorage?: Uint8ClampedArray) {
-			assert(elementType !== IndexElementType.None);
+			assert(indexCount > 0, "Invalid indexCount, must be > 0");
+
 			this.indexElementType = elementType;
 			this.indexElementSizeBytes_ = indexElementTypeSizeBytes(elementType);
 			this.indexCount = indexCount;
@@ -169,8 +170,6 @@ namespace sd.meshdata {
 
 		// -- export indexes
 		copyIndexes(baseIndexNr: number, outputCount: number, outputPtr: TypedIndexArray) {
-			assert(baseIndexNr < this.indexCount);
-			assert(baseIndexNr + outputCount <= this.indexCount);
 			assert(outputPtr.length >= outputCount);
 
 			const typedBasePtr = this.typedBasePtr(baseIndexNr, outputCount);
@@ -181,8 +180,6 @@ namespace sd.meshdata {
 
 		// -- import indexes
 		setIndexes(baseIndexNr: number, sourceCount: number, sourcePtr: ArrayOfNumber) {
-			assert(baseIndexNr < this.indexCount);
-			assert(baseIndexNr + sourceCount <= this.indexCount);
 			assert(sourcePtr.length >= sourceCount);
 
 			const typedBasePtr = this.typedBasePtr(baseIndexNr, sourceCount);
