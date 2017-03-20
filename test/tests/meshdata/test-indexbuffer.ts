@@ -43,19 +43,75 @@ group("meshdata", () => {
 	});
 
 	group("PrimitiveType", () => {
-		test("", () => {
+		test("elementOffsetForPrimitiveCount", () => {
 			const { PrimitiveType, elementOffsetForPrimitiveCount } = sd.meshdata;
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.Point, 0), 0, "point 0");
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.Point, 1), 1, "point 1");
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.Point, 1000), 1000, "point 1000");
 
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.Line, 0), 0, "line 0");
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.Line, 1), 2, "line 1");
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.Line, 1000), 2000, "line 1000");
+
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.LineStrip, 0), 0, "linestrip 0");
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.LineStrip, 1), 1, "linestrip 1");
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.LineStrip, 1000), 1000, "linestrip 1000");
+
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.Triangle, 0), 0, "triangle 0");
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.Triangle, 1), 3, "triangle 1");
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.Triangle, 1000), 3000, "triangle 1000");
+
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.TriangleStrip, 0), 0, "trianglestrip 0");
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.TriangleStrip, 1), 1, "trianglestrip 1");
+			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.TriangleStrip, 1000), 1000, "trianglestrip 1000");
 		});
 
-		test("", () => {
+		test("elementCountForPrimitiveCount", () => {
 			const { PrimitiveType, elementCountForPrimitiveCount } = sd.meshdata;
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.Point, 0), 0, "point 0");
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.Point, 1), 1, "point 1");
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.Point, 1000), 1000, "point 1000");
 
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.Line, 0), 0, "line 0");
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.Line, 1), 2, "line 1");
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.Line, 1000), 2000, "line 1000");
+
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.LineStrip, 0), 0, "linestrip 0");
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.LineStrip, 1), 2, "linestrip 1");
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.LineStrip, 1000), 1001, "linestrip 1000");
+
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.Triangle, 0), 0, "triangle 0");
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.Triangle, 1), 3, "triangle 1");
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.Triangle, 1000), 3000, "triangle 1000");
+
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.TriangleStrip, 0), 0, "trianglestrip 0");
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.TriangleStrip, 1), 3, "trianglestrip 1");
+			check.equal(elementCountForPrimitiveCount(PrimitiveType.TriangleStrip, 1000), 1002, "trianglestrip 1000");
 		});
 
-		test("", () => {
+		test("primitiveCountForElementCount", () => {
 			const { PrimitiveType, primitiveCountForElementCount } = sd.meshdata;
+			check.equal(primitiveCountForElementCount(PrimitiveType.Point, 0), 0, "point 0");
+			check.equal(primitiveCountForElementCount(PrimitiveType.Point, 1), 1, "point 1");
+			check.equal(primitiveCountForElementCount(PrimitiveType.Point, 1000), 1000, "point 1000");
 
+			check.equal(primitiveCountForElementCount(PrimitiveType.Line, 0), 0, "line 0");
+			check.equal(primitiveCountForElementCount(PrimitiveType.Line, 1), 0, "line 1");
+			check.equal(primitiveCountForElementCount(PrimitiveType.Line, 2), 1, "line 2");
+			check.equal(primitiveCountForElementCount(PrimitiveType.Line, 2000), 1000, "line 2000");
+
+			check.equal(primitiveCountForElementCount(PrimitiveType.LineStrip, 0), 0, "linestrip 0");
+			check.equal(primitiveCountForElementCount(PrimitiveType.LineStrip, 2), 1, "linestrip 2");
+			check.equal(primitiveCountForElementCount(PrimitiveType.LineStrip, 1001), 1000, "linestrip 1001");
+
+			check.equal(primitiveCountForElementCount(PrimitiveType.Triangle, 0), 0, "triangle 0");
+			check.equal(primitiveCountForElementCount(PrimitiveType.Triangle, 2), 0, "triangle 2");
+			check.equal(primitiveCountForElementCount(PrimitiveType.Triangle, 3), 1, "triangle 3");
+			check.equal(primitiveCountForElementCount(PrimitiveType.Triangle, 3000), 1000, "triangle 3000");
+
+			check.equal(primitiveCountForElementCount(PrimitiveType.TriangleStrip, 0), 0, "trianglestrip 0");
+			check.equal(primitiveCountForElementCount(PrimitiveType.TriangleStrip, 3), 1, "trianglestrip 3");
+			check.equal(primitiveCountForElementCount(PrimitiveType.TriangleStrip, 1002), 1000, "trianglestrip 1002");
 		});
 	});
 
