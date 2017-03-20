@@ -158,7 +158,7 @@ namespace sd.meshdata {
 		get sizeBytes() { return this.indexCount * this.indexElementSizeBytes_; }
 
 
-		// -- direct index array access
+		// -- direct (sub-)array access
 		typedBasePtr(baseIndexNr: number, indexCount: number): TypedIndexArray {
 			assert(baseIndexNr < this.indexCount);
 			assert(baseIndexNr + indexCount <= this.indexCount);
@@ -166,26 +166,6 @@ namespace sd.meshdata {
 			let offsetBytes = this.storage.byteOffset + this.indexElementSizeBytes_ * baseIndexNr;
 			let arrayClass = typedIndexArrayClassForIndexElement(this.indexElementType);
 			return new arrayClass(this.storage.buffer, offsetBytes, indexCount);
-		}
-
-		// -- export indexes
-		copyIndexes(baseIndexNr: number, outputCount: number, outputPtr: TypedIndexArray) {
-			assert(outputPtr.length >= outputCount);
-
-			const typedBasePtr = this.typedBasePtr(baseIndexNr, outputCount);
-			for (let ix = 0; ix < outputCount; ++ix) {
-				outputPtr[ix] = typedBasePtr[ix];
-			}
-		}
-
-		// -- import indexes
-		setIndexes(baseIndexNr: number, sourceCount: number, sourcePtr: ArrayOfNumber) {
-			assert(sourcePtr.length >= sourceCount);
-
-			const typedBasePtr = this.typedBasePtr(baseIndexNr, sourceCount);
-			for (let ix = 0; ix < sourceCount; ++ix) {
-				typedBasePtr[ix] = sourcePtr[ix];
-			}
 		}
 	}
 
