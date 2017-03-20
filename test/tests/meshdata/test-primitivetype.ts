@@ -40,6 +40,14 @@ group("meshdata", () => {
 			check.equal(bytesRequiredForIndexCount(IndexElementType.UInt32, 256), 1024);
 			check.equal(bytesRequiredForIndexCount(IndexElementType.UInt32, 1000000), 4000000);
 		});
+
+		test("typedIndexArrayClassForIndexElement", () => {
+			const { IndexElementType, typedIndexArrayClassForIndexElement } = sd.meshdata;
+			check.throws(Error, () => typedIndexArrayClassForIndexElement(IndexElementType.None));
+			check.equal(typedIndexArrayClassForIndexElement(IndexElementType.UInt8), Uint8ClampedArray);
+			check.equal(typedIndexArrayClassForIndexElement(IndexElementType.UInt16), Uint16Array);
+			check.equal(typedIndexArrayClassForIndexElement(IndexElementType.UInt32), Uint32Array);
+		});
 	});
 
 	group("PrimitiveType", () => {
