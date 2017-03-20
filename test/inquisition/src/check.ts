@@ -113,7 +113,7 @@ namespace inquisition {
 			}
 		}
 
-		export function throws(throwable: any, insideFn: () => void, message?: string) {
+		export function throws(throwable: any, insideFn: () => any, message?: string) {
 			let didThrow = false;
 			try {
 				insideFn();
