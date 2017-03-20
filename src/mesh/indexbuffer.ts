@@ -13,21 +13,6 @@ namespace sd.meshdata {
 		UInt32
 	}
 
-
-	export const enum PrimitiveType {
-		None,
-
-		Point,
-		Line,
-		LineStrip,
-		Triangle,
-		TriangleStrip
-	}
-
-
-	export type TypedIndexArray = Uint32Array | Uint16Array | Uint8Array;
-
-
 	export function indexElementTypeSizeBytes(iet: IndexElementType): number {
 		switch (iet) {
 			case IndexElementType.UInt8:
@@ -42,7 +27,6 @@ namespace sd.meshdata {
 		}
 	}
 
-
 	export function minimumIndexElementTypeForVertexCount(vertexCount: number): IndexElementType {
 		if (vertexCount <= UInt8.max) {
 			return IndexElementType.UInt8;
@@ -54,9 +38,32 @@ namespace sd.meshdata {
 		return IndexElementType.UInt32;
 	}
 
-
 	export function bytesRequiredForIndexCount(elementType: IndexElementType, indexCount: number) {
 		return indexElementTypeSizeBytes(elementType) * indexCount;
+	}
+
+
+	export type TypedIndexArray = Uint32Array | Uint16Array | Uint8ClampedArray;
+
+	export function typedIndexArrayClassForIndexElement(elementType: IndexElementType): TypedArrayConstructor {
+		switch (elementType) {
+			case IndexElementType.UInt8: return Uint8ClampedArray;
+			case IndexElementType.UInt16: return Uint16Array;
+			case IndexElementType.UInt32: return Uint32Array;
+			default:
+				throw new Error("Invalid IndexElementType");
+		}
+	}
+
+
+	export const enum PrimitiveType {
+		None,
+
+		Point,
+		Line,
+		LineStrip,
+		Triangle,
+		TriangleStrip
 	}
 
 
@@ -124,69 +131,46 @@ namespace sd.meshdata {
 	}
 
 
-	export class IndexBuffer {
-		private indexElementType_ = IndexElementType.None;
-		private indexCount_ = 0;
-		private indexElementSizeBytes_ = 0;
-		private storage_: ArrayBuffer | null = null;
-		private storageOffsetBytes_ = 0;
+	export class IndexBuffer implements render.RenderResourceBase {
+		get renderResourceType() { return render.ResourceType.IndexStream; }
 
-		allocate(elementType: IndexElementType, elementCount: number) {
-			this.indexElementType_ = elementType;
-			this.indexElementSizeBytes_ = indexElementTypeSizeBytes(this.indexElementType_);
-			this.indexCount_ = elementCount;
+		readonly indexElementType: IndexElementType;
+		readonly indexCount: number;
+		readonly storage: Uint8ClampedArray;
+		private indexElementSizeBytes_: number;
 
-			this.storage_ = new ArrayBuffer(this.bufferSizeBytes);
-			this.storageOffsetBytes_ = 0;
-		}
+		constructor(elementType: IndexElementType, indexCount: number, usingStorage?: Uint8ClampedArray) {
+			assert(elementType !== IndexElementType.None);
+			this.indexElementType = elementType;
+			this.indexElementSizeBytes_ = indexElementTypeSizeBytes(elementType);
+			this.indexCount = indexCount;
 
-		suballocate(elementType: IndexElementType, indexCount: number, insideBuffer: ArrayBuffer, atByteOffset: number) {
-			this.indexElementType_ = elementType;
-			this.indexElementSizeBytes_ = indexElementTypeSizeBytes(this.indexElementType_);
-			this.indexCount_ = indexCount;
-
-			this.storage_ = insideBuffer;
-			this.storageOffsetBytes_ = atByteOffset;
-		}
-
-
-		// -- observers
-		get indexElementType() { return this.indexElementType_; }
-		get indexCount() { return this.indexCount_; }
-		get indexElementSizeBytes() { return this.indexElementSizeBytes_; }
-
-		get bufferSizeBytes() { return this.indexCount_ * this.indexElementSizeBytes_; }
-		get bufferLocalOffsetBytes() { return this.storageOffsetBytes_; }
-		get buffer() { return this.storage_; }
-
-		bufferView(): ArrayBufferView | null {
-			if (this.storage_) {
-				return new Uint8Array(this.storage_, this.storageOffsetBytes_, this.bufferSizeBytes);
-			}
-
-			return null;
-		}
-
-
-		// -- read/write indexes
-		typedBasePtr(baseIndexNr: number, elementCount: number): TypedIndexArray {
-			assert(this.storage_, "No storage allocated yet!");
-			let offsetBytes = this.storageOffsetBytes_ + this.indexElementSizeBytes_ * baseIndexNr;
-
-			if (this.indexElementType_ === IndexElementType.UInt32) {
-				return new Uint32Array(this.storage_!, offsetBytes, elementCount);
-			}
-			else if (this.indexElementType_ === IndexElementType.UInt16) {
-				return new Uint16Array(this.storage_!, offsetBytes, elementCount);
+			if (usingStorage) {
+				assert(usingStorage.byteLength >= this.sizeBytes, "Not enough space in supplied storage");
+				this.storage = usingStorage;
 			}
 			else {
-				return new Uint8Array(this.storage_!, offsetBytes, elementCount);
+				this.storage = new Uint8ClampedArray(this.sizeBytes);
 			}
 		}
 
-		copyIndexes(baseIndexNr: number, outputCount: number, outputPtr: Uint32Array) {
-			assert(baseIndexNr < this.indexCount_);
-			assert(baseIndexNr + outputCount <= this.indexCount_);
+		get sizeBytes() { return this.indexCount * this.indexElementSizeBytes_; }
+
+
+		// -- direct index array access
+		typedBasePtr(baseIndexNr: number, indexCount: number): TypedIndexArray {
+			assert(baseIndexNr < this.indexCount);
+			assert(baseIndexNr + indexCount <= this.indexCount);
+
+			let offsetBytes = this.storage.byteOffset + this.indexElementSizeBytes_ * baseIndexNr;
+			let arrayClass = typedIndexArrayClassForIndexElement(this.indexElementType);
+			return new arrayClass(this.storage.buffer, offsetBytes, indexCount);
+		}
+
+		// -- export indexes
+		copyIndexes(baseIndexNr: number, outputCount: number, outputPtr: TypedIndexArray) {
+			assert(baseIndexNr < this.indexCount);
+			assert(baseIndexNr + outputCount <= this.indexCount);
 			assert(outputPtr.length >= outputCount);
 
 			const typedBasePtr = this.typedBasePtr(baseIndexNr, outputCount);
@@ -195,25 +179,16 @@ namespace sd.meshdata {
 			}
 		}
 
-		index(indexNr: number): number {
-			const typedBasePtr = this.typedBasePtr(indexNr, 1);
-			return typedBasePtr[0];
-		}
-
+		// -- import indexes
 		setIndexes(baseIndexNr: number, sourceCount: number, sourcePtr: ArrayOfNumber) {
-			assert(baseIndexNr < this.indexCount_);
-			assert(baseIndexNr + sourceCount <= this.indexCount_);
+			assert(baseIndexNr < this.indexCount);
+			assert(baseIndexNr + sourceCount <= this.indexCount);
 			assert(sourcePtr.length >= sourceCount);
 
 			const typedBasePtr = this.typedBasePtr(baseIndexNr, sourceCount);
 			for (let ix = 0; ix < sourceCount; ++ix) {
 				typedBasePtr[ix] = sourcePtr[ix];
 			}
-		}
-
-		setIndex(indexNr: number, newValue: number) {
-			const typedBasePtr = this.typedBasePtr(indexNr, 1);
-			typedBasePtr[0] = newValue;
 		}
 	}
 
