@@ -7,7 +7,7 @@
 
 namespace sd.container {
 
-	export function copyElementRange<T>(src: ArrayLike<T>, srcOffset: number, srcCount: number, dest: MutableArrayLike<T>, destOffset: number) {
+	export function copyElementRange<T>(dest: MutableArrayLike<T>, destOffset: number, src: ArrayLike<T>, srcOffset: number, srcCount: number) {
 		for (let ix = 0; ix < srcCount; ++ix) {
 			dest[destOffset++] = src[srcOffset++];
 		}
