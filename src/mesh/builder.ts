@@ -364,7 +364,9 @@ namespace sd.meshdata {
 				}
 			});
 
-			mesh.indexBuffer!.setIndexes(0, mergedIndexes.length, mergedIndexes);
+			const indexView = mesh.indexBuffer!.typedBasePtr(0, mergedIndexes.length);
+			container.copyElementRange(indexView, 0, mergedIndexes, 0, mergedIndexes.length);
+			// mesh.indexBuffer!.setIndexes(0, mergedIndexes.length, mergedIndexes);
 
 			return mesh;
 		}
