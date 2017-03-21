@@ -39,8 +39,16 @@ namespace inquisition {
 			this.operator = options.operator;
 			this.message = message;
 		}
-	};
+	}
 
+	export class SkipError extends Error {
+		constructor() {
+			const message = "Test placeholder, skipped.";
+			super(message);
+			this.name = "SkipError";
+			this.message = message;
+		}
+	}
 
 	export namespace check {
 		export function fail(actual: ExprResult, expected: ExprResult, operator: string, message?: string) {
@@ -52,6 +60,9 @@ namespace inquisition {
 			});
 		}
 
+		export function placeholder() {
+			throw new SkipError();
+		}
 
 		export function truthy(expr: boolean, message?: string) {
 			if (! expr) { fail(expr, true, "==", message); }
