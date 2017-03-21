@@ -37,6 +37,11 @@
 			this.superReport_.pass();
 		}
 
+		skip() {
+			blanket.onTestDone(1, true);
+			this.superReport_.skip();
+		}
+
 		failure(msg, innerMsg) {
 			blanket.onTestDone(1, false);
 			this.superReport_.failure(msg, innerMsg);
@@ -46,10 +51,6 @@
 			blanket.onTestDone(1, false);
 			this.superReport_.error(err, innerMsg);
 		}
-
-		get passes() { return this.superReport_.passes; }
-		get failures() { return this.superReport_.failures; }
-		get errors() { return this.superReport_.errors; }
 
 		get result() {
 			return this.superReport_.result;

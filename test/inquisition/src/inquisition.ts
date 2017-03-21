@@ -44,12 +44,11 @@ namespace inquisition {
 		leaveTest(test: Test): void;
 
 		pass(): void;
+		skip(): void;
 		failure(msg: string, innerMsg?: string): void;
 		error(err: Error, innerMsg?: string): void;
 
-		passes: number;
-		failures: number;
-		errors: number;
+		readonly result: string;
 	}
 
 
@@ -108,7 +107,7 @@ namespace inquisition {
 						this.report.failure(err.message);
 					}
 					else if (("name" in err) && (err.name === "SkipError")) {
-						this.report.failure(err.message);
+						this.report.skip();
 					}
 					else {
 						if (! (err instanceof Error)) {
