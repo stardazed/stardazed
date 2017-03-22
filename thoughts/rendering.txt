@@ -1,3 +1,30 @@
+interface Mesh {
+	layout: VertexLayout;
+	vertexBuffers: VertexBuffer[];
+	indexBuffer?: IndexBuffer;
+	subMeshes: {
+		type: PrimitiveType;
+		fromElement: number;
+		elementCount: number;
+		materialIx: number; // mesh-local index (starting at 0)
+	}[];
+}
+
+interface Material {
+	shader: Shader;
+	// shader config
+}
+
+interface RenderCommand {
+	shader: Shader;
+	mesh: Mesh;
+	subMeshIndex: number;
+}
+
+
+--------
+
+
 const enum DSAttachmentReq {
 	DontCare,
 	Required
