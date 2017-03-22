@@ -7,6 +7,7 @@ namespace sd.meshdata {
 
 	export class VertexBuffer implements render.RenderResourceBase {
 		get renderResourceType() { return render.ResourceType.VertexStream; }
+		renderResourceHandle?: number;
 
 		readonly storage: Uint8ClampedArray;
 		readonly vertexCount: number;
