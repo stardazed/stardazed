@@ -218,6 +218,9 @@ namespace sd.render {
 						case ResourceType.VertexStream:
 							this.allocVertexStream(resource as meshdata.VertexBuffer);
 							break;
+						case ResourceType.IndexStream:
+							this.allocIndexStream(resource as meshdata.IndexBuffer);
+							break;
 						default:
 							break;
 					}
@@ -240,6 +243,9 @@ namespace sd.render {
 							break;
 						case ResourceType.VertexStream:
 							this.freeVertexStream(resource as meshdata.VertexBuffer);
+							break;
+						case ResourceType.IndexStream:
+							this.freeIndexStream(resource as meshdata.IndexBuffer);
 							break;
 						default:
 							break;
@@ -297,12 +303,27 @@ namespace sd.render {
 			const stream = gl.createBuffer()!; // TODO: handle allocation failure
 			gl.bindBuffer(gl.ARRAY_BUFFER, stream);
 			gl.bufferData(gl.ARRAY_BUFFER, buffer.storage, gl.STATIC_DRAW);
-			gl.bindBuffer(gl.ARRAY_BUFFER, null);
 			this.vertexStreams_.insert(buffer, stream);
 		}
 
 		private freeVertexStream(buffer: meshdata.VertexBuffer) {
 			this.vertexStreams_.remove(buffer);
+		}
+
+		// -- IndexStream
+
+		private indexStreams_ = new ReusableResourceArray<meshdata.IndexBuffer, WebGLBuffer>(ResourceType.IndexStream);
+
+		private allocIndexStream(buffer: meshdata.IndexBuffer) {
+			const gl = this.gl;
+			const stream = gl.createBuffer()!; // TODO: handle allocation failure
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, stream);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, buffer.storage, gl.STATIC_DRAW);
+			this.indexStreams_.insert(buffer, stream);
+		}
+
+		private freeIndexStream(buffer: meshdata.IndexBuffer) {
+			this.indexStreams_.remove(buffer);
 		}
 	}
 
