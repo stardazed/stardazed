@@ -143,7 +143,6 @@ namespace sd.render {
 			this.extSRGB = gl.getExtension("EXT_sRGB");
 		}
 
-
 		// -- capabilities
 		get supportsArrayTextures() { return false; }
 		get supportsDepthTextures() { return false; }
@@ -193,7 +192,6 @@ namespace sd.render {
 
 
 		dispatch(_rcb: RenderCommandBuffer | RenderCommandBuffer[]) {
-
 		}
 
 
@@ -205,7 +203,7 @@ namespace sd.render {
 				for (const resource of cb.allocList) {
 					if (resource.renderResourceHandle) {
 						console.warn("alloc: resource was already GPU allocated.", resource);
-						return;
+						continue;
 					}
 					switch (resource.renderResourceType) {
 						case ResourceType.Sampler:
@@ -225,7 +223,7 @@ namespace sd.render {
 				for (const resource of cb.freeList) {
 					if (! resource.renderResourceHandle) {
 						console.warn("free: resource was not GPU allocated.", resource);
-						return;
+						continue;
 					}
 					switch (resource.renderResourceType) {
 						case ResourceType.Sampler:
@@ -244,102 +242,45 @@ namespace sd.render {
 			}
 		}
 
-		// -- Handles
-
-		private encodeHandle(type: ResourceType, index: number) {
-			return (type << 24) | index;
-		}
-
-		private decodeHandle(handle: number) {
-			const index = handle & 0x00FFFFFF;
-			const type = (handle >> 24) as ResourceType;
-			return { type, index };
-		}
-
 		// -- Sampler
 
-		private samplers_: (Sampler | undefined)[] = [];
-		private nextSamplerIndex_ = 0;
-		private freedSamplers_: number[] = [];
+		private samplers_ = new ReusableResourceArray<Sampler, Sampler>(ResourceType.Sampler);
 
 		private allocSampler(sampler: Sampler) {
-			let index: number;
-			if (this.freedSamplers_.length) {
-				index = this.freedSamplers_.pop()!;
-			}
-			else {
-				index = this.nextSamplerIndex_;
-				this.nextSamplerIndex_ += 1;
-			}
-
-			this.samplers_[index] = sampler;
-			sampler.renderResourceHandle = this.encodeHandle(ResourceType.Sampler, index);
+			this.samplers_.insert(sampler, sampler);
 		}
 
 		private freeSampler(sampler: Sampler) {
-			const { index } = this.decodeHandle(sampler.renderResourceHandle!);
-			sampler.renderResourceHandle = 0;
-			this.samplers_[index] = undefined;
-			this.freedSamplers_.push(index);
+			this.samplers_.remove(sampler);
 		}
 
 		// -- Texture
 
-		private textures_: (WebGLTexture | undefined)[] = [];
-		private nextTextureIndex_ = 0;
-		private freedTextures_: number[] = [];
+		private textures_ = new ReusableResourceArray<Texture, WebGLTexture>(ResourceType.Texture);
 		private linkedSamplers_: number[] = [];
 
 		private allocTexture(texture: Texture) {
-			let index: number;
-			if (this.freedTextures_.length) {
-				index = this.freedTextures_.pop()!;
-			}
-			else {
-				index = this.nextTextureIndex_;
-				this.nextTextureIndex_ += 1;
-			}
-
+			const glTex = gl1CreateTexture(this, texture); // TODO: handle allocation failure
+			const index = this.textures_.insert(texture, glTex);
 			this.linkedSamplers_[index] = 0;
-			this.textures_[index] = gl1CreateTexture(this, texture); // TODO: handle allocation failure
-			texture.renderResourceHandle = this.encodeHandle(ResourceType.Texture, index);
 		}
 
 		private freeTexture(texture: Texture) {
-			const { index } = this.decodeHandle(texture.renderResourceHandle!);
-			texture.renderResourceHandle = 0;
-
-			this.gl.deleteTexture(this.textures_[index]!);
-			this.textures_[index] = undefined;
+			const index = this.textures_.remove(texture);
 			this.linkedSamplers_[index] = 0;
-			this.freedTextures_.push(index);
 		}
 
 		// -- VertexLayout
 
-		private vertexLayouts_: (meshdata.VertexLayout | undefined)[] = [];
-		private nextVertexLayoutIndex_ = 0;
-		private freedVertexLayouts_: number[] = [];
+		private vertexLayouts_ = new ReusableResourceArray<meshdata.VertexLayout, meshdata.VertexLayout>(ResourceType.VertexLayout);
 
 		private allocVertexLayout(layout: meshdata.VertexLayout) {
-			let index: number;
-			if (this.freedVertexLayouts_.length) {
-				index = this.freedVertexLayouts_.pop()!;
-			}
-			else {
-				index = this.nextVertexLayoutIndex_;
-				this.nextVertexLayoutIndex_ += 1;
-			}
-
-			this.vertexLayouts_[index] = layout;
-			layout.renderResourceHandle = this.encodeHandle(ResourceType.VertexLayout, index);
+			this.vertexLayouts_.insert(layout, layout);
 		}
 
 		private freeVertexLayout(layout: meshdata.VertexLayout) {
-			const { index } = this.decodeHandle(layout.renderResourceHandle!);
-			layout.renderResourceHandle = 0;
-			this.vertexLayouts_[index] = undefined;
-			this.freedVertexLayouts_.push(index);
+			this.vertexLayouts_.remove(layout);
+		}
 		}
 	}
 
