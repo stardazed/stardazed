@@ -7,6 +7,50 @@
 
 namespace sd.render {
 
+	function encodeResourceHandle(type: ResourceType, index: number) {
+		return (type << 24) | index;
+	}
+
+	function decodeResourceHandle(handle: number) {
+		const index = handle & 0x00FFFFFF;
+		const type = (handle >> 24) as ResourceType;
+		return { type, index };
+	}
+
+	class ReusableResourceArray<C extends RenderResourceBase, R> {
+		readonly resources: (R | undefined)[] = [];
+		private freedIndexes_: number[] = [];
+		private nextIndex_ = 0;
+
+		constructor(public readonly resourceType: ResourceType) {}
+
+		insert(clientResource: C, resource: R) {
+			let index: number;
+			if (this.freedIndexes_.length) {
+				index = this.freedIndexes_.pop()!;
+			}
+			else {
+				index = this.nextIndex_;
+				this.nextIndex_ += 1;
+			}
+
+			this.resources[index] = resource;
+			clientResource.renderResourceHandle = encodeResourceHandle(this.resourceType, index);
+			return index;
+		}
+
+		remove(clientResource: C) {
+			const { index } = decodeResourceHandle(clientResource.renderResourceHandle!);
+			clientResource.renderResourceHandle = 0;
+
+			this.resources[index] = undefined;
+			this.freedIndexes_.push(index);
+			return index;
+		}
+	}
+
+	// ----
+
 	export class GL1RenderDevice implements RenderDevice {
 		gl: WebGLRenderingContext;
 
