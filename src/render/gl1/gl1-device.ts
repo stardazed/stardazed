@@ -215,6 +215,9 @@ namespace sd.render {
 						case ResourceType.VertexLayout:
 							this.allocVertexLayout(resource as meshdata.VertexLayout);
 							break;
+						case ResourceType.VertexStream:
+							this.allocVertexStream(resource as meshdata.VertexBuffer);
+							break;
 						default:
 							break;
 					}
@@ -234,6 +237,9 @@ namespace sd.render {
 							break;
 						case ResourceType.VertexLayout:
 							this.freeVertexLayout(resource as meshdata.VertexLayout);
+							break;
+						case ResourceType.VertexStream:
+							this.freeVertexStream(resource as meshdata.VertexBuffer);
 							break;
 						default:
 							break;
@@ -281,6 +287,22 @@ namespace sd.render {
 		private freeVertexLayout(layout: meshdata.VertexLayout) {
 			this.vertexLayouts_.remove(layout);
 		}
+
+		// -- VertexStream
+
+		private vertexStreams_ = new ReusableResourceArray<meshdata.VertexBuffer, WebGLBuffer>(ResourceType.VertexStream);
+
+		private allocVertexStream(buffer: meshdata.VertexBuffer) {
+			const gl = this.gl;
+			const stream = gl.createBuffer()!; // TODO: handle allocation failure
+			gl.bindBuffer(gl.ARRAY_BUFFER, stream);
+			gl.bufferData(gl.ARRAY_BUFFER, buffer.storage, gl.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, null);
+			this.vertexStreams_.insert(buffer, stream);
+		}
+
+		private freeVertexStream(buffer: meshdata.VertexBuffer) {
+			this.vertexStreams_.remove(buffer);
 		}
 	}
 
