@@ -44,6 +44,7 @@ namespace sd.render {
 	export function makeSampler(): Sampler {
 		return {
 			renderResourceType: ResourceType.Sampler,
+			renderResourceHandle: 0,
 
 			repeatS: TextureRepeatMode.Repeat,
 			repeatT: TextureRepeatMode.Repeat,
@@ -151,6 +152,8 @@ namespace sd.render {
 	export function makeTexture(): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
+			renderResourceHandle: 0,
+
 			textureClass: TextureClass.Normal,
 			pixelFormat: image.PixelFormat.None,
 			dim: image.makePixelDimensions(0, 0),
@@ -162,6 +165,8 @@ namespace sd.render {
 	export function makeTex2D(pixelFormat: image.PixelFormat, width: number, height: number, mipmapMode: MipMapMode = MipMapMode.Source): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
+			renderResourceHandle: 0,
+
 			textureClass: TextureClass.Normal,
 			pixelFormat: pixelFormat,
 			dim: image.makePixelDimensions(width, height),
@@ -173,6 +178,8 @@ namespace sd.render {
 	export function makeTex2DFromProvider(provider: image.PixelDataProvider, mipmapMode: MipMapMode = MipMapMode.Source): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
+			renderResourceHandle: 0,
+
 			textureClass: TextureClass.Normal,
 			pixelFormat: provider.pixelFormat,
 			dim: image.makePixelDimensions(provider.dim.width, provider.dim.height),
@@ -185,6 +192,8 @@ namespace sd.render {
 	export function makeTex2DFloatLUT(sourceData: Float32Array, width: number, height: number): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
+			renderResourceHandle: 0,
+
 			textureClass: TextureClass.Normal,
 			pixelFormat: image.PixelFormat.RGBA32F,
 			dim: image.makePixelDimensions(width, height),
@@ -202,6 +211,8 @@ namespace sd.render {
 	export function makeTexCube(pixelFormat: image.PixelFormat, dimension: number, mipmapMode: MipMapMode = MipMapMode.Source): Texture {
 		return {
 			renderResourceType: ResourceType.Texture,
+			renderResourceHandle: 0,
+
 			textureClass: TextureClass.CubeMap,
 			pixelFormat: pixelFormat,
 			dim: image.makePixelDimensions(dimension, dimension),
@@ -215,6 +226,8 @@ namespace sd.render {
 
 		return {
 			renderResourceType: ResourceType.Texture,
+			renderResourceHandle: 0,
+
 			textureClass: TextureClass.CubeMap,
 			pixelFormat: sources[0].pixelFormat,
 			dim: image.makePixelDimensions(sources[0].dim.width, sources[0].dim.height),

@@ -179,7 +179,7 @@ namespace sd.meshdata {
 
 	export class VertexLayout implements render.RenderResourceBase {
 		get renderResourceType() { return render.ResourceType.VertexLayout; }
-		renderResourceHandle?: number;
+		renderResourceHandle = 0;
 
 		readonly layouts: VertexBufferLayout[];
 

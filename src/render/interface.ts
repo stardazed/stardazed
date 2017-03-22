@@ -18,7 +18,7 @@ namespace sd.render {
 
 	export interface RenderResourceBase {
 		readonly renderResourceType: ResourceType;
-		renderResourceHandle?: number;
+		renderResourceHandle: number;
 	}
 
 	export type RenderResource = Texture | Sampler | meshdata.VertexLayout | meshdata.VertexBuffer | meshdata.IndexBuffer;
