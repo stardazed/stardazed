@@ -176,6 +176,9 @@ namespace sd.render {
 						case ResourceType.Texture:
 							this.allocTexture(resource as Texture);
 							break;
+						case ResourceType.Shader:
+							this.allocShader(resource as Shader);
+							break;
 						case ResourceType.VertexLayout:
 							this.allocVertexLayout(resource as meshdata.VertexLayout);
 							break;
@@ -201,6 +204,9 @@ namespace sd.render {
 							break;
 						case ResourceType.Texture:
 							this.freeTexture(resource as Texture);
+							break;
+						case ResourceType.Shader:
+							this.freeShader(resource as Shader);
 							break;
 						case ResourceType.VertexLayout:
 							this.freeVertexLayout(resource as meshdata.VertexLayout);
@@ -244,6 +250,19 @@ namespace sd.render {
 		private freeTexture(texture: Texture) {
 			const index = this.textures_.remove(texture);
 			this.linkedSamplers_[index] = 0;
+		}
+
+		// -- Shader
+
+		private shaders_ = new ReusableResourceArray<Shader, WebGLProgram>(ResourceType.Shader);
+
+		private allocShader(shader: Shader) {
+			const gl1Prog = gl1MakeProgram(this, shader)!; // TODO: handle failures
+			this.shaders_.insert(shader, gl1Prog);
+		}
+
+		private freeShader(shader: Shader) {
+			this.shaders_.remove(shader);
 		}
 
 		// -- VertexLayout
