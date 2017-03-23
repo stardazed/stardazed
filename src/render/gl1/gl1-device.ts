@@ -155,42 +155,6 @@ namespace sd.render {
 		}
 
 
-		makeShader(type: number, sourceText: string) {
-			const shader = this.gl.createShader(type)!; // TODO: handle resource allocation failure
-			this.gl.shaderSource(shader, sourceText);
-			this.gl.compileShader(shader);
-
-			if (! this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-				const errorLog = this.gl.getShaderInfoLog(shader);
-				console.error("Shader compilation failed:", errorLog);
-				console.error("Source", sourceText);
-				assert(false, "bad shader");
-			}
-
-			return shader;
-		}
-
-
-		makeProgram(vertexShader?: WebGLShader, fragmentShader?: WebGLShader) {
-			const program = this.gl.createProgram()!; // TODO: handle resource allocation failure
-			if (vertexShader) {
-				this.gl.attachShader(program, vertexShader);
-			}
-			if (fragmentShader) {
-				this.gl.attachShader(program, fragmentShader);
-			}
-			this.gl.linkProgram(program);
-
-			if (! this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
-				const errorLog = this.gl.getProgramInfoLog(program);
-				console.error("Program link failed:", errorLog);
-				assert(false, "bad program");
-			}
-
-			return program;
-		}
-
-
 		dispatch(_rcb: RenderCommandBuffer | RenderCommandBuffer[]) {
 		}
 
