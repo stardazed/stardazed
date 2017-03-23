@@ -13,7 +13,7 @@ namespace sd.render {
 		VertexStream,
 		IndexStream,
 		// ConstantBuffer,
-		// Shader
+		Shader
 	}
 
 	export interface RenderResourceBase {
@@ -21,7 +21,7 @@ namespace sd.render {
 		renderResourceHandle: number;
 	}
 
-	export type RenderResource = Texture | Sampler | meshdata.VertexLayout | meshdata.VertexBuffer | meshdata.IndexBuffer;
+	export type RenderResource = Texture | Sampler | Shader | meshdata.VertexLayout | meshdata.VertexBuffer | meshdata.IndexBuffer;
 
 
 	export class RenderResourceCommandBuffer {
