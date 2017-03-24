@@ -5,39 +5,54 @@
 
 namespace sd.render {
 
+	export interface ExtensionUsage {
+		name: string;
+		action: "enable" | "require";
+	}
+
+	export interface GL1VertexFunction extends VertexFunction {
+		extensions?: ExtensionUsage[];
+		main: string;
+	}
+
+	export interface GL1FragmentFunction extends FragmentFunction {
+		extensions?: ExtensionUsage[];
+		main: string;
+	}
+
 	// [AL]: a very simple approach to attribute index assignment
 	// which is fine for current (non-skinned) shaders
 
-	export interface PositionedAttributeSlot extends AttributeSlot {
+	export interface PositionedAttributeSlot extends ShaderVertexAttribute {
 		index: number;
 	}
 
-	function attributeIndexForRole(role: meshdata.VertexAttributeRole) {
+	function attributeIndexForRole(role: ShaderAttributeRole) {
 		switch (role) {
-			case meshdata.VertexAttributeRole.Position: return 0;
-			case meshdata.VertexAttributeRole.Normal: return 1;
-			case meshdata.VertexAttributeRole.Tangent: return 4;
-			case meshdata.VertexAttributeRole.Colour: return 3;
-			case meshdata.VertexAttributeRole.Material: return 5;
+			case "position": return 0;
+			case "normal": return 1;
+			case "tangent": return 4;
+			case "colour": return 3;
+			case "material": return 5;
 
 			// UV sets
-			case meshdata.VertexAttributeRole.UV0: return 2;
-			case meshdata.VertexAttributeRole.UV1: return 6;
-			case meshdata.VertexAttributeRole.UV2: return 7;
-			case meshdata.VertexAttributeRole.UV3: return 8;
+			case "uv0": return 2;
+			case "uv1": return 6;
+			case "uv2": return 7;
+			case "uv3": return 8;
 
 			// skinned mesh (NOT YET SUPPORTED)
-			case meshdata.VertexAttributeRole.WeightedPos0: return -1;
-			case meshdata.VertexAttributeRole.WeightedPos1: return -1;
-			case meshdata.VertexAttributeRole.WeightedPos2: return -1;
-			case meshdata.VertexAttributeRole.WeightedPos3: return -1;
-			case meshdata.VertexAttributeRole.JointIndexes: return -1;
+			case "weightedPos0": return -1;
+			case "weightedPos1": return -1;
+			case "weightedPos2": return -1;
+			case "weightedPos3": return -1;
+			case "jointIndexes": return -1;
 		}
 
 		return -1;
 	}
 
-	export function positionAttributes(attrs: AttributeSlot[]): PositionedAttributeSlot[] {
+	export function positionAttributes(attrs: ShaderVertexAttribute[]): PositionedAttributeSlot[] {
 		return attrs.map(a => ({
 			...a,
 			index: attributeIndexForRole(a.role)
@@ -64,10 +79,10 @@ namespace sd.render {
 
 	export function gl1MakeProgram(rd: GL1RenderDevice, desc: Shader) {
 		const gl = rd.gl;
-		const posAttrs = positionAttributes(desc.attributes);
+		const posAttrs = positionAttributes(desc.vertexIn);
 
-		const vertexShader = gl1MakeShader(rd, gl.VERTEX_SHADER, desc.vertexFunction);
-		const fragmentShader = gl1MakeShader(rd, gl.FRAGMENT_SHADER, desc.fragmentFunction);
+		const vertexShader = gl1MakeShader(rd, gl.VERTEX_SHADER, desc.vertexSource);
+		const fragmentShader = gl1MakeShader(rd, gl.FRAGMENT_SHADER, desc.fragmentSource);
 
 		if (! (vertexShader && fragmentShader)) {
 			return undefined;
