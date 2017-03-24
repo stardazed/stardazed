@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.render {
+namespace sd.render.gl1 {
 
 	import PixelFormat = image.PixelFormat;
 
@@ -398,4 +398,4 @@ namespace sd.render {
 		return createPlainTexture(rd, texture);
 	}
 
-} // ns sd.render
+} // ns sd.render.gl1

@@ -5,7 +5,7 @@
 
 /// <reference path="../../../typings/webgl.d.ts"/>
 
-namespace sd.render {
+namespace sd.render.gl1 {
 
 	function encodeResourceHandle(type: ResourceType, index: number) {
 		return (type << 24) | index;
@@ -257,7 +257,7 @@ namespace sd.render {
 		private shaders_ = new ReusableResourceArray<Shader, WebGLProgram>(ResourceType.Shader);
 
 		private allocShader(shader: Shader) {
-			const gl1Prog = gl1MakeProgram(this, shader)!; // TODO: handle failures
+			const gl1Prog = makeProgram(this, shader)!; // TODO: handle failures
 			this.shaders_.insert(shader, gl1Prog);
 		}
 
@@ -310,4 +310,4 @@ namespace sd.render {
 		}
 	}
 
-} // ns sd.render
+} // ns sd.render.gl1

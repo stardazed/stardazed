@@ -3,9 +3,9 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.render {
+namespace sd.render.gl1 {
 
-	function gl1StandardVertexFunction(): GL1VertexFunction {
+	function standardVertexFunction(): GL1VertexFunction {
 		return {
 			in: [
 				{ name: "vertexPos_model", type: "float3", role: "position", index: 0 },
@@ -33,7 +33,7 @@ namespace sd.render {
 		};
 	}
 
-	function gl1StandardFragmentFunction(): GL1FragmentFunction {
+	function standardFragmentFunction(): GL1FragmentFunction {
 		return {
 			in: [
 				// { name: "vertexPos_world", type: "float4" },
@@ -52,8 +52,20 @@ namespace sd.render {
 		};
 	}
 
-	export function gl1StandardShader() {
-		
+	export function makeStandardShader(): Shader {
+		const vertexFunction = standardVertexFunction();
+		const fragmentFunction = standardFragmentFunction();
+
+		return {
+			renderResourceType: ResourceType.Shader,
+			renderResourceHandle: 0,
+
+			vertexFunction,
+			fragmentFunction,
+
+			allTextures: [],
+			allConstants: (vertexFunction.constants || []).concat(fragmentFunction.constants || [])
+		};	
 	}
 
-} // ns sd.render
+} // ns sd.render.gl1
