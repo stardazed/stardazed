@@ -5,44 +5,59 @@
 
 namespace sd.render {
 
-	export const enum ShaderValueType {
-		Int,
-		Int2,
-		Int3,
-		Int4,
-		Float,
-		Float2,
-		Float3,
-		Float4,
-		Mat2x2,
-		Mat3x3,
-		Mat4x4
-	}
+	export type ShaderValueType =
+		"int" | "int2" | "int3" | "int4" |
+		"float" | "float2" | "float3" | "float4" |
+		"mat2" | "mat3" | "mat4";
+
+	export type ShaderAttributeRole =
+		"position" | "normal" | "tangent" |
+		"colour" |  "material" |
+		"uv0" | "uv1" | "uv2" | "uv3" |
+		"weightedPos0" | "weightedPos1" | "weightedPos2" | "weightedPos3" |
+		"jointIndexes";
 
 	export interface TextureSlot {
 		name: string;
 		type: TextureClass;
+		index: number;
 	}
 
-	export interface UniformSlot {
+	export interface ShaderConstant {
 		name: string;
 		type: ShaderValueType;
-		length: number;
+		length?: number;            // optional: array length
 	}
 
-	export interface AttributeSlot {
+	export interface ShaderAttribute {
 		name: string;
 		type: ShaderValueType;
-		role: meshdata.VertexAttributeRole;
+	}
+
+	export interface ShaderVertexAttribute extends ShaderAttribute {
+		role: ShaderAttributeRole;
+		index: number;
+	}
+
+	export interface VertexFunction {
+		in: ShaderVertexAttribute[];
+		out?: ShaderAttribute[];
+		textures?: TextureSlot[];
+		constants?: ShaderConstant[];
+	}
+
+	export interface FragmentFunction {
+		in?: ShaderAttribute[];
+		outCount: number;
+		textures?: TextureSlot[];
+		constants?: ShaderConstant[];
 	}
 
 	export interface Shader extends RenderResourceBase {
-		textures: TextureSlot[];
-		uniforms: UniformSlot[];
-		attributes: AttributeSlot[];
-
-		vertexFunction: string;
-		fragmentFunction: string;
+		readonly allTextures: TextureSlot[];    // combined textures
+		readonly allConstants: ShaderConstant[]; // combined constants
+		vertexFunction: VertexFunction;
+		fragmentFunction: FragmentFunction;
 	}
 
 } // ns sd.render
