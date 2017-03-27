@@ -164,35 +164,6 @@ namespace sd.render.gl1 {
 				rrcb = [rrcb];
 			}
 			for (const cb of rrcb) {
-				for (const resource of cb.allocList) {
-					if (resource.renderResourceHandle) {
-						console.warn("alloc: resource was already GPU allocated.", resource);
-						continue;
-					}
-					switch (resource.renderResourceType) {
-						case ResourceType.Sampler:
-							this.allocSampler(resource as Sampler);
-							break;
-						case ResourceType.Texture:
-							this.allocTexture(resource as Texture);
-							break;
-						case ResourceType.Shader:
-							this.allocShader(resource as Shader);
-							break;
-						case ResourceType.VertexLayout:
-							this.allocVertexLayout(resource as meshdata.VertexLayout);
-							break;
-						case ResourceType.VertexStream:
-							this.allocVertexStream(resource as meshdata.VertexBuffer);
-							break;
-						case ResourceType.IndexStream:
-							this.allocIndexStream(resource as meshdata.IndexBuffer);
-							break;
-						default:
-							break;
-					}
-				}
-
 				for (const resource of cb.freeList) {
 					if (! resource.renderResourceHandle) {
 						console.warn("free: resource was not GPU allocated.", resource);
@@ -216,6 +187,35 @@ namespace sd.render.gl1 {
 							break;
 						case ResourceType.IndexStream:
 							this.freeIndexStream(resource as meshdata.IndexBuffer);
+							break;
+						default:
+							break;
+					}
+				}
+
+				for (const resource of cb.allocList) {
+					if (resource.renderResourceHandle) {
+						console.warn("alloc: resource was already GPU allocated.", resource);
+						continue;
+					}
+					switch (resource.renderResourceType) {
+						case ResourceType.Sampler:
+							this.allocSampler(resource as Sampler);
+							break;
+						case ResourceType.Texture:
+							this.allocTexture(resource as Texture);
+							break;
+						case ResourceType.Shader:
+							this.allocShader(resource as Shader);
+							break;
+						case ResourceType.VertexLayout:
+							this.allocVertexLayout(resource as meshdata.VertexLayout);
+							break;
+						case ResourceType.VertexStream:
+							this.allocVertexStream(resource as meshdata.VertexBuffer);
+							break;
+						case ResourceType.IndexStream:
+							this.allocIndexStream(resource as meshdata.IndexBuffer);
 							break;
 						default:
 							break;
