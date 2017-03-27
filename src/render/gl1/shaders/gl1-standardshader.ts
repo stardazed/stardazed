@@ -61,10 +61,7 @@ namespace sd.render.gl1 {
 			renderResourceHandle: 0,
 
 			vertexFunction,
-			fragmentFunction,
-
-			allTextures: [],
-			allConstants: (vertexFunction.constants || []).concat(fragmentFunction.constants || [])
+			fragmentFunction
 		};	
 	}
 

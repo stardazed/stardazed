@@ -42,6 +42,7 @@ namespace sd.render {
 	export interface VertexFunction {
 		in: ShaderVertexAttribute[];
 		out?: ShaderAttribute[];
+		// feedback?: any;
 		textures?: TextureSlot[];
 		constants?: ShaderConstant[];
 	}
@@ -54,8 +55,6 @@ namespace sd.render {
 	}
 
 	export interface Shader extends RenderResourceBase {
-		readonly allTextures: TextureSlot[];    // combined textures
-		readonly allConstants: ShaderConstant[]; // combined constants
 		vertexFunction: VertexFunction;
 		fragmentFunction: FragmentFunction;
 	}
