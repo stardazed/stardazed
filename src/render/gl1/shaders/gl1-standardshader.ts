@@ -14,7 +14,7 @@ namespace sd.render.gl1 {
 			out: [
 				// { name: "vertexPos_world", type: "float4" },
 				// { name: "vertexPos_cam", type: "float3" },
-				// { name: "vertexNormal_cam", type: "float3" },
+				{ name: "vertexNormal_cam", type: "float3" },
 			],
 
 			constants: [
@@ -25,6 +25,7 @@ namespace sd.render.gl1 {
 			],
 
 			main: `
+				vertexNormal_cam = vertexNormal;
 				gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);
 				// vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);
 				// vertexNormal_cam = normalMatrix * vertexNormal;
@@ -38,7 +39,7 @@ namespace sd.render.gl1 {
 			in: [
 				// { name: "vertexPos_world", type: "float4" },
 				// { name: "vertexPos_cam", type: "float3" },
-				// { name: "vertexNormal_cam", type: "float3" },
+				{ name: "vertexNormal_cam", type: "float3" },
 			],
 			outCount: 1,
 
@@ -47,7 +48,7 @@ namespace sd.render.gl1 {
 			],
 
 			main: `
-				gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+				gl_FragColor = vec4((vertexNormal_cam / 2.0) + 0.5, 1.0);
 			`
 		};
 	}
