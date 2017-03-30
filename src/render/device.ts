@@ -51,6 +51,9 @@ namespace sd.render {
 		dispatch(rcb: RenderCommandBuffer | RenderCommandBuffer[]): void;
 
 		generateStandardShader(options: StandardShaderOptions): Shader;
+
+		// -- temp
+		render(proj: Float4x4, view: Float4x4, mesh: meshdata.MeshData, shader: Shader): void;
 	}
 
 } // ns sd.render
