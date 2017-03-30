@@ -59,4 +59,24 @@ namespace sd.render {
 		fragmentFunction: FragmentFunction;
 	}
 
+	// ----
+
+	export type LightQuality = "vertex" | "phong" | "blinn" | "cooktorrance";
+	export type DynamicLighting = "none" | "tiled";
+	export type IBLLighting = "none" | "singlecube";
+	export type NormalMapping = "none" | "plain";
+	export type HeightMapping = "none" | "simple" | "parallax"; // | "conic"
+
+	export interface StandardShaderOptions {
+		dynamicLightQuality: LightQuality;
+		dynamicLighting: DynamicLighting;
+		iblLighting: IBLLighting;
+		normalMapping: NormalMapping;
+		heightMapping: HeightMapping;
+
+		vertexColours: boolean;
+		emissive: "none" | "colour" | "map";
+		shadow: "none" | "vsm";
+	}
+
 } // ns sd.render

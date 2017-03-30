@@ -49,6 +49,8 @@ namespace sd.render {
 
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]): void;
 		dispatch(rcb: RenderCommandBuffer | RenderCommandBuffer[]): void;
+
+		generateStandardShader(): Shader;
 	}
 
 } // ns sd.render
