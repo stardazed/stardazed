@@ -61,22 +61,57 @@ namespace sd.render {
 
 	// ----
 
-	export type LightQuality = "vertex" | "phong" | "blinn" | "cooktorrance";
-	export type DynamicLighting = "none" | "tiled";
-	export type IBLLighting = "none" | "singlecube";
-	export type NormalMapping = "none" | "plain";
-	export type HeightMapping = "none" | "simple" | "parallax"; // | "conic"
+	export type DynamicLighting = "vertex" | "phong" | "blinn" | "cooktorrance";
+	export type IBLLighting = "singlecube";
+	export type LightMapping = "plain";
+	export type ShadowMapping = "vsm";
+
+	export type NormalMapping = "perturb";
+	export type HeightMapping = "simple" | "parallax"; // | "conic"
+
+	export type ValueChannel = "fixed" | "map";
+
+	export interface DiffuseSpecularResponse {
+		name: "diffuse-specular";
+		diffuse: ValueChannel;
+		specular?: ValueChannel;
+	}
+
+	export interface PBRMetallicResponse {
+		name: "pbr-metallic";
+		albedo: ValueChannel;
+		roughness: ValueChannel;
+		metallic: ValueChannel;
+	}
+
+	export interface PBRSpecularResponse {
+		name: "pbr-specular";
+		albedo: ValueChannel;
+		specular: ValueChannel;
+		roughness: ValueChannel;
+	}
+
+	export type ColourResponse = DiffuseSpecularResponse | PBRMetallicResponse | PBRSpecularResponse;
 
 	export interface StandardShaderOptions {
-		dynamicLightQuality: LightQuality;
-		dynamicLighting: DynamicLighting;
-		iblLighting: IBLLighting;
-		normalMapping: NormalMapping;
-		heightMapping: HeightMapping;
-
+		// vertex features
+		vertexSkinning: boolean;
 		vertexColours: boolean;
-		emissive: "none" | "colour" | "map";
-		shadow: "none" | "vsm";
+
+		// lighting
+		dynamicLighting?: DynamicLighting;
+		iblLighting?: IBLLighting;
+		lightMapping?: LightMapping;
+		shadowMapping?: ShadowMapping;
+
+		// bump / height
+		normalMapping?: NormalMapping;
+		heightMapping?: HeightMapping;
+
+		// colour
+		colour: ColourResponse;
+		emissive?: ValueChannel;
+		alpha?: ValueChannel;
 	}
 
 } // ns sd.render
