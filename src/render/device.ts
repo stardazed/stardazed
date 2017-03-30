@@ -50,7 +50,7 @@ namespace sd.render {
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]): void;
 		dispatch(rcb: RenderCommandBuffer | RenderCommandBuffer[]): void;
 
-		generateStandardShader(): Shader;
+		generateStandardShader(options: StandardShaderOptions): Shader;
 	}
 
 } // ns sd.render

@@ -52,7 +52,7 @@ namespace sd.render.gl1 {
 		};
 	}
 
-	export function makeStandardShader(): Shader {
+	export function makeStandardShader(_options: StandardShaderOptions): Shader {
 		const vertexFunction = standardVertexFunction();
 		const fragmentFunction = standardFragmentFunction();
 
