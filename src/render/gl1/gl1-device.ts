@@ -39,6 +39,15 @@ namespace sd.render.gl1 {
 			return index;
 		}
 
+		find(clientResource: C): R | undefined {
+			const handle = clientResource.renderResourceHandle;
+			if (! handle) {
+				return;
+			}
+			const { index } = decodeResourceHandle(handle);
+			return this.resources[index];
+		}
+
 		remove(clientResource: C) {
 			const { index } = decodeResourceHandle(clientResource.renderResourceHandle!);
 			clientResource.renderResourceHandle = 0;
