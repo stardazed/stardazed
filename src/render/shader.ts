@@ -74,12 +74,6 @@ namespace sd.render {
 
 	export type ValueChannel = "fixed" | "map";
 
-	export interface DiffuseSpecularResponse {
-		name: "diffuse-specular";
-		diffuse: ValueChannel;
-		specular?: ValueChannel;
-	}
-
 	export interface PBRMetallicResponse {
 		name: "pbr-metallic";
 		albedo: ValueChannel;
@@ -94,7 +88,7 @@ namespace sd.render {
 		roughness: ValueChannel;
 	}
 
-	export type ColourResponse = DiffuseSpecularResponse | PBRMetallicResponse | PBRSpecularResponse;
+	export type ColourResponse = PBRMetallicResponse | PBRSpecularResponse;
 
 	export interface StandardShaderOptions {
 		// vertex features
