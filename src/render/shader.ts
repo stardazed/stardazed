@@ -61,6 +61,9 @@ namespace sd.render {
 
 	// ----
 
+	export type VertexSkinning = "2bone" | "4bone";
+	export type VertexColours = "per-vertex";
+
 	export type DynamicLighting = "vertex" | "phong" | "blinn" | "cooktorrance";
 	export type IBLLighting = "singlecube";
 	export type LightMapping = "plain";
@@ -95,8 +98,8 @@ namespace sd.render {
 
 	export interface StandardShaderOptions {
 		// vertex features
-		vertexSkinning: boolean;
-		vertexColours: boolean;
+		vertexSkinning?: VertexSkinning;
+		vertexColours?: VertexColours;
 
 		// lighting
 		dynamicLighting?: DynamicLighting;
