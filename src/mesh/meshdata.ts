@@ -98,9 +98,9 @@ namespace sd.meshdata {
 
 		// derived vertex data generation
 		genVertexNormals() {
-			this.vertexBuffers.forEach((_vertexBuffer) => {
+			this.vertexBuffers.forEach((vertexBuffer, ix) => {
 				if (this.indexBuffer) {
-					// calcVertexNormals(vertexBuffer, this.indexBuffer);
+					calcVertexNormals(this.layout.layouts[ix], vertexBuffer, this.indexBuffer);
 				}
 			});
 		}
