@@ -14,7 +14,8 @@ namespace sd.image {
 		None,
 
 		// 8-bit component
-		Alpha,
+		R8,
+		RG8,
 		RGB8,
 		RGBA8,
 
@@ -23,9 +24,15 @@ namespace sd.image {
 		SRGB8_Alpha8,
 
 		// 16-bit component
+		R16F,
+		RG16F,
+		RGB16F,
 		RGBA16F,
 
 		// 32-bit component
+		R32F,
+		RG32F,
+		RGB32F,
 		RGBA32F,
 
 		// Packed 16-bits
@@ -75,13 +82,15 @@ namespace sd.image {
 		// and a block for compressed formats
 
 		switch (format) {
-			case PixelFormat.Alpha:
+			case PixelFormat.R8:
 			case PixelFormat.Stencil8:
 				return 1;
 
+			case PixelFormat.RG8:
 			case PixelFormat.RGB_5_6_5:
 			case PixelFormat.RGBA_4_4_4_4:
 			case PixelFormat.RGBA_5_5_5_1:
+			case PixelFormat.R16F:
 			case PixelFormat.Depth16I:
 				return 2;
 
@@ -91,12 +100,21 @@ namespace sd.image {
 
 			case PixelFormat.RGBA8:
 			case PixelFormat.SRGB8_Alpha8:
+			case PixelFormat.RG16F:
+			case PixelFormat.R32F:
 			case PixelFormat.Depth24I:
 			case PixelFormat.Depth24_Stencil8:
 				return 4;
 
+			case PixelFormat.RGB16F:
+				return 6;
+
 			case PixelFormat.RGBA16F:
+			case PixelFormat.RG32F:
 				return 8;
+
+			case PixelFormat.RGB32F:
+				return 12;
 
 			case PixelFormat.RGBA32F:
 				return 16;
