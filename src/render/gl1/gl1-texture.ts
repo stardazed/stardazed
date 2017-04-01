@@ -11,8 +11,15 @@ namespace sd.render.gl1 {
 		const gl = rd.gl;
 
 		switch (format) {
-			case PixelFormat.Alpha:
-				return gl.ALPHA;
+			case PixelFormat.R8:
+			case PixelFormat.R16F:
+			case PixelFormat.R32F:
+				return gl.LUMINANCE;
+
+			case PixelFormat.RG8:
+			case PixelFormat.RG16F:
+			case PixelFormat.RG32F:
+				return gl.LUMINANCE_ALPHA;
 
 			case PixelFormat.RGB8:
 				return gl.RGB;
@@ -74,10 +81,11 @@ namespace sd.render.gl1 {
 		}
 
 		switch (format) {
-			case PixelFormat.Alpha:
+			case PixelFormat.R8:
+			case PixelFormat.RG8:
 			case PixelFormat.RGB8:
-			case PixelFormat.Stencil8:
 			case PixelFormat.RGBA8:
+			case PixelFormat.Stencil8:
 				return gl.UNSIGNED_BYTE;
 
 			case PixelFormat.SRGB8:
@@ -91,9 +99,15 @@ namespace sd.render.gl1 {
 			case PixelFormat.RGBA_5_5_5_1:
 				return gl.UNSIGNED_SHORT_5_5_5_1;
 
+			case PixelFormat.R16F:
+			case PixelFormat.RG16F:
+			case PixelFormat.RGB16F:
 			case PixelFormat.RGBA16F:
 				return rd.extTextureHalfFloat ? rd.extTextureHalfFloat.HALF_FLOAT_OES : gl.NONE;
 
+			case PixelFormat.R32F:
+			case PixelFormat.RG32F:
+			case PixelFormat.RGB32F:
 			case PixelFormat.RGBA32F:
 				return gl.FLOAT;
 
