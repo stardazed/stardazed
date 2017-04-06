@@ -28,6 +28,13 @@ namespace sd.meshdata {
 		indexCount: number;
 	}
 
+	export interface MeshData {
+		layout: VertexLayout;
+		vertexBuffers: VertexBuffer[];
+		indexBuffer?: IndexBuffer;
+		primitiveGroups: PrimitiveGroup[];
+	}
+
 	export function allocateMeshData(options: MeshDataAllocOptions): MeshData {
 		let totalBytes = 0;
 		for (let vbix = 0; vbix < options.layout.layouts.length; ++vbix) {
@@ -42,8 +49,11 @@ namespace sd.meshdata {
 
 		assert(totalBytes > 0, "Nothing to allocate!");
 
-		const md = new MeshData();
-		md.layout = options.layout;
+		const md: MeshData = {
+			layout: options.layout,
+			vertexBuffers: [],
+			primitiveGroups: [],
+		};
 		const storage = new ArrayBuffer(totalBytes);
 
 		let byteOffset = 0;
@@ -71,39 +81,32 @@ namespace sd.meshdata {
 		return md;
 	}
 
-	export class MeshData {
-		layout: VertexLayout;
-		vertexBuffers: VertexBuffer[] = [];
-		indexBuffer: IndexBuffer | null = null;
-		primitiveGroups: PrimitiveGroup[] = [];
+	export function findFirstAttributeWithRole(mesh: MeshData, role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | undefined {
+		let pa: PositionedAttribute | undefined;
+		let avb: VertexBuffer | null = null;
 
-		findFirstAttributeWithRole(role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | undefined {
-			let pa: PositionedAttribute | undefined;
-			let avb: VertexBuffer | null = null;
-
-			this.vertexBuffers.forEach((vb, index) => {
-				if (! pa) {
-					pa = this.layout!.layouts[index].attrByRole(role);
-					if (pa) {
-						avb = vb;
-					}
+		mesh.vertexBuffers.forEach((vb, index) => {
+			if (! pa) {
+				pa = mesh.layout!.layouts[index].attrByRole(role);
+				if (pa) {
+					avb = vb;
 				}
-			});
-
-			if (pa && avb) {
-				return { vertexBuffer: avb, attr: pa };
 			}
-			return undefined;
-		}
+		});
 
-		// derived vertex data generation
-		genVertexNormals() {
-			this.vertexBuffers.forEach((vertexBuffer, ix) => {
-				if (this.indexBuffer) {
-					calcVertexNormals(this.layout.layouts[ix], vertexBuffer, this.indexBuffer);
-				}
-			});
+		if (pa && avb) {
+			return { vertexBuffer: avb, attr: pa };
 		}
+		return undefined;
+	}
+
+	// derived vertex data generation
+	export function genVertexNormals(mesh: MeshData) {
+		mesh.vertexBuffers.forEach((vertexBuffer, ix) => {
+			if (mesh.indexBuffer) {
+				calcVertexNormals(mesh.layout.layouts[ix], vertexBuffer, mesh.indexBuffer);
+			}
+		});
 	}
 
 } // ns sd.meshdata

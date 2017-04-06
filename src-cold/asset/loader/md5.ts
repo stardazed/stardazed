@@ -327,7 +327,7 @@ namespace sd.asset {
 
 
 			private transformNormalsIntoJointSpace(md: meshdata.MeshData) {
-				const normAttr = md.findFirstAttributeWithRole(meshdata.VertexAttributeRole.Normal);
+				const normAttr = findFirstAttributeWithRole(mesh, meshdata.VertexAttributeRole.Normal);
 
 				if (normAttr) {
 					const weights = this.weights!;
