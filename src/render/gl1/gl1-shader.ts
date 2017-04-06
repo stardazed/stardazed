@@ -104,7 +104,7 @@ namespace sd.render.gl1 {
 		const extensions = generateExtensionBlock(fn.extensions);
 		const varying = generateValueBlock("varying", fn.in);
 		const uniforms = generateConstantsBlock(fn.constantBlocks);
-		const samplers = generateSamplerBlock(fn.textures);
+		const samplers = generateSamplerBlock(fn.samplers);
 		
 		return `${extensions}
 		precision highp float;

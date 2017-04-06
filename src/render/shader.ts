@@ -17,7 +17,7 @@ namespace sd.render {
 		"weightedPos0" | "weightedPos1" | "weightedPos2" | "weightedPos3" |
 		"jointIndexes";
 
-	export interface TextureSlot {
+	export interface SamplerSlot {
 		name: string;
 		type: TextureClass;
 		index: number;
@@ -48,14 +48,14 @@ namespace sd.render {
 		in: ShaderVertexAttribute[];
 		out?: ShaderAttribute[];
 		// feedback?: any;
-		textures?: TextureSlot[];
+		textures?: SamplerSlot[];
 		constantBlocks?: ShaderConstantBlock[];
 	}
 
 	export interface FragmentFunction {
 		in?: ShaderAttribute[];
 		outCount: number;
-		textures?: TextureSlot[];
+		samplers?: SamplerSlot[];
 		constantBlocks?: ShaderConstantBlock[];
 	}
 
