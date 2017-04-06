@@ -26,7 +26,12 @@ namespace sd.render {
 	export interface ShaderConstant {
 		name: string;
 		type: ShaderValueType;
-		length?: number;            // optional: array length
+		length?: number;            // optional: fixed array length
+	}
+
+	export interface ShaderConstantBlock {
+		name: string;
+		constants: ShaderConstant[];
 	}
 
 	export interface ShaderAttribute {
@@ -44,14 +49,14 @@ namespace sd.render {
 		out?: ShaderAttribute[];
 		// feedback?: any;
 		textures?: TextureSlot[];
-		constants?: ShaderConstant[];
+		constantBlocks?: ShaderConstantBlock[];
 	}
 
 	export interface FragmentFunction {
 		in?: ShaderAttribute[];
 		outCount: number;
 		textures?: TextureSlot[];
-		constants?: ShaderConstant[];
+		constantBlocks?: ShaderConstantBlock[];
 	}
 
 	export interface Shader extends RenderResourceBase {

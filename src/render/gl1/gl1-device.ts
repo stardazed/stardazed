@@ -295,7 +295,7 @@ namespace sd.render.gl1 {
 			gl.enable(gl.DEPTH_TEST);
 			gl.depthFunc(gl.LEQUAL);
 			const mvp = mat4.multiply(new Float32Array(16), proj, view);
-			const mvpU = gl.getUniformLocation(prog, shader.vertexFunction.constants![0].name)!;
+			const mvpU = gl.getUniformLocation(prog, shader.vertexFunction.constantBlocks![0].constants[0].name)!;
 			gl.uniformMatrix4fv(mvpU, false, mvp);
 
 			const sub = mesh.primitiveGroups[0];

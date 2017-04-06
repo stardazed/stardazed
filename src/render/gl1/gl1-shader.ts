@@ -70,7 +70,11 @@ namespace sd.render.gl1 {
 		}).join("");
 	}
 
-	function generateSamplerBlock(samplers: TextureSlot[] | undefined) {
+	function generateConstantsBlock(blocks: ShaderConstantBlock[] | undefined) {
+		return (blocks || []).map(block => generateValueBlock("uniform", block.constants)).join("");
+	}
+
+	function generateSamplerBlock(samplers: SamplerSlot[] | undefined) {
 		return (samplers || []).map(tex => {
 			const mappedTextureType = (tex.type === TextureClass.Normal) ? "sampler2D" : "samplerCube";
 			return `uniform ${mappedTextureType} ${tex.name};\n`;
@@ -87,7 +91,7 @@ namespace sd.render.gl1 {
 		const extensions = generateExtensionBlock(fn.extensions);
 		const attributes = generateValueBlock("attribute", fn.in);
 		const varying = generateValueBlock("varying", fn.out);
-		const uniforms = generateValueBlock("uniform", fn.constants);
+		const uniforms = generateConstantsBlock(fn.constantBlocks);
 		const samplers = generateSamplerBlock(fn.textures);
 		
 		return `${extensions}${attributes}${varying}${uniforms}${samplers}
@@ -99,7 +103,7 @@ namespace sd.render.gl1 {
 	function generateFragmentSource(fn: GL1FragmentFunction) {
 		const extensions = generateExtensionBlock(fn.extensions);
 		const varying = generateValueBlock("varying", fn.in);
-		const uniforms = generateValueBlock("uniform", fn.constants);
+		const uniforms = generateConstantsBlock(fn.constantBlocks);
 		const samplers = generateSamplerBlock(fn.textures);
 		
 		return `${extensions}

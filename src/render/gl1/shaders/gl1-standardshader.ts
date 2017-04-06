@@ -17,11 +17,16 @@ namespace sd.render.gl1 {
 				{ name: "vertexNormal_cam", type: "float3" },
 			],
 
-			constants: [
-				// { name: "modelMatrix", type: "mat4" },
-				// { name: "modelViewMatrix", type: "mat4" },
-				{ name: "modelViewProjectionMatrix", type: "mat4" },
-				// { name: "normalMatrix", type: "mat3" },
+			constantBlocks: [
+				{
+					name: "default",
+					constants: [
+						// { name: "modelMatrix", type: "mat4" },
+						// { name: "modelViewMatrix", type: "mat4" },
+						{ name: "modelViewProjectionMatrix", type: "mat4" },
+						// { name: "normalMatrix", type: "mat3" },
+					]
+				}
 			],
 
 			main: `
@@ -43,7 +48,7 @@ namespace sd.render.gl1 {
 			],
 			outCount: 1,
 
-			constants: [
+			constantBlocks: [
 				// { name: "mainColour", type: "float4" }
 			],
 
