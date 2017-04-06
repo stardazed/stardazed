@@ -30,7 +30,7 @@ namespace sd.render {
 	}
 
 	export interface ShaderConstantBlock {
-		name: string;
+		blockName: string;
 		constants: ShaderConstant[];
 	}
 

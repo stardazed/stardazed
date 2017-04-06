@@ -19,7 +19,7 @@ namespace sd.render.gl1 {
 
 			constantBlocks: [
 				{
-					name: "default",
+					blockName: "default",
 					constants: [
 						// { name: "modelMatrix", type: "mat4" },
 						// { name: "modelViewMatrix", type: "mat4" },
