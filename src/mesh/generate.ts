@@ -314,7 +314,7 @@ namespace sd.meshdata.gen {
 		height: number; // float, dimension in Y
 		depth: number;  // float, dimension in Z
 
-		inward: boolean;
+		inward?: boolean;
 		uvRange?: Float2;
 		uvOffset?: Float2;
 	}
@@ -340,6 +340,133 @@ namespace sd.meshdata.gen {
 			assert(this.xDiam_ > 0);
 			assert(this.yDiam_ > 0);
 			assert(this.zDiam_ > 0);
+
+			this.uvRange_ = desc.uvRange ? [desc.uvRange[0], desc.uvRange[1]] : [1, 1];
+			this.uvOffset_ = desc.uvOffset ? [desc.uvOffset[0], desc.uvOffset[1]] : [0, 0];
+		}
+
+		get vertexCount(): number {
+			return 24;
+		}
+
+		get faceCount(): number {
+			return 12;
+		}
+
+		get explicitNormals() {
+			return true;
+		}
+
+		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
+			const xh = this.xDiam_ / 2;
+			const yh = this.yDiam_ / 2;
+			const zh = this.zDiam_ / 2;
+			const uA = this.uvOffset_[0];
+			const uB = this.uvOffset_[0] + this.uvRange_[0];
+			const vA = this.uvOffset_[1];
+			const vB = this.uvOffset_[1] + this.uvRange_[1];
+			let curVtx = 0;
+
+			// unique positions
+			const p: number[][] = [
+				[ -xh, -yh, -zh ],
+				[ xh, -yh, -zh ],
+				[ xh, yh, -zh ],
+				[ -xh, yh, -zh ],
+
+				[ -xh, -yh, zh ],
+				[ xh, -yh, zh ],
+				[ xh, yh, zh ],
+				[ -xh, yh, zh ]
+			];
+
+			// topleft, topright, botright, botleft
+			const quad = (a: number, b: number, c: number, d: number, norm: Float3) => {
+				if (this.inward_) {
+					vec3.negate(norm, norm);
+				}
+
+				position(p[a][0], p[a][1], p[a][2]);
+				position(p[b][0], p[b][1], p[b][2]);
+				position(p[c][0], p[c][1], p[c][2]);
+				position(p[d][0], p[d][1], p[d][2]);
+
+				// normals
+				normal(norm[0], norm[1], norm[2]);
+				normal(norm[0], norm[1], norm[2]);
+				normal(norm[0], norm[1], norm[2]);
+				normal(norm[0], norm[1], norm[2]);
+
+				// each cube quad shows texture fully by default
+				uv(uB, vA);
+				uv(uA, vA);
+				uv(uA, vB);
+				uv(uB, vB);
+
+				// ccw faces
+				if (this.inward_) {
+					face(curVtx, curVtx + 2, curVtx + 1);
+					face(curVtx + 2, curVtx, curVtx + 3);
+				}
+				else {
+					face(curVtx, curVtx + 1, curVtx + 2);
+					face(curVtx + 2, curVtx + 3, curVtx);
+				}
+
+				curVtx += 4;
+			};
+
+			/* tslint:disable:whitespace */
+			quad(3, 2, 1, 0, [ 0, 0,-1]); // front
+			quad(7, 3, 0, 4, [-1, 0, 0]); // left
+			quad(6, 7, 4, 5, [ 0, 0, 1]); // back
+			quad(2, 6, 5, 1, [ 1, 0, 0]); // right
+			quad(7, 6, 2, 3, [ 0, 1, 0]); // top
+			quad(5, 4, 0, 1, [ 0,-1, 0]); // bottom
+			/* tslint:enable:whitespace */
+		}
+	}
+
+
+	//  ___
+	// | _ ) _____ __
+	// | _ \/ _ \ \ /
+	// |___/\___/_\_\ 2
+	//
+
+	export interface RoundedBoxDescriptor {
+		width: number;  // float, dimension in X
+		height: number; // float, dimension in Y
+		depth: number;  // float, dimension in Z
+		cornerRadius: number;
+		cornerSteps: number;
+
+		inward?: boolean;
+		uvRange?: Float2;
+		uvOffset?: Float2;
+	}
+
+	export class RoundedBox implements MeshGenerator {
+		private xDiam_: number;
+		private yDiam_: number;
+		private zDiam_: number;
+		private radius_: number;
+		private uvRange_: Float2;
+		private uvOffset_: Float2;
+		private inward_: boolean;
+
+		constructor(desc: RoundedBoxDescriptor) {
+			this.xDiam_ = desc.width;
+			this.yDiam_ = desc.height;
+			this.zDiam_ = desc.depth;
+			this.radius_ = desc.cornerRadius;
+			this.inward_ = desc.inward || false;
+
+			assert(this.xDiam_ > 0);
+			assert(this.yDiam_ > 0);
+			assert(this.zDiam_ > 0);
+			const minDiamHalf = Math.min(this.xDiam_, this.yDiam_, this.zDiam_) / 2;
+			assert(this.radius_ >= 0 && this.radius_ <= minDiamHalf);
 
 			this.uvRange_ = desc.uvRange ? [desc.uvRange[0], desc.uvRange[1]] : [1, 1];
 			this.uvOffset_ = desc.uvOffset ? [desc.uvOffset[0], desc.uvOffset[1]] : [0, 0];
