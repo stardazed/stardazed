@@ -28,7 +28,7 @@ namespace sd.meshdata {
 		indexCount: number;
 	}
 
-	export interface MeshData {
+	export interface MeshData extends render.RenderResourceBase {
 		layout: VertexLayout;
 		vertexBuffers: VertexBuffer[];
 		indexBuffer?: IndexBuffer;
@@ -50,6 +50,8 @@ namespace sd.meshdata {
 		assert(totalBytes > 0, "Nothing to allocate!");
 
 		const md: MeshData = {
+			renderResourceType: render.ResourceType.Mesh,
+			renderResourceHandle: 0,
 			layout: options.layout,
 			vertexBuffers: [],
 			primitiveGroups: [],

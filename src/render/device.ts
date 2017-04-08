@@ -12,6 +12,7 @@ namespace sd.render {
 		VertexLayout,
 		VertexStream,
 		IndexStream,
+		Mesh,
 		// ConstantBuffer,
 		Shader
 	}
