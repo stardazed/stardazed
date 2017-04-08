@@ -6,7 +6,7 @@
 namespace sd.meshdata {
 
 	export function scale(mesh: MeshData, scale: Float3) {
-		const posAttr = findFirstAttributeWithRole(mesh, VertexAttributeRole.Position);
+		const posAttr = findAttributeOfRoleInMesh(mesh, VertexAttributeRole.Position);
 		if (posAttr) {
 			const posView = new VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
 			posView.forEach(pos => { vec3.multiply(pos, pos, scale); });
@@ -15,7 +15,7 @@ namespace sd.meshdata {
 
 
 	export function translate(mesh: MeshData, globalDelta: Float3) {
-		const posAttr = findFirstAttributeWithRole(mesh, VertexAttributeRole.Position);
+		const posAttr = findAttributeOfRoleInMesh(mesh, VertexAttributeRole.Position);
 		if (posAttr) {
 			const posView = new VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
 			posView.forEach(pos => { vec3.add(pos, pos, globalDelta); });
@@ -24,13 +24,13 @@ namespace sd.meshdata {
 
 
 	export function rotate(mesh: MeshData, rotation: Float4) {
-		const posAttr = findFirstAttributeWithRole(mesh, VertexAttributeRole.Position);
+		const posAttr = findAttributeOfRoleInMesh(mesh, VertexAttributeRole.Position);
 		if (posAttr) {
 			const posView = new VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
 			posView.forEach(pos => { vec3.transformQuat(pos, pos, rotation); });
 		}
 
-		const normAttr = findFirstAttributeWithRole(mesh, VertexAttributeRole.Normal);
+		const normAttr = findAttributeOfRoleInMesh(mesh, VertexAttributeRole.Normal);
 		if (normAttr) {
 			const normView = new VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
 			normView.forEach(norm => { vec3.transformQuat(norm, norm, rotation); });
@@ -44,13 +44,13 @@ namespace sd.meshdata {
 		const scale = actions.scale || vec3.one();
 		const posMatrix = mat4.fromRotationTranslationScale([], rotation, translation, scale);
 
-		const posAttr = findFirstAttributeWithRole(mesh, VertexAttributeRole.Position);
+		const posAttr = findAttributeOfRoleInMesh(mesh, VertexAttributeRole.Position);
 		if (posAttr) {
 			const posView = new VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
 			posView.forEach(pos => { vec3.transformMat4(pos, pos, posMatrix); });
 		}
 
-		const normAttr = findFirstAttributeWithRole(mesh, VertexAttributeRole.Normal);
+		const normAttr = findAttributeOfRoleInMesh(mesh, VertexAttributeRole.Normal);
 		if (normAttr) {
 			const normView = new VertexBufferAttributeView(normAttr.vertexBuffer, normAttr.attr);
 			const normalMatrix = mat3.normalFromMat4([], posMatrix);

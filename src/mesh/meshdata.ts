@@ -15,7 +15,7 @@ namespace sd.meshdata {
 		type: meshdata.PrimitiveType;
 		fromElement: number;
 		elementCount: number;
-		materialIx: number; // arbitrary material index; representation of Materials is external to MeshData
+		materialIx: number; // arbitrary material index or reference; representation of Materials is external to MeshData
 	}
 
 	const enum BufferAlignment {
@@ -83,18 +83,9 @@ namespace sd.meshdata {
 		return md;
 	}
 
-	export function findFirstAttributeWithRole(mesh: MeshData, role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | undefined {
-		let pa: PositionedAttribute | undefined;
-		let avb: VertexBuffer | null = null;
-
-		mesh.vertexBuffers.forEach((vb, index) => {
-			if (! pa) {
-				pa = mesh.layout!.layouts[index].attrByRole(role);
-				if (pa) {
-					avb = vb;
-				}
-			}
-		});
+	export function findAttributeOfRoleInMesh(mesh: MeshData, role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | undefined {
+		const pa = findAttributeOfRoleInLayout(mesh.layout, role);
+		const avb = pa ? mesh.vertexBuffers[pa.bufferIndex] : undefined;
 
 		if (pa && avb) {
 			return { vertexBuffer: avb, attr: pa };
