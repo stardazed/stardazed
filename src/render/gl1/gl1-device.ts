@@ -338,6 +338,9 @@ namespace sd.render.gl1 {
 						case ResourceType.IndexStream:
 							this.freeIndexStream(resource as meshdata.IndexBuffer);
 							break;
+						case ResourceType.Mesh:
+							this.freeMesh(resource as meshdata.MeshData);
+							break;
 						default:
 							break;
 					}
@@ -366,6 +369,9 @@ namespace sd.render.gl1 {
 							break;
 						case ResourceType.IndexStream:
 							this.allocIndexStream(resource as meshdata.IndexBuffer);
+							break;
+						case ResourceType.Mesh:
+							this.allocMesh(resource as meshdata.MeshData);
 							break;
 						default:
 							break;
@@ -457,6 +463,19 @@ namespace sd.render.gl1 {
 
 		private freeIndexStream(buffer: meshdata.IndexBuffer) {
 			this.indexStreams_.remove(buffer);
+		}
+
+		// -- Mesh
+
+		private meshes_ = new ReusableResourceArray<meshdata.MeshData, WeakMap<Shader, WebGLVertexArrayObjectOES>>(ResourceType.Mesh);
+
+		private allocMesh(mesh: meshdata.MeshData) {
+			const vaoMap = new WeakMap<Shader, WebGLVertexArrayObjectOES>();
+			this.meshes_.insert(mesh, vaoMap);
+		}
+
+		private freeMesh(mesh: meshdata.MeshData) {
+			this.meshes_.remove(mesh);
 		}
 	}
 

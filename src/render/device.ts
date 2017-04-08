@@ -22,7 +22,9 @@ namespace sd.render {
 		renderResourceHandle: number;
 	}
 
-	export type RenderResource = Texture | Sampler | Shader | meshdata.VertexLayout | meshdata.VertexBuffer | meshdata.IndexBuffer;
+	export type RenderResource =
+		Texture | Sampler | Shader |
+		meshdata.VertexLayout | meshdata.VertexBuffer | meshdata.IndexBuffer | meshdata.MeshData;
 
 
 	export class RenderResourceCommandBuffer {
