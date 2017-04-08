@@ -177,18 +177,21 @@ namespace sd.meshdata {
 	//   \_/\___|_|  \__\___/_\_\____\__,_|\_, \___/\_,_|\__|
 	//                                     |__/              
 
-	export class VertexLayout implements render.RenderResourceBase {
-		get renderResourceType() { return render.ResourceType.VertexLayout; }
-		renderResourceHandle = 0;
-
-		readonly layouts: VertexBufferLayout[];
-
-		constructor(layouts: VertexBufferLayout[]) {
-			this.layouts = [...layouts];
-		}
+	export interface VertexLayout extends render.RenderResourceBase {
+		readonly layouts: ReadonlyArray<VertexBufferLayout>;
 	}
 
-	export function makeStandardVertexLayout(attrLists: VertexAttribute[] | VertexAttribute[][]) {
+	export function findAttributeOfRoleInLayout(vl: VertexLayout, role: VertexAttributeRole) {
+		for (const layout of vl.layouts) {
+			const pa = layout.attrByRole(role);
+			if (pa) {
+				return pa;
+			}
+		}
+		return undefined;
+	}
+
+	export function makeStandardVertexLayout(attrLists: VertexAttribute[] | VertexAttribute[][]): VertexLayout {
 		const layouts: VertexBufferLayout[] = [];
 		
 		if (attrLists.length > 0) {
@@ -203,7 +206,11 @@ namespace sd.meshdata {
 			}
 		}
 
-		return new VertexLayout(layouts);
+		return {
+			renderResourceType: render.ResourceType.VertexLayout,
+			renderResourceHandle: 0,
+			layouts
+		};
 	}
 
 } // ns sd.meshdata
