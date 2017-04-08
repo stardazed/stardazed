@@ -106,7 +106,7 @@ namespace sd.render.gl1 {
 		return { type, index };
 	}
 
-	class ReusableResourceArray<C extends RenderResourceBase, R> {
+	export class ReusableResourceArray<C extends RenderResourceBase, R> {
 		readonly resources: (R | undefined)[] = [];
 		private freedIndexes_: number[] = [];
 		private nextIndex_ = 0;
@@ -382,7 +382,7 @@ namespace sd.render.gl1 {
 
 		// -- Sampler
 
-		private samplers_ = new ReusableResourceArray<Sampler, Sampler>(ResourceType.Sampler);
+		readonly samplers_ = new ReusableResourceArray<Sampler, Sampler>(ResourceType.Sampler);
 
 		private allocSampler(sampler: Sampler) {
 			this.samplers_.insert(sampler, sampler);
@@ -394,8 +394,8 @@ namespace sd.render.gl1 {
 
 		// -- Texture
 
-		private textures_ = new ReusableResourceArray<Texture, WebGLTexture>(ResourceType.Texture);
-		private linkedSamplers_: number[] = [];
+		readonly textures_ = new ReusableResourceArray<Texture, WebGLTexture>(ResourceType.Texture);
+		readonly linkedSamplers_: number[] = [];
 
 		private allocTexture(texture: Texture) {
 			const glTex = gl1CreateTexture(this, texture); // TODO: handle allocation failure
@@ -410,7 +410,7 @@ namespace sd.render.gl1 {
 
 		// -- Shader
 
-		private shaders_ = new ReusableResourceArray<Shader, WebGLProgram>(ResourceType.Shader);
+		readonly shaders_ = new ReusableResourceArray<Shader, WebGLProgram>(ResourceType.Shader);
 
 		private allocShader(shader: Shader) {
 			const gl1Prog = makeProgram(this, shader)!; // TODO: handle failures
@@ -423,7 +423,7 @@ namespace sd.render.gl1 {
 
 		// -- VertexLayout
 
-		private vertexLayouts_ = new ReusableResourceArray<meshdata.VertexLayout, meshdata.VertexLayout>(ResourceType.VertexLayout);
+		readonly vertexLayouts_ = new ReusableResourceArray<meshdata.VertexLayout, meshdata.VertexLayout>(ResourceType.VertexLayout);
 
 		private allocVertexLayout(layout: meshdata.VertexLayout) {
 			this.vertexLayouts_.insert(layout, layout);
@@ -435,7 +435,7 @@ namespace sd.render.gl1 {
 
 		// -- VertexStream
 
-		private vertexStreams_ = new ReusableResourceArray<meshdata.VertexBuffer, WebGLBuffer>(ResourceType.VertexStream);
+		readonly vertexStreams_ = new ReusableResourceArray<meshdata.VertexBuffer, WebGLBuffer>(ResourceType.VertexStream);
 
 		private allocVertexStream(buffer: meshdata.VertexBuffer) {
 			const gl = this.gl;
@@ -451,7 +451,7 @@ namespace sd.render.gl1 {
 
 		// -- IndexStream
 
-		private indexStreams_ = new ReusableResourceArray<meshdata.IndexBuffer, WebGLBuffer>(ResourceType.IndexStream);
+		readonly indexStreams_ = new ReusableResourceArray<meshdata.IndexBuffer, WebGLBuffer>(ResourceType.IndexStream);
 
 		private allocIndexStream(buffer: meshdata.IndexBuffer) {
 			const gl = this.gl;
@@ -467,7 +467,7 @@ namespace sd.render.gl1 {
 
 		// -- Mesh
 
-		private meshes_ = new ReusableResourceArray<meshdata.MeshData, WeakMap<Shader, WebGLVertexArrayObjectOES>>(ResourceType.Mesh);
+		readonly meshes_ = new ReusableResourceArray<meshdata.MeshData, WeakMap<Shader, WebGLVertexArrayObjectOES>>(ResourceType.Mesh);
 
 		private allocMesh(mesh: meshdata.MeshData) {
 			const vaoMap = new WeakMap<Shader, WebGLVertexArrayObjectOES>();
