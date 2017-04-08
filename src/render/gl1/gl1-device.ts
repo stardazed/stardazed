@@ -20,81 +20,7 @@ namespace sd.render.gl1 {
 		}
 	}
 
-	function glTypeForVertexField(rd: GL1RenderDevice, vf: meshdata.VertexField) {
-		switch (vf) {
-			case meshdata.VertexField.Float:
-			case meshdata.VertexField.Floatx2:
-			case meshdata.VertexField.Floatx3:
-			case meshdata.VertexField.Floatx4:
-				return rd.gl.FLOAT;
-
-			case meshdata.VertexField.UInt32:
-			case meshdata.VertexField.UInt32x2:
-			case meshdata.VertexField.UInt32x3:
-			case meshdata.VertexField.UInt32x4:
-				return rd.gl.UNSIGNED_INT;
-
-			case meshdata.VertexField.SInt32:
-			case meshdata.VertexField.SInt32x2:
-			case meshdata.VertexField.SInt32x3:
-			case meshdata.VertexField.SInt32x4:
-				return rd.gl.INT;
-
-			case meshdata.VertexField.UInt16x2:
-			case meshdata.VertexField.Norm_UInt16x2:
-			case meshdata.VertexField.UInt16x3:
-			case meshdata.VertexField.Norm_UInt16x3:
-			case meshdata.VertexField.UInt16x4:
-			case meshdata.VertexField.Norm_UInt16x4:
-				return rd.gl.UNSIGNED_SHORT;
-
-			case meshdata.VertexField.SInt16x2:
-			case meshdata.VertexField.Norm_SInt16x2:
-			case meshdata.VertexField.SInt16x3:
-			case meshdata.VertexField.Norm_SInt16x3:
-			case meshdata.VertexField.SInt16x4:
-			case meshdata.VertexField.Norm_SInt16x4:
-				return rd.gl.SHORT;
-
-			case meshdata.VertexField.UInt8x2:
-			case meshdata.VertexField.Norm_UInt8x2:
-			case meshdata.VertexField.UInt8x3:
-			case meshdata.VertexField.Norm_UInt8x3:
-			case meshdata.VertexField.UInt8x4:
-			case meshdata.VertexField.Norm_UInt8x4:
-				return rd.gl.UNSIGNED_BYTE;
-
-			case meshdata.VertexField.SInt8x2:
-			case meshdata.VertexField.Norm_SInt8x2:
-			case meshdata.VertexField.SInt8x3:
-			case meshdata.VertexField.Norm_SInt8x3:
-			case meshdata.VertexField.SInt8x4:
-			case meshdata.VertexField.Norm_SInt8x4:
-				return rd.gl.BYTE;
-
-			default:
-				assert(false, "Invalid mesh.VertexField");
-				return rd.gl.NONE;
-		}
-	}
-
-	const rr2mr: { [rr: string]: meshdata.VertexAttributeRole } = {
-		"position": meshdata.VertexAttributeRole.Position,
-		"normal": meshdata.VertexAttributeRole.Normal,
-		"tangent": meshdata.VertexAttributeRole.Tangent,
-		"colour": meshdata.VertexAttributeRole.Colour,
-		"material": meshdata.VertexAttributeRole.Material,
-		"uv0": meshdata.VertexAttributeRole.UV0,
-		"uv1": meshdata.VertexAttributeRole.UV1,
-		"uv2": meshdata.VertexAttributeRole.UV2,
-		"uv3": meshdata.VertexAttributeRole.UV3,
-		"weightedPos0": meshdata.VertexAttributeRole.WeightedPos0,
-		"weightedPos1": meshdata.VertexAttributeRole.WeightedPos1,
-		"weightedPos2": meshdata.VertexAttributeRole.WeightedPos2,
-		"weightedPos3": meshdata.VertexAttributeRole.WeightedPos3,
-		"jointIndexes": meshdata.VertexAttributeRole.JointIndexes
-	};
-
+	// --
 
 	function encodeResourceHandle(type: ResourceType, index: number) {
 		return (type << 24) | index;
@@ -261,34 +187,14 @@ namespace sd.render.gl1 {
 		// TEMPORARY
 		render(proj: Float4x4, view: Float4x4, mesh: meshdata.MeshData, shader: Shader) {
 			const gl = this.gl;
-			let vao = (mesh as any).vao as WebGLVertexArrayObjectOES | undefined;
+
+			const meshVAOMap = this.meshes_.find(mesh)!;
+			let vao = meshVAOMap.get(shader);
 			if (! vao) {
-				vao = this.extVAO.createVertexArrayOES()!;
-				(mesh as any).vao = vao;
-				this.extVAO.bindVertexArrayOES(vao);
-
-				const lay = mesh.layout.layouts[0];
-				const vb = this.vertexStreams_.find(mesh.vertexBuffers[0])!;
-				const ib = this.indexStreams_.find(mesh.indexBuffer!)!;
-
-				gl.bindBuffer(gl.ARRAY_BUFFER, vb);
-				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
-
-				for (const f of shader.vertexFunction.in) {
-					const va = lay.attrByRole(rr2mr[f.role]);
-					if (va) {
-						const elementCount = meshdata.vertexFieldElementCount(va.field);
-						const normalized = meshdata.vertexFieldIsNormalized(va.field);
-						const glElementType = glTypeForVertexField(this, va.field);
-
-						gl.enableVertexAttribArray(f.index);
-						gl.vertexAttribPointer(f.index, elementCount, glElementType, normalized, lay.stride, va.offset);
-					}
-				}
+				vao = gl1CreateVAOForAttrBinding(this, mesh, shader.vertexFunction.in);
+				meshVAOMap.set(shader, vao);
 			}
-			else {
-				this.extVAO.bindVertexArrayOES(vao);
-			}
+			this.extVAO.bindVertexArrayOES(vao);
 
 			const prog = this.shaders_.find(shader)!;
 			gl.useProgram(prog);

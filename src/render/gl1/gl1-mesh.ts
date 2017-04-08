@@ -1,11 +1,25 @@
-// render/gl1/texture - WebGL1 implementation of textures
+// render/gl1/mesh - WebGL1 implementation of mesh resources
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 namespace sd.render.gl1 {
-/*
-	function gl1TypeForVertexField(rc: render.GL1RenderDevice, vf: meshdata.VertexField) {
+	/*
+	function gl1TypeForIndexElementType(rd: GL1RenderDevice, iet: meshdata.IndexElementType): number {
+		switch (iet) {
+			case meshdata.IndexElementType.UInt8: return rd.gl.UNSIGNED_BYTE;
+			case meshdata.IndexElementType.UInt16: return rd.gl.UNSIGNED_SHORT;
+			case meshdata.IndexElementType.UInt32:
+				return rd.ext32bitIndexes ? rd.gl.UNSIGNED_INT : rd.gl.NONE;
+
+			default:
+				assert(false, "Invalid IndexElementType");
+				return rd.gl.NONE;
+		}
+	}
+	*/
+
+	function gl1TypeForVertexField(rc: GL1RenderDevice, vf: meshdata.VertexField) {
 		switch (vf) {
 			case meshdata.VertexField.Float:
 			case meshdata.VertexField.Floatx2:
@@ -63,128 +77,59 @@ namespace sd.render.gl1 {
 		}
 	}
 
+	const shaderRoleToAttributeRole: { [rr: string]: meshdata.VertexAttributeRole } = {
+		"position": meshdata.VertexAttributeRole.Position,
+		"normal": meshdata.VertexAttributeRole.Normal,
+		"tangent": meshdata.VertexAttributeRole.Tangent,
+		"colour": meshdata.VertexAttributeRole.Colour,
+		"material": meshdata.VertexAttributeRole.Material,
+		"uv0": meshdata.VertexAttributeRole.UV0,
+		"uv1": meshdata.VertexAttributeRole.UV1,
+		"uv2": meshdata.VertexAttributeRole.UV2,
+		"uv3": meshdata.VertexAttributeRole.UV3,
+		"weightedPos0": meshdata.VertexAttributeRole.WeightedPos0,
+		"weightedPos1": meshdata.VertexAttributeRole.WeightedPos1,
+		"weightedPos2": meshdata.VertexAttributeRole.WeightedPos2,
+		"weightedPos3": meshdata.VertexAttributeRole.WeightedPos3,
+		"jointIndexes": meshdata.VertexAttributeRole.JointIndexes
+	};
 
-	function gl1CreateVertexBuffer(vb: meshdata.VertexBuffer) {
-		
-	}
+	export function gl1CreateVAOForAttrBinding(rd: GL1RenderDevice, mesh: meshdata.MeshData, attrs: ShaderVertexAttribute[]) {
+		const gl = rd.gl;
 
+		const vao = rd.extVAO.createVertexArrayOES()!;
+		rd.extVAO.bindVertexArrayOES(vao);
 
-	function create(mesh: asset.Mesh): MeshInstance {
-		if (this.assetMeshMap_.has(mesh)) {
-			return this.assetMeshMap_.get(mesh)!;
-		}
-		const meshData = mesh.meshData;
-		const gl = this.rctx_.gl;
+		// -- find and bind all attributes
+		for (let bufferIndex = 0; bufferIndex < mesh.layout.layouts.length; ++bufferIndex) {
+			const layout = mesh.layout.layouts[bufferIndex];
+			const vb = rd.vertexStreams_.find(mesh.vertexBuffers[bufferIndex])!;
+			gl.bindBuffer(gl.ARRAY_BUFFER, vb);
 
-		// -- ensure space in instance and dependent arrays
-		if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
-			this.rebaseInstances();
-		}
-		const instance = this.instanceData_.count;
+			for (const sva of attrs) {
+				const va = layout.attrByRole(shaderRoleToAttributeRole[sva.role]);
+				if (va) {
+					const elementCount = meshdata.vertexFieldElementCount(va.field);
+					const normalized = meshdata.vertexFieldIsNormalized(va.field);
+					const glElementType = gl1TypeForVertexField(rd, va.field);
 
-		let meshFeatures: MeshFeatures = 0;
-
-		const bufferCount = meshData.vertexBuffers.length + (meshData.indexBuffer !== null ? 1 : 0);
-		let bufferIndex = this.bufGLBuffers_.length;
-		container.setIndexedVec2(this.buffersOffsetCountBase_, instance, [bufferIndex, bufferCount]);
-
-		const attrCount = meshData.vertexBuffers.map(vb => vb.attributeCount).reduce((sum, vbac) => sum + vbac, 0);
-		let attrIndex = this.attributeData_.count;
-		if (this.attributeData_.resize(attrIndex + attrCount) === container.InvalidatePointers.Yes) {
-			this.rebaseAttributes();
-		}
-		container.setIndexedVec2(this.attrsOffsetCountBase_, instance, [attrIndex, attrCount]);
-
-		// -- allocate gpu vertex buffers and cache attribute mappings for fast binding
-		for (const vertexBuffer of meshData.vertexBuffers) {
-			const glBuf = gl.createBuffer(); // FIXME: could fail
-			gl.bindBuffer(gl.ARRAY_BUFFER, glBuf);
-			gl.bufferData(gl.ARRAY_BUFFER, vertexBuffer.bufferView()!, gl.STATIC_DRAW); // FIXME: bufferView could be null
-			this.bufGLBuffers_[bufferIndex] = glBuf;
-
-			// -- build attribute info map
-			for (let aix = 0; aix < vertexBuffer.attributeCount; ++aix) {
-				const attr = vertexBuffer.attrByIndex(aix)!;
-
-				this.attrRoleBase_[attrIndex] = attr.role;
-				this.attrBufferIndexBase_[attrIndex] = bufferIndex;
-				this.attrVertexFieldBase_[attrIndex] = attr.field;
-				this.attrFieldOffsetBase_[attrIndex] = attr.offset;
-				this.attrStrideBase_[attrIndex] = vertexBuffer.strideBytes;
-
-				// set the appropriate mesh feature flag based on the attribute role
-				switch (attr.role) {
-					case meshdata.VertexAttributeRole.Position: meshFeatures |= MeshFeatures.VertexPositions; break;
-					case meshdata.VertexAttributeRole.Normal: meshFeatures |= MeshFeatures.VertexNormals; break;
-					case meshdata.VertexAttributeRole.Tangent: meshFeatures |= MeshFeatures.VertexTangents; break;
-					case meshdata.VertexAttributeRole.UV0: meshFeatures |= MeshFeatures.VertexUVs; break; // UV1,2,3 can only occur alongside UV0
-					case meshdata.VertexAttributeRole.Colour: meshFeatures |= MeshFeatures.VertexColours; break;
-					case meshdata.VertexAttributeRole.WeightedPos0: meshFeatures |= MeshFeatures.VertexWeights; break;
-					default: break;
+					gl.enableVertexAttribArray(sva.index);
+					gl.vertexAttribPointer(sva.index, elementCount, glElementType, normalized, layout.stride, va.offset);
 				}
-
-				attrIndex += 1;
 			}
-
-			bufferIndex += 1;
 		}
 
-		// -- allocate gpu index buffer if present and cache some index info as it is accessed frequently
-		if (meshData.indexBuffer) {
-			const glBuf = gl.createBuffer();
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glBuf);
-			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshData.indexBuffer.bufferView()!, gl.STATIC_DRAW); // FIXME: bufferView could be null
-			this.bufGLBuffers_[bufferIndex] = glBuf;
-
-			meshFeatures |= MeshFeatures.Indexes;
-			this.indexElementTypeBase_[instance] = meshData.indexBuffer.indexElementType;
-
-			bufferIndex += 1;
+		// -- bind optional indexes
+		if (mesh.indexBuffer) {
+			const ib = rd.indexStreams_.find(mesh.indexBuffer)!;
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
 		}
 		else {
-			this.indexElementTypeBase_[instance] = meshdata.IndexElementType.None;
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 		}
 
-
-		// -- cache primitive groups and metadata
-		const primGroupCount = meshData.primitiveGroups.length;
-		assert(primGroupCount > 0, "No primitive groups present in meshData");
-		let primGroupIndex = this.primGroupData_.count;
-		if (this.primGroupData_.resize(primGroupIndex + primGroupCount) === container.InvalidatePointers.Yes) {
-			this.rebasePrimGroups();
-		}
-		container.setIndexedVec2(this.primGroupsOffsetCountBase_, instance, [primGroupIndex, primGroupCount]);
-
-		let totalElementCount = 0;
-		let sharedPrimType = meshData.primitiveGroups[0].type;
-
-		for (const pg of meshData.primitiveGroups) {
-			this.pgPrimTypeBase_[primGroupIndex] = pg.type;
-			this.pgFromElementBase_[primGroupIndex] = pg.fromElement;
-			this.pgElementCountBase_[primGroupIndex] = pg.elementCount;
-			this.pgMaterialBase_[primGroupIndex] = pg.materialIx;
-
-			totalElementCount += pg.elementCount;
-			if (pg.type !== sharedPrimType) {
-				sharedPrimType = meshdata.PrimitiveType.None;
-			}
-			primGroupIndex += 1;
-		}
-
-		// -- store mesh features accumulated during the creation process
-		this.featuresBase_[instance] = meshFeatures;
-		this.uniformPrimTypeBase_[instance] = sharedPrimType;
-		this.totalElementCountBase_[instance] = totalElementCount;
-
-		// -- we weakly link Pipelines to VAO mappings per mesh, see bind()
-		if (this.pipelineVAOMaps_) {
-			this.pipelineVAOMaps_[instance] = new WeakMap<render.Pipeline, WebGLVertexArrayObjectOES>();
-		}
-
-		// -- remember that we've already instantiated this asset
-		this.assetMeshMap_.set(mesh, instance);
-
-		return instance;
+		rd.extVAO.bindVertexArrayOES(null);
+		return vao;
 	}
-*/
+
 } // ns sd.render.gl1
