@@ -353,7 +353,7 @@ namespace sd.meshdata {
 					container.appendArrayInPlace(mergedIndexes, indexes);
 					const groupElementCount = indexes.length;
 
-					mesh.primitiveGroups.push({
+					mesh.subMeshes.push({
 						type: PrimitiveType.Triangle,
 						fromElement: nextElementIndex,
 						elementCount: groupElementCount,

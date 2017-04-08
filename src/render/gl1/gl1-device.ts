@@ -298,7 +298,7 @@ namespace sd.render.gl1 {
 			const mvpU = gl.getUniformLocation(prog, shader.vertexFunction.constantBlocks![0].constants[0].name)!;
 			gl.uniformMatrix4fv(mvpU, false, mvp);
 
-			const sub = mesh.primitiveGroups[0];
+			const sub = mesh.subMeshes[0];
 			gl.drawElements(gl.TRIANGLES, sub.elementCount, glTypeForIndexElementType(this, mesh.indexBuffer!.indexElementType), 0);
 
 			this.extVAO.bindVertexArrayOES(null);

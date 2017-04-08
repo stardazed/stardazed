@@ -150,7 +150,7 @@ namespace sd.meshdata.gen {
 		}
 
 		// -- currently generate single primitive group for full mesh, TODO: make this more configurable
-		mesh.primitiveGroups.push({
+		mesh.subMeshes.push({
 			type: PrimitiveType.Triangle,
 			fromElement: 0,
 			elementCount: totalFaceCount * 3,

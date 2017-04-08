@@ -11,11 +11,11 @@ namespace sd.meshdata {
 	// |_|  |_\___/__/_||_|___/\__,_|\__\__,_|
 	//
 
-	export interface PrimitiveGroup {
+	export interface SubMesh {
 		type: meshdata.PrimitiveType;
 		fromElement: number;
 		elementCount: number;
-		materialIx: number; // mesh-local index (starting at 0); representation of Materials is external to MeshData
+		materialIx: number; // arbitrary material index; representation of Materials is external to MeshData
 	}
 
 	const enum BufferAlignment {
@@ -32,7 +32,7 @@ namespace sd.meshdata {
 		layout: VertexLayout;
 		vertexBuffers: VertexBuffer[];
 		indexBuffer?: IndexBuffer;
-		primitiveGroups: PrimitiveGroup[];
+		subMeshes: SubMesh[];
 	}
 
 	export function allocateMeshData(options: MeshDataAllocOptions): MeshData {
@@ -54,7 +54,7 @@ namespace sd.meshdata {
 			renderResourceHandle: 0,
 			layout: options.layout,
 			vertexBuffers: [],
-			primitiveGroups: [],
+			subMeshes: [],
 		};
 		const storage = new ArrayBuffer(totalBytes);
 
