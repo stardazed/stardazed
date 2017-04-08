@@ -211,6 +211,53 @@ namespace sd.meshdata.gen {
 		}
 	}
 
+	export function genFullscreenQuad(): MeshData {
+		return generate(new Quad(2, 2), [attrPosition2(), attrUV2()]);
+	}
+
+
+	//  _  _ ___   ___ _____    _                _     
+	// | \| |   \ / __|_   _| _(_)__ _ _ _  __ _| |___ 
+	// | .` | |) | (__  | || '_| / _` | ' \/ _` | / -_)
+	// |_|\_|___/ \___| |_||_| |_\__,_|_||_\__, |_\___|
+	//                                     |___/       
+
+	export class NDCTriangle implements MeshGenerator {
+		get vertexCount(): number {
+			return 3;
+		}
+
+		get faceCount(): number {
+			return 1;
+		}
+
+		get explicitNormals() {
+			return true;
+		}
+
+		generate(position: Vec3AddFn, face: IndexesAddFn, normal: Vec3AddFn, uv: Vec2AddFn) {
+			position(-1, -1, 0);
+			position(-1, 4, 0);
+			position( 4, -1, 0);
+
+			normal(0, 0, -1);
+			normal(0, 0, -1);
+			normal(0, 0, -1);
+
+			// UVs go from 0 to 1 over 2 units
+			uv(0, 0);
+			uv(0, 2);
+			uv(2, 0);
+
+			// ccw
+			face(0, 1, 2);
+		}
+	}
+
+	export function genFullscreenTriangle(): MeshData {
+		return generate(new NDCTriangle(), [attrPosition2(), attrUV2()]);
+	}
+
 
 	//  ___ _
 	// | _ \ |__ _ _ _  ___
