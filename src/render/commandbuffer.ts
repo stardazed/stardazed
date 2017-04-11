@@ -13,7 +13,6 @@ namespace sd.render {
 
 	export const enum FaceCulling {
 		Disabled,
-
 		Front,
 		Back
 	}
@@ -52,17 +51,6 @@ namespace sd.render {
 		height: number;
 	}
 
-
-	export interface Viewport {
-		originX: number;
-		originY: number;
-		width: number;
-		height: number;
-		nearZ: number;
-		farZ: number;
-	}
-
-
 	export function makeScissorRect(): ScissorRect {
 		return {
 			originX: 0,
@@ -72,6 +60,15 @@ namespace sd.render {
 		};
 	}
 
+
+	export interface Viewport {
+		originX: number;
+		originY: number;
+		width: number;
+		height: number;
+		nearZ: number;
+		farZ: number;
+	}
 
 	export function makeViewport(): Viewport {
 		return {
@@ -85,8 +82,27 @@ namespace sd.render {
 	}
 
 
+	export interface RenderCommand {
+		sortKey: number;
+		flags: number;
+		data: any;
+	}
+
+	export interface RenderJob {
+		shader: any;
+		mesh: any;
+		resources: any[];
+		constants: any[];
+	}
+
 	export class RenderCommandBuffer {
-		
+		textureWrite(_texture: Texture, _offset: image.PixelCoordinate, _dim: image.PixelDimensions, _data: ReadonlyTypedArray) {
+
+		}
+
+		render(_job: RenderJob, _normalizedDepth: number) {
+
+		}
 	}
 
 } // ns sd.render
