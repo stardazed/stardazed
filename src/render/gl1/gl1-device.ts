@@ -20,7 +20,7 @@ namespace sd.render.gl1 {
 		}
 	}
 
-	// --
+	// ----
 
 	function encodeResourceHandle(type: ResourceType, index: number) {
 		return (type << 24) | index;

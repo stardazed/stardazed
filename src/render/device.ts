@@ -43,20 +43,6 @@ namespace sd.render {
 		get freeList() { return this.freeList_; }
 	}
 
-	export interface RenderMaterial {
-		shader: Shader;
-		constants: any;
-	}
-
-	export interface RenderWorld {
-		localMats: any[];
-		worldMats: any[];
-		meshes: any[];
-		materials: RenderMaterial[];
-		shadowing: any[];
-		reflection: any[];
-	}
-
 	export interface RenderDevice {
 		readonly supportsArrayTextures: boolean;
 		readonly supportsDepthTextures: boolean;
