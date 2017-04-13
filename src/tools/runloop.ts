@@ -141,14 +141,14 @@ namespace sd {
 	}
 
 
-	export const defaultRunLoop = new RunLoop();
+	export const runLoop = new RunLoop();
 
 	dom.on(window, "blur", function() {
-		defaultRunLoop.stop();
+		runLoop.stop();
 	});
 
 	dom.on(window, "focus", function() {
-		defaultRunLoop.start();
+		runLoop.start();
 	});
 
 } // ns sd
