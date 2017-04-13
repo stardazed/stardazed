@@ -1,18 +1,25 @@
-// world/meshrenderer - standard mesh renderer component
-// Part of Stardazed TX
+// entity/meshrenderer - standard mesh renderer component
+// Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
-// https://github.com/stardazed/stardazed-tx
+// https://github.com/stardazed/stardazed
 
-namespace sd.world {
+namespace sd.entity {
 
-	export interface RenderableDescriptor {
-		materials: asset.Material[];
+	export type MeshRendererInstance = Instance<MeshRendererComponent>;
+	export type MeshRendererRange = InstanceRange<MeshRendererComponent>;
+	export type MeshRendererSet = InstanceSet<MeshRendererComponent>;
+	export type MeshRendererIterator = InstanceIterator<MeshRendererComponent>;
+	export type MeshRendererArrayView = InstanceArrayView<MeshRendererComponent>;
+
+	export interface MeshRendererDescriptor {
+		mesh: meshdata.MeshData;
+		materials: number[];
 		castsShadows?: boolean;
 		acceptsShadows?: boolean;
 	}
 
 
-	export class MeshRenderer {
+	export class MeshRendererComponent implements Component<MeshRendererComponent> {
 		private instanceData_: container.MultiArrayBuffer;
 		private entityBase_: EntityArrayView;
 		private transformBase_: TransformArrayView;
@@ -21,19 +28,17 @@ namespace sd.world {
 		private materialOffsetCountBase_: Int32Array;
 		private primGroupOffsetBase_: Int32Array;
 
-		private materialMgr_: PBRMaterialManager;
-		private materials_: PBRMaterialInstance[];
+		private meshes_: meshdata.MeshData[];
+		private materials_: number[];
 
 		private primGroupData_: container.MultiArrayBuffer;
-		private primGroupMaterialBase_: PBRMaterialArrayView;
-		private primGroupFeatureBase_: ConstEnumArrayView<Features>;
+		private primGroupMaterialBase_: Int32Array;
+		private primGroupFeatureBase_: ConstEnumArrayView<number>;
 
 
 		constructor(
-			private rc: render.RenderContext,
-			private transformMgr_: Transform,
-			private meshMgr_: MeshManager,
-			private lightMgr_: LightManager
+			_rd: render.RenderDevice,
+			private transformComp_: TransformComponent
 		)
 		{
 			const instFields: container.MABField[] = [
@@ -41,7 +46,7 @@ namespace sd.world {
 				{ type: SInt32, count: 1 }, // transform
 				{ type: UInt8,  count: 1 }, // enabled
 				{ type: UInt8,  count: 1 }, // shadowCastFlags
-				{ type: SInt32, count: 1 }, // materialOffsetCount ([0]: offset, [1]: count)
+				{ type: SInt32, count: 2 }, // materialOffsetCount ([0]: offset, [1]: count)
 				{ type: SInt32, count: 1 }, // primGroupOffset (offset into primGroupMaterials_ and primGroupFeatures_)
 			];
 			this.instanceData_ = new container.MultiArrayBuffer(1024, instFields);
@@ -56,6 +61,7 @@ namespace sd.world {
 			this.groupRebase();
 
 			this.materials_ = [];
+			this.meshes_ = [];
 		}
 
 
@@ -65,7 +71,7 @@ namespace sd.world {
 			this.enabledBase_ = this.instanceData_.indexedFieldView(2);
 			this.shadowCastFlagsBase_ = this.instanceData_.indexedFieldView(3);
 			this.materialOffsetCountBase_ = this.instanceData_.indexedFieldView(4);
-			this.primGroupOffsetBase_ = <Int32Array>this.instanceData_.indexedFieldView(5);
+			this.primGroupOffsetBase_ = this.instanceData_.indexedFieldView(5);
 		}
 
 
@@ -76,17 +82,14 @@ namespace sd.world {
 
 
 		private updatePrimGroups(modelIx: number) {
-			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
-			if (! mesh) {
-				return;
-			}
-			const groups = this.meshMgr_.primitiveGroups(mesh);
+			const mesh = this.meshes_[modelIx];
+			const subMeshes = mesh.subMeshes;
 			const materialsOffsetCount = container.copyIndexedVec2(this.materialOffsetCountBase_, modelIx);
-			const materialsOffset = materialsOffsetCount[0];
+			// const materialsOffset = materialsOffsetCount[0];
 			const materialCount = materialsOffsetCount[1];
 
 			// -- check correctness of mesh against material list
-			const maxLocalMatIndex = groups.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
+			const maxLocalMatIndex = subMeshes.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
 			assert(materialCount >= maxLocalMatIndex - 1, "not enough PBRMaterialIndexes for this mesh");
 
 			// -- pre-calc global material indexes and program features for each group
@@ -94,34 +97,34 @@ namespace sd.world {
 			this.primGroupOffsetBase_[modelIx] = this.primGroupData_.count;
 
 			// -- grow primitiveGroup metadata buffer if necessary
-			if (this.primGroupData_.resize(primGroupCount + groups.length) == container.InvalidatePointers.Yes) {
+			if (this.primGroupData_.resize(primGroupCount + subMeshes.length) == container.InvalidatePointers.Yes) {
 				this.groupRebase();
 			}
 
 			// -- append metadata for each primGroup
-			groups.forEach(group => {
-				this.primGroupFeatureBase_[primGroupCount] = this.featuresForMeshAndMaterial(mesh, this.materials_[materialsOffset + group.materialIx]);
-				this.primGroupMaterialBase_[primGroupCount] = this.materials_[materialsOffset + group.materialIx];
+			subMeshes.forEach(_group => {
+				this.primGroupFeatureBase_[primGroupCount] = 0; // this.featuresForMeshAndMaterial(mesh, this.materials_[materialsOffset + group.materialIx]);
+				this.primGroupMaterialBase_[primGroupCount] = 0; // this.materials_[materialsOffset + group.materialIx];
 				primGroupCount += 1;
 			});
 		}
 
 
-		create(entity: Entity, desc: PBRModelDescriptor): PBRModelInstance {
-			if (this.instanceData_.extend() == container.InvalidatePointers.Yes) {
+		create(entity: Entity, desc: MeshRendererDescriptor): MeshRendererInstance {
+			if (this.instanceData_.extend() === container.InvalidatePointers.Yes) {
 				this.rebase();
 			}
 			const ix = this.instanceData_.count;
 
-			this.entityBase_[ix] = <number>entity;
-			this.transformBase_[ix] = <number>this.transformMgr_.forEntity(entity);
+			this.entityBase_[ix] = entity as number;
+			this.transformBase_[ix] = this.transformComp_.forEntity(entity) as number;
 			this.enabledBase_[ix] = +true;
 			this.shadowCastFlagsBase_[ix] = +(desc.castsShadows === undefined ? true : desc.castsShadows);
 
 			// -- save material indexes
 			container.setIndexedVec2(this.materialOffsetCountBase_, ix, [this.materials_.length, desc.materials.length]);
 			for (const mat of desc.materials) {
-				this.materials_.push(this.materialMgr_.create(mat));
+				this.materials_.push(mat);
 			}
 
 			this.updatePrimGroups(ix);
@@ -130,62 +133,53 @@ namespace sd.world {
 		}
 
 
-		destroy(_inst: PBRModelInstance) {
+		destroy(_inst: MeshRendererInstance) {
 			// TBI
 		}
 
 
-		destroyRange(range: PBRModelRange) {
+		destroyRange(range: MeshRendererRange) {
 			const iter = range.makeIterator();
 			while (iter.next()) {
 				this.destroy(iter.current);
 			}
 		}
 
-
 		get count() {
 			return this.instanceData_.count;
 		}
 
-		valid(inst: PBRModelInstance) {
-			return <number>inst <= this.count;
+		valid(inst: MeshRendererInstance) {
+			return inst <= this.count;
 		}
 
-		all(): PBRModelRange {
-			return new InstanceLinearRange<PBRModelManager>(1, this.count);
+		all(): MeshRendererRange {
+			return new InstanceLinearRange<MeshRendererComponent>(1, this.count);
 		}
 
+		// -- supply cmdbuf with renderjobs
+		render(range: MeshRendererRange, cmdBuf: render.RenderCommandBuffer) {
+			const iter = range.makeIterator();
+			while (iter.next()) {
+				cmdBuf.render({} as render.RenderJob, 0);
+			}
+		}
 
-		entity(inst: PBRModelInstance): Entity {
+		// -- single instance accessors
+		entity(inst: MeshRendererInstance): Entity {
 			return this.entityBase_[<number>inst];
 		}
 
-		transform(inst: PBRModelInstance): TransformInstance {
+		transform(inst: MeshRendererInstance): TransformInstance {
 			return this.transformBase_[<number>inst];
 		}
 
-		enabled(inst: PBRModelInstance): boolean {
+		enabled(inst: MeshRendererInstance): boolean {
 			return this.enabledBase_[<number>inst] != 0;
 		}
 
-		setEnabled(inst: PBRModelInstance, newEnabled: boolean) {
+		setEnabled(inst: MeshRendererInstance, newEnabled: boolean) {
 			this.enabledBase_[<number>inst] = +newEnabled;
-		}
-
-
-		// FIXME: temp direct access to internal mat mgr
-		materialRange(inst: PBRModelInstance): InstanceLinearRange<PBRMaterialManager> {
-			const offsetCount = container.copyIndexedVec2(this.materialOffsetCountBase_, inst as number);
-			const matFromIndex = this.materials_[offsetCount[0]];
-			return new InstanceLinearRange<PBRMaterialManager>(matFromIndex, (matFromIndex as number) + offsetCount[1] - 1);
-		}
-
-		shadowCaster(): LightInstance {
-			return this.shadowCastingLightIndex_;
-		}
-
-		setShadowCaster(inst: LightInstance) {
-			this.shadowCastingLightIndex_ = inst;
 		}
 	}
 
