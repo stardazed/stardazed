@@ -55,7 +55,7 @@
 
 		// added in v4.5
 		"no-import-side-effect": true,
-		"match-default-export-name": true,
+		"match-default-export-name": false, // sublimeliner-tslint does not enable type checking
 		"no-non-null-assertion": false,
 		"ban-types": [false],
 		"no-duplicate-super": false,
@@ -81,7 +81,6 @@
 		"no-string-literal": true,
 		"no-unsafe-finally": true,
 		"no-unused-expression": true,
-		"no-unused-new": true,
 		"no-var-keyword": true,
 		"radix": false,
 		"restrict-plus-operands": false, // sublimeliner-tslint does not enable type checking
