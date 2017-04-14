@@ -8,7 +8,7 @@ namespace sd.render {
 	export const enum ResourceType {
 		Texture = 1,
 		Sampler,
-		// RenderTarget,
+		FrameBuffer,
 		VertexLayout,
 		VertexStream,
 		IndexStream,
