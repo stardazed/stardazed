@@ -18,7 +18,6 @@ namespace sd.entity {
 		acceptsShadows?: boolean;
 	}
 
-
 	export class MeshRendererComponent implements Component<MeshRendererComponent> {
 		private instanceData_: container.MultiArrayBuffer;
 		private entityBase_: EntityArrayView;
@@ -36,11 +35,7 @@ namespace sd.entity {
 		private primGroupFeatureBase_: ConstEnumArrayView<number>;
 
 
-		constructor(
-			_rd: render.RenderDevice,
-			private transformComp_: TransformComponent
-		)
-		{
+		constructor(_rd: render.RenderDevice, private transformComp_: TransformComponent) {
 			const instFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transform
@@ -64,7 +59,6 @@ namespace sd.entity {
 			this.meshes_ = [];
 		}
 
-
 		private rebase() {
 			this.entityBase_ = this.instanceData_.indexedFieldView(0);
 			this.transformBase_ = this.instanceData_.indexedFieldView(1);
@@ -73,7 +67,6 @@ namespace sd.entity {
 			this.materialOffsetCountBase_ = this.instanceData_.indexedFieldView(4);
 			this.primGroupOffsetBase_ = this.instanceData_.indexedFieldView(5);
 		}
-
 
 		private groupRebase() {
 			this.primGroupMaterialBase_ = this.primGroupData_.indexedFieldView(0);
@@ -132,11 +125,9 @@ namespace sd.entity {
 			return ix;
 		}
 
-
 		destroy(_inst: MeshRendererInstance) {
 			// TBI
 		}
-
 
 		destroyRange(range: MeshRendererRange) {
 			const iter = range.makeIterator();
@@ -175,7 +166,7 @@ namespace sd.entity {
 		}
 
 		enabled(inst: MeshRendererInstance): boolean {
-			return this.enabledBase_[<number>inst] != 0;
+			return this.enabledBase_[<number>inst] !== 0;
 		}
 
 		setEnabled(inst: MeshRendererInstance, newEnabled: boolean) {
