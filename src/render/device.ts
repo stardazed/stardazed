@@ -43,10 +43,15 @@ namespace sd.render {
 		get freeList() { return this.freeList_; }
 	}
 
+
 	export interface RenderDevice {
+		// current dimensions of 
+		readonly drawableWidth: number;
+		readonly drawableHeight: number;
+
+		// capabilities
 		readonly supportsArrayTextures: boolean;
 		readonly supportsDepthTextures: boolean;
-
 		readonly maxColourAttachments: number;
 
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]): void;

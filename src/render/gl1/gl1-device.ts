@@ -167,6 +167,14 @@ namespace sd.render.gl1 {
 			this.extSRGB = gl.getExtension("EXT_sRGB");
 		}
 
+		// -- current final drawable dimensions
+		get drawableWidth() {
+			return this.gl.drawingBufferWidth;
+		}
+		get drawableHeight() {
+			return this.gl.drawingBufferHeight;
+		}
+
 		// -- capabilities
 		get supportsArrayTextures() { return false; }
 		get supportsDepthTextures() { return false; }
