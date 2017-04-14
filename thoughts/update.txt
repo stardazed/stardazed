@@ -1,0 +1,17 @@
+update()
+	camera
+	select potential visible set from some heuristic
+		-> renderables
+			-> standard shader for most objects
+				-> materials
+			-> terrains
+				-> diff terrain materials
+			-> particles
+				-> each particle type is a material
+			-> trees
+			-> skin / eyes / etc
+			-> text
+			-> fx
+
+			- opaque, translucent, transparent (cutout)
+		-> lights
