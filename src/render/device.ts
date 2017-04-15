@@ -23,7 +23,7 @@ namespace sd.render {
 	}
 
 	export type RenderResource =
-		Texture | Sampler | Shader |
+		Texture | Sampler | Shader | FrameBuffer |
 		meshdata.VertexLayout | meshdata.VertexBuffer | meshdata.IndexBuffer | meshdata.MeshData;
 
 

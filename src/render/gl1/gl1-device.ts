@@ -240,6 +240,9 @@ namespace sd.render.gl1 {
 						case ResourceType.Texture:
 							this.freeTexture(resource as Texture);
 							break;
+						case ResourceType.FrameBuffer:
+							this.freeFrameBuffer(resource as FrameBuffer);
+							break;
 						case ResourceType.Shader:
 							this.freeShader(resource as Shader);
 							break;
@@ -271,6 +274,9 @@ namespace sd.render.gl1 {
 							break;
 						case ResourceType.Texture:
 							this.allocTexture(resource as Texture);
+							break;
+						case ResourceType.FrameBuffer:
+							this.allocFrameBuffer(resource as FrameBuffer);
 							break;
 						case ResourceType.Shader:
 							this.allocShader(resource as Shader);
@@ -320,6 +326,19 @@ namespace sd.render.gl1 {
 		private freeTexture(texture: Texture) {
 			const index = this.textures_.remove(texture);
 			this.linkedSamplers_[index] = 0;
+		}
+
+		// -- FrameBuffer
+
+		readonly frameBuffers_ = new ReusableResourceArray<FrameBuffer, WebGLFramebuffer>(ResourceType.FrameBuffer);
+
+		private allocFrameBuffer(frameBuffer: FrameBuffer) {
+			const fbo = gl1CreateFrameBuffer(this, frameBuffer);
+			this.frameBuffers_.insert(frameBuffer, fbo);
+		}
+
+		private freeFrameBuffer(frameBuffer: FrameBuffer) {
+			this.frameBuffers_.remove(frameBuffer);
 		}
 
 		// -- Shader
