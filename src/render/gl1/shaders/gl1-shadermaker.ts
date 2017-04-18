@@ -5,6 +5,23 @@
 
 namespace sd.render.gl1 {
 
+	interface ShaderModule {
+		dependencies?: string[];
+		defines?: string[];
+		extensions?: ExtensionUsage[];
+		textures?: SamplerSlot[];
+		constantBlocks?: ShaderConstantBlock[];
+		constValues?: {
+			name: string;
+			type: ShaderValueType;
+			expr: string;
+		}[];
+		structs?: string[];
+		code?: string;
+	}
+
+	const modules: { [name: string]: ShaderModule; } = {};
+
 	const enum Features {
 		// VtxPosition and VtxNormal are required and implied
 		VtxUV                      = 1 << 0,
@@ -33,78 +50,16 @@ namespace sd.render.gl1 {
 		CookTorrance
 	}
 
+	modules.gammaConstants = {
+		constValues: [
+			{ name: "GAMMA", type: "float", expr: "2.2" },
+			{ name: "SRGB_TO_LINEAR", type: "float3", expr: "vec3(GAMMA)" },
+			{ name: "LINEAR_TO_SRGB", type: "float3", expr: "vec3(1.0 / GAMMA)" }
+		]
+	};
 
-	const vsmShadowVertexSource = `
-		attribute vec3 vertexPos_model;
-
-		varying vec4 vertexPos_world;
-
-		uniform mat4 modelMatrix;
-		uniform mat4 lightViewProjectionMatrix;
-
-		void main() {
-			vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);
-			gl_Position = lightViewProjectionMatrix * vertexPos_world;
-		}
-	`.trim();
-
-
-	const vsmShadowFragmentSource = `
-		#extension GL_OES_standard_derivatives : enable
-		precision highp float;
-
-		varying vec4 vertexPos_world;
-
-		uniform mat4 lightViewMatrix;
-
-		void main() {
-			vec3 lightPos = (lightViewMatrix * vertexPos_world).xyz;
-			float depth = clamp(length(lightPos) / 12.0, 0.0, 1.0);
-			float dx = dFdx(depth);
-			float dy = dFdy(depth);
-			gl_FragColor = vec4(depth, depth * depth + 0.25 * (dx * dy + dy * dy), 0.0, 1.0);
-		}
-	`.trim();
-
-
-	const vertexShaderSource = `
-		// In
-		attribute vec3 vertexPos_model;
-		attribute vec3 vertexNormal;
-		attribute vec2 vertexUV;
-		attribute vec3 vertexColour;
-
-		// Out
-		varying vec3 vertexNormal_cam;
-		varying vec4 vertexPos_world;
-		varying vec3 vertexPos_cam;
-		varying vec2 vertexUV_intp;
-		varying vec3 vertexColour_intp;
-
-		// Uniforms
-		uniform mat4 modelMatrix;
-		uniform mat4 modelViewMatrix;
-		uniform mat4 modelViewProjectionMatrix;
-		uniform mat3 normalMatrix;
-		uniform vec4 texScaleOffset;
-
-		void main() {
-			gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);
-			vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);
-			vertexNormal_cam = normalMatrix * vertexNormal;
-			vertexPos_cam = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;
-			vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;
-			vertexColour_intp = vertexColour;
-		}
-	`;
-
-	const gammaConstants = `
-		const float GAMMA = 2.2;
-		const vec3 SRGB_TO_LINEAR = vec3(GAMMA);
-		const vec3 LINEAR_TO_SRGB = vec3(1.0 / GAMMA);
-	`;
-
-	const mathUtils = `
+	modules.mathUtils = {
+		code: `
 		float linearStep(float low, float high, float v) {
 			return clamp((v-low) / (high-low), 0.0, 1.0);
 		}
@@ -140,7 +95,8 @@ namespace sd.render.gl1 {
 			            b11, (a22 * a00 - a02 * a20), (-a12 * a00 + a02 * a10),
 			            b21, (-a21 * a00 + a01 * a20), (a11 * a00 - a01 * a10)) / det;
 		}
-	`;
+		`
+	};
 
 	const vertexSkinning = `
 		attribute vec4 vertexWeightedPos0_joint;
@@ -203,51 +159,6 @@ namespace sd.render.gl1 {
 		weightedPos_joint[2] = vertexWeightedPos2_joint + float(jointIndexOffset);
 		weightedPos_joint[3] = vertexWeightedPos3_joint + float(jointIndexOffset);
 		getTransformedVertex(weightedPos_joint, vertexPos_model, vertexNormal);
-	`;
-
-	const surfaceInfo = `
-		uniform sampler2D normalHeightMap;
-		uniform mat3 normalMatrix;
-
-		struct SurfaceInfo {
-			vec3 V;  // vertex dir (cam)
-			vec3 N;  // surface normal (cam)
-			mat3 transNormalMatrix;
-			vec3 reflectedV;
-			vec2 UV; // (adjusted) main UV
-			float NdV;
-		};
-
-		SurfaceInfo calcSurfaceInfo() {
-			SurfaceInfo si;
-			si.V = normalize(-vertexPos_cam);
-			si.N = normalize(vertexNormal_cam);
-			#if defined(HEIGHT_MAP) || defined(NORMAL_MAP)
-				mat3 TBN = cotangentFrame(si.N, vertexPos_cam, vertexUV_intp);
-			#endif
-			#ifdef HEIGHT_MAP
-				vec3 eyeTan = normalize(inverse(TBN) * si.V);
-
-				// basic parallax
-				// float finalH = texture2D(normalHeightMap, vertexUV_intp).a;
-				// finalH = finalH * 0.04 - 0.02;
-				// si.UV = vertexUV_intp + (eyeTan.xy * h);
-
-				// parallax occlusion
-				float finalH = 0.0;
-				si.UV = parallaxMapping(eyeTan, vertexUV_intp, finalH);
-			#else
-				si.UV = vertexUV_intp;
-			#endif
-			#ifdef NORMAL_MAP
-				vec3 map = texture2D(normalHeightMap, si.UV).xyz * 2.0 - 1.0;
-				si.N = normalize(TBN * map);
-			#endif
-			si.NdV = max(0.001, dot(si.N, si.V));
-			si.transNormalMatrix = transpose(normalMatrix);
-			si.reflectedV = si.transNormalMatrix * reflect(-si.V, si.N);
-			return si;
-		}
 	`;
 
 	const parallaxMapping = `
@@ -694,6 +605,115 @@ namespace sd.render.gl1 {
 			#endif
 
 			return mi;
+		}
+	`;
+
+	const surfaceInfo = `
+		uniform sampler2D normalHeightMap;
+		uniform mat3 normalMatrix;
+
+		struct SurfaceInfo {
+			vec3 V;  // vertex dir (cam)
+			vec3 N;  // surface normal (cam)
+			mat3 transNormalMatrix;
+			vec3 reflectedV;
+			vec2 UV; // (adjusted) main UV
+			float NdV;
+		};
+
+		SurfaceInfo calcSurfaceInfo() {
+			SurfaceInfo si;
+			si.V = normalize(-vertexPos_cam);
+			si.N = normalize(vertexNormal_cam);
+			#if defined(HEIGHT_MAP) || defined(NORMAL_MAP)
+				mat3 TBN = cotangentFrame(si.N, vertexPos_cam, vertexUV_intp);
+			#endif
+			#ifdef HEIGHT_MAP
+				vec3 eyeTan = normalize(inverse(TBN) * si.V);
+
+				// basic parallax
+				// float finalH = texture2D(normalHeightMap, vertexUV_intp).a;
+				// finalH = finalH * 0.04 - 0.02;
+				// si.UV = vertexUV_intp + (eyeTan.xy * h);
+
+				// parallax occlusion
+				float finalH = 0.0;
+				si.UV = parallaxMapping(eyeTan, vertexUV_intp, finalH);
+			#else
+				si.UV = vertexUV_intp;
+			#endif
+			#ifdef NORMAL_MAP
+				vec3 map = texture2D(normalHeightMap, si.UV).xyz * 2.0 - 1.0;
+				si.N = normalize(TBN * map);
+			#endif
+			si.NdV = max(0.001, dot(si.N, si.V));
+			si.transNormalMatrix = transpose(normalMatrix);
+			si.reflectedV = si.transNormalMatrix * reflect(-si.V, si.N);
+			return si;
+		}
+	`;
+
+	// ----
+
+	const vsmShadowVertexSource = `
+		attribute vec3 vertexPos_model;
+
+		varying vec4 vertexPos_world;
+
+		uniform mat4 modelMatrix;
+		uniform mat4 lightViewProjectionMatrix;
+
+		void main() {
+			vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);
+			gl_Position = lightViewProjectionMatrix * vertexPos_world;
+		}
+	`;
+
+	const vsmShadowFragmentSource = `
+		#extension GL_OES_standard_derivatives : enable
+		precision highp float;
+
+		varying vec4 vertexPos_world;
+
+		uniform mat4 lightViewMatrix;
+
+		void main() {
+			vec3 lightPos = (lightViewMatrix * vertexPos_world).xyz;
+			float depth = clamp(length(lightPos) / 12.0, 0.0, 1.0);
+			float dx = dFdx(depth);
+			float dy = dFdy(depth);
+			gl_FragColor = vec4(depth, depth * depth + 0.25 * (dx * dy + dy * dy), 0.0, 1.0);
+		}
+	`;
+
+	const vertexShaderSource = `
+		// In
+		attribute vec3 vertexPos_model;
+		attribute vec3 vertexNormal;
+		attribute vec2 vertexUV;
+		attribute vec3 vertexColour;
+
+		// Out
+		varying vec3 vertexNormal_cam;
+		varying vec4 vertexPos_world;
+		varying vec3 vertexPos_cam;
+		varying vec2 vertexUV_intp;
+		varying vec3 vertexColour_intp;
+
+		// Uniforms
+		uniform mat4 modelMatrix;
+		uniform mat4 modelViewMatrix;
+		uniform mat4 modelViewProjectionMatrix;
+		uniform mat3 normalMatrix;
+		uniform vec4 texScaleOffset;
+
+		void main() {
+			gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);
+			vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);
+			vertexNormal_cam = normalMatrix * vertexNormal;
+			vertexPos_cam = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;
+			vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;
+			vertexColour_intp = vertexColour;
 		}
 	`;
 
