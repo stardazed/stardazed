@@ -34,7 +34,7 @@ namespace sd.render.gl1 {
 	}
 
 
-	const shadowVertexSource = `
+	const vsmShadowVertexSource = `
 		attribute vec3 vertexPos_model;
 
 		varying vec4 vertexPos_world;
@@ -49,7 +49,7 @@ namespace sd.render.gl1 {
 	`.trim();
 
 
-	const shadowFragmentSource = `
+	const vsmShadowFragmentSource = `
 		#extension GL_OES_standard_derivatives : enable
 		precision highp float;
 
@@ -67,49 +67,42 @@ namespace sd.render.gl1 {
 	`.trim();
 
 
-	function vertexShaderSource(feat: number) {
-		const source: string[] = [];
-		const line = (s: string) => source.push(s);
-
-		/* tslint:disable:variable-name */
-		const if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
-		// const if_any = (s: string, f: number) => { if ((feat & f) != 0) source.push(s) };
-		/* tslint:enable:variable-name */
-
+	const vertexShaderSource = `
 		// In
-		line  ("attribute vec3 vertexPos_model;");
-		line  ("attribute vec3 vertexNormal;");
-		if_all("attribute vec2 vertexUV;", Features.VtxUV);
-		if_all("attribute vec3 vertexColour;", Features.VtxColour);
+		attribute vec3 vertexPos_model;
+		attribute vec3 vertexNormal;
+		attribute vec2 vertexUV;
+		attribute vec3 vertexColour;
 
 		// Out
-		line  ("varying vec3 vertexNormal_cam;");
-		line  ("varying vec4 vertexPos_world;");
-		line  ("varying vec3 vertexPos_cam;");
-		if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
-		if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
+		varying vec3 vertexNormal_cam;
+		varying vec4 vertexPos_world;
+		varying vec3 vertexPos_cam;
+		varying vec2 vertexUV_intp;
+		varying vec3 vertexColour_intp;
 
 		// Uniforms
-		line  ("uniform mat4 modelMatrix;");
-		line  ("uniform mat4 modelViewMatrix;");
-		line  ("uniform mat4 modelViewProjectionMatrix;");
-		line  ("uniform mat3 normalMatrix;");
+		uniform mat4 modelMatrix;
+		uniform mat4 modelViewMatrix;
+		uniform mat4 modelViewProjectionMatrix;
+		uniform mat3 normalMatrix;
+		uniform vec4 texScaleOffset;
 
-		if_all("uniform vec4 texScaleOffset;", Features.VtxUV);
+		void main() {
+			gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);
+			vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);
+			vertexNormal_cam = normalMatrix * vertexNormal;
+			vertexPos_cam = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;
+			vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;
+			vertexColour_intp = vertexColour;
+		}
+	`;
 
-		// main()
-		line  ("void main() {");
-		line  ("	gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);");
-		line  ("	vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);");
-		line  ("	vertexNormal_cam = normalMatrix * vertexNormal;");
-		line  ("	vertexPos_cam = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;");
-		if_all("	vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;", Features.VtxUV);
-		if_all("	vertexColour_intp = vertexColour;", Features.VtxColour);
-		line  ("}");
-
-		return source.join("\n") + "\n";
-	}
-
+	const gammaConstants = `
+		const float GAMMA = 2.2;
+		const vec3 SRGB_TO_LINEAR = vec3(GAMMA);
+		const vec3 LINEAR_TO_SRGB = vec3(1.0 / GAMMA);
+	`;
 
 	const mathUtils = `
 		float linearStep(float low, float high, float v) {
@@ -212,6 +205,51 @@ namespace sd.render.gl1 {
 		getTransformedVertex(weightedPos_joint, vertexPos_model, vertexNormal);
 	`;
 
+	const surfaceInfo = `
+		uniform sampler2D normalHeightMap;
+		uniform mat3 normalMatrix;
+
+		struct SurfaceInfo {
+			vec3 V;  // vertex dir (cam)
+			vec3 N;  // surface normal (cam)
+			mat3 transNormalMatrix;
+			vec3 reflectedV;
+			vec2 UV; // (adjusted) main UV
+			float NdV;
+		};
+
+		SurfaceInfo calcSurfaceInfo() {
+			SurfaceInfo si;
+			si.V = normalize(-vertexPos_cam);
+			si.N = normalize(vertexNormal_cam);
+			#if defined(HEIGHT_MAP) || defined(NORMAL_MAP)
+				mat3 TBN = cotangentFrame(si.N, vertexPos_cam, vertexUV_intp);
+			#endif
+			#ifdef HEIGHT_MAP
+				vec3 eyeTan = normalize(inverse(TBN) * si.V);
+
+				// basic parallax
+				// float finalH = texture2D(normalHeightMap, vertexUV_intp).a;
+				// finalH = finalH * 0.04 - 0.02;
+				// si.UV = vertexUV_intp + (eyeTan.xy * h);
+
+				// parallax occlusion
+				float finalH = 0.0;
+				si.UV = parallaxMapping(eyeTan, vertexUV_intp, finalH);
+			#else
+				si.UV = vertexUV_intp;
+			#endif
+			#ifdef NORMAL_MAP
+				vec3 map = texture2D(normalHeightMap, si.UV).xyz * 2.0 - 1.0;
+				si.N = normalize(TBN * map);
+			#endif
+			si.NdV = max(0.001, dot(si.N, si.V));
+			si.transNormalMatrix = transpose(normalMatrix);
+			si.reflectedV = si.transNormalMatrix * reflect(-si.V, si.N);
+			return si;
+		}
+	`;
+
 	const parallaxMapping = `
 		vec2 parallaxMapping(in vec3 V, in vec2 T, out float parallaxHeight) {
 			// determine optimal number of layers
@@ -267,6 +305,8 @@ namespace sd.render.gl1 {
 	`;
 
 	const normalPerturbation = `
+		#extension GL_OES_standard_derivatives : require
+
 		mat3 cotangentFrame(vec3 N, vec3 p, vec2 uv) {
 			// get edge vectors of the pixel triangle
 			vec3 dp1 = dFdx(p);
@@ -294,8 +334,8 @@ namespace sd.render.gl1 {
 	`;
 
 	const shadowMapping = `
-		float VSM(vec2 uv, float compare, float strength, float bias) {
-			vec2 moments = texture2D(shadowSampler, uv).xy;
+		float VSM(sampler2D shadowMap, vec2 uv, float compare, float strength, float bias) {
+			vec2 moments = texture2D(shadowMap, uv).xy;
 			float p = smoothstep(compare - bias, compare, moments.x);
 			float variance = max(moments.y - moments.x * moments.x, -0.001);
 			float d = compare - moments.x;
@@ -304,7 +344,7 @@ namespace sd.render.gl1 {
 		}
 	`;
 
-	const pbrLighting = `
+	const pbrLightingMath = `
 		// compute fresnel specular factor for given base specular and product
 		// product could be NdV or VdH depending on used technique
 		vec3 fresnel_factor(vec3 f0, float product) {
@@ -365,9 +405,96 @@ namespace sd.render.gl1 {
 		}
 	`;
 
+	const pbrMaterialLighting = `
+		#extension GL_EXT_shader_texture_lod : require
+
+		const float PI = 3.141592654;
+		const float PHONG_DIFFUSE = 1.0 / PI;
+
+		uniform sampler2D brdfLookupMap;
+		uniform samplerCube environmentMap;
+
+		vec3 calcLightIBL(SurfaceInfo si, MaterialInfo mi) {
+			// material properties
+			float metallic = mi.metallic;
+			float roughness = mi.roughness;
+			vec3 specularColour = mix(vec3(0.04), mi.albedo, metallic);
+
+			// lookup brdf, diffuse and specular terms
+			vec2 brdf = texture2D(brdfLookupMap, vec2(roughness, 1.0 - si.NdV)).xy;
+			vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, 4.0).xyz;
+			vec3 envspec = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 5.0).xyz;
+
+			#ifdef NO_SRGB_TEXTURES
+				envdiff = pow(envdiff, SRGB_TO_LINEAR);
+				envspec = pow(envspec, SRGB_TO_LINEAR);
+			#endif
+
+			// terms
+			vec3 iblspec = min(vec3(0.99), fresnel_factor(specularColour, si.NdV) * brdf.x + brdf.y);
+			vec3 reflected_light = iblspec * envspec;
+			vec3 diffuse_light = envdiff * PHONG_DIFFUSE;
+
+			return diffuse_light * mix(mi.albedo, vec3(0.0), metallic) + reflected_light;
+		}
+
+		vec3 calcLightShared(vec3 lightColour, float diffuseStrength, vec3 lightDirection_cam, SurfaceInfo si, MaterialInfo mi) {
+			vec3 V = si.V;
+			vec3 N = si.N;
+			vec3 L = -lightDirection_cam;
+			#if PBR_LIGHT_QUALITY > ${PBRLightingQuality.Phong}
+				vec3 H = normalize(L + V);
+			#endif
+
+			// material properties
+			float metallic = mi.metallic;
+			float roughness = mi.roughness;
+			vec3 specularColour = mix(vec3(0.04), mi.albedo, metallic);
+
+			float NdL = max(0.0, dot(N, L));
+			#if PBR_LIGHT_QUALITY > ${PBRLightingQuality.Phong}
+				float NdH = max(0.001, dot(N, H));
+				float HdV = max(0.001, dot(H, V));
+			#endif
+
+			// specular contribution
+			#if PBR_LIGHT_QUALITY == ${PBRLightingQuality.Phong}
+				vec3 specfresnel = fresnel_factor(specularColour, si.NdV);
+				vec3 specref = phong_specular(V, L, N, specfresnel, roughness);
+			#else
+				vec3 specfresnel = fresnel_factor(specularColour, HdV);
+
+				#if PBR_LIGHT_QUALITY == ${PBRLightingQuality.Blinn}
+					vec3 specref = blinn_specular(NdH, specfresnel, roughness);
+				#else
+					vec3 specref = cooktorrance_specular(NdL, si.NdV, NdH, specfresnel, roughness);
+				#endif
+			#endif
+
+			specref *= vec3(NdL);
+
+			// diffuse contribition is common for all lighting models
+			vec3 diffref = (vec3(1.0) - specfresnel) * NdL * NdL; // this matches Unity rendering by ogling
+			// originally: vec3 diffref = (vec3(1.0) - specfresnel) * PHONG_DIFFUSE * NdL;
+
+			// direct light
+			vec3 light_color = lightColour * diffuseStrength;
+			vec3 reflected_light = specref * light_color;
+			vec3 diffuse_light = diffref * light_color;
+
+			// final result
+			return diffuse_light * mix(mi.albedo, vec3(0.0), metallic) + reflected_light;
+		}
+	`;
+
 	const tiledLight = `
 		uniform sampler2D lightLUTSampler;
 		uniform vec2 lightLUTParam;
+
+		uniform mat4 lightViewMatrix;
+		uniform mat4 lightProjMatrix;
+		uniform sampler2D shadowSampler;
+		uniform int shadowCastingLightIndex;
 
 		struct LightEntry {
 			vec4 colourAndType;
@@ -415,298 +542,179 @@ namespace sd.render.gl1 {
 			if (pair < 1.0) return cellPair.xy;
 			return cellPair.zw;
 		}
+
+		void totalDynamicLightContributionTiledForward(SurfaceInfo si, MaterialInfo mi) {
+			vec3 totalLight = vec3(0.0);
+			vec2 fragCoord = vec2(gl_FragCoord.x, lightLUTParam.y - gl_FragCoord.y);
+			vec2 lightOffsetCount = getLightGridCell(fragCoord);
+			int lightListOffset = int(lightOffsetCount.x);
+			int lightListCount = int(lightOffsetCount.y);
+
+			for (int llix = 0; llix < 128; ++llix) {
+				if (llix == lightListCount) break; // hack to overcome gles2 limitation where loops need constant max counters
+
+				float lightIx = getLightIndex(float(lightListOffset + llix));
+				LightEntry lightData = getLightEntry(lightIx);
+				if (lightData.colourAndType.w <= 0.0) break;
+
+				float shadowFactor = 1.0;
+				#ifdef SHADOW_MAP
+					if (int(lightIx) == shadowCastingLightIndex) {
+						float shadowStrength = lightData.shadowStrengthBias.x;
+						float shadowBias = lightData.shadowStrengthBias.y;
+						vec3 lightPos = (lightViewMatrix * vertexPos_world).xyz;
+						vec4 lightDevice = lightProjMatrix * vec4(lightPos, 1.0);
+						vec2 lightDeviceNormal = lightDevice.xy / lightDevice.w;
+						vec2 lightUV = lightDeviceNormal * 0.5 + 0.5;
+						float lightTest = clamp(length(lightPos) / 12.0, 0.0, 1.0);
+						shadowFactor = VSM(shadowSampler, lightUV, lightTest, shadowStrength, shadowBias);
+					}
+				#endif
+
+				totalLight += getLightContribution(lightData, si, mi) * shadowFactor;
+			}
+
+			return totalLight;
+		}
 	`;
 
-	function fragmentShaderSource(rd: GL1RenderDevice, feat: number) {
-		const source: string[] = [];
-		const line = (s: string) => source.push(s);
-
-		/* tslint:disable:variable-name */
-		const if_all = (s: string, f: number) => { if ((feat & f) == f) { source.push(s); } };
-		const if_any = (s: string, f: number) => { if ((feat & f) != 0) { source.push(s); } };
-		const if_not = (s: string, f: number) => { if ((feat & f) == 0) { source.push(s); } };
-		/* tslint:enable:variable-name */
-
-		const lightingQuality = (feat & Features.LightingQuality) >> LightingQualityBitShift;
-
-		line  ("#extension GL_EXT_shader_texture_lod : require");
-		if_any("#extension GL_OES_standard_derivatives : require", Features.NormalMap | Features.HeightMap);
-		line  ("precision highp float;");
-
-		// In
-		line  ("varying vec4 vertexPos_world;");
-		line  ("varying vec3 vertexNormal_cam;");
-		line  ("varying vec3 vertexPos_cam;");
-		if_all("varying vec2 vertexUV_intp;", Features.VtxUV);
-		if_all("varying vec3 vertexColour_intp;", Features.VtxColour);
-
-		// Uniforms
-		line  ("uniform mat3 normalMatrix;");
-
-		// -- material
-		line  ("uniform vec4 baseColour;");
-		if_all("uniform vec4 emissiveData;", Features.Emissive);
-		line  ("uniform vec4 materialParam;");
-
-		if_all("uniform sampler2D albedoMap;", Features.AlbedoMap);
-		if_any("uniform sampler2D materialMap;", Features.MetallicMap | Features.RoughnessMap | Features.AOMap);
-		if_any("uniform sampler2D normalHeightMap;", Features.NormalMap | Features.HeightMap);
-		line  ("uniform sampler2D brdfLookupMap;");
-		line  ("uniform samplerCube environmentMap;");
-
-		line  ("const int MAT_ROUGHNESS = 0;");
-		line  ("const int MAT_METALLIC = 1;");
-		line  ("const int MAT_AMBIENT_OCCLUSION = 2;");
-
-		// -- general constants
-		line  ("const float PI = 3.141592654;");
-		line  ("const float PHONG_DIFFUSE = 1.0 / PI;");
-
-		// -- shadow
-		if_all("uniform mat4 lightViewMatrix;", Features.ShadowMap);
-		if_all("uniform mat4 lightProjMatrix;", Features.ShadowMap);
-		if_all("uniform sampler2D shadowSampler;", Features.ShadowMap);
-		if_all("uniform int shadowCastingLightIndex;", Features.ShadowMap);
-
-
-		// -- commonly needed info
-		line  ("struct SurfaceInfo {");
-		line  ("	vec3 V;"); // vertex dir (cam)
-		line  ("	vec3 N;"); // surface normal (cam)
-		line  ("	mat3 transNormalMatrix;");
-		line  ("	vec3 reflectedV;");
-		line  ("	vec2 UV;"); // (adjusted) main UV
-		line  ("	float NdV;");
-		line  ("};");
-
-		line  ("SurfaceInfo calcSurfaceInfo() {");
-		line  ("	SurfaceInfo si;");
-		line  ("	si.V = normalize(-vertexPos_cam);");
-		line  ("	si.N = normalize(vertexNormal_cam);");
-		if_not("	si.UV = vertexUV_intp;", Features.HeightMap);
-		if_any("	mat3 TBN = cotangentFrame(si.N, vertexPos_cam, vertexUV_intp);", Features.NormalMap | Features.HeightMap);
-		if (feat & Features.HeightMap) {
-			// line("	float h = texture2D(normalHeightMap, vertexUV_intp).a;");
-			// line("	h = h * 0.04 - 0.02;");
-			line("	vec3 eyeTan = normalize(inverse(TBN) * si.V);");
-			line("	float finalH = 0.0;");
-			// line("	si.UV = vertexUV_intp + (eyeTan.xy * h);");
-			line("	si.UV = parallaxMapping(eyeTan, vertexUV_intp, finalH);");
-		}
-		if (feat & Features.NormalMap) {
-			line("	vec3 map = texture2D(normalHeightMap, si.UV).xyz * 2.0 - 1.0;");
-			line("	si.N = normalize(TBN * map);");
-		}
-		line  ("	si.NdV = max(0.001, dot(si.N, si.V));");
-		line  ("	si.transNormalMatrix = transpose(normalMatrix);");
-		line  ("	si.reflectedV = si.transNormalMatrix * reflect(-si.V, si.N);");
-		line  ("	return si;");
-		line  ("}");
-
-		// -- calcLightIBL()
-		line("vec3 calcLightIBL(vec3 baseColour, vec4 matParam, SurfaceInfo si) {");
-
-		// material properties
-		line("	float metallic = matParam[MAT_METALLIC];");
-		line("	float roughness = matParam[MAT_ROUGHNESS];");
-		line("	vec3 specularColour = mix(vec3(0.04), baseColour, metallic);");
-
-		// lookup brdf, diffuse and specular terms
-		line("	vec2 brdf = texture2D(brdfLookupMap, vec2(roughness, 1.0 - si.NdV)).xy;");
-		line("	vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, 4.0).xyz;");
-		line("	vec3 envspec = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 5.0).xyz;");
-
-		if (! rd.extSRGB) {
-			line("	envdiff = pow(envdiff, vec3(2.2));");
-			line("	envspec = pow(envspec, vec3(2.2));");
+	const lightContrib = `
+		vec3 calcPointLight(vec3 lightColour, float intensity, float range, vec3 lightPos_cam, vec3 lightPos_world, SurfaceInfo si, MaterialInfo mi) {
+			float distance = length(vertexPos_world.xyz - lightPos_world); // use world positions for distance as cam will warp coords
+			vec3 lightDirection_cam = normalize(vertexPos_cam - lightPos_cam);
+			float attenuation = clamp(1.0 - distance / range, 0.0, 1.0);
+			attenuation *= attenuation;
+		    float diffuseStrength = intensity * attenuation;
+			return calcLightShared(lightColour, diffuseStrength, lightDirection_cam, si, mi);
 		}
 
-		// terms
-		line("	vec3 iblspec = min(vec3(0.99), fresnel_factor(specularColour, si.NdV) * brdf.x + brdf.y);");
-		line("	vec3 reflected_light = iblspec * envspec;");
-		line("	vec3 diffuse_light = envdiff * PHONG_DIFFUSE;");
-
-		line("	return diffuse_light * mix(baseColour, vec3(0.0), metallic) + reflected_light;");
-		line("}");
-
-
-		// -- calcLightShared()
-		line("vec3 calcLightShared(vec3 baseColour, vec4 matParam, vec3 lightColour, float diffuseStrength, vec3 lightDirection_cam, SurfaceInfo si) {");
-		line("	vec3 V = si.V;");
-		line("	vec3 N = si.N;");
-		line("	vec3 L = -lightDirection_cam;");
-		if (lightingQuality > PBRLightingQuality.Phong) {
-			line("	vec3 H = normalize(L + V);");
-		}
-
-		// material properties
-		line("	float metallic = matParam[MAT_METALLIC];");
-		line("	float roughness = matParam[MAT_ROUGHNESS];");
-		line("	vec3 specularColour = mix(vec3(0.04), baseColour, metallic);");
-
-		line("	float NdL = max(0.0, dot(N, L));");
-		if (lightingQuality > PBRLightingQuality.Phong) {
-			line("	float NdH = max(0.001, dot(N, H));");
-			line("	float HdV = max(0.001, dot(H, V));");
-		}
-
-		// specular contribution
-		if (lightingQuality == PBRLightingQuality.Phong) {
-			line("	vec3 specfresnel = fresnel_factor(specularColour, si.NdV);");
-			line("	vec3 specref = phong_specular(V, L, N, specfresnel, roughness);");
-		}
-		else {
-			line("	vec3 specfresnel = fresnel_factor(specularColour, HdV);");
-
-			if (lightingQuality == PBRLightingQuality.Blinn) {
-				line("	vec3 specref = blinn_specular(NdH, specfresnel, roughness);");
+		vec3 calcSpotLight(vec3 lightColour, float intensity, float range, float cutoff, vec3 lightPos_cam, vec3 lightPos_world, vec3 lightDirection, SurfaceInfo si, MaterialInfo mi) {
+			vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam);
+			float spotCosAngle = dot(lightToPoint, lightDirection);
+			if (spotCosAngle > cutoff) {
+				vec3 light = calcPointLight(lightColour, intensity, range, lightPos_cam, lightPos_world, si, mi);
+				return light * smoothstep(cutoff, cutoff + 0.01, spotCosAngle);
 			}
-			else {
-				line("	vec3 specref = cooktorrance_specular(NdL, si.NdV, NdH, specfresnel, roughness);");
+			return vec3(0.0);
+		}
+
+		vec3 getLightContribution(LightEntry light, SurfaceInfo si, MaterialInfo mi) {
+			vec3 colour = light.colourAndType.xyz;
+			float type = light.colourAndType.w;
+			vec3 lightPos_cam = light.positionCamAndIntensity.xyz;
+			float intensity = light.positionCamAndIntensity.w;
+
+			if (type == ${entity.LightType.Directional}.0) {
+				return calcLightShared(colour, intensity, light.directionAndCutoff.xyz, si, mi);
 			}
-		}
 
-		line("	specref *= vec3(NdL);");
-
-		// diffuse contribition is common for all lighting models
-		line("	vec3 diffref = (vec3(1.0) - specfresnel) * NdL * NdL;"); // this matches Unity rendering by ogling
-		// originally: line("	vec3 diffref = (vec3(1.0) - specfresnel) * PHONG_DIFFUSE * NdL;");
-
-		// direct light
-		line("	vec3 light_color = lightColour * diffuseStrength;");
-		line("	vec3 reflected_light = specref * light_color;");
-		line("	vec3 diffuse_light = diffref * light_color;");
-
-		// final result
-		line("	return diffuse_light * mix(baseColour, vec3(0.0), metallic) + reflected_light;");
-		line("}");
-
-
-		// -- calcPointLight()
-		line  ("vec3 calcPointLight(vec3 baseColour, vec4 matParam, vec3 lightColour, float intensity, float range, vec3 lightPos_cam, vec3 lightPos_world, SurfaceInfo si) {");
-		line  ("	float distance = length(vertexPos_world.xyz - lightPos_world);"); // use world positions for distance as cam will warp coords
-		line  ("	vec3 lightDirection_cam = normalize(vertexPos_cam - lightPos_cam);");
-		line  ("	float attenuation = clamp(1.0 - distance / range, 0.0, 1.0);");
-		line  ("	attenuation *= attenuation;");
-		line  ("    float diffuseStrength = intensity * attenuation;");
-		line  ("	return calcLightShared(baseColour, matParam, lightColour, diffuseStrength, lightDirection_cam, si);");
-		line  ("}");
-
-
-		// -- calcSpotLight()
-		line  ("vec3 calcSpotLight(vec3 baseColour, vec4 matParam, vec3 lightColour, float intensity, float range, float cutoff, vec3 lightPos_cam, vec3 lightPos_world, vec3 lightDirection, SurfaceInfo si) {");
-		line  ("	vec3 lightToPoint = normalize(vertexPos_cam - lightPos_cam);");
-		line  ("	float spotCosAngle = dot(lightToPoint, lightDirection);");
-		line  ("	if (spotCosAngle > cutoff) {");
-		line  ("		vec3 light = calcPointLight(baseColour, matParam, lightColour, intensity, range, lightPos_cam, lightPos_world, si);");
-		line  ("		return light * smoothstep(cutoff, cutoff + 0.01, spotCosAngle);");
-		line  ("	}");
-		line  ("	return vec3(0.0);");
-		line  ("}");
-
-
-		// -- getLightContribution()
-		line  ("vec3 getLightContribution(LightEntry light, vec3 baseColour, vec4 matParam, SurfaceInfo si) {");
-		line  ("	vec3 colour = light.colourAndType.xyz;");
-		line  ("	float type = light.colourAndType.w;");
-		line  ("	vec3 lightPos_cam = light.positionCamAndIntensity.xyz;");
-		line  ("	float intensity = light.positionCamAndIntensity.w;");
-
-		line  (`	if (type == ${entity.LightType.Directional}.0) {`);
-		line  ("		return calcLightShared(baseColour, matParam, colour, intensity, light.directionAndCutoff.xyz, si);");
-		line  ("	}");
-
-		line  ("	vec3 lightPos_world = light.positionWorldAndRange.xyz;");
-		line  ("	float range = light.positionWorldAndRange.w;");
-		line  (`	if (type == ${entity.LightType.Point}.0) {`);
-		line  ("		return calcPointLight(baseColour, matParam, colour, intensity, range, lightPos_cam, lightPos_world, si);");
-		line  ("	}");
-
-		line  ("	float cutoff = light.directionAndCutoff.w;");
-		line  (`	if (type == ${entity.LightType.Spot}.0) {`);
-		line  ("		return calcSpotLight(baseColour, matParam, colour, intensity, range, cutoff, lightPos_cam, lightPos_world, light.directionAndCutoff.xyz, si);");
-		line  ("	}");
-
-		line  ("	return vec3(0.0);"); // this would be bad
-		line  ("}");
-
-		// -- main()
-		line  ("void main() {");
-		line  ("	SurfaceInfo si = calcSurfaceInfo();");
-
-
-		if (feat & Features.AlbedoMap) {
-			line("	vec3 baseColour = texture2D(albedoMap, si.UV).rgb * baseColour.rgb;");
-			if (! rd.extSRGB) {
-				line("	baseColour = pow(baseColour, vec3(2.2));");
+			vec3 lightPos_world = light.positionWorldAndRange.xyz;
+			float range = light.positionWorldAndRange.w;
+			if (type == ${entity.LightType.Point}.0) {
+				return calcPointLight(colour, intensity, range, lightPos_cam, lightPos_world, si, mi);
 			}
+
+			float cutoff = light.directionAndCutoff.w;
+			if (type == ${entity.LightType.Spot}.0) {
+				return calcSpotLight(colour, intensity, range, cutoff, lightPos_cam, lightPos_world, light.directionAndCutoff.xyz, si, mi);
+			}
+
+			return vec3(0.0); // we should never get here
 		}
-		else {
-			line("	vec3 baseColour = baseColour.rgb;");
+	`;
+
+	const materialInfo = `
+		uniform vec4 baseColour;
+		uniform vec4 emissiveData;
+		uniform vec4 materialParam;
+
+		uniform sampler2D albedoMap;
+		uniform sampler2D emissiveMap;
+		uniform sampler2D materialMap;
+
+		const int MAT_ROUGHNESS = 0;
+		const int MAT_METALLIC = 1;
+		const int MAT_AMBIENT_OCCLUSION = 2;
+
+		struct MaterialInfo {
+			vec4 albedo;   // premultiplied alpha
+			vec3 emissive; // premultiplied intensity
+			float roughness;
+			float metallic;
+			float ao;
+		};
+
+		MaterialInfo getMaterialInfo(vec2 materialUV) {
+			MaterialInfo mi;
+			vec3 colour = pow(baseColour.rgb, SRGB_TO_LINEAR);
+			#ifdef ALBEDO_MAP
+				vec3 mapColour = texture2D(albedoMap, materialUV).rgb;
+				#ifdef NO_SRGB_TEXTURES
+					mapColour = pow(mapColour, SRGB_TO_LINEAR);
+				#endif
+				colour *= mapColour;
+			#endif
+			#ifdef VERTEX_COLOUR_TINTING
+				vec3 tintColour = pow(vertexColour_intp, SRGB_TO_LINEAR);
+				colour *= tintColour;
+			#endif
+			mi.albedo = vec4(colour, 1.0); // FIXME: opacity/cutout support
+
+			#ifdef EMISSIVE
+				#ifdef EMISSIVE_MAP
+					mi.emissive = texture2D(emissiveMap, materialUV).rgb;
+				#else
+					mi.emissive = emissiveData.rgb * emissiveData.w;
+				#endif
+			#else
+				mi.emissive = vec3(0.0);
+			#endif
+
+			#if defined(ROUGHNESS_MAP) || defined(METALLIC_MAP) || defined(AO_MAP)
+				vec3 mapRMA = texture2D(materialMap, materialUV).xyz;
+				#ifdef ROUGHNESS_MAP
+					mi.roughness = mapRMA[MAT_ROUGHNESS];
+				#else
+					mi.roughness = materialParam[MAT_ROUGHNESS];
+				#endif
+				#ifdef METALLIC_MAP
+					mi.metallic = mapRMA[MAT_METALLIC];
+				#else
+					mi.metallic = materialParam[MAT_METALLIC];
+				#endif
+				#ifdef AO_MAP
+					mi.ao = mapRMA[MAT_AO];
+				#else
+					mi.ao = 1.0;
+				#endif
+			#else
+				mi.roughness = materialParam[MAT_ROUGHNESS];
+				mi.metallic = materialParam[MAT_METALLIC];
+				mi.ao = 1.0;
+			#endif
+
+			return mi;
 		}
-		if_all("	baseColour *= vertexColour_intp;", Features.VtxColour);
+	`;
 
+	const fragmentShaderSource = `
+		varying vec4 vertexPos_world;
+		varying vec3 vertexNormal_cam;
+		varying vec3 vertexPos_cam;
+		varying vec2 vertexUV_intp;
+		varying vec3 vertexColour_intp;
 
-		let hasRMAMap = false;
-		if (feat & (Features.MetallicMap | Features.RoughnessMap | Features.AOMap)) {
-			line("	vec4 matParam = texture2D(materialMap, si.UV);");
-			hasRMAMap = true;
+		void main() {
+			SurfaceInfo si = calcSurfaceInfo();
+			MaterialInfo mi = getMaterialInfo(si.UV);
+
+			vec3 totalLight = calcLightIBL(baseColour, matParam, si);
+			totalLight += mi.emissive;
+			totalLight += totalDynamicLightContributionTiledForward(si, mi) * shadowFactor;
+			totalLight *= mi.ao;
+
+			gl_FragColor = vec4(pow(totalLight, LINEAR_TO_SRGB), 1.0);
 		}
-		else {
-			// copy roughness and metallic fixed values from param
-			line("	vec4 matParam = vec4(materialParam.xy, 0, 0);");
-		}
-
-		if (hasRMAMap && (feat & Features.MetallicMap) == 0) {
-			line("	matParam[MAT_METALLIC] = materialParam[MAT_METALLIC];");
-		}
-		if (hasRMAMap && (feat & Features.RoughnessMap) == 0) {
-			line("	matParam[MAT_ROUGHNESS] = materialParam[MAT_ROUGHNESS];");
-		}
-
-		// -- calculate light arriving at the fragment
-		line  ("	vec3 totalLight = calcLightIBL(baseColour, matParam, si);");
-		if (feat & Features.Emissive) {
-			line("	totalLight += (emissiveData.rgb * emissiveData.w);");
-		}
-
-		line  ("	vec2 fragCoord = vec2(gl_FragCoord.x, lightLUTParam.y - gl_FragCoord.y);");
-		line  ("	vec2 lightOffsetCount = getLightGridCell(fragCoord);");
-		line  ("	int lightListOffset = int(lightOffsetCount.x);");
-		line  ("	int lightListCount = int(lightOffsetCount.y);");
-
-		line  ("	for (int llix = 0; llix < 128; ++llix) {");
-		line  ("		if (llix == lightListCount) break;"); // hack to overcome gles2 limitation where loops need constant max counters 
-
-		line  ("		float lightIx = getLightIndex(float(lightListOffset + llix));");
-		line  ("		LightEntry lightData = getLightEntry(lightIx);");
-		line  ("		if (lightData.colourAndType.w <= 0.0) break;");
-
-		line  ("		float shadowFactor = 1.0;");
-		if (feat & Features.ShadowMap) {
-			line("		if (int(lightIx) == shadowCastingLightIndex) {");
-			line("			float shadowStrength = lightData.shadowStrengthBias.x;");
-			line("			float shadowBias = lightData.shadowStrengthBias.y;");
-
-			line("			vec3 lightPos = (lightViewMatrix * vertexPos_world).xyz;");
-			line("			vec4 lightDevice = lightProjMatrix * vec4(lightPos, 1.0);");
-			line("			vec2 lightDeviceNormal = lightDevice.xy / lightDevice.w;");
-			line("			vec2 lightUV = lightDeviceNormal * 0.5 + 0.5;");
-			line("			float lightTest = clamp(length(lightPos) / 12.0, 0.0, 1.0);");
-			line("			shadowFactor = VSM(lightUV, lightTest, shadowStrength, shadowBias);");
-			line("		}");
-		}
-
-		line  ("		totalLight += getLightContribution(lightData, baseColour, matParam, si) * shadowFactor;");
-		line  ("	}");
-
-		if_all("	totalLight *= matParam[MAT_AMBIENT_OCCLUSION];", Features.AOMap);
-
-		// -- final lightColour result
-		line  ("	gl_FragColor = vec4(pow(totalLight, vec3(1.0 / 2.2)), 1.0);");
-		line  ("}");
-
-		return source.join("\n") + "\n";
-	}
+	`;
 
 } // ns sd.render.gl1
