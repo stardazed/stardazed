@@ -57,9 +57,8 @@ namespace sd.render {
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]): void;
 		dispatch(rcb: RenderCommandBuffer | RenderCommandBuffer[]): void;
 
-		generateStandardShader(options: StandardShaderOptions): Shader;
-
 		// -- temp
+		generateStandardShader(options: StandardShaderOptions): Shader;
 		render(proj: Float4x4, view: Float4x4, mesh: meshdata.MeshData, shader: Shader): void;
 	}
 
