@@ -22,28 +22,6 @@ namespace sd.render.gl1 {
 
 	const modules: { [name: string]: ShaderModule; } = {};
 
-	const enum Features {
-		// VtxPosition and VtxNormal are required and implied
-		VtxUV                      = 1 << 0,
-		VtxColour                  = 1 << 1,
-
-		LightingQuality            = 1 << 2 | 1 << 3,  // 2-bit number, higher is better
-
-		Emissive                   = 1 << 4,
-
-		AlbedoMap                  = 1 << 5,  // RGB channels of Albedo
-		RoughnessMap               = 1 << 6,  // R channel of RMA
-		MetallicMap                = 1 << 7,  // G channel of RMA
-		AOMap                      = 1 << 8,  // B channel of RMA
-
-		NormalMap                  = 1 << 9,  // RGB channels of NormalHeight
-		HeightMap                  = 1 << 10, // A channel of NormalHeight
-
-		ShadowMap                  = 1 << 11,
-	}
-
-	const LightingQualityBitShift = 2;
-
 	const enum PBRLightingQuality {
 		Phong,
 		Blinn,
@@ -98,21 +76,25 @@ namespace sd.render.gl1 {
 		`
 	};
 
-	const vertexSkinning = `
-		attribute vec4 vertexWeightedPos0_joint;
-		attribute vec4 vertexWeightedPos1_joint;
-		attribute vec4 vertexWeightedPos2_joint;
-		attribute vec4 vertexWeightedPos3_joint;
-		attribute vec4 vertexJointIndexes;
-
-		uniform sampler2D jointData;
-		uniform int jointIndexOffset;
-
-		struct Joint {
-			vec4 rotation_joint;
-			mat4 transform_model;
-		};
-
+	modules.vertexSkinning = {
+		structs: [`
+			struct Joint {
+				vec4 rotation_joint;
+				mat4 transform_model;
+			};
+		`],
+		constantBlocks: [
+			{
+				blockName: "default",
+				constants: [
+					{ name: "jointIndexOffset", type: "int" }
+				]
+			}
+		],
+		textures: [
+			{ name: "jointData", type: TextureClass.Normal, index: 0 }
+		],
+		code: `
 		// The jointData texture is 256x256 xyzw texels.
 		// Each joint takes up 8 texels that contain the Joint structure data
 		// The sampler must be set up with nearest neighbour filtering and have no mipmaps
@@ -151,18 +133,20 @@ namespace sd.render.gl1 {
 		}
 
 		// get transformed pos/normal from uniform base info
-		vec3 vertexPos_model = vec3(0.0);
-		vec3 vertexNormal_final = vec3(0.0);
-		vec4 weightedPos_joint[4];
-		weightedPos_joint[0] = vertexWeightedPos0_joint + float(jointIndexOffset);
-		weightedPos_joint[1] = vertexWeightedPos1_joint + float(jointIndexOffset);
-		weightedPos_joint[2] = vertexWeightedPos2_joint + float(jointIndexOffset);
-		weightedPos_joint[3] = vertexWeightedPos3_joint + float(jointIndexOffset);
-		getTransformedVertex(weightedPos_joint, vertexPos_model, vertexNormal);
-	`;
+		// vec3 vertexPos_model = vec3(0.0);
+		// vec3 vertexNormal_final = vec3(0.0);
+		// vec4 weightedPos_joint[4];
+		// weightedPos_joint[0] = vertexWeightedPos0_joint + float(jointIndexOffset);
+		// weightedPos_joint[1] = vertexWeightedPos1_joint + float(jointIndexOffset);
+		// weightedPos_joint[2] = vertexWeightedPos2_joint + float(jointIndexOffset);
+		// weightedPos_joint[3] = vertexWeightedPos3_joint + float(jointIndexOffset);
+		// getTransformedVertex(weightedPos_joint, vertexPos_model, vertexNormal);
+		`
+	};
 
-	const parallaxMapping = `
-		vec2 parallaxMapping(in vec3 V, in vec2 T, out float parallaxHeight) {
+	modules.parallaxMapping = {
+		code: `
+		vec2 parallaxMapping(sampler2D heightMap, in vec3 V, in vec2 T, out float parallaxHeight) {
 			// determine optimal number of layers
 			const float minLayers = 20.0;
 			const float maxLayers = 25.0;
@@ -179,7 +163,7 @@ namespace sd.render.gl1 {
 			vec2 currentTextureCoords = T + (0.005 * V.xy / V.z / numLayers);
 
 			// depth from heightmap
-			float heightFromTexture = texture2D(normalHeightMap, currentTextureCoords).a;
+			float heightFromTexture = texture2D(heightMap, currentTextureCoords).w;
 
 			// while point is above the surface
 			// while(heightFromTexture > curLayerHeight) {
@@ -189,7 +173,7 @@ namespace sd.render.gl1 {
 				// shift of texture coordinates
 				currentTextureCoords -= dtex;
 				// new depth from heightmap
-				heightFromTexture = texture2D(normalHeightMap, currentTextureCoords).a;
+				heightFromTexture = texture2D(heightMap, currentTextureCoords).w;
 
 				if (heightFromTexture <= curLayerHeight) break;
 			}
@@ -199,7 +183,7 @@ namespace sd.render.gl1 {
 
 			// heights for linear interpolation
 			float nextH = heightFromTexture - curLayerHeight;
-			float prevH = texture2D(normalHeightMap, prevTCoords).a - curLayerHeight + layerHeight;
+			float prevH = texture2D(heightMap, prevTCoords).w - curLayerHeight + layerHeight;
 
 			// proportions for linear interpolation
 			float weight = nextH / (nextH - prevH);
@@ -213,11 +197,15 @@ namespace sd.render.gl1 {
 			// return result
 			return finalTexCoords;
 		}
-	`;
+		`
+	};
 
-	const normalPerturbation = `
-		#extension GL_OES_standard_derivatives : require
-
+	modules.normalPerturbation = {
+		extensions: [{
+			name: "GL_OES_standard_derivatives",
+			action: "require"
+		}],
+		code: `
 		mat3 cotangentFrame(vec3 N, vec3 p, vec2 uv) {
 			// get edge vectors of the pixel triangle
 			vec3 dp1 = dFdx(p);
@@ -234,28 +222,33 @@ namespace sd.render.gl1 {
 			return mat3(T * invmax, B * invmax, N);
 		}
 
-		vec3 perturbNormal(vec3 N, vec3 V, vec2 uv) {
+		vec3 perturbNormal(sampler2D normalMap, vec3 N, vec3 V, vec2 uv) {
 			// assume N, the interpolated vertex normal and 
 			// V, the view vector (vertex to eye)
-			vec3 map = texture2D(normalHeightMap, uv).xyz * 2.0 - 1.0;
+			vec3 map = texture2D(normalMap, uv).xyz * 2.0 - 1.0;
 			map.y = -map.y;
 			mat3 TBN = cotangentFrame(N, -V, uv);
 			return normalize(TBN * map);
 		}
-	`;
+		`
+	};
 
-	const shadowMapping = `
+	modules.vsmShadowMapping = {
+		dependencies: ["mathUtils"],
+		code: `
 		float VSM(sampler2D shadowMap, vec2 uv, float compare, float strength, float bias) {
 			vec2 moments = texture2D(shadowMap, uv).xy;
 			float p = smoothstep(compare - bias, compare, moments.x);
 			float variance = max(moments.y - moments.x * moments.x, -0.001);
 			float d = compare - moments.x;
-			float p_max = linstep(0.2, 1.0, variance / (variance + d*d));
+			float p_max = linearStep(0.2, 1.0, variance / (variance + d*d));
 			return clamp(max(p, p_max), 0.0, 1.0);
 		}
-	`;
+		`
+	};
 
-	const pbrLightingMath = `
+	modules.pbrLightingMath = {
+		code: `
 		// compute fresnel specular factor for given base specular and product
 		// product could be NdV or VdH depending on used technique
 		vec3 fresnel_factor(vec3 f0, float product) {
@@ -310,21 +303,31 @@ namespace sd.render.gl1 {
 			// float D = D_blinn(roughness, NdH);
 			float D = D_GGX(roughness, NdH);
 			float G = G_schlick(roughness, NdV, NdL);
-			float rim = mix(1.0 - roughness * 0.9, 1.0, NdV); // I cannot tell if this does anything at 
+			float rim = mix(1.0 - roughness * 0.9, 1.0, NdV); // I cannot tell if this does anything at all
 			return (1.0 / rim) * specular * G * D;
 			// return specular * G * D;
 		}
-	`;
+		`
+	};
 
-	const pbrMaterialLighting = `
-		#extension GL_EXT_shader_texture_lod : require
-
-		const float PI = 3.141592654;
-		const float PHONG_DIFFUSE = 1.0 / PI;
-
-		uniform sampler2D brdfLookupMap;
-		uniform samplerCube environmentMap;
-
+	modules.pbrMaterialLighting = {
+		dependencies: [
+			"gammaConstants",
+			"surfaceInfo",
+			"materialInfo",
+			"pbrLightingMath"
+		],
+		extensions: [
+			{ name: "GL_EXT_shader_texture_lod", action: "require" }
+		],
+		constValues: [
+			{ name: "PHONG_DIFFUSE", type: "float", expr: "1.0 / 3.141592654" }
+		],
+		textures: [
+			{ name: "brdfLookupMap", type: TextureClass.Normal, index: 0 },
+			{ name: "environmentMap", type: TextureClass.CubeMap, index: 0 },
+		],
+		code: `
 		vec3 calcLightIBL(SurfaceInfo si, MaterialInfo mi) {
 			// material properties
 			float metallic = mi.metallic;
@@ -396,17 +399,12 @@ namespace sd.render.gl1 {
 			// final result
 			return diffuse_light * mix(mi.albedo, vec3(0.0), metallic) + reflected_light;
 		}
-	`;
+		`
+	};
 
-	const tiledLight = `
-		uniform sampler2D lightLUTSampler;
-		uniform vec2 lightLUTParam;
-
-		uniform mat4 lightViewMatrix;
-		uniform mat4 lightProjMatrix;
-		uniform sampler2D shadowSampler;
-		uniform int shadowCastingLightIndex;
-
+	modules.lightEntry = {
+		structs: [
+		`
 		struct LightEntry {
 			vec4 colourAndType;
 			vec4 positionCamAndIntensity;
@@ -414,7 +412,26 @@ namespace sd.render.gl1 {
 			vec4 directionAndCutoff;
 			vec4 shadowStrengthBias;
 		};
+		`
+		]
+	};
 
+	modules.tiledLight = {
+		dependencies: [
+			"lightEntry"
+		],
+		textures: [
+			{ name: "lightLUTSampler", type: TextureClass.Normal, index: 0 }
+		],
+		constantBlocks: [
+			{
+				blockName: "default",
+				constants: [
+					{ name: "lightLUTParam", type: "float2" },
+				]
+			}
+		],
+		code: `
 		LightEntry getLightEntry(float lightIx) {
 			float row = (floor(lightIx / 128.0) + 0.5) / 512.0;
 			float col = (mod(lightIx, 128.0) * 5.0) + 0.5;
@@ -453,8 +470,41 @@ namespace sd.render.gl1 {
 			if (pair < 1.0) return cellPair.xy;
 			return cellPair.zw;
 		}
+		`
+	};
 
-		void totalDynamicLightContributionTiledForward(SurfaceInfo si, MaterialInfo mi) {
+	modules.shadowedTotalLightContrib = {
+		dependencies: [
+			"vsmShadowMapping",
+			"surfaceInfo",
+			"materialInfo"
+		],
+		textures: [
+			{ name: "shadowSampler", type: TextureClass.Normal, index: 0 }
+		],
+		constantBlocks: [
+			{
+				blockName: "shadow",
+				constants: [
+					{ name: "lightViewMatrix", type: "mat4" },
+					{ name: "lightProjMatrix", type: "mat4" },
+					{ name: "shadowCastingLightIndex", type: "int" }
+				]
+			}
+		],
+		code: `
+		float lightVSMShadowFactor(LightEntry lightData) {
+			float shadowStrength = lightData.shadowStrengthBias.x;
+			float shadowBias = lightData.shadowStrengthBias.y;
+			vec3 lightPos = (lightViewMatrix * vertexPos_world).xyz;
+			vec4 lightDevice = lightProjMatrix * vec4(lightPos, 1.0);
+			vec2 lightDeviceNormal = lightDevice.xy / lightDevice.w;
+			vec2 lightUV = lightDeviceNormal * 0.5 + 0.5;
+			float lightTest = clamp(length(lightPos) / 12.0, 0.0, 1.0);
+			shadowFactor = VSM(shadowSampler, lightUV, lightTest, shadowStrength, shadowBias);
+		}
+
+		vec3 totalDynamicLightContributionTiledForward(SurfaceInfo si, MaterialInfo mi) {
 			vec3 totalLight = vec3(0.0);
 			vec2 fragCoord = vec2(gl_FragCoord.x, lightLUTParam.y - gl_FragCoord.y);
 			vec2 lightOffsetCount = getLightGridCell(fragCoord);
@@ -468,28 +518,28 @@ namespace sd.render.gl1 {
 				LightEntry lightData = getLightEntry(lightIx);
 				if (lightData.colourAndType.w <= 0.0) break;
 
-				float shadowFactor = 1.0;
+				vec3 lightContrib = getLightContribution(lightData, si, mi);
+
 				#ifdef SHADOW_MAP
 					if (int(lightIx) == shadowCastingLightIndex) {
-						float shadowStrength = lightData.shadowStrengthBias.x;
-						float shadowBias = lightData.shadowStrengthBias.y;
-						vec3 lightPos = (lightViewMatrix * vertexPos_world).xyz;
-						vec4 lightDevice = lightProjMatrix * vec4(lightPos, 1.0);
-						vec2 lightDeviceNormal = lightDevice.xy / lightDevice.w;
-						vec2 lightUV = lightDeviceNormal * 0.5 + 0.5;
-						float lightTest = clamp(length(lightPos) / 12.0, 0.0, 1.0);
-						shadowFactor = VSM(shadowSampler, lightUV, lightTest, shadowStrength, shadowBias);
+						lightContrib *= lightVSMShadowFactor(lightData);
 					}
 				#endif
 
-				totalLight += getLightContribution(lightData, si, mi) * shadowFactor;
+				totalLight += lightContrib;
 			}
 
 			return totalLight;
 		}
-	`;
+		`
+	};
 
-	const lightContrib = `
+	modules.lightContrib = {
+		dependencies: [
+			"surfaceInfo",
+			"materialInfo"
+		],
+		code: `
 		vec3 calcPointLight(vec3 lightColour, float intensity, float range, vec3 lightPos_cam, vec3 lightPos_world, SurfaceInfo si, MaterialInfo mi) {
 			float distance = length(vertexPos_world.xyz - lightPos_world); // use world positions for distance as cam will warp coords
 			vec3 lightDirection_cam = normalize(vertexPos_cam - lightPos_cam);
@@ -532,29 +582,43 @@ namespace sd.render.gl1 {
 
 			return vec3(0.0); // we should never get here
 		}
-	`;
+		`
+	};
 
-	const materialInfo = `
-		uniform vec4 baseColour;
-		uniform vec4 emissiveData;
-		uniform vec4 materialParam;
-
-		uniform sampler2D albedoMap;
-		uniform sampler2D emissiveMap;
-		uniform sampler2D materialMap;
-
-		const int MAT_ROUGHNESS = 0;
-		const int MAT_METALLIC = 1;
-		const int MAT_AMBIENT_OCCLUSION = 2;
-
-		struct MaterialInfo {
-			vec4 albedo;   // premultiplied alpha
-			vec3 emissive; // premultiplied intensity
-			float roughness;
-			float metallic;
-			float ao;
-		};
-
+	modules.pbrMaterialInfo = {
+		dependencies: [
+			"gammaConstants"
+		],
+		constValues: [
+			{ name: "MAT_ROUGHNESS", type: "int", expr: "0" },
+			{ name: "MAT_METALLIC", type: "int", expr: "1" },
+			{ name: "MAT_AMBIENT_OCCLUSION", type: "int", expr: "2" },
+		],
+		structs: [`
+			struct MaterialInfo {
+				vec4 albedo;   // premultiplied alpha
+				vec3 emissive; // premultiplied intensity
+				float roughness;
+				float metallic;
+				float ao;
+			};
+		`],
+		constantBlocks: [
+			{
+				blockName: "default",
+				constants: [
+					{ name: "baseColour", type: "float4" },
+					{ name: "emissiveData", type: "float4" },
+					{ name: "materialParam", type: "float4" }
+				]
+			}
+		],
+		textures: [
+			{ name: "albedoMap", type: TextureClass.Normal, index: 0 },
+			{ name: "emissiveMap", type: TextureClass.Normal, index: 0 },
+			{ name: "materialMap", type: TextureClass.Normal, index: 0 },
+		],
+		code: `
 		MaterialInfo getMaterialInfo(vec2 materialUV) {
 			MaterialInfo mi;
 			vec3 colour = pow(baseColour.rgb, SRGB_TO_LINEAR);
@@ -606,21 +670,35 @@ namespace sd.render.gl1 {
 
 			return mi;
 		}
-	`;
+		`
+	};
 
-	const surfaceInfo = `
-		uniform sampler2D normalHeightMap;
-		uniform mat3 normalMatrix;
-
-		struct SurfaceInfo {
-			vec3 V;  // vertex dir (cam)
-			vec3 N;  // surface normal (cam)
-			mat3 transNormalMatrix;
-			vec3 reflectedV;
-			vec2 UV; // (adjusted) main UV
-			float NdV;
-		};
-
+	modules.surfaceInfo = {
+		dependencies: [
+			""
+		],
+		structs: [`
+			struct SurfaceInfo {
+				vec3 V;  // vertex dir (cam)
+				vec3 N;  // surface normal (cam)
+				mat3 transNormalMatrix;
+				vec3 reflectedV;
+				vec2 UV; // (adjusted) main UV
+				float NdV;
+			};
+		`],
+		constantBlocks: [
+			{
+				blockName: "default",
+				constants: [
+					{ name: "normalMatrix", type: "mat3" }
+				]
+			}
+		],
+		textures: [
+			{ name: "normalHeightMap", type: TextureClass.Normal, index: 0 }
+		],
+		code: `
 		SurfaceInfo calcSurfaceInfo() {
 			SurfaceInfo si;
 			si.V = normalize(-vertexPos_cam);
@@ -651,42 +729,84 @@ namespace sd.render.gl1 {
 			si.reflectedV = si.transNormalMatrix * reflect(-si.V, si.N);
 			return si;
 		}
-	`;
+		`
+	};
 
 	// ----
 
-	const vsmShadowVertexSource = `
-		attribute vec3 vertexPos_model;
+	const enum Features {
+		// VtxPosition and VtxNormal are required and implied
+		VtxUV                      = 1 << 0,
+		VtxColour                  = 1 << 1,
 
-		varying vec4 vertexPos_world;
+		LightingQuality            = 1 << 2 | 1 << 3,  // 2-bit number, higher is better
 
-		uniform mat4 modelMatrix;
-		uniform mat4 lightViewProjectionMatrix;
+		Emissive                   = 1 << 4,
 
-		void main() {
+		AlbedoMap                  = 1 << 5,  // RGB channels of Albedo
+		RoughnessMap               = 1 << 6,  // R channel of RMA
+		MetallicMap                = 1 << 7,  // G channel of RMA
+		AOMap                      = 1 << 8,  // B channel of RMA
+
+		NormalMap                  = 1 << 9,  // RGB channels of NormalHeight
+		HeightMap                  = 1 << 10, // A channel of NormalHeight
+
+		ShadowMap                  = 1 << 11,
+	}
+
+	const LightingQualityBitShift = 2;
+
+	// ----
+
+	const vsmShadowVertexFunction: GL1VertexFunction = {
+		in: [
+			{ name: "vertexPos_model", type: "float3", role: "position", index: 0 }
+		],
+		out: [
+			{ name: "vertexPos_world", type: "float4" }
+		],
+		constantBlocks: [
+			{
+				blockName: "default",
+				constants: [
+					{ name: "modelMatrix", type: "mat4" },
+					{ name: "lightViewProjectionMatrix", type: "mat4" }
+				]
+			}
+		],
+		main: `
 			vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);
 			gl_Position = lightViewProjectionMatrix * vertexPos_world;
-		}
-	`;
+		`
+	};
 
-	const vsmShadowFragmentSource = `
-		#extension GL_OES_standard_derivatives : enable
-		precision highp float;
-
-		varying vec4 vertexPos_world;
-
-		uniform mat4 lightViewMatrix;
-
-		void main() {
+	const vsmShadowFragmentFunction: GL1FragmentFunction = {
+		extensions: [
+			{ name: "GL_OES_standard_derivatives", action: "require" }
+		],
+		in: [
+			{ name: "vertexPos_world", type: "float4" }
+		],
+		constantBlocks: [
+			{
+				blockName: "default",
+				constants: [
+					{ name: "lightViewMatrix", type: "mat4" }
+				]
+			}
+		],
+		outCount: 1,
+		main: `
 			vec3 lightPos = (lightViewMatrix * vertexPos_world).xyz;
 			float depth = clamp(length(lightPos) / 12.0, 0.0, 1.0);
 			float dx = dFdx(depth);
 			float dy = dFdy(depth);
 			gl_FragColor = vec4(depth, depth * depth + 0.25 * (dx * dy + dy * dy), 0.0, 1.0);
-		}
-	`;
+		`
+	};
 
-	const vertexShaderSource = `
+	function standardVertexFunction(): GL1VertexFunction {
+		const x = `
 		// In
 		attribute vec3 vertexPos_model;
 		attribute vec3 vertexNormal;
@@ -715,9 +835,11 @@ namespace sd.render.gl1 {
 			vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;
 			vertexColour_intp = vertexColour;
 		}
-	`;
+		`;
+	}
 
-	const fragmentShaderSource = `
+	function fragmentFunction(): GL1FragmentFunction {
+		const x = `
 		varying vec4 vertexPos_world;
 		varying vec3 vertexNormal_cam;
 		varying vec3 vertexPos_cam;
@@ -735,6 +857,7 @@ namespace sd.render.gl1 {
 
 			gl_FragColor = vec4(pow(totalLight, LINEAR_TO_SRGB), 1.0);
 		}
-	`;
+		`;
+	}
 
 } // ns sd.render.gl1
