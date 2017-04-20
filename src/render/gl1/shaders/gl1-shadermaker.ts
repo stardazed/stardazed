@@ -734,30 +734,6 @@ namespace sd.render.gl1 {
 
 	// ----
 
-	const enum Features {
-		// VtxPosition and VtxNormal are required and implied
-		VtxUV                      = 1 << 0,
-		VtxColour                  = 1 << 1,
-
-		LightingQuality            = 1 << 2 | 1 << 3,  // 2-bit number, higher is better
-
-		Emissive                   = 1 << 4,
-
-		AlbedoMap                  = 1 << 5,  // RGB channels of Albedo
-		RoughnessMap               = 1 << 6,  // R channel of RMA
-		MetallicMap                = 1 << 7,  // G channel of RMA
-		AOMap                      = 1 << 8,  // B channel of RMA
-
-		NormalMap                  = 1 << 9,  // RGB channels of NormalHeight
-		HeightMap                  = 1 << 10, // A channel of NormalHeight
-
-		ShadowMap                  = 1 << 11,
-	}
-
-	const LightingQualityBitShift = 2;
-
-	// ----
-
 	const vsmShadowVertexFunction: GL1VertexFunction = {
 		in: [
 			{ name: "vertexPos_model", type: "float3", role: "position", index: 0 }
@@ -801,63 +777,139 @@ namespace sd.render.gl1 {
 			float depth = clamp(length(lightPos) / 12.0, 0.0, 1.0);
 			float dx = dFdx(depth);
 			float dy = dFdy(depth);
-			gl_FragColor = vec4(depth, depth * depth + 0.25 * (dx * dy + dy * dy), 0.0, 1.0);
+			gl_FragColor = vec4(depth, depth * depth + 0.25 * (dx * dx + dy * dy), 0.0, 1.0);
 		`
 	};
 
-	function standardVertexFunction(): GL1VertexFunction {
-		const x = `
-		// In
-		attribute vec3 vertexPos_model;
-		attribute vec3 vertexNormal;
-		attribute vec2 vertexUV;
-		attribute vec3 vertexColour;
+	export const vsmShadowShader: Shader = {
+		renderResourceType: ResourceType.Shader,
+		renderResourceHandle: 0,
+		vertexFunction: vsmShadowVertexFunction,
+		fragmentFunction: vsmShadowFragmentFunction
+	};
 
-		// Out
-		varying vec3 vertexNormal_cam;
-		varying vec4 vertexPos_world;
-		varying vec3 vertexPos_cam;
-		varying vec2 vertexUV_intp;
-		varying vec3 vertexColour_intp;
+	// ----
 
-		// Uniforms
-		uniform mat4 modelMatrix;
-		uniform mat4 modelViewMatrix;
-		uniform mat4 modelViewProjectionMatrix;
-		uniform mat3 normalMatrix;
-		uniform vec4 texScaleOffset;
+	const enum Features {
+		// VtxPosition and VtxNormal are required and implied
+		VtxUV                      = 1 << 0,
+		VtxColour                  = 1 << 1,
 
-		void main() {
-			gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);
-			vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);
-			vertexNormal_cam = normalMatrix * vertexNormal;
-			vertexPos_cam = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;
-			vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;
-			vertexColour_intp = vertexColour;
-		}
-		`;
+		LightingQuality            = 1 << 2 | 1 << 3,  // 2-bit number, higher is better
+
+		Emissive                   = 1 << 4,
+
+		AlbedoMap                  = 1 << 5,  // RGB channels of Albedo
+		RoughnessMap               = 1 << 6,  // R channel of RMA
+		MetallicMap                = 1 << 7,  // G channel of RMA
+		AOMap                      = 1 << 8,  // B channel of RMA
+
+		NormalMap                  = 1 << 9,  // RGB channels of NormalHeight
+		HeightMap                  = 1 << 10, // A channel of NormalHeight
+
+		ShadowMap                  = 1 << 11,
 	}
 
-	function fragmentFunction(): GL1FragmentFunction {
-		const x = `
-		varying vec4 vertexPos_world;
-		varying vec3 vertexNormal_cam;
-		varying vec3 vertexPos_cam;
-		varying vec2 vertexUV_intp;
-		varying vec3 vertexColour_intp;
+	// const LightingQualityBitShift = 2;
 
-		void main() {
-			SurfaceInfo si = calcSurfaceInfo();
-			MaterialInfo mi = getMaterialInfo(si.UV);
+	// ----
 
-			vec3 totalLight = calcLightIBL(baseColour, matParam, si);
-			totalLight += mi.emissive;
-			totalLight += totalDynamicLightContributionTiledForward(si, mi) * shadowFactor;
-			totalLight *= mi.ao;
+	function standardVertexFunction(feat: Features): GL1VertexFunction {
+		const fn: GL1VertexFunction = {
+			in: [
+				{ name: "vertexPos_model", type: "float3", role: "position", index: 0 },
+				{ name: "vertexNormal", type: "float3", role: "normal", index: 1 },
+			],
+			out: [
+				{ name: "vertexPos_world", type: "float4" },
+				{ name: "vertexPos_cam", type: "float3" },
+				{ name: "vertexNormal_cam", type: "float3" },
+			],
 
-			gl_FragColor = vec4(pow(totalLight, LINEAR_TO_SRGB), 1.0);
+			constantBlocks: [
+				{
+					blockName: "default",
+					constants: [
+						{ name: "modelMatrix", type: "mat4" },
+						{ name: "modelViewMatrix", type: "mat4" },
+						{ name: "modelViewProjectionMatrix", type: "mat4" },
+						{ name: "normalMatrix", type: "mat3" },
+					]
+				}
+			],
+
+			main: `
+				gl_Position = modelViewProjectionMatrix * vec4(vertexPos_model, 1.0);
+				vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);
+				vertexNormal_cam = normalMatrix * vertexNormal;
+				vertexPos_cam = (modelViewMatrix * vec4(vertexPos_model, 1.0)).xyz;
+			`
+		};
+
+		if (feat & Features.VtxUV) {
+			fn.in.push({ name: "vertexUV", type: "float2", role: "uv0", index: 2 });
+			fn.out!.push({ name: "vertexUV_intp", type: "float3" });
+			fn.constantBlocks![0].constants.push({ name: "texScaleOffset", type: "float4" });
+			fn.main += "vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;\n";
 		}
-		`;
+
+		if (feat & Features.VtxColour) {
+			fn.in.push({ name: "vertexColour", type: "float3", role: "colour", index: 3 });
+			fn.out!.push({ name: "vertexColour_intp", type: "float3" });
+			fn.main += "vertexColour_intp = vertexColour;\n";
+		}
+
+		return fn;
+	}
+
+	function standardFragmentFunction(feat: Features): GL1FragmentFunction {
+		const fn: GL1FragmentFunction = {
+			in: [
+				{ name: "vertexPos_world", type: "float4" },
+				{ name: "vertexPos_cam", type: "float3" },
+				{ name: "vertexNormal_cam", type: "float3" },
+			],
+			constantBlocks: [
+				{
+					blockName: "default",
+					constants: []
+				}
+			],
+			outCount: 1,
+			main: `
+				SurfaceInfo si = calcSurfaceInfo();
+				MaterialInfo mi = getMaterialInfo(si.UV);
+
+				vec3 totalLight = calcLightIBL(baseColour, matParam, si);
+				totalLight += mi.emissive;
+				totalLight += totalDynamicLightContributionTiledForward(si, mi) * shadowFactor;
+				totalLight *= mi.ao;
+
+				gl_FragColor = vec4(pow(totalLight, LINEAR_TO_SRGB), 1.0);
+			`
+		};
+
+		if (feat & Features.VtxUV) {
+			fn.in!.push({ name: "vertexUV_intp", type: "float3" });
+		}
+
+		if (feat & Features.VtxColour) {
+			fn.in!.push({ name: "vertexColour_intp", type: "float3" });
+		}
+
+		return fn;
+	}
+
+	export function makeStdShader() {
+		const vertexFunction = standardVertexFunction(0);
+		const fragmentFunction = standardFragmentFunction(0);
+
+		return {
+			renderResourceType: ResourceType.Shader,
+			renderResourceHandle: 0,
+			vertexFunction,
+			fragmentFunction
+		};	
 	}
 
 } // ns sd.render.gl1
