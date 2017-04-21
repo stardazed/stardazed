@@ -329,6 +329,9 @@ namespace sd.render.gl1 {
 	};
 
 	modules.pbrLightingMath = {
+		constValues: [
+			{ name: "PI", type: "float", "expr": "3.1415926536" }
+		],
 		code: `
 		// compute fresnel specular factor for given base specular and product
 		// product could be NdV or VdH depending on used technique
@@ -395,7 +398,7 @@ namespace sd.render.gl1 {
 		dependencies: [
 			"gammaConstants",
 			"surfaceInfo",
-			"materialInfo",
+			"pbrMaterialInfo",
 			"pbrLightingMath"
 		],
 		extensions: [
@@ -413,7 +416,7 @@ namespace sd.render.gl1 {
 			// material properties
 			float metallic = mi.metallic;
 			float roughness = mi.roughness;
-			vec3 specularColour = mix(vec3(0.04), mi.albedo, metallic);
+			vec3 specularColour = mix(vec3(0.04), mi.albedo.xyz, metallic);
 
 			// lookup brdf, diffuse and specular terms
 			vec2 brdf = texture2D(brdfLookupMap, vec2(roughness, 1.0 - si.NdV)).xy;
@@ -430,33 +433,31 @@ namespace sd.render.gl1 {
 			vec3 reflected_light = iblspec * envspec;
 			vec3 diffuse_light = envdiff * PHONG_DIFFUSE;
 
-			return diffuse_light * mix(mi.albedo, vec3(0.0), metallic) + reflected_light;
+			return diffuse_light * mix(mi.albedo.xyz, vec3(0.0), metallic) + reflected_light;
 		}
 
 		vec3 calcLightShared(vec3 lightColour, float diffuseStrength, vec3 lightDirection_cam, SurfaceInfo si, MaterialInfo mi) {
 			vec3 V = si.V;
 			vec3 N = si.N;
 			vec3 L = -lightDirection_cam;
-			#if PBR_LIGHT_QUALITY > ${PBRLightingQuality.Phong}
+			#if PBR_LIGHT_QUALITY != ${PBRLightingQuality.Phong}
 				vec3 H = normalize(L + V);
 			#endif
 
 			// material properties
 			float metallic = mi.metallic;
 			float roughness = mi.roughness;
-			vec3 specularColour = mix(vec3(0.04), mi.albedo, metallic);
+			vec3 specularColour = mix(vec3(0.04), mi.albedo.xyz, metallic);
 
 			float NdL = max(0.0, dot(N, L));
-			#if PBR_LIGHT_QUALITY > ${PBRLightingQuality.Phong}
-				float NdH = max(0.001, dot(N, H));
-				float HdV = max(0.001, dot(H, V));
-			#endif
 
 			// specular contribution
 			#if PBR_LIGHT_QUALITY == ${PBRLightingQuality.Phong}
 				vec3 specfresnel = fresnel_factor(specularColour, si.NdV);
 				vec3 specref = phong_specular(V, L, N, specfresnel, roughness);
 			#else
+				float NdH = max(0.001, dot(N, H));
+				float HdV = max(0.001, dot(H, V));
 				vec3 specfresnel = fresnel_factor(specularColour, HdV);
 
 				#if PBR_LIGHT_QUALITY == ${PBRLightingQuality.Blinn}
@@ -469,8 +470,8 @@ namespace sd.render.gl1 {
 			specref *= vec3(NdL);
 
 			// diffuse contribition is common for all lighting models
-			vec3 diffref = (vec3(1.0) - specfresnel) * NdL * NdL; // this matches Unity rendering by ogling
-			// originally: vec3 diffref = (vec3(1.0) - specfresnel) * PHONG_DIFFUSE * NdL;
+			// vec3 diffref = (vec3(1.0) - specfresnel) * NdL * NdL; // this matches Unity rendering by ogling
+			vec3 diffref = (vec3(1.0) - specfresnel) * PHONG_DIFFUSE * NdL; // original
 
 			// direct light
 			vec3 light_color = lightColour * diffuseStrength;
@@ -478,7 +479,7 @@ namespace sd.render.gl1 {
 			vec3 diffuse_light = diffref * light_color;
 
 			// final result
-			return diffuse_light * mix(mi.albedo, vec3(0.0), metallic) + reflected_light;
+			return diffuse_light * mix(mi.albedo.xyz, vec3(0.0), metallic) + reflected_light;
 		}
 		`
 	};
@@ -558,7 +559,8 @@ namespace sd.render.gl1 {
 		dependencies: [
 			"vsmShadowMapping",
 			"surfaceInfo",
-			"materialInfo"
+			"pbrMaterialInfo",
+			"lightEntry"
 		],
 		textures: [
 			{ name: "shadowSampler", type: TextureClass.Normal, index: 7, ifExpr: "SHADOW_MAP" }
@@ -618,7 +620,8 @@ namespace sd.render.gl1 {
 	modules.lightContrib = {
 		dependencies: [
 			"surfaceInfo",
-			"materialInfo"
+			"pbrMaterialInfo",
+			"lightEntry"
 		],
 		code: `
 		vec3 calcPointLight(vec3 lightColour, float intensity, float range, vec3 lightPos_cam, vec3 lightPos_world, SurfaceInfo si, MaterialInfo mi) {
@@ -801,7 +804,9 @@ namespace sd.render.gl1 {
 				float finalH = 0.0;
 				si.UV = parallaxMapping(eyeTan, vertexUV_intp, finalH);
 			#else
-				si.UV = vertexUV_intp;
+				#ifdef HAS_BASE_UV
+					si.UV = vertexUV_intp;
+				#endif
 			#endif
 			#ifdef NORMAL_MAP
 				vec3 map = texture2D(normalHeightMap, si.UV).xyz * 2.0 - 1.0;
@@ -952,33 +957,48 @@ namespace sd.render.gl1 {
 			{ name: "vertexPos_cam", type: "float3" },
 			{ name: "vertexNormal_cam", type: "float3" },
 		];
-		const dependencies: string[] = [
-			"surfaceInfo",
-			"pbrMaterialInfo"
-		];
 
 		if (feat & Features.VtxUV) {
+			defines.push({ name: "HAS_BASE_UV" });
 			attr.push({ name: "vertexUV_intp", type: "float3" });
 		}
 		if (feat & Features.VtxColour) {
 			defines.push({ name: "VERTEX_COLOUR_TINTING" });
 			attr.push({ name: "vertexColour_intp", type: "float3" });
 		}
+		defines.push({ name: "PBR_LIGHT_QUALITY", value: "2" });
+
+		const dependencies: string[] = [
+			"gammaConstants",
+			"surfaceInfo",
+			"pbrMaterialInfo",
+			"pbrMaterialLighting",
+			"lightContrib"
+		];
+		const lib = resolveModules(dependencies);
 
 		const fn: GL1FragmentFunction = {
 			defines,
 			in: attr,
 			outCount: 1,
+			extensions: lib.extensions,
+			constantBlocks: lib.constantBlocks,
+			samplers: lib.textures,
+			structs: lib.structs,
+			constValues: lib.constValues,
+			code: lib.code,
 			main: `
 				SurfaceInfo si = calcSurfaceInfo();
 				MaterialInfo mi = getMaterialInfo(si.UV);
 
-				vec3 totalLight = calcLightIBL(baseColour, matParam, si);
-				totalLight += mi.emissive;
-				totalLight += totalDynamicLightContributionTiledForward(si, mi) * shadowFactor;
-				totalLight *= mi.ao;
+				// vec3 totalLight = calcLightIBL(baseColour, matParam, si);
+				// totalLight += mi.emissive;
+				// totalLight += totalDynamicLightContributionTiledForward(si, mi) * shadowFactor;
+				// totalLight *= mi.ao;
 
+				vec3 totalLight = calcLightShared(vec3(1.0), 1.0, normalize(vec3(0.1, 0.1, 1.0)), si, mi);
 				gl_FragColor = vec4(pow(totalLight, LINEAR_TO_SRGB), 1.0);
+				// gl_FragColor = vec4(totalLight, 1.0);
 			`
 		};
 

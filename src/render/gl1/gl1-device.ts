@@ -191,9 +191,8 @@ namespace sd.render.gl1 {
 			return makeStandardShader(options);
 		}
 
-
 		// TEMPORARY
-		render(proj: Float4x4, view: Float4x4, mesh: meshdata.MeshData, shader: Shader) {
+		render(proj: Float32Array, view: Float32Array, mesh: meshdata.MeshData, shader: Shader) {
 			const gl = this.gl;
 
 			const meshVAOMap = this.meshes_.find(mesh)!;
@@ -208,9 +207,19 @@ namespace sd.render.gl1 {
 			gl.useProgram(prog);
 			gl.enable(gl.DEPTH_TEST);
 			gl.depthFunc(gl.LEQUAL);
+			
+			const model = mat4.create();
+			const mv = view;
 			const mvp = mat4.multiply(new Float32Array(16), proj, view);
-			const mvpU = gl.getUniformLocation(prog, shader.vertexFunction.constantBlocks![0].constants[0].name)!;
-			gl.uniformMatrix4fv(mvpU, false, mvp);
+			const norm = mat3.normalFromMat4(mat3.create(), mvp);
+
+			gl.uniformMatrix4fv(gl.getUniformLocation(prog, shader.vertexFunction.constantBlocks![0].constants[0].name)!, false, model);
+			gl.uniformMatrix4fv(gl.getUniformLocation(prog, shader.vertexFunction.constantBlocks![0].constants[1].name)!, false, mv);
+			gl.uniformMatrix4fv(gl.getUniformLocation(prog, shader.vertexFunction.constantBlocks![0].constants[2].name)!, false, mvp);
+			gl.uniformMatrix3fv(gl.getUniformLocation(prog, shader.vertexFunction.constantBlocks![0].constants[3].name)!, false, norm);
+
+			gl.uniform4fv(gl.getUniformLocation(prog, shader.fragmentFunction.constantBlocks![0].constants[1].name)!, vec4.fromValues(.6, .1, .1, 1));
+			gl.uniform4fv(gl.getUniformLocation(prog, shader.fragmentFunction.constantBlocks![0].constants[3].name)!, vec4.fromValues(.7, 0, 0, 0));
 
 			const sub = mesh.subMeshes[0];
 			gl.drawElements(gl.TRIANGLES, sub.elementCount, glTypeForIndexElementType(this, mesh.indexBuffer!.indexElementType), 0);
