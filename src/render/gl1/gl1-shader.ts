@@ -92,7 +92,7 @@ namespace sd.render.gl1 {
 		const attributes = generateValueBlock("attribute", fn.in);
 		const varying = generateValueBlock("varying", fn.out);
 		const uniforms = generateConstantsBlock(fn.constantBlocks);
-		const samplers = generateSamplerBlock(fn.textures);
+		const samplers = generateSamplerBlock(fn.samplers);
 		
 		return `${extensions}${attributes}${varying}${uniforms}${samplers}
 		void main() {

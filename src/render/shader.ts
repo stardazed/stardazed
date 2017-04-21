@@ -48,7 +48,7 @@ namespace sd.render {
 		in: ShaderVertexAttribute[];
 		out?: ShaderAttribute[];
 		// feedback?: any;
-		textures?: SamplerSlot[];
+		samplers?: SamplerSlot[];
 		constantBlocks?: ShaderConstantBlock[];
 	}
 
