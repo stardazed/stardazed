@@ -946,18 +946,28 @@ namespace sd.render.gl1 {
 	}
 
 	function standardFragmentFunction(feat: Features): GL1FragmentFunction {
+		const defines: ShaderDefine[] = [];
+		const attr: ShaderAttribute[] = [
+			{ name: "vertexPos_world", type: "float4" },
+			{ name: "vertexPos_cam", type: "float3" },
+			{ name: "vertexNormal_cam", type: "float3" },
+		];
+		const dependencies: string[] = [
+			"surfaceInfo",
+			"pbrMaterialInfo"
+		];
+
+		if (feat & Features.VtxUV) {
+			attr.push({ name: "vertexUV_intp", type: "float3" });
+		}
+		if (feat & Features.VtxColour) {
+			defines.push({ name: "VERTEX_COLOUR_TINTING" });
+			attr.push({ name: "vertexColour_intp", type: "float3" });
+		}
+
 		const fn: GL1FragmentFunction = {
-			in: [
-				{ name: "vertexPos_world", type: "float4" },
-				{ name: "vertexPos_cam", type: "float3" },
-				{ name: "vertexNormal_cam", type: "float3" },
-			],
-			constantBlocks: [
-				{
-					blockName: "default",
-					constants: []
-				}
-			],
+			defines,
+			in: attr,
 			outCount: 1,
 			main: `
 				SurfaceInfo si = calcSurfaceInfo();
@@ -971,14 +981,6 @@ namespace sd.render.gl1 {
 				gl_FragColor = vec4(pow(totalLight, LINEAR_TO_SRGB), 1.0);
 			`
 		};
-
-		if (feat & Features.VtxUV) {
-			fn.in!.push({ name: "vertexUV_intp", type: "float3" });
-		}
-
-		if (feat & Features.VtxColour) {
-			fn.in!.push({ name: "vertexColour_intp", type: "float3" });
-		}
 
 		return fn;
 	}
