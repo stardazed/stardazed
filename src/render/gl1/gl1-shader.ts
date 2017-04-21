@@ -172,7 +172,7 @@ namespace sd.render.gl1 {
 		if (! gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
 			const errorLog = gl.getShaderInfoLog(shader);
 			console.error("Shader compilation failed:", errorLog);
-			console.error("Source", sourceText);
+			console.error("Source", sourceText.split("\n").map((l, i) => `${i + 1}: ${l}`).join("\n"));
 			return undefined;
 		}
 
