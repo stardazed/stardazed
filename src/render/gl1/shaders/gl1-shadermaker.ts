@@ -19,7 +19,89 @@ namespace sd.render.gl1 {
 		code?: string;
 	}
 
-	const modules: { [name: string]: ShaderModule; } = {};
+	const modules: { [name: string]: ShaderModule | undefined; } = {};
+
+	function stableUnique<T>(arr: T[]) {
+		const seen = new Set<T>();
+		return arr.filter(val => {
+			if (seen.has(val)) {
+				return false;
+			}
+			seen.add(val);
+			return true;
+		});
+	}
+
+	export function resolveModuleDependencies(moduleName: string, inoutList: string[]) {
+		inoutList.unshift(moduleName);
+		const module = modules[moduleName];
+		if (module) {
+			const deps = module.dependencies || [];
+			for (const dep of deps) {
+				resolveModuleDependencies(dep, inoutList);
+			}
+		}
+		else {
+			console.warn(`ShaderModule ${moduleName} not found.`);
+		}
+	}
+
+	export function resolveDependencies(moduleNames: string[]) {
+		const end = moduleNames.length - 1;
+		const depList: string[] = [];
+		for (let index = end; index >= 0; --index) {
+			resolveModuleDependencies(moduleNames[index], depList);
+		}
+		return stableUnique(depList);
+	}
+
+	export function resolveModules(modNames: string[]): ShaderModule {
+		const module: ShaderModule = {
+			extensions: [],
+			textures: [],
+			constantBlocks: [],
+			constValues: [],
+			structs: [],
+			code: ""
+		};
+
+		const depList = resolveDependencies(modNames);
+		for (const modName of depList) {
+			const depModule = modules[modName];
+			if (depModule) {
+				if (depModule.extensions) {
+					module.extensions!.push(...depModule.extensions);
+				}
+				if (depModule.textures) {
+					module.textures!.push(...depModule.textures);
+				}
+				if (depModule.constantBlocks) {
+					for (const depBlock of depModule.constantBlocks) {
+						let localBlock = module.constantBlocks!.find(c => c.blockName === depBlock.blockName);
+						if (! localBlock) {
+							localBlock = { blockName: depBlock.blockName, constants: [] };
+							module.constantBlocks!.push(localBlock);
+						}
+						localBlock.constants.push(...depBlock.constants);
+					}
+				}
+				if (depModule.constValues) {
+					module.constValues!.push(...depModule.constValues);
+				}
+				if (depModule.structs) {
+					module.structs!.push(...depModule.structs);
+				}
+				if (depModule.code) {
+					module.code += `// module ${modName}\n${depModule.code}`;
+				}
+			}
+		}
+
+		return module;
+	}
+
+
+	// ----
 
 	const enum PBRLightingQuality {
 		Phong,
