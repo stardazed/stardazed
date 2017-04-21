@@ -756,7 +756,9 @@ namespace sd.render.gl1 {
 
 	modules.surfaceInfo = {
 		dependencies: [
-			""
+			"mathUtils",
+			"normalPerturbation",
+			"parallaxMapping"
 		],
 		structs: [`
 			struct SurfaceInfo {
