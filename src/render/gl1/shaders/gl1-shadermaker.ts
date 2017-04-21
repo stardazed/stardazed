@@ -229,7 +229,7 @@ namespace sd.render.gl1 {
 		code: `
 		vec2 parallaxMapping(sampler2D heightMap, in vec3 V, in vec2 T, out float parallaxHeight) {
 			// determine optimal number of layers
-			const float minLayers = 20.0;
+			const float minLayers = 8.0;
 			const float maxLayers = 25.0;
 			float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0, 0, 1), V)));
 
