@@ -5,17 +5,16 @@
 
 namespace sd.render.gl1 {
 
-	interface ShaderModule {
+	export type Conditional<T> = T & {
+		ifExpr?: string;
+	};
+
+	export interface ShaderModule {
 		dependencies?: string[];
-		defines?: string[];
 		extensions?: ExtensionUsage[];
-		textures?: SamplerSlot[];
-		constantBlocks?: ShaderConstantBlock[];
-		constValues?: {
-			name: string;
-			type: ShaderValueType;
-			expr: string;
-		}[];
+		textures?: Conditional<SamplerSlot>[];
+		constantBlocks?: Conditional<ShaderConstantBlock>[];
+		constValues?: ShaderConstValue[];
 		structs?: string[];
 		code?: string;
 	}
