@@ -10,13 +10,32 @@ namespace sd.render.gl1 {
 		action: "enable" | "require";
 	}
 
+	export interface ShaderDefine {
+		name: string;
+		value?: string;
+	}
+
+	export interface ShaderConstValue {
+		name: string;
+		type: ShaderValueType;
+		expr: string;
+	}
+
 	export interface GL1VertexFunction extends VertexFunction {
 		extensions?: ExtensionUsage[];
+		defines?: ShaderDefine[];
+		constValues?: ShaderConstValue[];
+		structs?: string[];
+		code?: string;
 		main: string;
 	}
 
 	export interface GL1FragmentFunction extends FragmentFunction {
 		extensions?: ExtensionUsage[];
+		defines?: ShaderDefine[];
+		constValues?: ShaderConstValue[];
+		structs?: string[];
+		code?: string;
 		main: string;
 	}
 
@@ -62,6 +81,23 @@ namespace sd.render.gl1 {
 		}
 	};
 
+	function generateDefinesBlock(defines: ShaderDefine[] | undefined) {
+		return (defines || []).map(def => {
+			return `#define ${def.name} ${def.value || ""}\n`;
+		}).join("");
+	}
+
+	function generateConstValuesBlock(constVals: ShaderConstValue[] | undefined) {
+		return (constVals || []).map(cv => {
+			const mappedValueType = valueTypeMap.uniform[cv.type];
+			return `const ${mappedValueType} ${cv.name} = ${cv.expr};\n`;
+		}).join("");
+	}
+
+	function generateStructsBlock(structs: string[] | undefined) {
+		return (structs || []).join("\n");
+	}
+
 	function generateValueBlock(keyword: string, vals: ShaderConstant[] | undefined) {
 		return (vals || []).map(val => {
 			const arrayPostfix = (val.length! > 0) ? `[${val.length}]` : "";
@@ -89,12 +125,19 @@ namespace sd.render.gl1 {
 
 	function generateVertexSource(fn: GL1VertexFunction) {
 		const extensions = generateExtensionBlock(fn.extensions);
+		const defines = generateDefinesBlock(fn.defines);
 		const attributes = generateValueBlock("attribute", fn.in);
 		const varying = generateValueBlock("varying", fn.out);
+		const constValues = generateConstValuesBlock(fn.constValues);
+		const structs = generateStructsBlock(fn.structs);
 		const uniforms = generateConstantsBlock(fn.constantBlocks);
 		const samplers = generateSamplerBlock(fn.samplers);
 		
-		return `${extensions}${attributes}${varying}${uniforms}${samplers}
+		return `${extensions}${defines}
+		${attributes}${varying}
+		${constValues}${structs}
+		${uniforms}${samplers}
+		${fn.code || ""}
 		void main() {
 			${fn.main}
 		}`;
@@ -102,13 +145,19 @@ namespace sd.render.gl1 {
 
 	function generateFragmentSource(fn: GL1FragmentFunction) {
 		const extensions = generateExtensionBlock(fn.extensions);
+		const defines = generateDefinesBlock(fn.defines);
 		const varying = generateValueBlock("varying", fn.in);
+		const constValues = generateConstValuesBlock(fn.constValues);
+		const structs = generateStructsBlock(fn.structs);
 		const uniforms = generateConstantsBlock(fn.constantBlocks);
 		const samplers = generateSamplerBlock(fn.samplers);
 		
-		return `${extensions}
+		return `${extensions}${defines}
 		precision highp float;
-		${varying}${uniforms}${samplers}
+		${varying}
+		${constValues}${structs}
+		${uniforms}${samplers}
+		${fn.code || ""}
 		void main() {
 			${fn.main}
 		}`;
