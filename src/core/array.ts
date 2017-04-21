@@ -1,7 +1,7 @@
 // core/array - types and helpers for array-likes
-// Part of Stardazed TX
+// Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
-// https://github.com/stardazed/stardazed-tx
+// https://github.com/stardazed/stardazed
 
 // global type augmentations
 interface ArrayBufferConstructor {
@@ -68,6 +68,10 @@ namespace sd {
 		entries(): IterableIterator<[number, number]>;
 		keys(): IterableIterator<number>;
 		values(): IterableIterator<number>;
+
+		// es2016.includes extensions
+		[Symbol.toStringTag]: any;
+		includes(searchElement: number, fromIndex?: number): boolean;
 	}
 
 	export interface TypedArray extends TypedArrayBase {
@@ -88,9 +92,8 @@ namespace sd {
 	}
 
 	export interface TypedArrayConstructor {
-		new (length: number): TypedArray;
-		new (array: ArrayLike<number>): TypedArray;
-		new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray; // tslint:disable-line
+		new (lengthOrArray: number | ArrayLike<number>): TypedArray;
+		new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
 	}
 
 	// helper type for enums stored in Int32Arrays
