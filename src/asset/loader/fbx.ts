@@ -165,9 +165,9 @@ namespace sd.asset {
 			}
 		}
 
-
-		type FBXNodeSet = { [id: number]: FBXNode };
-
+		interface FBXNodeSet {
+			[id: number]: FBXNode;
+		};
 
 		interface FBXConnection {
 			fromID: number;
@@ -648,7 +648,7 @@ namespace sd.asset {
 
 					// With all streams and stuff collected, create the mesh
 					const t0 = performance.now();
-					const mb = new meshdata.MeshBuilder(positions, null, streams);
+					const mb = new meshdata.MeshBuilder((positions as any) as Float32Array, null, streams);
 					const polygonIndexCount = polygonIndexes.length;
 					let polygonVertexIndexArray: number[] = [];
 					let vertexIndexArray: number[] = [];

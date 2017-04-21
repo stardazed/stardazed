@@ -90,7 +90,7 @@ namespace sd.asset {
 	}
 
 
-	export function debugDumpPixelData(pixels: Uint8Array, width: number, height: number) {
+	export function debugDumpPixelData(pixels: Uint8ClampedArray, width: number, height: number) {
 		const cvs = document.createElement("canvas");
 		cvs.width = width;
 		cvs.height = height;
