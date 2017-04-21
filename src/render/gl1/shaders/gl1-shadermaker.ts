@@ -173,7 +173,7 @@ namespace sd.render.gl1 {
 			}
 		],
 		textures: [
-			{ name: "jointData", type: TextureClass.Normal, index: 0 }
+			{ name: "jointData", type: TextureClass.Normal, index: 8 }
 		],
 		code: `
 		// The jointData texture is 256x256 xyzw texels.
@@ -405,8 +405,8 @@ namespace sd.render.gl1 {
 			{ name: "PHONG_DIFFUSE", type: "float", expr: "1.0 / 3.141592654" }
 		],
 		textures: [
-			{ name: "brdfLookupMap", type: TextureClass.Normal, index: 0 },
-			{ name: "environmentMap", type: TextureClass.CubeMap, index: 0 },
+			{ name: "brdfLookupMap", type: TextureClass.Normal, index: 4 },
+			{ name: "environmentMap", type: TextureClass.CubeMap, index: 5 },
 		],
 		code: `
 		vec3 calcLightIBL(SurfaceInfo si, MaterialInfo mi) {
@@ -502,7 +502,7 @@ namespace sd.render.gl1 {
 			"lightEntry"
 		],
 		textures: [
-			{ name: "lightLUTSampler", type: TextureClass.Normal, index: 0 }
+			{ name: "lightLUTSampler", type: TextureClass.Normal, index: 6 }
 		],
 		constantBlocks: [
 			{
@@ -561,7 +561,7 @@ namespace sd.render.gl1 {
 			"materialInfo"
 		],
 		textures: [
-			{ name: "shadowSampler", type: TextureClass.Normal, index: 0 }
+			{ name: "shadowSampler", type: TextureClass.Normal, index: 7, ifExpr: "SHADOW_MAP" }
 		],
 		constantBlocks: [
 			{
@@ -695,9 +695,9 @@ namespace sd.render.gl1 {
 			}
 		],
 		textures: [
-			{ name: "albedoMap", type: TextureClass.Normal, index: 0 },
-			{ name: "emissiveMap", type: TextureClass.Normal, index: 0 },
-			{ name: "materialMap", type: TextureClass.Normal, index: 0 },
+			{ name: "albedoMap", type: TextureClass.Normal, index: 0, ifExpr: "ALBEDO_MAP" },
+			{ name: "materialMap", type: TextureClass.Normal, index: 1, ifExpr: "defined(ROUGHNESS_MAP) || defined(METALLIC_MAP) || defined(AO_MAP)" },
+			{ name: "emissiveMap", type: TextureClass.Normal, index: 2, ifExpr: "EMISSIVE_MAP" },
 		],
 		code: `
 		MaterialInfo getMaterialInfo(vec2 materialUV) {
@@ -779,7 +779,7 @@ namespace sd.render.gl1 {
 			}
 		],
 		textures: [
-			{ name: "normalHeightMap", type: TextureClass.Normal, index: 0 }
+			{ name: "normalHeightMap", type: TextureClass.Normal, index: 3, ifExpr: "defined(NORMAL_MAP) || defined(HEIGHT_MAP)" }
 		],
 		code: `
 		SurfaceInfo calcSurfaceInfo() {
