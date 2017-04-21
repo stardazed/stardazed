@@ -16,7 +16,7 @@ if (! ArrayBuffer.transfer) {
 		// after calling transfer.
 
 		const oldByteLength = oldBuffer.byteLength;
-		newByteLength = newByteLength | 0;
+		newByteLength = newByteLength! | 0;
 		sd.assert(newByteLength > 0);
 
 		if (newByteLength < oldByteLength) {

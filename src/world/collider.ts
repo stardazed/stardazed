@@ -71,7 +71,7 @@ namespace sd.world {
 			// -- shape-specific data
 			if (desc.type == ColliderType.Sphere) {
 				assert(desc.sphere);
-				this.sphereData_.set(instance, cloneStruct(desc.sphere));
+				this.sphereData_.set(instance, cloneStruct(desc.sphere!));
 			}
 
 			return instance;

@@ -284,14 +284,14 @@ namespace sd.meshdata {
 			return {
 				field: fieldOrAttr,
 				role: roleOrOffset,
-				offset: offset | 0
+				offset: offset! | 0
 			};
 		}
 		else {
 			return {
 				field: fieldOrAttr.field,
 				role: fieldOrAttr.role,
-				offset: roleOrOffset | 0
+				offset: roleOrOffset! | 0
 			};
 		}
 	}
@@ -1104,7 +1104,6 @@ namespace sd.meshdata {
 			vec3.copy(tanView.refItem(ix), tangent);
 		}
 	}
-
 
 
 	//  __  __        _    ___       _        

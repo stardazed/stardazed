@@ -219,7 +219,7 @@ namespace sd.meshdata {
 			else {
 				for (let streamIx = 0; streamIx < this.streamCount_; ++streamIx) {
 					const stream = this.streams_[streamIx];
-					const elemCount = stream.elementCount;
+					const elemCount = stream.elementCount! | 0;
 					const array = this.vertexData_[streamIx];
 					const fieldIndex = streamIndexes[streamIx];
 					let values: ArrayOfNumber = stream.values!; // TODO: is this guaranteed to exist in this loop?

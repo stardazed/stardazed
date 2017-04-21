@@ -43,8 +43,8 @@ namespace sd.render {
 	export function makeAttachmentDescriptor(texture?: Texture, level?: number, layer?: number): AttachmentDescriptor {
 		return {
 			texture: texture || null,
-			level: level | 0,
-			layer: layer | 0
+			level: level! | 0,
+			layer: layer! | 0
 		};
 	}
 

@@ -155,7 +155,7 @@ namespace sd.world {
 
 			if (feat & Features.Translucency) {
 				pld.depthMask = false;
-				pld.blending.enabled = true;
+				pld.blending = render.makeColourBlendingDescriptor();
 
 				pld.blending.rgbBlendOp = render.BlendOperation.Add;
 				pld.blending.alphaBlendOp = render.BlendOperation.Add;
@@ -1044,7 +1044,7 @@ namespace sd.world {
 			const mesh = this.meshMgr_.forEntity(this.entityBase_[modelIx]);
 			if (! mesh) {
 				// console.warn(`No mesh attached to entity of stdModel ${modelIx}`);
-				return;
+				return 0;
 			}
 
 			// -- calc transform matrices
@@ -1076,7 +1076,7 @@ namespace sd.world {
 
 				// FIXME: what a pile of #$!@#
 				if ((features & (Features.Translucency | Features.DiffuseAlphaIsOpacity)) === Features.Translucency) {
-					pipeline.blendConstantAlpha = materialData.colourData[3];
+					// pipeline.blendConstantAlpha = materialData.colourData[3];
 				}
 
 				rp.setPipeline(pipeline);

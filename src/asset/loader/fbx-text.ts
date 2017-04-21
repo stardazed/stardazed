@@ -137,7 +137,7 @@ namespace sd.asset.fbx.parse {
 			}
 			else {
 				// find end of token based on break-chars
-				const firstChar = c;
+				const firstChar = c!;
 				while (c = this.nextChar()) {
 					if (c == " " || c == "\t" || c == "\r" || c == "\n" || c == "," || c == "{" || c == "}") {
 						break;
