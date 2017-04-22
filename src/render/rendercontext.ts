@@ -98,7 +98,8 @@ namespace sd.render {
 		const contextAttrs: WebGLContextAttributes = {
 			antialias: false,
 			depth: true,
-			alpha: false
+			alpha: false,
+			premultipliedAlpha: false
 		};
 		try {
 			gl = canvas.getContext("webgl", contextAttrs);
@@ -112,6 +113,9 @@ namespace sd.render {
 			return null;
 		}
 
+		// sensible defaults
+		gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, gl.ZERO);
 
 		// enable large indexed meshes
 		const eiu = gl.getExtension("OES_element_index_uint");
