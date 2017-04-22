@@ -597,6 +597,10 @@ namespace sd.world {
 			// line("	return clamp(50.0 * f0.g, 0.0, 1.0) * Fc + (1.0 - Fc) * f0;");
 			line("}");
 
+			line("vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {");
+			line("	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);");
+			line("}");
+
 
 			if (lightingQuality >= PBRLightingQuality.CookTorrance) {
 				// following functions are copies of UE4
@@ -658,24 +662,35 @@ namespace sd.world {
 			// material properties
 			line("	float metallic = matParam[MAT_METALLIC];");
 			line("	float roughness = matParam[MAT_ROUGHNESS];");
-			line("	vec3 specularColour = mix(vec3(0.04), baseColour, metallic);");
-
-			// lookup brdf, diffuse and specular terms
-			line("	vec2 brdf = texture2D(brdfLookupMap, vec2(roughness, 1.0 - si.NdV)).xy;");
-			line("	vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, 4.0).xyz;");
-			line("	vec3 envspec = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 5.0).xyz;");
-
-			if (! this.rc.extSRGB) {
-				line("	envdiff = pow(envdiff, vec3(2.2));");
-				line("	envspec = pow(envspec, vec3(2.2));");
-			}
+			line("	float ao = matParam[MAT_AMBIENT_OCCLUSION];");
+			line("	vec3 F0 = mix(vec3(0.04), baseColour, metallic);");
 
 			// terms
-			line("	vec3 iblspec = min(vec3(0.99), fresnel_factor(specularColour, si.NdV) * brdf.x + brdf.y);");
-			line("	vec3 reflected_light = iblspec * envspec;");
-			line("	vec3 diffuse_light = envdiff * PHONG_DIFFUSE;");
+			line("	vec3 F = fresnelSchlickRoughness(max(si.NdV, 0.0), F0, roughness);");
+			line("	vec3 kS = F;");
+			line("	vec3 kD = 1.0 - kS;");
+			line("	kD *= 1.0 - metallic;");
 
-			line("	return diffuse_light * mix(baseColour, vec3(0.0), metallic) + reflected_light;");
+			// sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+			line("	vec2 brdf = texture2D(brdfLookupMap, vec2(max(si.NdV, 0.0), roughness)).xy;");
+			line("	vec3 irradiance = textureCubeLodEXT(environmentMap, si.N, 4.0).rgb;");
+			line("	vec3 prefilteredColor = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 5.0).rgb;");
+			if (! this.rc.extSRGB) {
+				line("	irradiance = pow(envdiff, vec3(2.2));");
+				line("	prefilteredColor = pow(envspec, vec3(2.2));");
+			}
+			line("	vec3 diffuse = irradiance * baseColour;");
+
+			line("	vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);");
+			line("	vec3 ambient = (kD * diffuse + specular) * ao;");
+
+			line("	return ambient;");
+
+			// line("	vec3 iblspec = min(vec3(0.99), fresnel_factor(F0, si.NdV) * brdf.x + brdf.y);");
+			// line("	vec3 reflected_light = iblspec * envspec;");
+			// line("	vec3 diffuse_light = envdiff * PHONG_DIFFUSE;");
+
+			// line("	return diffuse_light * mix(baseColour, vec3(0.0), metallic) + reflected_light;");
 			line("}");
 
 
@@ -821,15 +836,18 @@ namespace sd.world {
 				hasRMAMap = true;
 			}
 			else {
-				// copy roughness and metallic fixed values from param
-				line("	vec4 matParam = vec4(materialParam.xy, 0, 0);");
+				// copy roughness and metallic fixed values from param, set ao to 1.0
+				line("	vec4 matParam = vec4(materialParam.xy, 1.0, 0);");
 			}
 
-			if (hasRMAMap && (feat & Features.MetallicMap) == 0) {
+			if (hasRMAMap && (feat & Features.MetallicMap) === 0) {
 				line("	matParam[MAT_METALLIC] = materialParam[MAT_METALLIC];");
 			}
-			if (hasRMAMap && (feat & Features.RoughnessMap) == 0) {
+			if (hasRMAMap && (feat & Features.RoughnessMap) === 0) {
 				line("	matParam[MAT_ROUGHNESS] = materialParam[MAT_ROUGHNESS];");
+			}
+			if (hasRMAMap && (feat & Features.RoughnessMap) === 0) {
+				line("	matParam[MAT_AMBIENT_OCCLUSION] = 1.0;");
 			}
 
 			// -- calculate light arriving at the fragment
