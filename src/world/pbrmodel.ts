@@ -676,8 +676,8 @@ namespace sd.world {
 			line("	vec3 irradiance = textureCubeLodEXT(environmentMap, si.N, 4.0).rgb;");
 			line("	vec3 prefilteredColor = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 5.0).rgb;");
 			if (! this.rc.extSRGB) {
-				line("	irradiance = pow(envdiff, vec3(2.2));");
-				line("	prefilteredColor = pow(envspec, vec3(2.2));");
+				line("	irradiance = pow(irradiance, vec3(2.2));");
+				line("	prefilteredColor = pow(prefilteredColor, vec3(2.2));");
 			}
 			line("	vec3 diffuse = irradiance * baseColour;");
 
@@ -685,12 +685,6 @@ namespace sd.world {
 			line("	vec3 ambient = (kD * diffuse + specular) * ao;");
 
 			line("	return ambient;");
-
-			// line("	vec3 iblspec = min(vec3(0.99), fresnel_factor(F0, si.NdV) * brdf.x + brdf.y);");
-			// line("	vec3 reflected_light = iblspec * envspec;");
-			// line("	vec3 diffuse_light = envdiff * PHONG_DIFFUSE;");
-
-			// line("	return diffuse_light * mix(baseColour, vec3(0.0), metallic) + reflected_light;");
 			line("}");
 
 
