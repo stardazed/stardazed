@@ -317,11 +317,11 @@ namespace sd.render.gl1 {
 		else {
 			for (let mip = 0; mip < providerMips; ++mip) {
 				const pixBuf = provider ? provider.pixelBufferForLevel(mip) : undefined;
-				const pixData = pixBuf ? pixBuf.data : undefined;
+				const pixData = pixBuf ? pixBuf.data : null;
 
-				if ((pixData === undefined) || ("byteLength" in pixData)) {
+				if ((pixData === null) || ("byteLength" in pixData)) {
 					// either no data or raw pixel data
-					gl.texImage2D(target, mip, glTexPixelFormat, pixBuf ? pixBuf.dim.width : width, pixBuf ? pixBuf.dim.height : height, 0, glTexPixelFormat, glTexPixelType, pixData as (ArrayBufferView | undefined));
+					gl.texImage2D(target, mip, glTexPixelFormat, pixBuf ? pixBuf.dim.width : width, pixBuf ? pixBuf.dim.height : height, 0, glTexPixelFormat, glTexPixelType, pixData as (ArrayBufferView | null));
 				} 
 				else {
 					// a TexImageSource was provided
