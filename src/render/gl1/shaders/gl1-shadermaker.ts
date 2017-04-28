@@ -368,6 +368,10 @@ namespace sd.render.gl1 {
 			return 0.25 / max(0.0001, V * L); // avoid infinity as it screws up stuff rather royally, likely not best way tho
 		}
 
+		vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
+			return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+		}
+
 		// simple phong specular calculation with normalization
 		vec3 phong_specular(vec3 V, vec3 L, vec3 N, vec3 specular, float roughness) {
 			vec3 R = reflect(-L, N);
@@ -416,24 +420,30 @@ namespace sd.render.gl1 {
 			// material properties
 			float metallic = mi.metallic;
 			float roughness = mi.roughness;
-			vec3 specularColour = mix(vec3(0.04), mi.albedo.xyz, metallic);
-
-			// lookup brdf, diffuse and specular terms
-			vec2 brdf = texture2D(brdfLookupMap, vec2(roughness, 1.0 - si.NdV)).xy;
-			vec3 envdiff = textureCubeLodEXT(environmentMap, si.transNormalMatrix * si.N, 4.0).xyz;
-			vec3 envspec = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 5.0).xyz;
-
-			#ifdef NO_SRGB_TEXTURES
-				envdiff = pow(envdiff, SRGB_TO_LINEAR);
-				envspec = pow(envspec, SRGB_TO_LINEAR);
-			#endif
+			float ao = mi.ao;
+			vec3 F0 = mix(vec3(0.04), mi.albedo.rgb, metallic);
 
 			// terms
-			vec3 iblspec = min(vec3(0.99), fresnel_factor(specularColour, si.NdV) * brdf.x + brdf.y);
-			vec3 reflected_light = iblspec * envspec;
-			vec3 diffuse_light = envdiff * PHONG_DIFFUSE;
+			vec3 F = fresnelSchlickRoughness(max(si.NdV, 0.0), F0, roughness);
+			vec3 kS = F;
+			vec3 kD = 1.0 - kS;
+			kD *= 1.0 - metallic;
 
-			return diffuse_light * mix(mi.albedo.xyz, vec3(0.0), metallic) + reflected_light;
+			// sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+			vec2 brdf = texture2D(brdfLookupMap, vec2(max(si.NdV, 0.0), roughness)).xy;
+			vec3 irradiance = textureCubeLodEXT(environmentMap, si.N, 4.0).rgb;
+			vec3 prefilteredColor = textureCubeLodEXT(environmentMap, si.reflectedV, roughness * 5.0).rgb;
+
+			#ifdef NO_SRGB_TEXTURES
+				irradiance = pow(irradiance, vec3(2.2));
+				prefilteredColor = pow(prefilteredColor, vec3(2.2));
+			#endif
+
+			vec3 diffuse = irradiance * mi.albedo.rgb;
+			vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+			vec3 ambient = (kD * diffuse + specular) * ao;
+
+			return ambient;
 		}
 
 		vec3 calcLightShared(vec3 lightColour, float diffuseStrength, vec3 lightDirection_cam, SurfaceInfo si, MaterialInfo mi) {
