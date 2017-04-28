@@ -77,8 +77,7 @@ namespace sd {
 	export interface TypedArray extends TypedArrayBase {
 		[index: number]: number;
 
-		set(index: number, value: number): void;
-		set(array: ArrayLike<number>, offset?: number): void;
+		set(arrayOrElements: ArrayLike<number>, offset?: number): void;
 
 		copyWithin(target: number, start: number, end?: number): this;
 		fill(value: number, start?: number, end?: number): this;
@@ -92,7 +91,7 @@ namespace sd {
 	}
 
 	export interface TypedArrayConstructor {
-		new (lengthOrArray: number | ArrayLike<number>): TypedArray;
+		new (lengthOrSource: number | Iterable<number> | ArrayLike<number>): TypedArray;
 		new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
 	}
 
