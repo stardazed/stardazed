@@ -63,6 +63,13 @@ namespace sd.render.gl1 {
 			return this.resources[index];
 		}
 
+		findMultiple(clientResources: C[]): (R | undefined)[] {
+			return clientResources.map(cr => {
+				const { index } = decodeResourceHandle(cr.renderResourceHandle);
+				return this.resources[index];
+			});
+		}
+
 		remove(clientResource: C) {
 			const { index } = decodeResourceHandle(clientResource.renderResourceHandle!);
 			clientResource.renderResourceHandle = 0;
