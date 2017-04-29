@@ -21,7 +21,7 @@ namespace sd.container {
 	}
 
 
-	export function appendArrayInPlace<T>(dest: Array<T>, source: Array<T>) {
+	export function appendArrayInPlace<T>(dest: T[], source: T[]) {
 		const MAX_BLOCK_SIZE = 65535;
 
 		let offset = 0;

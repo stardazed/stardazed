@@ -126,8 +126,8 @@ namespace sd.math {
 		}
 
 		static fromCenterAndSize(center: ConstFloat3, size: ConstFloat3): AABB {
-			const min = <number[]>[];
-			const max = <number[]>[];
+			const min: number[] = [];
+			const max: number[] = [];
 			aabb.setCenterAndSize(min, max, center, size);
 			return new AABB(min, max);
 		}

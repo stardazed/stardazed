@@ -83,8 +83,8 @@ namespace sd.meshdata {
 			let sourceIndex = 0;
 			let arrView: TypedArray;
 
-			if (this.attrElementCount_ == 1) {
-				if (stride % elementSize == 0) {
+			if (this.attrElementCount_ === 1) {
+				if (stride % elementSize === 0) {
 					const strideInElements = (stride / elementSize) | 0;
 					const offsetInElements = (offsetBytes / elementSize) | 0;
 					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
@@ -104,8 +104,8 @@ namespace sd.meshdata {
 					}
 				}
 			}
-			else if (this.attrElementCount_ == 2) {
-				if (stride % elementSize == 0) {
+			else if (this.attrElementCount_ === 2) {
+				if (stride % elementSize === 0) {
 					const strideInElements = (stride / elementSize) | 0;
 					const offsetInElements = (offsetBytes / elementSize) | 0;
 					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
@@ -127,8 +127,8 @@ namespace sd.meshdata {
 					}
 				}
 			}
-			else if (this.attrElementCount_ == 3) {
-				if (stride % elementSize == 0) {
+			else if (this.attrElementCount_ === 3) {
+				if (stride % elementSize === 0) {
 					const strideInElements = (stride / elementSize) | 0;
 					const offsetInElements = (offsetBytes / elementSize) | 0;
 					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
@@ -152,8 +152,8 @@ namespace sd.meshdata {
 					}
 				}
 			}
-			else if (this.attrElementCount_ == 4) {
-				if (stride % elementSize == 0) {
+			else if (this.attrElementCount_ === 4) {
+				if (stride % elementSize === 0) {
 					const strideInElements = (stride / elementSize) | 0;
 					const offsetInElements = (offsetBytes / elementSize) | 0;
 					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);

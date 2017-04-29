@@ -37,7 +37,7 @@ namespace sd.container {
 				type: field.type,
 				count: field.count,
 				byteOffset: curOffset,
-				sizeBytes: sizeBytes
+				sizeBytes
 			};
 		});
 	}
@@ -108,7 +108,7 @@ namespace sd.container {
 					type: field.type,
 					count: field.count,
 					byteOffset: curOffset,
-					sizeBytes: sizeBytes
+					sizeBytes
 				};
 			});
 
@@ -209,7 +209,7 @@ namespace sd.container {
 		extend(): InvalidatePointers {
 			let invalidation = InvalidatePointers.No;
 
-			if (this.count_ == this.capacity_) {
+			if (this.count_ === this.capacity_) {
 				invalidation = this.reserve(this.capacity_ * 2);
 			}
 

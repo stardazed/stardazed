@@ -66,7 +66,7 @@ namespace sd.meshdata {
 		Norm_SInt16x2,
 		Norm_SInt16x3,
 		Norm_SInt16x4
-	};
+	}
 
 
 	// --- VertexField traits

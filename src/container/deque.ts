@@ -38,8 +38,8 @@ namespace sd.container {
 
 		// -- adding elements
 		append(t: T) {
-			if (this.tailIndex_ == this.blockCapacity) {
-				if (this.tailBlock_ == this.blocks_.length - 1) {
+			if (this.tailIndex_ === this.blockCapacity) {
+				if (this.tailBlock_ === this.blocks_.length - 1) {
 					this.blocks_.push(this.newBlock());
 				}
 
@@ -53,8 +53,8 @@ namespace sd.container {
 		}
 
 		prepend(t: T) {
-			if (this.headIndex_ == 0) {
-				if (this.headBlock_ == 0) {
+			if (this.headIndex_ === 0) {
+				if (this.headBlock_ === 0) {
 					this.blocks_.unshift(this.newBlock());
 					++this.tailBlock_;
 				}
@@ -79,14 +79,14 @@ namespace sd.container {
 
 			++this.headIndex_;
 
-			if (this.headIndex_ == this.blockCapacity) {
+			if (this.headIndex_ === this.blockCapacity) {
 				// Strategy: keep max. 1 block before head if it was previously created.
 				// Once we get to 2 empty blocks before head, then remove the front block.
 
-				if (this.headBlock_ == 0) {
+				if (this.headBlock_ === 0) {
 					++this.headBlock_;
 				}
-				else if (this.headBlock_ == 1) {
+				else if (this.headBlock_ === 1) {
 					this.blocks_.shift();
 					this.tailBlock_--;
 				}
@@ -101,12 +101,12 @@ namespace sd.container {
 		popBack() {
 			assert(this.count_ > 0);
 
-			if (this.tailIndex_ == 0) {
+			if (this.tailIndex_ === 0) {
 				// Strategy: keep max. 1 block after tail if it was previously created.
 				// Once we get to 2 empty blocks after tail, then remove the back block.
 				const lastBlockIndex = this.blocks_.length - 1;
 
-				if (this.tailBlock_ == lastBlockIndex - 1) {
+				if (this.tailBlock_ === lastBlockIndex - 1) {
 					this.blocks_.pop();
 				}
 
@@ -133,7 +133,7 @@ namespace sd.container {
 
 		// -- observers
 		get count() { return this.count_; }
-		get empty() { return this.count_ == 0; }
+		get empty() { return this.count_ === 0; }
 
 		get front(): T {
 			assert(this.count_ > 0);

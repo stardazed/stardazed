@@ -144,7 +144,7 @@ namespace sd.entity {
 			const instance = this.count_;
 
 			// validate parameters
-			assert(desc.type != LightType.None);
+			assert(desc.type !== LightType.None);
 
 			// linking
 			this.entityBase_[instance] = entity;
@@ -369,7 +369,7 @@ namespace sd.entity {
 				const type = this.type(lix);
 				const transform = this.transformBase_[lix];
 
-				if (type != LightType.Directional) {
+				if (type !== LightType.Directional) {
 					const lightPos_world = this.transformMgr_.worldPosition(transform); // tslint:disable-line:variable-name
 					const lightPos_cam = vec3.transformMat4([], lightPos_world, proj.viewMatrix); // tslint:disable-line:variable-name
 
@@ -383,7 +383,7 @@ namespace sd.entity {
 					this.globalLightData_[posWorldOffset + 1] = lightPos_world[1];
 					this.globalLightData_[posWorldOffset + 2] = lightPos_world[2];
 				}
-				if (type != LightType.Point) {
+				if (type !== LightType.Point) {
 					const rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(transform));
 					const lightDir_world = vec3.transformMat3([], this.nullVec3_, rotMat); // tslint:disable-line:variable-name
 					const lightDir_cam = vec3.transformMat3([], lightDir_world, viewNormalMatrix); // tslint:disable-line:variable-name
@@ -425,11 +425,11 @@ namespace sd.entity {
 		// -- linked objects
 
 		entity(inst: LightInstance): Entity {
-			return this.entityBase_[<number>inst];
+			return this.entityBase_[inst as number];
 		}
 
 		transform(inst: LightInstance): TransformInstance {
-			return this.transformBase_[<number>inst];
+			return this.transformBase_[inst as number];
 		}
 
 
@@ -450,26 +450,26 @@ namespace sd.entity {
 		// -- indirect properties (in Transform)
 
 		localPosition(inst: LightInstance): number[] {
-			return this.transformMgr_.localPosition(this.transformBase_[<number>inst]);
+			return this.transformMgr_.localPosition(this.transformBase_[inst as number]);
 		}
 
 		setLocalPosition(inst: LightInstance, newPosition: Float3) {
-			this.transformMgr_.setPosition(this.transformBase_[<number>inst], newPosition);
+			this.transformMgr_.setPosition(this.transformBase_[inst as number], newPosition);
 		}
 
 		worldPosition(inst: LightInstance): number[] {
-			return this.transformMgr_.worldPosition(this.transformBase_[<number>inst]);
+			return this.transformMgr_.worldPosition(this.transformBase_[inst as number]);
 		}
 
 
 		direction(inst: LightInstance) {
-			const rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(this.transformBase_[<number>inst]));
+			const rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(this.transformBase_[inst as number]));
 			return vec3.normalize([], vec3.transformMat3([], this.nullVec3_, rotMat));
 		}
 
 		setDirection(inst: LightInstance, newDirection: Float3) {
 			const normalizedDir = vec3.normalize([], newDirection);
-			this.transformMgr_.setRotation(this.transformBase_[<number>inst], quat.rotationTo([], this.nullVec3_, normalizedDir));
+			this.transformMgr_.setRotation(this.transformBase_[inst as number], quat.rotationTo([], this.nullVec3_, normalizedDir));
 		}
 
 

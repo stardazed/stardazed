@@ -21,17 +21,29 @@ namespace sd.dom {
 			return sel;
 		}
 	}
-	export function $1(sel: ElemSelector, base?: HTMLElement): HTMLElement { return <HTMLElement>$(sel, base)[0]; }
+	export function $1(sel: ElemSelector, base?: HTMLElement): HTMLElement {
+		return $(sel, base)[0] as HTMLElement;
+	}
 
-	export function show(sel: ElemSelector, disp?: string) { $(sel).forEach(function(el) { (<HTMLElement>el).style.display = (disp != null) ? disp : "block"; }); }
-	export function hide(sel: ElemSelector) { $(sel).forEach(function(el) { (<HTMLElement>el).style.display = "none"; }); }
+	export function show(sel: ElemSelector, disp?: string): void {
+		$(sel).forEach(el => {
+			(el as HTMLElement).style.display = (disp != null) ? disp : "block";
+		});
+	}
+	export function hide(sel: ElemSelector): void {
+		$(sel).forEach(el => {
+			(el as HTMLElement).style.display = "none";
+		});
+	}
 
-	export function setDisabled(sel: ElemSelector, dis: boolean) { $(sel).forEach(function(el) { (<HTMLInputElement>el).disabled = dis; }); }
+	export function setDisabled(sel: ElemSelector, dis: boolean): void {
+		$(sel).forEach(el => { (el as HTMLInputElement).disabled = dis; });
+	}
 	export function enable(sel: ElemSelector) { setDisabled(sel, false); }
 	export function disable(sel: ElemSelector) { setDisabled(sel, true); }
 
 	export function closest(sourceSel: ElemSelector, sel: string): HTMLElement | undefined {
-		let source = <HTMLElement | undefined>($1(sourceSel));
+		let source = ($1(sourceSel)) as HTMLElement | undefined;
 
 		if (! source) {
 			return undefined;
@@ -46,7 +58,7 @@ namespace sd.dom {
 			if (!source || source.nodeType !== Node.ELEMENT_NODE) {
 				return undefined;
 			}
-			const elem = <HTMLElement>source;
+			const elem = source as HTMLElement;
 			const matchFn = elem.matches || elem.webkitMatchesSelector || elem.msMatchesSelector;
 			if (matchFn.call(elem, sel)) {
 				return elem;
@@ -58,8 +70,8 @@ namespace sd.dom {
 
 	export function nextElementSibling(elem: HTMLElement): HTMLElement | undefined {
 		while (elem) {
-			elem = <HTMLElement>(elem.nextSibling);
-			if (elem && elem.nodeType == Node.ELEMENT_NODE) {
+			elem = elem.nextSibling as HTMLElement;
+			if (elem && elem.nodeType === Node.ELEMENT_NODE) {
 				return elem;
 			}
 		}
@@ -72,12 +84,12 @@ namespace sd.dom {
 
 	export function on(target: ElemSelector | Window, evt: string, handler: (ev: Event) => any) {
 		const list: EventTarget[] = (target instanceof Window) ? [target] : $(target);
-		list.forEach(function(tgt) { tgt.addEventListener(evt, handler); });
+		list.forEach(tgt => { tgt.addEventListener(evt, handler); });
 	}
 
 	export function off(target: ElemSelector | Window, evt: string, handler: (ev: Event) => any) {
 		const list: EventTarget[] = (target instanceof Window) ? [target] : $(target);
-		list.forEach(function(tgt) { tgt.removeEventListener(evt, handler); });
+		list.forEach(tgt => { tgt.removeEventListener(evt, handler); });
 	}
 
 } // ns sd.dom

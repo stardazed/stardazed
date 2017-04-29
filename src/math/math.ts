@@ -48,7 +48,7 @@ namespace sd.math {
 	}
 
 	export function isPowerOf2(n: number) {
-		return (n & (n - 1)) == 0;
+		return (n & (n - 1)) === 0;
 	}
 
 	// roundUpPowerOf2

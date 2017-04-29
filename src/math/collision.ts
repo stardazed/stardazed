@@ -96,7 +96,7 @@ namespace sd.math {
 		const normal = vec3.normalize([], vec3.cross([], vec3.sub([], b, a), vec3.sub([], c, a)));
 
 		return {
-			normal: normal,
+			normal,
 			d: vec3.dot(normal, a)
 		};
 	}
@@ -125,7 +125,7 @@ namespace sd.math {
 
 
 	export function makeBoundedPlane(center: Float3, normal: Float3, size: Float2): BoundedPlane {
-		const bp = <BoundedPlane>makePlaneFromPointAndNormal(center, normal);
+		const bp = makePlaneFromPointAndNormal(center, normal) as BoundedPlane;
 		bp.center = vec3.clone(center);
 		bp.size = vec2.clone(size);
 		return bp;

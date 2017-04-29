@@ -164,8 +164,8 @@ namespace sd.meshdata {
 			assert(baseIndexNr < this.indexCount);
 			assert(baseIndexNr + indexCount <= this.indexCount);
 
-			let offsetBytes = this.storage.byteOffset + this.indexElementSizeBytes_ * baseIndexNr;
-			let arrayClass = typedIndexArrayClassForIndexElement(this.indexElementType);
+			const offsetBytes = this.storage.byteOffset + this.indexElementSizeBytes_ * baseIndexNr;
+			const arrayClass = typedIndexArrayClassForIndexElement(this.indexElementType);
 			return new arrayClass(this.storage.buffer, offsetBytes, indexCount);
 		}
 	}

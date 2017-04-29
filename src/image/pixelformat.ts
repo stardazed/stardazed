@@ -62,18 +62,18 @@ namespace sd.image {
 
 
 	export function pixelFormatIsDepthFormat(format: PixelFormat) {
-		return	format == PixelFormat.Depth16I ||
-				format == PixelFormat.Depth24I;
+		return	format === PixelFormat.Depth16I ||
+				format === PixelFormat.Depth24I;
 		}
 
 
 	export function pixelFormatIsStencilFormat(format: PixelFormat) {
-		return format == PixelFormat.Stencil8;
+		return format === PixelFormat.Stencil8;
 	}
 
 
 	export function pixelFormatIsDepthStencilFormat(format: PixelFormat) {
-		return format == PixelFormat.Depth24_Stencil8;
+		return format === PixelFormat.Depth24_Stencil8;
 	}
 
 

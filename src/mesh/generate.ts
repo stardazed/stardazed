@@ -44,7 +44,7 @@ namespace sd.meshdata.gen {
 		let totalFaceCount = 0;
 
 		for (const genSource of genList) {
-			const generator: MeshGenerator = ("generator" in genSource) ? (<TransformedMeshGen>genSource).generator : <MeshGenerator>genSource;
+			const generator: MeshGenerator = ("generator" in genSource) ? (genSource as TransformedMeshGen).generator : genSource as MeshGenerator;
 			totalVertexCount += generator.vertexCount;
 			totalFaceCount += generator.faceCount;
 		}
@@ -83,7 +83,7 @@ namespace sd.meshdata.gen {
 			posIx++;
 		};
 
-		const pos = posView.elementCount == 2 ? pos2 : pos3;
+		const pos = posView.elementCount === 2 ? pos2 : pos3;
 
 		const face: IndexesAddFn = (a: number, b: number, c: number) => {
 			const i3 = triView.refItem(faceIx);
@@ -112,7 +112,7 @@ namespace sd.meshdata.gen {
 		const normTransMatrix = mat3.create();
 
 		for (const genSource of genList) {
-			const generator: MeshGenerator = ("generator" in genSource) ? (<TransformedMeshGen>genSource).generator : <MeshGenerator>genSource;
+			const generator: MeshGenerator = ("generator" in genSource) ? (genSource as TransformedMeshGen).generator : genSource as MeshGenerator;
 			generator.generate(pos, face, normal, uv);
 
 			const subVtxCount = generator.vertexCount;
@@ -122,7 +122,7 @@ namespace sd.meshdata.gen {
 
 			// -- if the generator does not supply normals but the mesh has a Normal attribute, we calculate them
 			if (subNormalView && ! generator.explicitNormals) {
-				let subFaceView = triView.subView(faceIx - subFaceCount, subFaceCount);
+				const subFaceView = triView.subView(faceIx - subFaceCount, subFaceCount);
 				calcVertexNormalsViews(subPosView, subNormalView, subFaceView);
 
 				normalIx += subVtxCount;
@@ -130,7 +130,7 @@ namespace sd.meshdata.gen {
 
 			// is this a TransformedMeshGen?
 			if ("generator" in genSource) {
-				const xformGen = <TransformedMeshGen>genSource;
+				const xformGen = genSource as TransformedMeshGen;
 				const rotation = xformGen.rotation || quat.create();
 				const translation = xformGen.translation || vec3.create();
 				const scale = xformGen.scale || vec3.fromValues(1, 1, 1);
@@ -367,7 +367,7 @@ namespace sd.meshdata.gen {
 	}
 
 	export function cubeDescriptor(diam: number, inward = false): BoxDescriptor {
-		return { width: diam, height: diam, depth: diam, inward: inward };
+		return { width: diam, height: diam, depth: diam, inward };
 	}
 
 	export class Box implements MeshGenerator {
@@ -633,7 +633,7 @@ namespace sd.meshdata.gen {
 
 			assert(this.radiusA_ >= 0);
 			assert(this.radiusB_ >= 0);
-			assert(! ((this.radiusA_ == 0) && (this.radiusB_ == 0)));
+			assert(! ((this.radiusA_ === 0) && (this.radiusB_ = 0)));
 			assert(this.rows_ >= 1);
 			assert(this.segs_ >= 3);
 		}
@@ -644,7 +644,7 @@ namespace sd.meshdata.gen {
 
 		get faceCount(): number {
 			let fc = (2 * this.segs_ * this.rows_);
-			if ((this.radiusA_ == 0) || (this.radiusB_ == 0)) {
+			if ((this.radiusA_ === 0) || (this.radiusB_ === 0)) {
 				fc -= this.segs_;
 			}
 			return fc;
@@ -744,10 +744,10 @@ namespace sd.meshdata.gen {
 
 		get faceCount(): number {
 			let fc = 2 * this.segs_ * this.rows_;
-			if (this.sliceFrom_ == 0.0) {
+			if (this.sliceFrom_ === 0.0) {
 				fc -= this.segs_;
 			}
-			if (this.sliceTo_ == 1.0) {
+			if (this.sliceTo_ === 1.0) {
 				fc -= this.segs_;
 			}
 			return fc;

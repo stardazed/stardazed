@@ -31,7 +31,7 @@ namespace sd.control {
 		Q = "Q".charCodeAt(0), R = "R".charCodeAt(0), S = "S".charCodeAt(0), T = "T".charCodeAt(0),
 		U = "U".charCodeAt(0), V = "V".charCodeAt(0), W = "W".charCodeAt(0), X = "X".charCodeAt(0),
 		Y = "Y".charCodeAt(0), Z = "Z".charCodeAt(0)
-	};
+	}
 
 
 	export interface ButtonState {

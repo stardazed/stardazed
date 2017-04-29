@@ -87,7 +87,7 @@ namespace sd.entity {
 
 			if (index > 0) {
 				while (index <= end) {
-					fn.call(thisObj, <Instance<C>>index);
+					fn.call(thisObj, index as Instance<C>);
 					++index;
 				}
 			}
@@ -168,14 +168,14 @@ namespace sd.entity {
 		private data_ = new Set<Instance<C>>();
 
 		get count() { return this.data_.size; }
-		get empty() { return this.data_.size == 0; }
+		get empty() { return this.data_.size === 0; }
 
 		add(inst: Instance<C>) {
 			this.data_.add(inst);
 		}
 
 		addRange(inst: Instance<C>, count: number) {
-			let index = <number>inst;
+			let index = inst as number;
 			const upto = index + count;
 			while (index < upto) {
 				this.data_.add(index);
@@ -194,7 +194,7 @@ namespace sd.entity {
 		}
 
 		removeRange(inst: Instance<C>, count: number) {
-			let index = <number>inst;
+			let index = inst as number;
 			const upto = index + count;
 			while (index < upto) {
 				this.data_.delete(index);

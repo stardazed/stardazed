@@ -132,7 +132,7 @@ namespace sd.meshdata {
 			const t2 = w3[1] - w1[1];
 
 			const rd = (s1 * t2 - s2 * t1);
-			const r = rd == 0 ? 0.0 : 1.0 / rd;
+			const r = rd === 0 ? 0.0 : 1.0 / rd;
 			const sdir = [
 				(t2 * x1 - t1 * x2) * r,
 				(t2 * y1 - t1 * y2) * r,

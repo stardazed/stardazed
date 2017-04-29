@@ -16,11 +16,11 @@ namespace sd.entity {
 	const entityGenerationMask = (1 << entityGenerationBits) - 1;
 
 	export function entityGeneration(ent: Entity) {
-		return ((<number>ent) >> entityIndexBits) & entityGenerationMask;
+		return ((ent as number) >> entityIndexBits) & entityGenerationMask;
 	}
 
 	export function entityIndex(ent: Entity) {
-		return <number>ent & entityIndexMask;
+		return (ent as number) & entityIndexMask;
 	}
 
 	function makeEntity(index: number, generation: number): Entity {
@@ -45,7 +45,7 @@ namespace sd.entity {
 		}
 
 		private appendGeneration() {
-			if (this.genCount_ == this.generation_.length) {
+			if (this.genCount_ === this.generation_.length) {
 				// grow generation array
 				const newBuffer = ArrayBuffer.transfer(this.generation_.buffer, this.generation_.length * 2);
 				this.generation_ = new Uint8Array(newBuffer);
@@ -72,9 +72,9 @@ namespace sd.entity {
 
 		alive(ent: Entity) {
 			// explicitly "inlined" calls to entityIndex/Generation as this method will be called a lot
-			const index = <number>ent & entityIndexMask;
-			const generation = ((<number>ent) >> entityIndexBits) & entityGenerationMask;
-			return index <= this.genCount_ && (generation == this.generation_[index]);
+			const index = (ent as number) & entityIndexMask;
+			const generation = ((ent as number) >> entityIndexBits) & entityGenerationMask;
+			return index <= this.genCount_ && (generation === this.generation_[index]);
 		}
 
 		destroy(ent: Entity) {

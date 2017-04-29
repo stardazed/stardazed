@@ -46,18 +46,18 @@ namespace sd.image {
 		const bitDepth = headerView.getUint8(TGAFileHeader.bitDepth);
 		let bytesPerPixel = 0;
 
-		if ((imageType & 7) == TGAImageType.RGB) {
-			if (bitDepth == 24) {
+		if ((imageType & 7) === TGAImageType.RGB) {
+			if (bitDepth === 24) {
 				bytesPerPixel = 3;
 			}
-			else if (bitDepth == 32) {
+			else if (bitDepth === 32) {
 				bytesPerPixel = 4;
 			}
 			else {
 				throw new Error("Only 24 or 32 bit RGB TGA images are supported.");
 			}
 		}
-		else if ((imageType & 7) == TGAImageType.Grayscale) {
+		else if ((imageType & 7) === TGAImageType.Grayscale) {
 			bytesPerPixel = 1;
 			assert(bitDepth === 8, "Only 8-bit grayscale TGA images are supported.");
 		}
@@ -75,12 +75,12 @@ namespace sd.image {
 		let pixelRunRaw = true;
 		let linePixelsLeft = width;
 
-		if (bytesPerPixel == 1) {
+		if (bytesPerPixel === 1) {
 			// 8-bit Grayscale pixels
 			while (pixelsLeft > 0) {
-				if (pixelRunLeft == 0) {
+				if (pixelRunLeft === 0) {
 					const ctrl = sourcePixels[sourceOffset];
-					pixelRunRaw = (ctrl & 0x80) == 0;
+					pixelRunRaw = (ctrl & 0x80) === 0;
 					pixelRunLeft = 1 + (ctrl & 0x7f);
 					sourceOffset += 1;
 				}
@@ -93,23 +93,23 @@ namespace sd.image {
 
 				pixelRunLeft -= 1;
 				pixelsLeft -= 1;
-				if (pixelRunRaw || pixelRunLeft == 0) {
+				if (pixelRunRaw || pixelRunLeft === 0) {
 					sourceOffset += 1;
 				}
 				destOffset += 4;
 				linePixelsLeft -= 1;
-				if (linePixelsLeft == 0) {
+				if (linePixelsLeft === 0) {
 					destOffset -= 2 * width * 4;
 					linePixelsLeft = width;
 				}
 			}
 		}
-		else if (bytesPerPixel == 3) {
+		else if (bytesPerPixel === 3) {
 			// 24-bit BGR pixels
 			while (pixelsLeft > 0) {
-				if (pixelRunLeft == 0) {
+				if (pixelRunLeft === 0) {
 					const ctrl = sourcePixels[sourceOffset];
-					pixelRunRaw = (ctrl & 0x80) == 0;
+					pixelRunRaw = (ctrl & 0x80) === 0;
 					pixelRunLeft = 1 + (ctrl & 0x7f);
 					sourceOffset += 1;
 				}
@@ -121,23 +121,23 @@ namespace sd.image {
 
 				pixelRunLeft -= 1;
 				pixelsLeft -= 1;
-				if (pixelRunRaw || pixelRunLeft == 0) {
+				if (pixelRunRaw || pixelRunLeft === 0) {
 					sourceOffset += 3;
 				}
 				destOffset += 4;
 				linePixelsLeft -= 1;
-				if (linePixelsLeft == 0) {
+				if (linePixelsLeft === 0) {
 					destOffset -= 2 * width * 4;
 					linePixelsLeft = width;
 				}
 			}
 		}
-		else if (bytesPerPixel == 4) {
+		else if (bytesPerPixel === 4) {
 			// 32-bit BGRA pixels
 			while (pixelsLeft > 0) {
-				if (pixelRunLeft == 0) {
+				if (pixelRunLeft === 0) {
 					const ctrl = sourcePixels[sourceOffset];
-					pixelRunRaw = (ctrl & 0x80) == 0;
+					pixelRunRaw = (ctrl & 0x80) === 0;
 					pixelRunLeft = 1 + (ctrl & 0x7f);
 					sourceOffset += 1;
 				}
@@ -149,12 +149,12 @@ namespace sd.image {
 
 				pixelRunLeft -= 1;
 				pixelsLeft -= 1;
-				if (pixelRunRaw || pixelRunLeft == 0) {
+				if (pixelRunRaw || pixelRunLeft === 0) {
 					sourceOffset += 4;
 				}
 				destOffset += 4;
 				linePixelsLeft -= 1;
-				if (linePixelsLeft == 0) {
+				if (linePixelsLeft === 0) {
 					destOffset -= 2 * width * 4;
 					linePixelsLeft = width;
 				}

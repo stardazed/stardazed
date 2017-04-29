@@ -106,7 +106,7 @@ namespace sd.render.gl1 {
 	const enum PBRLightingQuality {
 		Phong,
 		Blinn,
-		CookTorrance
+		CookTorrance,
 	}
 
 	modules.gammaConstants = {
@@ -330,7 +330,7 @@ namespace sd.render.gl1 {
 
 	modules.pbrLightingMath = {
 		constValues: [
-			{ name: "PI", type: "float", "expr": "3.1415926536" }
+			{ name: "PI", type: "float", expr: "3.1415926536" }
 		],
 		code: `
 		// compute fresnel specular factor for given base specular and product

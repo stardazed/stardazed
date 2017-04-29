@@ -46,7 +46,7 @@ namespace sd.io {
 
 
 	export function loadFile<R>(url: URL | string, opts?: FileLoadOptions) {
-		return new Promise<R>(function(resolve, reject) {
+		return new Promise<R>((resolve, reject) => {
 			opts = opts || {};
 
 			const xhr = new XMLHttpRequest();
@@ -62,13 +62,13 @@ namespace sd.io {
 				xhr.overrideMimeType(opts.mimeType);
 			}
 
-			xhr.onreadystatechange = function() {
-				if (xhr.readyState != 4) { return; }
-				assert(xhr.status == 200 || xhr.status == 0);
+			xhr.onreadystatechange = () => {
+				if (xhr.readyState !== 4) { return; }
+				assert(xhr.status === 200 || xhr.status === 0);
 				resolve(xhr.response);
 			};
 
-			xhr.onerror = function() {
+			xhr.onerror = () => {
 				const message = `'${url}' doesn't exist or failed to load`;
 				assert(false, message);
 				reject(message);
@@ -133,7 +133,7 @@ namespace sd.io {
 			bytesLeft -= blockSize;
 		}
 
-		return strings.length == 1 ? strings[0] : strings.join("");
+		return strings.length === 1 ? strings[0] : strings.join("");
 	}
 
 } // ns sd.io

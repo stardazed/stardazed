@@ -37,8 +37,8 @@ namespace sd.meshdata {
 
 	export function allocateMeshData(options: MeshDataAllocOptions): MeshData {
 		let totalBytes = 0;
-		for (let vbix = 0; vbix < options.layout.layouts.length; ++vbix) {
-			totalBytes += options.layout.layouts[vbix].bytesRequiredForVertexCount(options.vertexCount);
+		for (const layout of options.layout.layouts) {
+			totalBytes += layout.bytesRequiredForVertexCount(options.vertexCount);
 			totalBytes = math.alignUp(totalBytes, BufferAlignment.SubBuffer);
 		}
 		if (options.indexCount > 0) {
@@ -59,10 +59,10 @@ namespace sd.meshdata {
 		const storage = new ArrayBuffer(totalBytes);
 
 		let byteOffset = 0;
-		for (let vbix = 0; vbix < options.layout.layouts.length; ++vbix) {
-			const subSize = options.layout.layouts[vbix].bytesRequiredForVertexCount(options.vertexCount);
+		for (const layout of options.layout.layouts) {
+			const subSize = layout.bytesRequiredForVertexCount(options.vertexCount);
 			const subStorage = new Uint8ClampedArray(storage, byteOffset, subSize);
-			const vb = new VertexBuffer(options.vertexCount, options.layout.layouts[vbix].stride, subStorage);
+			const vb = new VertexBuffer(options.vertexCount, layout.stride, subStorage);
 			md.vertexBuffers.push(vb);
 
 			byteOffset += subSize;

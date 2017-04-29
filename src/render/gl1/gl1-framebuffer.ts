@@ -6,7 +6,7 @@
 namespace sd.render.gl1 {
 
 	const fboBugs = {
-		mustHaveAColourAtt: <(boolean | undefined)>undefined
+		mustHaveAColourAtt: undefined as (boolean | undefined)
 	};
 
 	function fboMustHaveAColourAttachment(rd: GL1RenderDevice) {

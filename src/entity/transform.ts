@@ -87,7 +87,7 @@ namespace sd.entity {
 			const entIndex = entityIndex(linkedEntity);
 
 			if (this.instanceData_.count < entIndex) {
-				if (this.instanceData_.resize(entIndex) == container.InvalidatePointers.Yes) {
+				if (this.instanceData_.resize(entIndex) === container.InvalidatePointers.Yes) {
 					this.rebase();
 				}
 			}
@@ -96,10 +96,10 @@ namespace sd.entity {
 			let parentInstance = 0;
 			let descriptor: Transform | null = null;
 
-			this.entityBase_[thisInstance] = <number>linkedEntity;
+			this.entityBase_[thisInstance] = linkedEntity;
 
 			if (descOrParent) {
-				if (typeof descOrParent == "number") {
+				if (typeof descOrParent === "number") {
 					parentInstance = descOrParent as number;
 				}
 				else {
@@ -116,10 +116,10 @@ namespace sd.entity {
 				let myPrevSibling = this.firstChildBase_[parentInstance] as number;
 
 				if (myPrevSibling) {
-					assert(this.prevSiblingBase_[myPrevSibling] == 0, "firstChild cannot have prev siblings");
+					assert(this.prevSiblingBase_[myPrevSibling] === 0, "firstChild cannot have prev siblings");
 
 					// find end of child chain
-					while (this.nextSiblingBase_[myPrevSibling] != 0) {
+					while (this.nextSiblingBase_[myPrevSibling] !== 0) {
 						myPrevSibling = this.nextSiblingBase_[myPrevSibling] as number;
 					}
 
@@ -179,7 +179,7 @@ namespace sd.entity {
 		get count() { return this.instanceData_.count; }
 
 		valid(inst: TransformInstance) {
-			return <number>inst <= this.count;
+			return inst as number <= this.count;
 		}
 
 		all(): TransformRange {
@@ -191,7 +191,7 @@ namespace sd.entity {
 		forEntity(ent: Entity): TransformInstance {
 			const index = entityIndex(ent);
 			if (index > 0 && index <= this.instanceData_.count) {
-				return <number>ent;
+				return ent as TransformInstance;
 			}
 
 			assert(false, `No transform for entity ${index}`);
@@ -200,27 +200,27 @@ namespace sd.entity {
 
 
 		// -- single instance getters
-		entity(inst: TransformInstance): Entity { return this.entityBase_[<number>inst]; }
+		entity(inst: TransformInstance): Entity { return this.entityBase_[inst as number]; }
 
-		parent(inst: TransformInstance): TransformInstance { return this.parentBase_[<number>inst]; }
-		firstChild(inst: TransformInstance): TransformInstance { return this.firstChildBase_[<number>inst]; }
-		prevSibling(inst: TransformInstance): TransformInstance { return this.prevSiblingBase_[<number>inst]; }
-		nextSibling(inst: TransformInstance): TransformInstance { return this.nextSiblingBase_[<number>inst]; }
+		parent(inst: TransformInstance): TransformInstance { return this.parentBase_[inst as number]; }
+		firstChild(inst: TransformInstance): TransformInstance { return this.firstChildBase_[inst as number]; }
+		prevSibling(inst: TransformInstance): TransformInstance { return this.prevSiblingBase_[inst as number]; }
+		nextSibling(inst: TransformInstance): TransformInstance { return this.nextSiblingBase_[inst as number]; }
 
-		localPosition(inst: TransformInstance) { return container.copyIndexedVec3(this.positionBase_, <number>inst); }
-		localRotation(inst: TransformInstance) { return container.copyIndexedVec4(this.rotationBase_, <number>inst); }
-		localScale(inst: TransformInstance) { return container.copyIndexedVec3(this.scaleBase_, <number>inst); }
+		localPosition(inst: TransformInstance) { return container.copyIndexedVec3(this.positionBase_, inst as number); }
+		localRotation(inst: TransformInstance) { return container.copyIndexedVec4(this.rotationBase_, inst as number); }
+		localScale(inst: TransformInstance) { return container.copyIndexedVec3(this.scaleBase_, inst as number); }
 
 		worldPosition(inst: TransformInstance): number[] {
-			const matOffset = <number>inst * 16;
+			const matOffset = inst as number * 16;
 			return [this.worldMatrixBase_[matOffset + 12], this.worldMatrixBase_[matOffset + 13], this.worldMatrixBase_[matOffset + 14]];
 		}
 
-		localMatrix(inst: TransformInstance) { return container.refIndexedMat4(this.localMatrixBase_, <number>inst); }
-		worldMatrix(inst: TransformInstance) { return container.refIndexedMat4(this.worldMatrixBase_, <number>inst); }
+		localMatrix(inst: TransformInstance) { return container.refIndexedMat4(this.localMatrixBase_, inst as number); }
+		worldMatrix(inst: TransformInstance) { return container.refIndexedMat4(this.worldMatrixBase_, inst as number); }
 
-		copyLocalMatrix(inst: TransformInstance) { return container.copyIndexedMat4(this.localMatrixBase_, <number>inst); }
-		copyWorldMatrix(inst: TransformInstance) { return container.copyIndexedMat4(this.worldMatrixBase_, <number>inst); }
+		copyLocalMatrix(inst: TransformInstance) { return container.copyIndexedMat4(this.localMatrixBase_, inst as number); }
+		copyWorldMatrix(inst: TransformInstance) { return container.copyIndexedMat4(this.worldMatrixBase_, inst as number); }
 
 
 		// update the world matrices of inst and all of its children
@@ -229,8 +229,8 @@ namespace sd.entity {
 			const worldMat = this.worldMatrix(inst);
 			mat4.multiply(worldMat, parentMatrix, localMat);
 
-			let child = this.firstChildBase_[<number>inst] as number;
-			while (child != 0) {
+			let child = this.firstChildBase_[inst as number] as number;
+			while (child !== 0) {
 				this.applyParentTransform(worldMat, child);
 				child = this.nextSiblingBase_[child] as number;
 			}
@@ -241,20 +241,20 @@ namespace sd.entity {
 		setLocalMatrix(inst: TransformInstance, newLocalMatrix: Float4x4): void;
 		setLocalMatrix(inst: TransformInstance, newRotation: Float4, newPosition: Float3, newScale: Float3): void;
 		setLocalMatrix(inst: TransformInstance, localMatOrRot: ArrayOfNumber, newPosition?: Float3, newScale?: Float3) {
-			const localMat = container.refIndexedMat4(this.localMatrixBase_, <number>inst);
-			if (arguments.length == 4) {
+			const localMat = container.refIndexedMat4(this.localMatrixBase_, inst as number);
+			if (arguments.length === 4) {
 				mat4.fromRotationTranslationScale(localMat, localMatOrRot, newPosition!, newScale!);
 			}
 			else {
 				localMat.set(localMatOrRot); // 4x4 mat
 			}
 
-			const parent = this.parentBase_[<number>inst];
-			const firstChild = this.firstChildBase_[<number>inst];
+			const parent = this.parentBase_[inst as number];
+			const firstChild = this.firstChildBase_[inst as number];
 
 			// -- optimization for root-level, childless entities (of which I have seen there are many, but this may/will change)
 			if (parent || firstChild) {
-				const parentWorldMat = (parent == 0) ? mat4.create() : this.worldMatrix(parent);
+				const parentWorldMat = (parent === 0) ? mat4.create() : this.worldMatrix(parent);
 				this.applyParentTransform(parentWorldMat, inst);
 			}
 			else {
@@ -275,7 +275,7 @@ namespace sd.entity {
 			const prevSibling = this.prevSiblingBase_[index] as number;
 			const nextSibling = this.nextSiblingBase_[index] as number;
 
-			if (firstChild == index) {
+			if (firstChild === index) {
 				this.firstChildBase_[parentIndex] = nextSibling;
 			}
 			if (prevSibling) {
@@ -292,8 +292,8 @@ namespace sd.entity {
 
 
 		setParent(inst: TransformInstance, newParent: TransformInstance) {
-			const thisIndex = <number>inst;
-			const parentIndex = <number>newParent;
+			const thisIndex = inst as number;
+			const parentIndex = newParent as number;
 
 			this.removeFromParent(inst);
 
@@ -303,7 +303,7 @@ namespace sd.entity {
 
 				if (myPrevSibling) {
 					// find end of child chain
-					while (this.nextSiblingBase_[myPrevSibling] != 0) {
+					while (this.nextSiblingBase_[myPrevSibling] !== 0) {
 						myPrevSibling = this.nextSiblingBase_[myPrevSibling] as number;
 					}
 
@@ -322,30 +322,30 @@ namespace sd.entity {
 
 
 		setPosition(inst: TransformInstance, newPosition: Float3) {
-			this.positionBase_.set(newPosition, <number>inst * vec3.ELEMENT_COUNT);
+			this.positionBase_.set(newPosition, inst as number * vec3.ELEMENT_COUNT);
 			this.setLocalMatrix(inst, this.localRotation(inst), newPosition, this.localScale(inst));
 		}
 
 		setRotation(inst: TransformInstance, newRotation: Float4) {
-			this.rotationBase_.set(newRotation, <number>inst * quat.ELEMENT_COUNT);
+			this.rotationBase_.set(newRotation, inst as number * quat.ELEMENT_COUNT);
 			this.setLocalMatrix(inst, newRotation, this.localPosition(inst), this.localScale(inst));
 		}
 
 		setPositionAndRotation(inst: TransformInstance, newPosition: Float3, newRotation: Float4) {
-			this.positionBase_.set(newPosition, <number>inst * vec3.ELEMENT_COUNT);
-			this.rotationBase_.set(newRotation, <number>inst * quat.ELEMENT_COUNT);
+			this.positionBase_.set(newPosition, inst as number * vec3.ELEMENT_COUNT);
+			this.rotationBase_.set(newRotation, inst as number * quat.ELEMENT_COUNT);
 			this.setLocalMatrix(inst, newRotation, newPosition, this.localScale(inst));
 		}
 
 		setScale(inst: TransformInstance, newScale: Float3) {
-			this.scaleBase_.set(newScale, <number>inst * vec3.ELEMENT_COUNT);
+			this.scaleBase_.set(newScale, inst as number * vec3.ELEMENT_COUNT);
 			this.setLocalMatrix(inst, this.localRotation(inst), this.localPosition(inst), newScale);
 		}
 
 		setPositionAndRotationAndScale(inst: TransformInstance, newPosition: Float3, newRotation: Float4, newScale: Float3) {
-			this.positionBase_.set(newPosition, <number>inst * vec3.ELEMENT_COUNT);
-			this.rotationBase_.set(newRotation, <number>inst * quat.ELEMENT_COUNT);
-			this.scaleBase_.set(newScale, <number>inst * vec3.ELEMENT_COUNT);
+			this.positionBase_.set(newPosition, inst as number * vec3.ELEMENT_COUNT);
+			this.rotationBase_.set(newRotation, inst as number * quat.ELEMENT_COUNT);
+			this.scaleBase_.set(newScale, inst as number * vec3.ELEMENT_COUNT);
 			this.setLocalMatrix(inst, newRotation, newPosition, newScale);
 		}
 

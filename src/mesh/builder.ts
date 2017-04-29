@@ -81,7 +81,7 @@ namespace sd.meshdata {
 			}
 			else {
 				const mapped = this.data_.get(from)!;
-				if (mapped.indexOf(to) == -1) {
+				if (mapped.indexOf(to) === -1) {
 					mapped.push(to);
 				}
 				this.data_.set(from, mapped);
@@ -125,7 +125,7 @@ namespace sd.meshdata {
 			};
 
 			// add positions stream at the beginning for simple models and at end for rigged models
-			if (this.streams_.find(s => s.attr!.role == VertexAttributeRole.JointIndexes)) {
+			if (this.streams_.find(s => s.attr!.role === VertexAttributeRole.JointIndexes)) {
 				this.streams_.push(positionStream);
 			}
 			else {
@@ -136,7 +136,7 @@ namespace sd.meshdata {
 			// end up at the end. Try to keep the array as stable as possible by not
 			// moving streams if not needed.
 			this.streams_.sort((sA, sB) => {
-				if (sA.includeInMesh == sB.includeInMesh) {
+				if (sA.includeInMesh === sB.includeInMesh) {
 					return 0;
 				}
 				return sA.includeInMesh ? -1 : 1;
@@ -149,9 +149,9 @@ namespace sd.meshdata {
 			for (const s of this.streams_) {
 				s.elementCount = vertexFieldElementCount(s.attr!.field);
 				if (s.controlsGrouping === true) {
-					assert(s.elementCount == 1, "A grouping stream must use a single element field");
+					assert(s.elementCount === 1, "A grouping stream must use a single element field");
 					const groupNumType = vertexFieldNumericType(s.attr!.field);
-					assert(groupNumType != Float && groupNumType != Double, "A grouping stream must use an integer element");
+					assert(groupNumType !== Float && groupNumType !== Double, "A grouping stream must use an integer element");
 					groupers++;
 				}
 			}
@@ -176,13 +176,13 @@ namespace sd.meshdata {
 
 			for (const stream of this.streams_) {
 				let index: number;
-				if (stream.mapping == VertexAttributeMapping.Vertex) {
+				if (stream.mapping === VertexAttributeMapping.Vertex) {
 					index = vertexIndex;
 				}
-				else if (stream.mapping == VertexAttributeMapping.PolygonVertex) {
+				else if (stream.mapping === VertexAttributeMapping.PolygonVertex) {
 					index = polygonVertexIndex;
 				}
-				else if (stream.mapping == VertexAttributeMapping.Polygon) {
+				else if (stream.mapping === VertexAttributeMapping.Polygon) {
 					index = polygonIndex;
 				}
 				else {
@@ -241,21 +241,21 @@ namespace sd.meshdata {
 					}
 
 					// This is 20% faster in Webkit
-					if (elemCount == 3) {
+					if (elemCount === 3) {
 						array.push(values[fieldOffset], values[fieldOffset + 1], values[fieldOffset + 2]);
 					}
-					else if (elemCount == 2) {
+					else if (elemCount === 2) {
 						array.push(values[fieldOffset], values[fieldOffset + 1]);
 					}
-					else if (elemCount == 4) {
+					else if (elemCount === 4) {
 						array.push(values[fieldOffset], values[fieldOffset + 1], values[fieldOffset + 2], values[fieldOffset + 3]);
 					}
-					else if (elemCount == 1) {
+					else if (elemCount === 1) {
 						array.push(values[fieldOffset]);
 
 						if (stream.controlsGrouping) {
 							const gi = values[fieldOffset];
-							if (gi != this.groupIndex_) {
+							if (gi !== this.groupIndex_) {
 								this.setGroup(gi);
 							}
 						}
@@ -290,7 +290,7 @@ namespace sd.meshdata {
 
 
 		addPolygon(polygonVertexIndexes: ArrayOfNumber, vertexIndexes: ArrayOfNumber) {
-			if (polygonVertexIndexes.length == 3) {
+			if (polygonVertexIndexes.length === 3) {
 				this.addTriangle(polygonVertexIndexes, vertexIndexes);
 			}
 			else {

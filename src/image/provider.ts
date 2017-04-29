@@ -11,7 +11,7 @@ namespace sd.image {
 	}
 
 	export function makePixelCoordinate(x: number, y: number): PixelCoordinate {
-		return { x: x, y: y };
+		return { x, y };
 	}
 
 	export interface PixelDimensions {

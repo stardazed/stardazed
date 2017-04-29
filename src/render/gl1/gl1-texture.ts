@@ -153,16 +153,16 @@ namespace sd.render.gl1 {
 	function gl1TextureMinificationFilter(rd: GL1RenderDevice, minFilter: TextureSizingFilter, mipFilter: TextureMipFilter) {
 		let glSizingFilter: number;
 
-		if (mipFilter == TextureMipFilter.None) {
-			if (minFilter == TextureSizingFilter.Nearest) {
+		if (mipFilter === TextureMipFilter.None) {
+			if (minFilter === TextureSizingFilter.Nearest) {
 				glSizingFilter = rd.gl.NEAREST;
 			}
 			else {
 				glSizingFilter = rd.gl.LINEAR;
 			}
 		}
-		else if (mipFilter == TextureMipFilter.Nearest) {
-			if (minFilter == TextureSizingFilter.Nearest) {
+		else if (mipFilter === TextureMipFilter.Nearest) {
+			if (minFilter === TextureSizingFilter.Nearest) {
 				glSizingFilter = rd.gl.NEAREST_MIPMAP_NEAREST;
 			}
 			else {
@@ -170,7 +170,7 @@ namespace sd.render.gl1 {
 			}
 		}
 		else {
-			if (minFilter == TextureSizingFilter.Nearest) {
+			if (minFilter === TextureSizingFilter.Nearest) {
 				glSizingFilter = rd.gl.NEAREST_MIPMAP_LINEAR;
 			}
 			else {
@@ -183,7 +183,7 @@ namespace sd.render.gl1 {
 
 
 	function gl1TextureMagnificationFilter(rd: GL1RenderDevice, magFilter: TextureSizingFilter) {
-		if (magFilter == TextureSizingFilter.Nearest) {
+		if (magFilter === TextureSizingFilter.Nearest) {
 			return rd.gl.NEAREST;
 		}
 		else {
@@ -205,7 +205,7 @@ namespace sd.render.gl1 {
 			textureLimits.maxDimensionCube = rd.gl.getParameter(rd.gl.MAX_CUBE_MAP_TEXTURE_SIZE);
 		}
 
-		if (texClass == TextureClass.CubeMap) {
+		if (texClass === TextureClass.CubeMap) {
 			return textureLimits.maxDimensionCube;
 		}
 		return textureLimits.maxDimension;
@@ -326,7 +326,7 @@ namespace sd.render.gl1 {
 				else {
 					// a TexImageSource was provided
 					const tis = pixData as TextureImageSource;
-					assert((tis.width == width) && (tis.height == height), "GL1: imageSource's size does not match descriptor");
+					assert((tis.width === width) && (tis.height === height), "GL1: imageSource's size does not match descriptor");
 					gl.texImage2D(target, mip, glTexPixelFormat, glTexPixelFormat, glTexPixelType, tis);
 				}
 			}
@@ -339,7 +339,7 @@ namespace sd.render.gl1 {
 		const pixelData = texture.pixelData;
 
 		// -- input checks
-		assert((pixelData == null) || (pixelData.length == 1), "GL1: Normal pixelData array must contain 1 item or be omitted completely.");
+		assert((pixelData == null) || (pixelData.length === 1), "GL1: Normal pixelData array must contain 1 item or be omitted completely.");
 
 		// -- create resource
 		const tex = gl.createTexture()!; // TODO: handle resource allocation failure
@@ -368,7 +368,7 @@ namespace sd.render.gl1 {
 		// -- input checks
 		const { width, height } = texture.dim;
 		assert(width === height, "GL1: TexCube textures MUST have the same width and height");
-		assert((pixelData == null) || (pixelData.length == 6), "GL1: CubeMap pixelData array must contain 6 items or be omitted completely.");
+		assert((pixelData == null) || (pixelData.length === 6), "GL1: CubeMap pixelData array must contain 6 items or be omitted completely.");
 
 		// -- create resource
 		const tex = gl.createTexture()!; // TODO: handle resource allocation failure

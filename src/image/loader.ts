@@ -117,7 +117,7 @@ namespace sd.image {
 	}
 
 	function loadBuiltInImageFromURL(url: URL) {
-		return new Promise<PixelDataProvider>(function(resolve, reject) {
+		return new Promise<PixelDataProvider>((resolve, reject) => {
 			const image = new Image();
 			image.onload = () => {
 				resolve(new HTMLImageDataProvider(image));
@@ -137,7 +137,7 @@ namespace sd.image {
 
 
 	function loadBuiltInImageFromBufferView(view: ArrayBufferView, extension: string) {
-		return new Promise<PixelDataProvider>(function(resolve, reject) {
+		return new Promise<PixelDataProvider>((resolve, reject) => {
 			const blob = new Blob([view], { type: extension });
 
 			io.BlobReader.readAsDataURL(blob).then(

@@ -90,7 +90,7 @@ namespace sd.entity {
 			this.primGroupOffsetBase_[modelIx] = this.primGroupData_.count;
 
 			// -- grow primitiveGroup metadata buffer if necessary
-			if (this.primGroupData_.resize(primGroupCount + subMeshes.length) == container.InvalidatePointers.Yes) {
+			if (this.primGroupData_.resize(primGroupCount + subMeshes.length) === container.InvalidatePointers.Yes) {
 				this.groupRebase();
 			}
 
@@ -158,19 +158,19 @@ namespace sd.entity {
 
 		// -- single instance accessors
 		entity(inst: MeshRendererInstance): Entity {
-			return this.entityBase_[<number>inst];
+			return this.entityBase_[inst as number];
 		}
 
 		transform(inst: MeshRendererInstance): TransformInstance {
-			return this.transformBase_[<number>inst];
+			return this.transformBase_[inst as number];
 		}
 
 		enabled(inst: MeshRendererInstance): boolean {
-			return this.enabledBase_[<number>inst] !== 0;
+			return this.enabledBase_[inst as number] !== 0;
 		}
 
 		setEnabled(inst: MeshRendererInstance, newEnabled: boolean) {
-			this.enabledBase_[<number>inst] = +newEnabled;
+			this.enabledBase_[inst as number] = +newEnabled;
 		}
 	}
 

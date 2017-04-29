@@ -122,7 +122,7 @@ namespace sd.render {
 	}
 
 	export function makeMipMapRange(baseLevel: number, numLevels: number): MipMapRange {
-		return { baseLevel: baseLevel, numLevels: numLevels };
+		return { baseLevel, numLevels };
 	}
 
 
@@ -168,7 +168,7 @@ namespace sd.render {
 			renderResourceHandle: 0,
 
 			textureClass: TextureClass.Normal,
-			pixelFormat: pixelFormat,
+			pixelFormat,
 			dim: image.makePixelDimensions(width, height),
 			mipmapMode
 		};
@@ -214,7 +214,7 @@ namespace sd.render {
 			renderResourceHandle: 0,
 
 			textureClass: TextureClass.CubeMap,
-			pixelFormat: pixelFormat,
+			pixelFormat,
 			dim: image.makePixelDimensions(dimension, dimension),
 			mipmapMode
 		};

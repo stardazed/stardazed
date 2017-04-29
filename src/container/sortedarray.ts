@@ -70,7 +70,7 @@ namespace sd.container {
 		}
 
 		insert(value: T) {
-			let successor = lowerBound(this.data_, value);
+			const successor = lowerBound(this.data_, value);
 			this.data_.splice(successor, 0, value);
 		}
 

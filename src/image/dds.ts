@@ -14,7 +14,7 @@ namespace sd.image {
 		dwGBitMask = 20, // uint32
 		dwBBitMask = 24, // uint32
 		dwABitMask = 28, // uint32
-	};
+	}
 
 	const enum DDSOffsets {
 		dwCookie = 0, // fourcc
@@ -32,7 +32,7 @@ namespace sd.image {
 		dwCaps3 = 116, // uint32
 		dwCaps4 = 120, // uint32
 		dwReserved2 = 124, // uint32
-	};
+	}
 
 
 	function fourCharCode(fcc: string) {

@@ -62,14 +62,14 @@ namespace sd {
 			// reset io devices
 			control.keyboard.resetHalfTransitions();
 
-			if (this.runState_ == RunLoopState.Running) {
+			if (this.runState_ === RunLoopState.Running) {
 				this.rafID_ = requestAnimationFrame(this.nextFrameFn_);
 			}
 		}
 
 
 		start() {
-			if (this.runState_ != RunLoopState.Idle) {
+			if (this.runState_ !== RunLoopState.Idle) {
 				return;
 			}
 
@@ -86,7 +86,7 @@ namespace sd {
 
 
 		stop() {
-			if (this.runState_ != RunLoopState.Running) {
+			if (this.runState_ !== RunLoopState.Running) {
 				return;
 			}
 
@@ -115,7 +115,7 @@ namespace sd {
 
 		set sceneController(newCtrl: SceneController | null) {
 			if (this.sceneCtrl_) {
-				if (this.runState_ == RunLoopState.Running) {
+				if (this.runState_ === RunLoopState.Running) {
 					if (this.sceneCtrl_.suspend) {
 						this.sceneCtrl_.suspend();
 					}
@@ -131,7 +131,7 @@ namespace sd {
 				if (this.sceneCtrl_.focus) {
 					this.sceneCtrl_.focus();
 				}
-				if (this.runState_ == RunLoopState.Running) {
+				if (this.runState_ === RunLoopState.Running) {
 					if (this.sceneCtrl_.resume) {
 						this.sceneCtrl_.resume();
 					}
@@ -143,11 +143,11 @@ namespace sd {
 
 	export const runLoop = new RunLoop();
 
-	dom.on(window, "blur", function() {
+	dom.on(window, "blur", () => {
 		runLoop.stop();
 	});
 
-	dom.on(window, "focus", function() {
+	dom.on(window, "focus", () => {
 		runLoop.start();
 	});
 
