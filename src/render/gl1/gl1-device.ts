@@ -35,7 +35,7 @@ namespace sd.render.gl1 {
 	export class ReusableResourceArray<C extends RenderResourceBase, R> {
 		readonly resources: (R | undefined)[] = [];
 		private freedIndexes_: number[] = [];
-		private nextIndex_ = 0;
+		private nextIndex_ = 1;
 
 		constructor(public readonly resourceType: ResourceType) {}
 
@@ -55,11 +55,7 @@ namespace sd.render.gl1 {
 		}
 
 		find(clientResource: C): R | undefined {
-			const handle = clientResource.renderResourceHandle;
-			if (! handle) {
-				return;
-			}
-			const { index } = decodeResourceHandle(handle);
+			const { index } = decodeResourceHandle(clientResource.renderResourceHandle);
 			return this.resources[index];
 		}
 
