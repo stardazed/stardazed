@@ -695,6 +695,9 @@ namespace sd.render.gl1 {
 				float roughness;
 				float metallic;
 				float ao;
+				#ifdef ALPHA_CUTOFF
+					float alphaCutoff;
+				#endif
 			};
 		`],
 		constantBlocks: [
