@@ -1,4 +1,4 @@
-// system/scenerenderer - the default scene rendering system
+// render/material - material / pipeline / effect thing
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -20,15 +20,17 @@ namespace sd.render {
 		valueMax?: number;
 	}
 
-	export interface MaterialInstance {
-		readonly materialName: string;
-		name: string;
+	export interface MaterialDescriptor {
+		readonly name: string;
+		readonly properties: ReadonlyArray<MaterialProperty>;
 	}
 
-	export interface MaterialClass<T extends MaterialInstance> {
-		name: string;
-		properties: MaterialProperty[];
-		makeInstance(name: string): T;
+	// makeInstance(name: string): T;
+	// shaderVariantForInstance(variant: ?, data: T): Shader;
+	// precompileShaderVariants(forMaterials: T[]): void;
+
+	export interface Materials {
+		standard: StandardMaterialDescriptor;
 	}
 
 	// ----
@@ -40,7 +42,7 @@ namespace sd.render {
 		Fade
 	}
 
-	export interface StandardMaterialData extends MaterialInstance {
+	export interface StandardMaterialData {
 		alphaMode: AlphaMode;
 
 		tintColour: Float4;
@@ -65,7 +67,7 @@ namespace sd.render {
 		texScaleOffset: Float4;
 	}
 
-	export class StandardMaterialClass implements MaterialClass<StandardMaterialData> {
+	export class StandardMaterialDescriptor implements MaterialDescriptor {
 		name: "standard";
 		properties: MaterialProperty[] = [
 			{
@@ -166,15 +168,11 @@ namespace sd.render {
 
 			{
 				key: "texScaleOffset",
-				label: "Texture Scale / Offset",
+				label: "Texture Scale & Offset",
 				type: "value",
 				valueDefault: [1, 1, 0, 0]
 			}
 		];
-
-		makeInstance() {
-			return {} as StandardMaterialData;
-		}
 	}
 
 } // ns sd
