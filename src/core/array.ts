@@ -10,7 +10,7 @@ interface ArrayBufferConstructor {
 }
 
 if (! ArrayBuffer.transfer) {
-	ArrayBuffer.transfer = function(oldBuffer: ArrayBuffer, newByteLength?: number) {
+	ArrayBuffer.transfer = function arrayTransferShim(oldBuffer: ArrayBuffer, newByteLength?: number) {
 		// This placeholder implementation cannot detach `oldBuffer`'s storage
 		// but `oldBuffer` is to be treated as a moved-from value in C++ terms
 		// after calling transfer.
@@ -46,7 +46,7 @@ namespace sd {
 
 		every(callbackfn: (value: number, index: number, array: this) => boolean, thisArg?: any): boolean;
 		filter(callbackfn: (value: number, index: number, array: this) => any, thisArg?: any): this;
-		find(predicate: (value: number, index: number, obj: Array<number>) => boolean, thisArg?: any): number | undefined;
+		find(predicate: (value: number, index: number, obj: number[]) => boolean, thisArg?: any): number | undefined;
 		findIndex(predicate: (value: number) => boolean, thisArg?: any): number;
 		forEach(callbackfn: (value: number, index: number, array: this) => void, thisArg?: any): void;
 		indexOf(searchElement: number, fromIndex?: number): number;
@@ -77,8 +77,7 @@ namespace sd {
 	export interface TypedArray extends TypedArrayBase {
 		[index: number]: number;
 
-		set(index: number, value: number): void;
-		set(array: ArrayLike<number>, offset?: number): void;
+		set(arrayOrElements: ArrayLike<number>, offset?: number): void;
 
 		copyWithin(target: number, start: number, end?: number): this;
 		fill(value: number, start?: number, end?: number): this;
@@ -92,7 +91,7 @@ namespace sd {
 	}
 
 	export interface TypedArrayConstructor {
-		new (lengthOrArray: number | ArrayLike<number>): TypedArray;
+		new (lengthOrSource: number | Iterable<number> | ArrayLike<number>): TypedArray;
 		new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
 	}
 
