@@ -31,7 +31,7 @@ namespace sd.container {
 		else {
 			while (itemsLeft > 0) {
 				const pushCount = Math.min(MAX_BLOCK_SIZE, itemsLeft);
-				const subSource = source.slice(offset, pushCount);
+				const subSource = source.slice(offset, offset + pushCount);
 				dest.push.apply(dest, subSource);
 				itemsLeft -= pushCount;
 				offset += pushCount;
@@ -129,7 +129,6 @@ namespace sd.container {
 	export function offsetOfIndexedVec4(index: number) { return (index * 4) | 0; }
 
 
-
 	export function refIndexedMat3(data: TypedArray, index: number): TypedArray {
 		return data.subarray(index * 9, (index + 1) * 9);
 	}
@@ -151,7 +150,6 @@ namespace sd.container {
 	}
 
 	export function offsetOfIndexedMat3(index: number) { return (index * 9) | 0; }
-
 
 
 	export function refIndexedMat4(data: TypedArray, index: number): TypedArray {
