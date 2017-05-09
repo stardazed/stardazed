@@ -290,7 +290,7 @@ namespace sd.render {
 		get isMipMapped() { return this.mipmaps_ > 1; }
 
 		get pixelFormat() { return this.pixelFormat_; }
-		get textureClass() { return this.textureClass_; };
+		get textureClass() { return this.textureClass_; }
 
 		// -- gl-specific observers
 		get resource() { return this.resource_; }

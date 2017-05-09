@@ -20,9 +20,11 @@ namespace sd.world {
 		MetallicMap = 1 << 3,
 		AmbientOcclusionMap = 1 << 4,
 
+		AlphaMap = 1 << 5,
+
 		// NormalHeight components
-		NormalMap = 1 << 5,
-		HeightMap = 1 << 6
+		NormalMap = 1 << 6,
+		HeightMap = 1 << 7
 	}
 
 
@@ -34,6 +36,7 @@ namespace sd.world {
 		albedoMap: render.Texture | null;
 		materialMap: render.Texture | null;
 		normalHeightMap: render.Texture | null;
+		alphaMap: render.Texture | null;
 		flags: PBRMaterialFlags;
 	}
 
@@ -57,6 +60,7 @@ namespace sd.world {
 		private albedoMaps_: (render.Texture | null)[] = [];
 		private materialMaps_: (render.Texture | null)[] = [];
 		private normalHeightMaps_: (render.Texture | null)[] = [];
+		private alphaMaps_: (render.Texture | null)[] = [];
 
 		private baseColourBase_: Float32Array;
 		private materialBase_: Float32Array;
@@ -128,6 +132,7 @@ namespace sd.world {
 			this.albedoMaps_[matIndex] = desc.albedoTexture ? desc.albedoTexture.texture! : null;
 			this.materialMaps_[matIndex] = desc.roughnessTexture ? desc.roughnessTexture.texture! : null;
 			this.normalHeightMaps_[matIndex] = desc.normalTexture ? desc.normalTexture.texture! : null;
+			this.alphaMaps_[matIndex] = desc.transparencyTexture ? desc.transparencyTexture.texture! : null;
 
 			this.opacityBase_[matIndex] = 1.0;
 
@@ -293,6 +298,10 @@ namespace sd.world {
 			return this.normalHeightMaps_[<number>inst];
 		}
 
+		alphaMap(inst: PBRMaterialInstance): render.Texture | null {
+			return this.alphaMaps_[<number>inst];
+		}
+
 
 		flags(inst: PBRMaterialInstance): PBRMaterialFlags {
 			return this.flagsBase_[<number>inst];
@@ -315,6 +324,7 @@ namespace sd.world {
 				albedoMap: this.albedoMaps_[matIndex],
 				materialMap: this.materialMaps_[matIndex],
 				normalHeightMap: this.normalHeightMaps_[matIndex],
+				alphaMap: this.alphaMaps_[matIndex],
 
 				flags: this.flagsBase_[matIndex]
 			};

@@ -29,11 +29,12 @@ namespace sd.world {
 		RoughnessMap               = 1 << 6,  // R channel of RMA
 		MetallicMap                = 1 << 7,  // G channel of RMA
 		AOMap                      = 1 << 8,  // B channel of RMA
+		AlphaMap				   = 1 << 9,
 
-		NormalMap                  = 1 << 9,  // RGB channels of NormalHeight
-		HeightMap                  = 1 << 10, // A channel of NormalHeight
+		NormalMap                  = 1 << 10, // RGB channels of NormalHeight
+		HeightMap                  = 1 << 11, // A channel of NormalHeight
 
-		ShadowMap                  = 1 << 11,
+		ShadowMap                  = 1 << 12,
 	}
 
 	const LightingQualityBitShift = 2;
@@ -62,6 +63,7 @@ namespace sd.world {
 		albedoMapUniform: WebGLUniformLocation;
 		materialMapUniform: WebGLUniformLocation;
 		normalHeightMapUniform: WebGLUniformLocation;
+		alphaMapUniform: WebGLUniformLocation;
 
 		environmentMapUniform: WebGLUniformLocation;
 		brdfLookupMapUniform: WebGLUniformLocation;
@@ -89,10 +91,11 @@ namespace sd.world {
 		Albedo = 0,
 		Material = 1,
 		NormalHeight = 2,
-		Environment = 3,
-		BRDFLookup = 4,
-		LightLUT = 5,
-		Shadow = 6
+		Alpha = 3,
+		Environment = 4,
+		BRDFLookup = 5,
+		LightLUT = 6,
+		Shadow = 7
 	}
 
 
@@ -191,6 +194,13 @@ namespace sd.world {
 				if (normalHeight) {
 					program.normalHeightMapUniform = normalHeight;
 					gl.uniform1i(program.normalHeightMapUniform, TextureBindPoint.NormalHeight);
+				}
+			}
+			if (feat & Features.AlphaMap) {
+				const alpha = gl.getUniformLocation(program, "alphaMap");
+				if (alpha) {
+					program.alphaMapUniform = alpha;
+					gl.uniform1i(program.alphaMapUniform, TextureBindPoint.Alpha);
 				}
 			}
 
@@ -368,6 +378,7 @@ namespace sd.world {
 			if_all("uniform sampler2D albedoMap;", Features.AlbedoMap);
 			if_any("uniform sampler2D materialMap;", Features.MetallicMap | Features.RoughnessMap | Features.AOMap);
 			if_any("uniform sampler2D normalHeightMap;", Features.NormalMap | Features.HeightMap);
+			if_all("uniform sampler2D alphaMap;", Features.AlphaMap);
 			line  ("uniform sampler2D brdfLookupMap;");
 			line  ("uniform samplerCube environmentMap;");
 
@@ -811,6 +822,10 @@ namespace sd.world {
 			line  ("void main() {");
 			line  ("	SurfaceInfo si = calcSurfaceInfo();");
 
+			if (feat & Features.AlphaMap) {
+				line("	float alpha = texture2D(alphaMap, si.UV).r;");
+				line("	if (alpha < 0.7) { discard; }");
+			}
 
 			if (feat & Features.AlbedoMap) {
 				line("	vec3 baseColour = texture2D(albedoMap, si.UV).rgb * baseColour.rgb;");
@@ -1040,6 +1055,10 @@ namespace sd.world {
 				if (matFlags & PBRMaterialFlags.AmbientOcclusionMap) {
 					features |= Features.AOMap;
 				}
+			}
+
+			if (this.materialMgr_.alphaMap(material)) {
+				features |= Features.AlphaMap;
 			}
 
 			return features;
@@ -1300,6 +1319,9 @@ namespace sd.world {
 				}
 				if (features & Features.NormalMap) {
 					rp.setTexture(materialData.normalHeightMap!, TextureBindPoint.NormalHeight);
+				}
+				if (features & Features.AlphaMap) {
+					rp.setTexture(materialData.alphaMap!, TextureBindPoint.Alpha);
 				}
 
 				// -- light data
