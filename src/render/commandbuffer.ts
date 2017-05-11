@@ -90,8 +90,10 @@ namespace sd.render {
 
 	export interface RenderJob {
 		shader: any;
-		mesh: any;
-		resources: any[];
+		mesh: meshdata.MeshData;
+		primGroup: meshdata.PrimitiveGroup;
+		textures: Texture[];
+		samplers: Sampler[];
 		constants: any[];
 	}
 
