@@ -11,10 +11,13 @@ namespace sd.meshdata {
 	// |_|  |_\___/__/_||_|___/\__,_|\__\__,_|
 	//
 
-	export interface SubMesh {
+	export interface PrimitiveGroup {
 		type: meshdata.PrimitiveType;
 		fromElement: number;
 		elementCount: number;
+	}
+
+	export interface SubMesh extends PrimitiveGroup {
 		materialIx: number; // arbitrary material index or reference; representation of Materials is external to MeshData
 	}
 
