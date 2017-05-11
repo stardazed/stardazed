@@ -25,4 +25,4 @@ interface InflaterConstructor {
 	prototype: Inflater;
 }
 
-declare var Inflater: InflaterConstructor;
+declare const Inflater: InflaterConstructor;
