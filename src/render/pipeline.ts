@@ -1,0 +1,109 @@
+// render/pipeline - shader variant and configuration
+// Part of Stardazed
+// (c) 2015-2017 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed
+
+namespace sd.render {
+
+	export const enum FaceCulling {
+		Disabled,
+		Front,
+		Back
+	}
+
+
+	export const enum DepthTest {
+		Disabled,
+
+		AllowAll,
+		DenyAll,
+
+		Less,
+		LessOrEqual,
+		Equal,
+		NotEqual,
+		GreaterOrEqual,
+		Greater
+	}
+
+
+	export const enum BlendOperation {
+		Add,
+		Subtract,
+		ReverseSubtract,
+		Min,
+		Max
+	}
+
+
+	export const enum BlendFactor {
+		Zero,
+		One,
+		SourceColour,
+		OneMinusSourceColour,
+		DestColour,
+		OneMinusDestColour,
+		SourceAlpha,
+		OneMinusSourceAlpha,
+		SourceAlphaSaturated,
+		DestAlpha,
+		OneMinusDestAlpha,
+		ConstantColour,
+		OneMinusConstantColour,
+		ConstantAlpha,
+		OneMinusConstantAlpha
+	}
+
+
+	export interface ColourBlendingDescriptor {
+		rgbBlendOp: BlendOperation;
+		alphaBlendOp: BlendOperation;
+
+		sourceRGBFactor: BlendFactor;
+		sourceAlphaFactor: BlendFactor;
+		destRGBFactor: BlendFactor;
+		destAlphaFactor: BlendFactor;
+
+		constantColour: Float4;
+	}
+
+
+	export interface ColourWriteMask {
+		red: boolean;
+		green: boolean;
+		blue: boolean;
+		alpha: boolean;
+	}
+
+
+	export function makeColourBlendingDescriptor(): ColourBlendingDescriptor {
+		return {
+			rgbBlendOp: BlendOperation.Add,
+			alphaBlendOp: BlendOperation.Add,
+
+			sourceRGBFactor: BlendFactor.One,
+			sourceAlphaFactor: BlendFactor.One,
+			destRGBFactor: BlendFactor.Zero,
+			destAlphaFactor: BlendFactor.Zero,
+
+			constantColour: [0, 0, 0, 1]
+		};
+	}
+
+
+	export function makeColourWriteMask(red = true, green = true, blue = true, alpha = true): ColourWriteMask {
+		return {
+			red, green,	blue, alpha
+		};
+	}
+
+
+	export interface Pipeline {
+		colourMask?: ColourWriteMask;
+		depthMask: boolean;
+		blending?: ColourBlendingDescriptor;
+		faceCulling: FaceCulling;
+		shader: Shader;
+	}
+
+} // ns sd.render

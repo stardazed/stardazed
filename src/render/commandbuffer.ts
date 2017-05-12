@@ -11,28 +11,6 @@ namespace sd.render {
 	}
 
 
-	export const enum FaceCulling {
-		Disabled,
-		Front,
-		Back
-	}
-
-
-	export const enum DepthTest {
-		Disabled,
-
-		AllowAll,
-		DenyAll,
-
-		Less,
-		LessOrEqual,
-		Equal,
-		NotEqual,
-		GreaterOrEqual,
-		Greater
-	}
-
-
 	export const enum ClearMask {
 		None         = 0,
 		Colour       = 1,
