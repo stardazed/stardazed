@@ -1,4 +1,4 @@
-// render/commandbuffer - client-side command buffer
+// render/renderpass - single framebuffer pass (command buffer)
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -60,29 +60,31 @@ namespace sd.render {
 	}
 
 
-	export interface RenderCommand {
-		sortKey: number;
-		flags: number;
-		data: any;
-	}
-
 	export interface RenderJob {
-		shader: any;
+		pipeline: Pipeline;
 		mesh: meshdata.MeshData;
 		primGroup: meshdata.PrimitiveGroup;
+
+		// shader properties
 		textures: Texture[];
 		samplers: Sampler[];
 		constants: any[];
 	}
 
-	export class RenderCommandBuffer {
-		textureWrite(_texture: Texture, _offset: image.PixelCoordinate, _dim: image.PixelDimensions, _data: ReadonlyTypedArray) {
+	export interface RenderPass {
+		readonly frameBuffer: FrameBuffer | null;
+		readonly clearMask: ClearMask;
 
-		}
+		// state management
+		setScissor(rect: ScissorRect): void;
+		setViewport(viewport: Viewport): void;
+		setFrontFace(winding: FrontFaceWinding): void;
 
-		render(_job: RenderJob, _normalizedDepth: number) {
+		// resource updates
+		textureWrite(texture: Texture, offset: image.PixelCoordinate, dim: image.PixelDimensions, data: ReadonlyTypedArray): void;
 
-		}
+		// drawing
+		render(job: RenderJob, normalizedDepth: number): void;
 	}
 
 } // ns sd.render

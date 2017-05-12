@@ -27,22 +27,10 @@ namespace sd.render {
 		meshdata.VertexLayout | meshdata.VertexBuffer | meshdata.IndexBuffer | meshdata.MeshData;
 
 
-	export class RenderResourceCommandBuffer {
-		private readonly allocList_: RenderResource[] = [];
-		private readonly freeList_: RenderResource[] = [];
-
-		alloc(resource: RenderResource) {
-			this.allocList_.push(resource);
-		}
-
-		free(resource: RenderResource) {
-			this.freeList_.push(resource);
-		}
-
-		get allocList() { return this.allocList_; }
-		get freeList() { return this.freeList_; }
+	export interface RenderResourceCommandBuffer {
+		alloc(resource: RenderResource): void;
+		free(resource: RenderResource): void;
 	}
-
 
 	export interface RenderDevice {
 		// current dimensions of screen rendertarget
@@ -54,12 +42,12 @@ namespace sd.render {
 		readonly supportsDepthTextures: boolean;
 		readonly maxColourAttachments: number;
 
+		// gpu resource management
+		makeResourceCommandBuffer(): RenderResourceCommandBuffer;
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]): void;
-		dispatch(rcb: RenderCommandBuffer | RenderCommandBuffer[]): void;
 
-		// -- temp
-		generateStandardShader(options: StandardShaderOptions): Shader;
-		render(proj: Float4x4, view: Float4x4, mesh: meshdata.MeshData, shader: Shader): void;
+		makeRenderPass(fb: FrameBuffer | null, clearMask: ClearMask): RenderPass;
+		dispatch(pass: RenderPass | RenderPass[]): void;
 	}
 
 } // ns sd.render
