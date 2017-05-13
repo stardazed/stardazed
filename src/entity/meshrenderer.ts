@@ -149,10 +149,10 @@ namespace sd.entity {
 		}
 
 		// -- supply cmdbuf with renderjobs
-		render(range: MeshRendererRange, cmdBuf: render.RenderCommandBuffer) {
+		render(range: MeshRendererRange, pass: render.RenderPass) {
 			const iter = range.makeIterator();
 			while (iter.next()) {
-				cmdBuf.render({} as render.RenderJob, 0);
+				pass.render({} as render.RenderJob, 0);
 			}
 		}
 

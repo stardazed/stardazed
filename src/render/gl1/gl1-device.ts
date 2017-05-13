@@ -7,6 +7,7 @@
 
 namespace sd.render.gl1 {
 
+/*
 	function glTypeForIndexElementType(rd: GL1RenderDevice, iet: meshdata.IndexElementType): number {
 		switch (iet) {
 			case meshdata.IndexElementType.UInt8: return rd.gl.UNSIGNED_BYTE;
@@ -19,6 +20,7 @@ namespace sd.render.gl1 {
 				return rd.gl.NONE;
 		}
 	}
+*/
 	// ----
 
 	export class GL1RenderDevice implements RenderDevice {
@@ -113,6 +115,7 @@ namespace sd.render.gl1 {
 			this.extSRGB = gl.getExtension("EXT_sRGB");
 		}
 
+
 		// -- current final drawable dimensions
 		get drawableWidth() {
 			return this.gl.drawingBufferWidth;
@@ -133,8 +136,10 @@ namespace sd.render.gl1 {
 		}
 
 
+		// -- resource management
 
-		dispatch(_rcb: RenderCommandBuffer | RenderCommandBuffer[]) {
+		makeResourceCommandBuffer(): RenderResourceCommandBuffer {
+			return new GL1ResourceCommandBuffer();
 		}
 
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]) {
@@ -142,7 +147,7 @@ namespace sd.render.gl1 {
 				rrcb = [rrcb];
 			}
 			for (const cb of rrcb) {
-				for (const resource of cb.freeList) {
+				for (const resource of (cb as GL1ResourceCommandBuffer).freeList) {
 					if (! resource.renderResourceHandle) {
 						console.warn("free: resource was not GPU allocated.", resource);
 						continue;
@@ -177,7 +182,7 @@ namespace sd.render.gl1 {
 					}
 				}
 
-				for (const resource of cb.allocList) {
+				for (const resource of (cb as GL1ResourceCommandBuffer).allocList) {
 					if (resource.renderResourceHandle) {
 						console.warn("alloc: resource was already GPU allocated.", resource);
 						continue;
@@ -213,6 +218,13 @@ namespace sd.render.gl1 {
 				}
 			}
 		}
+
+
+		// -- render passes
+
+		dispatch(_pass: RenderPass | RenderPass []) {
+		}
+
 
 		// -- Sampler
 
