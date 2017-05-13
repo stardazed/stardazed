@@ -222,7 +222,7 @@ namespace sd.render.gl1 {
 
 		// -- render passes
 
-		dispatch(_pass: RenderPass | RenderPass []) {
+		dispatch(_pass: RenderCommandBuffer | RenderCommandBuffer []) {
 		}
 
 

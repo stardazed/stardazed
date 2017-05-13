@@ -46,7 +46,7 @@ namespace sd.render {
 		makeResourceCommandBuffer(): RenderResourceCommandBuffer;
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]): void;
 
-		dispatch(pass: RenderPass | RenderPass[]): void;
+		dispatch(pass: RenderCommandBuffer | RenderCommandBuffer[]): void;
 	}
 
 } // ns sd.render

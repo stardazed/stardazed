@@ -403,7 +403,7 @@ namespace sd.entity {
 			const indexRowsUsed = Math.ceil(indexPixelsUsed / LUT_WIDTH);
 
 			// resource updates
-			const cmd = new render.RenderPass();
+			const cmd = new render.RenderCommandBuffer();
 			// TODO: should use slice to only pass subarray of data actually being sent?
 			cmd.textureWrite(this.lutTexture_, image.makePixelCoordinate(0, 0), image.makePixelDimensions(LUT_WIDTH, gllRowsUsed), this.globalLightData_);
 			cmd.textureWrite(this.lutTexture_, image.makePixelCoordinate(0, LUT_LIGHTDATA_ROWS), image.makePixelDimensions(LUT_WIDTH, indexRowsUsed), this.tileLightIndexes_);

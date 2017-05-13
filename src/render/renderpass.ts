@@ -1,4 +1,4 @@
-// render/renderpass - single framebuffer pass (command buffer)
+// render/commandbuffer - render command buffer
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -143,7 +143,7 @@ namespace sd.render {
 	export type RenderCommand = StartFrameCommand | ScissorCommand | ViewportCommand | FrontFaceCommand | TextureWriteCommand | RenderJobCommand;
 
 
-	export class RenderPass {
+	export class RenderCommandBuffer {
 		readonly commands: RenderCommand[] = [];
 
 		setFrameBuffer(fb: FrameBuffer | null, clearMask: ClearMask) {
