@@ -43,6 +43,7 @@ namespace sd.render {
 		get freeList() { return this.freeList_; }
 	}
 
+
 	export interface RenderDevice {
 		// current dimensions of screen rendertarget
 		readonly drawableWidth: number;

@@ -7,22 +7,6 @@
 
 namespace sd.render.gl1 {
 
-/*
-	function glTypeForIndexElementType(rd: GL1RenderDevice, iet: meshdata.IndexElementType): number {
-		switch (iet) {
-			case meshdata.IndexElementType.UInt8: return rd.gl.UNSIGNED_BYTE;
-			case meshdata.IndexElementType.UInt16: return rd.gl.UNSIGNED_SHORT;
-			case meshdata.IndexElementType.UInt32:
-				return rd.ext32bitIndexes ? rd.gl.UNSIGNED_INT : rd.gl.NONE;
-
-			default:
-				assert(false, "Invalid IndexElementType");
-				return rd.gl.NONE;
-		}
-	}
-*/
-	// ----
-
 	export class GL1RenderDevice implements RenderDevice {
 		gl: WebGLRenderingContext;
 
