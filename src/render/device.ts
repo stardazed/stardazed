@@ -27,9 +27,20 @@ namespace sd.render {
 		meshdata.VertexLayout | meshdata.VertexBuffer | meshdata.IndexBuffer | meshdata.MeshData;
 
 
-	export interface RenderResourceCommandBuffer {
-		alloc(resource: RenderResource): void;
-		free(resource: RenderResource): void;
+	export class RenderResourceCommandBuffer {
+		private readonly allocList_: RenderResource[] = [];
+		private readonly freeList_: RenderResource[] = [];
+
+		alloc(resource: RenderResource) {
+			this.allocList_.push(resource);
+		}
+
+		free(resource: RenderResource) {
+			this.freeList_.push(resource);
+		}
+
+		get allocList() { return this.allocList_; }
+		get freeList() { return this.freeList_; }
 	}
 
 	export interface RenderDevice {
@@ -42,10 +53,8 @@ namespace sd.render {
 		readonly supportsDepthTextures: boolean;
 		readonly maxColourAttachments: number;
 
-		// gpu resource management
-		makeResourceCommandBuffer(): RenderResourceCommandBuffer;
+		// gpu command handling
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]): void;
-
 		dispatch(pass: RenderCommandBuffer | RenderCommandBuffer[]): void;
 	}
 

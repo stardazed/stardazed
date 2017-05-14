@@ -138,16 +138,12 @@ namespace sd.render.gl1 {
 
 		// -- resource management
 
-		makeResourceCommandBuffer(): RenderResourceCommandBuffer {
-			return new GL1ResourceCommandBuffer();
-		}
-
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]) {
 			if (! Array.isArray(rrcb)) {
 				rrcb = [rrcb];
 			}
 			for (const cb of rrcb) {
-				for (const resource of (cb as GL1ResourceCommandBuffer).freeList) {
+				for (const resource of cb.freeList) {
 					if (! resource.renderResourceHandle) {
 						console.warn("free: resource was not GPU allocated.", resource);
 						continue;
@@ -182,7 +178,7 @@ namespace sd.render.gl1 {
 					}
 				}
 
-				for (const resource of (cb as GL1ResourceCommandBuffer).allocList) {
+				for (const resource of cb.allocList) {
 					if (resource.renderResourceHandle) {
 						console.warn("alloc: resource was already GPU allocated.", resource);
 						continue;

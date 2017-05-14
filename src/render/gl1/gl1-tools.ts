@@ -59,24 +59,4 @@ namespace sd.render.gl1 {
 		}
 	}
 
-
-	// ----
-
-
-	export class GL1ResourceCommandBuffer implements RenderResourceCommandBuffer {
-		private readonly allocList_: RenderResource[] = [];
-		private readonly freeList_: RenderResource[] = [];
-
-		alloc(resource: RenderResource) {
-			this.allocList_.push(resource);
-		}
-
-		free(resource: RenderResource) {
-			this.freeList_.push(resource);
-		}
-
-		get allocList() { return this.allocList_; }
-		get freeList() { return this.freeList_; }
-	}
-
 } // ns sd.render.gl1
