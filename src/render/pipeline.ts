@@ -99,8 +99,9 @@ namespace sd.render {
 
 
 	export interface Pipeline {
-		colourMask?: ColourWriteMask;
-		depthMask: boolean;
+		colourWriteMask?: ColourWriteMask;
+		depthWrite: boolean;
+		depthTest: DepthTest;
 		blending?: ColourBlendingDescriptor;
 		faceCulling: FaceCulling;
 		shader: Shader;
