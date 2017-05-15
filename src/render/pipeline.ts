@@ -31,6 +31,7 @@ namespace sd.render {
 		Add,
 		Subtract,
 		ReverseSubtract,
+
 		Min,
 		Max
 	}
@@ -39,15 +40,20 @@ namespace sd.render {
 	export const enum BlendFactor {
 		Zero,
 		One,
+
 		SourceColour,
 		OneMinusSourceColour,
+
 		DestColour,
 		OneMinusDestColour,
+
 		SourceAlpha,
 		OneMinusSourceAlpha,
 		SourceAlphaSaturated,
+
 		DestAlpha,
 		OneMinusDestAlpha,
+
 		ConstantColour,
 		OneMinusConstantColour,
 		ConstantAlpha,
