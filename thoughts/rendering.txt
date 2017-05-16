@@ -6,14 +6,14 @@ Essentially take the key from Stingray (http://bitsquid.blogspot.com/2017/02/sti
 and remove the 32 user bits.
 
 MSB [ 00000000 00000000 00000000 00000000 ] LSB
-      ^ ^       ^  ^^                 ^
-      | |       |  ||                 \- 3 bits - Shader System (Pass Immediate)
-      | |       |  |\- 16 bits - Depth
-      | |       |  \- 1 bit - Instance bit
-      | |       |  
-      | |       \- 3 bits - Shader System (Pass Deferred)
-      | \- 7 bits - Layer System
-      \- 2 bits - Unused (MSB in JS is the sign bit)
+      ^^       ^  ^^                 ^
+      ||       |  ||                 \- 3 bits - Shader System (Pass Immediate)
+      ||       |  |\- 16 bits - Depth
+      ||       |  \- 1 bit - Instance bit
+      ||       |  
+      ||       \- 3 bits - Shader System (Pass Deferred)
+      |\- 7 bits - Layer index
+      \- MSB unused (is the sign but in JS)
 
 Ignore the instance bit for now and probably abuse their layer system to mean
 whatever the hell I think it should mean.

@@ -1,0 +1,62 @@
+full forward frame render - LD37
+================================
+
+for each shadow light as index ix
+	set fbo shadow_{ix}
+	clear fbo buffers: shadow_{ix}
+
+	set depthtest less
+	set shader pipeline: shadow pipeline
+
+	for each visible, shadowcasting mesh as mesh
+		set mesh/vao mesh
+		set shader constants based on mesh
+		draw mesh
+
+	set fbo shadow_down1
+	set shader pipeline: copy fullscreen pass
+	set mesh/vao big_triangle
+	set shader constants for fullscreen pass
+	draw big_triangle
+
+	set fbo shadow_down2
+	set shader pipeline: copy fullscreen pass
+	set mesh/vao big_triangle
+	set shader constants for fullscreen pass
+	draw big_triangle
+
+	set fbo shadow_{ix}_box
+	set shader pipeline: box filter fs pass
+	set mesh/vao big_triangle
+	set shader constants for fullscreen pass
+	draw big_triangle
+
+set fbo main_forward
+
+set shader pipeline skybox
+set depthtest less
+set cull front
+set mesh/vao skybox_sphere
+draw
+
+set depthtest lequal
+set cull back
+
+for each visible mesh as mesh
+	for each material of mesh
+		set shader pipeline material/mesh
+	set mesh/vao mesh
+	set shader constants based on mesh
+	draw mesh
+
+set shader post_proc
+set mesh/vao big_triangle
+set shader constants for fullscreen pass
+draw
+
+set fbo back_buffer
+
+set shader fxaa
+set mesh/vao big_triangle
+set shader constants for fullscreen pass
+draw
