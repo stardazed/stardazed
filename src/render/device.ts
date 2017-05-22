@@ -9,9 +9,6 @@ namespace sd.render {
 		Texture = 1,
 		Sampler,
 		FrameBuffer,
-		// VertexLayout,
-		// VertexStream,
-		// IndexStream,
 		Mesh,
 		// ConstantBuffer,
 		Shader
@@ -23,8 +20,7 @@ namespace sd.render {
 	}
 
 	export type RenderResource =
-		Texture | Sampler | Shader | FrameBuffer |
-		meshdata.VertexLayout | meshdata.VertexBuffer | meshdata.IndexBuffer | meshdata.MeshData;
+		Texture | Sampler | FrameBuffer | meshdata.MeshData | Shader;
 
 
 	export class RenderResourceCommandBuffer {

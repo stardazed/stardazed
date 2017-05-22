@@ -177,7 +177,7 @@ namespace sd.meshdata {
 	//   \_/\___|_|  \__\___/_\_\____\__,_|\_, \___/\_,_|\__|
 	//                                     |__/              
 
-	export interface VertexLayout extends render.RenderResourceBase {
+	export interface VertexLayout {
 		readonly layouts: ReadonlyArray<VertexBufferLayout>;
 	}
 
@@ -207,8 +207,6 @@ namespace sd.meshdata {
 		}
 
 		return {
-			renderResourceType: render.ResourceType.VertexLayout,
-			renderResourceHandle: 0,
 			layouts
 		};
 	}

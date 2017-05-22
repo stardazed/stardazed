@@ -5,10 +5,7 @@
 
 namespace sd.meshdata {
 
-	export class VertexBuffer implements render.RenderResourceBase {
-		get renderResourceType() { return render.ResourceType.VertexStream; }
-		renderResourceHandle = 0;
-
+	export class VertexBuffer {
 		readonly storage: Uint8ClampedArray;
 		readonly vertexCount: number;
 		readonly stride: number;

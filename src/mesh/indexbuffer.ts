@@ -131,10 +131,7 @@ namespace sd.meshdata {
 	}
 
 
-	export class IndexBuffer implements render.RenderResourceBase {
-		get renderResourceType() { return render.ResourceType.IndexStream; }
-		renderResourceHandle = 0;
-
+	export class IndexBuffer {
 		readonly indexElementType: IndexElementType;
 		readonly indexCount: number;
 		readonly storage: Uint8ClampedArray;

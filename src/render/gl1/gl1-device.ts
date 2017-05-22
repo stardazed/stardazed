@@ -154,15 +154,6 @@ namespace sd.render.gl1 {
 						case ResourceType.Shader:
 							this.freeShader(resource as Shader);
 							break;
-						case ResourceType.VertexLayout:
-							this.freeVertexLayout(resource as meshdata.VertexLayout);
-							break;
-						case ResourceType.VertexStream:
-							this.freeVertexStream(resource as meshdata.VertexBuffer);
-							break;
-						case ResourceType.IndexStream:
-							this.freeIndexStream(resource as meshdata.IndexBuffer);
-							break;
 						case ResourceType.Mesh:
 							this.freeMesh(resource as meshdata.MeshData);
 							break;
@@ -188,15 +179,6 @@ namespace sd.render.gl1 {
 							break;
 						case ResourceType.Shader:
 							this.allocShader(resource as Shader);
-							break;
-						case ResourceType.VertexLayout:
-							this.allocVertexLayout(resource as meshdata.VertexLayout);
-							break;
-						case ResourceType.VertexStream:
-							this.allocVertexStream(resource as meshdata.VertexBuffer);
-							break;
-						case ResourceType.IndexStream:
-							this.allocIndexStream(resource as meshdata.IndexBuffer);
 							break;
 						case ResourceType.Mesh:
 							this.allocMesh(resource as meshdata.MeshData);
@@ -267,47 +249,6 @@ namespace sd.render.gl1 {
 
 		private freeShader(shader: Shader) {
 			this.shaders_.remove(shader);
-		}
-
-		// -- VertexLayout
-
-		readonly vertexLayouts_ = new ReusableResourceArray<meshdata.VertexLayout, meshdata.VertexLayout>(ResourceType.VertexLayout);
-
-		private allocVertexLayout(layout: meshdata.VertexLayout) {
-			this.vertexLayouts_.insert(layout, layout);
-		}
-
-		private freeVertexLayout(layout: meshdata.VertexLayout) {
-			this.vertexLayouts_.remove(layout);
-		}
-
-		// -- VertexStream
-
-		private allocVertexStream(buffer: meshdata.VertexBuffer) {
-			const gl = this.gl;
-			const stream = gl.createBuffer()!; // TODO: handle allocation failure
-			gl.bindBuffer(gl.ARRAY_BUFFER, stream);
-			gl.bufferData(gl.ARRAY_BUFFER, buffer.storage, gl.STATIC_DRAW);
-			this.vertexStreams_.insert(buffer, stream);
-		}
-
-		private freeVertexStream(buffer: meshdata.VertexBuffer) {
-			this.vertexStreams_.remove(buffer);
-		}
-
-		// -- IndexStream
-
-
-		private allocIndexStream(buffer: meshdata.IndexBuffer) {
-			const gl = this.gl;
-			const stream = gl.createBuffer()!; // TODO: handle allocation failure
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, stream);
-			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, buffer.storage, gl.STATIC_DRAW);
-			this.indexStreams_.insert(buffer, stream);
-		}
-
-		private freeIndexStream(buffer: meshdata.IndexBuffer) {
-			this.indexStreams_.remove(buffer);
 		}
 
 		// -- Mesh
