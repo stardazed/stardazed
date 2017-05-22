@@ -11,7 +11,7 @@ namespace sd.render {
 		label: string;
 
 		type: "enum" | "value" | "map" | "map-or-value";
-		
+
 		mapping?: "rgb" | "rgba" | "r" | "g" | "b" | "a";
 		valueDefault?: number | number[];
 

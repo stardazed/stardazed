@@ -9,9 +9,9 @@ namespace sd.render {
 		Texture = 1,
 		Sampler,
 		FrameBuffer,
-		VertexLayout,
-		VertexStream,
-		IndexStream,
+		// VertexLayout,
+		// VertexStream,
+		// IndexStream,
 		Mesh,
 		// ConstantBuffer,
 		Shader

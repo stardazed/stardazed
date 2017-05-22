@@ -7,6 +7,15 @@
 
 namespace sd.render.gl1 {
 
+	export interface MeshGPUData {
+		vertexBuffers: WebGLBuffer[];
+		primGroups: meshdata.PrimitiveGroup[];
+		indexBuffer?: WebGLBuffer;
+		indexElement?: meshdata.IndexElementType;
+		vaos: WeakMap<Shader, WebGLVertexArrayObjectOES>;
+	}
+
+
 	export class GL1RenderDevice implements RenderDevice {
 		gl: WebGLRenderingContext;
 
@@ -274,8 +283,6 @@ namespace sd.render.gl1 {
 
 		// -- VertexStream
 
-		readonly vertexStreams_ = new ReusableResourceArray<meshdata.VertexBuffer, WebGLBuffer>(ResourceType.VertexStream);
-
 		private allocVertexStream(buffer: meshdata.VertexBuffer) {
 			const gl = this.gl;
 			const stream = gl.createBuffer()!; // TODO: handle allocation failure
@@ -290,7 +297,6 @@ namespace sd.render.gl1 {
 
 		// -- IndexStream
 
-		readonly indexStreams_ = new ReusableResourceArray<meshdata.IndexBuffer, WebGLBuffer>(ResourceType.IndexStream);
 
 		private allocIndexStream(buffer: meshdata.IndexBuffer) {
 			const gl = this.gl;
@@ -306,14 +312,24 @@ namespace sd.render.gl1 {
 
 		// -- Mesh
 
-		readonly meshes_ = new ReusableResourceArray<meshdata.MeshData, WeakMap<Shader, WebGLVertexArrayObjectOES>>(ResourceType.Mesh);
-
 		private allocMesh(mesh: meshdata.MeshData) {
 			const vaoMap = new WeakMap<Shader, WebGLVertexArrayObjectOES>();
 			this.meshes_.insert(mesh, vaoMap);
 		}
 
 		private freeMesh(mesh: meshdata.MeshData) {
+			this.meshes_.remove(mesh);
+		}
+
+		// ----
+
+		readonly meshes_ = new ReusableResourceArray<meshdata.MeshData, MeshGPUData>(ResourceType.Mesh);
+
+		private allocFullMesh(mesh: meshdata.MeshData) {
+			
+		}
+
+		private freeFullMesh(mesh: meshdata.MeshData) {
 			this.meshes_.remove(mesh);
 		}
 	}
