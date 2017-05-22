@@ -7,15 +7,6 @@
 
 namespace sd.render.gl1 {
 
-	export interface MeshGPUData {
-		vertexBuffers: WebGLBuffer[];
-		primGroups: meshdata.PrimitiveGroup[];
-		indexBuffer?: WebGLBuffer;
-		indexElement?: meshdata.IndexElementType;
-		vaos: WeakMap<Shader, WebGLVertexArrayObjectOES>;
-	}
-
-
 	export class GL1RenderDevice implements RenderDevice {
 		gl: WebGLRenderingContext;
 
@@ -215,12 +206,16 @@ namespace sd.render.gl1 {
 		readonly linkedSamplers_: number[] = [];
 
 		private allocTexture(texture: Texture) {
-			const glTex = gl1CreateTexture(this, texture); // TODO: handle allocation failure
+			const glTex = makeTexture(this, texture); // TODO: handle allocation failure
 			const index = this.textures_.insert(texture, glTex);
 			this.linkedSamplers_[index] = 0;
 		}
 
 		private freeTexture(texture: Texture) {
+			const tex = this.textures_.find(texture);
+			if (tex) {
+				this.gl.deleteTexture(tex);
+			}
 			const index = this.textures_.remove(texture);
 			this.linkedSamplers_[index] = 0;
 		}
@@ -230,11 +225,15 @@ namespace sd.render.gl1 {
 		readonly frameBuffers_ = new ReusableResourceArray<FrameBuffer, WebGLFramebuffer>(ResourceType.FrameBuffer);
 
 		private allocFrameBuffer(frameBuffer: FrameBuffer) {
-			const fbo = gl1CreateFrameBuffer(this, frameBuffer);
+			const fbo = makeFrameBuffer(this, frameBuffer);
 			this.frameBuffers_.insert(frameBuffer, fbo);
 		}
 
 		private freeFrameBuffer(frameBuffer: FrameBuffer) {
+			const fb = this.frameBuffers_.find(frameBuffer);
+			if (fb) {
+				this.gl.deleteFramebuffer(fb);
+			}
 			this.frameBuffers_.remove(frameBuffer);
 		}
 
@@ -253,24 +252,23 @@ namespace sd.render.gl1 {
 
 		// -- Mesh
 
+		readonly meshes_ = new ReusableResourceArray<meshdata.MeshData, GL1MeshData>(ResourceType.Mesh);
+
 		private allocMesh(mesh: meshdata.MeshData) {
-			const vaoMap = new WeakMap<Shader, WebGLVertexArrayObjectOES>();
-			this.meshes_.insert(mesh, vaoMap);
+			const gpuMesh = makeMesh(this, mesh);
+			this.meshes_.insert(mesh, gpuMesh);
 		}
 
 		private freeMesh(mesh: meshdata.MeshData) {
-			this.meshes_.remove(mesh);
-		}
+			const gl = this.gl;
 
-		// ----
-
-		readonly meshes_ = new ReusableResourceArray<meshdata.MeshData, MeshGPUData>(ResourceType.Mesh);
-
-		private allocFullMesh(mesh: meshdata.MeshData) {
-			
-		}
-
-		private freeFullMesh(mesh: meshdata.MeshData) {
+			const gpuMesh = this.meshes_.find(mesh);
+			if (gpuMesh) {
+				// delete vertex/index buffers immediately, as they can be rather large
+				for (const buf of gpuMesh.buffers) {
+					gl.deleteBuffer(buf);
+				}
+			}
 			this.meshes_.remove(mesh);
 		}
 	}

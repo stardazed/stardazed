@@ -78,32 +78,79 @@ namespace sd.render.gl1 {
 	}
 
 	const shaderRoleToAttributeRole: { [rr: string]: meshdata.VertexAttributeRole } = {
-		"position": meshdata.VertexAttributeRole.Position,
-		"normal": meshdata.VertexAttributeRole.Normal,
-		"tangent": meshdata.VertexAttributeRole.Tangent,
-		"colour": meshdata.VertexAttributeRole.Colour,
-		"material": meshdata.VertexAttributeRole.Material,
-		"uv0": meshdata.VertexAttributeRole.UV0,
-		"uv1": meshdata.VertexAttributeRole.UV1,
-		"uv2": meshdata.VertexAttributeRole.UV2,
-		"uv3": meshdata.VertexAttributeRole.UV3,
-		"weightedPos0": meshdata.VertexAttributeRole.WeightedPos0,
-		"weightedPos1": meshdata.VertexAttributeRole.WeightedPos1,
-		"weightedPos2": meshdata.VertexAttributeRole.WeightedPos2,
-		"weightedPos3": meshdata.VertexAttributeRole.WeightedPos3,
-		"jointIndexes": meshdata.VertexAttributeRole.JointIndexes
+		position: meshdata.VertexAttributeRole.Position,
+		normal: meshdata.VertexAttributeRole.Normal,
+		tangent: meshdata.VertexAttributeRole.Tangent,
+		colour: meshdata.VertexAttributeRole.Colour,
+		material: meshdata.VertexAttributeRole.Material,
+		uv0: meshdata.VertexAttributeRole.UV0,
+		uv1: meshdata.VertexAttributeRole.UV1,
+		uv2: meshdata.VertexAttributeRole.UV2,
+		uv3: meshdata.VertexAttributeRole.UV3,
+		weightedPos0: meshdata.VertexAttributeRole.WeightedPos0,
+		weightedPos1: meshdata.VertexAttributeRole.WeightedPos1,
+		weightedPos2: meshdata.VertexAttributeRole.WeightedPos2,
+		weightedPos3: meshdata.VertexAttributeRole.WeightedPos3,
+		jointIndexes: meshdata.VertexAttributeRole.JointIndexes
 	};
 
-	export function gl1CreateVAOForAttrBinding(rd: GL1RenderDevice, mesh: meshdata.MeshData, attrs: ShaderVertexAttribute[]) {
+
+	export interface GL1MeshData {
+		attributes: meshdata.PositionedAttribute[];
+		indexElement: meshdata.IndexElementType;
+		buffers: WebGLBuffer[];
+		bufferStrides: number[];
+		vaos: Map<string, WebGLVertexArrayObjectOES>;
+	}
+
+
+	export function makeMesh(rd: GL1RenderDevice, mesh: meshdata.MeshData): GL1MeshData {
+		const gl = rd.gl;
+		const buffers: WebGLBuffer[] = [];
+
+		// Even though the local vertex and index buffers may all be allocated in a single
+		// array, WebGL does not support binding the same ArrayBuffer to different targets
+		// for safety reasons.
+		for (const vb of mesh.vertexBuffers) {
+			const vbuf = gl.createBuffer()!; // TODO: handle allocation failure
+			gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
+			gl.bufferData(gl.ARRAY_BUFFER, vb.storage, gl.STATIC_DRAW);
+			buffers.push(vbuf);
+		}
+
+		// The index buffer, if present, is the last buffer in the array
+		if (mesh.indexBuffer) {
+			const ibuf = gl.createBuffer()!; // TODO: handle allocation failure
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer.storage, gl.STATIC_DRAW);
+			buffers.push(ibuf);
+		}
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, null);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+		// linearize the attributes and store all required data for this mesh to be bound
+		return {
+			attributes: mesh.layout.layouts.map(vbl => vbl.attributes).reduce((aa, next) => aa.concat(next)),
+			indexElement: mesh.indexBuffer ? mesh.indexBuffer.indexElementType : meshdata.IndexElementType.None,
+			buffers,
+			bufferStrides: mesh.layout.layouts.map(vbl => vbl.stride),
+			vaos: new Map<string, WebGLVertexArrayObjectOES>()
+		};
+	}
+
+
+	function createVAOForAttrBinding(rd: GL1RenderDevice, meshHandle: number, attrs: ShaderVertexAttribute[]) {
 		const gl = rd.gl;
 
-		const vao = rd.extVAO.createVertexArrayOES()!;
+		const mesh = rd.meshes_.getByHandle(meshHandle)!; // assert presence
+		const vao = rd.extVAO.createVertexArrayOES()!; // TODO: handle allocation failure
 		rd.extVAO.bindVertexArrayOES(vao);
 
 		// -- find and bind all attributes
 		for (let bufferIndex = 0; bufferIndex < mesh.layout.layouts.length; ++bufferIndex) {
 			const layout = mesh.layout.layouts[bufferIndex];
-			const vb = rd.vertexStreams_.find(mesh.vertexBuffers[bufferIndex])!;
+			const vb = mesh.buffers[bufferIndex];
 			gl.bindBuffer(gl.ARRAY_BUFFER, vb);
 
 			for (const sva of attrs) {
@@ -130,6 +177,11 @@ namespace sd.render.gl1 {
 
 		rd.extVAO.bindVertexArrayOES(null);
 		return vao;
+	}
+
+
+	export function bindMesh(rd: GL1RenderDevice, meshHandle: number, attrs: ShaderVertexAttribute[]) {
+		
 	}
 
 } // ns sd.render.gl1
