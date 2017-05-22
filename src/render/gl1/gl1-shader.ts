@@ -202,7 +202,7 @@ namespace sd.render.gl1 {
 
 		if (! gl.getProgramParameter(program, gl.LINK_STATUS)) {
 			const errorLog = gl.getProgramInfoLog(program);
-			console.error("Pipeline link failed:", errorLog);
+			console.error("Program link failed:", errorLog);
 			return undefined;
 		}
 

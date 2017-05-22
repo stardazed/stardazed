@@ -396,7 +396,7 @@ namespace sd.render.gl1 {
 	}
 
 
-	export function gl1CreateTexture(rd: GL1RenderDevice, texture: Texture) {
+	export function makeTexture(rd: GL1RenderDevice, texture: Texture) {
 		// -- general validity checks
 		assert(texture.dim.width > 0);
 		assert(texture.dim.height > 0);
