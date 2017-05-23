@@ -50,9 +50,12 @@ namespace sd.render {
 		readonly supportsDepthTextures: boolean;
 		readonly maxColourAttachments: number;
 
-		// gpu command handling
+		// command dispatch
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]): void;
 		dispatch(pass: RenderCommandBuffer | RenderCommandBuffer[]): void;
+
+		// run all drawing commands
+		renderFrame(): void;
 	}
 
 } // ns sd.render

@@ -122,7 +122,31 @@ namespace sd.render.gl1 {
 			return this.maxColourAttachments_;
 		}
 
-		// -- resource management
+		// -- render commands
+
+		dispatch(cmds: RenderCommandBuffer | RenderCommandBuffer[]) {
+			if (Array.isArray(cmds)) {
+				for (const cb of cmds) {
+					this.commandList_.concat(cb.commands);
+				}
+			}
+			else {
+				this.commandList_.concat(cmds.commands);
+			}
+		}
+
+		// renderFrame is defined out-of-line in gl1-render.ts
+		renderFrame = renderFrame;
+
+		discardFrame() {
+			this.commandList_ = [];
+		}
+
+		//  ___                                
+		// | _ \___ ___ ___ _  _ _ _ __ ___ ___
+		// |   / -_|_-</ _ \ || | '_/ _/ -_|_-<
+		// |_|_\___/__/\___/\_,_|_| \__\___/__/
+		//                                     
 
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]) {
 			if (! Array.isArray(rrcb)) {
@@ -180,19 +204,6 @@ namespace sd.render.gl1 {
 							break;
 					}
 				}
-			}
-		}
-
-		// -- render commands
-
-		dispatch(cmds: RenderCommandBuffer | RenderCommandBuffer[]) {
-			if (Array.isArray(cmds)) {
-				for (const cb of cmds) {
-					this.commandList_.concat(cb.commands);
-				}
-			}
-			else {
-				this.commandList_.concat(cmds.commands);
 			}
 		}
 
