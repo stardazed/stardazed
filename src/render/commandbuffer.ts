@@ -124,6 +124,7 @@ namespace sd.render {
 		type: RenderCommandType.TextureWrite;
 		sortKey: number;
 		textureHandle: number;
+		layer: CubeMapFace | number;
 		x: number;
 		y: number;
 		width: number;
@@ -195,11 +196,12 @@ namespace sd.render {
 
 		}
 
-		textureWrite(texture: Texture, offset: image.PixelCoordinate, dim: image.PixelDimensions, pixels: ReadonlyTypedArray) {
+		textureWrite(texture: Texture, layer: CubeMapFace | number, offset: image.PixelCoordinate, dim: image.PixelDimensions, pixels: ReadonlyTypedArray) {
 			this.commands.push({
 				type: RenderCommandType.TextureWrite,
 				sortKey: 0,
 				textureHandle: texture.renderResourceHandle,
+				layer,
 				x: offset.x,
 				y: offset.y,
 				width: dim.width,

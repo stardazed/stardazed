@@ -405,9 +405,9 @@ namespace sd.entity {
 			// resource updates
 			const cmd = new render.RenderCommandBuffer();
 			// TODO: should use slice to only pass subarray of data actually being sent?
-			cmd.textureWrite(this.lutTexture_, image.makePixelCoordinate(0, 0), image.makePixelDimensions(LUT_WIDTH, gllRowsUsed), this.globalLightData_);
-			cmd.textureWrite(this.lutTexture_, image.makePixelCoordinate(0, LUT_LIGHTDATA_ROWS), image.makePixelDimensions(LUT_WIDTH, indexRowsUsed), this.tileLightIndexes_);
-			cmd.textureWrite(this.lutTexture_, image.makePixelCoordinate(0, LUT_LIGHTDATA_ROWS + LUT_INDEXLIST_ROWS), image.makePixelDimensions(LUT_WIDTH, gridRowsUsed), this.lightGrid_);
+			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, 0), image.makePixelDimensions(LUT_WIDTH, gllRowsUsed), this.globalLightData_);
+			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, LUT_LIGHTDATA_ROWS), image.makePixelDimensions(LUT_WIDTH, indexRowsUsed), this.tileLightIndexes_);
+			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, LUT_LIGHTDATA_ROWS + LUT_INDEXLIST_ROWS), image.makePixelDimensions(LUT_WIDTH, gridRowsUsed), this.lightGrid_);
 			return cmd;
 		}
 
