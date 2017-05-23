@@ -30,7 +30,7 @@ namespace sd.render.gl1 {
 
 		private maxColourAttachments_ = 0;
 
-		private commandList_: RenderCommand[] = [];
+		commandList_: RenderCommand[] = [];
 
 		constructor(canvas: HTMLCanvasElement) {
 			let gl: WebGLRenderingContext | null;
@@ -221,22 +221,19 @@ namespace sd.render.gl1 {
 
 		// -- Texture
 
-		readonly textures_ = new ReusableResourceArray<Texture, WebGLTexture>(ResourceType.Texture);
-		readonly linkedSamplers_: number[] = [];
+		readonly textures_ = new ReusableResourceArray<Texture, GL1TextureData>(ResourceType.Texture);
 
 		private allocTexture(texture: Texture) {
 			const glTex = createTexture(this, texture); // TODO: handle allocation failure
-			const index = this.textures_.insert(texture, glTex);
-			this.linkedSamplers_[index] = 0;
+			this.textures_.insert(texture, glTex);
 		}
 
 		private freeTexture(texture: Texture) {
 			const tex = this.textures_.find(texture);
 			if (tex) {
-				this.gl.deleteTexture(tex);
+				this.gl.deleteTexture(tex.texture);
+				this.textures_.remove(texture);
 			}
-			const index = this.textures_.remove(texture);
-			this.linkedSamplers_[index] = 0;
 		}
 
 		// -- FrameBuffer

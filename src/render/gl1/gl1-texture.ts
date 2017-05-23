@@ -26,9 +26,9 @@ namespace sd.render.gl1 {
 
 			// sRGB -- silently fall back to standard RGB if not available (availability in browsers is ~100%)
 			case PixelFormat.SRGB8:
-				return rd.extSRGB ? rd.extSRGB.SRGB_EXT : GLConst.RGB;
+				return rd.extSRGB ? GLConst.SRGB_EXT : GLConst.RGB;
 			case PixelFormat.SRGB8_Alpha8:
-				return rd.extSRGB ? rd.extSRGB.SRGB_ALPHA_EXT : GLConst.RGB;
+				return rd.extSRGB ? GLConst.SRGB_ALPHA_EXT : GLConst.RGB;
 
 			// Float
 			case PixelFormat.RGBA16F:
@@ -56,13 +56,13 @@ namespace sd.render.gl1 {
 
 			// S3TC
 			case PixelFormat.RGB_DXT1:
-				return rd.extS3TC ? rd.extS3TC.COMPRESSED_RGB_S3TC_DXT1_EXT : GLConst.NONE;
+				return rd.extS3TC ? GLConst.COMPRESSED_RGB_S3TC_DXT1_EXT : GLConst.NONE;
 			case PixelFormat.RGBA_DXT1:
-				return rd.extS3TC ? rd.extS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT : GLConst.NONE;
+				return rd.extS3TC ? GLConst.COMPRESSED_RGBA_S3TC_DXT1_EXT : GLConst.NONE;
 			case PixelFormat.RGBA_DXT3:
-				return rd.extS3TC ? rd.extS3TC.COMPRESSED_RGBA_S3TC_DXT3_EXT : GLConst.NONE;
+				return rd.extS3TC ? GLConst.COMPRESSED_RGBA_S3TC_DXT3_EXT : GLConst.NONE;
 			case PixelFormat.RGBA_DXT5:
-				return rd.extS3TC ? rd.extS3TC.COMPRESSED_RGBA_S3TC_DXT5_EXT : GLConst.NONE;
+				return rd.extS3TC ? GLConst.COMPRESSED_RGBA_S3TC_DXT5_EXT : GLConst.NONE;
 
 			default:
 				assert(false, "GL1: unhandled pixel format");
@@ -99,7 +99,7 @@ namespace sd.render.gl1 {
 			case PixelFormat.RG16F:
 			case PixelFormat.RGB16F:
 			case PixelFormat.RGBA16F:
-				return rd.extTextureHalfFloat ? rd.extTextureHalfFloat.HALF_FLOAT_OES : GLConst.NONE;
+				return rd.extTextureHalfFloat ? GLConst.HALF_FLOAT_OES : GLConst.NONE;
 
 			case PixelFormat.R32F:
 			case PixelFormat.RG32F:
@@ -113,7 +113,7 @@ namespace sd.render.gl1 {
 				return GLConst.UNSIGNED_INT;
 
 			case PixelFormat.Depth24_Stencil8:
-				return rd.extDepthTexture ? rd.extDepthTexture.UNSIGNED_INT_24_8_WEBGL : GLConst.NONE;
+				return rd.extDepthTexture ? GLConst.UNSIGNED_INT_24_8_WEBGL : GLConst.NONE;
 
 			default:
 				assert(false, "GL1: unsupported pixel format");
@@ -126,10 +126,8 @@ namespace sd.render.gl1 {
 		if (texture.textureClass === TextureClass.Normal) {
 			return GLConst.TEXTURE_2D;
 		}
-		if (texture.textureClass === TextureClass.CubeMap) {
-			return GLConst.TEXTURE_CUBE_MAP;
-		}
-		return GLConst.NONE;
+
+		return GLConst.TEXTURE_CUBE_MAP;
 	}
 
 
@@ -391,8 +389,14 @@ namespace sd.render.gl1 {
 		return tex;
 	}
 
+	export interface GL1TextureData {
+		texture: WebGLTexture;
+		target: GLConst.TEXTURE_2D | GLConst.TEXTURE_CUBE_MAP;
+		format: image.PixelFormat;
+		linkedSamplerIndex: number;
+	}
 
-	export function createTexture(rd: GL1RenderDevice, texture: Texture) {
+	export function createTexture(rd: GL1RenderDevice, texture: Texture): GL1TextureData {
 		// -- general validity checks
 		assert(texture.dim.width > 0);
 		assert(texture.dim.height > 0);
@@ -402,10 +406,18 @@ namespace sd.render.gl1 {
 		assert(texture.dim.width <= gl1MaxTextureDimension(rd, texture.textureClass));
 		assert(texture.dim.height <= gl1MaxTextureDimension(rd, texture.textureClass));
 
+		let glTex: WebGLTexture;
 		if (texture.textureClass === TextureClass.CubeMap) {
-			return createCubeMapTexture(rd, texture);
+			glTex = createCubeMapTexture(rd, texture);
 		}
-		return createPlainTexture(rd, texture);
+		glTex = createPlainTexture(rd, texture);
+
+		return {
+			texture: glTex,
+			target: gl1TargetForTexture(texture),
+			format: texture.pixelFormat,
+			linkedSamplerIndex: 0
+		};
 	}
 
 } // ns sd.render.gl1
