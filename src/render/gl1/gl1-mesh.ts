@@ -110,6 +110,20 @@ namespace sd.render.gl1 {
 	}
 
 
+	export function destroyMesh(rd: GL1RenderDevice, mesh: GL1MeshData) {
+		for (const buf of mesh.buffers) {
+			rd.gl.deleteBuffer(buf);
+		}
+		mesh.vaos.forEach(vao => {
+			rd.extVAO.deleteVertexArrayOES(vao);
+		});
+
+		mesh.attributes = [];
+		mesh.buffers = [];
+		mesh.vaos.clear();
+	}
+
+
 	export function createVAOForAttrBinding(rd: GL1RenderDevice, mesh: GL1MeshData, attrs: ShaderVertexAttribute[]) {
 		const gl = rd.gl;
 

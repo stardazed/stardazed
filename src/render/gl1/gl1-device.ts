@@ -261,16 +261,11 @@ namespace sd.render.gl1 {
 		}
 
 		private freeMesh(mesh: meshdata.MeshData) {
-			const gl = this.gl;
-
 			const gpuMesh = this.meshes_.find(mesh);
 			if (gpuMesh) {
-				// delete vertex/index buffers immediately, as they can be rather large
-				for (const buf of gpuMesh.buffers) {
-					gl.deleteBuffer(buf);
-				}
+				destroyMesh(this, gpuMesh);
+				this.meshes_.remove(mesh);
 			}
-			this.meshes_.remove(mesh);
 		}
 	}
 
