@@ -207,7 +207,7 @@ namespace sd.render.gl1 {
 		readonly linkedSamplers_: number[] = [];
 
 		private allocTexture(texture: Texture) {
-			const glTex = makeTexture(this, texture); // TODO: handle allocation failure
+			const glTex = createTexture(this, texture); // TODO: handle allocation failure
 			const index = this.textures_.insert(texture, glTex);
 			this.linkedSamplers_[index] = 0;
 		}
@@ -226,7 +226,7 @@ namespace sd.render.gl1 {
 		readonly frameBuffers_ = new ReusableResourceArray<FrameBuffer, WebGLFramebuffer>(ResourceType.FrameBuffer);
 
 		private allocFrameBuffer(frameBuffer: FrameBuffer) {
-			const fbo = makeFrameBuffer(this, frameBuffer);
+			const fbo = createFrameBuffer(this, frameBuffer);
 			this.frameBuffers_.insert(frameBuffer, fbo);
 		}
 
@@ -243,7 +243,7 @@ namespace sd.render.gl1 {
 		readonly shaders_ = new ReusableResourceArray<Shader, WebGLProgram>(ResourceType.Shader);
 
 		private allocShader(shader: Shader) {
-			const gl1Prog = makeProgram(this, shader)!; // TODO: handle failures
+			const gl1Prog = createProgram(this, shader)!; // TODO: handle failures
 			this.shaders_.insert(shader, gl1Prog);
 		}
 
@@ -256,7 +256,7 @@ namespace sd.render.gl1 {
 		readonly meshes_ = new ReusableResourceArray<meshdata.MeshData, GL1MeshData>(ResourceType.Mesh);
 
 		private allocMesh(mesh: meshdata.MeshData) {
-			const gpuMesh = makeMesh(this, mesh);
+			const gpuMesh = createMesh(this, mesh);
 			this.meshes_.insert(mesh, gpuMesh);
 		}
 

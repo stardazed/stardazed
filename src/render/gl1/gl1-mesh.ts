@@ -74,7 +74,7 @@ namespace sd.render.gl1 {
 	}
 
 
-	export function makeMesh(rd: GL1RenderDevice, mesh: meshdata.MeshData): GL1MeshData {
+	export function createMesh(rd: GL1RenderDevice, mesh: meshdata.MeshData): GL1MeshData {
 		const gl = rd.gl;
 		const buffers: WebGLBuffer[] = [];
 

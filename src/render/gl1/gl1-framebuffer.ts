@@ -62,7 +62,7 @@ namespace sd.render.gl1 {
 	}
 
 
-	export function makeFrameBuffer(rd: GL1RenderDevice, frameBuffer: FrameBuffer) {
+	export function createFrameBuffer(rd: GL1RenderDevice, frameBuffer: FrameBuffer) {
 		const gl = rd.gl;
 		const fbo = gl.createFramebuffer()!; // FIXME: handle allocation failure
 		gl.bindFramebuffer(GLConst.FRAMEBUFFER, fbo);

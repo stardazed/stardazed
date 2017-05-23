@@ -181,7 +181,7 @@ namespace sd.render.gl1 {
 
 	// ----
 
-	export function makeProgram(rd: GL1RenderDevice, shader: Shader) {
+	export function createProgram(rd: GL1RenderDevice, shader: Shader) {
 		const gl = rd.gl;
 
 		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(shader.vertexFunction as GL1VertexFunction));
