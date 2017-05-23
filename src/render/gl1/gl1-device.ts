@@ -30,6 +30,8 @@ namespace sd.render.gl1 {
 
 		private maxColourAttachments_ = 0;
 
+		private commandList_: RenderCommand[] = [];
+
 		constructor(canvas: HTMLCanvasElement) {
 			let gl: WebGLRenderingContext | null;
 
@@ -120,7 +122,6 @@ namespace sd.render.gl1 {
 			return this.maxColourAttachments_;
 		}
 
-
 		// -- resource management
 
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]) {
@@ -182,12 +183,18 @@ namespace sd.render.gl1 {
 			}
 		}
 
+		// -- render commands
 
-		// -- render passes
-
-		dispatch(_pass: RenderCommandBuffer | RenderCommandBuffer []) {
+		dispatch(cmds: RenderCommandBuffer | RenderCommandBuffer[]) {
+			if (Array.isArray(cmds)) {
+				for (const cb of cmds) {
+					this.commandList_.concat(cb.commands);
+				}
+			}
+			else {
+				this.commandList_.concat(cmds.commands);
+			}
 		}
-
 
 		// -- Sampler
 
