@@ -80,11 +80,18 @@ namespace sd.render {
 		RenderJob
 	}
 
+	export interface ClearValues {
+		colour: Float4;
+		depth: number;
+		stencil: number;
+	}
+
 	export interface FrameBufferCommand {
 		type: RenderCommandType.FrameBuffer;
 		sortKey: number;
 		frameBufferHandle: number;
 		clearMask: ClearMask;
+		clearValues: ClearValues;
 	}
 
 	export interface ScissorCommand {
@@ -142,16 +149,20 @@ namespace sd.render {
 
 	export type RenderCommand = FrameBufferCommand | ScissorCommand | ViewportCommand | FrontFaceCommand | TextureWriteCommand | RenderJobCommand;
 
-
 	export class RenderCommandBuffer {
 		readonly commands: RenderCommand[] = [];
 
-		setFrameBuffer(fb: FrameBuffer | null, clearMask: ClearMask) {
+		setFrameBuffer(fb: FrameBuffer | null, clearMask: ClearMask, clearValues?: Partial<ClearValues>) {
 			this.commands.push({
 				type: RenderCommandType.FrameBuffer,
 				sortKey: 0,
 				frameBufferHandle: fb ? fb.renderResourceHandle : 0,
-				clearMask
+				clearMask,
+				clearValues: {
+					colour: (clearValues && clearValues.colour) ? clearValues.colour : [0, 0, 0, 1],
+					depth: (clearValues && (clearValues.depth !== undefined)) ? clearValues.depth : 1.0,
+					stencil: (clearValues && (clearValues.stencil !== undefined)) ? clearValues.stencil : 0,
+				}
 			});
 		}
 
