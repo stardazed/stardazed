@@ -234,8 +234,8 @@ namespace sd.render.gl1 {
 			const fb = this.frameBuffers_.find(frameBuffer);
 			if (fb) {
 				this.gl.deleteFramebuffer(fb);
+				this.frameBuffers_.remove(frameBuffer);
 			}
-			this.frameBuffers_.remove(frameBuffer);
 		}
 
 		// -- Shader
@@ -248,7 +248,11 @@ namespace sd.render.gl1 {
 		}
 
 		private freeShader(shader: Shader) {
-			this.shaders_.remove(shader);
+			const prog = this.shaders_.find(shader);
+			if (prog) {
+				this.gl.deleteProgram(prog);
+				this.shaders_.remove(shader);
+			}
 		}
 
 		// -- Mesh
