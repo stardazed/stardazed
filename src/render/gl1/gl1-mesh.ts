@@ -19,25 +19,25 @@ namespace sd.render.gl1 {
 	}
 	*/
 
-	function gl1TypeForVertexField(rc: GL1RenderDevice, vf: meshdata.VertexField) {
+	function gl1TypeForVertexField(rd: GL1RenderDevice, vf: meshdata.VertexField) {
 		switch (vf) {
 			case meshdata.VertexField.Float:
 			case meshdata.VertexField.Floatx2:
 			case meshdata.VertexField.Floatx3:
 			case meshdata.VertexField.Floatx4:
-				return rc.gl.FLOAT;
+				return rd.gl.FLOAT;
 
 			case meshdata.VertexField.UInt32:
 			case meshdata.VertexField.UInt32x2:
 			case meshdata.VertexField.UInt32x3:
 			case meshdata.VertexField.UInt32x4:
-				return rc.gl.UNSIGNED_INT;
+				return rd.gl.UNSIGNED_INT;
 
 			case meshdata.VertexField.SInt32:
 			case meshdata.VertexField.SInt32x2:
 			case meshdata.VertexField.SInt32x3:
 			case meshdata.VertexField.SInt32x4:
-				return rc.gl.INT;
+				return rd.gl.INT;
 
 			case meshdata.VertexField.UInt16x2:
 			case meshdata.VertexField.Norm_UInt16x2:
@@ -45,7 +45,7 @@ namespace sd.render.gl1 {
 			case meshdata.VertexField.Norm_UInt16x3:
 			case meshdata.VertexField.UInt16x4:
 			case meshdata.VertexField.Norm_UInt16x4:
-				return rc.gl.UNSIGNED_SHORT;
+				return rd.gl.UNSIGNED_SHORT;
 
 			case meshdata.VertexField.SInt16x2:
 			case meshdata.VertexField.Norm_SInt16x2:
@@ -53,7 +53,7 @@ namespace sd.render.gl1 {
 			case meshdata.VertexField.Norm_SInt16x3:
 			case meshdata.VertexField.SInt16x4:
 			case meshdata.VertexField.Norm_SInt16x4:
-				return rc.gl.SHORT;
+				return rd.gl.SHORT;
 
 			case meshdata.VertexField.UInt8x2:
 			case meshdata.VertexField.Norm_UInt8x2:
@@ -61,7 +61,7 @@ namespace sd.render.gl1 {
 			case meshdata.VertexField.Norm_UInt8x3:
 			case meshdata.VertexField.UInt8x4:
 			case meshdata.VertexField.Norm_UInt8x4:
-				return rc.gl.UNSIGNED_BYTE;
+				return rd.gl.UNSIGNED_BYTE;
 
 			case meshdata.VertexField.SInt8x2:
 			case meshdata.VertexField.Norm_SInt8x2:
@@ -69,11 +69,11 @@ namespace sd.render.gl1 {
 			case meshdata.VertexField.Norm_SInt8x3:
 			case meshdata.VertexField.SInt8x4:
 			case meshdata.VertexField.Norm_SInt8x4:
-				return rc.gl.BYTE;
+				return rd.gl.BYTE;
 
 			default:
 				assert(false, "Invalid mesh.VertexField");
-				return rc.gl.NONE;
+				return rd.gl.NONE;
 		}
 	}
 
@@ -140,10 +140,9 @@ namespace sd.render.gl1 {
 	}
 
 
-	function createVAOForAttrBinding(rd: GL1RenderDevice, meshHandle: number, attrs: ShaderVertexAttribute[]) {
+	export function createVAOForAttrBinding(rd: GL1RenderDevice, mesh: GL1MeshData, attrs: ShaderVertexAttribute[]) {
 		const gl = rd.gl;
 
-		const mesh = rd.meshes_.getByHandle(meshHandle)!; // assert presence in internal function
 		const vao = rd.extVAO.createVertexArrayOES()!; // TODO: handle allocation failure
 		rd.extVAO.bindVertexArrayOES(vao);
 
@@ -160,8 +159,11 @@ namespace sd.render.gl1 {
 						gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buffers[boundBufferIndex]);
 					}
 					gl.enableVertexAttribArray(attr.index);
-					// <-- get type, size, normalised
-					gl.vertexAttribPointer(attr.index, 0, 0, false, mesh.bufferStrides[boundBufferIndex], meshAttr.offset);
+
+					const elementCount = meshdata.vertexFieldElementCount(meshAttr.field);
+					const glElementType = gl1TypeForVertexField(rd, meshAttr.field);
+					const normalized = meshdata.vertexFieldIsNormalized(meshAttr.field);
+					gl.vertexAttribPointer(attr.index, elementCount, glElementType, normalized, mesh.bufferStrides[boundBufferIndex], meshAttr.offset);
 				}
 				else {
 					gl.disableVertexAttribArray(attr.index);
@@ -172,11 +174,6 @@ namespace sd.render.gl1 {
 
 		rd.extVAO.bindVertexArrayOES(null);
 		return vao;
-	}
-
-
-	export function bindMesh(rd: GL1RenderDevice, meshHandle: number, attrs: ShaderVertexAttribute[]) {
-		
 	}
 
 } // ns sd.render.gl1
