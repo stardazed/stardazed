@@ -143,36 +143,31 @@ namespace sd.render.gl1 {
 	function createVAOForAttrBinding(rd: GL1RenderDevice, meshHandle: number, attrs: ShaderVertexAttribute[]) {
 		const gl = rd.gl;
 
-		const mesh = rd.meshes_.getByHandle(meshHandle)!; // assert presence
+		const mesh = rd.meshes_.getByHandle(meshHandle)!; // assert presence in internal function
 		const vao = rd.extVAO.createVertexArrayOES()!; // TODO: handle allocation failure
 		rd.extVAO.bindVertexArrayOES(vao);
 
-		// -- find and bind all attributes
-		for (let bufferIndex = 0; bufferIndex < mesh.layout.layouts.length; ++bufferIndex) {
-			const layout = mesh.layout.layouts[bufferIndex];
-			const vb = mesh.buffers[bufferIndex];
-			gl.bindBuffer(gl.ARRAY_BUFFER, vb);
-
-			for (const sva of attrs) {
-				const va = layout.attrByRole(shaderRoleToAttributeRole[sva.role]);
-				if (va) {
-					const elementCount = meshdata.vertexFieldElementCount(va.field);
-					const normalized = meshdata.vertexFieldIsNormalized(va.field);
-					const glElementType = gl1TypeForVertexField(rd, va.field);
-
-					gl.enableVertexAttribArray(sva.index);
-					gl.vertexAttribPointer(sva.index, elementCount, glElementType, normalized, layout.stride, va.offset);
-				}
-			}
-		}
-
-		// -- bind optional indexes
-		if (mesh.indexBuffer) {
-			const ib = rd.indexStreams_.find(mesh.indexBuffer)!;
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
+		if (mesh.indexElement !== meshdata.IndexElementType.None) {
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.buffers[mesh.buffers.length - 1]);
 		}
 		else {
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+			let boundBufferIndex = -1;
+			for (const attr of attrs) {
+				const meshAttr = mesh.attributes.find(a => a.role === shaderRoleToAttributeRole[attr.role]);
+				if (meshAttr) {
+					if (boundBufferIndex !== meshAttr.bufferIndex) {
+						boundBufferIndex = meshAttr.bufferIndex;
+						gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buffers[boundBufferIndex]);
+					}
+					gl.enableVertexAttribArray(attr.index);
+					// <-- get type, size, normalised
+					gl.vertexAttribPointer(attr.index, 0, 0, false, mesh.bufferStrides[boundBufferIndex], meshAttr.offset);
+				}
+				else {
+					gl.disableVertexAttribArray(attr.index);
+					console.warn("GL1: Mismatch of mesh attributes and shader vertex attributes.", mesh, attrs);
+				}
+			}
 		}
 
 		rd.extVAO.bindVertexArrayOES(null);
