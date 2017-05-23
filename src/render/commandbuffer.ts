@@ -166,7 +166,11 @@ namespace sd.render {
 			});
 		}
 
-		setScissor(rect: ScissorRect) {
+		setScissor(rect: ScissorRect | null) {
+			if (rect === null) {
+				rect = { originX: -1, originY: -1, width: -1, height: -1 };
+			}
+			// TODO: else assert >0-ness of all fields
 			this.commands.push({
 				type: RenderCommandType.Scissor,
 				sortKey: 0,
