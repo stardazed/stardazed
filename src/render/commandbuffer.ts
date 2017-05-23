@@ -68,11 +68,11 @@ namespace sd.render {
 	}
 
 
-	// ---- initial implementation for RenderCommand: use discriminated unions
+	// -- initial implementation for RenderCommand: use discriminated unions
 
 	export const enum RenderCommandType {
 		None,
-		StartFrame,
+		FrameBuffer,
 		Scissor,
 		Viewport,
 		FrontFace,
@@ -80,8 +80,8 @@ namespace sd.render {
 		RenderJob
 	}
 
-	export interface StartFrameCommand {
-		type: RenderCommandType.StartFrame;
+	export interface FrameBufferCommand {
+		type: RenderCommandType.FrameBuffer;
 		sortKey: number;
 		frameBufferHandle: number;
 		clearMask: ClearMask;
@@ -140,7 +140,7 @@ namespace sd.render {
 		constants: any[];
 	}
 
-	export type RenderCommand = StartFrameCommand | ScissorCommand | ViewportCommand | FrontFaceCommand | TextureWriteCommand | RenderJobCommand;
+	export type RenderCommand = FrameBufferCommand | ScissorCommand | ViewportCommand | FrontFaceCommand | TextureWriteCommand | RenderJobCommand;
 
 
 	export class RenderCommandBuffer {
@@ -148,7 +148,7 @@ namespace sd.render {
 
 		setFrameBuffer(fb: FrameBuffer | null, clearMask: ClearMask) {
 			this.commands.push({
-				type: RenderCommandType.StartFrame,
+				type: RenderCommandType.FrameBuffer,
 				sortKey: 0,
 				frameBufferHandle: fb ? fb.renderResourceHandle : 0,
 				clearMask
