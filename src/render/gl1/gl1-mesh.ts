@@ -64,23 +64,6 @@ namespace sd.render.gl1 {
 		[meshdata.VertexField.Norm_SInt8x4, GLConst.BYTE],
 	]);
 
-	const shaderRoleToAttributeRole: { [rr: string]: meshdata.VertexAttributeRole } = {
-		position: meshdata.VertexAttributeRole.Position,
-		normal: meshdata.VertexAttributeRole.Normal,
-		tangent: meshdata.VertexAttributeRole.Tangent,
-		colour: meshdata.VertexAttributeRole.Colour,
-		material: meshdata.VertexAttributeRole.Material,
-		uv0: meshdata.VertexAttributeRole.UV0,
-		uv1: meshdata.VertexAttributeRole.UV1,
-		uv2: meshdata.VertexAttributeRole.UV2,
-		uv3: meshdata.VertexAttributeRole.UV3,
-		weightedPos0: meshdata.VertexAttributeRole.WeightedPos0,
-		weightedPos1: meshdata.VertexAttributeRole.WeightedPos1,
-		weightedPos2: meshdata.VertexAttributeRole.WeightedPos2,
-		weightedPos3: meshdata.VertexAttributeRole.WeightedPos3,
-		jointIndexes: meshdata.VertexAttributeRole.JointIndexes
-	};
-
 
 	export interface GL1MeshData {
 		attributes: meshdata.PositionedAttribute[];
@@ -139,7 +122,7 @@ namespace sd.render.gl1 {
 		else {
 			let boundBufferIndex = -1;
 			for (const attr of attrs) {
-				const meshAttr = mesh.attributes.find(a => a.role === shaderRoleToAttributeRole[attr.role]);
+				const meshAttr = mesh.attributes.find(a => a.role === attr.role);
 				if (meshAttr) {
 					if (boundBufferIndex !== meshAttr.bufferIndex) {
 						boundBufferIndex = meshAttr.bufferIndex;

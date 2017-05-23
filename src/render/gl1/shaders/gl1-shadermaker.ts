@@ -103,6 +103,8 @@ namespace sd.render.gl1 {
 
 	// ----
 
+	import AttrRole =  meshdata.VertexAttributeRole;
+
 	const enum PBRLightingQuality {
 		Phong,
 		Blinn,
@@ -837,7 +839,7 @@ namespace sd.render.gl1 {
 
 	const vsmShadowVertexFunction: GL1VertexFunction = {
 		in: [
-			{ name: "vertexPos_model", type: "float3", role: "position", index: 0 }
+			{ name: "vertexPos_model", type: "float3", role: AttrRole.Position, index: 0 }
 		],
 		out: [
 			{ name: "vertexPos_world", type: "float4" }
@@ -918,8 +920,8 @@ namespace sd.render.gl1 {
 	function standardVertexFunction(feat: Features): GL1VertexFunction {
 		const fn: GL1VertexFunction = {
 			in: [
-				{ name: "vertexPos_model", type: "float3", role: "position", index: 0 },
-				{ name: "vertexNormal", type: "float3", role: "normal", index: 1 },
+				{ name: "vertexPos_model", type: "float3", role: AttrRole.Position, index: 0 },
+				{ name: "vertexNormal", type: "float3", role: AttrRole.Normal, index: 1 },
 			],
 			out: [
 				{ name: "vertexPos_world", type: "float4" },
@@ -948,14 +950,14 @@ namespace sd.render.gl1 {
 		};
 
 		if (feat & Features.VtxUV) {
-			fn.in.push({ name: "vertexUV", type: "float2", role: "uv0", index: 2 });
+			fn.in.push({ name: "vertexUV", type: "float2", role: AttrRole.UV, index: 2 });
 			fn.out!.push({ name: "vertexUV_intp", type: "float3" });
 			fn.constantBlocks![0].constants.push({ name: "texScaleOffset", type: "float4" });
 			fn.main += "vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;\n";
 		}
 
 		if (feat & Features.VtxColour) {
-			fn.in.push({ name: "vertexColour", type: "float3", role: "colour", index: 3 });
+			fn.in.push({ name: "vertexColour", type: "float3", role: AttrRole.Colour, index: 3 });
 			fn.out!.push({ name: "vertexColour_intp", type: "float3" });
 			fn.main += "vertexColour_intp = vertexColour;\n";
 		}

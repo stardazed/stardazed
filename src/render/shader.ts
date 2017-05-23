@@ -10,13 +10,6 @@ namespace sd.render {
 		"float" | "float2" | "float3" | "float4" |
 		"mat2" | "mat3" | "mat4";
 
-	export type ShaderAttributeRole =
-		"position" | "normal" | "tangent" |
-		"colour" |  "material" |
-		"uv0" | "uv1" | "uv2" | "uv3" |
-		"weightedPos0" | "weightedPos1" | "weightedPos2" | "weightedPos3" |
-		"jointIndexes";
-
 	export interface SamplerSlot {
 		name: string;
 		type: TextureClass;
@@ -40,7 +33,7 @@ namespace sd.render {
 	}
 
 	export interface ShaderVertexAttribute extends ShaderAttribute {
-		role: ShaderAttributeRole;
+		role: meshdata.VertexAttributeRole;
 		index: number;
 	}
 

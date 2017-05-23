@@ -5,11 +5,13 @@
 
 namespace sd.render.gl1 {
 
+	import AttrRole = meshdata.VertexAttributeRole;
+
 	function standardVertexFunction(): GL1VertexFunction {
 		return {
 			in: [
-				{ name: "vertexPos_model", type: "float3", role: "position", index: 0 },
-				{ name: "vertexNormal", type: "float3", role: "normal", index: 1 },
+				{ name: "vertexPos_model", type: "float3", role: AttrRole.Position, index: 0 },
+				{ name: "vertexNormal", type: "float3", role: AttrRole.Normal, index: 1 },
 			],
 			out: [
 				// { name: "vertexPos_world", type: "float4" },
