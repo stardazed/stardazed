@@ -4,6 +4,7 @@
 // https://github.com/stardazed/stardazed
 
 /// <reference path="../../../typings/webgl.d.ts"/>
+/// <reference path="gl1-constants.ts"/>
 
 namespace sd.render.gl1 {
 
