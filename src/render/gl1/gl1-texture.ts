@@ -8,76 +8,72 @@ namespace sd.render.gl1 {
 	import PixelFormat = image.PixelFormat;
 
 	function gl1ImageFormatForPixelFormat(rd: GL1RenderDevice, format: PixelFormat) {
-		const gl = rd.gl;
-
 		switch (format) {
 			case PixelFormat.R8:
 			case PixelFormat.R16F:
 			case PixelFormat.R32F:
-				return gl.LUMINANCE;
+				return GLConst.LUMINANCE;
 
 			case PixelFormat.RG8:
 			case PixelFormat.RG16F:
 			case PixelFormat.RG32F:
-				return gl.LUMINANCE_ALPHA;
+				return GLConst.LUMINANCE_ALPHA;
 
 			case PixelFormat.RGB8:
-				return gl.RGB;
+				return GLConst.RGB;
 			case PixelFormat.RGBA8:
-				return gl.RGBA;
+				return GLConst.RGBA;
 
 			// sRGB -- silently fall back to standard RGB if not available (availability in browsers is ~100%)
 			case PixelFormat.SRGB8:
-				return rd.extSRGB ? rd.extSRGB.SRGB_EXT : gl.RGB;
+				return rd.extSRGB ? rd.extSRGB.SRGB_EXT : GLConst.RGB;
 			case PixelFormat.SRGB8_Alpha8:
-				return rd.extSRGB ? rd.extSRGB.SRGB_ALPHA_EXT : gl.RGB;
+				return rd.extSRGB ? rd.extSRGB.SRGB_ALPHA_EXT : GLConst.RGB;
 
 			// Float
 			case PixelFormat.RGBA16F:
-				return rd.extTextureHalfFloat ? gl.RGBA : gl.NONE;
+				return rd.extTextureHalfFloat ? GLConst.RGBA : GLConst.NONE;
 			case PixelFormat.RGBA32F:
-				return gl.RGBA;
+				return GLConst.RGBA;
 
 			// Packed
 			case PixelFormat.RGB_5_6_5:
-				return gl.RGB;
+				return GLConst.RGB;
 			case PixelFormat.RGBA_4_4_4_4:
 			case PixelFormat.RGBA_5_5_5_1:
-				return gl.RGBA;
+				return GLConst.RGBA;
 
 			// Depth / Stencil
 			case PixelFormat.Depth16I:
 			case PixelFormat.Depth24I:
-				return gl.DEPTH_COMPONENT;
+				return GLConst.DEPTH_COMPONENT;
 
 			case PixelFormat.Stencil8:
-				return gl.STENCIL_INDEX;
+				return GLConst.STENCIL_INDEX;
 
 			case PixelFormat.Depth24_Stencil8:
-				return gl.DEPTH_STENCIL;
+				return GLConst.DEPTH_STENCIL;
 
 			// S3TC
 			case PixelFormat.RGB_DXT1:
-				return rd.extS3TC ? rd.extS3TC.COMPRESSED_RGB_S3TC_DXT1_EXT : gl.NONE;
+				return rd.extS3TC ? rd.extS3TC.COMPRESSED_RGB_S3TC_DXT1_EXT : GLConst.NONE;
 			case PixelFormat.RGBA_DXT1:
-				return rd.extS3TC ? rd.extS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT : gl.NONE;
+				return rd.extS3TC ? rd.extS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT : GLConst.NONE;
 			case PixelFormat.RGBA_DXT3:
-				return rd.extS3TC ? rd.extS3TC.COMPRESSED_RGBA_S3TC_DXT3_EXT : gl.NONE;
+				return rd.extS3TC ? rd.extS3TC.COMPRESSED_RGBA_S3TC_DXT3_EXT : GLConst.NONE;
 			case PixelFormat.RGBA_DXT5:
-				return rd.extS3TC ? rd.extS3TC.COMPRESSED_RGBA_S3TC_DXT5_EXT : gl.NONE;
+				return rd.extS3TC ? rd.extS3TC.COMPRESSED_RGBA_S3TC_DXT5_EXT : GLConst.NONE;
 
 			default:
 				assert(false, "GL1: unhandled pixel format");
-				return gl.NONE;
+				return GLConst.NONE;
 		}
 	}
 
 
 	function gl1PixelDataTypeForPixelFormat(rd: GL1RenderDevice, format: PixelFormat) {
-		const gl = rd.gl;
-
 		if (image.pixelFormatIsCompressed(format)) {
-			return gl.NONE;
+			return GLConst.NONE;
 		}
 
 		switch (format) {
@@ -86,95 +82,95 @@ namespace sd.render.gl1 {
 			case PixelFormat.RGB8:
 			case PixelFormat.RGBA8:
 			case PixelFormat.Stencil8:
-				return gl.UNSIGNED_BYTE;
+				return GLConst.UNSIGNED_BYTE;
 
 			case PixelFormat.SRGB8:
 			case PixelFormat.SRGB8_Alpha8:
-				return gl.UNSIGNED_BYTE;
+				return GLConst.UNSIGNED_BYTE;
 
 			case PixelFormat.RGB_5_6_5:
-				return gl.UNSIGNED_SHORT_5_6_5;
+				return GLConst.UNSIGNED_SHORT_5_6_5;
 			case PixelFormat.RGBA_4_4_4_4:
-				return gl.UNSIGNED_SHORT_4_4_4_4;
+				return GLConst.UNSIGNED_SHORT_4_4_4_4;
 			case PixelFormat.RGBA_5_5_5_1:
-				return gl.UNSIGNED_SHORT_5_5_5_1;
+				return GLConst.UNSIGNED_SHORT_5_5_5_1;
 
 			case PixelFormat.R16F:
 			case PixelFormat.RG16F:
 			case PixelFormat.RGB16F:
 			case PixelFormat.RGBA16F:
-				return rd.extTextureHalfFloat ? rd.extTextureHalfFloat.HALF_FLOAT_OES : gl.NONE;
+				return rd.extTextureHalfFloat ? rd.extTextureHalfFloat.HALF_FLOAT_OES : GLConst.NONE;
 
 			case PixelFormat.R32F:
 			case PixelFormat.RG32F:
 			case PixelFormat.RGB32F:
 			case PixelFormat.RGBA32F:
-				return gl.FLOAT;
+				return GLConst.FLOAT;
 
 			case PixelFormat.Depth16I:
-				return gl.UNSIGNED_SHORT;
+				return GLConst.UNSIGNED_SHORT;
 			case PixelFormat.Depth24I:
-				return gl.UNSIGNED_INT;
+				return GLConst.UNSIGNED_INT;
 
 			case PixelFormat.Depth24_Stencil8:
-				return rd.extDepthTexture ? rd.extDepthTexture.UNSIGNED_INT_24_8_WEBGL : gl.NONE;
+				return rd.extDepthTexture ? rd.extDepthTexture.UNSIGNED_INT_24_8_WEBGL : GLConst.NONE;
 
 			default:
 				assert(false, "GL1: unsupported pixel format");
-				return gl.NONE;
+				return GLConst.NONE;
 		}
 	}
 
 
-	function gl1TargetForTexture(rd: GL1RenderDevice, texture: Texture) {
+	function gl1TargetForTexture(texture: Texture) {
 		if (texture.textureClass === TextureClass.Normal) {
-			return rd.gl.TEXTURE_2D;
+			return GLConst.TEXTURE_2D;
 		}
 		if (texture.textureClass === TextureClass.CubeMap) {
-			return rd.gl.TEXTURE_CUBE_MAP;
+			return GLConst.TEXTURE_CUBE_MAP;
 		}
-		return rd.gl.NONE;
+		return GLConst.NONE;
 	}
 
 
-	function gl1TextureRepeatMode(rd: GL1RenderDevice, repeat: TextureRepeatMode) {
+	function gl1TextureRepeatMode(repeat: TextureRepeatMode) {
 		switch (repeat) {
-			case TextureRepeatMode.Repeat: return rd.gl.REPEAT;
-			case TextureRepeatMode.MirroredRepeat: return rd.gl.MIRRORED_REPEAT;
-			case TextureRepeatMode.ClampToEdge: return rd.gl.CLAMP_TO_EDGE;
+			case TextureRepeatMode.Repeat: return GLConst.REPEAT;
+			case TextureRepeatMode.MirroredRepeat: return GLConst.MIRRORED_REPEAT;
+			case TextureRepeatMode.ClampToEdge: return GLConst.CLAMP_TO_EDGE;
 
 			default:
 				assert(false, "GL1: unsupported TextureRepeatMode");
-				return rd.gl.NONE;
+				return GLConst.NONE;
 		}
 	}
 
 
-	function gl1TextureMinificationFilter(rd: GL1RenderDevice, minFilter: TextureSizingFilter, mipFilter: TextureMipFilter) {
+	function gl1TextureMinificationFilter(minFilter: TextureSizingFilter, mipFilter: TextureMipFilter) {
 		let glSizingFilter: number;
 
 		if (mipFilter === TextureMipFilter.None) {
 			if (minFilter === TextureSizingFilter.Nearest) {
-				glSizingFilter = rd.gl.NEAREST;
+				glSizingFilter = GLConst.NEAREST;
 			}
 			else {
-				glSizingFilter = rd.gl.LINEAR;
+				glSizingFilter = GLConst.LINEAR;
 			}
 		}
 		else if (mipFilter === TextureMipFilter.Nearest) {
 			if (minFilter === TextureSizingFilter.Nearest) {
-				glSizingFilter = rd.gl.NEAREST_MIPMAP_NEAREST;
+				glSizingFilter = GLConst.NEAREST_MIPMAP_NEAREST;
 			}
 			else {
-				glSizingFilter = rd.gl.LINEAR_MIPMAP_NEAREST;
+				glSizingFilter = GLConst.LINEAR_MIPMAP_NEAREST;
 			}
 		}
 		else {
 			if (minFilter === TextureSizingFilter.Nearest) {
-				glSizingFilter = rd.gl.NEAREST_MIPMAP_LINEAR;
+				glSizingFilter = GLConst.NEAREST_MIPMAP_LINEAR;
 			}
 			else {
-				glSizingFilter = rd.gl.LINEAR_MIPMAP_LINEAR;
+				glSizingFilter = GLConst.LINEAR_MIPMAP_LINEAR;
 			}
 		}
 
@@ -182,12 +178,12 @@ namespace sd.render.gl1 {
 	}
 
 
-	function gl1TextureMagnificationFilter(rd: GL1RenderDevice, magFilter: TextureSizingFilter) {
+	function gl1TextureMagnificationFilter(magFilter: TextureSizingFilter) {
 		if (magFilter === TextureSizingFilter.Nearest) {
-			return rd.gl.NEAREST;
+			return GLConst.NEAREST;
 		}
 		else {
-			return rd.gl.LINEAR;
+			return GLConst.LINEAR;
 		}
 	}
 
@@ -201,8 +197,8 @@ namespace sd.render.gl1 {
 
 	function gl1MaxTextureDimension(rd: GL1RenderDevice, texClass: TextureClass) {
 		if (textureLimits.maxDimension === 0) {
-			textureLimits.maxDimension = rd.gl.getParameter(rd.gl.MAX_TEXTURE_SIZE);
-			textureLimits.maxDimensionCube = rd.gl.getParameter(rd.gl.MAX_CUBE_MAP_TEXTURE_SIZE);
+			textureLimits.maxDimension = rd.gl.getParameter(GLConst.MAX_TEXTURE_SIZE);
+			textureLimits.maxDimensionCube = rd.gl.getParameter(GLConst.MAX_CUBE_MAP_TEXTURE_SIZE);
 		}
 
 		if (texClass === TextureClass.CubeMap) {
@@ -261,7 +257,7 @@ namespace sd.render.gl1 {
 
 	export function applySampler(rd: GL1RenderDevice, texture: Texture, sampler: Sampler) {
 		const gl = rd.gl;
-		const target = gl1TargetForTexture(rd, texture);
+		const target = gl1TargetForTexture(texture);
 
 		let { repeatS, repeatT, mipFilter } = sampler;
 
@@ -282,12 +278,12 @@ namespace sd.render.gl1 {
 		// gl.bindTexture(target, this.resource_);
 
 		// -- wrapping
-		gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl1TextureRepeatMode(rd, repeatS));
-		gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl1TextureRepeatMode(rd, repeatT));
+		gl.texParameteri(target, GLConst.TEXTURE_WRAP_S, gl1TextureRepeatMode(repeatS));
+		gl.texParameteri(target, GLConst.TEXTURE_WRAP_T, gl1TextureRepeatMode(repeatT));
 
 		// -- mini-/magnification
-		gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl1TextureMinificationFilter(rd, sampler.minFilter, mipFilter));
-		gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl1TextureMagnificationFilter(rd, sampler.magFilter));
+		gl.texParameteri(target, GLConst.TEXTURE_MIN_FILTER, gl1TextureMinificationFilter(sampler.minFilter, mipFilter));
+		gl.texParameteri(target, GLConst.TEXTURE_MAG_FILTER, gl1TextureMagnificationFilter(sampler.magFilter));
 
 		// -- anisotropy
 		if (rd.extTexAnisotropy) {
@@ -343,7 +339,7 @@ namespace sd.render.gl1 {
 
 		// -- create resource
 		const tex = gl.createTexture()!; // TODO: handle resource allocation failure
-		const target = gl.TEXTURE_2D;
+		const target = GLConst.TEXTURE_2D;
 		gl.bindTexture(target, tex);
 
 		// -- allocate and fill pixel storage
@@ -372,7 +368,7 @@ namespace sd.render.gl1 {
 
 		// -- create resource
 		const tex = gl.createTexture()!; // TODO: handle resource allocation failure
-		const target = gl.TEXTURE_CUBE_MAP;
+		const target = GLConst.TEXTURE_CUBE_MAP;
 		gl.bindTexture(target, tex);
 
 		// -- allocate and fill pixel storage
@@ -383,7 +379,7 @@ namespace sd.render.gl1 {
 			if (generatedMips > 0) {
 				shouldGenMips = true;
 			}
-			allocTextureLayer(rd, texture, provider, providerMips, gl.TEXTURE_CUBE_MAP_POSITIVE_X + layer);
+			allocTextureLayer(rd, texture, provider, providerMips, GLConst.TEXTURE_CUBE_MAP_POSITIVE_X + layer);
 		}
 
 		// -- generate mipmaps if requested

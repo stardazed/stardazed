@@ -12,30 +12,30 @@ namespace sd.render.gl1 {
 	function fboMustHaveAColourAttachment(rd: GL1RenderDevice) {
 		if (fboBugs.mustHaveAColourAtt === undefined) {
 			const gl = rd.gl;
-			const fboBinding = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+			const fboBinding = gl.getParameter(GLConst.FRAMEBUFFER_BINDING);
 
 			const fbo = gl.createFramebuffer();
-			gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+			gl.bindFramebuffer(GLConst.FRAMEBUFFER, fbo);
 
 			// -- create and attach depth buffer
 			const depthBuf = gl.createRenderbuffer();
-			gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuf);
-			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 160, 120);
-			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuf);
+			gl.bindRenderbuffer(GLConst.RENDERBUFFER, depthBuf);
+			gl.renderbufferStorage(GLConst.RENDERBUFFER, GLConst.DEPTH_COMPONENT16, 160, 120);
+			gl.framebufferRenderbuffer(GLConst.FRAMEBUFFER, GLConst.DEPTH_ATTACHMENT, GLConst.RENDERBUFFER, depthBuf);
 
 			// -- specify empty draw buffer list
 			if (rd.extDrawBuffers) {
-				rd.extDrawBuffers.drawBuffersWEBGL([gl.NONE]);
+				rd.extDrawBuffers.drawBuffersWEBGL([GLConst.NONE]);
 			}
 
 			// This bug occurs on macOS in Safari and Chrome, it is due to faulty
 			// setup of DRAW and READ buffer bindings in the underlying GL4 context.
 			// Bugs have been filed.
-			const fbStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-			fboBugs.mustHaveAColourAtt = (fbStatus !== gl.FRAMEBUFFER_COMPLETE);
+			const fbStatus = gl.checkFramebufferStatus(GLConst.FRAMEBUFFER);
+			fboBugs.mustHaveAColourAtt = (fbStatus !== GLConst.FRAMEBUFFER_COMPLETE);
 
-			gl.bindFramebuffer(gl.FRAMEBUFFER, fboBinding);
-			gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+			gl.bindFramebuffer(GLConst.FRAMEBUFFER, fboBinding);
+			gl.bindRenderbuffer(GLConst.RENDERBUFFER, null);
 
 			gl.deleteFramebuffer(fbo);
 			gl.deleteRenderbuffer(depthBuf);
@@ -52,24 +52,24 @@ namespace sd.render.gl1 {
 		assert(glTex, "FB texture is not yet allocated");
 		assert(attachment.level === 0, "WebGL 1 does not allow mapping of texture level > 0");
 
-		let glTarget = gl.TEXTURE_2D;
+		let glTarget = GLConst.TEXTURE_2D;
 		if (texture.textureClass === TextureClass.CubeMap) {
 			assert(attachment.layer >= 0 && attachment.layer <= 5, "layer is not a valid CubeMapFace index");
-			glTarget = gl.TEXTURE_CUBE_MAP_POSITIVE_X + attachment.layer;
+			glTarget = GLConst.TEXTURE_CUBE_MAP_POSITIVE_X + attachment.layer;
 		}
 
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, glAttachment, glTarget, glTex!, attachment.level);
+		gl.framebufferTexture2D(GLConst.FRAMEBUFFER, glAttachment, glTarget, glTex!, attachment.level);
 	}
 
 
 	export function makeFrameBuffer(rd: GL1RenderDevice, frameBuffer: FrameBuffer) {
 		const gl = rd.gl;
 		const fbo = gl.createFramebuffer()!; // FIXME: handle allocation failure
-		gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+		gl.bindFramebuffer(GLConst.FRAMEBUFFER, fbo);
 
 		// colours
 		const drawBuffers = frameBuffer.colourAttachments.map((attachment, attIndex) => {
-			const glAttachment = rd.extDrawBuffers ? (rd.extDrawBuffers.COLOR_ATTACHMENT0_WEBGL + attIndex) : gl.COLOR_ATTACHMENT0;
+			const glAttachment = rd.extDrawBuffers ? (rd.extDrawBuffers.COLOR_ATTACHMENT0_WEBGL + attIndex) : GLConst.COLOR_ATTACHMENT0;
 			attachTexture(rd, glAttachment, attachment);
 			return glAttachment;
 		});
@@ -95,27 +95,27 @@ namespace sd.render.gl1 {
 		if (frameBuffer.depthAttachment && frameBuffer.stencilAttachment && (frameBuffer.depthAttachment === frameBuffer.stencilAttachment)) {
 			// combined depth/stencil texture
 			assert(image.pixelFormatIsDepthStencilFormat(frameBuffer.depthAttachment.texture.pixelFormat));
-			attachTexture(rd, gl.DEPTH_STENCIL_ATTACHMENT, frameBuffer.depthAttachment);
+			attachTexture(rd, GLConst.DEPTH_STENCIL_ATTACHMENT, frameBuffer.depthAttachment);
 		}
 		else {
 			if (frameBuffer.depthAttachment) {
 				assert(image.pixelFormatIsDepthFormat(frameBuffer.depthAttachment.texture.pixelFormat));
-				attachTexture(rd, gl.DEPTH_ATTACHMENT, frameBuffer.depthAttachment);
+				attachTexture(rd, GLConst.DEPTH_ATTACHMENT, frameBuffer.depthAttachment);
 			}
 
 			if (frameBuffer.stencilAttachment) {
 				assert(image.pixelFormatIsStencilFormat(frameBuffer.stencilAttachment.texture.pixelFormat));
-				attachTexture(rd, gl.STENCIL_ATTACHMENT, frameBuffer.stencilAttachment);
+				attachTexture(rd, GLConst.STENCIL_ATTACHMENT, frameBuffer.stencilAttachment);
 			}
 		}
 
 		// -- beg for approval to the GL gods
-		const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-		if (status !== gl.FRAMEBUFFER_COMPLETE) {
+		const status = gl.checkFramebufferStatus(GLConst.FRAMEBUFFER);
+		if (status !== GLConst.FRAMEBUFFER_COMPLETE) {
 			assert(false, "FrameBuffer not complete");
 		}
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindFramebuffer(GLConst.FRAMEBUFFER, null);
 		return fbo;
 	}
 

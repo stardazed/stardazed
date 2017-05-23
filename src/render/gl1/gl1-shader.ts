@@ -169,7 +169,7 @@ namespace sd.render.gl1 {
 		gl.shaderSource(shader, sourceText);
 		gl.compileShader(shader);
 
-		if (! gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+		if (! gl.getShaderParameter(shader, GLConst.COMPILE_STATUS)) {
 			const errorLog = gl.getShaderInfoLog(shader);
 			console.error("Shader compilation failed:", errorLog);
 			console.error("Source", sourceText.split("\n").map((l, i) => `${i + 1}: ${l}`).join("\n"));
@@ -184,8 +184,8 @@ namespace sd.render.gl1 {
 	export function makeProgram(rd: GL1RenderDevice, shader: Shader) {
 		const gl = rd.gl;
 
-		const vertexShader = compileFunction(rd, gl.VERTEX_SHADER, generateVertexSource(shader.vertexFunction as GL1VertexFunction));
-		const fragmentShader = compileFunction(rd, gl.FRAGMENT_SHADER, generateFragmentSource(shader.fragmentFunction as GL1FragmentFunction));
+		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(shader.vertexFunction as GL1VertexFunction));
+		const fragmentShader = compileFunction(rd, GLConst.FRAGMENT_SHADER, generateFragmentSource(shader.fragmentFunction as GL1FragmentFunction));
 
 		if (! (vertexShader && fragmentShader)) {
 			return undefined;
@@ -200,7 +200,7 @@ namespace sd.render.gl1 {
 		gl.attachShader(program, fragmentShader);
 		gl.linkProgram(program);
 
-		if (! gl.getProgramParameter(program, gl.LINK_STATUS)) {
+		if (! gl.getProgramParameter(program, GLConst.LINK_STATUS)) {
 			const errorLog = gl.getProgramInfoLog(program);
 			console.error("Program link failed:", errorLog);
 			return undefined;
