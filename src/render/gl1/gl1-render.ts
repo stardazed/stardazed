@@ -27,25 +27,22 @@ namespace sd.render.gl1 {
 		for (const cmd of this.commandList_) {
 			switch (cmd.type) {
 				case RCT.FrontFace: {
-					const frontMode = (cmd.frontFace === FrontFaceWinding.Clockwise) ? GLConst.CW : GLConst.CCW;
-					gl.frontFace(frontMode);
+					this.state.setFrontFace(cmd.frontFace);
 					break;
 				}
 
 				case RCT.Scissor: {
-					if (cmd.width === -1) {
-						gl.disable(GLConst.SCISSOR_TEST);
+					if (cmd.width < 0) {
+						this.state.setScissorRect(null);
 					}
 					else {
-						gl.scissor(cmd.originX, cmd.originY, cmd.width, cmd.height);
-						gl.enable(GLConst.SCISSOR_TEST);
+						this.state.setScissorRect(cmd);
 					}
 					break;
 				}
 
 				case RCT.Viewport: {
-					gl.viewport(cmd.originX, cmd.originY, cmd.width, cmd.height);
-					gl.depthRange(cmd.nearZ, cmd.farZ);
+					this.state.setViewport(cmd);
 					break;
 				}
 
@@ -63,15 +60,15 @@ namespace sd.render.gl1 {
 					// -- clear indicated buffers
 					let glClearMask = 0;
 					if (cmd.clearMask & ClearMask.Colour) {
-						gl.clearColor(cmd.clearValues.colour[0], cmd.clearValues.colour[1], cmd.clearValues.colour[2], cmd.clearValues.colour[3]);
+						this.state.setClearColour(cmd.clearValues.colour);
 						glClearMask |= GLConst.COLOR_BUFFER_BIT;
 					}
 					if (cmd.clearMask & ClearMask.Depth) {
-						gl.clearDepth(cmd.clearValues.depth);
+						this.state.setClearDepth(cmd.clearValues.depth);
 						glClearMask |= GLConst.DEPTH_BUFFER_BIT;
 					}
 					if (cmd.clearMask & ClearMask.Stencil) {
-						gl.clearStencil(cmd.clearValues.stencil);
+						this.state.setClearStencil(cmd.clearValues.stencil);
 						glClearMask |= GLConst.STENCIL_BUFFER_BIT;
 					}
 					if (glClearMask) {
