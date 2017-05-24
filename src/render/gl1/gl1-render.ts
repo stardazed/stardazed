@@ -7,6 +7,20 @@ namespace sd.render.gl1 {
 
 	import RCT = RenderCommandType;
 
+	const gl1TypeForPrimitiveType = new Map<meshdata.PrimitiveType, number>([
+			[meshdata.PrimitiveType.Point, GLConst.POINTS],
+			[meshdata.PrimitiveType.Line, GLConst.LINES],
+			[meshdata.PrimitiveType.LineStrip, GLConst.LINE_STRIP],
+			[meshdata.PrimitiveType.Triangle, GLConst.TRIANGLES],
+			[meshdata.PrimitiveType.TriangleStrip, GLConst.TRIANGLE_STRIP],
+	]);
+
+	const gl1TypeForIndexElementType = new Map<meshdata.IndexElementType, number>([
+		[meshdata.IndexElementType.UInt8, GLConst.UNSIGNED_BYTE],
+		[meshdata.IndexElementType.UInt16, GLConst.UNSIGNED_SHORT],
+		[meshdata.IndexElementType.UInt32, GLConst.UNSIGNED_INT],
+	]);
+
 	export function renderFrame(this: GL1RenderDevice) {
 		const gl = this.gl;
 
@@ -17,6 +31,7 @@ namespace sd.render.gl1 {
 					gl.frontFace(frontMode);
 					break;
 				}
+
 				case RCT.Scissor: {
 					if (cmd.width === -1) {
 						gl.disable(GLConst.SCISSOR_TEST);
@@ -27,25 +42,62 @@ namespace sd.render.gl1 {
 					}
 					break;
 				}
+
 				case RCT.Viewport: {
 					gl.viewport(cmd.originX, cmd.originY, cmd.width, cmd.height);
 					gl.depthRange(cmd.nearZ, cmd.farZ);
 					break;
 				}
+
 				case RCT.TextureWrite: {
 					const texData = this.textures_.getByHandle(cmd.textureHandle)!; // assert presence of resource
 					gl.bindTexture(texData.target, texData.texture);
 					gl.texSubImage2D(texData.target, 0, cmd.x, cmd.y, cmd.width, cmd.height, GLConst.RGBA, GLConst.FLOAT, cmd.pixels);
 					break;
 				}
+
 				case RCT.FrameBuffer: {
-					
+					const fb = this.frameBuffers_.getByHandle(cmd.frameBufferHandle)!;
+					gl.bindFramebuffer(GLConst.FRAMEBUFFER, fb);
+
+					// -- clear indicated buffers
+					let glClearMask = 0;
+					if (cmd.clearMask & ClearMask.Colour) {
+						gl.clearColor(cmd.clearValues.colour[0], cmd.clearValues.colour[1], cmd.clearValues.colour[2], cmd.clearValues.colour[3]);
+						glClearMask |= GLConst.COLOR_BUFFER_BIT;
+					}
+					if (cmd.clearMask & ClearMask.Depth) {
+						gl.clearDepth(cmd.clearValues.depth);
+						glClearMask |= GLConst.DEPTH_BUFFER_BIT;
+					}
+					if (cmd.clearMask & ClearMask.Stencil) {
+						gl.clearStencil(cmd.clearValues.stencil);
+						glClearMask |= GLConst.STENCIL_BUFFER_BIT;
+					}
+					if (glClearMask) {
+						gl.clear(glClearMask);
+					}
 					break;
 				}
+
 				case RCT.RenderJob: {
-					
+					const mesh = this.meshes_.getByHandle(cmd.meshHandle)!;
+
+					// TODO: set all state
+
+					// issue draw call
+					const primType = gl1TypeForPrimitiveType.get(cmd.primitiveType)!;
+					if (mesh.indexElement !== meshdata.IndexElementType.None) {
+						const indexType = gl1TypeForIndexElementType.get(mesh.indexElement)!;
+						const offsetBytes = cmd.fromElement * meshdata.indexElementTypeSizeBytes(mesh.indexElement);
+						gl.drawElements(primType, cmd.elementCount, indexType, offsetBytes);
+					}
+					else {
+						gl.drawArrays(primType, cmd.fromElement, cmd.elementCount);
+					}
 					break;
 				}
+
 				default: {
 					console.warn("GL1: unrecognized render command", cmd);
 					break;

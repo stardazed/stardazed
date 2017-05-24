@@ -58,7 +58,7 @@ namespace sd.render.gl1 {
 			glTarget = GLConst.TEXTURE_CUBE_MAP_POSITIVE_X + attachment.layer;
 		}
 
-		gl.framebufferTexture2D(GLConst.FRAMEBUFFER, glAttachment, glTarget, glTex!, attachment.level);
+		gl.framebufferTexture2D(GLConst.FRAMEBUFFER, glAttachment, glTarget, glTex!.texture, attachment.level);
 	}
 
 

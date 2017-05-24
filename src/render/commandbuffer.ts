@@ -142,6 +142,8 @@ namespace sd.render {
 		fromElement: number;
 		elementCount: number;
 
+		// TODO: add instancing parameters
+
 		// shader properties
 		textureHandles: number[];
 		samplerHandles: number[];

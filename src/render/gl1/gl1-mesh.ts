@@ -4,20 +4,6 @@
 // https://github.com/stardazed/stardazed
 
 namespace sd.render.gl1 {
-	/*
-	function gl1TypeForIndexElementType(rd: GL1RenderDevice, iet: meshdata.IndexElementType): number {
-		switch (iet) {
-			case meshdata.IndexElementType.UInt8: return GLConst.UNSIGNED_BYTE;
-			case meshdata.IndexElementType.UInt16: return GLConst.UNSIGNED_SHORT;
-			case meshdata.IndexElementType.UInt32:
-				return rd.ext32bitIndexes ? GLConst.UNSIGNED_INT : GLConst.NONE;
-
-			default:
-				assert(false, "Invalid IndexElementType");
-				return GLConst.NONE;
-		}
-	}
-	*/
 
 	const gl1TypeForVertexField = new Map<meshdata.VertexField, number>([
 		[meshdata.VertexField.Float, GLConst.FLOAT],
