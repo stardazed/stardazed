@@ -9,24 +9,24 @@
 namespace sd.render.gl1 {
 
 	export class GL1RenderDevice implements RenderDevice {
-		gl: WebGLRenderingContext;
+		readonly gl: WebGLRenderingContext;
 
-		ext32bitIndexes: OESElementIndexUint;
-		extDrawBuffers: WebGLDrawBuffers;
-		extDepthTexture: WebGLDepthTexture;
-		extTextureFloat: OESTextureFloat;
-		extTextureFloatLinear: OESTextureFloatLinear;
-		extTextureHalfFloat: OESTextureHalfFloat;
-		extTextureHalfFloatLinear: OESTextureHalfFloatLinear;
-		extS3TC: WebGLCompressedTextureS3TC;
-		extMinMax: EXTBlendMinMax;
-		extTexAnisotropy: EXTTextureFilterAnisotropic;
-		extVAO: OESVertexArrayObject;
-		extInstancedArrays: ANGLEInstancedArrays;
-		extDerivatives: OESStandardDerivatives;
-		extFragmentLOD: EXTShaderTextureLOD;
-		extFragDepth: EXTFragDepth;
-		extSRGB: EXTsRGB;
+		readonly ext32bitIndexes: OESElementIndexUint;
+		readonly extDrawBuffers: WebGLDrawBuffers;
+		readonly extDepthTexture: WebGLDepthTexture;
+		readonly extTextureFloat: OESTextureFloat;
+		readonly extTextureFloatLinear: OESTextureFloatLinear;
+		readonly extTextureHalfFloat: OESTextureHalfFloat;
+		readonly extTextureHalfFloatLinear: OESTextureHalfFloatLinear;
+		readonly extS3TC: WebGLCompressedTextureS3TC;
+		readonly extMinMax: EXTBlendMinMax;
+		readonly extTexAnisotropy: EXTTextureFilterAnisotropic;
+		readonly extVAO: OESVertexArrayObject;
+		readonly extInstancedArrays: ANGLEInstancedArrays;
+		readonly extDerivatives: OESStandardDerivatives;
+		readonly extFragmentLOD: EXTShaderTextureLOD;
+		readonly extFragDepth: EXTFragDepth;
+		readonly extSRGB: EXTsRGB;
 
 		private maxColourAttachments_ = 0;
 
