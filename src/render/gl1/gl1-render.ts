@@ -78,18 +78,25 @@ namespace sd.render.gl1 {
 				}
 
 				case RCT.RenderJob: {
-					const mesh = this.meshes_.getByHandle(cmd.meshHandle)!;
-
-					this.state.setFaceCulling(cmd.pipeline.faceCulling);
-
+					// apply pipeline state
 					this.state.setColourBlending(cmd.pipeline.blending || null);
 					if (cmd.pipeline.colourWriteMask) {
 						this.state.setColourWriteMask(cmd.pipeline.colourWriteMask);
 					}
 					this.state.setDepthWrite(cmd.pipeline.depthWrite);
 					this.state.setDepthTest(cmd.pipeline.depthTest);
+					this.state.setFaceCulling(cmd.pipeline.faceCulling);
+
+					// apply textures and samplers
+					// cmd.textureHandles
+					// cmd.samplerHandles
+
+					// apply shader state and parameters
+					// cmd.pipeline.shader
+					// cmd.constants
 
 					// issue draw call
+					const mesh = this.meshes_.getByHandle(cmd.meshHandle)!;
 					const primType = gl1TypeForPrimitiveType.get(cmd.primitiveType)!;
 					if (mesh.indexElement !== meshdata.IndexElementType.None) {
 						const indexType = gl1TypeForIndexElementType.get(mesh.indexElement)!;
