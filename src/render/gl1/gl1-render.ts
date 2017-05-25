@@ -86,6 +86,8 @@ namespace sd.render.gl1 {
 					if (cmd.pipeline.colourWriteMask) {
 						this.state.setColourWriteMask(cmd.pipeline.colourWriteMask);
 					}
+					this.state.setDepthWrite(cmd.pipeline.depthWrite);
+					this.state.setDepthTest(cmd.pipeline.depthTest);
 
 					// issue draw call
 					const primType = gl1TypeForPrimitiveType.get(cmd.primitiveType)!;

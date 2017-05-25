@@ -5,6 +5,28 @@
 
 namespace sd.render.gl1 {
 
+	const depthTestForGL1DepthFunc = new Map<number, DepthTest>([
+		[GLConst.ALWAYS, DepthTest.AllowAll],
+		[GLConst.NEVER, DepthTest.DenyAll],
+		[GLConst.LESS, DepthTest.Less],
+		[GLConst.LEQUAL, DepthTest.LessOrEqual],
+		[GLConst.EQUAL, DepthTest.Equal],
+		[GLConst.NOTEQUAL, DepthTest.NotEqual],
+		[GLConst.GEQUAL, DepthTest.GreaterOrEqual],
+		[GLConst.GREATER, DepthTest.Greater],
+	]);
+
+	const gl1DepthFuncForDepthTest = new Map<DepthTest, number>([
+		[DepthTest.AllowAll, GLConst.ALWAYS],
+		[DepthTest.DenyAll, GLConst.NEVER],
+		[DepthTest.Less, GLConst.LESS],
+		[DepthTest.LessOrEqual, GLConst.LEQUAL],
+		[DepthTest.Equal, GLConst.EQUAL],
+		[DepthTest.NotEqual, GLConst.NOTEQUAL],
+		[DepthTest.GreaterOrEqual, GLConst.GEQUAL],
+		[DepthTest.Greater, GLConst.GREATER],
+	]);
+
 	const blendOpForGL1BlendEq = new Map<number, BlendOperation>([
 		[GLConst.FUNC_ADD, BlendOperation.Add],
 		[GLConst.FUNC_SUBTRACT, BlendOperation.Subtract],
@@ -76,6 +98,7 @@ namespace sd.render.gl1 {
 		private clearStencil_: number;
 		private colourWriteMask_: boolean[];
 		private depthMask_: boolean;
+		private depthTest_: DepthTest;
 		private blendEnabled_: boolean;
 		private blendOpRGB_: BlendOperation;
 		private blendOpAlpha_: BlendOperation;
@@ -112,6 +135,8 @@ namespace sd.render.gl1 {
 
 			this.colourWriteMask_ = gl.getParameter(GLConst.COLOR_WRITEMASK);
 			this.depthMask_ = gl.getParameter(GLConst.DEPTH_WRITEMASK);
+
+			this.depthTest_ = gl.isEnabled(GLConst.DEPTH_TEST) ? depthTestForGL1DepthFunc.get(gl.getParameter(GLConst.DEPTH_FUNC))! : DepthTest.Disabled;
 
 			this.blendEnabled_ = gl.isEnabled(GLConst.BLEND);
 			this.blendOpRGB_ = blendOpForGL1BlendEq.get(gl.getParameter(GLConst.BLEND_EQUATION_RGB))!;
@@ -222,6 +247,23 @@ namespace sd.render.gl1 {
 			if (enable !== this.depthMask_) {
 				this.depthMask_ = enable;
 				this.gl.depthMask(enable);
+			}
+		}
+
+		setDepthTest(test: DepthTest) {
+			if (test !== this.depthTest_) {
+				const wasDisabled = this.depthTest_ === DepthTest.Disabled;
+				this.depthTest_ = test;
+
+				if (test === DepthTest.Disabled) {
+					this.gl.disable(GLConst.DEPTH_TEST);
+				}
+				else {
+					this.gl.depthFunc(gl1DepthFuncForDepthTest.get(test)!);
+					if (wasDisabled) {
+						this.gl.enable(GLConst.DEPTH_TEST);
+					}
+				}
 			}
 		}
 
