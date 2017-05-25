@@ -159,6 +159,15 @@ namespace sd.render.gl1 {
 				this.gl.depthMask(enable);
 			}
 		}
+
+		setColourBlending(blending: ColourBlending | null) {
+			if (blending === null) {
+
+			}
+			else {
+
+			}
+		}
 	}
 
 } // ns sd.render.gl1
