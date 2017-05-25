@@ -7,15 +7,15 @@ namespace sd.render.gl1 {
 
 	import RCT = RenderCommandType;
 
-	const gl1TypeForPrimitiveType = new Map<meshdata.PrimitiveType, number>([
-			[meshdata.PrimitiveType.Point, GLConst.POINTS],
-			[meshdata.PrimitiveType.Line, GLConst.LINES],
-			[meshdata.PrimitiveType.LineStrip, GLConst.LINE_STRIP],
-			[meshdata.PrimitiveType.Triangle, GLConst.TRIANGLES],
-			[meshdata.PrimitiveType.TriangleStrip, GLConst.TRIANGLE_STRIP],
+	const gl1TypeForPrimitiveType: ReadonlyMap<meshdata.PrimitiveType, number> = new Map<meshdata.PrimitiveType, number>([
+		[meshdata.PrimitiveType.Point, GLConst.POINTS],
+		[meshdata.PrimitiveType.Line, GLConst.LINES],
+		[meshdata.PrimitiveType.LineStrip, GLConst.LINE_STRIP],
+		[meshdata.PrimitiveType.Triangle, GLConst.TRIANGLES],
+		[meshdata.PrimitiveType.TriangleStrip, GLConst.TRIANGLE_STRIP],
 	]);
 
-	const gl1TypeForIndexElementType = new Map<meshdata.IndexElementType, number>([
+	const gl1TypeForIndexElementType: ReadonlyMap<meshdata.IndexElementType, number> = new Map<meshdata.IndexElementType, number>([
 		[meshdata.IndexElementType.UInt8, GLConst.UNSIGNED_BYTE],
 		[meshdata.IndexElementType.UInt16, GLConst.UNSIGNED_SHORT],
 		[meshdata.IndexElementType.UInt32, GLConst.UNSIGNED_INT],

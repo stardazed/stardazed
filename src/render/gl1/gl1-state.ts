@@ -5,7 +5,7 @@
 
 namespace sd.render.gl1 {
 
-	const depthTestForGL1DepthFunc = new Map<number, DepthTest>([
+	const depthTestForGL1DepthFunc: ReadonlyMap<number, DepthTest> = new Map<number, DepthTest>([
 		[GLConst.ALWAYS, DepthTest.AllowAll],
 		[GLConst.NEVER, DepthTest.DenyAll],
 		[GLConst.LESS, DepthTest.Less],
@@ -16,7 +16,7 @@ namespace sd.render.gl1 {
 		[GLConst.GREATER, DepthTest.Greater],
 	]);
 
-	const gl1DepthFuncForDepthTest = new Map<DepthTest, number>([
+	const gl1DepthFuncForDepthTest: ReadonlyMap<DepthTest, number> = new Map<DepthTest, number>([
 		[DepthTest.AllowAll, GLConst.ALWAYS],
 		[DepthTest.DenyAll, GLConst.NEVER],
 		[DepthTest.Less, GLConst.LESS],
@@ -27,7 +27,7 @@ namespace sd.render.gl1 {
 		[DepthTest.Greater, GLConst.GREATER],
 	]);
 
-	const blendOpForGL1BlendEq = new Map<number, BlendOperation>([
+	const blendOpForGL1BlendEq: ReadonlyMap<number, BlendOperation> = new Map<number, BlendOperation>([
 		[GLConst.FUNC_ADD, BlendOperation.Add],
 		[GLConst.FUNC_SUBTRACT, BlendOperation.Subtract],
 		[GLConst.FUNC_REVERSE_SUBTRACT, BlendOperation.ReverseSubtract],
@@ -35,7 +35,7 @@ namespace sd.render.gl1 {
 		[GLConst.MAX_EXT, BlendOperation.Max],
 	]);
 
-	const gl1BlendEqForBlendOp = new Map<BlendOperation, number>([
+	const gl1BlendEqForBlendOp: ReadonlyMap<BlendOperation, number> = new Map<BlendOperation, number>([
 		[BlendOperation.Add, GLConst.FUNC_ADD],
 		[BlendOperation.Subtract, GLConst.FUNC_SUBTRACT],
 		[BlendOperation.ReverseSubtract, GLConst.FUNC_REVERSE_SUBTRACT],
@@ -43,7 +43,7 @@ namespace sd.render.gl1 {
 		[BlendOperation.Max, GLConst.MAX_EXT],
 	]);
 
-	const blendFactorForGL1BlendFunc = new Map<number, BlendFactor>([
+	const blendFactorForGL1BlendFunc: ReadonlyMap<number, BlendFactor> = new Map<number, BlendFactor>([
 		[GLConst.ZERO, BlendFactor.Zero],
 		[GLConst.ONE, BlendFactor.One],
 		[GLConst.SRC_COLOR, BlendFactor.SourceColour],
@@ -61,7 +61,7 @@ namespace sd.render.gl1 {
 		[GLConst.ONE_MINUS_CONSTANT_ALPHA, BlendFactor.OneMinusConstantAlpha]
 	]);
 
-	const gl1BlendFuncForBlendFactor = new Map<BlendFactor, number>([
+	const gl1BlendFuncForBlendFactor: ReadonlyMap<BlendFactor, number> = new Map<BlendFactor, number>([
 		[BlendFactor.Zero, GLConst.ZERO],
 		[BlendFactor.One, GLConst.ONE],
 		[BlendFactor.SourceColour, GLConst.SRC_COLOR],

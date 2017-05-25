@@ -5,7 +5,7 @@
 
 namespace sd.render.gl1 {
 
-	const gl1TypeForVertexField = new Map<meshdata.VertexField, number>([
+	const gl1TypeForVertexField: ReadonlyMap<meshdata.VertexField, number> = new Map<meshdata.VertexField, number>([
 		[meshdata.VertexField.Float, GLConst.FLOAT],
 		[meshdata.VertexField.Floatx2, GLConst.FLOAT],
 		[meshdata.VertexField.Floatx3, GLConst.FLOAT],
