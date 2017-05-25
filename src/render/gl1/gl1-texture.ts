@@ -28,7 +28,7 @@ namespace sd.render.gl1 {
 			case PixelFormat.SRGB8:
 				return rd.extSRGB ? GLConst.SRGB_EXT : GLConst.RGB;
 			case PixelFormat.SRGB8_Alpha8:
-				return rd.extSRGB ? GLConst.SRGB_ALPHA_EXT : GLConst.RGB;
+				return rd.extSRGB ? GLConst.SRGB_ALPHA_EXT : GLConst.RGBA;
 
 			// Float
 			case PixelFormat.RGBA16F:
