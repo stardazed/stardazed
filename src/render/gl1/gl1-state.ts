@@ -22,6 +22,11 @@ namespace sd.render.gl1 {
 		private clearColour_: Float32Array;
 		private clearDepth_: number;
 		private clearStencil_: number;
+		private colourWriteMask_: boolean[];
+		private depthMask_: boolean;
+		private blendEnabled_: boolean;
+		private blendOpRGB_: BlendOperation;
+		private blendOpAlpha_: BlendOperation;
 
 		constructor(gl: WebGLRenderingContext) {
 			this.gl = gl;
@@ -47,6 +52,10 @@ namespace sd.render.gl1 {
 			this.clearColour_ = gl.getParameter(GLConst.COLOR_CLEAR_VALUE);
 			this.clearDepth_ = gl.getParameter(GLConst.DEPTH_CLEAR_VALUE);
 			this.clearStencil_ = gl.getParameter(GLConst.STENCIL_CLEAR_VALUE);
+
+			this.colourWriteMask_ = gl.getParameter(GLConst.COLOR_WRITEMASK);
+
+			this.depthMask_ = gl.getParameter(GLConst.DEPTH_WRITEMASK);
 		}
 
 		setFrontFace(frontFace: FrontFaceWinding) {
@@ -130,6 +139,24 @@ namespace sd.render.gl1 {
 			if (value !== this.clearStencil_) {
 				this.clearStencil_ = value;
 				this.gl.clearStencil(value);
+			}
+		}
+
+		setColourWriteMask(mask: ColourWriteMask) {
+			const cur = this.colourWriteMask_;
+			if (cur[0] !== mask.red || cur[1] !== mask.green || cur[2] !== mask.blue || cur[3] !== mask.alpha) {
+				this.colourWriteMask_[0] = mask.red;
+				this.colourWriteMask_[1] = mask.green;
+				this.colourWriteMask_[2] = mask.blue;
+				this.colourWriteMask_[3] = mask.alpha;
+				this.gl.colorMask(mask.red, mask.green, mask.blue, mask.alpha);
+			}
+		}
+
+		setDepthWrite(enable: boolean) {
+			if (enable !== this.depthMask_) {
+				this.depthMask_ = enable;
+				this.gl.depthMask(enable);
 			}
 		}
 	}

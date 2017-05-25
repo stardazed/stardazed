@@ -80,7 +80,7 @@ namespace sd.render.gl1 {
 				case RCT.RenderJob: {
 					const mesh = this.meshes_.getByHandle(cmd.meshHandle)!;
 
-					// TODO: set all state
+					this.state.setFaceCulling(cmd.pipeline.faceCulling);
 
 					// issue draw call
 					const primType = gl1TypeForPrimitiveType.get(cmd.primitiveType)!;
