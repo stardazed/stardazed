@@ -61,7 +61,7 @@ namespace sd.render {
 	}
 
 
-	export interface ColourBlendingDescriptor {
+	export interface ColourBlending {
 		rgbBlendOp: BlendOperation;
 		alphaBlendOp: BlendOperation;
 
@@ -82,7 +82,7 @@ namespace sd.render {
 	}
 
 
-	export function makeColourBlendingDescriptor(): ColourBlendingDescriptor {
+	export function makeColourBlending(): ColourBlending {
 		return {
 			rgbBlendOp: BlendOperation.Add,
 			alphaBlendOp: BlendOperation.Add,
@@ -108,7 +108,7 @@ namespace sd.render {
 		colourWriteMask?: ColourWriteMask;
 		depthWrite: boolean;
 		depthTest: DepthTest;
-		blending?: ColourBlendingDescriptor;
+		blending?: ColourBlending;
 		faceCulling: FaceCulling;
 		shader: Shader;
 	}

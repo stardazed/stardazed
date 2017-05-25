@@ -82,6 +82,11 @@ namespace sd.render.gl1 {
 
 					this.state.setFaceCulling(cmd.pipeline.faceCulling);
 
+					this.state.setColourBlending(cmd.pipeline.blending || null);
+					if (cmd.pipeline.colourWriteMask) {
+						this.state.setColourWriteMask(cmd.pipeline.colourWriteMask);
+					}
+
 					// issue draw call
 					const primType = gl1TypeForPrimitiveType.get(cmd.primitiveType)!;
 					if (mesh.indexElement !== meshdata.IndexElementType.None) {
