@@ -5,6 +5,58 @@
 
 namespace sd.render.gl1 {
 
+	const blendOpForGL1BlendEq = new Map<number, BlendOperation>([
+		[GLConst.FUNC_ADD, BlendOperation.Add],
+		[GLConst.FUNC_SUBTRACT, BlendOperation.Subtract],
+		[GLConst.FUNC_REVERSE_SUBTRACT, BlendOperation.ReverseSubtract],
+		[GLConst.MIN_EXT, BlendOperation.Min],
+		[GLConst.MAX_EXT, BlendOperation.Max],
+	]);
+
+	const gl1BlendEqForBlendOp = new Map<BlendOperation, number>([
+		[BlendOperation.Add, GLConst.FUNC_ADD],
+		[BlendOperation.Subtract, GLConst.FUNC_SUBTRACT],
+		[BlendOperation.ReverseSubtract, GLConst.FUNC_REVERSE_SUBTRACT],
+		[BlendOperation.Min, GLConst.MIN_EXT],
+		[BlendOperation.Max, GLConst.MAX_EXT],
+	]);
+
+	const blendFactorForGL1BlendFunc = new Map<number, BlendFactor>([
+		[GLConst.ZERO, BlendFactor.Zero],
+		[GLConst.ONE, BlendFactor.One],
+		[GLConst.SRC_COLOR, BlendFactor.SourceColour],
+		[GLConst.ONE_MINUS_SRC_COLOR, BlendFactor.OneMinusSourceColour],
+		[GLConst.DST_COLOR, BlendFactor.DestColour],
+		[GLConst.ONE_MINUS_DST_COLOR, BlendFactor.OneMinusDestColour],
+		[GLConst.SRC_ALPHA, BlendFactor.SourceAlpha],
+		[GLConst.ONE_MINUS_SRC_ALPHA, BlendFactor.OneMinusSourceAlpha],
+		[GLConst.SRC_ALPHA_SATURATE, BlendFactor.SourceAlphaSaturated],
+		[GLConst.DST_ALPHA, BlendFactor.DestAlpha],
+		[GLConst.ONE_MINUS_DST_ALPHA, BlendFactor.OneMinusDestAlpha],
+		[GLConst.CONSTANT_COLOR, BlendFactor.ConstantColour],
+		[GLConst.ONE_MINUS_CONSTANT_COLOR, BlendFactor.OneMinusConstantColour],
+		[GLConst.CONSTANT_ALPHA, BlendFactor.ConstantAlpha],
+		[GLConst.ONE_MINUS_CONSTANT_ALPHA, BlendFactor.OneMinusConstantAlpha]
+	]);
+
+	const gl1BlendFuncForBlendFactor = new Map<BlendFactor, number>([
+		[BlendFactor.Zero, GLConst.ZERO],
+		[BlendFactor.One, GLConst.ONE],
+		[BlendFactor.SourceColour, GLConst.SRC_COLOR],
+		[BlendFactor.OneMinusSourceColour, GLConst.ONE_MINUS_SRC_COLOR],
+		[BlendFactor.DestColour, GLConst.DST_COLOR],
+		[BlendFactor.OneMinusDestColour, GLConst.ONE_MINUS_DST_COLOR],
+		[BlendFactor.SourceAlpha, GLConst.SRC_ALPHA],
+		[BlendFactor.OneMinusSourceAlpha, GLConst.ONE_MINUS_SRC_ALPHA],
+		[BlendFactor.SourceAlphaSaturated, GLConst.SRC_ALPHA_SATURATE],
+		[BlendFactor.DestAlpha, GLConst.DST_ALPHA],
+		[BlendFactor.OneMinusDestAlpha, GLConst.ONE_MINUS_DST_ALPHA],
+		[BlendFactor.ConstantColour, GLConst.CONSTANT_COLOR],
+		[BlendFactor.OneMinusConstantColour, GLConst.ONE_MINUS_CONSTANT_COLOR],
+		[BlendFactor.ConstantAlpha, GLConst.CONSTANT_ALPHA],
+		[BlendFactor.OneMinusConstantAlpha, GLConst.ONE_MINUS_CONSTANT_ALPHA]
+	]);
+
 	/**
 	 * The reason this class exists is to avoid making unnecessary calls to GL
 	 * whenever possible as GL will dutifully do as you ask and recompile the
@@ -27,6 +79,11 @@ namespace sd.render.gl1 {
 		private blendEnabled_: boolean;
 		private blendOpRGB_: BlendOperation;
 		private blendOpAlpha_: BlendOperation;
+		private blendFnSrcRGB_: BlendFactor;
+		private blendFnSrcAlpha_: BlendFactor;
+		private blendFnDstRGB_: BlendFactor;
+		private blendFnDstAlpha_: BlendFactor;
+		private blendConstColour_: Float32Array;
 
 		constructor(gl: WebGLRenderingContext) {
 			this.gl = gl;
@@ -54,8 +111,16 @@ namespace sd.render.gl1 {
 			this.clearStencil_ = gl.getParameter(GLConst.STENCIL_CLEAR_VALUE);
 
 			this.colourWriteMask_ = gl.getParameter(GLConst.COLOR_WRITEMASK);
-
 			this.depthMask_ = gl.getParameter(GLConst.DEPTH_WRITEMASK);
+
+			this.blendEnabled_ = gl.isEnabled(GLConst.BLEND);
+			this.blendOpRGB_ = blendOpForGL1BlendEq.get(gl.getParameter(GLConst.BLEND_EQUATION_RGB))!;
+			this.blendOpAlpha_ = blendOpForGL1BlendEq.get(gl.getParameter(GLConst.BLEND_EQUATION_ALPHA))!;
+			this.blendFnSrcRGB_ = blendFactorForGL1BlendFunc.get(gl.getParameter(GLConst.BLEND_SRC_RGB))!;
+			this.blendFnSrcAlpha_ = blendFactorForGL1BlendFunc.get(gl.getParameter(GLConst.BLEND_SRC_ALPHA))!;
+			this.blendFnDstRGB_ = blendFactorForGL1BlendFunc.get(gl.getParameter(GLConst.BLEND_DST_RGB))!;
+			this.blendFnDstAlpha_ = blendFactorForGL1BlendFunc.get(gl.getParameter(GLConst.BLEND_DST_ALPHA))!;
+			this.blendConstColour_ = gl.getParameter(GLConst.BLEND_COLOR);
 		}
 
 		setFrontFace(frontFace: FrontFaceWinding) {
@@ -86,7 +151,7 @@ namespace sd.render.gl1 {
 			}
 		}
 
-		setScissorRect(rect: ScissorRect | null) {
+		setScissorRect(rect: Readonly<ScissorRect> | null) {
 			if (rect === null) {
 				if (this.scissorEnabled_) {
 					this.gl.disable(GLConst.SCISSOR_TEST);
@@ -107,7 +172,7 @@ namespace sd.render.gl1 {
 			}
 		}
 
-		setViewport(viewport: Viewport) {
+		setViewport(viewport: Readonly<Viewport>) {
 			const box = this.viewportBox_;
 			if (viewport.originX !== box[0] || viewport.originY !== box[1] || viewport.width !== box[2] || viewport.height !== box[3]) {
 				vec4.set(this.viewportBox_, viewport.originX, viewport.originY, viewport.width, viewport.height);
@@ -120,7 +185,7 @@ namespace sd.render.gl1 {
 			}
 		}
 
-		setClearColour(rgba: Float4) {
+		setClearColour(rgba: ConstFloat4) {
 			if (! vec4.exactEquals(rgba, this.clearColour_)) {
 				vec4.copy(this.clearColour_, rgba);
 				this.gl.clearColor(rgba[0], rgba[1], rgba[2], rgba[3]);
@@ -142,7 +207,7 @@ namespace sd.render.gl1 {
 			}
 		}
 
-		setColourWriteMask(mask: ColourWriteMask) {
+		setColourWriteMask(mask: Readonly<ColourWriteMask>) {
 			const cur = this.colourWriteMask_;
 			if (cur[0] !== mask.red || cur[1] !== mask.green || cur[2] !== mask.blue || cur[3] !== mask.alpha) {
 				this.colourWriteMask_[0] = mask.red;
@@ -160,12 +225,52 @@ namespace sd.render.gl1 {
 			}
 		}
 
-		setColourBlending(blending: ColourBlending | null) {
+		setColourBlending(blending: Readonly<ColourBlending> | null) {
 			if (blending === null) {
-
+				if (this.blendEnabled_) {
+					this.blendEnabled_ = false;
+					this.gl.disable(GLConst.BLEND);
+				}
 			}
 			else {
+				if (blending.sourceRGBFactor !== this.blendFnSrcRGB_ ||
+					blending.destRGBFactor !== this.blendFnDstRGB_ ||
+					blending.sourceAlphaFactor !== this.blendFnSrcAlpha_ ||
+					blending.destAlphaFactor !== this.blendFnDstAlpha_
+				) {
+					this.blendFnSrcRGB_ = blending.sourceRGBFactor;
+					this.blendFnDstRGB_ = blending.destRGBFactor;
+					this.blendFnSrcAlpha_ = blending.sourceAlphaFactor;
+					this.blendFnDstAlpha_ = blending.destAlphaFactor;
 
+					this.gl.blendFuncSeparate(
+						gl1BlendFuncForBlendFactor.get(blending.sourceRGBFactor)!,
+						gl1BlendFuncForBlendFactor.get(blending.destRGBFactor)!,
+						gl1BlendFuncForBlendFactor.get(blending.sourceAlphaFactor)!,
+						gl1BlendFuncForBlendFactor.get(blending.destAlphaFactor)!
+					);
+				}
+
+				if (blending.rgbBlendOp !== this.blendOpRGB_ || blending.alphaBlendOp !== this.blendOpAlpha_) {
+					this.blendOpRGB_ = blending.rgbBlendOp;
+					this.blendOpAlpha_ = blending.alphaBlendOp;
+
+					this.gl.blendEquationSeparate(
+						gl1BlendEqForBlendOp.get(blending.rgbBlendOp)!,
+						gl1BlendEqForBlendOp.get(blending.alphaBlendOp)!
+					);
+				}
+
+				if (! vec4.exactEquals(blending.constantColour, this.blendConstColour_)) {
+					vec4.copy(this.blendConstColour_, blending.constantColour);
+					const colour = blending.constantColour;
+					this.gl.blendColor(colour[0], colour[1], colour[2], colour[3]);
+				}
+
+				if (! this.blendEnabled_) {
+					this.blendEnabled_ = true;
+					this.gl.enable(GLConst.BLEND);
+				}
 			}
 		}
 	}
