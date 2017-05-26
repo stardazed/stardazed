@@ -286,7 +286,7 @@ namespace sd.render.gl1 {
 		target: GLConst.TEXTURE_2D | GLConst.TEXTURE_CUBE_MAP;
 		format: image.PixelFormat;
 		nonPowerOfTwoDim: boolean;
-		linkedSamplerIndex: number;
+		linkedSamplerHandle: number;
 	}
 
 	export function createTexture(rd: GL1RenderDevice, texture: Texture): GL1TextureData {
@@ -310,7 +310,7 @@ namespace sd.render.gl1 {
 			target: gl1TargetForTexture(texture),
 			format: texture.pixelFormat,
 			nonPowerOfTwoDim: image.isNonPowerOfTwo(texture.dim),
-			linkedSamplerIndex: 0
+			linkedSamplerHandle: 0
 		};
 	}
 

@@ -132,16 +132,20 @@ namespace sd.render.gl1 {
 		public readonly gl: WebGLRenderingContext;
 		private frontFace_: FrontFaceWinding;
 		private cullFace_: FaceCulling;
+
 		private scissorEnabled_: boolean;
 		private scissorBox_: Int32Array;
 		private viewportBox_: Int32Array;
 		private depthRange_: Float32Array;
+
 		private clearColour_: Float32Array;
 		private clearDepth_: number;
 		private clearStencil_: number;
+
 		private colourWriteMask_: boolean[];
 		private depthMask_: boolean;
 		private depthTest_: DepthTest;
+
 		private blendEnabled_: boolean;
 		private blendOpRGB_: BlendOperation;
 		private blendOpAlpha_: BlendOperation;
@@ -151,8 +155,11 @@ namespace sd.render.gl1 {
 		private blendFnDstAlpha_: BlendFactor;
 		private blendConstColour_: Float32Array;
 
-		private extTextureAnisotropy: EXTTextureFilterAnisotropic | null;
-		private maxAnisotropy_ = 0;
+		private readonly extTextureAnisotropy: EXTTextureFilterAnisotropic | null;
+		private readonly maxAnisotropy_: number;
+		private readonly maxTextureSlot_: number;
+		private readonly textureSlots_: (WebGLTexture | null)[];
+		private activeTexture_: number;
 
 		constructor(gl: WebGLRenderingContext) {
 			this.gl = gl;
@@ -162,6 +169,8 @@ namespace sd.render.gl1 {
 			// static properties
 			this.maxAnisotropy_ = this.extTextureAnisotropy ?
 				this.gl.getParameter(GLConst.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1;
+			this.maxTextureSlot_ = this.gl.getParameter(GLConst.MAX_COMBINED_TEXTURE_IMAGE_UNITS) - 1;
+			this.textureSlots_ = container.fill([], null, this.maxTextureSlot_ + 1);
 
 			// initial pull of dynamic state
 			this.pullState();
@@ -199,6 +208,8 @@ namespace sd.render.gl1 {
 			this.blendFnDstRGB_ = blendFactorForGL1BlendFunc.get(gl.getParameter(GLConst.BLEND_DST_RGB))!;
 			this.blendFnDstAlpha_ = blendFactorForGL1BlendFunc.get(gl.getParameter(GLConst.BLEND_DST_ALPHA))!;
 			this.blendConstColour_ = gl.getParameter(GLConst.BLEND_COLOR);
+
+			this.activeTexture_ = gl.getParameter(GLConst.ACTIVE_TEXTURE);
 		}
 
 		setFrontFace(frontFace: FrontFaceWinding) {
@@ -367,42 +378,61 @@ namespace sd.render.gl1 {
 			}
 		}
 
-		setTexture(slotIndex: number, texture: GL1TextureData, sampler: Sampler) {
+		setTexture(slotIndex: number, texture: GL1TextureData | undefined, sampler: Sampler | undefined) {
 			const gl = this.gl;
 
-			let { repeatS, repeatT, mipFilter } = sampler;
-
-			// -- WebGL 1 imposes several restrictions on Non-Power-of-Two textures
-			if (texture.nonPowerOfTwoDim) {
-				if (repeatS !== TextureRepeatMode.ClampToEdge || repeatT !== TextureRepeatMode.ClampToEdge) {
-					console.warn("NPOT textures cannot repeat, overriding with ClampToEdge", texture);
-					repeatS = TextureRepeatMode.ClampToEdge;
-					repeatT = TextureRepeatMode.ClampToEdge;
-				}
-				if (mipFilter !== TextureMipFilter.None) {
-					console.warn("NPOT textures cannot have mipmaps, overriding with MipFilter.None", texture);
-					mipFilter = TextureMipFilter.None;
+			if (! texture) {
+				if (this.textureSlots_[slotIndex]) {
+					this.textureSlots_[slotIndex] = null;
+					this.gl.activeTexture(GLConst.TEXTURE0 + slotIndex);
+					this.gl.bindTexture(GLConst.TEXTURE_2D, null);
 				}
 			}
+			else {
+				const samplerHandle = sampler ? sampler.renderResourceHandle : 0;
+				const textureChanged = this.textureSlots_[slotIndex] !== texture.texture;
+				const samplerChanged = sampler !== undefined && texture.linkedSamplerHandle !== samplerHandle;
 
-			gl.activeTexture(GLConst.TEXTURE0 + slotIndex);
-			gl.bindTexture(texture.target, texture.texture);
+				if (textureChanged || samplerChanged) {
+					this.gl.activeTexture(GLConst.TEXTURE0 + slotIndex);
 
-			// -- wrapping
-			gl.texParameteri(texture.target, GLConst.TEXTURE_WRAP_S, gl1TextureRepeatMode.get(repeatS)!);
-			gl.texParameteri(texture.target, GLConst.TEXTURE_WRAP_T, gl1TextureRepeatMode.get(repeatT)!);
+					if (textureChanged) {
+						this.textureSlots_[slotIndex] = texture.texture;
+						this.gl.bindTexture(texture.target, texture.texture);
+					}
+					if (samplerChanged) {
+						texture.linkedSamplerHandle = sampler!.renderResourceHandle;
+						let { repeatS, repeatT, mipFilter } = sampler!;
 
-			// -- mini-/magnification
-			gl.texParameteri(texture.target, GLConst.TEXTURE_MIN_FILTER, gl1TextureMinificationFilter(sampler.minFilter, mipFilter));
-			gl.texParameteri(texture.target, GLConst.TEXTURE_MAG_FILTER, gl1TextureMagnificationFilter.get(sampler.magFilter)!);
+						// -- WebGL 1 imposes several restrictions on Non-Power-of-Two textures
+						if (texture.nonPowerOfTwoDim) {
+							if (repeatS !== TextureRepeatMode.ClampToEdge || repeatT !== TextureRepeatMode.ClampToEdge) {
+								console.warn("NPOT textures cannot repeat, overriding with ClampToEdge", texture);
+								repeatS = TextureRepeatMode.ClampToEdge;
+								repeatT = TextureRepeatMode.ClampToEdge;
+							}
+							if (mipFilter !== TextureMipFilter.None) {
+								console.warn("NPOT textures cannot have mipmaps, overriding with MipFilter.None", texture);
+								mipFilter = TextureMipFilter.None;
+							}
+						}
 
-			// -- anisotropy
-			if (this.extTextureAnisotropy) {
-				const anisotropy = math.clamp(sampler.maxAnisotropy, 1, this.maxAnisotropy_);
-				gl.texParameterf(texture.target, GLConst.TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+						// -- wrapping
+						gl.texParameteri(texture.target, GLConst.TEXTURE_WRAP_S, gl1TextureRepeatMode.get(repeatS)!);
+						gl.texParameteri(texture.target, GLConst.TEXTURE_WRAP_T, gl1TextureRepeatMode.get(repeatT)!);
+
+						// -- mini-/magnification
+						gl.texParameteri(texture.target, GLConst.TEXTURE_MIN_FILTER, gl1TextureMinificationFilter(sampler!.minFilter, mipFilter));
+						gl.texParameteri(texture.target, GLConst.TEXTURE_MAG_FILTER, gl1TextureMagnificationFilter.get(sampler!.magFilter)!);
+
+						// -- anisotropy
+						if (this.extTextureAnisotropy) {
+							const anisotropy = math.clamp(sampler!.maxAnisotropy, 1, this.maxAnisotropy_);
+							gl.texParameterf(texture.target, GLConst.TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+						}
+					}
+				}
 			}
-			
-			gl.bindTexture(texture.target, null);
 		}
 	}
 
