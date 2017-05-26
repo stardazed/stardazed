@@ -88,6 +88,12 @@ namespace sd.render.gl1 {
 					this.state.setFaceCulling(cmd.pipeline.faceCulling);
 
 					// apply textures and samplers
+					const textureRange = cmd.textureHandles.length;
+					for (let tx = 0; tx < textureRange; ++tx) {
+						const texture = this.textures_.getByHandle(cmd.textureHandles[tx]);
+						const sampler = this.samplers_.getByHandle(cmd.samplerHandles[tx]);
+						this.state.setTexture(tx, texture, sampler);
+					}
 					// cmd.textureHandles
 					// cmd.samplerHandles
 
