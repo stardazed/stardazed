@@ -7,17 +7,19 @@
 
 namespace sd.container {
 
-	export function copyElementRange<T>(dest: MutableArrayLike<T>, destOffset: number, src: ArrayLike<T>, srcOffset: number, srcCount: number) {
+	export function copyElementRange<T, A extends MutableArrayLike<T>>(dest: A, destOffset: number, src: ArrayLike<T>, srcOffset: number, srcCount: number) {
 		for (let ix = 0; ix < srcCount; ++ix) {
 			dest[destOffset++] = src[srcOffset++];
 		}
+		return dest;
 	}
 
 
-	export function fill<T>(dest: MutableArrayLike<T>, value: T, count: number, offset = 0) {
+	export function fill<T, A extends MutableArrayLike<T>>(dest: A, value: T, count: number, offset = 0) {
 		for (let ix = 0; ix < count; ++ix) {
 			dest[ix + offset] = value;
 		}
+		return dest;
 	}
 
 
@@ -39,6 +41,7 @@ namespace sd.container {
 				offset += pushCount;
 			}
 		}
+		return dest;
 	}
 
 
