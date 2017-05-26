@@ -159,7 +159,8 @@ namespace sd.render.gl1 {
 		private readonly maxAnisotropy_: number;
 		private readonly maxTextureSlot_: number;
 		private readonly textureSlots_: (WebGLTexture | null)[];
-		private activeTexture_: number;
+
+		private activeProgram_: WebGLProgram | null;
 
 		constructor(gl: WebGLRenderingContext) {
 			this.gl = gl;
@@ -210,6 +211,7 @@ namespace sd.render.gl1 {
 			this.blendConstColour_ = gl.getParameter(GLConst.BLEND_COLOR);
 
 			this.activeTexture_ = gl.getParameter(GLConst.ACTIVE_TEXTURE);
+			this.activeProgram_ = gl.getParameter(GLConst.CURRENT_PROGRAM);
 		}
 
 		setFrontFace(frontFace: FrontFaceWinding) {
@@ -432,6 +434,13 @@ namespace sd.render.gl1 {
 						}
 					}
 				}
+			}
+		}
+
+		setProgram(program: WebGLProgram | null) {
+			if (program !== this.activeProgram_) {
+				this.activeProgram_ = program;
+				this.gl.useProgram(program);
 			}
 		}
 	}
