@@ -32,12 +32,7 @@ namespace sd.render.gl1 {
 				}
 
 				case RCT.Scissor: {
-					if (cmd.width < 0) {
-						this.state.setScissorRect(null);
-					}
-					else {
-						this.state.setScissorRect(cmd);
-					}
+					this.state.setScissorRect(cmd.width < 0 ? null : cmd);
 					break;
 				}
 
@@ -47,15 +42,15 @@ namespace sd.render.gl1 {
 				}
 
 				case RCT.TextureWrite: {
-					const texData = this.textures_.getByHandle(cmd.textureHandle)!; // assert presence of resource
-					gl.bindTexture(texData.target, texData.texture);
+					const texData = this.textures_.getByHandle(cmd.textureHandle)!;
+					this.state.setTexture(this.state.maxTextureSlot, texData, undefined);
 					gl.texSubImage2D(texData.target, 0, cmd.x, cmd.y, cmd.width, cmd.height, GLConst.RGBA, GLConst.FLOAT, cmd.pixels);
 					break;
 				}
 
 				case RCT.FrameBuffer: {
 					const fb = this.frameBuffers_.getByHandle(cmd.frameBufferHandle)!;
-					gl.bindFramebuffer(GLConst.FRAMEBUFFER, fb);
+					this.state.setFramebuffer(fb);
 
 					// -- clear indicated buffers
 					let glClearMask = 0;
@@ -94,12 +89,11 @@ namespace sd.render.gl1 {
 						const sampler = this.samplers_.getByHandle(cmd.samplerHandles[tx]);
 						this.state.setTexture(tx, texture, sampler);
 					}
-					// cmd.textureHandles
-					// cmd.samplerHandles
 
 					// apply shader state and parameters
-					// cmd.pipeline.shader
-					// cmd.constants
+					const program = this.shaders_.getByHandle(cmd.pipeline.shader.renderResourceHandle);
+					this.state.setProgram(program || null);
+					// TODO: cmd.constants
 
 					// issue draw call
 					const mesh = this.meshes_.getByHandle(cmd.meshHandle)!;
