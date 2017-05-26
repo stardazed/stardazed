@@ -161,6 +161,7 @@ namespace sd.render.gl1 {
 		private readonly textureSlots_: (WebGLTexture | null)[];
 
 		private activeProgram_: WebGLProgram | null;
+		private framebuffer_: WebGLFramebuffer | null;
 
 		constructor(gl: WebGLRenderingContext) {
 			this.gl = gl;
@@ -212,6 +213,7 @@ namespace sd.render.gl1 {
 
 			this.activeTexture_ = gl.getParameter(GLConst.ACTIVE_TEXTURE);
 			this.activeProgram_ = gl.getParameter(GLConst.CURRENT_PROGRAM);
+			this.framebuffer_ = gl.getParameter(GLConst.FRAMEBUFFER_BINDING);
 		}
 
 		setFrontFace(frontFace: FrontFaceWinding) {
@@ -441,6 +443,13 @@ namespace sd.render.gl1 {
 			if (program !== this.activeProgram_) {
 				this.activeProgram_ = program;
 				this.gl.useProgram(program);
+			}
+		}
+
+		setFramebuffer(fb: WebGLFramebuffer | null) {
+			if (fb !== this.framebuffer_) {
+				this.framebuffer_ = fb;
+				this.gl.bindFramebuffer(GLConst.FRAMEBUFFER, fb);
 			}
 		}
 	}
