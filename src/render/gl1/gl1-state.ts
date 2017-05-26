@@ -211,9 +211,12 @@ namespace sd.render.gl1 {
 			this.blendFnDstAlpha_ = blendFactorForGL1BlendFunc.get(gl.getParameter(GLConst.BLEND_DST_ALPHA))!;
 			this.blendConstColour_ = gl.getParameter(GLConst.BLEND_COLOR);
 
-			this.activeTexture_ = gl.getParameter(GLConst.ACTIVE_TEXTURE);
 			this.activeProgram_ = gl.getParameter(GLConst.CURRENT_PROGRAM);
 			this.framebuffer_ = gl.getParameter(GLConst.FRAMEBUFFER_BINDING);
+		}
+
+		get maxTextureSlot() {
+			return this.maxTextureSlot_;
 		}
 
 		setFrontFace(frontFace: FrontFaceWinding) {
