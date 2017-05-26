@@ -79,6 +79,49 @@ namespace sd.render.gl1 {
 		[BlendFactor.OneMinusConstantAlpha, GLConst.ONE_MINUS_CONSTANT_ALPHA]
 	]);
 
+	const gl1TextureRepeatMode: ReadonlyMap<TextureRepeatMode, number> = new Map<TextureRepeatMode, number>([
+		[TextureRepeatMode.Repeat, GLConst.REPEAT],
+		[TextureRepeatMode.MirroredRepeat, GLConst.MIRRORED_REPEAT],
+		[TextureRepeatMode.ClampToEdge, GLConst.CLAMP_TO_EDGE]
+	]);
+
+	const gl1TextureMagnificationFilter: ReadonlyMap<TextureSizingFilter, number> = new Map<TextureSizingFilter, number>([
+		[TextureSizingFilter.Nearest, GLConst.NEAREST],
+		[TextureSizingFilter.Linear, GLConst.LINEAR]
+	]);
+
+	function gl1TextureMinificationFilter(minFilter: TextureSizingFilter, mipFilter: TextureMipFilter) {
+		let glSizingFilter: number;
+
+		if (mipFilter === TextureMipFilter.None) {
+			if (minFilter === TextureSizingFilter.Nearest) {
+				glSizingFilter = GLConst.NEAREST;
+			}
+			else {
+				glSizingFilter = GLConst.LINEAR;
+			}
+		}
+		else if (mipFilter === TextureMipFilter.Nearest) {
+			if (minFilter === TextureSizingFilter.Nearest) {
+				glSizingFilter = GLConst.NEAREST_MIPMAP_NEAREST;
+			}
+			else {
+				glSizingFilter = GLConst.LINEAR_MIPMAP_NEAREST;
+			}
+		}
+		else {
+			if (minFilter === TextureSizingFilter.Nearest) {
+				glSizingFilter = GLConst.NEAREST_MIPMAP_LINEAR;
+			}
+			else {
+				glSizingFilter = GLConst.LINEAR_MIPMAP_LINEAR;
+			}
+		}
+
+		return glSizingFilter;
+	}
+
+
 	/**
 	 * The reason this class exists is to avoid making unnecessary calls to GL
 	 * whenever possible as GL will dutifully do as you ask and recompile the
@@ -108,16 +151,26 @@ namespace sd.render.gl1 {
 		private blendFnDstAlpha_: BlendFactor;
 		private blendConstColour_: Float32Array;
 
+		private extTextureAnisotropy: EXTTextureFilterAnisotropic | null;
+		private maxAnisotropy_ = 0;
+
 		constructor(gl: WebGLRenderingContext) {
 			this.gl = gl;
-			this.pullGLState();
+			this.extTextureAnisotropy = gl.getExtension("EXT_texture_filter_anisotropic") ||
+										gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
+
+			// static properties
+			this.maxAnisotropy_ = this.extTextureAnisotropy ?
+				this.gl.getParameter(GLConst.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1;
+
+			// initial pull of dynamic state
+			this.pullState();
 		}
 
-		pullGLState() {
+		pullState() {
 			const gl = this.gl;
 
-			const glFrontFace = gl.getParameter(GLConst.FRONT_FACE);
-			this.frontFace_ = (glFrontFace === GLConst.CW) ? FrontFaceWinding.Clockwise : FrontFaceWinding.CounterClockwise;
+			this.frontFace_ = (gl.getParameter(GLConst.FRONT_FACE) === GLConst.CW) ? FrontFaceWinding.Clockwise : FrontFaceWinding.CounterClockwise;
 
 			const glCullFaceEnabled = gl.isEnabled(GLConst.CULL_FACE);
 			const glCullFaceMode = gl.getParameter(GLConst.CULL_FACE_MODE);
@@ -153,9 +206,7 @@ namespace sd.render.gl1 {
 				return;
 			}
 			this.frontFace_ = frontFace;
-
-			const glFrontFace = (frontFace === FrontFaceWinding.Clockwise) ? GLConst.CW : GLConst.CCW;
-			this.gl.frontFace(glFrontFace);
+			this.gl.frontFace((frontFace === FrontFaceWinding.Clockwise) ? GLConst.CW : GLConst.CCW);
 		}
 
 		setFaceCulling(faceCulling: FaceCulling) {
@@ -314,6 +365,44 @@ namespace sd.render.gl1 {
 					this.gl.enable(GLConst.BLEND);
 				}
 			}
+		}
+
+		setTexture(slotIndex: number, texture: GL1TextureData, sampler: Sampler) {
+			const gl = this.gl;
+
+			let { repeatS, repeatT, mipFilter } = sampler;
+
+			// -- WebGL 1 imposes several restrictions on Non-Power-of-Two textures
+			if (texture.nonPowerOfTwoDim) {
+				if (repeatS !== TextureRepeatMode.ClampToEdge || repeatT !== TextureRepeatMode.ClampToEdge) {
+					console.warn("NPOT textures cannot repeat, overriding with ClampToEdge", texture);
+					repeatS = TextureRepeatMode.ClampToEdge;
+					repeatT = TextureRepeatMode.ClampToEdge;
+				}
+				if (mipFilter !== TextureMipFilter.None) {
+					console.warn("NPOT textures cannot have mipmaps, overriding with MipFilter.None", texture);
+					mipFilter = TextureMipFilter.None;
+				}
+			}
+
+			gl.activeTexture(GLConst.TEXTURE0 + slotIndex);
+			gl.bindTexture(texture.target, texture.texture);
+
+			// -- wrapping
+			gl.texParameteri(texture.target, GLConst.TEXTURE_WRAP_S, gl1TextureRepeatMode.get(repeatS)!);
+			gl.texParameteri(texture.target, GLConst.TEXTURE_WRAP_T, gl1TextureRepeatMode.get(repeatT)!);
+
+			// -- mini-/magnification
+			gl.texParameteri(texture.target, GLConst.TEXTURE_MIN_FILTER, gl1TextureMinificationFilter(sampler.minFilter, mipFilter));
+			gl.texParameteri(texture.target, GLConst.TEXTURE_MAG_FILTER, gl1TextureMagnificationFilter.get(sampler.magFilter)!);
+
+			// -- anisotropy
+			if (this.extTextureAnisotropy) {
+				const anisotropy = math.clamp(sampler.maxAnisotropy, 1, this.maxAnisotropy_);
+				gl.texParameterf(texture.target, GLConst.TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+			}
+			
+			gl.bindTexture(texture.target, null);
 		}
 	}
 

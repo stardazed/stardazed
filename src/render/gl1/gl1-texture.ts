@@ -131,65 +131,9 @@ namespace sd.render.gl1 {
 	}
 
 
-	function gl1TextureRepeatMode(repeat: TextureRepeatMode) {
-		switch (repeat) {
-			case TextureRepeatMode.Repeat: return GLConst.REPEAT;
-			case TextureRepeatMode.MirroredRepeat: return GLConst.MIRRORED_REPEAT;
-			case TextureRepeatMode.ClampToEdge: return GLConst.CLAMP_TO_EDGE;
-
-			default:
-				assert(false, "GL1: unsupported TextureRepeatMode");
-				return GLConst.NONE;
-		}
-	}
-
-
-	function gl1TextureMinificationFilter(minFilter: TextureSizingFilter, mipFilter: TextureMipFilter) {
-		let glSizingFilter: number;
-
-		if (mipFilter === TextureMipFilter.None) {
-			if (minFilter === TextureSizingFilter.Nearest) {
-				glSizingFilter = GLConst.NEAREST;
-			}
-			else {
-				glSizingFilter = GLConst.LINEAR;
-			}
-		}
-		else if (mipFilter === TextureMipFilter.Nearest) {
-			if (minFilter === TextureSizingFilter.Nearest) {
-				glSizingFilter = GLConst.NEAREST_MIPMAP_NEAREST;
-			}
-			else {
-				glSizingFilter = GLConst.LINEAR_MIPMAP_NEAREST;
-			}
-		}
-		else {
-			if (minFilter === TextureSizingFilter.Nearest) {
-				glSizingFilter = GLConst.NEAREST_MIPMAP_LINEAR;
-			}
-			else {
-				glSizingFilter = GLConst.LINEAR_MIPMAP_LINEAR;
-			}
-		}
-
-		return glSizingFilter;
-	}
-
-
-	function gl1TextureMagnificationFilter(magFilter: TextureSizingFilter) {
-		if (magFilter === TextureSizingFilter.Nearest) {
-			return GLConst.NEAREST;
-		}
-		else {
-			return GLConst.LINEAR;
-		}
-	}
-
-
 	const textureLimits = {
 		maxDimension: 0,
-		maxDimensionCube: 0,
-		maxAnisotropy: 0
+		maxDimensionCube: 0
 	};
 
 
@@ -203,18 +147,6 @@ namespace sd.render.gl1 {
 			return textureLimits.maxDimensionCube;
 		}
 		return textureLimits.maxDimension;
-	}
-
-
-	function gl1MaxAllowedAnisotropy(rd: GL1RenderDevice) {
-		if (textureLimits.maxAnisotropy === 0) {
-			textureLimits.maxAnisotropy =
-				rd.extTexAnisotropy ?
-				rd.gl.getParameter(rd.extTexAnisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT) :
-				1;
-		}
-
-		return textureLimits.maxAnisotropy;
 	}
 
 
@@ -250,46 +182,6 @@ namespace sd.render.gl1 {
 		}
 
 		return { providerMips, generatedMips };
-	}
-
-
-	export function applySampler(rd: GL1RenderDevice, texture: Texture, sampler: Sampler) {
-		const gl = rd.gl;
-		const target = gl1TargetForTexture(texture);
-
-		let { repeatS, repeatT, mipFilter } = sampler;
-
-		// -- WebGL 1 imposes several restrictions on Non-Power-of-Two textures
-		const npot = image.isNonPowerOfTwo(texture.dim);
-		if (npot) {
-			if (repeatS !== TextureRepeatMode.ClampToEdge || repeatT !== TextureRepeatMode.ClampToEdge) {
-				console.warn("NPOT textures cannot repeat, overriding with ClampToEdge", texture);
-				repeatS = TextureRepeatMode.ClampToEdge;
-				repeatT = TextureRepeatMode.ClampToEdge;
-			}
-			if (mipFilter !== TextureMipFilter.None) {
-				console.warn("NPOT textures cannot have mipmaps, overriding with MipFilter.None", texture);
-				mipFilter = TextureMipFilter.None;
-			}
-		}
-
-		// gl.bindTexture(target, this.resource_);
-
-		// -- wrapping
-		gl.texParameteri(target, GLConst.TEXTURE_WRAP_S, gl1TextureRepeatMode(repeatS));
-		gl.texParameteri(target, GLConst.TEXTURE_WRAP_T, gl1TextureRepeatMode(repeatT));
-
-		// -- mini-/magnification
-		gl.texParameteri(target, GLConst.TEXTURE_MIN_FILTER, gl1TextureMinificationFilter(sampler.minFilter, mipFilter));
-		gl.texParameteri(target, GLConst.TEXTURE_MAG_FILTER, gl1TextureMagnificationFilter(sampler.magFilter));
-
-		// -- anisotropy
-		if (rd.extTexAnisotropy) {
-			const anisotropy = math.clamp(sampler.maxAnisotropy, 1, gl1MaxAllowedAnisotropy(rd));
-			gl.texParameterf(target, rd.extTexAnisotropy.TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
-		}
-
-		// rd.gl.bindTexture(target, null);
 	}
 
 
@@ -393,6 +285,7 @@ namespace sd.render.gl1 {
 		texture: WebGLTexture;
 		target: GLConst.TEXTURE_2D | GLConst.TEXTURE_CUBE_MAP;
 		format: image.PixelFormat;
+		nonPowerOfTwoDim: boolean;
 		linkedSamplerIndex: number;
 	}
 
@@ -416,6 +309,7 @@ namespace sd.render.gl1 {
 			texture: glTex,
 			target: gl1TargetForTexture(texture),
 			format: texture.pixelFormat,
+			nonPowerOfTwoDim: image.isNonPowerOfTwo(texture.dim),
 			linkedSamplerIndex: 0
 		};
 	}
