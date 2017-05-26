@@ -303,7 +303,9 @@ namespace sd.render.gl1 {
 		if (texture.textureClass === TextureClass.CubeMap) {
 			glTex = createCubeMapTexture(rd, texture);
 		}
-		glTex = createPlainTexture(rd, texture);
+		else {
+			glTex = createPlainTexture(rd, texture);
+		}
 
 		return {
 			texture: glTex,
