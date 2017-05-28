@@ -119,26 +119,25 @@ namespace sd.render.gl1 {
 		if (mesh.indexElement !== meshdata.IndexElementType.None) {
 			gl.bindBuffer(GLConst.ELEMENT_ARRAY_BUFFER, mesh.buffers[mesh.buffers.length - 1]);
 		}
-		else {
-			let boundBufferIndex = -1;
-			for (const attr of attrs) {
-				const meshAttr = mesh.attributes.find(a => a.role === attr.role);
-				if (meshAttr) {
-					if (boundBufferIndex !== meshAttr.bufferIndex) {
-						boundBufferIndex = meshAttr.bufferIndex;
-						gl.bindBuffer(GLConst.ARRAY_BUFFER, mesh.buffers[boundBufferIndex]);
-					}
-					gl.enableVertexAttribArray(attr.index);
 
-					const elementCount = meshdata.vertexFieldElementCount(meshAttr.field);
-					const glElementType = gl1TypeForVertexField.get(meshAttr.field)! | 0;
-					const normalized = meshdata.vertexFieldIsNormalized(meshAttr.field);
-					gl.vertexAttribPointer(attr.index, elementCount, glElementType, normalized, mesh.bufferStrides[boundBufferIndex], meshAttr.offset);
+		let boundBufferIndex = -1;
+		for (const attr of attrs) {
+			const meshAttr = mesh.attributes.find(a => a.role === attr.role);
+			if (meshAttr) {
+				if (boundBufferIndex !== meshAttr.bufferIndex) {
+					boundBufferIndex = meshAttr.bufferIndex;
+					gl.bindBuffer(GLConst.ARRAY_BUFFER, mesh.buffers[boundBufferIndex]);
 				}
-				else {
-					gl.disableVertexAttribArray(attr.index);
-					console.warn("GL1: Mismatch of mesh attributes and shader vertex attributes.", mesh, attrs);
-				}
+				gl.enableVertexAttribArray(attr.index);
+
+				const elementCount = meshdata.vertexFieldElementCount(meshAttr.field);
+				const glElementType = gl1TypeForVertexField.get(meshAttr.field)! | 0;
+				const normalized = meshdata.vertexFieldIsNormalized(meshAttr.field);
+				gl.vertexAttribPointer(attr.index, elementCount, glElementType, normalized, mesh.bufferStrides[boundBufferIndex], meshAttr.offset);
+			}
+			else {
+				gl.disableVertexAttribArray(attr.index);
+				console.warn("GL1: Mismatch of mesh attributes and shader vertex attributes.", mesh, attrs);
 			}
 		}
 
