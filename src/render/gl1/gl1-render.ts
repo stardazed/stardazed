@@ -93,7 +93,12 @@ namespace sd.render.gl1 {
 					// apply shader state and parameters
 					const program = this.shaders_.getByHandle(cmd.pipeline.shader.renderResourceHandle);
 					this.state.setProgram(program || null);
-					// TODO: cmd.constants
+					if (program) {
+						for (const c of cmd.constants) {
+							const uniform = gl.getUniformLocation(program, c.name)!;
+							gl.uniformMatrix4fv(uniform, false, c.value);
+						}
+					}
 
 					// issue draw call
 					const mesh = this.meshes_.getByHandle(cmd.meshHandle)!;

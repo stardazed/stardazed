@@ -56,6 +56,11 @@ namespace sd.render {
 		};
 	}
 
+	export interface TEMPConstant {
+		name: string;
+		value: TypedArray;
+	}
+
 	export interface RenderJob {
 		pipeline: Pipeline;
 		mesh: meshdata.MeshData;
@@ -64,7 +69,7 @@ namespace sd.render {
 		// shader properties
 		textures: Texture[];
 		samplers: Sampler[];
-		constants: any[];
+		constants: TEMPConstant[];
 	}
 
 
@@ -147,7 +152,7 @@ namespace sd.render {
 		// shader properties
 		textureHandles: number[];
 		samplerHandles: number[];
-		constants: any[];
+		constants: TEMPConstant[];
 	}
 
 	export type RenderCommand = FrameBufferCommand | ScissorCommand | ViewportCommand | FrontFaceCommand | TextureWriteCommand | RenderJobCommand;
