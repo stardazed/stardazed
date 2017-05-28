@@ -152,9 +152,10 @@ namespace sd.render {
 
 	export type RenderCommand = FrameBufferCommand | ScissorCommand | ViewportCommand | FrontFaceCommand | TextureWriteCommand | RenderJobCommand;
 
+	const defaultClearColour_: ConstFloat4 = [0, 0, 0, 1];
+
 	export class RenderCommandBuffer {
 		readonly commands: RenderCommand[] = [];
-		private readonly defaultClearColour_: ConstFloat4 = [0, 0, 0, 1];
 
 		setFrameBuffer(fb: FrameBuffer | null, clearMask: ClearMask, clearValues?: Partial<ClearValues>) {
 			this.commands.push({
@@ -163,7 +164,7 @@ namespace sd.render {
 				frameBufferHandle: fb ? fb.renderResourceHandle : 0,
 				clearMask,
 				clearValues: {
-					colour: (clearValues && clearValues.colour) ? clearValues.colour : this.defaultClearColour_,
+					colour: (clearValues && clearValues.colour) ? clearValues.colour : defaultClearColour_,
 					depth: (clearValues && (clearValues.depth !== undefined)) ? clearValues.depth : 1.0,
 					stencil: (clearValues && (clearValues.stencil !== undefined)) ? clearValues.stencil : 0,
 				}
