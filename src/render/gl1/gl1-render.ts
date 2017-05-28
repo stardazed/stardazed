@@ -128,6 +128,8 @@ namespace sd.render.gl1 {
 				}
 			}
 		}
+
+		this.commandList_ = [];
 	}
 
 } // sd.render.gl1

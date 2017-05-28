@@ -130,11 +130,11 @@ namespace sd.render.gl1 {
 		dispatch(cmds: RenderCommandBuffer | RenderCommandBuffer[]) {
 			if (Array.isArray(cmds)) {
 				for (const cb of cmds) {
-					this.commandList_.concat(cb.commands);
+					this.commandList_ = this.commandList_.concat(cb.commands);
 				}
 			}
 			else {
-				this.commandList_.concat(cmds.commands);
+				this.commandList_ = this.commandList_.concat(cmds.commands);
 			}
 		}
 
