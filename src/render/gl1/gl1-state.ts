@@ -128,7 +128,7 @@ namespace sd.render.gl1 {
 	 * GPU state every time, even if nothing changed. Additionally, the WebGL
 	 * layer adds overhead as well and querying the GL is defined to be slow.
 	 */
-	export class GLState {
+	export class GL1State {
 		public readonly gl: WebGLRenderingContext;
 		private frontFace_: FrontFaceWinding;
 		private cullFace_: FaceCulling;

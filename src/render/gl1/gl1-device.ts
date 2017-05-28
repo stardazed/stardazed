@@ -10,7 +10,7 @@ namespace sd.render.gl1 {
 
 	export class GL1RenderDevice implements RenderDevice {
 		readonly gl: WebGLRenderingContext;
-		readonly state: GLState;
+		readonly state: GL1State;
 
 		readonly ext32bitIndexes: OESElementIndexUint;
 		readonly extDrawBuffers: WebGLDrawBuffers;
@@ -57,7 +57,7 @@ namespace sd.render.gl1 {
 			}
 			this.gl = gl;
 
-			this.state = new GLState(gl);
+			this.state = new GL1State(gl);
 
 			// enable large indexed meshes
 			this.ext32bitIndexes = gl.getExtension("OES_element_index_uint");
