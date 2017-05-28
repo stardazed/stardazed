@@ -100,8 +100,16 @@ namespace sd.render.gl1 {
 						}
 					}
 
-					// issue draw call
+					// apply mesh
 					const mesh = this.meshes_.getByHandle(cmd.meshHandle)!;
+					let vao = mesh.vaos.get("yay");
+					if (! vao) {
+						vao = createVAOForAttrBinding(this, mesh, cmd.pipeline.shader.vertexFunction.in);
+						mesh.vaos.set("yay", vao);
+					}
+					this.extVAO.bindVertexArrayOES(vao);
+
+					// issue draw call
 					const primType = gl1TypeForPrimitiveType.get(cmd.primitiveType)!;
 					if (mesh.indexElement !== meshdata.IndexElementType.None) {
 						const indexType = gl1TypeForIndexElementType.get(mesh.indexElement)!;
