@@ -28,6 +28,7 @@ namespace sd.render.gl1 {
 		structs?: string[];
 		code?: string;
 		main: string;
+		attrHash?: number;
 	}
 
 	export interface GL1FragmentFunction extends FragmentFunction {
@@ -181,6 +182,34 @@ namespace sd.render.gl1 {
 
 	// ----
 
+	function hashString(s: string) {
+		if (s.length === 0) {
+			return 0;
+		}
+
+		let hash = 0, chr: number;
+		for (let i = 0; i < s.length; ++i) {
+			chr = s.charCodeAt(i);
+			hash = ((hash << 5) - hash) + chr;
+			hash |= 0;
+		}
+		return hash;
+	}
+
+	/**
+	 * Calculate a numerical hash of a shader's input signature.
+	 * This is used inside the render loop to quickly associate a shader
+	 * with a potential VAO of a mesh.
+	 * @param attrs The in attributes of a vertex function
+	 */
+	function calcVertexAttrHash(attrs: ShaderVertexAttribute[]) {
+		const slots =  attrs.map(a => ({ i: a.index, t: a.type }));
+		slots.sort((a, b) => a.i - b.i); // sort indexes numerically ascending
+		return hashString(slots.map(s => `${s.i}:${s.t}`).join("|"));
+	}
+
+	// ----
+
 	export function createProgram(rd: GL1RenderDevice, shader: Shader) {
 		const gl = rd.gl;
 
@@ -195,6 +224,7 @@ namespace sd.render.gl1 {
 		for (const pa of shader.vertexFunction.in) {
 			gl.bindAttribLocation(program, pa.index, pa.name);
 		}
+		(shader.vertexFunction as GL1VertexFunction).attrHash = calcVertexAttrHash(shader.vertexFunction.in);
 
 		gl.attachShader(program, vertexShader);
 		gl.attachShader(program, fragmentShader);

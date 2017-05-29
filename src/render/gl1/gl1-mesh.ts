@@ -56,7 +56,7 @@ namespace sd.render.gl1 {
 		indexElement: meshdata.IndexElementType;
 		buffers: WebGLBuffer[];
 		bufferStrides: number[];
-		vaos: Map<string, WebGLVertexArrayObjectOES>;
+		vaos: Map<number, WebGLVertexArrayObjectOES>;
 	}
 
 
@@ -91,7 +91,7 @@ namespace sd.render.gl1 {
 			indexElement: mesh.indexBuffer ? mesh.indexBuffer.indexElementType : meshdata.IndexElementType.None,
 			buffers,
 			bufferStrides: mesh.layout.layouts.map(vbl => vbl.stride),
-			vaos: new Map<string, WebGLVertexArrayObjectOES>()
+			vaos: new Map<number, WebGLVertexArrayObjectOES>()
 		};
 	}
 

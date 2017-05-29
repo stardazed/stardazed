@@ -102,10 +102,11 @@ namespace sd.render.gl1 {
 
 					// apply mesh
 					const mesh = this.meshes_.getByHandle(cmd.meshHandle)!;
-					let vao = mesh.vaos.get("yay");
+					const attrHash = (cmd.pipeline.shader.vertexFunction as GL1VertexFunction).attrHash!;
+					let vao = mesh.vaos.get(attrHash);
 					if (! vao) {
 						vao = createVAOForAttrBinding(this, mesh, cmd.pipeline.shader.vertexFunction.in);
-						mesh.vaos.set("yay", vao);
+						mesh.vaos.set(attrHash, vao);
 					}
 					this.extVAO.bindVertexArrayOES(vao);
 
