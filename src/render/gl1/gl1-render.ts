@@ -114,7 +114,7 @@ namespace sd.render.gl1 {
 					const primType = gl1TypeForPrimitiveType.get(cmd.primitiveType)!;
 					if (mesh.indexElement !== meshdata.IndexElementType.None) {
 						const indexType = gl1TypeForIndexElementType.get(mesh.indexElement)!;
-						const offsetBytes = cmd.fromElement * meshdata.indexElementTypeSizeBytes(mesh.indexElement);
+						const offsetBytes = cmd.fromElement * meshdata.indexElementTypeSizeBytes.get(mesh.indexElement)!;
 						gl.drawElements(primType, cmd.elementCount, indexType, offsetBytes);
 					}
 					else {
