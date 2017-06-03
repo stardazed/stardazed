@@ -5,10 +5,19 @@
 
 namespace sd.render {
 
-	export type ShaderValueType =
-		"int" | "int2" | "int3" | "int4" |
-		"float" | "float2" | "float3" | "float4" |
-		"mat2" | "mat3" | "mat4";
+	export const enum ShaderValueType {
+		Int,
+		Int2,
+		Int3,
+		Int4,
+		Float,
+		Float2,
+		Float3,
+		Float4,
+		Float2x2,
+		Float3x3,
+		Float4x4
+	}
 
 	export interface SamplerSlot {
 		name: string;

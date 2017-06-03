@@ -40,46 +40,48 @@ namespace sd.render.gl1 {
 		main: string;
 	}
 
-	const valueTypeMap: { [k: string]: { [t: string]: string } } = {
-		attribute: {
-			int: "float",
-			int2: "vec2",
-			int3: "vec3",
-			int4: "vec4",
-			float: "float",
-			float2: "vec2",
-			float3: "vec3",
-			float4: "vec4",
-			mat2: "mat2",
-			mat3: "mat3",
-			mat4: "mat4"
-		},
-		varying: {
-			int: "float",
-			int2: "vec2",
-			int3: "vec3",
-			int4: "vec4",
-			float: "float",
-			float2: "vec2",
-			float3: "vec3",
-			float4: "vec4",
-			mat2: "mat2",
-			mat3: "mat3",
-			mat4: "mat4"
-		},
-		uniform: {
-			int: "int",
-			int2: "ivec2",
-			int3: "ivec3",
-			int4: "ivec4",
-			float: "float",
-			float2: "vec2",
-			float3: "vec3",
-			float4: "vec4",
-			mat2: "mat2",
-			mat3: "mat3",
-			mat4: "mat4"
-		}
+	import SVT = ShaderValueType;
+
+	const valueTypeMap: { [k: string]: ReadonlyMap<ShaderValueType, string> } = {
+		attribute: new Map<ShaderValueType, string>([
+			[SVT.Int, "float"],
+			[SVT.Int2, "vec2"],
+			[SVT.Int3, "vec3"],
+			[SVT.Int4, "vec4"],
+			[SVT.Float, "float"],
+			[SVT.Float2, "vec2"],
+			[SVT.Float3, "vec3"],
+			[SVT.Float4, "vec4"],
+			[SVT.Float2x2, "mat2"],
+			[SVT.Float3x3, "mat3"],
+			[SVT.Float4x4, "mat4"]
+		]),
+		varying: new Map<ShaderValueType, string>([
+			[SVT.Int, "float"],
+			[SVT.Int2, "vec2"],
+			[SVT.Int3, "vec3"],
+			[SVT.Int4, "vec4"],
+			[SVT.Float, "float"],
+			[SVT.Float2, "vec2"],
+			[SVT.Float3, "vec3"],
+			[SVT.Float4, "vec4"],
+			[SVT.Float2x2, "mat2"],
+			[SVT.Float3x3, "mat3"],
+			[SVT.Float4x4, "mat4"]
+		]),
+		uniform: new Map<ShaderValueType, string>([
+			[SVT.Int, "int"],
+			[SVT.Int2, "ivec2"],
+			[SVT.Int3, "ivec3"],
+			[SVT.Int4, "ivec4"],
+			[SVT.Float, "float"],
+			[SVT.Float2, "vec2"],
+			[SVT.Float3, "vec3"],
+			[SVT.Float4, "vec4"],
+			[SVT.Float2x2, "mat2"],
+			[SVT.Float3x3, "mat3"],
+			[SVT.Float4x4, "mat4"]
+		])
 	};
 
 	function generateDefinesBlock(defines: ShaderDefine[] | undefined) {
@@ -90,7 +92,7 @@ namespace sd.render.gl1 {
 
 	function generateConstValuesBlock(constVals: ShaderConstValue[] | undefined) {
 		return (constVals || []).map(cv => {
-			const mappedValueType = valueTypeMap.uniform[cv.type];
+			const mappedValueType = valueTypeMap.uniform.get(cv.type)!;
 			return `const ${mappedValueType} ${cv.name} = ${cv.expr};\n`;
 		}).join("");
 	}
@@ -102,7 +104,7 @@ namespace sd.render.gl1 {
 	function generateValueBlock(keyword: string, vals: ShaderConstant[] | undefined) {
 		return (vals || []).map(val => {
 			const arrayPostfix = (val.length! > 0) ? `[${val.length}]` : "";
-			const mappedValueType = valueTypeMap[keyword][val.type];
+			const mappedValueType = valueTypeMap[keyword].get(val.type)!;
 			return `${keyword} ${mappedValueType} ${val.name}${arrayPostfix};\n`;
 		}).join("");
 	}
