@@ -104,6 +104,7 @@ namespace sd.render.gl1 {
 	// ----
 
 	import AttrRole =  meshdata.VertexAttributeRole;
+	import SVT = ShaderValueType;
 
 	const enum PBRLightingQuality {
 		Phong,
@@ -113,9 +114,9 @@ namespace sd.render.gl1 {
 
 	modules.gammaConstants = {
 		constValues: [
-			{ name: "GAMMA", type: "float", expr: "2.2" },
-			{ name: "SRGB_TO_LINEAR", type: "float3", expr: "vec3(GAMMA)" },
-			{ name: "LINEAR_TO_SRGB", type: "float3", expr: "vec3(1.0 / GAMMA)" }
+			{ name: "GAMMA", type: SVT.Float, expr: "2.2" },
+			{ name: "SRGB_TO_LINEAR", type: SVT.Float3, expr: "vec3(GAMMA)" },
+			{ name: "LINEAR_TO_SRGB", type: SVT.Float3, expr: "vec3(1.0 / GAMMA)" }
 		]
 	};
 
@@ -170,7 +171,7 @@ namespace sd.render.gl1 {
 			{
 				blockName: "default",
 				constants: [
-					{ name: "jointIndexOffset", type: "int" }
+					{ name: "jointIndexOffset", type: SVT.Int }
 				]
 			}
 		],
@@ -332,7 +333,7 @@ namespace sd.render.gl1 {
 
 	modules.pbrLightingMath = {
 		constValues: [
-			{ name: "PI", type: "float", expr: "3.1415926536" }
+			{ name: "PI", type: SVT.Float, expr: "3.1415926536" }
 		],
 		code: `
 		// compute fresnel specular factor for given base specular and product
@@ -411,7 +412,7 @@ namespace sd.render.gl1 {
 			{ name: "GL_EXT_shader_texture_lod", action: "require" }
 		],
 		constValues: [
-			{ name: "PHONG_DIFFUSE", type: "float", expr: "1.0 / 3.141592654" }
+			{ name: "PHONG_DIFFUSE", type: SVT.Float, expr: "1.0 / 3.141592654" }
 		],
 		textures: [
 			{ name: "brdfLookupMap", type: TextureClass.Normal, index: 4 },
@@ -521,7 +522,7 @@ namespace sd.render.gl1 {
 			{
 				blockName: "default",
 				constants: [
-					{ name: "lightLUTParam", type: "float2" },
+					{ name: "lightLUTParam", type: SVT.Float2 },
 				]
 			}
 		],
@@ -581,9 +582,9 @@ namespace sd.render.gl1 {
 			{
 				blockName: "shadow",
 				constants: [
-					{ name: "lightViewMatrix", type: "mat4" },
-					{ name: "lightProjMatrix", type: "mat4" },
-					{ name: "shadowCastingLightIndex", type: "int" }
+					{ name: "lightViewMatrix", type: SVT.Float4x4 },
+					{ name: "lightProjMatrix", type: SVT.Float4x4 },
+					{ name: "shadowCastingLightIndex", type: SVT.Int }
 				]
 			}
 		],
@@ -686,9 +687,9 @@ namespace sd.render.gl1 {
 			"gammaConstants"
 		],
 		constValues: [
-			{ name: "MAT_ROUGHNESS", type: "int", expr: "0" },
-			{ name: "MAT_METALLIC", type: "int", expr: "1" },
-			{ name: "MAT_AMBIENT_OCCLUSION", type: "int", expr: "2" },
+			{ name: "MAT_ROUGHNESS", type: SVT.Int, expr: "0" },
+			{ name: "MAT_METALLIC", type: SVT.Int, expr: "1" },
+			{ name: "MAT_AMBIENT_OCCLUSION", type: SVT.Int, expr: "2" },
 		],
 		structs: [`
 			struct MaterialInfo {
@@ -706,9 +707,9 @@ namespace sd.render.gl1 {
 			{
 				blockName: "default",
 				constants: [
-					{ name: "baseColour", type: "float4" },
-					{ name: "emissiveData", type: "float4" },
-					{ name: "materialParam", type: "float4" }
+					{ name: "baseColour", type: SVT.Float4 },
+					{ name: "emissiveData", type: SVT.Float4 },
+					{ name: "materialParam", type: SVT.Float4 }
 				]
 			}
 		],
@@ -792,7 +793,7 @@ namespace sd.render.gl1 {
 			{
 				blockName: "default",
 				constants: [
-					{ name: "normalMatrix", type: "mat3" }
+					{ name: "normalMatrix", type: SVT.Float3x3 }
 				]
 			}
 		],
@@ -839,17 +840,17 @@ namespace sd.render.gl1 {
 
 	const vsmShadowVertexFunction: GL1VertexFunction = {
 		in: [
-			{ name: "vertexPos_model", type: "float3", role: AttrRole.Position, index: 0 }
+			{ name: "vertexPos_model", type: SVT.Float3, role: AttrRole.Position, index: 0 }
 		],
 		out: [
-			{ name: "vertexPos_world", type: "float4" }
+			{ name: "vertexPos_world", type: SVT.Float4 }
 		],
 		constantBlocks: [
 			{
 				blockName: "default",
 				constants: [
-					{ name: "modelMatrix", type: "mat4" },
-					{ name: "lightViewProjectionMatrix", type: "mat4" }
+					{ name: "modelMatrix", type: SVT.Float4x4 },
+					{ name: "lightViewProjectionMatrix", type: SVT.Float4x4 }
 				]
 			}
 		],
@@ -864,13 +865,13 @@ namespace sd.render.gl1 {
 			{ name: "GL_OES_standard_derivatives", action: "require" }
 		],
 		in: [
-			{ name: "vertexPos_world", type: "float4" }
+			{ name: "vertexPos_world", type: SVT.Float4 }
 		],
 		constantBlocks: [
 			{
 				blockName: "default",
 				constants: [
-					{ name: "lightViewMatrix", type: "mat4" }
+					{ name: "lightViewMatrix", type: SVT.Float4x4 }
 				]
 			}
 		],
@@ -920,23 +921,23 @@ namespace sd.render.gl1 {
 	function standardVertexFunction(feat: Features): GL1VertexFunction {
 		const fn: GL1VertexFunction = {
 			in: [
-				{ name: "vertexPos_model", type: "float3", role: AttrRole.Position, index: 0 },
-				{ name: "vertexNormal", type: "float3", role: AttrRole.Normal, index: 1 },
+				{ name: "vertexPos_model", type: SVT.Float3, role: AttrRole.Position, index: 0 },
+				{ name: "vertexNormal", type: SVT.Float3, role: AttrRole.Normal, index: 1 },
 			],
 			out: [
-				{ name: "vertexPos_world", type: "float4" },
-				{ name: "vertexPos_cam", type: "float3" },
-				{ name: "vertexNormal_cam", type: "float3" },
+				{ name: "vertexPos_world", type: SVT.Float4 },
+				{ name: "vertexPos_cam", type: SVT.Float3 },
+				{ name: "vertexNormal_cam", type: SVT.Float3 },
 			],
 
 			constantBlocks: [
 				{
 					blockName: "default",
 					constants: [
-						{ name: "modelMatrix", type: "mat4" },
-						{ name: "modelViewMatrix", type: "mat4" },
-						{ name: "modelViewProjectionMatrix", type: "mat4" },
-						{ name: "normalMatrix", type: "mat3" },
+						{ name: "modelMatrix", type: SVT.Float4x4 },
+						{ name: "modelViewMatrix", type: SVT.Float4x4 },
+						{ name: "modelViewProjectionMatrix", type: SVT.Float4x4 },
+						{ name: "normalMatrix", type: SVT.Float3x3 },
 					]
 				}
 			],
@@ -950,15 +951,15 @@ namespace sd.render.gl1 {
 		};
 
 		if (feat & Features.VtxUV) {
-			fn.in.push({ name: "vertexUV", type: "float2", role: AttrRole.UV, index: 2 });
-			fn.out!.push({ name: "vertexUV_intp", type: "float3" });
-			fn.constantBlocks![0].constants.push({ name: "texScaleOffset", type: "float4" });
+			fn.in.push({ name: "vertexUV", type: SVT.Float2, role: AttrRole.UV, index: 2 });
+			fn.out!.push({ name: "vertexUV_intp", type: SVT.Float2 });
+			fn.constantBlocks![0].constants.push({ name: "texScaleOffset", type: SVT.Float4 });
 			fn.main += "vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;\n";
 		}
 
 		if (feat & Features.VtxColour) {
-			fn.in.push({ name: "vertexColour", type: "float3", role: AttrRole.Colour, index: 3 });
-			fn.out!.push({ name: "vertexColour_intp", type: "float3" });
+			fn.in.push({ name: "vertexColour", type: SVT.Float3, role: AttrRole.Colour, index: 3 });
+			fn.out!.push({ name: "vertexColour_intp", type: SVT.Float3 });
 			fn.main += "vertexColour_intp = vertexColour;\n";
 		}
 
@@ -968,18 +969,18 @@ namespace sd.render.gl1 {
 	function standardFragmentFunction(feat: Features): GL1FragmentFunction {
 		const defines: ShaderDefine[] = [];
 		const attr: ShaderAttribute[] = [
-			{ name: "vertexPos_world", type: "float4" },
-			{ name: "vertexPos_cam", type: "float3" },
-			{ name: "vertexNormal_cam", type: "float3" },
+			{ name: "vertexPos_world", type: SVT.Float4 },
+			{ name: "vertexPos_cam", type: SVT.Float3 },
+			{ name: "vertexNormal_cam", type: SVT.Float3 },
 		];
 
 		if (feat & Features.VtxUV) {
 			defines.push({ name: "HAS_BASE_UV" });
-			attr.push({ name: "vertexUV_intp", type: "float3" });
+			attr.push({ name: "vertexUV_intp", type: SVT.Float2 });
 		}
 		if (feat & Features.VtxColour) {
 			defines.push({ name: "VERTEX_COLOUR_TINTING" });
-			attr.push({ name: "vertexColour_intp", type: "float3" });
+			attr.push({ name: "vertexColour_intp", type: SVT.Float3 });
 		}
 		defines.push({ name: "PBR_LIGHT_QUALITY", value: "2" });
 

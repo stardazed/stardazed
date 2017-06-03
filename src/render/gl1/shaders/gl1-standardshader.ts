@@ -6,27 +6,28 @@
 namespace sd.render.gl1 {
 
 	import AttrRole = meshdata.VertexAttributeRole;
+	import SVT = ShaderValueType;
 
 	function standardVertexFunction(): GL1VertexFunction {
 		return {
 			in: [
-				{ name: "vertexPos_model", type: "float3", role: AttrRole.Position, index: 0 },
-				{ name: "vertexNormal", type: "float3", role: AttrRole.Normal, index: 1 },
+				{ name: "vertexPos_model", type: SVT.Float3, role: AttrRole.Position, index: 0 },
+				{ name: "vertexNormal", type: SVT.Float3, role: AttrRole.Normal, index: 1 },
 			],
 			out: [
-				// { name: "vertexPos_world", type: "float4" },
-				// { name: "vertexPos_cam", type: "float3" },
-				{ name: "vertexNormal_cam", type: "float3" },
+				// { name: "vertexPos_world", type: SVT.Float4 },
+				// { name: "vertexPos_cam", type: SVT.Float3 },
+				{ name: "vertexNormal_cam", type: SVT.Float3 },
 			],
 
 			constantBlocks: [
 				{
 					blockName: "default",
 					constants: [
-						// { name: "modelMatrix", type: "mat4" },
-						// { name: "modelViewMatrix", type: "mat4" },
-						{ name: "modelViewProjectionMatrix", type: "mat4" },
-						// { name: "normalMatrix", type: "mat3" },
+						// { name: "modelMatrix", type: SVT.Float4x4 },
+						// { name: "modelViewMatrix", type: SVT.Float4x4 },
+						{ name: "modelViewProjectionMatrix", type: SVT.Float4x4 },
+						// { name: "normalMatrix", type: SVT.Float3x3 },
 					]
 				}
 			],
@@ -44,9 +45,9 @@ namespace sd.render.gl1 {
 	function standardFragmentFunction(): GL1FragmentFunction {
 		return {
 			in: [
-				// { name: "vertexPos_world", type: "float4" },
-				// { name: "vertexPos_cam", type: "float3" },
-				{ name: "vertexNormal_cam", type: "float3" },
+				// { name: "vertexPos_world", type: SVT.Float4 },
+				// { name: "vertexPos_cam", type: SVT.Float3 },
+				{ name: "vertexNormal_cam", type: SVT.Float3 },
 			],
 			outCount: 1,
 
