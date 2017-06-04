@@ -40,47 +40,45 @@ namespace sd.render.gl1 {
 		main: string;
 	}
 
-	import SVT = ShaderValueType;
-
 	const valueTypeMap: { [k: string]: ReadonlyMap<ShaderValueType, string> } = {
 		attribute: new Map<ShaderValueType, string>([
-			[SVT.Int, "float"],
-			[SVT.Int2, "vec2"],
-			[SVT.Int3, "vec3"],
-			[SVT.Int4, "vec4"],
-			[SVT.Float, "float"],
-			[SVT.Float2, "vec2"],
-			[SVT.Float3, "vec3"],
-			[SVT.Float4, "vec4"],
-			[SVT.Float2x2, "mat2"],
-			[SVT.Float3x3, "mat3"],
-			[SVT.Float4x4, "mat4"]
+			[ShaderValueType.Int, "float"],
+			[ShaderValueType.Int2, "vec2"],
+			[ShaderValueType.Int3, "vec3"],
+			[ShaderValueType.Int4, "vec4"],
+			[ShaderValueType.Float, "float"],
+			[ShaderValueType.Float2, "vec2"],
+			[ShaderValueType.Float3, "vec3"],
+			[ShaderValueType.Float4, "vec4"],
+			[ShaderValueType.Float2x2, "mat2"],
+			[ShaderValueType.Float3x3, "mat3"],
+			[ShaderValueType.Float4x4, "mat4"]
 		]),
 		varying: new Map<ShaderValueType, string>([
-			[SVT.Int, "float"],
-			[SVT.Int2, "vec2"],
-			[SVT.Int3, "vec3"],
-			[SVT.Int4, "vec4"],
-			[SVT.Float, "float"],
-			[SVT.Float2, "vec2"],
-			[SVT.Float3, "vec3"],
-			[SVT.Float4, "vec4"],
-			[SVT.Float2x2, "mat2"],
-			[SVT.Float3x3, "mat3"],
-			[SVT.Float4x4, "mat4"]
+			[ShaderValueType.Int, "float"],
+			[ShaderValueType.Int2, "vec2"],
+			[ShaderValueType.Int3, "vec3"],
+			[ShaderValueType.Int4, "vec4"],
+			[ShaderValueType.Float, "float"],
+			[ShaderValueType.Float2, "vec2"],
+			[ShaderValueType.Float3, "vec3"],
+			[ShaderValueType.Float4, "vec4"],
+			[ShaderValueType.Float2x2, "mat2"],
+			[ShaderValueType.Float3x3, "mat3"],
+			[ShaderValueType.Float4x4, "mat4"]
 		]),
 		uniform: new Map<ShaderValueType, string>([
-			[SVT.Int, "int"],
-			[SVT.Int2, "ivec2"],
-			[SVT.Int3, "ivec3"],
-			[SVT.Int4, "ivec4"],
-			[SVT.Float, "float"],
-			[SVT.Float2, "vec2"],
-			[SVT.Float3, "vec3"],
-			[SVT.Float4, "vec4"],
-			[SVT.Float2x2, "mat2"],
-			[SVT.Float3x3, "mat3"],
-			[SVT.Float4x4, "mat4"]
+			[ShaderValueType.Int, "int"],
+			[ShaderValueType.Int2, "ivec2"],
+			[ShaderValueType.Int3, "ivec3"],
+			[ShaderValueType.Int4, "ivec4"],
+			[ShaderValueType.Float, "float"],
+			[ShaderValueType.Float2, "vec2"],
+			[ShaderValueType.Float3, "vec3"],
+			[ShaderValueType.Float4, "vec4"],
+			[ShaderValueType.Float2x2, "mat2"],
+			[ShaderValueType.Float3x3, "mat3"],
+			[ShaderValueType.Float4x4, "mat4"]
 		])
 	};
 
@@ -109,8 +107,8 @@ namespace sd.render.gl1 {
 		}).join("");
 	}
 
-	function generateConstantsBlock(blocks: ShaderConstantBlock[] | undefined) {
-		return (blocks || []).map(block => generateValueBlock("uniform", block.constants)).join("");
+	function generateConstantsBlock(blocks: ConstantBlockMapping[] | undefined) {
+		return (blocks || []).map(block => generateValueBlock("uniform", block.block.fields)).join("");
 	}
 
 	function generateSamplerBlock(samplers: SamplerSlot[] | undefined) {
