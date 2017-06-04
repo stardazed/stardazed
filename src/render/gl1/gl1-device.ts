@@ -258,17 +258,18 @@ namespace sd.render.gl1 {
 
 		// -- Shader
 
-		readonly shaders_ = new ReusableResourceArray<Shader, WebGLProgram>(ResourceType.Shader);
+		readonly shaders_ = new ReusableResourceArray<Shader, GL1ShaderData>(ResourceType.Shader);
 
 		private allocShader(shader: Shader) {
-			const gl1Prog = createProgram(this, shader)!; // TODO: handle failures
-			this.shaders_.insert(shader, gl1Prog);
+			const gl1Shader = createShader(this, shader)!; // TODO: handle failures
+			this.shaders_.insert(shader, gl1Shader);
 		}
 
 		private freeShader(shader: Shader) {
 			const prog = this.shaders_.find(shader);
 			if (prog) {
-				this.gl.deleteProgram(prog);
+				prog.combinedConstants.clear();
+				this.gl.deleteProgram(prog.program);
 				this.shaders_.remove(shader);
 			}
 		}

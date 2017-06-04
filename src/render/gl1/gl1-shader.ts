@@ -40,6 +40,16 @@ namespace sd.render.gl1 {
 		main: string;
 	}
 
+	export interface GL1ShaderConstant {
+		type: ShaderValueType;
+		uniform: WebGLUniformLocation;
+	}
+
+	export interface GL1ShaderData {
+		program: WebGLProgram;
+		combinedConstants: Map<string, GL1ShaderConstant>;
+	}
+
 	const valueTypeMap: { [k: string]: ReadonlyMap<ShaderValueType, string> } = {
 		attribute: new Map<ShaderValueType, string>([
 			[ShaderValueType.Int, "float"],
@@ -107,8 +117,8 @@ namespace sd.render.gl1 {
 		}).join("");
 	}
 
-	function generateConstantsBlock(blocks: ConstantBlockMapping[] | undefined) {
-		return (blocks || []).map(block => generateValueBlock("uniform", block.block.fields)).join("");
+	function generateConstantsBlock(constants: ShaderConstant[] | undefined) {
+		return generateValueBlock("uniform", constants || []);
 	}
 
 	function generateSamplerBlock(samplers: SamplerSlot[] | undefined) {
@@ -131,7 +141,7 @@ namespace sd.render.gl1 {
 		const varying = generateValueBlock("varying", fn.out);
 		const constValues = generateConstValuesBlock(fn.constValues);
 		const structs = generateStructsBlock(fn.structs);
-		const uniforms = generateConstantsBlock(fn.constantBlocks);
+		const uniforms = generateConstantsBlock(fn.constants);
 		const samplers = generateSamplerBlock(fn.samplers);
 		
 		return `${extensions}${defines}
@@ -150,7 +160,7 @@ namespace sd.render.gl1 {
 		const varying = generateValueBlock("varying", fn.in);
 		const constValues = generateConstValuesBlock(fn.constValues);
 		const structs = generateStructsBlock(fn.structs);
-		const uniforms = generateConstantsBlock(fn.constantBlocks);
+		const uniforms = generateConstantsBlock(fn.constants);
 		const samplers = generateSamplerBlock(fn.samplers);
 		
 		return `${extensions}${defines}
@@ -210,7 +220,7 @@ namespace sd.render.gl1 {
 
 	// ----
 
-	export function createProgram(rd: GL1RenderDevice, shader: Shader) {
+	export function createShader(rd: GL1RenderDevice, shader: Shader): GL1ShaderData | undefined {
 		const gl = rd.gl;
 
 		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(shader.vertexFunction as GL1VertexFunction));
@@ -236,7 +246,30 @@ namespace sd.render.gl1 {
 			return undefined;
 		}
 
-		return program;
+		// program link successful, enumerate and find uniforms
+		rd.state.setProgram(program);
+
+		const combinedConstants = new Map<string, GL1ShaderConstant>();
+		const allConstants = (shader.vertexFunction.constants || []).concat(shader.fragmentFunction.constants || []);
+		for (const sc of allConstants) {
+			if (! combinedConstants.has(sc.name)) {
+				const uniform = gl.getUniformLocation(program, sc.name);
+				if (uniform) {
+					combinedConstants.set(sc.name, {
+						type: sc.type,
+						uniform
+					});
+				}
+				else {
+					console.error(`Shader is missing constant named ${sc.name}`, shader);
+				}
+			}
+		}
+
+		return {
+			combinedConstants,
+			program,
+		};
 	}
 
 } // ns sd.render.gl1
