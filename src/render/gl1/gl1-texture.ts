@@ -243,7 +243,10 @@ namespace sd.render.gl1 {
 		}
 
 		gl.bindTexture(target, null);
-		return tex;
+		return {
+			texture: tex,
+			mipmapped: providerMips + generatedMips > 1
+		};
 	}
 
 
@@ -263,9 +266,11 @@ namespace sd.render.gl1 {
 
 		// -- allocate and fill pixel storage
 		let shouldGenMips = false;
+		let hasMips = false;
 		for (let layer = 0; layer < 6; ++layer) {
 			const provider = pixelData && pixelData[layer];
 			const { providerMips, generatedMips } = gl1CalcMipLevels(texture, provider);
+			hasMips = providerMips + generatedMips > 1;
 			if (generatedMips > 0) {
 				shouldGenMips = true;
 			}
@@ -278,13 +283,17 @@ namespace sd.render.gl1 {
 		}
 
 		gl.bindTexture(target, null);
-		return tex;
+		return {
+			texture: tex,
+			mipmapped: hasMips
+		};
 	}
 
 	export interface GL1TextureData {
 		texture: WebGLTexture;
 		target: GLConst.TEXTURE_2D | GLConst.TEXTURE_CUBE_MAP;
 		format: image.PixelFormat;
+		mipmapped: boolean;
 		nonPowerOfTwoDim: boolean;
 		linkedSamplerHandle: number;
 	}
@@ -299,18 +308,19 @@ namespace sd.render.gl1 {
 		assert(texture.dim.width <= gl1MaxTextureDimension(rd, texture.textureClass));
 		assert(texture.dim.height <= gl1MaxTextureDimension(rd, texture.textureClass));
 
-		let glTex: WebGLTexture;
+		let texResult: { texture: WebGLTexture; mipmapped: boolean };
 		if (texture.textureClass === TextureClass.CubeMap) {
-			glTex = createCubeMapTexture(rd, texture);
+			texResult = createCubeMapTexture(rd, texture);
 		}
 		else {
-			glTex = createPlainTexture(rd, texture);
+			texResult = createPlainTexture(rd, texture);
 		}
 
 		return {
-			texture: glTex,
+			texture: texResult.texture,
 			target: gl1TargetForTexture(texture),
 			format: texture.pixelFormat,
+			mipmapped: texResult.mipmapped,
 			nonPowerOfTwoDim: image.isNonPowerOfTwo(texture.dim),
 			linkedSamplerHandle: 0
 		};

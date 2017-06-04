@@ -424,6 +424,13 @@ namespace sd.render.gl1 {
 							}
 						}
 
+						if (! texture.mipmapped) {
+							if (mipFilter !== TextureMipFilter.None) {
+								console.warn("Non-mipped textures can only use MipFilter.None", texture);
+								mipFilter = TextureMipFilter.None;
+							}
+						}
+
 						// -- wrapping
 						gl.texParameteri(texture.target, GLConst.TEXTURE_WRAP_S, gl1TextureRepeatMode.get(repeatS)!);
 						gl.texParameteri(texture.target, GLConst.TEXTURE_WRAP_T, gl1TextureRepeatMode.get(repeatT)!);
