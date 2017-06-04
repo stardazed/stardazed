@@ -25,17 +25,6 @@ namespace sd.render {
 		index: number;
 	}
 
-	export interface ShaderConstant {
-		name: string;
-		type: ShaderValueType;
-		length?: number;            // optional: fixed array length
-	}
-
-	export interface ShaderConstantBlock {
-		blockName: string;
-		constants: ShaderConstant[];
-	}
-
 	export interface ShaderAttribute {
 		name: string;
 		type: ShaderValueType;
@@ -46,19 +35,25 @@ namespace sd.render {
 		index: number;
 	}
 
+	export interface ShaderConstant {
+		name: string;
+		type: ShaderValueType;
+		length?: number;
+	}
+
 	export interface VertexFunction {
 		in: ShaderVertexAttribute[];
 		out?: ShaderAttribute[];
 		// feedback?: any;
 		samplers?: SamplerSlot[];
-		constantBlocks?: ShaderConstantBlock[];
+		constants?: ShaderConstant[];
 	}
 
 	export interface FragmentFunction {
 		in?: ShaderAttribute[];
 		outCount: number;
 		samplers?: SamplerSlot[];
-		constantBlocks?: ShaderConstantBlock[];
+		constants?: ShaderConstant[];
 	}
 
 	export interface Shader extends RenderResourceBase {
