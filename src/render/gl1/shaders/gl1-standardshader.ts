@@ -5,6 +5,8 @@
 
 namespace sd.render.gl1 {
 
+	/*
+
 	import AttrRole = meshdata.VertexAttributeRole;
 	import SVT = ShaderValueType;
 
@@ -22,7 +24,7 @@ namespace sd.render.gl1 {
 
 			constantBlocks: [
 				{
-					blockName: "default",
+					name: "default",
 					constants: [
 						// { name: "modelMatrix", type: SVT.Float4x4 },
 						// { name: "modelViewMatrix", type: SVT.Float4x4 },
@@ -73,5 +75,7 @@ namespace sd.render.gl1 {
 			fragmentFunction
 		};	
 	}
+
+	*/
 
 } // ns sd.render.gl1

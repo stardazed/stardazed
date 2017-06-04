@@ -5,6 +5,8 @@
 
 namespace sd.render.gl1 {
 
+	/*
+
 	export type Conditional<T> = T & {
 		ifExpr?: string;
 	};
@@ -13,7 +15,7 @@ namespace sd.render.gl1 {
 		dependencies?: string[];
 		extensions?: ExtensionUsage[];
 		textures?: Conditional<SamplerSlot>[];
-		constantBlocks?: Conditional<ShaderConstantBlock>[];
+		constantBlocks?: Conditional<ConstantBlock>[];
 		constValues?: ShaderConstValue[];
 		structs?: string[];
 		code?: string;
@@ -77,12 +79,12 @@ namespace sd.render.gl1 {
 				}
 				if (depModule.constantBlocks) {
 					for (const depBlock of depModule.constantBlocks) {
-						let localBlock = module.constantBlocks!.find(c => c.blockName === depBlock.blockName);
+						let localBlock = module.constantBlocks!.find(c => c.name === depBlock.name);
 						if (! localBlock) {
-							localBlock = { blockName: depBlock.blockName, constants: [] };
+							localBlock = { name: depBlock.name, fields: [] };
 							module.constantBlocks!.push(localBlock);
 						}
-						localBlock.constants.push(...depBlock.constants);
+						localBlock.fields.push(...depBlock.fields);
 					}
 				}
 				if (depModule.constValues) {
@@ -169,8 +171,8 @@ namespace sd.render.gl1 {
 		`],
 		constantBlocks: [
 			{
-				blockName: "default",
-				constants: [
+				name: "default",
+				fields: [
 					{ name: "jointIndexOffset", type: SVT.Int }
 				]
 			}
@@ -520,8 +522,8 @@ namespace sd.render.gl1 {
 		],
 		constantBlocks: [
 			{
-				blockName: "default",
-				constants: [
+				name: "default",
+				fields: [
 					{ name: "lightLUTParam", type: SVT.Float2 },
 				]
 			}
@@ -580,8 +582,8 @@ namespace sd.render.gl1 {
 		],
 		constantBlocks: [
 			{
-				blockName: "shadow",
-				constants: [
+				name: "shadow",
+				fields: [
 					{ name: "lightViewMatrix", type: SVT.Float4x4 },
 					{ name: "lightProjMatrix", type: SVT.Float4x4 },
 					{ name: "shadowCastingLightIndex", type: SVT.Int }
@@ -705,8 +707,8 @@ namespace sd.render.gl1 {
 		`],
 		constantBlocks: [
 			{
-				blockName: "default",
-				constants: [
+				name: "default",
+				fields: [
 					{ name: "baseColour", type: SVT.Float4 },
 					{ name: "emissiveData", type: SVT.Float4 },
 					{ name: "materialParam", type: SVT.Float4 }
@@ -791,8 +793,8 @@ namespace sd.render.gl1 {
 		`],
 		constantBlocks: [
 			{
-				blockName: "default",
-				constants: [
+				name: "default",
+				fields: [
 					{ name: "normalMatrix", type: SVT.Float3x3 }
 				]
 			}
@@ -847,8 +849,8 @@ namespace sd.render.gl1 {
 		],
 		constantBlocks: [
 			{
-				blockName: "default",
-				constants: [
+				name: "default",
+				fields: [
 					{ name: "modelMatrix", type: SVT.Float4x4 },
 					{ name: "lightViewProjectionMatrix", type: SVT.Float4x4 }
 				]
@@ -1032,5 +1034,7 @@ namespace sd.render.gl1 {
 			fragmentFunction
 		};	
 	}
+
+	*/
 
 } // ns sd.render.gl1
