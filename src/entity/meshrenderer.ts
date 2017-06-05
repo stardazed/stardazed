@@ -25,14 +25,10 @@ namespace sd.entity {
 		private enabledBase_: Uint8Array;
 		private shadowCastFlagsBase_: Uint8Array;
 		private materialOffsetCountBase_: Int32Array;
-		private primGroupOffsetBase_: Int32Array;
+		private renderJobOffsetCountBase_: Int32Array;
 
 		private meshes_: meshdata.MeshData[];
 		private materials_: number[];
-
-		private primGroupData_: container.MultiArrayBuffer;
-		private primGroupMaterialBase_: Int32Array;
-		private primGroupFeatureBase_: ConstEnumArrayView<number>;
 
 
 		constructor(_rd: render.RenderDevice, private transformComp_: TransformComponent) {
@@ -42,18 +38,11 @@ namespace sd.entity {
 				{ type: UInt8,  count: 1 }, // enabled
 				{ type: UInt8,  count: 1 }, // shadowCastFlags
 				{ type: SInt32, count: 2 }, // materialOffsetCount ([0]: offset, [1]: count)
-				{ type: SInt32, count: 1 }, // primGroupOffset (offset into primGroupMaterials_ and primGroupFeatures_)
+				{ type: SInt32, count: 2 }, // renderJobOffsetCount ([0]: offset, [1]: count)
 			];
 			this.instanceData_ = new container.MultiArrayBuffer(1024, instFields);
 
-			const groupFields: container.MABField[] = [
-				{ type: SInt32, count: 1 }, // material
-				{ type: SInt32, count: 1 }, // features
-			];
-			this.primGroupData_ = new container.MultiArrayBuffer(2048, groupFields);
-
 			this.rebase();
-			this.groupRebase();
 
 			this.materials_ = [];
 			this.meshes_ = [];
@@ -65,14 +54,8 @@ namespace sd.entity {
 			this.enabledBase_ = this.instanceData_.indexedFieldView(2);
 			this.shadowCastFlagsBase_ = this.instanceData_.indexedFieldView(3);
 			this.materialOffsetCountBase_ = this.instanceData_.indexedFieldView(4);
-			this.primGroupOffsetBase_ = this.instanceData_.indexedFieldView(5);
+			this.renderJobOffsetCountBase_ = this.instanceData_.indexedFieldView(5);
 		}
-
-		private groupRebase() {
-			this.primGroupMaterialBase_ = this.primGroupData_.indexedFieldView(0);
-			this.primGroupFeatureBase_ = this.primGroupData_.indexedFieldView(1);
-		}
-
 
 		private updatePrimGroups(modelIx: number) {
 			const mesh = this.meshes_[modelIx];
@@ -83,22 +66,11 @@ namespace sd.entity {
 
 			// -- check correctness of mesh against material list
 			const maxLocalMatIndex = subMeshes.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
-			assert(materialCount >= maxLocalMatIndex - 1, "not enough PBRMaterialIndexes for this mesh");
-
-			// -- pre-calc global material indexes and program features for each group
-			let primGroupCount = this.primGroupData_.count;
-			this.primGroupOffsetBase_[modelIx] = this.primGroupData_.count;
-
-			// -- grow primitiveGroup metadata buffer if necessary
-			if (this.primGroupData_.resize(primGroupCount + subMeshes.length) === container.InvalidatePointers.Yes) {
-				this.groupRebase();
-			}
+			assert(materialCount >= maxLocalMatIndex - 1, "not enough MaterialIndexes for this mesh");
 
 			// -- append metadata for each primGroup
 			subMeshes.forEach(_group => {
-				this.primGroupFeatureBase_[primGroupCount] = 0; // this.featuresForMeshAndMaterial(mesh, this.materials_[materialsOffset + group.materialIx]);
-				this.primGroupMaterialBase_[primGroupCount] = 0; // this.materials_[materialsOffset + group.materialIx];
-				primGroupCount += 1;
+				// primGroupCount += 1;
 			});
 		}
 
