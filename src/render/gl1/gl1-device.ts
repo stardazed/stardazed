@@ -40,7 +40,8 @@ namespace sd.render.gl1 {
 			const contextAttrs: WebGLContextAttributes = {
 				antialias: false,
 				depth: true,
-				alpha: false
+				alpha: false,
+				premultipliedAlpha: false
 			};
 
 			try {
@@ -58,6 +59,10 @@ namespace sd.render.gl1 {
 			this.gl = gl;
 
 			this.state = new GL1State(gl);
+
+			// sensible defaults
+			gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, GLConst.NONE);
+			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, GLConst.ZERO);
 
 			// enable large indexed meshes
 			this.ext32bitIndexes = gl.getExtension("OES_element_index_uint");
