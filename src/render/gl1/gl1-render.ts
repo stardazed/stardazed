@@ -102,7 +102,7 @@ namespace sd.render.gl1 {
 					if (shader) {
 						this.state.setProgram(shader.program);
 						for (const sc of cmd.constants) {
-							const constantData = shader.combinedConstants.get(sc.name);
+							const constantData = shader.combinedConstants[sc.name];
 							if (constantData) {
 								switch (constantData.type) {
 									case ShaderValueType.Float: gl.uniform1fv(constantData.uniform, sc.value); break;

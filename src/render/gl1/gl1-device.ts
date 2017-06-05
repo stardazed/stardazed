@@ -268,7 +268,7 @@ namespace sd.render.gl1 {
 		private freeShader(shader: Shader) {
 			const prog = this.shaders_.find(shader);
 			if (prog) {
-				prog.combinedConstants.clear();
+				prog.combinedConstants = {};
 				this.gl.deleteProgram(prog.program);
 				this.shaders_.remove(shader);
 			}

@@ -47,10 +47,10 @@ namespace sd.render.gl1 {
 
 	export interface GL1ShaderData {
 		program: WebGLProgram;
-		combinedConstants: Map<string, GL1ShaderConstant>;
+		combinedConstants: { readonly [name: string]: Readonly<GL1ShaderConstant> };
 	}
 
-	const valueTypeMap: { [k: string]: { [svt: number]: string; } } = {
+	const valueTypeMap = {
 		attribute: makeLUT<ShaderValueType, string>(
 			ShaderValueType.Int, "float",
 			ShaderValueType.Int2, "vec2",
@@ -109,7 +109,7 @@ namespace sd.render.gl1 {
 		return (structs || []).join("\n");
 	}
 
-	function generateValueBlock(keyword: string, vals: ShaderConstant[] | undefined) {
+	function generateValueBlock(keyword: "attribute" | "varying" | "uniform", vals: ShaderConstant[] | undefined) {
 		return (vals || []).map(val => {
 			const arrayPostfix = (val.length! > 0) ? `[${val.length}]` : "";
 			const mappedValueType = valueTypeMap[keyword][val.type];
@@ -249,16 +249,16 @@ namespace sd.render.gl1 {
 		// program link successful, enumerate and find uniforms
 		rd.state.setProgram(program);
 
-		const combinedConstants = new Map<string, GL1ShaderConstant>();
+		const combinedConstants: { [name: string]: GL1ShaderConstant } = {};
 		const allConstants = (shader.vertexFunction.constants || []).concat(shader.fragmentFunction.constants || []);
 		for (const sc of allConstants) {
-			if (! combinedConstants.has(sc.name)) {
+			if (! (sc.name in combinedConstants)) {
 				const uniform = gl.getUniformLocation(program, sc.name);
 				if (uniform) {
-					combinedConstants.set(sc.name, {
+					combinedConstants[sc.name] = {
 						type: sc.type,
 						uniform
-					});
+					};
 				}
 				else {
 					console.error(`Shader is missing constant named ${sc.name}`, shader);
