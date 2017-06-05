@@ -41,13 +41,6 @@ namespace sd.render.gl1 {
 					break;
 				}
 
-				case RCT.TextureWrite: {
-					const texData = this.textures_.getByHandle(cmd.textureHandle)!;
-					this.state.setTexture(this.state.maxTextureSlot, texData, undefined);
-					gl.texSubImage2D(texData.target, 0, cmd.x, cmd.y, cmd.width, cmd.height, GLConst.RGBA, GLConst.FLOAT, cmd.pixels);
-					break;
-				}
-
 				case RCT.FrameBuffer: {
 					const fb = this.frameBuffers_.getByHandle(cmd.frameBufferHandle)!;
 					this.state.setFramebuffer(fb);
@@ -68,6 +61,20 @@ namespace sd.render.gl1 {
 					}
 					if (glClearMask) {
 						gl.clear(glClearMask);
+					}
+					break;
+				}
+
+				case RCT.TextureWrite: {
+					const texData = this.textures_.getByHandle(cmd.textureHandle)!;
+					this.state.setTexture(this.state.maxTextureSlot, texData, undefined);
+					const glFormat = gl1ImageFormatForPixelFormat(this, texData.format);
+					if (image.pixelFormatIsCompressed(texData.format)) {
+						gl.compressedTexSubImage2D(texData.target, 0, cmd.x, cmd.y, cmd.width, cmd.height, glFormat, cmd.pixels);
+					}
+					else {
+						const glPixelType = gl1PixelDataTypeForPixelFormat(this, texData.format);
+						gl.texSubImage2D(texData.target, 0, cmd.x, cmd.y, cmd.width, cmd.height, glFormat, glPixelType, cmd.pixels);
 					}
 					break;
 				}
