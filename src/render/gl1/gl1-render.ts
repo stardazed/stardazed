@@ -7,19 +7,19 @@ namespace sd.render.gl1 {
 
 	import RCT = RenderCommandType;
 
-	const gl1TypeForPrimitiveType: ReadonlyMap<meshdata.PrimitiveType, number> = new Map<meshdata.PrimitiveType, number>([
-		[meshdata.PrimitiveType.Point, GLConst.POINTS],
-		[meshdata.PrimitiveType.Line, GLConst.LINES],
-		[meshdata.PrimitiveType.LineStrip, GLConst.LINE_STRIP],
-		[meshdata.PrimitiveType.Triangle, GLConst.TRIANGLES],
-		[meshdata.PrimitiveType.TriangleStrip, GLConst.TRIANGLE_STRIP],
-	]);
+	const gl1TypeForPrimitiveType = makeLUT<meshdata.PrimitiveType, number>(
+		meshdata.PrimitiveType.Point, GLConst.POINTS,
+		meshdata.PrimitiveType.Line, GLConst.LINES,
+		meshdata.PrimitiveType.LineStrip, GLConst.LINE_STRIP,
+		meshdata.PrimitiveType.Triangle, GLConst.TRIANGLES,
+		meshdata.PrimitiveType.TriangleStrip, GLConst.TRIANGLE_STRIP
+	);
 
-	const gl1TypeForIndexElementType: ReadonlyMap<meshdata.IndexElementType, number> = new Map<meshdata.IndexElementType, number>([
-		[meshdata.IndexElementType.UInt8, GLConst.UNSIGNED_BYTE],
-		[meshdata.IndexElementType.UInt16, GLConst.UNSIGNED_SHORT],
-		[meshdata.IndexElementType.UInt32, GLConst.UNSIGNED_INT],
-	]);
+	const gl1TypeForIndexElementType = makeLUT<meshdata.IndexElementType, number>(
+		meshdata.IndexElementType.UInt8, GLConst.UNSIGNED_BYTE,
+		meshdata.IndexElementType.UInt16, GLConst.UNSIGNED_SHORT,
+		meshdata.IndexElementType.UInt32, GLConst.UNSIGNED_INT
+	);
 
 	export function renderFrame(this: GL1RenderDevice) {
 		const gl = this.gl;
@@ -136,10 +136,10 @@ namespace sd.render.gl1 {
 					this.extVAO.bindVertexArrayOES(vao);
 
 					// issue draw call
-					const primType = gl1TypeForPrimitiveType.get(cmd.primitiveType)!;
+					const primType = gl1TypeForPrimitiveType[cmd.primitiveType];
 					if (mesh.indexElement !== meshdata.IndexElementType.None) {
-						const indexType = gl1TypeForIndexElementType.get(mesh.indexElement)!;
-						const offsetBytes = cmd.fromElement * meshdata.indexElementTypeSizeBytes.get(mesh.indexElement)!;
+						const indexType = gl1TypeForIndexElementType[mesh.indexElement];
+						const offsetBytes = cmd.fromElement * meshdata.indexElementTypeSizeBytes[mesh.indexElement];
 						gl.drawElements(primType, cmd.elementCount, indexType, offsetBytes);
 					}
 					else {

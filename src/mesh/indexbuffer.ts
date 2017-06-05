@@ -13,11 +13,11 @@ namespace sd.meshdata {
 		UInt32
 	}
 
-	export const indexElementTypeSizeBytes: ReadonlyMap<IndexElementType, number> = new Map<IndexElementType, number>([
-		[IndexElementType.UInt8, Uint8Array.BYTES_PER_ELEMENT],
-		[IndexElementType.UInt16, Uint16Array.BYTES_PER_ELEMENT],
-		[IndexElementType.UInt32, Uint32Array.BYTES_PER_ELEMENT]
-	]);
+	export const indexElementTypeSizeBytes = makeLUT<IndexElementType, number>(
+		IndexElementType.UInt8, Uint8Array.BYTES_PER_ELEMENT,
+		IndexElementType.UInt16, Uint16Array.BYTES_PER_ELEMENT,
+		IndexElementType.UInt32, Uint32Array.BYTES_PER_ELEMENT
+	);
 
 	export function minimumIndexElementTypeForVertexCount(vertexCount: number): IndexElementType {
 		if (vertexCount <= UInt8.max) {
@@ -31,7 +31,7 @@ namespace sd.meshdata {
 	}
 
 	export function bytesRequiredForIndexCount(elementType: IndexElementType, indexCount: number) {
-		return indexElementTypeSizeBytes.get(elementType)! * indexCount;
+		return indexElementTypeSizeBytes[elementType] * indexCount;
 	}
 
 
@@ -133,7 +133,7 @@ namespace sd.meshdata {
 			assert(indexCount > 0, "Invalid indexCount, must be > 0");
 
 			this.indexElementType = elementType;
-			this.indexElementSizeBytes_ = indexElementTypeSizeBytes.get(elementType)!;
+			this.indexElementSizeBytes_ = indexElementTypeSizeBytes[elementType];
 			this.indexCount = indexCount;
 
 			if (usingStorage) {

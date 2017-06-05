@@ -5,50 +5,50 @@
 
 namespace sd.render.gl1 {
 
-	const gl1TypeForVertexField: ReadonlyMap<meshdata.VertexField, number> = new Map<meshdata.VertexField, number>([
-		[meshdata.VertexField.Float, GLConst.FLOAT],
-		[meshdata.VertexField.Floatx2, GLConst.FLOAT],
-		[meshdata.VertexField.Floatx3, GLConst.FLOAT],
-		[meshdata.VertexField.Floatx4, GLConst.FLOAT],
+	const gl1TypeForVertexField = makeLUT<meshdata.VertexField, number>(
+		meshdata.VertexField.Float, GLConst.FLOAT,
+		meshdata.VertexField.Floatx2, GLConst.FLOAT,
+		meshdata.VertexField.Floatx3, GLConst.FLOAT,
+		meshdata.VertexField.Floatx4, GLConst.FLOAT,
 
-		[meshdata.VertexField.UInt32, GLConst.UNSIGNED_INT],
-		[meshdata.VertexField.UInt32x2, GLConst.UNSIGNED_INT],
-		[meshdata.VertexField.UInt32x3, GLConst.UNSIGNED_INT],
-		[meshdata.VertexField.UInt32x4, GLConst.UNSIGNED_INT],
+		meshdata.VertexField.UInt32, GLConst.UNSIGNED_INT,
+		meshdata.VertexField.UInt32x2, GLConst.UNSIGNED_INT,
+		meshdata.VertexField.UInt32x3, GLConst.UNSIGNED_INT,
+		meshdata.VertexField.UInt32x4, GLConst.UNSIGNED_INT,
 
-		[meshdata.VertexField.SInt32, GLConst.INT],
-		[meshdata.VertexField.SInt32x2, GLConst.INT],
-		[meshdata.VertexField.SInt32x3, GLConst.INT],
-		[meshdata.VertexField.SInt32x4, GLConst.INT],
+		meshdata.VertexField.SInt32, GLConst.INT,
+		meshdata.VertexField.SInt32x2, GLConst.INT,
+		meshdata.VertexField.SInt32x3, GLConst.INT,
+		meshdata.VertexField.SInt32x4, GLConst.INT,
 
-		[meshdata.VertexField.UInt16x2, GLConst.UNSIGNED_SHORT],
-		[meshdata.VertexField.UInt16x3, GLConst.UNSIGNED_SHORT],
-		[meshdata.VertexField.UInt16x4, GLConst.UNSIGNED_SHORT],
-		[meshdata.VertexField.Norm_UInt16x2, GLConst.UNSIGNED_SHORT],
-		[meshdata.VertexField.Norm_UInt16x3, GLConst.UNSIGNED_SHORT],
-		[meshdata.VertexField.Norm_UInt16x4, GLConst.UNSIGNED_SHORT],
+		meshdata.VertexField.UInt16x2, GLConst.UNSIGNED_SHORT,
+		meshdata.VertexField.UInt16x3, GLConst.UNSIGNED_SHORT,
+		meshdata.VertexField.UInt16x4, GLConst.UNSIGNED_SHORT,
+		meshdata.VertexField.Norm_UInt16x2, GLConst.UNSIGNED_SHORT,
+		meshdata.VertexField.Norm_UInt16x3, GLConst.UNSIGNED_SHORT,
+		meshdata.VertexField.Norm_UInt16x4, GLConst.UNSIGNED_SHORT,
 
-		[meshdata.VertexField.SInt16x2, GLConst.SHORT],
-		[meshdata.VertexField.SInt16x3, GLConst.SHORT],
-		[meshdata.VertexField.SInt16x4, GLConst.SHORT],
-		[meshdata.VertexField.Norm_SInt16x2, GLConst.SHORT],
-		[meshdata.VertexField.Norm_SInt16x3, GLConst.SHORT],
-		[meshdata.VertexField.Norm_SInt16x4, GLConst.SHORT],
+		meshdata.VertexField.SInt16x2, GLConst.SHORT,
+		meshdata.VertexField.SInt16x3, GLConst.SHORT,
+		meshdata.VertexField.SInt16x4, GLConst.SHORT,
+		meshdata.VertexField.Norm_SInt16x2, GLConst.SHORT,
+		meshdata.VertexField.Norm_SInt16x3, GLConst.SHORT,
+		meshdata.VertexField.Norm_SInt16x4, GLConst.SHORT,
 
-		[meshdata.VertexField.UInt8x2, GLConst.UNSIGNED_BYTE],
-		[meshdata.VertexField.UInt8x3, GLConst.UNSIGNED_BYTE],
-		[meshdata.VertexField.UInt8x4, GLConst.UNSIGNED_BYTE],
-		[meshdata.VertexField.Norm_UInt8x2, GLConst.UNSIGNED_BYTE],
-		[meshdata.VertexField.Norm_UInt8x3, GLConst.UNSIGNED_BYTE],
-		[meshdata.VertexField.Norm_UInt8x4, GLConst.UNSIGNED_BYTE],
+		meshdata.VertexField.UInt8x2, GLConst.UNSIGNED_BYTE,
+		meshdata.VertexField.UInt8x3, GLConst.UNSIGNED_BYTE,
+		meshdata.VertexField.UInt8x4, GLConst.UNSIGNED_BYTE,
+		meshdata.VertexField.Norm_UInt8x2, GLConst.UNSIGNED_BYTE,
+		meshdata.VertexField.Norm_UInt8x3, GLConst.UNSIGNED_BYTE,
+		meshdata.VertexField.Norm_UInt8x4, GLConst.UNSIGNED_BYTE,
 
-		[meshdata.VertexField.SInt8x2, GLConst.BYTE],
-		[meshdata.VertexField.SInt8x3, GLConst.BYTE],
-		[meshdata.VertexField.SInt8x4, GLConst.BYTE],
-		[meshdata.VertexField.Norm_SInt8x2, GLConst.BYTE],
-		[meshdata.VertexField.Norm_SInt8x3, GLConst.BYTE],
-		[meshdata.VertexField.Norm_SInt8x4, GLConst.BYTE],
-	]);
+		meshdata.VertexField.SInt8x2, GLConst.BYTE,
+		meshdata.VertexField.SInt8x3, GLConst.BYTE,
+		meshdata.VertexField.SInt8x4, GLConst.BYTE,
+		meshdata.VertexField.Norm_SInt8x2, GLConst.BYTE,
+		meshdata.VertexField.Norm_SInt8x3, GLConst.BYTE,
+		meshdata.VertexField.Norm_SInt8x4, GLConst.BYTE,
+	);
 
 
 	export interface GL1MeshData {
@@ -131,7 +131,7 @@ namespace sd.render.gl1 {
 				gl.enableVertexAttribArray(attr.index);
 
 				const elementCount = meshdata.vertexFieldElementCount(meshAttr.field);
-				const glElementType = gl1TypeForVertexField.get(meshAttr.field)! | 0;
+				const glElementType = gl1TypeForVertexField[meshAttr.field];
 				const normalized = meshdata.vertexFieldIsNormalized(meshAttr.field);
 				gl.vertexAttribPointer(attr.index, elementCount, glElementType, normalized, mesh.bufferStrides[boundBufferIndex], meshAttr.offset);
 			}

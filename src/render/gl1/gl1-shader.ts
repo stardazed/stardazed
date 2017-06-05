@@ -50,46 +50,46 @@ namespace sd.render.gl1 {
 		combinedConstants: Map<string, GL1ShaderConstant>;
 	}
 
-	const valueTypeMap: { [k: string]: ReadonlyMap<ShaderValueType, string> } = {
-		attribute: new Map<ShaderValueType, string>([
-			[ShaderValueType.Int, "float"],
-			[ShaderValueType.Int2, "vec2"],
-			[ShaderValueType.Int3, "vec3"],
-			[ShaderValueType.Int4, "vec4"],
-			[ShaderValueType.Float, "float"],
-			[ShaderValueType.Float2, "vec2"],
-			[ShaderValueType.Float3, "vec3"],
-			[ShaderValueType.Float4, "vec4"],
-			[ShaderValueType.Float2x2, "mat2"],
-			[ShaderValueType.Float3x3, "mat3"],
-			[ShaderValueType.Float4x4, "mat4"]
-		]),
-		varying: new Map<ShaderValueType, string>([
-			[ShaderValueType.Int, "float"],
-			[ShaderValueType.Int2, "vec2"],
-			[ShaderValueType.Int3, "vec3"],
-			[ShaderValueType.Int4, "vec4"],
-			[ShaderValueType.Float, "float"],
-			[ShaderValueType.Float2, "vec2"],
-			[ShaderValueType.Float3, "vec3"],
-			[ShaderValueType.Float4, "vec4"],
-			[ShaderValueType.Float2x2, "mat2"],
-			[ShaderValueType.Float3x3, "mat3"],
-			[ShaderValueType.Float4x4, "mat4"]
-		]),
-		uniform: new Map<ShaderValueType, string>([
-			[ShaderValueType.Int, "int"],
-			[ShaderValueType.Int2, "ivec2"],
-			[ShaderValueType.Int3, "ivec3"],
-			[ShaderValueType.Int4, "ivec4"],
-			[ShaderValueType.Float, "float"],
-			[ShaderValueType.Float2, "vec2"],
-			[ShaderValueType.Float3, "vec3"],
-			[ShaderValueType.Float4, "vec4"],
-			[ShaderValueType.Float2x2, "mat2"],
-			[ShaderValueType.Float3x3, "mat3"],
-			[ShaderValueType.Float4x4, "mat4"]
-		])
+	const valueTypeMap: { [k: string]: { [svt: number]: string; } } = {
+		attribute: makeLUT<ShaderValueType, string>(
+			ShaderValueType.Int, "float",
+			ShaderValueType.Int2, "vec2",
+			ShaderValueType.Int3, "vec3",
+			ShaderValueType.Int4, "vec4",
+			ShaderValueType.Float, "float",
+			ShaderValueType.Float2, "vec2",
+			ShaderValueType.Float3, "vec3",
+			ShaderValueType.Float4, "vec4",
+			ShaderValueType.Float2x2, "mat2",
+			ShaderValueType.Float3x3, "mat3",
+			ShaderValueType.Float4x4, "mat4"
+		),
+		varying: makeLUT<ShaderValueType, string>(
+			ShaderValueType.Int, "float",
+			ShaderValueType.Int2, "vec2",
+			ShaderValueType.Int3, "vec3",
+			ShaderValueType.Int4, "vec4",
+			ShaderValueType.Float, "float",
+			ShaderValueType.Float2, "vec2",
+			ShaderValueType.Float3, "vec3",
+			ShaderValueType.Float4, "vec4",
+			ShaderValueType.Float2x2, "mat2",
+			ShaderValueType.Float3x3, "mat3",
+			ShaderValueType.Float4x4, "mat4"
+		),
+		uniform: makeLUT<ShaderValueType, string>(
+			ShaderValueType.Int, "int",
+			ShaderValueType.Int2, "ivec2",
+			ShaderValueType.Int3, "ivec3",
+			ShaderValueType.Int4, "ivec4",
+			ShaderValueType.Float, "float",
+			ShaderValueType.Float2, "vec2",
+			ShaderValueType.Float3, "vec3",
+			ShaderValueType.Float4, "vec4",
+			ShaderValueType.Float2x2, "mat2",
+			ShaderValueType.Float3x3, "mat3",
+			ShaderValueType.Float4x4, "mat4"
+		)
 	};
 
 	function generateDefinesBlock(defines: ShaderDefine[] | undefined) {
@@ -100,7 +100,7 @@ namespace sd.render.gl1 {
 
 	function generateConstValuesBlock(constVals: ShaderConstValue[] | undefined) {
 		return (constVals || []).map(cv => {
-			const mappedValueType = valueTypeMap.uniform.get(cv.type)!;
+			const mappedValueType = valueTypeMap.uniform[cv.type];
 			return `const ${mappedValueType} ${cv.name} = ${cv.expr};\n`;
 		}).join("");
 	}
@@ -112,7 +112,7 @@ namespace sd.render.gl1 {
 	function generateValueBlock(keyword: string, vals: ShaderConstant[] | undefined) {
 		return (vals || []).map(val => {
 			const arrayPostfix = (val.length! > 0) ? `[${val.length}]` : "";
-			const mappedValueType = valueTypeMap[keyword].get(val.type)!;
+			const mappedValueType = valueTypeMap[keyword][val.type];
 			return `${keyword} ${mappedValueType} ${val.name}${arrayPostfix};\n`;
 		}).join("");
 	}

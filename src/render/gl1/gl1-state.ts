@@ -5,90 +5,90 @@
 
 namespace sd.render.gl1 {
 
-	const depthTestForGL1DepthFunc: ReadonlyMap<number, DepthTest> = new Map<number, DepthTest>([
-		[GLConst.ALWAYS, DepthTest.AllowAll],
-		[GLConst.NEVER, DepthTest.DenyAll],
-		[GLConst.LESS, DepthTest.Less],
-		[GLConst.LEQUAL, DepthTest.LessOrEqual],
-		[GLConst.EQUAL, DepthTest.Equal],
-		[GLConst.NOTEQUAL, DepthTest.NotEqual],
-		[GLConst.GEQUAL, DepthTest.GreaterOrEqual],
-		[GLConst.GREATER, DepthTest.Greater],
-	]);
+	const depthTestForGL1DepthFunc = makeLUT<number, DepthTest>(
+		GLConst.ALWAYS, DepthTest.AllowAll,
+		GLConst.NEVER, DepthTest.DenyAll,
+		GLConst.LESS, DepthTest.Less,
+		GLConst.LEQUAL, DepthTest.LessOrEqual,
+		GLConst.EQUAL, DepthTest.Equal,
+		GLConst.NOTEQUAL, DepthTest.NotEqual,
+		GLConst.GEQUAL, DepthTest.GreaterOrEqual,
+		GLConst.GREATER, DepthTest.Greater
+	);
 
-	const gl1DepthFuncForDepthTest: ReadonlyMap<DepthTest, number> = new Map<DepthTest, number>([
-		[DepthTest.AllowAll, GLConst.ALWAYS],
-		[DepthTest.DenyAll, GLConst.NEVER],
-		[DepthTest.Less, GLConst.LESS],
-		[DepthTest.LessOrEqual, GLConst.LEQUAL],
-		[DepthTest.Equal, GLConst.EQUAL],
-		[DepthTest.NotEqual, GLConst.NOTEQUAL],
-		[DepthTest.GreaterOrEqual, GLConst.GEQUAL],
-		[DepthTest.Greater, GLConst.GREATER],
-	]);
+	const gl1DepthFuncForDepthTest = makeLUT<DepthTest, number>(
+		DepthTest.AllowAll, GLConst.ALWAYS,
+		DepthTest.DenyAll, GLConst.NEVER,
+		DepthTest.Less, GLConst.LESS,
+		DepthTest.LessOrEqual, GLConst.LEQUAL,
+		DepthTest.Equal, GLConst.EQUAL,
+		DepthTest.NotEqual, GLConst.NOTEQUAL,
+		DepthTest.GreaterOrEqual, GLConst.GEQUAL,
+		DepthTest.Greater, GLConst.GREATER
+	);
 
-	const blendOpForGL1BlendEq: ReadonlyMap<number, BlendOperation> = new Map<number, BlendOperation>([
-		[GLConst.FUNC_ADD, BlendOperation.Add],
-		[GLConst.FUNC_SUBTRACT, BlendOperation.Subtract],
-		[GLConst.FUNC_REVERSE_SUBTRACT, BlendOperation.ReverseSubtract],
-		[GLConst.MIN_EXT, BlendOperation.Min],
-		[GLConst.MAX_EXT, BlendOperation.Max],
-	]);
+	const blendOpForGL1BlendEq = makeLUT<number, BlendOperation>(
+		GLConst.FUNC_ADD, BlendOperation.Add,
+		GLConst.FUNC_SUBTRACT, BlendOperation.Subtract,
+		GLConst.FUNC_REVERSE_SUBTRACT, BlendOperation.ReverseSubtract,
+		GLConst.MIN_EXT, BlendOperation.Min,
+		GLConst.MAX_EXT, BlendOperation.Max
+	);
 
-	const gl1BlendEqForBlendOp: ReadonlyMap<BlendOperation, number> = new Map<BlendOperation, number>([
-		[BlendOperation.Add, GLConst.FUNC_ADD],
-		[BlendOperation.Subtract, GLConst.FUNC_SUBTRACT],
-		[BlendOperation.ReverseSubtract, GLConst.FUNC_REVERSE_SUBTRACT],
-		[BlendOperation.Min, GLConst.MIN_EXT],
-		[BlendOperation.Max, GLConst.MAX_EXT],
-	]);
+	const gl1BlendEqForBlendOp = makeLUT<BlendOperation, number>(
+		BlendOperation.Add, GLConst.FUNC_ADD,
+		BlendOperation.Subtract, GLConst.FUNC_SUBTRACT,
+		BlendOperation.ReverseSubtract, GLConst.FUNC_REVERSE_SUBTRACT,
+		BlendOperation.Min, GLConst.MIN_EXT,
+		BlendOperation.Max, GLConst.MAX_EXT
+	);
 
-	const blendFactorForGL1BlendFunc: ReadonlyMap<number, BlendFactor> = new Map<number, BlendFactor>([
-		[GLConst.ZERO, BlendFactor.Zero],
-		[GLConst.ONE, BlendFactor.One],
-		[GLConst.SRC_COLOR, BlendFactor.SourceColour],
-		[GLConst.ONE_MINUS_SRC_COLOR, BlendFactor.OneMinusSourceColour],
-		[GLConst.DST_COLOR, BlendFactor.DestColour],
-		[GLConst.ONE_MINUS_DST_COLOR, BlendFactor.OneMinusDestColour],
-		[GLConst.SRC_ALPHA, BlendFactor.SourceAlpha],
-		[GLConst.ONE_MINUS_SRC_ALPHA, BlendFactor.OneMinusSourceAlpha],
-		[GLConst.SRC_ALPHA_SATURATE, BlendFactor.SourceAlphaSaturated],
-		[GLConst.DST_ALPHA, BlendFactor.DestAlpha],
-		[GLConst.ONE_MINUS_DST_ALPHA, BlendFactor.OneMinusDestAlpha],
-		[GLConst.CONSTANT_COLOR, BlendFactor.ConstantColour],
-		[GLConst.ONE_MINUS_CONSTANT_COLOR, BlendFactor.OneMinusConstantColour],
-		[GLConst.CONSTANT_ALPHA, BlendFactor.ConstantAlpha],
-		[GLConst.ONE_MINUS_CONSTANT_ALPHA, BlendFactor.OneMinusConstantAlpha]
-	]);
+	const blendFactorForGL1BlendFunc = makeLUT<number, BlendFactor>(
+		GLConst.ZERO, BlendFactor.Zero,
+		GLConst.ONE, BlendFactor.One,
+		GLConst.SRC_COLOR, BlendFactor.SourceColour,
+		GLConst.ONE_MINUS_SRC_COLOR, BlendFactor.OneMinusSourceColour,
+		GLConst.DST_COLOR, BlendFactor.DestColour,
+		GLConst.ONE_MINUS_DST_COLOR, BlendFactor.OneMinusDestColour,
+		GLConst.SRC_ALPHA, BlendFactor.SourceAlpha,
+		GLConst.ONE_MINUS_SRC_ALPHA, BlendFactor.OneMinusSourceAlpha,
+		GLConst.SRC_ALPHA_SATURATE, BlendFactor.SourceAlphaSaturated,
+		GLConst.DST_ALPHA, BlendFactor.DestAlpha,
+		GLConst.ONE_MINUS_DST_ALPHA, BlendFactor.OneMinusDestAlpha,
+		GLConst.CONSTANT_COLOR, BlendFactor.ConstantColour,
+		GLConst.ONE_MINUS_CONSTANT_COLOR, BlendFactor.OneMinusConstantColour,
+		GLConst.CONSTANT_ALPHA, BlendFactor.ConstantAlpha,
+		GLConst.ONE_MINUS_CONSTANT_ALPHA, BlendFactor.OneMinusConstantAlpha
+	);
 
-	const gl1BlendFuncForBlendFactor: ReadonlyMap<BlendFactor, number> = new Map<BlendFactor, number>([
-		[BlendFactor.Zero, GLConst.ZERO],
-		[BlendFactor.One, GLConst.ONE],
-		[BlendFactor.SourceColour, GLConst.SRC_COLOR],
-		[BlendFactor.OneMinusSourceColour, GLConst.ONE_MINUS_SRC_COLOR],
-		[BlendFactor.DestColour, GLConst.DST_COLOR],
-		[BlendFactor.OneMinusDestColour, GLConst.ONE_MINUS_DST_COLOR],
-		[BlendFactor.SourceAlpha, GLConst.SRC_ALPHA],
-		[BlendFactor.OneMinusSourceAlpha, GLConst.ONE_MINUS_SRC_ALPHA],
-		[BlendFactor.SourceAlphaSaturated, GLConst.SRC_ALPHA_SATURATE],
-		[BlendFactor.DestAlpha, GLConst.DST_ALPHA],
-		[BlendFactor.OneMinusDestAlpha, GLConst.ONE_MINUS_DST_ALPHA],
-		[BlendFactor.ConstantColour, GLConst.CONSTANT_COLOR],
-		[BlendFactor.OneMinusConstantColour, GLConst.ONE_MINUS_CONSTANT_COLOR],
-		[BlendFactor.ConstantAlpha, GLConst.CONSTANT_ALPHA],
-		[BlendFactor.OneMinusConstantAlpha, GLConst.ONE_MINUS_CONSTANT_ALPHA]
-	]);
+	const gl1BlendFuncForBlendFactor = makeLUT<BlendFactor, number>(
+		BlendFactor.Zero, GLConst.ZERO,
+		BlendFactor.One, GLConst.ONE,
+		BlendFactor.SourceColour, GLConst.SRC_COLOR,
+		BlendFactor.OneMinusSourceColour, GLConst.ONE_MINUS_SRC_COLOR,
+		BlendFactor.DestColour, GLConst.DST_COLOR,
+		BlendFactor.OneMinusDestColour, GLConst.ONE_MINUS_DST_COLOR,
+		BlendFactor.SourceAlpha, GLConst.SRC_ALPHA,
+		BlendFactor.OneMinusSourceAlpha, GLConst.ONE_MINUS_SRC_ALPHA,
+		BlendFactor.SourceAlphaSaturated, GLConst.SRC_ALPHA_SATURATE,
+		BlendFactor.DestAlpha, GLConst.DST_ALPHA,
+		BlendFactor.OneMinusDestAlpha, GLConst.ONE_MINUS_DST_ALPHA,
+		BlendFactor.ConstantColour, GLConst.CONSTANT_COLOR,
+		BlendFactor.OneMinusConstantColour, GLConst.ONE_MINUS_CONSTANT_COLOR,
+		BlendFactor.ConstantAlpha, GLConst.CONSTANT_ALPHA,
+		BlendFactor.OneMinusConstantAlpha, GLConst.ONE_MINUS_CONSTANT_ALPHA
+	);
 
-	const gl1TextureRepeatMode: ReadonlyMap<TextureRepeatMode, number> = new Map<TextureRepeatMode, number>([
-		[TextureRepeatMode.Repeat, GLConst.REPEAT],
-		[TextureRepeatMode.MirroredRepeat, GLConst.MIRRORED_REPEAT],
-		[TextureRepeatMode.ClampToEdge, GLConst.CLAMP_TO_EDGE]
-	]);
+	const gl1TextureRepeatMode = makeLUT<TextureRepeatMode, number>(
+		TextureRepeatMode.Repeat, GLConst.REPEAT,
+		TextureRepeatMode.MirroredRepeat, GLConst.MIRRORED_REPEAT,
+		TextureRepeatMode.ClampToEdge, GLConst.CLAMP_TO_EDGE
+	);
 
-	const gl1TextureMagnificationFilter: ReadonlyMap<TextureSizingFilter, number> = new Map<TextureSizingFilter, number>([
-		[TextureSizingFilter.Nearest, GLConst.NEAREST],
-		[TextureSizingFilter.Linear, GLConst.LINEAR]
-	]);
+	const gl1TextureMagnificationFilter = makeLUT<TextureSizingFilter, number>(
+		TextureSizingFilter.Nearest, GLConst.NEAREST,
+		TextureSizingFilter.Linear, GLConst.LINEAR
+	);
 
 	function gl1TextureMinificationFilter(minFilter: TextureSizingFilter, mipFilter: TextureMipFilter) {
 		let glSizingFilter: number;
@@ -200,15 +200,15 @@ namespace sd.render.gl1 {
 			this.colourWriteMask_ = gl.getParameter(GLConst.COLOR_WRITEMASK);
 			this.depthMask_ = gl.getParameter(GLConst.DEPTH_WRITEMASK);
 
-			this.depthTest_ = gl.isEnabled(GLConst.DEPTH_TEST) ? depthTestForGL1DepthFunc.get(gl.getParameter(GLConst.DEPTH_FUNC))! : DepthTest.Disabled;
+			this.depthTest_ = gl.isEnabled(GLConst.DEPTH_TEST) ? depthTestForGL1DepthFunc[gl.getParameter(GLConst.DEPTH_FUNC)] : DepthTest.Disabled;
 
 			this.blendEnabled_ = gl.isEnabled(GLConst.BLEND);
-			this.blendOpRGB_ = blendOpForGL1BlendEq.get(gl.getParameter(GLConst.BLEND_EQUATION_RGB))!;
-			this.blendOpAlpha_ = blendOpForGL1BlendEq.get(gl.getParameter(GLConst.BLEND_EQUATION_ALPHA))!;
-			this.blendFnSrcRGB_ = blendFactorForGL1BlendFunc.get(gl.getParameter(GLConst.BLEND_SRC_RGB))!;
-			this.blendFnSrcAlpha_ = blendFactorForGL1BlendFunc.get(gl.getParameter(GLConst.BLEND_SRC_ALPHA))!;
-			this.blendFnDstRGB_ = blendFactorForGL1BlendFunc.get(gl.getParameter(GLConst.BLEND_DST_RGB))!;
-			this.blendFnDstAlpha_ = blendFactorForGL1BlendFunc.get(gl.getParameter(GLConst.BLEND_DST_ALPHA))!;
+			this.blendOpRGB_ = blendOpForGL1BlendEq[gl.getParameter(GLConst.BLEND_EQUATION_RGB)];
+			this.blendOpAlpha_ = blendOpForGL1BlendEq[gl.getParameter(GLConst.BLEND_EQUATION_ALPHA)];
+			this.blendFnSrcRGB_ = blendFactorForGL1BlendFunc[gl.getParameter(GLConst.BLEND_SRC_RGB)];
+			this.blendFnSrcAlpha_ = blendFactorForGL1BlendFunc[gl.getParameter(GLConst.BLEND_SRC_ALPHA)];
+			this.blendFnDstRGB_ = blendFactorForGL1BlendFunc[gl.getParameter(GLConst.BLEND_DST_RGB)];
+			this.blendFnDstAlpha_ = blendFactorForGL1BlendFunc[gl.getParameter(GLConst.BLEND_DST_ALPHA)];
 			this.blendConstColour_ = gl.getParameter(GLConst.BLEND_COLOR);
 
 			this.activeProgram_ = gl.getParameter(GLConst.CURRENT_PROGRAM);
@@ -328,7 +328,7 @@ namespace sd.render.gl1 {
 					this.gl.disable(GLConst.DEPTH_TEST);
 				}
 				else {
-					this.gl.depthFunc(gl1DepthFuncForDepthTest.get(test)!);
+					this.gl.depthFunc(gl1DepthFuncForDepthTest[test]);
 					if (wasDisabled) {
 						this.gl.enable(GLConst.DEPTH_TEST);
 					}
@@ -355,10 +355,10 @@ namespace sd.render.gl1 {
 					this.blendFnDstAlpha_ = blending.destAlphaFactor;
 
 					this.gl.blendFuncSeparate(
-						gl1BlendFuncForBlendFactor.get(blending.sourceRGBFactor)!,
-						gl1BlendFuncForBlendFactor.get(blending.destRGBFactor)!,
-						gl1BlendFuncForBlendFactor.get(blending.sourceAlphaFactor)!,
-						gl1BlendFuncForBlendFactor.get(blending.destAlphaFactor)!
+						gl1BlendFuncForBlendFactor[blending.sourceRGBFactor],
+						gl1BlendFuncForBlendFactor[blending.destRGBFactor],
+						gl1BlendFuncForBlendFactor[blending.sourceAlphaFactor],
+						gl1BlendFuncForBlendFactor[blending.destAlphaFactor]
 					);
 				}
 
@@ -367,8 +367,8 @@ namespace sd.render.gl1 {
 					this.blendOpAlpha_ = blending.alphaBlendOp;
 
 					this.gl.blendEquationSeparate(
-						gl1BlendEqForBlendOp.get(blending.rgbBlendOp)!,
-						gl1BlendEqForBlendOp.get(blending.alphaBlendOp)!
+						gl1BlendEqForBlendOp[blending.rgbBlendOp],
+						gl1BlendEqForBlendOp[blending.alphaBlendOp]
 					);
 				}
 
@@ -432,12 +432,12 @@ namespace sd.render.gl1 {
 						}
 
 						// -- wrapping
-						gl.texParameteri(texture.target, GLConst.TEXTURE_WRAP_S, gl1TextureRepeatMode.get(repeatS)!);
-						gl.texParameteri(texture.target, GLConst.TEXTURE_WRAP_T, gl1TextureRepeatMode.get(repeatT)!);
+						gl.texParameteri(texture.target, GLConst.TEXTURE_WRAP_S, gl1TextureRepeatMode[repeatS]);
+						gl.texParameteri(texture.target, GLConst.TEXTURE_WRAP_T, gl1TextureRepeatMode[repeatT]);
 
 						// -- mini-/magnification
 						gl.texParameteri(texture.target, GLConst.TEXTURE_MIN_FILTER, gl1TextureMinificationFilter(sampler!.minFilter, mipFilter));
-						gl.texParameteri(texture.target, GLConst.TEXTURE_MAG_FILTER, gl1TextureMagnificationFilter.get(sampler!.magFilter)!);
+						gl.texParameteri(texture.target, GLConst.TEXTURE_MAG_FILTER, gl1TextureMagnificationFilter[sampler!.magFilter]);
 
 						// -- anisotropy
 						if (this.extTextureAnisotropy) {
