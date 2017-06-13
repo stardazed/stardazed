@@ -93,7 +93,7 @@ namespace sd.render {
 
 
 	export const enum TextureClass {
-		Normal,
+		Plain,
 		CubeMap
 	}
 
@@ -154,7 +154,7 @@ namespace sd.render {
 			renderResourceType: ResourceType.Texture,
 			renderResourceHandle: 0,
 
-			textureClass: TextureClass.Normal,
+			textureClass: TextureClass.Plain,
 			pixelFormat: image.PixelFormat.None,
 			dim: image.makePixelDimensions(0, 0),
 			mipmapMode: MipMapMode.Source
@@ -167,7 +167,7 @@ namespace sd.render {
 			renderResourceType: ResourceType.Texture,
 			renderResourceHandle: 0,
 
-			textureClass: TextureClass.Normal,
+			textureClass: TextureClass.Plain,
 			pixelFormat,
 			dim: image.makePixelDimensions(width, height),
 			mipmapMode
@@ -180,7 +180,7 @@ namespace sd.render {
 			renderResourceType: ResourceType.Texture,
 			renderResourceHandle: 0,
 
-			textureClass: TextureClass.Normal,
+			textureClass: TextureClass.Plain,
 			pixelFormat: provider.pixelFormat,
 			dim: image.makePixelDimensions(provider.dim.width, provider.dim.height),
 			mipmapMode,
@@ -194,7 +194,7 @@ namespace sd.render {
 			renderResourceType: ResourceType.Texture,
 			renderResourceHandle: 0,
 
-			textureClass: TextureClass.Normal,
+			textureClass: TextureClass.Plain,
 			pixelFormat: image.PixelFormat.RGBA32F,
 			dim: image.makePixelDimensions(width, height),
 			mipmapMode: MipMapMode.Source,

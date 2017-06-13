@@ -123,7 +123,7 @@ namespace sd.render.gl1 {
 
 	function generateSamplerBlock(samplers: SamplerSlot[] | undefined) {
 		return (samplers || []).map(tex => {
-			const mappedTextureType = (tex.type === TextureClass.Normal) ? "sampler2D" : "samplerCube";
+			const mappedTextureType = (tex.type === TextureClass.Plain) ? "sampler2D" : "samplerCube";
 			return `uniform ${mappedTextureType} ${tex.name};\n`;
 		}).join("");
 	}

@@ -6,7 +6,7 @@
 namespace sd.render.gl1 {
 
 	function gl1TargetForTexture(texture: Texture) {
-		if (texture.textureClass === TextureClass.Normal) {
+		if (texture.textureClass === TextureClass.Plain) {
 			return GLConst.TEXTURE_2D;
 		}
 
