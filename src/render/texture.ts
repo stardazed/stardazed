@@ -26,18 +26,18 @@ namespace sd.render {
 
 
 	export interface Sampler extends RenderResourceBase {
-		readonly repeatS: TextureRepeatMode;
-		readonly repeatT: TextureRepeatMode;
-		readonly repeatR: TextureRepeatMode;
+		repeatS: TextureRepeatMode;
+		repeatT: TextureRepeatMode;
+		repeatR: TextureRepeatMode;
 
-		readonly minFilter: TextureSizingFilter;
-		readonly magFilter: TextureSizingFilter;
-		readonly mipFilter: TextureMipFilter;
+		minFilter: TextureSizingFilter;
+		magFilter: TextureSizingFilter;
+		mipFilter: TextureMipFilter;
 
-		readonly lodMinClamp: number;
-		readonly lodMaxClamp: number;
+		lodMinClamp: number;
+		lodMaxClamp: number;
 
-		readonly maxAnisotropy: number;
+		maxAnisotropy: number;
 	}
 
 
