@@ -39,7 +39,7 @@ namespace sd.meshdata {
 		private attrElementCount_: number;
 		private fieldNumType_: NumericType;
 		private typedViewCtor_: TypedArrayConstructor;
-		private buffer_: ArrayBuffer;
+		private buffer_: ArrayBuffer | SharedArrayBuffer;
 		private dataView_: DataView;
 		private viewItemCount_: number;
 

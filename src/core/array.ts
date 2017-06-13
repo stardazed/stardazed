@@ -27,7 +27,7 @@ if (! ArrayBuffer.transfer) {
 		const newBufferView = new Uint8Array(newByteLength); // also creates new ArrayBuffer
 		newBufferView.set(oldBufferView);
 
-		return newBufferView.buffer;
+		return newBufferView.buffer as ArrayBuffer;
 	};
 }
 
@@ -36,7 +36,7 @@ namespace sd {
 	export interface TypedArrayBase {
 		readonly BYTES_PER_ELEMENT: number;
 
-		readonly buffer: ArrayBuffer;
+		readonly buffer: ArrayBuffer | SharedArrayBuffer;
 		readonly byteLength: number;
 		readonly byteOffset: number;
 		readonly length: number;
@@ -47,7 +47,7 @@ namespace sd {
 		every(callbackfn: (value: number, index: number, array: this) => boolean, thisArg?: any): boolean;
 		filter(callbackfn: (value: number, index: number, array: this) => any, thisArg?: any): this;
 		find(predicate: (value: number, index: number, obj: number[]) => boolean, thisArg?: any): number | undefined;
-		findIndex(predicate: (value: number) => boolean, thisArg?: any): number;
+		findIndex(predicate: (value: number, index: number, obj: number[]) => boolean, thisArg?: any): number;
 		forEach(callbackfn: (value: number, index: number, array: this) => void, thisArg?: any): void;
 		indexOf(searchElement: number, fromIndex?: number): number;
 		join(separator?: string): string;
@@ -92,7 +92,7 @@ namespace sd {
 
 	export interface TypedArrayConstructor {
 		new (lengthOrSource: number | Iterable<number> | ArrayLike<number>): TypedArray;
-		new (buffer: ArrayBuffer, byteOffset?: number, length?: number): TypedArray;
+		new (buffer: ArrayBuffer | SharedArrayBuffer, byteOffset?: number, length?: number): TypedArray;
 	}
 
 	// helper type for enums stored in Int32Arrays

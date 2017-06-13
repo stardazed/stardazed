@@ -47,7 +47,7 @@ namespace sd.entity {
 		private appendGeneration() {
 			if (this.genCount_ === this.generation_.length) {
 				// grow generation array
-				const newBuffer = ArrayBuffer.transfer(this.generation_.buffer, this.generation_.length * 2);
+				const newBuffer = ArrayBuffer.transfer(this.generation_.buffer as ArrayBuffer, this.generation_.length * 2);
 				this.generation_ = new Uint8Array(newBuffer);
 			}
 
