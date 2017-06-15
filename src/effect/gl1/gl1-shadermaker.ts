@@ -1,9 +1,9 @@
-// render/gl1/shaders/shadermaker - prototype shader gen
+// effect/gl1/shadermaker - prototype shader gen
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.render.gl1 {
+namespace sd.effect.gl1 {
 
 	/*
 
@@ -1037,4 +1037,4 @@ namespace sd.render.gl1 {
 
 	*/
 
-} // ns sd.render.gl1
+} // ns sd.effect.gl1

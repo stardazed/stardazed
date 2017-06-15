@@ -1,9 +1,9 @@
-// render/material - material / pipeline / effect thing
+// effect/material - 
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.render {
+namespace sd.effect {
 
 	export interface MaterialProperty {
 		group?: string;
@@ -175,4 +175,4 @@ namespace sd.render {
 		];
 	}
 
-} // ns sd
+} // ns sd.effect
