@@ -97,7 +97,7 @@ namespace sd.render {
 	}
 
 
-	export function makeColourWriteMask(red = true, green = true, blue = true, alpha = true): ColourWriteMask {
+	export function makeColourWriteMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): ColourWriteMask {
 		return {
 			red, green,	blue, alpha
 		};
