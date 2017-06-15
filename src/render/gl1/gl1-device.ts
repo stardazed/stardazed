@@ -9,6 +9,8 @@
 namespace sd.render.gl1 {
 
 	export class GL1RenderDevice implements RenderDevice {
+		readonly name = "gl1";
+
 		readonly gl: WebGLRenderingContext;
 		readonly state: GL1State;
 

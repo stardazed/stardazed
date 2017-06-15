@@ -41,6 +41,8 @@ namespace sd.render {
 
 
 	export interface RenderDevice {
+		readonly name: string;
+
 		// current dimensions of screen rendertarget
 		readonly drawableWidth: number;
 		readonly drawableHeight: number;
