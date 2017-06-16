@@ -4,7 +4,7 @@ Stardazed
 A library to enable quick development of custom 3D games in the browser.<br>
 All code runs in the browser, the library does *not* have or need a server component.
 
-Built in TypeScript, builds against TS 2.1 or newer, just run `tsc` somewhere inside the project dir.
+Built in TypeScript, builds against lastest TS (2.4) or newer, just run `tsc` somewhere inside the project dir.
 
 **Project status**: *In Development (Pre-Alpha)*<br>
 Features and APIs still very much in flux, but functional and usable for actual development
@@ -20,12 +20,15 @@ succesfully for small projects. For the foreseeable future the library will requ
 technical expertise to use.
 
 ### Sub goals
-- Learn about all aspects of game programming by implementing them. This is an educational project for myself.
-- Compact library code size (currently the minified js incl. all dependencies is ~330KiB vs 25MiB+ for Unity webgl)
-- Fast and scalable (a lot of the data is kept in linear typed arrays, not in millions of tiny objects)
-- Powerful renderer (Metallic and Specular setup PBR support, limited GI)
-- Solid physics engine (good even for demanding sitations)
-- Scalable and compatible (works well with all modern browsers, desktop and mobile)
+- Learn about all aspects of game (engine) programming by implementing them. This is an educational project for myself.
+- Minimal external dependencies, currently:
+  - [veclib](https://github.com/stardazed/veclib), a fork of [gl-matrix](https://github.com/toji/gl-matrix) modified specifically for inclusion in SD
+  - [AmmoJS](https://github.com/kripken/ammo.js), for the physics system (in progress)
+  - Inflate, a minimal JS port of the inflate algorithm to expand GZipped assets in-client
+- Memory & GC efficiency: a lot of the data is kept in large linear typed arrays, not in millions of tiny objects
+- Scalability: use workers, atomics and shared buffers to allow for multi-threaded rendering and game logic handling
+- Powerful renderer (flexible shader setup, PBR, GI, etc.)
+- Target and focus on desktop WebGL 1 & 2, mobile support is currently a lower priority
 
 Features
 --------
@@ -35,8 +38,9 @@ Features
 - MD5 asset support (meshes, skeletons, animations)
 - OBJ/MTL asset support (meshes, materials)
 - TMX (Tiled Map Editor) support (basic tilemaps)
-- Of course all browser-supported image and sound file formats
-  - TGA file support for Chrome and Firefox (Safari has a built-in loader)
+- Of course all browser-supported image and sound file formats plus:
+  - DDS image support (DXT 1, 3, 5)
+  - TGA image support
 
 ### Renderer
 - Metallic-setup PBR materials with RMA, normal, height and albedo map support
