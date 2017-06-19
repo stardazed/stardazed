@@ -1,10 +1,15 @@
-// effect/material - 
+// effect/material - wip
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 namespace sd.effect {
 
+	export interface EffectGroup {
+		
+	}
+
+/*
 	export interface MaterialProperty {
 		group?: string;
 		key: string;
@@ -174,5 +179,6 @@ namespace sd.effect {
 			}
 		];
 	}
+*/
 
 } // ns sd.effect
