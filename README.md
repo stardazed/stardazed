@@ -23,7 +23,7 @@ technical expertise to use.
 - Learn about all aspects of game (engine) programming by implementing them. This is an educational project for myself.
 - Minimal external dependencies, currently:
   - [veclib](https://github.com/stardazed/veclib), a fork of [gl-matrix](https://github.com/toji/gl-matrix) modified specifically for inclusion in SD
-  - [AmmoJS](https://github.com/kripken/ammo.js), for the physics system (in progress)
+  - [AmmoJS](https://github.com/kripken/ammo.js), a JS compilation of [Bullet](http://bulletphysics.org/wordpress/) for the physics system (in progress)
   - Inflate, a minimal JS port of the inflate algorithm to expand GZipped assets in-client
 - Memory & GC efficiency: a lot of the data is kept in large linear typed arrays, not in millions of tiny objects
 - Scalability: use workers, atomics and shared buffers to allow for multi-threaded rendering and game logic handling
@@ -36,8 +36,8 @@ Features
 ### Assets
 - FBX asset support (meshes, materials, models, scene graph, skeletons, animations)
 - MD5 asset support (meshes, skeletons, animations)
-- OBJ/MTL asset support (meshes, materials)
-- TMX (Tiled Map Editor) support (basic tilemaps)
+- OBJ/MTL asset support (meshes, materials, including extended PBR fields, tex scale and offset)
+- TMX (Tiled Map Editor) support (basic grid tilemaps only)
 - Of course all browser-supported image and sound file formats plus:
   - DDS image support (DXT 1, 3, 5)
   - TGA image support
