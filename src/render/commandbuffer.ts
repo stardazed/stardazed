@@ -3,6 +3,9 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
+/// <reference path="./effect.ts" />
+
+
 namespace sd.render {
 
 	export const enum FrontFaceWinding {
@@ -56,20 +59,9 @@ namespace sd.render {
 		};
 	}
 
-	export interface TEMPConstant {
-		name: string;
-		value: TypedArray;
-	}
-
-	export interface RenderJob {
-		pipeline: Pipeline;
+	export interface RenderJob extends EffectRenderJobData {
 		mesh: meshdata.MeshData;
 		primGroup: meshdata.PrimitiveGroup;
-
-		// shader properties
-		textures: Texture[];
-		samplers: Sampler[];
-		constants: TEMPConstant[];
 	}
 
 
@@ -141,7 +133,6 @@ namespace sd.render {
 		type: RenderCommandType.RenderJob;
 		sortKey: number;
 
-		pipeline: Pipeline;
 		meshHandle: number;
 		primitiveType: meshdata.PrimitiveType;
 		fromElement: number;
@@ -150,6 +141,7 @@ namespace sd.render {
 		// TODO: add instancing parameters
 
 		// shader properties
+		pipeline: Pipeline;
 		textureHandles: number[];
 		samplerHandles: number[];
 		constants: TEMPConstant[];
