@@ -134,7 +134,7 @@ namespace sd.render.gl1 {
 
 		// -- render commands
 
-		dispatch(cmds: RenderCommandBuffer | RenderCommandBuffer[]) {
+		dispatchCommand(cmds: RenderCommandBuffer | RenderCommandBuffer[]) {
 			if (Array.isArray(cmds)) {
 				for (const cb of cmds) {
 					this.commandList_ = this.commandList_.concat(cb.commands);

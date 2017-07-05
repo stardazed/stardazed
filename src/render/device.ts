@@ -54,7 +54,7 @@ namespace sd.render {
 
 		// command dispatch
 		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]): void;
-		dispatch(pass: RenderCommandBuffer | RenderCommandBuffer[]): void;
+		dispatchCommand(pass: RenderCommandBuffer | RenderCommandBuffer[]): void;
 
 		// run all drawing commands
 		renderFrame(): void;
