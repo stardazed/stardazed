@@ -32,6 +32,7 @@ namespace sd.render.gl1 {
 		readonly extSRGB: EXTsRGB;
 
 		private maxColourAttachments_ = 0;
+		private effects_: { [name: string]: Effect } = {};
 
 		commandList_: RenderCommand[] = [];
 
@@ -132,8 +133,20 @@ namespace sd.render.gl1 {
 			return this.maxColourAttachments_;
 		}
 
-		// -- render commands
+		// -- EffectRegistry implementation
+		registerEffect(effect: Effect) {
+			if (effect.name in this.effects_) {
+				throw new Error(`Tried to register an Effect named '${effect.name}', but that name is already used.`);
+			}
+			this.effects_[effect.name] = effect;
+		}
 
+		effectByName(name: string): Effect | undefined {
+			return this.effects_[name];
+		}
+
+
+		// -- render commands
 		dispatchCommand(cmds: RenderCommandBuffer | RenderCommandBuffer[]) {
 			if (Array.isArray(cmds)) {
 				for (const cb of cmds) {
