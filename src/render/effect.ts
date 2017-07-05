@@ -10,16 +10,8 @@ namespace sd.render {
 		value: TypedArray;
 	}
 
-	export interface EffectRenderJobData {
-		pipeline: Pipeline;
-		textures: Texture[];
-		samplers: Sampler[];
-		constants: TEMPConstant[];
-	}
-
 	export interface EffectVariant {
-		readonly effectName: string;
-		readonly variantName: string;
+		readonly name: string;
 
 		readonly textureNames: string[];
 		readonly textureClasses: TextureClass[];
@@ -35,15 +27,21 @@ namespace sd.render {
 		readonly name: string;
 		readonly variants: ReadonlyArray<EffectVariant>;
 
+		addRenderJobs(
+			evData: EffectVariantData,
+			camera: math.ProjectionSetup,
+			modelMatrix: Float4x4,
+			mesh: meshdata.MeshData, primGroup: meshdata.PrimitiveGroup,
+			toBuffer: RenderCommandBuffer
+		): void;
+
 		makeVariantData(ev: EffectVariant | string): EffectVariantData | undefined;
-		createRenderJobData(evData: EffectVariantData): EffectRenderJobData;
 
 		getTexture(evd: EffectVariantData, name: string): Texture | undefined;
 		setTexture(evd: EffectVariantData, name: string, tex: Texture | undefined): void;
 
 		getColour(evd: EffectVariantData, name: string): Float32Array | undefined;
 		setColour(evd: EffectVariantData, name: string, rgba: Float32Array): void;
-		setColour(evd: EffectVariantData, name: string, r: number, g: number, b: number, a?: number): void;
 
 		getValue(evd: EffectVariantData, name: string): number | undefined;
 		setValue(evd: EffectVariantData, name: string, val: number): void;

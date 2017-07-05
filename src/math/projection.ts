@@ -8,6 +8,7 @@ namespace sd.math {
 	export interface ProjectionSetup {
 		projectionMatrix: Float4x4;
 		viewMatrix: Float4x4;
+		projViewMatrix: Float4x4;
 	}
 
 	/*

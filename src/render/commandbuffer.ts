@@ -59,9 +59,15 @@ namespace sd.render {
 		};
 	}
 
-	export interface RenderJob extends EffectRenderJobData {
+	export interface RenderJob {
 		mesh: meshdata.MeshData;
 		primGroup: meshdata.PrimitiveGroup;
+
+		pipeline: Pipeline;
+
+		textures: Texture[];
+		samplers: Sampler[];
+		constants: TEMPConstant[];
 	}
 
 

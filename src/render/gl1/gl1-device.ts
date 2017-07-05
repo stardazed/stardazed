@@ -133,6 +133,7 @@ namespace sd.render.gl1 {
 			return this.maxColourAttachments_;
 		}
 
+
 		// -- EffectRegistry implementation
 		registerEffect(effect: Effect) {
 			if (effect.name in this.effects_) {
