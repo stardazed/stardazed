@@ -3,6 +3,9 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
+/// <reference path="./commandbuffer.ts" />
+
+
 namespace sd.render {
 
 	export const enum ResourceType {
@@ -40,7 +43,7 @@ namespace sd.render {
 	}
 
 
-	export interface RenderDevice {
+	export interface RenderDevice extends EffectRegistry {
 		readonly name: string;
 
 		// current dimensions of screen rendertarget
