@@ -10,43 +10,34 @@ namespace sd.render {
 		value: TypedArray;
 	}
 
-	export interface EffectVariant {
-		readonly name: string;
-
-		readonly textureNames: string[];
-		readonly textureClasses: TextureClass[];
-		readonly colourNames: string[];
-		readonly valueNames: string[];
-	}
-
-	export interface EffectVariantData {
+	export interface EffectData {
 		readonly __evd?: void;
 	}
 
 	export interface Effect {
 		readonly name: string;
-		readonly variants: ReadonlyArray<EffectVariant>;
+		readonly variants: ReadonlyArray<string>;
 
 		linkWithDevice(rd: RenderDevice): void;
 
 		addRenderJobs(
-			evData: EffectVariantData,
+			evData: EffectData,
 			camera: math.ProjectionSetup,
 			modelMatrix: Float4x4,
 			mesh: meshdata.MeshData, primGroup: meshdata.PrimitiveGroup,
 			toBuffer: RenderCommandBuffer
 		): void;
 
-		makeVariantData(ev: EffectVariant | string): EffectVariantData | undefined;
+		makeEffectData(variant: string): EffectData | undefined;
 
-		getTexture(evd: EffectVariantData, name: string): Texture | undefined;
-		setTexture(evd: EffectVariantData, name: string, tex: Texture | undefined): void;
+		getTexture(evd: EffectData, name: string): Texture | undefined;
+		setTexture(evd: EffectData, name: string, tex: Texture | undefined): void;
 
-		getColour(evd: EffectVariantData, name: string): Float32Array | undefined;
-		setColour(evd: EffectVariantData, name: string, rgba: Float32Array): void;
+		getColour(evd: EffectData, name: string): Float32Array | undefined;
+		setColour(evd: EffectData, name: string, rgba: Float32Array): void;
 
-		getValue(evd: EffectVariantData, name: string): number | undefined;
-		setValue(evd: EffectVariantData, name: string, val: number): void;
+		getValue(evd: EffectData, name: string): number | undefined;
+		setValue(evd: EffectData, name: string, val: number): void;
 	}
 
 	export interface EffectRegistry {
