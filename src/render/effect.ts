@@ -27,6 +27,8 @@ namespace sd.render {
 		readonly name: string;
 		readonly variants: ReadonlyArray<EffectVariant>;
 
+		linkWithDevice(rd: RenderDevice): void;
+
 		addRenderJobs(
 			evData: EffectVariantData,
 			camera: math.ProjectionSetup,

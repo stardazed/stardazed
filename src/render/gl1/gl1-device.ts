@@ -140,6 +140,7 @@ namespace sd.render.gl1 {
 				throw new Error(`Tried to register an Effect named '${effect.name}', but that name is already used.`);
 			}
 			this.effects_[effect.name] = effect;
+			effect.linkWithDevice(this);
 		}
 
 		effectByName(name: string): Effect | undefined {
