@@ -30,14 +30,14 @@ namespace sd.render {
 
 		makeEffectData(variant: string): EffectData | undefined;
 
-		getTexture(evd: EffectData, name: string): Texture | undefined;
-		setTexture(evd: EffectData, name: string, tex: Texture | undefined): void;
+		getTexture(ed: EffectData, name: string): Texture | undefined;
+		setTexture(ed: EffectData, name: string, tex: Texture | undefined): void;
 
-		getColour(evd: EffectData, name: string): Float32Array | undefined;
-		setColour(evd: EffectData, name: string, rgba: Float32Array): void;
+		getValue(ed: EffectData, name: string): number | undefined;
+		setValue(ed: EffectData, name: string, val: number): void;
 
-		getValue(evd: EffectData, name: string): number | undefined;
-		setValue(evd: EffectData, name: string, val: number): void;
+		getVector(ed: EffectData, name: string, out: ArrayOfNumber): ArrayOfNumber | undefined;
+		setVector(ed: EffectData, name: string, vec: ArrayOfConstNumber): void;
 	}
 
 	export interface EffectRegistry {
