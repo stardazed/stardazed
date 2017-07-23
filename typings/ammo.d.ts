@@ -433,10 +433,16 @@ declare namespace Ammo {
 		constructor(meshInterface: btStridingMeshInterface, useQuantizedAabbCompression: boolean, buildBvh?: boolean);
 	}
 
+	export const enum AxisIndex {
+		AXIS_X = 0,
+		AXIS_Y,
+		AXIS_Z
+	}
+
 	export type PHY_ScalarType = "PHY_FLOAT" | "PHY_DOUBLE" | "PHY_INTEGER" | "PHY_SHORT" | "PHY_FIXEDPOINT88" | "PHY_UCHAR";
 
 	export class btHeightfieldTerrainShape extends btConcaveShape {
-		constructor(heightStickWidth: number, heightStickLength: number, heightfieldData: Pointer, heightScale: number, minHeight: number, maxHeight: number, upAxis: number, hdt: PHY_ScalarType, flipQuadEdges: boolean);
+		constructor(heightStickWidth: number, heightStickLength: number, heightfieldData: Pointer, heightScale: number, minHeight: number, maxHeight: number, upAxis: AxisIndex, hdt: PHY_ScalarType, flipQuadEdges: boolean);
 	}
 
 	// ----
@@ -742,9 +748,9 @@ declare namespace Ammo {
 	}
 
 	export class btKinematicCharacterController extends btActionInterface {
-		constructor(ghostObject: btPairCachingGhostObject, convexShape: btConvexShape, stepHeight: number, upAxis?: number);
+		constructor(ghostObject: btPairCachingGhostObject, convexShape: btConvexShape, stepHeight: number, upAxis?: AxisIndex);
 
-		setUpAxis(axis: number): void;
+		setUpAxis(axis: AxisIndex): void;
 		setWalkDirection(walkDirection: btVector3Const): void;
 		setVelocityForTimeInterval(velocity: btVector3Const, timeInterval: number): void;
 		// reset(collisionWorld: btCollisionWorld): void;
