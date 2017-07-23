@@ -336,27 +336,27 @@ interface WebGL2RenderingContext extends WebGLRenderingContext {
 
 	// WebGL1 legacy entrypoints:
 	texImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, format: number, type: number, pixels: ArrayBufferView | null): void;
-	texImage2D(target: number, level: number, internalformat: number, format: number, type: number, source: TextureImageSource); // May throw DOMException
+	texImage2D(target: number, level: number, internalformat: number, format: number, type: number, source: TextureImageSource): void; // May throw DOMException
 
 	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, type: number, pixels: ArrayBufferView | null): void;
-	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, format: number, type: number, source: TextureImageSource); // May throw DOMException
+	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, format: number, type: number, source: TextureImageSource): void; // May throw DOMException
 
 	// WebGL2 entrypoints:
 	texImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, format: number, type: number, pboOffset: number): void;
-	texImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, format: number, type: number, source: TextureImageSource); // May throw DOMException
+	texImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, format: number, type: number, source: TextureImageSource): void; // May throw DOMException
 	texImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, format: number, type: number, srcData: ArrayBufferView, srcOffset: number): void;
 
 	texImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, format: number, type: number, pboOffset: number): void;
-	texImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, format: number, type: number, source: TextureImageSource); // May throw DOMException
+	texImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, format: number, type: number, source: TextureImageSource): void; // May throw DOMException
 	texImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, format: number, type: number, srcData: ArrayBufferView | null): void;
 	texImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, format: number, type: number, srcData: ArrayBufferView, srcOffset: number): void;
 
 	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, type: number, pboOffset: number): void;
-	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, type: number, source: TextureImageSource); // May throw DOMException
+	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, type: number, source: TextureImageSource): void; // May throw DOMException
 	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, type: number, srcData: ArrayBufferView, srcOffset: number): void;
 
 	texSubImage3D(target: number, level: number, xoffset: number, yoffset: number, zoffset: number, width: number, height: number, depth: number, format: number, type: number, pboOffset: number): void;
-	texSubImage3D(target: number, level: number, xoffset: number, yoffset: number, zoffset: number, width: number, height: number, depth: number, format: number, type: number, source: TextureImageSource); // May throw DOMException
+	texSubImage3D(target: number, level: number, xoffset: number, yoffset: number, zoffset: number, width: number, height: number, depth: number, format: number, type: number, source: TextureImageSource): void; // May throw DOMException
 	texSubImage3D(target: number, level: number, xoffset: number, yoffset: number, zoffset: number, width: number, height: number, depth: number, format: number, type: number, srcData: ArrayBufferView | null, srcOffset?: number): void;
 
 	copyTexSubImage3D(target: number, level: number, xoffset: number, yoffset: number, zoffset: number, x: number, y: number, width: number, height: number): void;
