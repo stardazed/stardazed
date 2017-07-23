@@ -3,6 +3,8 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
+/// <reference path="../../typings/ammo.d.ts" />
+
 namespace sd.entity {
 
 	export type MeshRendererInstance = Instance<MeshRendererComponent>;
