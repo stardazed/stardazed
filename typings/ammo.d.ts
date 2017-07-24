@@ -1,14 +1,14 @@
 declare namespace Ammo {
 
-	export interface Pointer extends Number {
+	interface Pointer extends Number {
 		readonly __Pointer?: void;
 	}
 
-	export function _malloc(sizeBytes: number): Pointer;
+	function _malloc(sizeBytes: number): Pointer;
 
 	// ---- Linear Math
 
-	export interface btVector3Const {
+	interface btVector3Const {
 		x(): number;
 		y(): number;
 		z(): number;
@@ -19,7 +19,7 @@ declare namespace Ammo {
 		rotate(wAxis: btVector3, angle: number): btVector3;
 	}
 
-	export interface btVector3Mutable {
+	interface btVector3Mutable {
 		setX(x: number): void;
 		setY(y: number): void;
 		setZ(z: number): void;
@@ -33,49 +33,49 @@ declare namespace Ammo {
 		op_mul(scale: number): btVector3;
 	}
 
-	export type btVector3 = btVector3Const & btVector3Mutable;
+	type btVector3 = btVector3Const & btVector3Mutable;
 
-	export interface btVector3Static {
+	interface btVector3Static {
 		new(): btVector3;
 		new(x: number, y: number, z: number): btVector3;
 	}
-	export const btVector3: btVector3Static;
+	const btVector3: btVector3Static;
 
 	// ----
 
-	export interface btVector4Const extends btVector3Const {
+	interface btVector4Const extends btVector3Const {
 		w(): number;
 	}
 
-	export interface btVector4Mutable extends btVector3Mutable {
+	interface btVector4Mutable extends btVector3Mutable {
 		setValue(x: number, y: number, z: number): void;
 		setValue(x: number, y: number, z: number, w: number): void;
 	}
 
-	export type btVector4 = btVector4Const & btVector4Mutable;
-	export interface btVector4Static {
+	type btVector4 = btVector4Const & btVector4Mutable;
+	interface btVector4Static {
 		new(): btVector4;
 		new(x: number, y: number, z: number, w: number): btVector4;
 	}
-	export const btVector4: btVector4Static;
+	const btVector4: btVector4Static;
 
 	// ----
 
-	export interface btQuadWordConst {
+	interface btQuadWordConst {
 		x(): number;
 		y(): number;
 		z(): number;
 		w(): number;
 	}
 
-	export interface btQuadWordMutable {
+	interface btQuadWordMutable {
 		setX(x: number): void;
 		setY(y: number): void;
 		setZ(z: number): void;
 		setW(w: number): void;
 	}
 
-	export interface btQuaternionConst extends btQuadWordConst {
+	interface btQuaternionConst extends btQuadWordConst {
 		length2(): number;
 		length(): number;
 		dot(q: btQuaternionConst): number;
@@ -88,7 +88,7 @@ declare namespace Ammo {
 		angleShortestPath(q: btQuaternion): number;
 	}
 
-	export interface btQuaternionMutable extends btQuadWordMutable {
+	interface btQuaternionMutable extends btQuadWordMutable {
 		setValue(x: number, y: number, z: number, w: number): void;
 		setEulerZYX(z: number, y: number, x: number): void;
 		setRotation(axis: btVector3, angle: number): void;
@@ -102,15 +102,15 @@ declare namespace Ammo {
 
 	}
 
-	export type btQuaternion = btQuaternionConst & btQuaternionMutable;
-	export interface btQuaternionStatic {
+	type btQuaternion = btQuaternionConst & btQuaternionMutable;
+	interface btQuaternionStatic {
 		new(x: number, y: number, z: number, w: number): btQuaternion;
 	}
-	export const btQuaternion: btQuaternionStatic;
+	const btQuaternion: btQuaternionStatic;
 
 	// ----
 
-	export interface btMatrix3x3 {
+	interface btMatrix3x3 {
 		setEulerZYX(ex: number, ey: number, ez: number): void;
 		getRotation(q: btQuaternion): void;
 		getRow(y: number): btVector3;
@@ -118,40 +118,40 @@ declare namespace Ammo {
 
 	// ----
 
-	export interface btTransformConst {
+	interface btTransformConst {
 		getOrigin(): btVector3;
 		getRotation(): btQuaternion;
 		getBasis(): btMatrix3x3;
 	}
 
-	export interface btTransform extends btTransformConst {
+	interface btTransform extends btTransformConst {
 		setIdentity(): void;
 		setOrigin(v: btVector3): void;
 		setRotation(q: btQuaternion): void;
 		setFromOpenGLMatrix(m: ArrayLike<number>): void;
 	}
 
-	export interface btTransformStatic {
+	interface btTransformStatic {
 		new(): btTransform;
 		new(q: btQuaternion, v: btVector3): btTransform;
 	}
-	export const btTransform: btTransformStatic;
+	const btTransform: btTransformStatic;
 
 	// ----
 
-	export abstract class btMotionState {
+	abstract class btMotionState {
 		getWorldTransform(worldTrans: btTransform): void;
  		setWorldTransform(worldTrans: btTransform): void;
 	}
 
-	export class btDefaultMotionState extends btMotionState {
+	class btDefaultMotionState extends btMotionState {
 		constructor(startTrans?: btTransform, centerOfMassOffset?: btTransform);
 		m_graphicsWorldTrans: btTransform;
 	}
 
 	// ---- Collision
 
-	export const enum CollisionFlags {
+	const enum CollisionFlags {
 		CF_STATIC_OBJECT = 1,
 		CF_KINEMATIC_OBJECT = 2,
 		CF_NO_CONTACT_RESPONSE = 4,
@@ -161,13 +161,13 @@ declare namespace Ammo {
 		CF_DISABLE_SPU_COLLISION_PROCESSING = 64
 	}
 
-	export const enum AnisotropicFrictionFlags { 
+	const enum AnisotropicFrictionFlags { 
 		CF_ANISOTROPIC_FRICTION_DISABLED = 0,
 		CF_ANISOTROPIC_FRICTION = 1,
 		CF_ANISOTROPIC_ROLLING_FRICTION = 2
 	}
 
-	export const enum ActivationState {
+	const enum ActivationState {
 		ACTIVE_TAG = 1,
 		ISLAND_SLEEPING = 2,
 		WANTS_DEACTIVATION = 3,
@@ -175,7 +175,7 @@ declare namespace Ammo {
 		DISABLE_SIMULATION = 5
 	}
 
-	export abstract class btCollisionObjectConst {
+	abstract class btCollisionObjectConst {
 		// getActivationState(): ActivationState;
 
 		getCollisionFlags(): CollisionFlags;
@@ -203,7 +203,7 @@ declare namespace Ammo {
 		// getContactProcessingThreshold(): number;
 	}
 
-	export abstract class btCollisionObject extends btCollisionObjectConst {
+	abstract class btCollisionObject extends btCollisionObjectConst {
 		activate(forceActivation?: boolean): void;
 		forceActivationState(newState: ActivationState): void;
 		setActivationState(newState: ActivationState): void;
@@ -229,7 +229,7 @@ declare namespace Ammo {
 
 	// ----
 
-	export const enum CollisionFilterGroups {
+	const enum CollisionFilterGroups {
 		DefaultFilter = 1,
 		StaticFilter = 2,
 		KinematicFilter = 4,
@@ -239,7 +239,7 @@ declare namespace Ammo {
 		AllFilter = -1
 	}
 
-	export abstract class RayResultCallback {
+	abstract class RayResultCallback {
 		hasHit(): boolean;
 		get_m_collisionFilterGroup(): CollisionFilterGroups;
 		set_m_collisionFilterGroup(cfg: CollisionFilterGroups): void;
@@ -249,7 +249,7 @@ declare namespace Ammo {
 		set_m_collisionObject(co: btCollisionObjectConst): void;
 	}
 
-	export class ClosestRayResultCallback extends RayResultCallback {
+	class ClosestRayResultCallback extends RayResultCallback {
 		constructor(from: btVector3Const, to: btVector3Const);
 
 		get_m_rayFromWorld(): btVector3;
@@ -279,24 +279,24 @@ declare namespace Ammo {
 		set_m_normalWorldOnB(nwob: btVector3): void;
 	}
 
-	export interface btCollisionObjectWrapper {
+	interface btCollisionObjectWrapper {
 		readonly __btCollisionObjectWrapper?: void;
 	}
 
-	export abstract class ContactResultCallback {
+	abstract class ContactResultCallback {
 		addSingleResult(cp: btManifoldPoint, colObj0Wrap: btCollisionObjectWrapper, partId0: number, index0: number, colObj1Wrap: btCollisionObjectWrapper, partId1: number, index1: number): number;
 	}
 
-	export class ConcreteContactResultCallback extends ContactResultCallback { }
+	class ConcreteContactResultCallback extends ContactResultCallback { }
 
-	export interface LocalShapeInfo {
+	interface LocalShapeInfo {
 		get_m_shapePart(): number;
 		set_m_shapePart(sp: number): void;
 		get_m_triangleIndex(): number;
 		set_m_triangleIndex(ti: number): void;
 	}
 
-	export class LocalConvexResult {
+	class LocalConvexResult {
 		constructor(hitCollisionObject: btCollisionObjectConst, localShapeInfo: LocalShapeInfo, hitNormalLocal: btVector3Const, hitPointLocal: btVector3Const, hitFraction: number);
 		get_m_hitCollisionObject(): btCollisionObjectConst;
 		set_m_hitCollisionObject(hco: btCollisionObjectConst): void;
@@ -310,7 +310,7 @@ declare namespace Ammo {
 		set_m_hitFraction(hf: number): void;
 	}
 
-	export abstract class ConvexResultCallback {
+	abstract class ConvexResultCallback {
 		hasHit(): boolean;
 		get_m_collisionFilterGroup(): CollisionFilterGroups;
 		set_m_collisionFilterGroup(cfg: CollisionFilterGroups): void;
@@ -320,7 +320,7 @@ declare namespace Ammo {
 		set_m_closestHitFraction(chf: number): void;
 	}
 
-	export class ClosestConvexResultCallback extends ConvexResultCallback {
+	class ClosestConvexResultCallback extends ConvexResultCallback {
 		constructor(convexFromWorld: btVector3Const, convexToWorld: btVector3Const);
 
 		get_m_convexFromWorld(): btVector3;
@@ -335,79 +335,79 @@ declare namespace Ammo {
 
 	// ----
 
-	export class btCollisionShape {
+	class btCollisionShape {
 		setLocalScaling(scaling: btVector3Const): void;
 		calculateLocalInertia(mass: number, inertia: btVector3): void;
 		getMargin(): number;
 		setMargin(collisionMargin: number): void;
 	}
 
-	export abstract class btConvexShape extends btCollisionShape {}
+	abstract class btConvexShape extends btCollisionShape {}
 
-	export class btBoxShape extends btConvexShape {
+	class btBoxShape extends btConvexShape {
 		constructor(boxHalfExtents: btVector3);
 	}
 
-	export class btCapsuleShape extends btConvexShape {
+	class btCapsuleShape extends btConvexShape {
 		constructor(radius: number, height: number);
 	}
 
-	export class btCapsuleShapeX extends btCapsuleShape {
+	class btCapsuleShapeX extends btCapsuleShape {
 		constructor(radius: number, height: number);
 	}
 
-	export class btCapsuleShapeZ extends btCapsuleShape {
+	class btCapsuleShapeZ extends btCapsuleShape {
 		constructor(radius: number, height: number);
 	}
 
-	export class btCylinderShape extends btConvexShape {
+	class btCylinderShape extends btConvexShape {
 		constructor(halfExtents: btVector3);
 	}
 
-	export class btCylinderShapeX extends btCylinderShape {
+	class btCylinderShapeX extends btCylinderShape {
 		constructor(halfExtents: btVector3);
 	}
 
-	export class btCylinderShapeZ extends btCylinderShape {
+	class btCylinderShapeZ extends btCylinderShape {
 		constructor(halfExtents: btVector3);
 	}
 
-	export class btSphereShape extends btConvexShape {
+	class btSphereShape extends btConvexShape {
 		constructor(radius: number);
 	}
 
-	export class btConeShape extends btConvexShape {
+	class btConeShape extends btConvexShape {
 		constructor(radius: number, height: number);
 	}
 
-	export class btConeShapeX extends btConeShape {
+	class btConeShapeX extends btConeShape {
 		constructor(radius: number, height: number);
 	}
 
-	export class btConeShapeZ extends btConeShape {
+	class btConeShapeZ extends btConeShape {
 		constructor(radius: number, height: number);
 	}
 
-	export class btConvexHullShape extends btConvexShape {
+	class btConvexHullShape extends btConvexShape {
 		addPoint(point: btVector3Const, recalculateLocalAABB?: boolean): void;
 	}
 
-	export abstract class btStridingMeshInterface {
+	abstract class btStridingMeshInterface {
 		readonly __btStridingMeshInterface?: void;
 	}
 
-	export class btTriangleMesh extends btStridingMeshInterface {
+	class btTriangleMesh extends btStridingMeshInterface {
 		constructor(use32bitIndices?: boolean, use4componentVertices?: boolean);
 		addTriangle(vertex0: btVector3Const, vertex1: btVector3Const, vertex2: btVector3Const, removeDuplicateVertices?: boolean): void;
 	}
 
-	export class btConvexTriangleMeshShape extends btConvexShape {
+	class btConvexTriangleMeshShape extends btConvexShape {
 		constructor(meshInterface: btStridingMeshInterface, calcAabb?: boolean);
 	}
 
 	// ----
 
-	export class btCompoundShape extends btCollisionShape {
+	class btCompoundShape extends btCollisionShape {
 		constructor(enableDynamicAabbTree?: boolean, initialChildCapacity?: number);
 
 		addChildShape(localTransform: btTransformConst, shape: btCollisionShape): void;
@@ -418,75 +418,75 @@ declare namespace Ammo {
 
 	// ----
 
-	export abstract class btConcaveShape extends btCollisionShape {}
+	abstract class btConcaveShape extends btCollisionShape {}
 
-	export class btStaticPlaneShape extends btConcaveShape {
+	class btStaticPlaneShape extends btConcaveShape {
 		constructor(planeNormal: btVector3Const, planeConstant: number);
 	}
 
-	export abstract class btTriangleMeshShape extends btConcaveShape {}
+	abstract class btTriangleMeshShape extends btConcaveShape {}
 
-	export class btBvhTriangleMeshShape extends btTriangleMeshShape {
+	class btBvhTriangleMeshShape extends btTriangleMeshShape {
 		constructor(meshInterface: btStridingMeshInterface, useQuantizedAabbCompression: boolean, buildBvh?: boolean);
 	}
 
-	export const enum AxisIndex {
+	const enum AxisIndex {
 		X = 0,
 		Y,
 		Z
 	}
 
-	export type PHY_ScalarType = "PHY_FLOAT" | "PHY_DOUBLE" | "PHY_INTEGER" | "PHY_SHORT" | "PHY_FIXEDPOINT88" | "PHY_UCHAR";
+	type PHY_ScalarType = "PHY_FLOAT" | "PHY_DOUBLE" | "PHY_INTEGER" | "PHY_SHORT" | "PHY_FIXEDPOINT88" | "PHY_UCHAR";
 
-	export class btHeightfieldTerrainShape extends btConcaveShape {
+	class btHeightfieldTerrainShape extends btConcaveShape {
 		constructor(heightStickWidth: number, heightStickLength: number, heightfieldData: Pointer, heightScale: number, minHeight: number, maxHeight: number, upAxis: AxisIndex, hdt: PHY_ScalarType, flipQuadEdges: boolean);
 	}
 
 	// ----
 
-	export class btDefaultCollisionConstructionInfo { }
+	class btDefaultCollisionConstructionInfo { }
 
-	export abstract class btCollisionConfiguration { }
+	abstract class btCollisionConfiguration { }
 
-	export class btDefaultCollisionConfiguration extends btCollisionConfiguration {
+	class btDefaultCollisionConfiguration extends btCollisionConfiguration {
 		constructor(info?: btDefaultCollisionConstructionInfo);
 	}
 
-	export class btPersistentManifold {
+	class btPersistentManifold {
 		getBody0(): btCollisionObjectConst;
 		getBody1(): btCollisionObjectConst;
 		getNumContacts(): number;
 		getContactPoint(index: number): btManifoldPoint;
 	}
 
-	export abstract class btDispatcher {
+	abstract class btDispatcher {
 		getNumManifolds(): number;
 		getManifoldByIndexInternal(index: number): btPersistentManifold;
 	}
 
-	export class btCollisionDispatcher extends btDispatcher {
+	class btCollisionDispatcher extends btDispatcher {
 		constructor(c: btDefaultCollisionConfiguration);
 	}
 
-	export interface btOverlappingPairCallback {
+	interface btOverlappingPairCallback {
 		readonly __btOverlappingPairCallback?: void;
 	}
 
-	export abstract class btOverlappingPairCache {
+	abstract class btOverlappingPairCache {
   		setInternalGhostPairCallback(ghostPairCallback: btOverlappingPairCallback): void;
 	}
 
-	export abstract class btBroadphaseInterface { }
+	abstract class btBroadphaseInterface { }
 
-	export class btAxisSweep3 extends btBroadphaseInterface {
+	class btAxisSweep3 extends btBroadphaseInterface {
 		constructor(min: btVector3, max: btVector3, maxHandles?: number, pairCache?: btOverlappingPairCache, disableRaycastAccelerator?: boolean);
 	}
 
-	export class btDbvtBroadphase extends btBroadphaseInterface { }
+	class btDbvtBroadphase extends btBroadphaseInterface { }
 
 	// ---- Dynamics
 
-	export class btRigidBodyConstructionInfo {
+	class btRigidBodyConstructionInfo {
 		constructor(mass: number, motionState: btMotionState, shape: btCollisionShape, localInertia?: btVector3);
 
 		get_m_linearDamping(): number;
@@ -515,7 +515,7 @@ declare namespace Ammo {
 		set_m_additionalAngularDampingFactor(aadf: number): void;
 	}
 
-	export class btRigidBody extends btCollisionObject {
+	class btRigidBody extends btCollisionObject {
 		constructor(info: btRigidBodyConstructionInfo);
 
 		applyCentralForce(force: btVector3Const): void;
@@ -550,7 +550,7 @@ declare namespace Ammo {
 
 	// ---- Constraints
 
-	export class btConstraintSetting {
+	class btConstraintSetting {
 		get_m_tau(): number;
 		set_m_tau(tau: number): void;
 		get_m_damping(): number;
@@ -559,13 +559,13 @@ declare namespace Ammo {
 		set_m_impulseClamp(clamp: number): void;
 	}
 
-	export abstract class btTypedConstraint {
+	abstract class btTypedConstraint {
 		enableFeedback(needsFeedback: boolean): void;
 		getBreakingImpulseThreshold(): number;
 		setBreakingImpulseThreshold(threshold: number): void;
 	}
 
-	export class btPoint2PointConstraint extends btTypedConstraint {
+	class btPoint2PointConstraint extends btTypedConstraint {
 		constructor(rbA: btRigidBody, rbB: btRigidBody, pivotInA: btVector3, pivotInB: btVector3);
 		constructor(rbA: btRigidBody, pivotInA: btVector3);
 
@@ -578,7 +578,7 @@ declare namespace Ammo {
 		set_m_setting(s: btConstraintSetting): void;
 	}
 
-	export class btGeneric6DofConstraint extends btTypedConstraint {
+	class btGeneric6DofConstraint extends btTypedConstraint {
 		constructor(rbA: btRigidBody, rbB: btRigidBody, frameInA: btTransform, frameInB: btTransform, useLinearFrameReferenceFrameA: boolean);
 		constructor(rbB: btRigidBody, frameInB: btTransform, useLinearFrameReferenceFrameB: boolean);
 
@@ -588,7 +588,7 @@ declare namespace Ammo {
 		setAngularUpperLimit(angularUpper: btVector3Const): void;
 	}
 
-	export class btGeneric6DofSpringConstraint extends btGeneric6DofConstraint {
+	class btGeneric6DofSpringConstraint extends btGeneric6DofConstraint {
 		constructor(rbA: btRigidBody, rbB: btRigidBody, frameInA: btTransform, frameInB: btTransform, useLinearFrameReferenceFrameA: boolean);
 		constructor(rbB: btRigidBody, frameInB: btTransform, useLinearFrameReferenceFrameB: boolean);
 
@@ -597,7 +597,7 @@ declare namespace Ammo {
 		setDamping(index: number, damping: number): void;
 	}
 
-	export class btConeTwistConstraint extends btTypedConstraint {
+	class btConeTwistConstraint extends btTypedConstraint {
 		constructor(rbA: btRigidBody, rbB: btRigidBody, rbAFrame: btTransform, rbBFrame: btTransform);
 		constructor(rbA: btRigidBody, rbAFrame: btTransform);
 
@@ -611,7 +611,7 @@ declare namespace Ammo {
 		setMotorTargetInConstraintSpace(q: btQuaternionConst): void;
 	}
 
-	export class btHingeConstraint extends btTypedConstraint {
+	class btHingeConstraint extends btTypedConstraint {
 		constructor(rbA: btRigidBody, rbB: btRigidBody, pivotInA: btVector3, pivotInB: btVector3, axisInA: btVector3, axisInB: btVector3, useReferenceFrameA?: boolean);
 		// constructor(rbA: btRigidBody, pivotInA: btVector3, axisInA: btVector3, useReferenceFrameA?: boolean);
 		constructor(rbA: btRigidBody, rbB: btRigidBody, rbAFrame: btTransform, rbBFrame: btTransform, useReferenceFrameA?: boolean);
@@ -627,7 +627,7 @@ declare namespace Ammo {
 		setMotorTarget(targetAngle: number, dt: number): void;
 	}
 
-	export class btSliderConstraint extends btTypedConstraint {
+	class btSliderConstraint extends btTypedConstraint {
 		constructor(rbA: btRigidBody, rbB: btRigidBody, frameInA: btTransformConst, frameInB: btTransformConst, useLinearReferenceFrameA: boolean);
 		constructor(rbB: btRigidBody, frameInB: btTransformConst, useLinearReferenceFrameA: boolean);
 
@@ -640,18 +640,18 @@ declare namespace Ammo {
 
 	// ----
 
-	export abstract class btConstraintSolver {}
+	abstract class btConstraintSolver {}
 
-	export class btSequentialImpulseConstraintSolver extends btConstraintSolver {}
+	class btSequentialImpulseConstraintSolver extends btConstraintSolver {}
 
 	// ----
 
-	export const enum DispatchFunc {
+	const enum DispatchFunc {
 		DISPATCH_DISCRETE = 1,
 		DISPATCH_CONTINUOUS
 	}
 
-	export interface btDispatcherInfo {
+	interface btDispatcherInfo {
 		get_m_timeStep(): number;
 		set_m_timeStep(step: number): void;
 		get_m_stepCount(): number;
@@ -676,7 +676,7 @@ declare namespace Ammo {
 		set_m_convexConservativeDistanceThreshold(use: number): void;
 	}
 
-	export abstract class btCollisionWorld {
+	abstract class btCollisionWorld {
 		contactPairTest(colObjA: btCollisionObjectConst, colObjB: btCollisionObjectConst, resultCallback: ContactResultCallback): void;
 		contactTest(colObj: btCollisionObjectConst, resultCallback: ContactResultCallback): void;
 		convexSweepTest(castShape: btConvexShape, from: btTransformConst, to: btTransformConst, resultCallback: ConvexResultCallback, allowedCcdPenetration: number): void;
@@ -690,7 +690,7 @@ declare namespace Ammo {
 		getPairCache(): btOverlappingPairCache;
 	}
 
-	export abstract class btContactSolverInfo {
+	abstract class btContactSolverInfo {
 		get_m_splitImpulse(): boolean;
 		set_m_splitImpulse(split: boolean): void;
 		get_m_splitImpulsePenetrationThreshold(): number;
@@ -699,7 +699,7 @@ declare namespace Ammo {
 		set_m_numIterations(iterations: number): void;
 	}
 
-	export abstract class btDynamicsWorld extends btCollisionWorld {
+	abstract class btDynamicsWorld extends btCollisionWorld {
 		addAction(action: btActionInterface): void;
 		removeAction(action: btActionInterface): void;
 
@@ -718,26 +718,26 @@ declare namespace Ammo {
 		stepSimulation(timeStep: number, maxSubSteps?: number, fixedTimeStep?: number): number;
 	}
 
-	export class btDiscreteDynamicsWorld extends btDynamicsWorld {
+	class btDiscreteDynamicsWorld extends btDynamicsWorld {
 		constructor(a: btDispatcher, b: btBroadphaseInterface, c: btConstraintSolver, d: btCollisionConfiguration);
 	}
 
 	// ---- Kinematic Character Controller
 
-	export class btGhostObject extends btCollisionObject {
+	class btGhostObject extends btCollisionObject {
 		getNumOverlappingObjects(): number;
 		getOverlappingObject(index: number): btCollisionObject;
 	}
 
-	export class btPairCachingGhostObject extends btGhostObject { }
+	class btPairCachingGhostObject extends btGhostObject { }
 
-	export class btGhostPairCallback { }
+	class btGhostPairCallback { }
 
-	export abstract class btActionInterface {
+	abstract class btActionInterface {
 		updateAction(collisionWorld: btCollisionWorld, deltaTimeStep: number): void;
 	}
 
-	export class btKinematicCharacterController extends btActionInterface {
+	class btKinematicCharacterController extends btActionInterface {
 		constructor(ghostObject: btPairCachingGhostObject, convexShape: btConvexShape, stepHeight: number, upAxis?: AxisIndex);
 
 		setUpAxis(axis: AxisIndex): void;
@@ -763,7 +763,7 @@ declare namespace Ammo {
 
 	// ---- Vehicles
 
-	export class btVehicleTuning {
+	class btVehicleTuning {
 		get_m_suspensionStiffness(): number;
 		set_m_suspensionStiffness(ss: number): void;
 		get_m_suspensionCompression(): number;
@@ -778,7 +778,7 @@ declare namespace Ammo {
 		set_m_maxSuspensionForce(msf: number): void;
 	}
 
-	export interface btVehicleRaycasterResult {
+	interface btVehicleRaycasterResult {
 		get_m_hitPointInWorld(): btVector3;
 		set_m_hitPointInWorld(hpw: btVector3): void;
 		get_m_hitNormalInWorld(): btVector3;
@@ -787,15 +787,15 @@ declare namespace Ammo {
 		set_m_distFraction(df: number): void;
 	}
 
-	export abstract class btVehicleRaycaster {
+	abstract class btVehicleRaycaster {
 		castRay(from: btVector3Const, to: btVector3Const, result: btVehicleRaycasterResult): void;
 	}
 
-	export class btDefaultVehicleRaycaster extends btVehicleRaycaster {
+	class btDefaultVehicleRaycaster extends btVehicleRaycaster {
 		constructor(world: btDynamicsWorld);
 	}
 
-	export interface RaycastInfo {
+	interface RaycastInfo {
 		get_m_contactNormalWS(): btVector3;
 		set_m_contactNormalWS(cnws: btVector3): void;
 		get_m_contactPointWS(): btVector3;
@@ -814,7 +814,7 @@ declare namespace Ammo {
 		set_m_groundObject(obj: any): void;
 	}
 
-	export interface btWheelInfoConstructionInfo {
+	interface btWheelInfoConstructionInfo {
 		get_m_chassisConnectionCS(): btVector3;
 		set_m_chassisConnectionCS(cccs: btVector3): void;
 		get_m_wheelDirectionCS(): btVector3;
@@ -841,7 +841,7 @@ declare namespace Ammo {
 		set_m_bIsFrontWheel(fw: boolean): void;
 	}
 
-	export class btWheelInfo {
+	class btWheelInfo {
 		constructor(ci: btWheelInfoConstructionInfo);
 		getSuspensionRestLength(): number;
 		updateWheel(chassis: btRigidBody, raycastInfo: RaycastInfo): void;
@@ -896,7 +896,7 @@ declare namespace Ammo {
 		get_m_skidInfo(si: number): void;
 	}
 
-	export class btRaycastVehicle extends btActionInterface {
+	class btRaycastVehicle extends btActionInterface {
 		constructor(tuning: btVehicleTuning, chassis: btRigidBody, raycaster: btVehicleRaycaster);
 		applyEngineForce(force: number, wheel: number): void;
 		setSteeringValue(steering: number, wheel: number): void;
@@ -930,7 +930,7 @@ declare namespace Ammo {
 
 	// ---- Soft bodies
 
-	export class btSoftBodyWorldInfo {
+	class btSoftBodyWorldInfo {
 		get_air_density(): number;
 		set_air_density(ad: number): void;
 		get_water_density(): number;
@@ -949,19 +949,19 @@ declare namespace Ammo {
 		set_m_gravity(g: btVector3): void;
 	}
 
-	export interface Node {
+	interface Node {
 		get_m_x(): btVector3;
 		set_m_x(v: btVector3): void;
 		get_m_n(): btVector3;
 		set_m_n(v: btVector3): void;
 	}
 
-	export interface tNodeArray {
+	interface tNodeArray {
 		size(): number;
 		at(n: number): Node;
 	}
 
-	export interface Material {
+	interface Material {
 		get_m_kLST(): number;
 		set_m_kLST(n: number): void;
 		get_m_kAST(): number;
@@ -972,12 +972,12 @@ declare namespace Ammo {
 		set_m_flags(n: number): void;
 	}
 
-	export interface tMaterialArray {
+	interface tMaterialArray {
 		size(): number;
 		at(n: number): Material;
 	}
 
-	export interface Config {
+	interface Config {
 		get_kVCF(): number;
 		set_kVCF(n: number): void;
 		get_kDP(): number;
@@ -1030,7 +1030,7 @@ declare namespace Ammo {
 		set_collisions(n: number): void;
 	}
 
-	export class btSoftBody extends btCollisionObject {
+	class btSoftBody extends btCollisionObject {
 		constructor(worldInfo: btSoftBodyWorldInfo, nodeCount: number, x: btVector3, m: number[]);
 
 		get_m_cfg(): Config;
@@ -1064,19 +1064,19 @@ declare namespace Ammo {
 		upcast(colObj: btCollisionObject): btSoftBody;
 	}
 
-	export class btSoftBodyRigidBodyCollisionConfiguration extends btDefaultCollisionConfiguration {
+	class btSoftBodyRigidBodyCollisionConfiguration extends btDefaultCollisionConfiguration {
 		constructor(info?: btDefaultCollisionConstructionInfo);
 	}
 
-	export abstract class btSoftBodySolver {}
-	export class btDefaultSoftBodySolver extends btSoftBodySolver {	}
+	abstract class btSoftBodySolver {}
+	class btDefaultSoftBodySolver extends btSoftBodySolver {	}
 
-	export interface btSoftBodyArray {
+	interface btSoftBodyArray {
 		size(): number;
 		at(n: number): btSoftBody;
 	}
 
-	export class btSoftRigidDynamicsWorld extends btDiscreteDynamicsWorld {
+	class btSoftRigidDynamicsWorld extends btDiscreteDynamicsWorld {
 		constructor(dispatcher: btDispatcher, pairCache: btBroadphaseInterface, constraintSolver: btConstraintSolver, collisionConfiguration: btCollisionConfiguration, softBodySolver: btSoftBodySolver);
 
 		addSoftBody(body: btSoftBody, collisionFilterGroup: CollisionFilterGroups, collisionFilterMask: CollisionFilterGroups): void;
@@ -1087,7 +1087,7 @@ declare namespace Ammo {
 		getSoftBodyArray(): btSoftBodyArray;
 	}
 
-	export class btSoftBodyHelpers {
+	class btSoftBodyHelpers {
 		CreateRope(worldInfo: btSoftBodyWorldInfo, from: btVector3Const, to: btVector3Const, res: number, fixeds: number): btSoftBody;
 		CreatePatch(worldInfo: btSoftBodyWorldInfo, corner00: btVector3Const, corner10: btVector3Const, corner01: btVector3Const, corner11: btVector3Const, resx: number, resy: number, fixeds: number, gendiags: boolean): btSoftBody;
 		CreatePatchUV(worldInfo: btSoftBodyWorldInfo, corner00: btVector3Const, corner10: btVector3Const, corner01: btVector3Const, corner11: btVector3Const, resx: number, resy: number, fixeds: number, gendiags: boolean, tex_coords: number[]): btSoftBody;
