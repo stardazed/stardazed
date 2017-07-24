@@ -732,7 +732,7 @@ declare namespace Ammo {
 		constructor(a: btDispatcher, b: btBroadphaseInterface, c: btConstraintSolver, d: btCollisionConfiguration);
 	}
 
-	// ----
+	// ---- Kinematic Character Controller
 
 	export class btGhostObject extends btCollisionObject {
 		getNumOverlappingObjects(): number;
@@ -769,5 +769,172 @@ declare namespace Ammo {
 		getGhostObject(): btPairCachingGhostObject;
 		setUseGhostSweepTest(useGhostObjectSweepTest: boolean): void;
 		onGround(): boolean;
+	}
+
+	// ---- Vehicles
+
+	export class btVehicleTuning {
+		get_m_suspensionStiffness(): number;
+		set_m_suspensionStiffness(ss: number): void;
+		get_m_suspensionCompression(): number;
+		set_m_suspensionCompression(sc: number): void;
+		get_m_suspensionDamping(): number;
+		set_m_suspensionDamping(sd: number): void;
+		get_m_maxSuspensionTravelCm(): number;
+		set_m_maxSuspensionTravelCm(st: number): void;
+		get_m_frictionSlip(): number;
+		set_m_frictionSlip(fs: number): void;
+		get_m_maxSuspensionForce(): number;
+		set_m_maxSuspensionForce(msf: number): void;
+	}
+
+	export interface btVehicleRaycasterResult {
+		get_m_hitPointInWorld(): btVector3;
+		set_m_hitPointInWorld(hpw: btVector3): void;
+		get_m_hitNormalInWorld(): btVector3;
+		set_m_hitNormalInWorld(hnw: btVector3): void;
+		get_m_distFraction(): number;
+		set_m_distFraction(df: number): void;
+	}
+
+	export abstract class btVehicleRaycaster {
+		castRay(from: btVector3Const, to: btVector3Const, result: btVehicleRaycasterResult): void;
+	}
+
+	export class btDefaultVehicleRaycaster extends btVehicleRaycaster {
+		constructor(world: btDynamicsWorld);
+	}
+
+	export interface RaycastInfo {
+		get_m_contactNormalWS(): btVector3;
+		set_m_contactNormalWS(cnws: btVector3): void;
+		get_m_contactPointWS(): btVector3;
+		set_m_contactPointWS(cpws: btVector3): void;
+		get_m_suspensionLength(): number;
+		set_m_suspensionLength(sl: number): void;
+		get_m_hardPointWS(): btVector3;
+		set_m_hardPointWS(hpws: btVector3): void;
+		get_m_wheelDirectionWS(): btVector3;
+		set_m_wheelDirectionWS(wdws: btVector3): void;
+		get_m_wheelAxleWS(): btVector3;
+		set_m_wheelAxleWS(waws: btVector3): void;
+		get_m_isInContact(): boolean;
+		set_m_isInContact(iic: boolean): void;
+		get_m_groundObject(): any;
+		set_m_groundObject(obj: any): void;
+	}
+
+	export interface btWheelInfoConstructionInfo {
+		get_m_chassisConnectionCS(): btVector3;
+		set_m_chassisConnectionCS(cccs: btVector3): void;
+		get_m_wheelDirectionCS(): btVector3;
+		set_m_wheelDirectionCS(wdcs: btVector3): void;
+		get_m_wheelAxleCS(): btVector3;
+		set_m_wheelAxleCS(wacs: btVector3): void;
+		get_m_suspensionRestLength(): number;
+		set_m_suspensionRestLength(srl: number): void;
+		get_m_maxSuspensionTravelCm(): number;
+		set_m_maxSuspensionTravelCm(st: number): void;
+		get_m_wheelRadius(): number;
+		set_m_wheelRadius(wr: number): void;
+		get_m_suspensionStiffness(): number;
+		set_m_suspensionStiffness(ss: number): void;
+		get_m_wheelsDampingCompression(): number;
+		set_m_wheelsDampingCompression(wdc: number): void;
+		get_m_wheelsDampingRelaxation(): number;
+		set_m_wheelsDampingRelaxation(wdr: number): void;
+		get_m_frictionSlip(): number;
+		set_m_frictionSlip(fs: number): void;
+		get_m_maxSuspensionForce(): number;
+		set_m_maxSuspensionForce(msf: number): void;
+		get_m_bIsFrontWheel(): boolean;
+		set_m_bIsFrontWheel(fw: boolean): void;
+	}
+
+	export class btWheelInfo {
+		constructor(ci: btWheelInfoConstructionInfo);
+		getSuspensionRestLength(): number;
+		updateWheel(chassis: btRigidBody, raycastInfo: RaycastInfo): void;
+
+		get_m_suspensionStiffness(): number;
+		get_m_suspensionStiffness(ss: number): void;
+		get_m_frictionSlip(): number;
+		get_m_frictionSlip(fs: number): void;
+		get_m_engineForce(): number;
+		get_m_engineForce(ef: number): void;
+		get_m_rollInfluence(): number;
+		get_m_rollInfluence(ri: number): void;
+		get_m_suspensionRestLength1(): number;
+		get_m_suspensionRestLength1(rl1: number): void;
+		get_m_wheelsRadius(): number;
+		get_m_wheelsRadius(wr: number): void;
+		get_m_wheelsDampingCompression(): number;
+		get_m_wheelsDampingCompression(wdc: number): void;
+		get_m_wheelsDampingRelaxation(): number;
+		get_m_wheelsDampingRelaxation(wdr: number): void;
+		get_m_steering(): number;
+		get_m_steering(s: number): void;
+		get_m_maxSuspensionForce(): number;
+		get_m_maxSuspensionForce(msf: number): void;
+		get_m_maxSuspensionTravelCm(): number;
+		get_m_maxSuspensionTravelCm(mst: number): void;
+		get_m_wheelsSuspensionForce(): number;
+		get_m_wheelsSuspensionForce(wsf: number): void;
+		get_m_bIsFrontWheel(): boolean;
+		get_m_bIsFrontWheel(fw: boolean): void;
+		get_m_raycastInfo(): RaycastInfo;
+		get_m_raycastInfo(ri: RaycastInfo): void;
+		get_m_chassisConnectionPointCS(): btVector3;
+		get_m_chassisConnectionPointCS(ccp: btVector3): void;
+		get_m_worldTransform(): btTransform;
+		get_m_worldTransform(wt: btTransform): void;
+		get_m_wheelDirectionCS(): btVector3;
+		get_m_wheelDirectionCS(wdcs: btVector3): void;
+		get_m_wheelAxleCS(): btVector3;
+		get_m_wheelAxleCS(wacs: btVector3): void;
+		get_m_rotation(): number;
+		get_m_rotation(rot: number): void;
+		get_m_deltaRotation(): number;
+		get_m_deltaRotation(dr: number): void;
+		get_m_brake(): number;
+		get_m_brake(brake: number): void;
+		get_m_clippedInvContactDotSuspension(): number;
+		get_m_clippedInvContactDotSuspension(cicds: number): void;
+		get_m_suspensionRelativeVelocity(): number;
+		get_m_suspensionRelativeVelocity(srv: number): void;
+		get_m_skidInfo(): number;
+		get_m_skidInfo(si: number): void;
+	}
+
+	export class btRaycastVehicle extends btActionInterface {
+		constructor(tuning: btVehicleTuning, chassis: btRigidBody, raycaster: btVehicleRaycaster);
+		applyEngineForce(force: number, wheel: number): void;
+		setSteeringValue(steering: number, wheel: number): void;
+		getWheelTransformWS(wheelIndex: number): btTransformConst;
+		updateWheelTransform(wheelIndex: number, interpolatedTransform: boolean): void;
+		addWheel(connectionPointCS0: btVector3Const, wheelDirectionCS0: btVector3Const, wheelAxleCS: btVector3Const, suspensionRestLength: number, wheelRadius: number, tuning: btVehicleTuning, isFrontWheel: boolean): btWheelInfo;
+		getNumWheels(): number;
+		getRigidBody(): btRigidBody;
+		getWheelInfo(index: number): btWheelInfo;
+		setBrake(brake: number, wheelIndex: number): void;
+		setCoordinateSystem(rightIndex: AxisIndex, upIndex: AxisIndex, forwardIndex: AxisIndex): void;
+		getCurrentSpeedKmHour(): number;
+		getChassisWorldTransform(): btTransformConst;
+		rayCast(wheel: btWheelInfo): number;
+		updateVehicle(step: number): void;
+		resetSuspension(): void;
+		getSteeringValue(wheel: number): number;
+		updateWheelTransformsWS(wheel: btWheelInfo, interpolatedTransform?: boolean): void;
+		setPitchControl(pitch: number): void;
+		updateSuspension(deltaTime: number): void;
+		updateFriction(timeStep: number): void;
+		getRightAxis(): AxisIndex;
+		getUpAxis(): AxisIndex;
+		getForwardAxis(): AxisIndex;
+		getForwardVector(): btVector3;
+		getUserConstraintType(): number;
+		setUserConstraintType(userConstraintType: number): void;
+		setUserConstraintId(uid: number): void;
+		getUserConstraintId(): number;
 	}
 }
