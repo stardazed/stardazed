@@ -287,9 +287,7 @@ declare namespace Ammo {
 		addSingleResult(cp: btManifoldPoint, colObj0Wrap: btCollisionObjectWrapper, partId0: number, index0: number, colObj1Wrap: btCollisionObjectWrapper, partId1: number, index1: number): number;
 	}
 
-	export class ConcreteContactResultCallback extends ContactResultCallback {
-		constructor();
-	}
+	export class ConcreteContactResultCallback extends ContactResultCallback { }
 
 	export interface LocalShapeInfo {
 		get_m_shapePart(): number;
@@ -391,7 +389,6 @@ declare namespace Ammo {
 	}
 
 	export class btConvexHullShape extends btConvexShape {
-		constructor();
 		addPoint(point: btVector3Const, recalculateLocalAABB?: boolean): void;
 	}
 
@@ -434,9 +431,9 @@ declare namespace Ammo {
 	}
 
 	export const enum AxisIndex {
-		AXIS_X = 0,
-		AXIS_Y,
-		AXIS_Z
+		X = 0,
+		Y,
+		Z
 	}
 
 	export type PHY_ScalarType = "PHY_FLOAT" | "PHY_DOUBLE" | "PHY_INTEGER" | "PHY_SHORT" | "PHY_FIXEDPOINT88" | "PHY_UCHAR";
@@ -447,19 +444,15 @@ declare namespace Ammo {
 
 	// ----
 
-	export class btDefaultCollisionConstructionInfo {
-		constructor();
-	}
+	export class btDefaultCollisionConstructionInfo { }
 
-	export abstract class btCollisionConfiguration {}
+	export abstract class btCollisionConfiguration { }
 
 	export class btDefaultCollisionConfiguration extends btCollisionConfiguration {
 		constructor(info?: btDefaultCollisionConstructionInfo);
 	}
 
 	export class btPersistentManifold {
-		constructor();
-
 		getBody0(): btCollisionObjectConst;
 		getBody1(): btCollisionObjectConst;
 		getNumContacts(): number;
@@ -475,7 +468,7 @@ declare namespace Ammo {
 		constructor(c: btDefaultCollisionConfiguration);
 	}
 
-	interface btOverlappingPairCallback {
+	export interface btOverlappingPairCallback {
 		readonly __btOverlappingPairCallback?: void;
 	}
 
@@ -483,15 +476,13 @@ declare namespace Ammo {
   		setInternalGhostPairCallback(ghostPairCallback: btOverlappingPairCallback): void;
 	}
 
-	export abstract class btBroadphaseInterface {}
+	export abstract class btBroadphaseInterface { }
 
 	export class btAxisSweep3 extends btBroadphaseInterface {
 		constructor(min: btVector3, max: btVector3, maxHandles?: number, pairCache?: btOverlappingPairCache, disableRaycastAccelerator?: boolean);
 	}
 
-	export class btDbvtBroadphase extends btBroadphaseInterface {
-		constructor();
-	}
+	export class btDbvtBroadphase extends btBroadphaseInterface { }
 
 	// ---- Dynamics
 
@@ -560,7 +551,6 @@ declare namespace Ammo {
 	// ---- Constraints
 
 	export class btConstraintSetting {
-		constructor();
 		get_m_tau(): number;
 		set_m_tau(tau: number): void;
 		get_m_damping(): number;
@@ -656,7 +646,7 @@ declare namespace Ammo {
 
 	// ----
 
-	const enum DispatchFunc {
+	export const enum DispatchFunc {
 		DISPATCH_DISCRETE = 1,
 		DISPATCH_CONTINUOUS
 	}
