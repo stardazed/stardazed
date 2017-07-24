@@ -927,4 +927,172 @@ declare namespace Ammo {
 		setUserConstraintId(uid: number): void;
 		getUserConstraintId(): number;
 	}
+
+	// ---- Soft bodies
+
+	export class btSoftBodyWorldInfo {
+		get_air_density(): number;
+		set_air_density(ad: number): void;
+		get_water_density(): number;
+		set_water_density(wd: number): void;
+		get_water_offset(): number;
+		set_water_offset(wo: number): void;
+		get_m_maxDisplacement(): number;
+		set_m_maxDisplacement(md: number): void;
+		get_water_normal(): btVector3;
+		set_water_normal(wn: btVector3): void;
+		get_m_broadphase(): btBroadphaseInterface;
+		set_m_broadphase(bp: btBroadphaseInterface): void;
+		get_m_dispatcher(): btDispatcher;
+		set_m_dispatcher(disp: btDispatcher): void;
+		get_m_gravity(): btVector3;
+		set_m_gravity(g: btVector3): void;
+	}
+
+	export interface Node {
+		get_m_x(): btVector3;
+		set_m_x(v: btVector3): void;
+		get_m_n(): btVector3;
+		set_m_n(v: btVector3): void;
+	}
+
+	export interface tNodeArray {
+		size(): number;
+		at(n: number): Node;
+	}
+
+	export interface Material {
+		get_m_kLST(): number;
+		set_m_kLST(n: number): void;
+		get_m_kAST(): number;
+		set_m_kAST(n: number): void;
+		get_m_kVST(): number;
+		set_m_kVST(n: number): void;
+		get_m_flags(): number;
+		set_m_flags(n: number): void;
+	}
+
+	export interface tMaterialArray {
+		size(): number;
+		at(n: number): Material;
+	}
+
+	export interface Config {
+		get_kVCF(): number;
+		set_kVCF(n: number): void;
+		get_kDP(): number;
+		set_kDP(n: number): void;
+		get_kDG(): number;
+		set_kDG(n: number): void;
+		get_kLF(): number;
+		set_kLF(n: number): void;
+		get_kPR(): number;
+		set_kPR(n: number): void;
+		get_kVC(): number;
+		set_kVC(n: number): void;
+		get_kDF(): number;
+		set_kDF(n: number): void;
+		get_kMT(): number;
+		set_kMT(n: number): void;
+		get_kCHR(): number;
+		set_kCHR(n: number): void;
+		get_kKHR(): number;
+		set_kKHR(n: number): void;
+		get_kSHR(): number;
+		set_kSHR(n: number): void;
+		get_kAHR(): number;
+		set_kAHR(n: number): void;
+		get_kSRHR_CL(): number;
+		set_kSRHR_CL(n: number): void;
+		get_kSKHR_CL(): number;
+		set_kSKHR_CL(n: number): void;
+		get_kSSHR_CL(): number;
+		set_kSSHR_CL(n: number): void;
+		get_kSR_SPLT_CL(): number;
+		set_kSR_SPLT_CL(n: number): void;
+		get_kSK_SPLT_CL(): number;
+		set_kSK_SPLT_CL(n: number): void;
+		get_kSS_SPLT_CL(): number;
+		set_kSS_SPLT_CL(n: number): void;
+		get_maxvolume(): number;
+		set_maxvolume(n: number): void;
+		get_timescale(): number;
+		set_timescale(n: number): void;
+		get_viterations(): number;
+		set_viterations(n: number): void;
+		get_piterations(): number;
+		set_piterations(n: number): void;
+		get_diterations(): number;
+		set_diterations(n: number): void;
+		get_citerations(): number;
+		set_citerations(n: number): void;
+		get_collisions(): number;
+		set_collisions(n: number): void;
+	}
+
+	export class btSoftBody extends btCollisionObject {
+		constructor(worldInfo: btSoftBodyWorldInfo, nodeCount: number, x: btVector3, m: number[]);
+
+		get_m_cfg(): Config;
+		set_m_cfg(cfg: Config): void;
+		get_m_nodes(): tNodeArray;
+		set_m_nodes(nodes: tNodeArray): void;
+		get_m_materials(): tMaterialArray;
+		set_m_materials(mats: tMaterialArray): void;
+
+		checkLink(node0: number, node1: number): boolean;
+		checkFace(node0: number, node1: number, node2: number): boolean;
+
+		appendMaterial(): Material;
+		appendNode(x: btVector3Const, m: number): void;
+		appendLink(node0: number, node1: number, mat: Material, bCheckExist: boolean): void;
+		appendFace(node0: number, node1: number, node2: number, mat: Material): void;
+		appendTetra(node0: number, node1: number, node2: number, node3: number, mat: Material): void;
+		appendAnchor(node: number, body: btRigidBody, disableCollisionBetweenLinkedBodies: boolean, influence: number): void;
+
+		getTotalMass(): number;
+		setTotalMass(mass: number, fromfaces: boolean): void;
+		setMass(node: number, mass: number): void;
+
+		transform(trs: btTransformConst): void;
+		translate(trs: btVector3Const): void;
+		rotate(rot: btQuaternionConst): void;
+		scale(scl: btVector3Const): void;
+
+		generateClusters(k: number, maxIterations?: number): number;
+
+		upcast(colObj: btCollisionObject): btSoftBody;
+	}
+
+	export class btSoftBodyRigidBodyCollisionConfiguration extends btDefaultCollisionConfiguration {
+		constructor(info?: btDefaultCollisionConstructionInfo);
+	}
+
+	export abstract class btSoftBodySolver {}
+	export class btDefaultSoftBodySolver extends btSoftBodySolver {	}
+
+	export interface btSoftBodyArray {
+		size(): number;
+		at(n: number): btSoftBody;
+	}
+
+	export class btSoftRigidDynamicsWorld extends btDiscreteDynamicsWorld {
+		constructor(dispatcher: btDispatcher, pairCache: btBroadphaseInterface, constraintSolver: btConstraintSolver, collisionConfiguration: btCollisionConfiguration, softBodySolver: btSoftBodySolver);
+
+		addSoftBody(body: btSoftBody, collisionFilterGroup: CollisionFilterGroups, collisionFilterMask: CollisionFilterGroups): void;
+		removeSoftBody(body: btSoftBody): void;
+		removeCollisionObject(collisionObject: btCollisionObject): void;
+
+		getWorldInfo(): btSoftBodyWorldInfo;
+		getSoftBodyArray(): btSoftBodyArray;
+	}
+
+	export class btSoftBodyHelpers {
+		CreateRope(worldInfo: btSoftBodyWorldInfo, from: btVector3Const, to: btVector3Const, res: number, fixeds: number): btSoftBody;
+		CreatePatch(worldInfo: btSoftBodyWorldInfo, corner00: btVector3Const, corner10: btVector3Const, corner01: btVector3Const, corner11: btVector3Const, resx: number, resy: number, fixeds: number, gendiags: boolean): btSoftBody;
+		CreatePatchUV(worldInfo: btSoftBodyWorldInfo, corner00: btVector3Const, corner10: btVector3Const, corner01: btVector3Const, corner11: btVector3Const, resx: number, resy: number, fixeds: number, gendiags: boolean, tex_coords: number[]): btSoftBody;
+		CreateEllipsoid(worldInfo: btSoftBodyWorldInfo, center: btVector3Const, radius: btVector3Const, res: number): btSoftBody;
+		CreateFromTriMesh(worldInfo: btSoftBodyWorldInfo, vertices: number[], triangles: number[], ntriangles: number, randomizeConstraints: boolean): btSoftBody;
+		CreateFromConvexHull(worldInfo: btSoftBodyWorldInfo, vertices: btVector3, nvertices: number, randomizeConstraints: boolean): btSoftBody;
+	}
 }
