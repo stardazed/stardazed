@@ -1,10 +1,26 @@
 declare namespace Ammo {
 
-	interface Pointer extends Number {
-		readonly __Pointer?: void;
+	// ---- Memory
+
+	interface VoidPtr extends Number {
+		readonly __VoidPtr?: void;
 	}
 
-	function _malloc(sizeBytes: number): Pointer;
+	function _malloc(sizeBytes: number): VoidPtr;
+	function _free(ptr: VoidPtr): void;
+
+	function _memcpy(dest: VoidPtr, src: VoidPtr, count: number): VoidPtr;
+	function _memmove(dest: VoidPtr, src: VoidPtr, count: number): VoidPtr;
+	function _memset(dest: VoidPtr, ch: number, count: number): VoidPtr;
+
+	const HEAP8: Int8Array;
+	const HEAP16: Int16Array;
+	const HEAP32: Int32Array;
+	const HEAPU8: Uint8Array;
+	const HEAPU16: Uint16Array;
+	const HEAPU32: Uint32Array;
+	const HEAPF32: Float32Array;
+	const HEAPF64: Float64Array;
 
 	// ---- Linear Math
 
@@ -189,7 +205,7 @@ declare namespace Ammo {
 		// getAnisotropicFriction(): btVector3Const;
 
 		getUserIndex(): number;
-		getUserPointer(): Pointer;
+		getUserPointer(): VoidPtr;
 
 		getWorldTransform(): btTransform; // btTransformConst really, but non-const for nc-objects
 
@@ -218,7 +234,7 @@ declare namespace Ammo {
 		setAnisotropicFriction(anisotropicFriction: btVector3, frictionMode: AnisotropicFrictionFlags): void;
 
 		setUserIndex(index: number): void;
-		setUserPointer(userPointer: Pointer): void;
+		setUserPointer(userPointer: VoidPtr): void;
 
 		setWorldTransform(worldTrans: btTransform): void;
 
@@ -439,7 +455,7 @@ declare namespace Ammo {
 	type PHY_ScalarType = "PHY_FLOAT" | "PHY_DOUBLE" | "PHY_INTEGER" | "PHY_SHORT" | "PHY_FIXEDPOINT88" | "PHY_UCHAR";
 
 	class btHeightfieldTerrainShape extends btConcaveShape {
-		constructor(heightStickWidth: number, heightStickLength: number, heightfieldData: Pointer, heightScale: number, minHeight: number, maxHeight: number, upAxis: AxisIndex, hdt: PHY_ScalarType, flipQuadEdges: boolean);
+		constructor(heightStickWidth: number, heightStickLength: number, heightfieldData: VoidPtr, heightScale: number, minHeight: number, maxHeight: number, upAxis: AxisIndex, hdt: PHY_ScalarType, flipQuadEdges: boolean);
 	}
 
 	// ----
