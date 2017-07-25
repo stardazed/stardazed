@@ -633,7 +633,7 @@ namespace sd.meshdata.gen {
 
 			assert(this.radiusA_ >= 0);
 			assert(this.radiusB_ >= 0);
-			assert(! ((this.radiusA_ === 0) && (this.radiusB_ = 0)));
+			assert(! ((this.radiusA_ === 0) && (this.radiusB_ === 0)));
 			assert(this.rows_ >= 1);
 			assert(this.segs_ >= 3);
 		}
