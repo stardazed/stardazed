@@ -13,24 +13,25 @@ namespace sd.container {
 		count: number;
 	}
 
-
 	interface PositionedMABField extends MABField {
 		byteOffset: number;
 		sizeBytes: number;
 	}
 
-
-	export const enum InvalidatePointers {
-		No,
-		Yes
+	interface PositioningResult {
+		posFields: PositionedMABField[];
+		totalSizeBytes: number;
 	}
 
+	function mabFieldSizeBytes(field: MABField) {
+		return field.type.byteSize * field.count;
+	}
 
-	function positionFields(fields: MABField[]): PositionedMABField[] {
+	function packMABFields(fields: MABField[]): PositioningResult {
 		let totalOffset = 0;
-		return fields.map(field => {
+		const posFields = fields.map(field => {
 			const curOffset = totalOffset;
-			const sizeBytes = field.type.byteSize * field.count;
+			const sizeBytes = mabFieldSizeBytes(field);
 			totalOffset += sizeBytes;
 
 			return {
@@ -40,19 +41,55 @@ namespace sd.container {
 				sizeBytes
 			};
 		});
+
+		return { posFields, totalSizeBytes: totalOffset };
 	}
 
+	function alignMABField(field: MABField, offset: number) {
+		const sizeBytes = mabFieldSizeBytes(field);
+		const mask = math.roundUpPowerOf2(sizeBytes) - 1;
+		return (offset + mask) & ~mask;
+	}
+
+	function alignMABFields(fields: MABField[]): PositioningResult {
+		let totalOffset = 0;
+		const posFields = fields.map(field => {
+			const curOffset = totalOffset;
+			totalOffset = alignMABField(field, totalOffset);
+
+			return {
+				type: field.type,
+				count: field.count,
+				byteOffset: curOffset,
+				sizeBytes: mabFieldSizeBytes(field)
+			};
+		});
+
+		return { posFields, totalSizeBytes: totalOffset };
+	}
+
+
+	export const enum InvalidatePointers {
+		No,
+		Yes
+	}
 
 	function clearBuffer(data: ArrayBuffer) {
 		const numDoubles = (data.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
 		const doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
 		const remainingBytes = data.byteLength - doublesByteSize;
 
-		// As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
 		const doubleView = new Float64Array(data);
 		const remainderView = new Uint8Array(data, doublesByteSize);
-		for (let d = 0; d < numDoubles; ++d) {
-			doubleView[d] = 0;
+
+		if (doubleView.fill) {
+			doubleView.fill(0);
+		}
+		else {
+			// As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
+			for (let d = 0; d < numDoubles; ++d) {
+				doubleView[d] = 0;
+			}
 		}
 		for (let b = 0; b < remainingBytes; ++b) {
 			remainderView[b] = 0;
@@ -61,15 +98,12 @@ namespace sd.container {
 
 
 	export class FixedMultiArray {
-		private data_: ArrayBuffer;
-		private basePointers_: TypedArray[];
+		private readonly data_: ArrayBuffer;
+		private readonly basePointers_: TypedArray[];
 
 		constructor(private capacity_: number, fields: MABField[]) {
-			const posFields = positionFields(fields);
-			const lastField = posFields[posFields.length - 1];
-			const elementSumSize = lastField.byteOffset + lastField.sizeBytes;
-
-			this.data_ = new ArrayBuffer(elementSumSize * capacity_);
+			const { posFields, totalSizeBytes } = packMABFields(fields);
+			this.data_ = new ArrayBuffer(totalSizeBytes * capacity_);
 
 			this.basePointers_ = posFields.map(posField => {
 				const byteOffset = capacity_ * posField.byteOffset;
@@ -220,6 +254,42 @@ namespace sd.container {
 
 		indexedFieldView(index: number) {
 			return this.fieldArrayView(this.fields_[index], this.data_!, this.capacity_);
+		}
+	}
+
+
+	export class FixedStructArray {
+		private readonly data_: ArrayBuffer;
+		private readonly fields_: PositionedMABField[];
+		private readonly structSize_: number;
+		private readonly capacity_: number;
+
+		constructor(capacity: number, fields: MABField[]) {
+			const result = alignMABFields(fields);
+			this.fields_ = result.posFields;
+			this.structSize_ = result.totalSizeBytes;
+			this.capacity_ = capacity;
+
+			this.data_ = new ArrayBuffer(this.structSize_ * this.capacity_);
+		}
+
+		indexedStructBuffer(structIndex: number) {
+			const byteOffset = structIndex * this.structSize_;
+			return this.data_.slice(byteOffset, byteOffset + this.structSize_);
+		}
+
+		indexedStructFieldView(structIndex: number, fieldIndex: number) {
+			const f = this.fields_[fieldIndex];
+			const byteOffset = (structIndex * this.structSize_) + f.byteOffset;
+			return new (f.type.arrayType)(this.data_, byteOffset, f.count);
+		}
+
+		get structSizeBytes() { return this.structSize_; }
+		get capacity() { return this.capacity_; }
+		get data() { return this.data_; }
+
+		clear() {
+			clearBuffer(this.data_);
 		}
 	}
 
