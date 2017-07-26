@@ -1,4 +1,4 @@
-// container/multiarraybuffer - struct-of-arrays containers for primitive types
+// container/arraybuffer - arrays of structs and structs of arrays (numeric data only)
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
