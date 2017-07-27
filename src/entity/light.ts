@@ -57,10 +57,10 @@ namespace sd.entity {
 				{ type: SInt32, count: 1 }, // shadowType
 				{ type: SInt32, count: 1 }, // shadowQuality
 			];
-			this.instanceData_ = new container.MultiArrayBuffer(1024, instFields);
+			this.instanceData_ = new container.MultiArrayBuffer(1280, instFields);
 			this.rebase();
 
-			this.lightData_ = new Float32Array(4 * 5 * 1024); // 5 vec4s per light
+			this.lightData_ = new Float32Array(4 * 5 * 1280); // 5 vec4s per light
 			this.count_ = 0;
 
 			this.nullVec3_ = vec3.fromValues(1, 0, 0);

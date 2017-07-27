@@ -5,18 +5,52 @@
 
 namespace sd.system {
 
-	// This setup allows for a viewport > 5K (5120x2880)
-	// a global list of up to 32768 active lights and
-	// an average of ~300 active lights per tile at 1920x1080
-	// I will add smaller LUT texture options later (320x256, 160x128)
-	const LUT_WIDTH = 640;
-	const LUT_LIGHTDATA_ROWS = 256;
-	const LUT_INDEXLIST_ROWS = 240;
-	const LUT_GRID_ROWS = 16;
-	// const LUT_HEIGHT = LUT_LIGHTDATA_ROWS + LUT_INDEXLIST_ROWS + LUT_GRID_ROWS; // 512
-
-	const MAX_LIGHTS = ((LUT_WIDTH * LUT_LIGHTDATA_ROWS) / 5) | 0;
 	const TILE_DIMENSION = 32;
+
+	export type LightLUTSize = "small" | "medium" | "large";
+
+	interface LightLUTConfig {
+		pixelWidth: number;
+		lightDataRows: number;
+		indexListRows: number;
+		gridRows: number;
+	}
+
+	const lutConfigs: { readonly [size: string]: LightLUTConfig } = {
+		/**
+		 * Small: 2048 light maximum
+		 * Max viewport size: 1280x720
+		 * Avg lights/tile at max viewport: ~19
+		 */
+		small: {
+			pixelWidth: 160,
+			lightDataRows: 64,
+			indexListRows: 60,
+			gridRows: 4
+		},
+		/**
+		 * Medium(default): 8192 light maximum
+		 * Max viewport size: 2560x1440
+		 * Avg lights/tile at max viewport: ~42
+		 */
+		medium: {
+			pixelWidth: 320,
+			lightDataRows: 128,
+			indexListRows: 120,
+			gridRows: 8
+		},
+		/**
+		 * Large: 32768 light maximum
+		 * Max viewport size: 5120x2880+
+		 * Avg lights/tile at max viewport: ~42
+		 */
+		large: {
+			pixelWidth: 640,
+			lightDataRows: 256,
+			indexListRows: 240,
+			gridRows: 16
+		},
+	};
 
 	interface LightGridSpan {
 		lightIndex: number;
@@ -25,17 +59,38 @@ namespace sd.system {
 	}
 
 	export class Lighting {
-		private lutTilesWide_ = 0;
-		private lutTilesHigh_ = 0;
+		private lutWidthPixels_: number;
+		private lutHeightPixels_: number;
+		private lutLightDataRows_: number;
+		private lutIndexListRows_: number;
+		private lutGridRows_: number;
+		private lutTilesWide_: number;
+		private lutTilesHigh_: number;
 		private lutParam_ = new Float32Array(2);
 
-		private tileLightIndexes_: Float32Array;
-		private lightGrid_: Float32Array;
+		private readonly lightComp_: entity.LightComponent;
+		private readonly transformComp_: entity.TransformComponent;
 
+		private readonly tileLightIndexes_: Float32Array;
+		private readonly lightGrid_: Float32Array;
+
+		private lutTexture_: render.Texture;
 		private gridRowSpans_: LightGridSpan[][] = [];
+		private readonly nullVec3_: Float32Array;
 
-		constructor() {
+		constructor(lightComp: entity.LightComponent, transformComp: entity.TransformComponent, lutSize: LightLUTSize) {
+			this.lightComp_ = lightComp;
+			this.transformComp_ = transformComp;
 
+			const lutConfig = lutConfigs[lutSize];
+			this.lutWidthPixels_ = lutConfig.pixelWidth;
+			this.lutHeightPixels_ = lutConfig.lightDataRows + lutConfig.indexListRows + lutConfig.gridRows;
+			this.lutLightDataRows_ = lutConfig.lightDataRows;
+			this.lutIndexListRows_ = lutConfig.indexListRows;
+			this.lutGridRows_ = lutConfig.gridRows;
+
+			this.nullVec3_ = vec3.fromValues(1, 0, 0);
+			this.lutTexture_ = render.makeTex2D(image.PixelFormat.RGBA32F, this.lutWidthPixels_, this.lutHeightPixels_);
 		}
 
 		private projectPointLight(outBounds: math.Rect, center: Float3, range: number, projectionViewportMatrix: Float4x4) {
@@ -84,6 +139,8 @@ namespace sd.system {
 
 
 		private updateLightGrid(range: entity.LightRange, projection: math.ProjectionSetup, viewport: render.Viewport) {
+			const light = this.lightComp_;
+
 			const vpHeight = this.lutParam_[1];
 			const tilesWide = this.lutTilesWide_;
 			const tilesHigh = this.lutTilesHigh_;
@@ -105,12 +162,12 @@ namespace sd.system {
 			const iter = range.makeIterator();
 			while (iter.next()) {
 				const lix = iter.current as number;
-				const lightType = this.type(lix);
+				const lightType = light.type(lix);
 
 				if (lightType === entity.LightType.Point) {
 					// calculate screen space bounds based on a simple point and radius cube
-					const lcpos = this.positionCameraSpace(lix);
-					const radius = this.range(lix);
+					const lcpos = light.positionCameraSpace(lix);
+					const radius = light.range(lix);
 					// the resulting rect has the bottom-left as origin (bottom < top)
 					this.projectPointLight(ssb, lcpos, radius, VPP);
 
@@ -168,12 +225,15 @@ namespace sd.system {
 
 			return {
 				indexPixelsUsed: Math.ceil(nextLightIndexOffset / 4),
-				gridRowsUsed: Math.ceil((tilesWide * tilesHigh) / 2 / LUT_WIDTH)
+				gridRowsUsed: Math.ceil((tilesWide * tilesHigh) / 2 / this.lutWidthPixels_)
 			};
 		}
 
 
-		prepareLightsForRender(range: LightRange, proj: math.ProjectionSetup, targetDim: image.PixelDimensions, viewport: render.Viewport) {
+		prepareLightsForRender(range: entity.LightRange, proj: math.ProjectionSetup, targetDim: image.PixelDimensions, viewport: render.Viewport) {
+			const light = this.lightComp_;
+			const transform = this.transformComp_;
+
 			// update lut dimensions
 			this.lutTilesWide_ = Math.ceil(targetDim.width / TILE_DIMENSION);
 			this.lutTilesHigh_ = Math.ceil(targetDim.height / TILE_DIMENSION);
@@ -192,32 +252,32 @@ namespace sd.system {
 					highestLightIndex = lix;
 				}
 
-				const type = this.type(lix);
-				const transform = this.transformBase_[lix];
+				const type = light.type(lix);
+				const lightTX = light.transformBase_[lix];
 
 				if (type !== entity.LightType.Directional) {
-					const lightPos_world = this.transformMgr_.worldPosition(transform); // tslint:disable-line:variable-name
+					const lightPos_world = transform.worldPosition(lightTX); // tslint:disable-line:variable-name
 					const lightPos_cam = vec3.transformMat4([], lightPos_world, proj.viewMatrix); // tslint:disable-line:variable-name
 
 					const posCamOffset = (lix * 20) + 4;
-					this.globalLightData_[posCamOffset] = lightPos_cam[0];
-					this.globalLightData_[posCamOffset + 1] = lightPos_cam[1];
-					this.globalLightData_[posCamOffset + 2] = lightPos_cam[2];
+					light.lightData_[posCamOffset] = lightPos_cam[0];
+					light.lightData_[posCamOffset + 1] = lightPos_cam[1];
+					light.lightData_[posCamOffset + 2] = lightPos_cam[2];
 
 					const posWorldOffset = (lix * 20) + 8;
-					this.globalLightData_[posWorldOffset] = lightPos_world[0];
-					this.globalLightData_[posWorldOffset + 1] = lightPos_world[1];
-					this.globalLightData_[posWorldOffset + 2] = lightPos_world[2];
+					light.lightData_[posWorldOffset] = lightPos_world[0];
+					light.lightData_[posWorldOffset + 1] = lightPos_world[1];
+					light.lightData_[posWorldOffset + 2] = lightPos_world[2];
 				}
-				if (type !== LightType.Point) {
-					const rotMat = mat3.normalFromMat4([], this.transformMgr_.worldMatrix(transform));
+				if (type !== entity.LightType.Point) {
+					const rotMat = mat3.normalFromMat4([], transform.worldMatrix(lightTX));
 					const lightDir_world = vec3.transformMat3([], this.nullVec3_, rotMat); // tslint:disable-line:variable-name
 					const lightDir_cam = vec3.transformMat3([], lightDir_world, viewNormalMatrix); // tslint:disable-line:variable-name
 
 					const dirOffset = (lix * 20) + 12;
-					this.globalLightData_[dirOffset] = lightDir_cam[0];
-					this.globalLightData_[dirOffset + 1] = lightDir_cam[1];
-					this.globalLightData_[dirOffset + 2] = lightDir_cam[2];
+					light.lightData_[dirOffset] = lightDir_cam[0];
+					light.lightData_[dirOffset + 1] = lightDir_cam[1];
+					light.lightData_[dirOffset + 2] = lightDir_cam[2];
 				}
 			}
 
@@ -225,15 +285,15 @@ namespace sd.system {
 			const { indexPixelsUsed, gridRowsUsed } = this.updateLightGrid(range, proj, viewport);
 
 			// update texture data
-			const gllRowsUsed = Math.ceil(highestLightIndex / LUT_WIDTH);
-			const indexRowsUsed = Math.ceil(indexPixelsUsed / LUT_WIDTH);
+			const gllRowsUsed = Math.ceil(highestLightIndex / this.lutWidthPixels_);
+			const indexRowsUsed = Math.ceil(indexPixelsUsed / this.lutWidthPixels_);
 
 			// resource updates
 			const cmd = new render.RenderCommandBuffer();
 			// TODO: should use slice to only pass subarray of data actually being sent?
-			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, 0), image.makePixelDimensions(LUT_WIDTH, gllRowsUsed), this.globalLightData_);
-			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, LUT_LIGHTDATA_ROWS), image.makePixelDimensions(LUT_WIDTH, indexRowsUsed), this.tileLightIndexes_);
-			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, LUT_LIGHTDATA_ROWS + LUT_INDEXLIST_ROWS), image.makePixelDimensions(LUT_WIDTH, gridRowsUsed), this.lightGrid_);
+			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, 0), image.makePixelDimensions(this.lutWidthPixels_, gllRowsUsed), light.lightData_);
+			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, this.lutLightDataRows_), image.makePixelDimensions(this.lutWidthPixels_, indexRowsUsed), this.tileLightIndexes_);
+			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, this.lutLightDataRows_ + this.lutIndexListRows_), image.makePixelDimensions(this.lutWidthPixels_, gridRowsUsed), this.lightGrid_);
 			return cmd;
 		}
 

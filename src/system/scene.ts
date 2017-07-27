@@ -78,7 +78,7 @@ namespace sd {
 			this.lights = new entity.LightComponent(this.transforms);
 
 			// -- controlling systems (scene-local)
-			this.lighting = new system.Lighting();
+			this.lighting = new system.Lighting(this.lights, this.transforms, "medium");
 			this.physics = new system.Physics();
 
 			// -- assets
