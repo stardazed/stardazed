@@ -1,41 +1,9 @@
-// tools/runloop - Browser interaction and game driver
+// system/application - Browser interaction and game driver
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 namespace sd {
-
-	export interface SceneDelegate {
-		update?(timeStep: number): void;
-
-		resume?(): void;
-		suspend?(): void;
-
-		focus?(): void;
-		blur?(): void;
-	}
-
-
-	export class Scene {
-		readonly entities: entity.EntityManager;
-		readonly transforms: entity.TransformComponent;
-		readonly meshes: entity.MeshComponent;
-		readonly lights: entity.LightComponent;
-		// readonly renderers: entity.MeshRendererComponent;
-		// readonly colliders: entity.ColliderComponent;
-
-		delegate: SceneDelegate | undefined;
-
-		constructor() {
-			this.entities = new entity.EntityManager();
-			this.transforms = new entity.TransformComponent();
-			this.meshes = new entity.MeshComponent();
-			this.lights = new entity.LightComponent(this.transforms);
-
-			this.delegate = undefined;
-		}
-	}
-
 
 	const enum ApplicationState {
 		Uninitialized,
@@ -50,6 +18,7 @@ namespace sd {
 		readonly globalTime: number;
 		scene: Scene | undefined;
 	}
+
 
 	const TICK_DURATION = math.hertz(60);
 	const MAX_FRAME_DURATION = TICK_DURATION * 2;
@@ -99,7 +68,9 @@ namespace sd {
 			// reset io devices
 			control.keyboard.resetHalfTransitions();
 
-			this.rafID_ = requestAnimationFrame(this.nextFrameFn_);
+			if (this.state_ === ApplicationState.Running) {
+				this.rafID_ = requestAnimationFrame(this.nextFrameFn_);
+			}
 		}
 
 
@@ -144,17 +115,20 @@ namespace sd {
 		}
 
 		set scene(newScene: Scene | undefined) {
+			if (newScene === this.scene_) {
+				return;
+			}
 			if (this.scene_) {
 				if (this.state_ === ApplicationState.Running) {
 					this.scene_.suspend();
 				}
-				this.scene_.blur();
+				this.scene_.exit();
 			}
 
 			this.scene_ = newScene;
 
 			if (this.scene_) {
-				this.scene_.focus();
+				this.scene_.enter();
 				if (this.state_ === ApplicationState.Running) {
 					this.scene_.resume();
 				}
