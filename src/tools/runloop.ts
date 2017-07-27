@@ -5,15 +5,8 @@
 
 namespace sd {
 
-	export const enum RunLoopState {
-		Idle,
-		Running
-	}
-
-
-	export interface SceneController {
-		renderFrame(timeStep: number): void;
-		simulationStep(timeStep: number): void;
+	export interface SceneDelegate {
+		update?(timeStep: number): void;
 
 		resume?(): void;
 		suspend?(): void;
@@ -23,61 +16,101 @@ namespace sd {
 	}
 
 
-	export class RunLoop {
-		private tickDuration_ = math.hertz(60);
-		private maxFrameDuration_ = this.tickDuration_ * 2;
+	export class Scene {
+		readonly entities: entity.EntityManager;
+		readonly transforms: entity.TransformComponent;
+		readonly meshes: entity.MeshComponent;
+		readonly lights: entity.LightComponent;
+		// readonly renderers: entity.MeshRendererComponent;
+		// readonly colliders: entity.ColliderComponent;
 
+		delegate: SceneDelegate | undefined;
+
+		constructor() {
+			this.entities = new entity.EntityManager();
+			this.transforms = new entity.TransformComponent();
+			this.meshes = new entity.MeshComponent();
+			this.lights = new entity.LightComponent(this.transforms);
+
+			this.delegate = undefined;
+		}
+	}
+
+
+	const enum ApplicationState {
+		Uninitialized,
+		Starting,
+		Running,
+		Suspended
+	}
+
+	export interface Application {
+		initialize(): void;
+
+		readonly globalTime: number;
+		scene: Scene | undefined;
+	}
+
+	const TICK_DURATION = math.hertz(60);
+	const MAX_FRAME_DURATION = TICK_DURATION * 2;
+
+	class SDApplication implements Application {
 		private globalTime_ = 0;
 		private lastFrameTime_ = 0;
 
-		private runState_ = RunLoopState.Idle;
+		private state_ = ApplicationState.Uninitialized;
 		private rafID_ = 0;
 		private nextFrameFn_: FrameRequestCallback;
 
-		private sceneCtrl_: SceneController | null = null;
+		private scene_: Scene | undefined = undefined;
 
+		initialize() {
+			if (this.state_ !== ApplicationState.Uninitialized) {
+				return;
+			}
+			this.state_ = ApplicationState.Starting;
 
-		constructor() {
 			this.nextFrameFn_ = this.nextFrame.bind(this);
-		}
 
+			dom.on(window, "blur", () => { this.suspend(); });
+			dom.on(window, "focus", () => {	this.resume(); });
+		}
 
 		private nextFrame(now: number) {
 			// if we exceed the max frame time then we will start introducing
 			// real lag and slowing the game down to catch up
 			let dt = (now - this.lastFrameTime_) / 1000.0;
-			if (dt > this.maxFrameDuration_) {
-				dt = this.maxFrameDuration_;
+			if (dt > MAX_FRAME_DURATION) {
+				dt = MAX_FRAME_DURATION;
 			}
 			this.lastFrameTime_ = now;
 			this.globalTime_ += dt;
 
-			if (this.sceneCtrl_) {
-				// TODO: split up simulation step into phases for physics / AI, etc.
-				// and run simulations in fixed timesteps
-				this.sceneCtrl_.simulationStep(dt);
-				this.sceneCtrl_.renderFrame(dt);
+			if (this.scene_) {
+				/*
+				this.scene_.notifyPrePhysics(dt);
+				this.scene_.physics.update(dt);
+				this.scene_.notifyPostPhysics(dt);
+				
+				
+				*/
 			}
 
 			// reset io devices
 			control.keyboard.resetHalfTransitions();
 
-			if (this.runState_ === RunLoopState.Running) {
-				this.rafID_ = requestAnimationFrame(this.nextFrameFn_);
-			}
+			this.rafID_ = requestAnimationFrame(this.nextFrameFn_);
 		}
 
 
-		start() {
-			if (this.runState_ !== RunLoopState.Idle) {
+		resume() {
+			if (this.state_ !== ApplicationState.Suspended && this.state_ !== ApplicationState.Starting) {
 				return;
 			}
+			this.state_ = ApplicationState.Running;
 
-			this.runState_ = RunLoopState.Running;
-			if (this.sceneCtrl_) {
-				if (this.sceneCtrl_.resume) {
-					this.sceneCtrl_.resume();
-				}
+			if (this.scene_) {
+				this.scene_.resume();
 			}
 
 			this.lastFrameTime_ = performance.now();
@@ -85,16 +118,14 @@ namespace sd {
 		}
 
 
-		stop() {
-			if (this.runState_ !== RunLoopState.Running) {
+		suspend() {
+			if (this.state_ !== ApplicationState.Running) {
 				return;
 			}
+			this.state_ = ApplicationState.Suspended;
 
-			this.runState_ = RunLoopState.Idle;
-			if (this.sceneCtrl_) {
-				if (this.sceneCtrl_.suspend) {
-					this.sceneCtrl_.suspend();
-				}
+			if (this.scene_) {
+				this.scene_.suspend();
 			}
 
 			if (this.rafID_) {
@@ -108,47 +139,33 @@ namespace sd {
 			return this.globalTime_;
 		}
 
-
-		get sceneController() {
-			return this.sceneCtrl_;
+		get scene() {
+			return this.scene_;
 		}
 
-		set sceneController(newCtrl: SceneController | null) {
-			if (this.sceneCtrl_) {
-				if (this.runState_ === RunLoopState.Running) {
-					if (this.sceneCtrl_.suspend) {
-						this.sceneCtrl_.suspend();
-					}
+		set scene(newScene: Scene | undefined) {
+			if (this.scene_) {
+				if (this.state_ === ApplicationState.Running) {
+					this.scene_.suspend();
 				}
-				if (this.sceneCtrl_.blur) {
-					this.sceneCtrl_.blur();
-				}
+				this.scene_.blur();
 			}
 
-			this.sceneCtrl_ = newCtrl;
+			this.scene_ = newScene;
 
-			if (this.sceneCtrl_) {
-				if (this.sceneCtrl_.focus) {
-					this.sceneCtrl_.focus();
-				}
-				if (this.runState_ === RunLoopState.Running) {
-					if (this.sceneCtrl_.resume) {
-						this.sceneCtrl_.resume();
-					}
+			if (this.scene_) {
+				this.scene_.focus();
+				if (this.state_ === ApplicationState.Running) {
+					this.scene_.resume();
 				}
 			}
 		}
 	}
 
+	export const app: Application = new SDApplication();
 
-	export const runLoop = new RunLoop();
-
-	dom.on(window, "blur", () => {
-		runLoop.stop();
-	});
-
-	dom.on(window, "focus", () => {
-		runLoop.start();
+	dom.on(document, "DOMContentLoaded", () => {
+		app.initialize();
 	});
 
 } // ns sd
