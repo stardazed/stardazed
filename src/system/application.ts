@@ -45,6 +45,20 @@ namespace sd {
 			dom.on(window, "focus", () => {	this.resume(); });
 		}
 
+		private processSceneFrame(scene: Scene) {
+			const rcmds: render.RenderCommandBuffer[] = [];
+
+			rcmds.push(scene.lighting.prepareLightsForRender(
+				scene.lights.allEnabled(),
+				scene.camera,
+				image.makePixelDimensions(100, 100),
+				render.makeViewport()
+			));
+
+			scene.rd.dispatch(rcmds);
+			scene.rd.processFrame();
+		}
+
 		private nextFrame(now: number) {
 			// if we exceed the max frame time then we will start introducing
 			// real lag and slowing the game down to catch up
@@ -55,17 +69,8 @@ namespace sd {
 			this.lastFrameTime_ = now;
 			this.globalTime_ += dt;
 
-			const rcmds: render.RenderCommandBuffer[] = [];
 			if (this.scene_) {
-				rcmds.push(this.scene_.lighting.prepareLightsForRender(
-					this.scene_.lights.allEnabled(),
-					this.scene_.camera,
-					image.makePixelDimensions(100, 100),
-					render.makeViewport()
-				));
-
-				this.scene_.rd.dispatch(rcmds);
-				this.scene_.rd.processFrame();
+				this.processSceneFrame(this.scene_);
 			}
 
 			// reset io devices
