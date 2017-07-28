@@ -16,7 +16,6 @@ namespace sd.render {
 
 	export interface Effect {
 		readonly name: string;
-		readonly variants: ReadonlyArray<string>;
 
 		linkWithDevice(rd: RenderDevice): void;
 
@@ -28,7 +27,7 @@ namespace sd.render {
 			toBuffer: RenderCommandBuffer
 		): void;
 
-		makeEffectData(variant: string): EffectData | undefined;
+		makeEffectData(): EffectData;
 
 		getTexture(ed: EffectData, name: string): Texture | undefined;
 		setTexture(ed: EffectData, name: string, tex: Texture | undefined): void;

@@ -39,7 +39,7 @@ namespace sd.render {
 		readonly maxColourAttachments: number;
 
 		// command dispatch
-		dispatch(pass: RenderCommandBuffer | RenderCommandBuffer[]): void;
+		dispatch(cmds: RenderCommandBuffer | RenderCommandBuffer[]): void;
 
 		// run all commands
 		processFrame(): void;
