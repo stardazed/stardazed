@@ -55,6 +55,7 @@ namespace sd {
 
 		readonly lighting: system.Lighting;
 		readonly physics: system.Physics;
+		readonly camera: math.Camera;
 
 		private state_: SceneState;
 		readonly delegate: SceneDelegate;
@@ -80,6 +81,8 @@ namespace sd {
 			// -- controlling systems (scene-local)
 			this.lighting = new system.Lighting(this.lights, this.transforms, "medium");
 			this.physics = new system.Physics();
+
+			this.camera = new math.Camera(rd.drawableWidth, rd.drawableHeight);
 
 			// -- assets
 			this.assetURLMapping = { ...config.assetURLMapping };

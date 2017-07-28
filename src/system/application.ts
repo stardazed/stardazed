@@ -59,7 +59,7 @@ namespace sd {
 			if (this.scene_) {
 				rcmds.push(this.scene_.lighting.prepareLightsForRender(
 					this.scene_.lights.allEnabled(),
-					camera,
+					this.scene_.camera,
 					image.makePixelDimensions(100, 100),
 					render.makeViewport()
 				));
