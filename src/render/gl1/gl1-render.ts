@@ -21,11 +21,17 @@ namespace sd.render.gl1 {
 		meshdata.IndexElementType.UInt32, GLConst.UNSIGNED_INT
 	);
 
-	export function renderFrame(this: GL1RenderDevice) {
+	export function processFrame(this: GL1RenderDevice) {
 		const gl = this.gl;
+
+		this.commandList_.sort((a, b) => a.sortKey - b.sortKey);
 
 		for (const cmd of this.commandList_) {
 			switch (cmd.type) {
+				case RCT.Resource:
+					this.processResourceCommand(cmd);
+					break;
+
 				case RCT.FrontFace: {
 					this.state.setFrontFace(cmd.frontFace);
 					break;

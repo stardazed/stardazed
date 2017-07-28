@@ -149,7 +149,7 @@ namespace sd.render.gl1 {
 
 
 		// -- render commands
-		dispatchCommand(cmds: RenderCommandBuffer | RenderCommandBuffer[]) {
+		dispatch(cmds: RenderCommandBuffer | RenderCommandBuffer[]) {
 			if (Array.isArray(cmds)) {
 				for (const cb of cmds) {
 					this.commandList_ = this.commandList_.concat(cb.commands);
@@ -160,8 +160,8 @@ namespace sd.render.gl1 {
 			}
 		}
 
-		// renderFrame is defined out-of-line in gl1-render.ts
-		renderFrame = renderFrame;
+		// processFrame is defined out-of-line in gl1-render.ts
+		processFrame = processFrame;
 
 		discardFrame() {
 			this.commandList_ = [];
@@ -173,61 +173,56 @@ namespace sd.render.gl1 {
 		// |_|_\___/__/\___/\_,_|_| \__\___/__/
 		//                                     
 
-		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]) {
-			if (! Array.isArray(rrcb)) {
-				rrcb = [rrcb];
-			}
-			for (const cb of rrcb) {
-				for (const resource of cb.freeList) {
-					if (! resource.renderResourceHandle) {
-						console.warn("free: resource was not GPU allocated.", resource);
-						continue;
-					}
-					switch (resource.renderResourceType) {
-						case ResourceType.Sampler:
-							this.freeSampler(resource as Sampler);
-							break;
-						case ResourceType.Texture:
-							this.freeTexture(resource as Texture);
-							break;
-						case ResourceType.FrameBuffer:
-							this.freeFrameBuffer(resource as FrameBuffer);
-							break;
-						case ResourceType.Shader:
-							this.freeShader(resource as Shader);
-							break;
-						case ResourceType.Mesh:
-							this.freeMesh(resource as meshdata.MeshData);
-							break;
-						default:
-							break;
-					}
+		processResourceCommand(rrc: ResourceCommand) {
+			for (const resource of rrc.free) {
+				if (! resource.renderResourceHandle) {
+					console.warn("free: resource was not GPU allocated.", resource);
+					continue;
 				}
+				switch (resource.renderResourceType) {
+					case ResourceType.Sampler:
+						this.freeSampler(resource as Sampler);
+						break;
+					case ResourceType.Texture:
+						this.freeTexture(resource as Texture);
+						break;
+					case ResourceType.FrameBuffer:
+						this.freeFrameBuffer(resource as FrameBuffer);
+						break;
+					case ResourceType.Shader:
+						this.freeShader(resource as Shader);
+						break;
+					case ResourceType.Mesh:
+						this.freeMesh(resource as meshdata.MeshData);
+						break;
+					default:
+						break;
+				}
+			}
 
-				for (const resource of cb.allocList) {
-					if (resource.renderResourceHandle) {
-						console.warn("alloc: resource was already GPU allocated.", resource);
-						continue;
-					}
-					switch (resource.renderResourceType) {
-						case ResourceType.Sampler:
-							this.allocSampler(resource as Sampler);
-							break;
-						case ResourceType.Texture:
-							this.allocTexture(resource as Texture);
-							break;
-						case ResourceType.FrameBuffer:
-							this.allocFrameBuffer(resource as FrameBuffer);
-							break;
-						case ResourceType.Shader:
-							this.allocShader(resource as Shader);
-							break;
-						case ResourceType.Mesh:
-							this.allocMesh(resource as meshdata.MeshData);
-							break;
-						default:
-							break;
-					}
+			for (const resource of rrc.alloc) {
+				if (resource.renderResourceHandle) {
+					console.warn("alloc: resource was already GPU allocated.", resource);
+					continue;
+				}
+				switch (resource.renderResourceType) {
+					case ResourceType.Sampler:
+						this.allocSampler(resource as Sampler);
+						break;
+					case ResourceType.Texture:
+						this.allocTexture(resource as Texture);
+						break;
+					case ResourceType.FrameBuffer:
+						this.allocFrameBuffer(resource as FrameBuffer);
+						break;
+					case ResourceType.Shader:
+						this.allocShader(resource as Shader);
+						break;
+					case ResourceType.Mesh:
+						this.allocMesh(resource as meshdata.MeshData);
+						break;
+					default:
+						break;
 				}
 			}
 		}
