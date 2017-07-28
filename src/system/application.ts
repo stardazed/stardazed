@@ -55,14 +55,17 @@ namespace sd {
 			this.lastFrameTime_ = now;
 			this.globalTime_ += dt;
 
+			const rcmds: render.RenderCommandBuffer[] = [];
 			if (this.scene_) {
-				/*
-				this.scene_.notifyPrePhysics(dt);
-				this.scene_.physics.update(dt);
-				this.scene_.notifyPostPhysics(dt);
-				
-				
-				*/
+				rcmds.push(this.scene_.lighting.prepareLightsForRender(
+					this.scene_.lights.allEnabled(),
+					camera,
+					image.makePixelDimensions(100, 100),
+					render.makeViewport()
+				));
+
+				this.scene_.rd.dispatch(rcmds);
+				this.scene_.rd.processFrame();
 			}
 
 			// reset io devices
