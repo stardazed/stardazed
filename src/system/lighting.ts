@@ -253,21 +253,21 @@ namespace sd.system {
 				}
 
 				const type = light.type(lix);
-				const lightTX = light.transformBase_[lix];
+				const lightTX = light.transform(lix);
 
 				if (type !== entity.LightType.Directional) {
 					const lightPos_world = transform.worldPosition(lightTX); // tslint:disable-line:variable-name
 					const lightPos_cam = vec3.transformMat4([], lightPos_world, proj.viewMatrix); // tslint:disable-line:variable-name
 
 					const posCamOffset = (lix * 20) + 4;
-					light.lightData_[posCamOffset] = lightPos_cam[0];
-					light.lightData_[posCamOffset + 1] = lightPos_cam[1];
-					light.lightData_[posCamOffset + 2] = lightPos_cam[2];
+					light.lightData[posCamOffset] = lightPos_cam[0];
+					light.lightData[posCamOffset + 1] = lightPos_cam[1];
+					light.lightData[posCamOffset + 2] = lightPos_cam[2];
 
 					const posWorldOffset = (lix * 20) + 8;
-					light.lightData_[posWorldOffset] = lightPos_world[0];
-					light.lightData_[posWorldOffset + 1] = lightPos_world[1];
-					light.lightData_[posWorldOffset + 2] = lightPos_world[2];
+					light.lightData[posWorldOffset] = lightPos_world[0];
+					light.lightData[posWorldOffset + 1] = lightPos_world[1];
+					light.lightData[posWorldOffset + 2] = lightPos_world[2];
 				}
 				if (type !== entity.LightType.Point) {
 					const rotMat = mat3.normalFromMat4([], transform.worldMatrix(lightTX));
@@ -275,9 +275,9 @@ namespace sd.system {
 					const lightDir_cam = vec3.transformMat3([], lightDir_world, viewNormalMatrix); // tslint:disable-line:variable-name
 
 					const dirOffset = (lix * 20) + 12;
-					light.lightData_[dirOffset] = lightDir_cam[0];
-					light.lightData_[dirOffset + 1] = lightDir_cam[1];
-					light.lightData_[dirOffset + 2] = lightDir_cam[2];
+					light.lightData[dirOffset] = lightDir_cam[0];
+					light.lightData[dirOffset + 1] = lightDir_cam[1];
+					light.lightData[dirOffset + 2] = lightDir_cam[2];
 				}
 			}
 
@@ -291,7 +291,7 @@ namespace sd.system {
 			// resource updates
 			const cmd = new render.RenderCommandBuffer();
 			// TODO: should use slice to only pass subarray of data actually being sent?
-			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, 0), image.makePixelDimensions(this.lutWidthPixels_, gllRowsUsed), light.lightData_);
+			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, 0), image.makePixelDimensions(this.lutWidthPixels_, gllRowsUsed), light.lightData);
 			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, this.lutLightDataRows_), image.makePixelDimensions(this.lutWidthPixels_, indexRowsUsed), this.tileLightIndexes_);
 			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, this.lutLightDataRows_ + this.lutIndexListRows_), image.makePixelDimensions(this.lutWidthPixels_, gridRowsUsed), this.lightGrid_);
 			return cmd;
