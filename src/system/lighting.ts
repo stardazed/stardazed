@@ -231,6 +231,12 @@ namespace sd.system {
 
 
 		prepareLightsForRender(range: entity.LightRange, proj: math.ProjectionSetup, targetDim: image.PixelDimensions, viewport: render.Viewport) {
+			const cmd = new render.RenderCommandBuffer();
+			if (this.lutTexture_.renderResourceHandle === 0) {
+				cmd.allocate(this.lutTexture_);
+				return cmd;
+			}
+
 			const light = this.lightComp_;
 			const transform = this.transformComp_;
 
@@ -289,7 +295,6 @@ namespace sd.system {
 			const indexRowsUsed = Math.ceil(indexPixelsUsed / this.lutWidthPixels_);
 
 			// resource updates
-			const cmd = new render.RenderCommandBuffer();
 			// TODO: should use slice to only pass subarray of data actually being sent?
 			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, 0), image.makePixelDimensions(this.lutWidthPixels_, gllRowsUsed), light.lightData);
 			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, this.lutLightDataRows_), image.makePixelDimensions(this.lutWidthPixels_, indexRowsUsed), this.tileLightIndexes_);
