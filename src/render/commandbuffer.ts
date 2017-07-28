@@ -75,12 +75,20 @@ namespace sd.render {
 
 	export const enum RenderCommandType {
 		None,
+		Resource,
 		FrameBuffer,
 		Scissor,
 		Viewport,
 		FrontFace,
 		TextureWrite,
 		RenderJob
+	}
+
+	export interface ResourceCommand {
+		type: RenderCommandType.Resource;
+		sortKey: number;
+		alloc: RenderResource[];
+		free: RenderResource[];
 	}
 
 	export interface ClearValues {
@@ -153,17 +161,45 @@ namespace sd.render {
 		constants: TEMPConstant[];
 	}
 
-	export type RenderCommand = FrameBufferCommand | ScissorCommand | ViewportCommand | FrontFaceCommand | TextureWriteCommand | RenderJobCommand;
+	export type RenderCommand = 
+		ResourceCommand |
+		FrameBufferCommand | ScissorCommand | ViewportCommand | FrontFaceCommand |
+		TextureWriteCommand |
+		RenderJobCommand;
 
 	const defaultClearColour_: ConstFloat4 = [0, 0, 0, 1];
 
 	export class RenderCommandBuffer {
 		readonly commands: RenderCommand[] = [];
 
+		private resourceCommand: ResourceCommand | undefined;
+		private getResourceCommand(): ResourceCommand {
+			if (! this.resourceCommand) {
+				this.resourceCommand = {
+					type: RenderCommandType.Resource,
+					sortKey: 0,
+					alloc: [],
+					free: []
+				};
+				this.commands.push(this.resourceCommand);
+			}
+			return this.resourceCommand;
+		}
+
+		allocate(resource: RenderResource) {
+			const cmd = this.getResourceCommand();
+			cmd.alloc.push(resource);
+		}
+
+		free(resource: RenderResource) {
+			const cmd = this.getResourceCommand();
+			cmd.free.push(resource);
+		}
+
 		setFrameBuffer(fb: FrameBuffer | null, clearMask: ClearMask, clearValues?: Partial<ClearValues>) {
 			this.commands.push({
 				type: RenderCommandType.FrameBuffer,
-				sortKey: 0,
+				sortKey: 1,
 				frameBufferHandle: fb ? fb.renderResourceHandle : 0,
 				clearMask,
 				clearValues: {
@@ -181,7 +217,7 @@ namespace sd.render {
 			// TODO: else assert >0-ness of all fields
 			this.commands.push({
 				type: RenderCommandType.Scissor,
-				sortKey: 0,
+				sortKey: 1,
 				...rect
 			});
 		}
@@ -189,7 +225,7 @@ namespace sd.render {
 		setViewport(viewport: Viewport) {
 			this.commands.push({
 				type: RenderCommandType.Viewport,
-				sortKey: 0,
+				sortKey: 1,
 				...viewport
 			});
 		}
@@ -197,7 +233,7 @@ namespace sd.render {
 		setFrontFace(winding: FrontFaceWinding) {
 			this.commands.push({
 				type: RenderCommandType.FrontFace,
-				sortKey: 0,
+				sortKey: 1,
 				frontFace: winding
 			});
 		}
@@ -205,7 +241,7 @@ namespace sd.render {
 		textureWrite(texture: Texture, layer: CubeMapFace | number, offset: image.PixelCoordinate, dim: image.PixelDimensions, pixels: ReadonlyTypedArray) {
 			this.commands.push({
 				type: RenderCommandType.TextureWrite,
-				sortKey: 0,
+				sortKey: 1,
 				textureHandle: texture.renderResourceHandle,
 				layer,
 				x: offset.x,
@@ -219,7 +255,7 @@ namespace sd.render {
 		render(job: RenderJob, _normalizedDepth: number) {
 			this.commands.push({
 				type: RenderCommandType.RenderJob,
-				sortKey: 0,
+				sortKey: 1,
 				pipeline: job.pipeline,
 				meshHandle: job.mesh.renderResourceHandle,
 				primitiveType: job.primGroup.type,

@@ -26,23 +26,6 @@ namespace sd.render {
 		Texture | Sampler | FrameBuffer | meshdata.MeshData | Shader;
 
 
-	export class RenderResourceCommandBuffer {
-		private readonly allocList_: RenderResource[] = [];
-		private readonly freeList_: RenderResource[] = [];
-
-		alloc(resource: RenderResource) {
-			this.allocList_.push(resource);
-		}
-
-		free(resource: RenderResource) {
-			this.freeList_.push(resource);
-		}
-
-		get allocList() { return this.allocList_; }
-		get freeList() { return this.freeList_; }
-	}
-
-
 	export interface RenderDevice extends EffectRegistry {
 		readonly name: string;
 
@@ -56,11 +39,10 @@ namespace sd.render {
 		readonly maxColourAttachments: number;
 
 		// command dispatch
-		dispatchResource(rrcb: RenderResourceCommandBuffer | RenderResourceCommandBuffer[]): void;
-		dispatchCommand(pass: RenderCommandBuffer | RenderCommandBuffer[]): void;
+		dispatch(pass: RenderCommandBuffer | RenderCommandBuffer[]): void;
 
-		// run all drawing commands
-		renderFrame(): void;
+		// run all commands
+		processFrame(): void;
 	}
 
 } // ns sd.render
