@@ -42,8 +42,8 @@ namespace sd.entity {
 		private enabledBase_: Uint8Array;
 		private castsShadowsBase_: Uint8Array;
 
-		private lightData_: Float32Array;
 		private count_: number;
+		readonly lightData: Float32Array;
 
 		private readonly nullVec3_: Float32Array; // used to convert directions to rotations
 
@@ -60,7 +60,7 @@ namespace sd.entity {
 			this.instanceData_ = new container.MultiArrayBuffer(1280, instFields);
 			this.rebase();
 
-			this.lightData_ = new Float32Array(4 * 5 * 1280); // 5 vec4s per light
+			this.lightData = new Float32Array(4 * 5 * 1280); // 5 vec4s per light
 			this.count_ = 0;
 
 			this.nullVec3_ = vec3.fromValues(1, 0, 0);
@@ -96,15 +96,15 @@ namespace sd.entity {
 			const gldV4Index = instance * 5;
 
 			// vec0: colour[3], type
-			container.setIndexedVec4(this.lightData_, gldV4Index + 0, [desc.colour[0], desc.colour[1], desc.colour[2], desc.type]);
+			container.setIndexedVec4(this.lightData, gldV4Index + 0, [desc.colour[0], desc.colour[1], desc.colour[2], desc.type]);
 			// vec1: position_cam[3], intensity
-			container.setIndexedVec4(this.lightData_, gldV4Index + 1, [0, 0, 0, Math.max(0, desc.intensity)]);
+			container.setIndexedVec4(this.lightData, gldV4Index + 1, [0, 0, 0, Math.max(0, desc.intensity)]);
 			// vec2: position_world[3], range
-			container.setIndexedVec4(this.lightData_, gldV4Index + 2, [0, 0, 0, desc.range || 0]);
+			container.setIndexedVec4(this.lightData, gldV4Index + 2, [0, 0, 0, desc.range || 0]);
 			// vec3: direction[3], cutoff
-			container.setIndexedVec4(this.lightData_, gldV4Index + 3, [0, 0, 0, Math.cos(desc.cutoff || 0)]);
+			container.setIndexedVec4(this.lightData, gldV4Index + 3, [0, 0, 0, Math.cos(desc.cutoff || 0)]);
 			// vec4: shadowStrength, shadowBias, 0, 0
-			container.setIndexedVec4(this.lightData_, gldV4Index + 4, [desc.shadowStrength || 1.0, desc.shadowBias || 0.002, 0, 0]);
+			container.setIndexedVec4(this.lightData, gldV4Index + 4, [desc.shadowStrength || 1.0, desc.shadowBias || 0.002, 0, 0]);
 
 			return instance;
 		}
@@ -200,61 +200,61 @@ namespace sd.entity {
 
 		positionCameraSpace(inst: LightInstance) {
 			const posCamOffset = ((inst as number) * 20) + 4;
-			return this.lightData_.slice(posCamOffset, posCamOffset + 3);
+			return this.lightData.slice(posCamOffset, posCamOffset + 3);
 		}
 
 		// -- internal properties
 
 		type(inst: LightInstance): LightType {
 			const offset = ((inst as number) * 20) + 3;
-			return this.lightData_[offset];
+			return this.lightData[offset];
 		}
 
 
 		colour(inst: LightInstance): number[] {
 			const v4Index = ((inst as number) * 5) + 0;
-			return container.copyIndexedVec4(this.lightData_, v4Index).slice(0, 3);
+			return container.copyIndexedVec4(this.lightData, v4Index).slice(0, 3);
 		}
 
 		setColour(inst: LightInstance, newColour: Float3) {
 			const offset = (inst as number) * 20;
-			this.lightData_[offset] = newColour[0];
-			this.lightData_[offset + 1] = newColour[1];
-			this.lightData_[offset + 2] = newColour[2];
+			this.lightData[offset] = newColour[0];
+			this.lightData[offset + 1] = newColour[1];
+			this.lightData[offset + 2] = newColour[2];
 		}
 
 
 		intensity(inst: LightInstance) {
 			const offset = ((inst as number) * 20) + 7;
-			return this.lightData_[offset];
+			return this.lightData[offset];
 		}
 
 		setIntensity(inst: LightInstance, newIntensity: number) {
 			const offset = ((inst as number) * 20) + 7;
-			this.lightData_[offset] = newIntensity;
+			this.lightData[offset] = newIntensity;
 		}
 
 
 		range(inst: LightInstance) {
 			const offset = ((inst as number) * 20) + 11;
-			return this.lightData_[offset];
+			return this.lightData[offset];
 		}
 
 		setRange(inst: LightInstance, newRange: number) {
 			const offset = ((inst as number) * 20) + 11;
-			this.lightData_[offset] = newRange;
+			this.lightData[offset] = newRange;
 		}
 
 
 		// cutoff is stored as the cosine of the angle for quick usage in the shader
 		cutoff(inst: LightInstance) {
 			const offset = ((inst as number) * 20) + 15;
-			return Math.acos(this.lightData_[offset]);
+			return Math.acos(this.lightData[offset]);
 		}
 
 		setCutoff(inst: LightInstance, newCutoff: number) {
 			const offset = ((inst as number) * 20) + 15;
-			this.lightData_[offset] = Math.cos(newCutoff);
+			this.lightData[offset] = Math.cos(newCutoff);
 		}
 
 
@@ -270,23 +270,23 @@ namespace sd.entity {
 
 		shadowStrength(inst: LightInstance): number {
 			const offset = ((inst as number) * 20) + 16;
-			return this.lightData_[offset];
+			return this.lightData[offset];
 		}
 
 		setShadowStrength(inst: LightInstance, newStrength: number) {
 			const offset = ((inst as number) * 20) + 16;
-			this.lightData_[offset] = newStrength;
+			this.lightData[offset] = newStrength;
 		}
 
 
 		shadowBias(inst: LightInstance): number {
 			const offset = ((inst as number) * 20) + 17;
-			return this.lightData_[offset];
+			return this.lightData[offset];
 		}
 
 		setShadowBias(inst: LightInstance, newBias: number) {
 			const offset = ((inst as number) * 20) + 17;
-			this.lightData_[offset] = newBias;
+			this.lightData[offset] = newBias;
 		}
 	}
 
