@@ -233,7 +233,7 @@ namespace sd.system {
 		}
 
 
-		prepareLightsForRender(range: entity.LightRange, proj: math.ProjectionSetup, targetDim: image.PixelDimensions, viewport: render.Viewport) {
+		prepareLightsForRender(range: entity.LightRange, proj: math.ProjectionSetup, viewport: render.Viewport, targetDim?: image.PixelDimensions) {
 			const cmd = new render.RenderCommandBuffer();
 			if (this.lutTexture_.renderResourceHandle === 0) {
 				cmd.allocate(this.lutTexture_);
@@ -244,6 +244,9 @@ namespace sd.system {
 			const transform = this.transformComp_;
 
 			// update lut dimensions
+			if (! targetDim) {
+				targetDim = { width: viewport.width, height: viewport.height, depth: 1 };
+			}
 			this.lutTilesWide_ = Math.ceil(targetDim.width / TILE_DIMENSION);
 			this.lutTilesHigh_ = Math.ceil(targetDim.height / TILE_DIMENSION);
 			this.lutParam_[0] = this.lutTilesWide_;
