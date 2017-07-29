@@ -15,8 +15,6 @@ namespace sd {
 	}
 
 	export interface Application {
-		initialize(): void;
-
 		readonly globalTime: number;
 		readonly messages: system.Messaging;
 		scene: Scene | undefined;
@@ -38,7 +36,7 @@ namespace sd {
 
 		private scene_: Scene | undefined = undefined;
 
-		initialize() {
+		constructor() {
 			if (this.state_ !== ApplicationState.Uninitialized) {
 				return;
 			}
@@ -168,7 +166,7 @@ namespace sd {
 	export const App: Application = new SDApplication();
 
 	dom.on(document, "DOMContentLoaded", () => {
-		App.initialize();
+		(App as SDApplication).resume();
 	});
 
 } // ns sd
