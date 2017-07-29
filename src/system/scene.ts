@@ -9,7 +9,7 @@ namespace sd {
 		scene: Scene;
 
 		// HACK: LD39
-		loadAssets(): Promise<void>;
+		loadAssets(): Promise<render.RenderCommandBuffer>;
 		buildWorld(): Promise<void>;
 		frame(dt: number): render.RenderCommandBuffer;
 
@@ -107,7 +107,10 @@ namespace sd {
 			}
 
 			// HACK: LD39
-			this.delegate.loadAssets().then(() => {
+			this.delegate.loadAssets().then(rcb => {
+				this.rd.dispatch(rcb);
+				this.rd.processFrame();
+
 				if (this.delegate.finishedLoadingAssets) {
 					this.delegate.finishedLoadingAssets();
 				}
