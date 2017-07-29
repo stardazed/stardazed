@@ -165,8 +165,18 @@ namespace sd {
 
 	export const App: Application = new SDApplication();
 
-	dom.on(document, "DOMContentLoaded", () => {
-		(App as SDApplication).resume();
+	dom.on(window, "load", () => {
+		const main = () => {
+			App.messages.send("AppStart");
+			(App as SDApplication).resume();
+		};
+
+		if ("Ammo" in window) {
+			(window as any).Ammo().then(main);
+		}
+		else {
+			main();
+		}
 	});
 
 } // ns sd
