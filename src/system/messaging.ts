@@ -50,18 +50,22 @@ namespace sd.system {
 		}
 
 		listen(event: string, context: object | undefined, func: ListenerFunc) {
+			event = event.toLowerCase();
 			this.addListener(event, { func, context, once: false });
 		}
 
 		listenOnce(event: string, context: object | undefined, func: ListenerFunc) {
+			event = event.toLowerCase();
 			this.addListener(event, { func, context, once: true });
 		}
 
 		silence(event: string, context: object | undefined, func: ListenerFunc) {
+			event = event.toLowerCase();
 			this.removeListener(event, func, context);
 		}
 
 		send(event: string, context?: object, ...args: any[]) {
+			event = event.toLowerCase();
 			const listeners = this.listeners_[event];
 			const remove: Listener[] = [];
 			if (listeners) {
