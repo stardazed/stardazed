@@ -8,6 +8,12 @@ namespace sd {
 	export interface SceneDelegate {
 		scene: Scene;
 
+		// HACK: LD39
+		loadAssets(): Promise<void>;
+		buildWorld(): Promise<void>;
+		frame(dt: number): render.RenderCommandBuffer;
+
+		// callbacks
 		willLoadAssets?(): void;
 		assetLoadProgress?(ratio: number): void;
 		finishedLoadingAssets?(): void;
@@ -99,7 +105,9 @@ namespace sd {
 			if (this.delegate.willLoadAssets) {
 				this.delegate.willLoadAssets();
 			}
-			setTimeout(50, () => {
+
+			// HACK: LD39
+			this.delegate.loadAssets().then(() => {
 				if (this.delegate.finishedLoadingAssets) {
 					this.delegate.finishedLoadingAssets();
 				}
@@ -114,9 +122,16 @@ namespace sd {
 				this.delegate.willLoadEntities();
 			}
 			// TBI: load entity and world data from level file
-			if (this.delegate.finishedLoadingEntities) {
-				this.delegate.finishedLoadingEntities();
-			}
+			// HACK: LD39
+			this.delegate.buildWorld().then(() => {
+				if (this.delegate.finishedLoadingEntities) {
+					this.delegate.finishedLoadingEntities();
+				}
+			});
+		}
+
+		frame(dt: number): render.RenderCommandBuffer {
+			return this.delegate.frame(dt);
 		}
 
 		suspend() {

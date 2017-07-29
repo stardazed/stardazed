@@ -45,15 +45,15 @@ namespace sd {
 			dom.on(window, "focus", () => {	this.resume(); });
 		}
 
-		private processSceneFrame(scene: Scene) {
-			const rcmds: render.RenderCommandBuffer[] = [];
+		private processSceneFrame(scene: Scene, dt: number) {
+			const rcmds: render.RenderCommandBuffer = scene.frame(dt);
 
-			rcmds.push(scene.lighting.prepareLightsForRender(
-				scene.lights.allEnabled(),
-				scene.camera,
-				image.makePixelDimensions(100, 100),
-				render.makeViewport()
-			));
+			// rcmds.push(scene.lighting.prepareLightsForRender(
+			// 	scene.lights.allEnabled(),
+			// 	scene.camera,
+			// 	image.makePixelDimensions(100, 100),
+			// 	render.makeViewport()
+			// ));
 
 			scene.rd.dispatch(rcmds);
 			scene.rd.processFrame();
@@ -70,7 +70,7 @@ namespace sd {
 			this.globalTime_ += dt;
 
 			if (this.scene_) {
-				this.processSceneFrame(this.scene_);
+				this.processSceneFrame(this.scene_, dt);
 			}
 
 			// reset io devices
