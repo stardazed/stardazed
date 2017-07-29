@@ -43,6 +43,7 @@ namespace sd {
 			this.state_ = ApplicationState.Starting;
 
 			this.nextFrameFn_ = this.nextFrame.bind(this);
+			this.messages.listen("SceneLoaded", undefined, (scene: Scene) => this.handleSceneLoaded(scene));
 
 			dom.on(window, "blur", () => { this.suspend(); });
 			dom.on(window, "focus", () => {	this.resume(); });
@@ -143,7 +144,18 @@ namespace sd {
 			this.scene_ = newScene;
 
 			if (this.scene_) {
-				this.scene_.enter();
+				if (this.scene_.state >= SceneState.Ready) {
+					this.scene_.enter();
+					if (this.state_ === ApplicationState.Running) {
+						this.scene_.resume();
+					}
+				}
+			}
+		}
+
+		private handleSceneLoaded(scene: Scene) {
+			if (scene === this.scene_) {
+				scene.enter();
 				if (this.state_ === ApplicationState.Running) {
 					this.scene_.resume();
 				}
