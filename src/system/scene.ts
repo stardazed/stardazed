@@ -124,9 +124,11 @@ namespace sd {
 			// TBI: load entity and world data from level file
 			// HACK: LD39
 			this.delegate.buildWorld().then(() => {
+				this.state_ = SceneState.Ready;
 				if (this.delegate.finishedLoadingEntities) {
 					this.delegate.finishedLoadingEntities();
 				}
+				App.messages.send("SceneLoaded", this);
 			});
 		}
 
