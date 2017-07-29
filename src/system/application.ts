@@ -163,10 +163,10 @@ namespace sd {
 		}
 	}
 
-	export const app: Application = new SDApplication();
+	export const App: Application = new SDApplication();
 
 	dom.on(document, "DOMContentLoaded", () => {
-		app.initialize();
+		App.initialize();
 	});
 
 } // ns sd
