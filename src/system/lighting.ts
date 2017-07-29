@@ -89,8 +89,11 @@ namespace sd.system {
 			this.lutIndexListRows_ = lutConfig.indexListRows;
 			this.lutGridRows_ = lutConfig.gridRows;
 
-			this.nullVec3_ = vec3.fromValues(1, 0, 0);
+			this.tileLightIndexes_ = new Float32Array(4 * lutConfig.pixelWidth * lutConfig.indexListRows);
+			this.lightGrid_ = new Float32Array(4 * lutConfig.pixelWidth * lutConfig.gridRows);
 			this.lutTexture_ = render.makeTex2D(image.PixelFormat.RGBA32F, this.lutWidthPixels_, this.lutHeightPixels_);
+
+			this.nullVec3_ = vec3.fromValues(1, 0, 0);
 		}
 
 		private projectPointLight(outBounds: math.Rect, center: Float3, range: number, projectionViewportMatrix: Float4x4) {
