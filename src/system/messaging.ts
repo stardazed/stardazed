@@ -14,7 +14,7 @@ namespace sd.system {
 	}
 
 	export class Messaging {
-		private listeners_: { [event: string]: Listener[] | undefined };
+		private listeners_: { [event: string]: Listener[] | undefined } = {};
 
 		private findListener(event: string, func: ListenerFunc, context: object | undefined): Listener | undefined {
 			const listeners = this.listeners_[event];

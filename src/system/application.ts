@@ -3,6 +3,8 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
+/// <reference path="messaging.ts" />
+
 namespace sd {
 
 	const enum ApplicationState {
@@ -16,8 +18,8 @@ namespace sd {
 		initialize(): void;
 
 		readonly globalTime: number;
+		readonly messages: system.Messaging;
 		scene: Scene | undefined;
-		messages: system.Messaging;
 	}
 
 
@@ -73,7 +75,7 @@ namespace sd {
 			this.lastFrameTime_ = now;
 			this.globalTime_ += dt;
 
-			if (this.scene_) {
+			if (this.scene_ && this.scene_.state === SceneState.Running) {
 				this.processSceneFrame(this.scene_, dt);
 			}
 
@@ -92,7 +94,7 @@ namespace sd {
 			}
 			this.state_ = ApplicationState.Running;
 
-			if (this.scene_) {
+			if (this.scene_ && this.scene_.state >= SceneState.Ready) {
 				this.scene_.resume();
 			}
 
