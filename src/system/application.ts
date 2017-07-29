@@ -17,6 +17,7 @@ namespace sd {
 
 		readonly globalTime: number;
 		scene: Scene | undefined;
+		messages: system.Messaging;
 	}
 
 
@@ -30,6 +31,8 @@ namespace sd {
 		private state_ = ApplicationState.Uninitialized;
 		private rafID_ = 0;
 		private nextFrameFn_: FrameRequestCallback;
+
+		private messages_ = new system.Messaging();
 
 		private scene_: Scene | undefined = undefined;
 
@@ -116,6 +119,10 @@ namespace sd {
 
 		get globalTime() {
 			return this.globalTime_;
+		}
+
+		get messages() {
+			return this.messages_;
 		}
 
 		get scene() {
