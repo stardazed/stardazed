@@ -46,6 +46,7 @@ namespace sd {
 	export interface SceneConfig {
 		delegate: SceneDelegate;
 		assetURLMapping: { [name: string]: string }; // name -> url mapping
+		physicsConfig: physics.PhysicsConfig;
 	}
 
 	export class Scene {
@@ -57,10 +58,11 @@ namespace sd {
 		readonly meshes: entity.MeshComponent;
 		readonly lights: entity.LightComponent;
 		// readonly renderers: entity.MeshRendererComponent;
-		// readonly colliders: entity.ColliderComponent;
+		readonly colliders: entity.ColliderComponent;
 
 		readonly lighting: system.Lighting;
-		readonly physics: system.Physics;
+		readonly physicsWorld: physics.PhysicsWorld;
+		readonly physics: physics.PhysicsSystem;
 		readonly camera: math.Camera;
 
 		private state_: SceneState;
@@ -83,10 +85,12 @@ namespace sd {
 			this.transforms = new entity.TransformComponent();
 			this.meshes = new entity.MeshComponent();
 			this.lights = new entity.LightComponent(this.transforms);
+			this.physicsWorld = new physics.PhysicsWorld(config.physicsConfig);
+			this.colliders = new entity.ColliderComponent(this.physicsWorld, this.transforms);
 
 			// -- controlling systems (scene-local)
 			this.lighting = new system.Lighting(this.lights, this.transforms, "medium");
-			this.physics = new system.Physics();
+			this.physics = new physics.PhysicsSystem(this.colliders, this.transforms);
 
 			this.camera = new math.Camera(rd.drawableWidth, rd.drawableHeight);
 
