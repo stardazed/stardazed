@@ -88,11 +88,22 @@ namespace sd.entity {
 		get count() { return this.instanceData_.count; }
 
 		valid(inst: ColliderInstance) {
-			return inst <= this.count;
+			return inst <= this.count && this.entityBase_[inst as number] > 0;
 		}
 
 		all(): ColliderRange {
 			return new InstanceLinearRange<ColliderComponent>(1, this.count);
+		}
+
+		forEach(fn: (inst: ColliderInstance, tx: TransformInstance, rb: Ammo.btRigidBody) => void) {
+			const max = this.count;
+			for (let cx = 1; cx <= max; ++cx) {
+				if (this.entityBase_[cx as number] !== 0) {
+					const tx = this.transformBase_[cx as number];
+					const rb = this.colliders_[cx as number];
+					fn(cx, tx, rb);
+				}
+			}
 		}
 
 		// --
