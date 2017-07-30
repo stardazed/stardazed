@@ -6,6 +6,7 @@
 namespace sd.physics {
 
 	export const enum PhysicsShapeType {
+		None,
 		Box,
 		Sphere,
 		Capsule,
