@@ -21,7 +21,7 @@ namespace sd.entity {
 		Indexes = 64
 	}
 
-	export const enum MeshShape {
+	export const enum MeshShapeType {
 		Plane,
 		Box,
 		Capsule,
@@ -42,7 +42,7 @@ namespace sd.entity {
 	export class MeshComponent implements Component<MeshComponent> {
 		private instanceData_: container.MultiArrayBuffer;
 		private featuresBase_: ConstEnumArrayView<MeshFeatures>;
-		private shapeBase_: ConstEnumArrayView<MeshShape>;
+		private shapeBase_: ConstEnumArrayView<MeshShapeType>;
 		private indexElementTypeBase_: ConstEnumArrayView<meshdata.IndexElementType>;
 		private uniformPrimTypeBase_: ConstEnumArrayView<meshdata.PrimitiveType>;
 		private totalElementCountBase_: Int32Array;
@@ -100,7 +100,7 @@ namespace sd.entity {
 		}
 
 
-		create(mesh: meshdata.MeshData, shape = MeshShape.ConcaveMesh): MeshInstance {
+		create(mesh: meshdata.MeshData, shape = MeshShapeType.ConcaveMesh): MeshInstance {
 			if (this.assetMeshMap_.has(mesh)) {
 				return this.assetMeshMap_.get(mesh)!;
 			}
@@ -235,7 +235,7 @@ namespace sd.entity {
 		}
 
 		features(inst: MeshInstance): MeshFeatures { return this.featuresBase_[inst as number]; }
-		shape(inst: MeshInstance): MeshShape { return this.shapeBase_[inst as number]; }
+		shape(inst: MeshInstance): MeshShapeType { return this.shapeBase_[inst as number]; }
 
 		indexBufferElementType(inst: MeshInstance): meshdata.IndexElementType { return this.indexElementTypeBase_[inst as number]; }
 		uniformPrimitiveType(inst: MeshInstance) { return this.uniformPrimTypeBase_[inst as number]; }
