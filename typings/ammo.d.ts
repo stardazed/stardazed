@@ -173,8 +173,7 @@ declare namespace Ammo {
 		CF_NO_CONTACT_RESPONSE = 4,
 		CF_CUSTOM_MATERIAL_CALLBACK = 8,
 		CF_CHARACTER_OBJECT = 16,
-		CF_DISABLE_VISUALIZE_OBJECT = 32,
-		CF_DISABLE_SPU_COLLISION_PROCESSING = 64
+		CF_DISABLE_VISUALIZE_OBJECT = 32
 	}
 
 	const enum AnisotropicFrictionFlags { 
@@ -706,7 +705,7 @@ declare namespace Ammo {
 		getPairCache(): btOverlappingPairCache;
 	}
 
-	abstract class btContactSolverInfo {
+	interface btContactSolverInfo {
 		get_m_splitImpulse(): boolean;
 		set_m_splitImpulse(split: boolean): void;
 		get_m_splitImpulsePenetrationThreshold(): number;
