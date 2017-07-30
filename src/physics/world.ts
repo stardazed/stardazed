@@ -12,6 +12,8 @@ namespace sd.physics {
 		gravity: number | ConstFloat3;
 		defaultLinearDrag: number;
 		defaultAngularDrag: number;
+		defaultFriction: number;
+		defaultRestitution: number;
 	}
 
 	export function makeDefaultPhysicsConfig(): PhysicsConfig {
@@ -20,8 +22,10 @@ namespace sd.physics {
 			worldMin: -100,
 			worldMax: 100,
 			gravity: -9.81,
-			defaultLinearDrag: 0,
-			defaultAngularDrag: 0.05 // these defaults are what Unity uses by default, for consistency, now let's hope they have the actual same meaning
+			defaultLinearDrag: 0,     // \
+			defaultAngularDrag: 0.05, // | - these defaults are what Unity uses — now let's hope they have a similar effect
+			defaultFriction: 0.6,     // |
+			defaultRestitution: 0     // /
 		};
 	}
 
@@ -30,16 +34,23 @@ namespace sd.physics {
 		shape: PhysicsShape;
 		isTrigger?: boolean;
 		isKinematic?: boolean;
+		isScripted?: boolean;
 		worldPos?: ConstFloat3;
 		worldRot?: ConstFloat4;
 		linearDrag?: number;
 		angularDrag?: number;
+		friction?: number; // Bullet/Ammo does not support separate values for static and dynamic friction
+		restitution?: number; // bounciness in Unity
+		positionConstraints?: [boolean, boolean, boolean];
+		rotationConstraints?: [boolean, boolean, boolean];
 	}
 
 	export class PhysicsWorld {
 		private world_: Ammo.btDiscreteDynamicsWorld;
 		private defaultLinearDrag_: number;
 		private defaultAngularDrag_: number;
+		private defaultFriction_: number;
+		private defaultRestitution_: number;
 
 		constructor(config: PhysicsConfig) {
 			const collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
@@ -66,6 +77,8 @@ namespace sd.physics {
 
 			this.defaultLinearDrag_ = config.defaultLinearDrag;
 			this.defaultAngularDrag_ = config.defaultAngularDrag;
+			this.defaultFriction_ = config.defaultFriction;
+			this.defaultRestitution_ = config.defaultRestitution;
 		}
 
 		createRigidBody(desc: RigidBodyDescriptor) {
@@ -89,6 +102,8 @@ namespace sd.physics {
 
 			rigidBodyDesc.set_m_linearDamping(desc.linearDrag !== undefined ? desc.linearDrag : this.defaultLinearDrag_);
 			rigidBodyDesc.set_m_angularDamping(desc.angularDrag !== undefined ? desc.angularDrag : this.defaultAngularDrag_);
+			rigidBodyDesc.set_m_friction(desc.friction !== undefined ? desc.friction : this.defaultFriction_);
+			rigidBodyDesc.set_m_restitution(desc.restitution !== undefined ? desc.restitution : this.defaultRestitution_);
 
 			const body = new Ammo.btRigidBody(rigidBodyDesc);
 			if (desc.isTrigger) {
@@ -97,10 +112,31 @@ namespace sd.physics {
 			if (desc.isKinematic) {
 				body.setCollisionFlags(body.getCollisionFlags() | Ammo.CollisionFlags.CF_KINEMATIC_OBJECT);
 			}
+			if (desc.isScripted) {
+				body.setActivationState(Ammo.ActivationState.DISABLE_DEACTIVATION);
+			}
+
+			// if an axis is constrained, then the scale factor is 0, otherwise 1
+			if (desc.positionConstraints) {
+				const factors = [+!desc.positionConstraints[0], +!desc.positionConstraints[1], +!desc.positionConstraints[2]];
+				body.setLinearFactor(new Ammo.btVector3(factors[0], factors[1], factors[2]));
+			}
+			if (desc.rotationConstraints) {
+				const factors = [+!desc.rotationConstraints[0], +!desc.rotationConstraints[1], +!desc.rotationConstraints[2]];
+				body.setAngularFactor(new Ammo.btVector3(factors[0], factors[1], factors[2]));
+			}
 
 			this.world_.addRigidBody(body);
 
 			return body;
+		}
+
+		removeRigidBody(body: Ammo.btRigidBody) {
+			this.world_.removeRigidBody(body);
+		}
+
+		get implementation() {
+			return this.world_;
 		}
 	}
 
