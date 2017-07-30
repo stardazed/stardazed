@@ -75,6 +75,7 @@ namespace sd.system {
 		private readonly lightGrid_: Float32Array;
 
 		private lutTexture_: render.Texture;
+		private lutSampler_: render.Sampler;
 		private gridRowSpans_: LightGridSpan[][] = [];
 		private readonly nullVec3_: Float32Array;
 
@@ -92,6 +93,7 @@ namespace sd.system {
 			this.tileLightIndexes_ = new Float32Array(4 * lutConfig.pixelWidth * lutConfig.indexListRows);
 			this.lightGrid_ = new Float32Array(4 * lutConfig.pixelWidth * lutConfig.gridRows);
 			this.lutTexture_ = render.makeTex2D(image.PixelFormat.RGBA32F, this.lutWidthPixels_, this.lutHeightPixels_);
+			this.lutSampler_ = render.makeLookupTableSampler();
 
 			this.nullVec3_ = vec3.fromValues(1, 0, 0);
 		}
@@ -237,6 +239,7 @@ namespace sd.system {
 			const cmd = new render.RenderCommandBuffer();
 			if (this.lutTexture_.renderResourceHandle === 0) {
 				cmd.allocate(this.lutTexture_);
+				cmd.allocate(this.lutSampler_);
 				return cmd;
 			}
 
