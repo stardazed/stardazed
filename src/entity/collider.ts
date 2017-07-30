@@ -133,7 +133,7 @@ namespace sd.entity {
 			const solver = new Ammo.btSequentialImpulseConstraintSolver();
 
 			this.world_ = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-			this.world_.setGravity( new Ammo.btVector3(0, -9.8, 0));
+			this.world_.setGravity( new Ammo.btVector3(0, -9.81, 0));
 
 			const instFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
