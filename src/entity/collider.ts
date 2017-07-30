@@ -71,7 +71,8 @@ namespace sd.entity {
 	export interface MeshShape {
 		type: ColliderShapeType.Mesh;
 		mesh: meshdata.MeshData;
-		convex: boolean;
+		subMeshIndex?: number;
+		convex?: boolean;
 		convexMargin?: number;
 		scale?: ConstFloat3;
 	}
@@ -106,6 +107,47 @@ namespace sd.entity {
 		angularDrag: number;
 		kinematic: boolean;
 	}
+
+	// ----
+
+	function makeAmmoVec3(v3: ArrayOfConstNumber, offset = 0) {
+		return new Ammo.btVector3(v3[0 + offset], v3[1 + offset], v3[2 + offset]);
+	}
+
+	function createMeshShape(mesh: meshdata.MeshData, subMeshIndex?: number, convex?: boolean) {
+		const triView = (subMeshIndex !== undefined) ?
+			meshdata.makeTriangleViewForSubMesh(mesh, subMeshIndex) :
+			meshdata.makeTriangleViewForMesh(mesh);
+		if (! triView) {
+			return undefined;
+		}
+		const posAttr = meshdata.findAttributeOfRoleInMesh(mesh, meshdata.VertexAttributeRole.Position);
+		if (! posAttr) {
+			console.warn("createMeshShape: the mesh does not have a position attribute", mesh);
+			return undefined;
+		}
+		const posView = new meshdata.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
+		const baseVertex = posView.baseVertex;
+
+		// use conservative guess if 16-bit indexes will work
+		const use32bitIndexes = triView.count * 3 >= UInt16.max;
+		const collMesh = new Ammo.btTriangleMesh(use32bitIndexes);
+
+		triView.forEach(face => {
+			const posA = posView.copyItem(face.a() - baseVertex);
+			const posB = posView.copyItem(face.b() - baseVertex);
+			const posC = posView.copyItem(face.c() - baseVertex);
+
+			collMesh.addTriangle(
+				new Ammo.btVector3(posA[0], posA[1], posA[2]),
+				new Ammo.btVector3(posB[0], posB[1], posB[2]),
+				new Ammo.btVector3(posC[0], posC[1], posC[2])
+			);
+		});
+
+		return convex ? new Ammo.btConvexTriangleMeshShape(collMesh, true) : new Ammo.btBvhTriangleMeshShape(collMesh, true, true);
+	}
+
 
 	// ----
 
@@ -153,8 +195,89 @@ namespace sd.entity {
 			this.shapeTypeBase_ = this.instanceData_.indexedFieldView(2);
 		}
 
-		create(_entity: Entity, _collider: Collider): ColliderInstance {
-			return 0;
+		create(entity: Entity, collider: Collider): ColliderInstance {
+			if (this.instanceData_.extend() === container.InvalidatePointers.Yes) {
+				this.rebase();
+			}
+			const instance = this.instanceData_.count;
+
+			// linking
+			this.entityBase_[instance] = entity;
+			this.transformBase_[instance] = this.transformComp_.forEntity(entity);
+
+			// shape
+			const shapeInfo = collider.shape;
+			let shape: Ammo.btCollisionShape | undefined;
+			switch (shapeInfo.type) {
+				case ColliderShapeType.Box: {
+					shape = new Ammo.btBoxShape(makeAmmoVec3(shapeInfo.halfExtents));
+					break;
+				}
+				case ColliderShapeType.Sphere: {
+					shape = new Ammo.btSphereShape(shapeInfo.radius);
+					break;
+				}
+				case ColliderShapeType.Capsule: {
+					if (shapeInfo.orientation === Ammo.AxisIndex.Y) {
+						shape = new Ammo.btCapsuleShape(shapeInfo.radius, shapeInfo.height);
+					}
+					else if (shapeInfo.orientation === Ammo.AxisIndex.X) {
+						shape = new Ammo.btCapsuleShapeX(shapeInfo.radius, shapeInfo.height);
+					}
+					else /* AxisIndex.Z */ {
+						shape = new Ammo.btCapsuleShapeZ(shapeInfo.radius, shapeInfo.height);
+					}
+					break;
+				}
+				case ColliderShapeType.Cylinder: {
+					const halfExtents = makeAmmoVec3(shapeInfo.halfExtents);
+					if (shapeInfo.orientation === Ammo.AxisIndex.Y) {
+						shape = new Ammo.btCylinderShape(halfExtents);
+					}
+					else if (shapeInfo.orientation === Ammo.AxisIndex.X) {
+						shape = new Ammo.btCylinderShapeX(halfExtents);
+					}
+					else /* AxisIndex.Z */ {
+						shape = new Ammo.btCylinderShapeZ(halfExtents);
+					}
+					break;
+				}
+				case ColliderShapeType.Cone: {
+					if (shapeInfo.orientation === Ammo.AxisIndex.Y) {
+						shape = new Ammo.btConeShape(shapeInfo.radius, shapeInfo.height);
+					}
+					else if (shapeInfo.orientation === Ammo.AxisIndex.X) {
+						shape = new Ammo.btConeShapeX(shapeInfo.radius, shapeInfo.height);
+					}
+					else /* AxisIndex.Z */ {
+						shape = new Ammo.btConeShapeZ(shapeInfo.radius, shapeInfo.height);
+					}
+					break;
+				}
+				case ColliderShapeType.Plane: {
+					shape = new Ammo.btStaticPlaneShape(makeAmmoVec3(shapeInfo.planeNormal), shapeInfo.planeConstant);
+					break;
+				}
+				case ColliderShapeType.ConvexHull: {
+					const hull = new Ammo.btConvexHullShape();
+					const endOffset = shapeInfo.pointCount * 3;
+					const lastOffset = endOffset - 3;
+					for (let offset = 0; offset < endOffset; offset += 3) {
+						hull.addPoint(makeAmmoVec3(shapeInfo.points, offset), offset === lastOffset);
+					}
+					shape = hull;
+					break;
+				}
+				case ColliderShapeType.Mesh: {
+					shape = createMeshShape(shapeInfo.mesh, shapeInfo.subMeshIndex, shapeInfo.convex);
+					break;
+				}
+				case ColliderShapeType.HeightField: {
+					break;
+				}
+			}
+
+			return instance;
 		}
 
 		destroy(_inst: ColliderInstance) {
