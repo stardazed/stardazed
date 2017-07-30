@@ -118,7 +118,14 @@ namespace sd.entity {
 	export class ColliderComponent implements Component<ColliderComponent> {
 		private world_: Ammo.btDiscreteDynamicsWorld;
 
-		constructor() {
+		private instanceData_: container.MultiArrayBuffer;
+		private entityBase_: EntityArrayView;
+		private transformBase_: TransformArrayView;
+		private shapeTypeBase_: ConstEnumArrayView<ColliderShapeType>;
+		private shapes_: Ammo.btCollisionShape[];
+		private colliders_: Ammo.btRigidBody[];
+
+		constructor(private transformComp_: TransformComponent) {
 			// FIXME: creating the physics world will have to happen elsewhere, with physics config etc.
 			const collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
 			const dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
@@ -127,6 +134,23 @@ namespace sd.entity {
 
 			this.world_ = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 			this.world_.setGravity( new Ammo.btVector3(0, -9.8, 0));
+
+			const instFields: container.MABField[] = [
+				{ type: SInt32, count: 1 }, // entity
+				{ type: SInt32, count: 1 }, // transform
+				{ type: SInt32, count: 1 }, // collisionShapeType
+			];
+			this.instanceData_ = new container.MultiArrayBuffer(1024, instFields);
+			this.rebase();
+
+			this.shapes_ = [];
+			this.colliders_ = [];
+		}
+
+		private rebase() {
+			this.entityBase_ = this.instanceData_.indexedFieldView(0);
+			this.transformBase_ = this.instanceData_.indexedFieldView(1);
+			this.shapeTypeBase_ = this.instanceData_.indexedFieldView(2);
 		}
 
 		create(_entity: Entity, _collider: Collider): ColliderInstance {
@@ -143,7 +167,7 @@ namespace sd.entity {
 			}
 		}
 
-		get count() { return 0; }
+		get count() { return this.instanceData_.count; }
 
 		valid(inst: ColliderInstance) {
 			return inst <= this.count;
