@@ -38,8 +38,17 @@ namespace sd.entity {
 	export type ColliderArrayView = InstanceArrayView<ColliderComponent>;
 
 	export class ColliderComponent implements Component<ColliderComponent> {
-		constructor() {
+		private world_: Ammo.btDiscreteDynamicsWorld;
 
+		constructor() {
+			// FIXME: creating the physics world will have to happen elsewhere, with physics config etc.
+			const collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
+			const dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
+			const overlappingPairCache = new Ammo.btAxisSweep3(new Ammo.btVector3(-100, -100, -100), new Ammo.btVector3(100, 100, 100));
+			const solver = new Ammo.btSequentialImpulseConstraintSolver();
+
+			this.world_ = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+			this.world_.setGravity( new Ammo.btVector3(0, -9.8, 0));
 		}
 
 		create(entity: Entity): ColliderInstance {
