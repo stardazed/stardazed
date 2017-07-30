@@ -13,7 +13,7 @@ namespace sd.meshdata {
 		if (posAttr && normAttr) {
 			const posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
 			const normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
-			const triView = new IndexBufferTriangleView(indexBuffer);
+			const triView = makeTriangleViewForIndexBuffer(indexBuffer);
 
 			calcVertexNormalsViews(posView, normView, triView);
 		}
@@ -27,7 +27,7 @@ namespace sd.meshdata {
 		assert(vertexCount <= normalCount);
 		const baseVertex = normView.baseVertex;
 
-		normView.forEach((norm) => {
+		normView.forEach(norm => {
 			vec3.set(norm, 0, 0, 1);
 		});
 		const usages = new Float32Array(vertexCount);
@@ -79,7 +79,7 @@ namespace sd.meshdata {
 			const normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
 			const uvView = new VertexBufferAttributeView(vertexBuffer, uvAttr);
 			const tanView = new VertexBufferAttributeView(vertexBuffer, tanAttr);
-			const triView = new IndexBufferTriangleView(indexBuffer);
+			const triView = makeTriangleViewForIndexBuffer(indexBuffer);
 
 			calcVertexTangentsViews(posView, normView, uvView, tanView, triView);
 		}

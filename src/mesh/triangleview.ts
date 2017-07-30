@@ -41,6 +41,48 @@ namespace sd.meshdata {
 	}
 
 
+	// ---- 
+
+	export function makeTriangleViewForIndexBuffer(ib: IndexBuffer): TriangleView {
+		return new IndexBufferTriangleView(ib);
+	}
+
+	export function makeTriangleViewForMesh(mesh: MeshData): TriangleView | undefined {
+		const allTrianglePrimitives = mesh.subMeshes.every(sm => sm.type === PrimitiveType.Triangle);
+		if (! allTrianglePrimitives) {
+			console.warn("triangleViewForMesh, cannot create TriangleView as not all submeshes are of Triangle type", mesh);
+			return undefined;
+		}
+
+		if (mesh.indexBuffer) {
+			return new IndexBufferTriangleView(mesh.indexBuffer);
+		}
+
+		const elementCount = mesh.subMeshes.map(sm => sm.elementCount).reduce((sum, count) => sum + count, 0);
+		return new DirectTriangleView(elementCount);
+	}
+
+
+	export function makeTriangleViewForSubMesh(mesh: MeshData, subMeshIndex: number): TriangleView | undefined {
+		const subMesh = mesh.subMeshes[subMeshIndex];
+		if (! subMesh) {
+			console.warn("triangleViewForSubMesh, invalid submesh index", mesh, subMeshIndex);
+			return undefined;
+		}
+		if (subMesh.type !== PrimitiveType.Triangle) {
+			console.warn("triangleViewForSubMesh, incompatible submesh type", mesh, subMeshIndex);
+			return undefined;
+		}
+		const fromTriangle = (subMesh.fromElement / 3) | 0;
+		const toTriangle = ((subMesh.elementCount / 3) | 0) + fromTriangle;
+
+		if (mesh.indexBuffer) {
+			return new IndexBufferTriangleView(mesh.indexBuffer, fromTriangle, toTriangle);
+		}
+		return new DirectTriangleView(subMesh.elementCount, fromTriangle, toTriangle);
+	}
+
+
 	// ---- TriangleView for non-indexed meshes
 
 	class DirectTriangleProxy implements meshdata.TriangleProxy {
@@ -51,16 +93,16 @@ namespace sd.meshdata {
 		b() { return this.baseIndex_ + 1; }
 		c() { return this.baseIndex_ + 2; }
 
-		baseIndex_: number = 0; // tslint:disable-line
+		baseIndex_ = 0;
 		setTriangleIndex(tri: number) { this.baseIndex_ = tri * 3; }
 	}
 
 	class DirectTriangleView implements TriangleView {
 		readonly mutable = false;
-		readonly count: number = 0; // tslint:disable-line
+		readonly count: number;
 
-		constructor(vertexCount: number, private fromTriangle_ = -1, private toTriangle_ = -1) {
-			this.count = primitiveCountForElementCount(PrimitiveType.Triangle, vertexCount);
+		constructor(elementCount: number, private fromTriangle_ = -1, private toTriangle_ = -1) {
+			this.count = primitiveCountForElementCount(PrimitiveType.Triangle, elementCount);
 
 			if (this.fromTriangle_ < 0) {
 				this.fromTriangle_ = 0;
@@ -116,7 +158,7 @@ namespace sd.meshdata {
 		setC(newValue: number) { this.data_[2] = newValue; }
 	}
 
-	export class IndexBufferTriangleView implements TriangleView {
+	class IndexBufferTriangleView implements TriangleView {
 		constructor(private indexBuffer_: IndexBuffer, private fromTriangle_ = -1, private toTriangle_ = -1) {
 			// clamp range to available primitives, default to all triangles
 			const primitiveCount = primitiveCountForElementCount(PrimitiveType.Triangle, this.indexBuffer_.indexCount);
@@ -141,7 +183,20 @@ namespace sd.meshdata {
 			}
 		}
 
-		refItem(triangleIndex: number) {
+		forEachMutable(callback: (proxy: MutableTriangleProxy) => void) {
+			const primCount = this.toTriangle_ - this.fromTriangle_;
+			const basePtr = this.indexBuffer_.typedBasePtr(this.fromTriangle_ * 3, primCount * 3);
+
+			for (let tix = 0; tix < primCount; ++tix) {
+				callback(new IndexedTriangleProxy(basePtr, tix));
+			}
+		}
+
+		refItem(triangleIndex: number): Triangle {
+			return this.indexBuffer_.typedBasePtr((triangleIndex + this.fromTriangle_) * 3, 3);
+		}
+
+		refItemMutable(triangleIndex: number): MutableTriangle {
 			return this.indexBuffer_.typedBasePtr((triangleIndex + this.fromTriangle_) * 3, 3);
 		}
 
@@ -153,7 +208,7 @@ namespace sd.meshdata {
 			return this.toTriangle_ - this.fromTriangle_;
 		}
 
-		get mutable() { return false; }
+		get mutable() { return true; }
 	}
 
 } // ns sd.meshdata

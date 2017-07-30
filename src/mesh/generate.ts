@@ -66,7 +66,7 @@ namespace sd.meshdata.gen {
 		const normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
 		const texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
 
-		const triView = new IndexBufferTriangleView(mesh.indexBuffer!);
+		const triView = meshdata.makeTriangleViewForMesh(mesh)!;
 
 		// -- data add functions for the generators
 		let posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;
@@ -86,7 +86,7 @@ namespace sd.meshdata.gen {
 		const pos = posView.elementCount === 2 ? pos2 : pos3;
 
 		const face: IndexesAddFn = (a: number, b: number, c: number) => {
-			const i3 = triView.refItem(faceIx);
+			const i3 = triView.refItemMutable!(faceIx);
 			i3[0] = a + baseVertex; i3[1] = b + baseVertex; i3[2] = c + baseVertex;
 			faceIx++;
 		};
