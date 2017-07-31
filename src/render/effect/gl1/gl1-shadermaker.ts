@@ -3,9 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.render.effect.gl1 {
-
-	/*
+namespace sd.render.gl1.effect {
 
 	export type Conditional<T> = T & {
 		ifExpr?: string;
@@ -15,7 +13,7 @@ namespace sd.render.effect.gl1 {
 		dependencies?: string[];
 		extensions?: ExtensionUsage[];
 		textures?: Conditional<SamplerSlot>[];
-		constantBlocks?: Conditional<ConstantBlock>[];
+		constants?: Conditional<ShaderConstant>[];
 		constValues?: ShaderConstValue[];
 		structs?: string[];
 		code?: string;
@@ -61,7 +59,7 @@ namespace sd.render.effect.gl1 {
 		const module: ShaderModule = {
 			extensions: [],
 			textures: [],
-			constantBlocks: [],
+			constants: [],
 			constValues: [],
 			structs: [],
 			code: ""
@@ -77,14 +75,13 @@ namespace sd.render.effect.gl1 {
 				if (depModule.textures) {
 					module.textures!.push(...depModule.textures);
 				}
-				if (depModule.constantBlocks) {
-					for (const depBlock of depModule.constantBlocks) {
-						let localBlock = module.constantBlocks!.find(c => c.name === depBlock.name);
-						if (! localBlock) {
-							localBlock = { name: depBlock.name, fields: [] };
-							module.constantBlocks!.push(localBlock);
+				if (depModule.constants) {
+					for (const depConstant of depModule.constants) {
+						let localConstant = module.constants!.find(c => c.name === depConstant.name);
+						if (! localConstant) {
+							localConstant = { name: depConstant.name, type: depConstant.type, length: depConstant.length, ifExpr: depConstant.ifExpr };
+							module.constants!.push(localConstant);
 						}
-						localBlock.fields.push(...depBlock.fields);
 					}
 				}
 				if (depModule.constValues) {
@@ -169,16 +166,11 @@ namespace sd.render.effect.gl1 {
 				mat4 transform_model;
 			};
 		`],
-		constantBlocks: [
-			{
-				name: "default",
-				fields: [
-					{ name: "jointIndexOffset", type: SVT.Int }
-				]
-			}
+		constants: [
+			{ name: "jointIndexOffset", type: SVT.Int }
 		],
 		textures: [
-			{ name: "jointData", type: TextureClass.Normal, index: 8 }
+			{ name: "jointData", type: TextureClass.Plain, index: 8 }
 		],
 		code: `
 		// The jointData texture is 256x256 xyzw texels.
@@ -417,7 +409,7 @@ namespace sd.render.effect.gl1 {
 			{ name: "PHONG_DIFFUSE", type: SVT.Float, expr: "1.0 / 3.141592654" }
 		],
 		textures: [
-			{ name: "brdfLookupMap", type: TextureClass.Normal, index: 4 },
+			{ name: "brdfLookupMap", type: TextureClass.Plain, index: 4 },
 			{ name: "environmentMap", type: TextureClass.CubeMap, index: 5 },
 		],
 		code: `
@@ -518,15 +510,10 @@ namespace sd.render.effect.gl1 {
 			"lightEntry"
 		],
 		textures: [
-			{ name: "lightLUTSampler", type: TextureClass.Normal, index: 6 }
+			{ name: "lightLUTSampler", type: TextureClass.Plain, index: 6 }
 		],
-		constantBlocks: [
-			{
-				name: "default",
-				fields: [
-					{ name: "lightLUTParam", type: SVT.Float2 },
-				]
-			}
+		constants: [
+			{ name: "lightLUTParam", type: SVT.Float2 },
 		],
 		code: `
 		LightEntry getLightEntry(float lightIx) {
@@ -578,17 +565,12 @@ namespace sd.render.effect.gl1 {
 			"lightEntry"
 		],
 		textures: [
-			{ name: "shadowSampler", type: TextureClass.Normal, index: 7, ifExpr: "SHADOW_MAP" }
+			{ name: "shadowSampler", type: TextureClass.Plain, index: 7, ifExpr: "SHADOW_MAP" }
 		],
-		constantBlocks: [
-			{
-				name: "shadow",
-				fields: [
-					{ name: "lightViewMatrix", type: SVT.Float4x4 },
-					{ name: "lightProjMatrix", type: SVT.Float4x4 },
-					{ name: "shadowCastingLightIndex", type: SVT.Int }
-				]
-			}
+		constants: [
+			{ name: "lightViewMatrix", type: SVT.Float4x4 },
+			{ name: "lightProjMatrix", type: SVT.Float4x4 },
+			{ name: "shadowCastingLightIndex", type: SVT.Int }
 		],
 		code: `
 		float lightVSMShadowFactor(LightEntry lightData) {
@@ -705,20 +687,15 @@ namespace sd.render.effect.gl1 {
 				#endif
 			};
 		`],
-		constantBlocks: [
-			{
-				name: "default",
-				fields: [
-					{ name: "baseColour", type: SVT.Float4 },
-					{ name: "emissiveData", type: SVT.Float4 },
-					{ name: "materialParam", type: SVT.Float4 }
-				]
-			}
+		constants: [
+			{ name: "baseColour", type: SVT.Float4 },
+			{ name: "emissiveData", type: SVT.Float4 },
+			{ name: "materialParam", type: SVT.Float4 }
 		],
 		textures: [
-			{ name: "albedoMap", type: TextureClass.Normal, index: 0, ifExpr: "ALBEDO_MAP" },
-			{ name: "materialMap", type: TextureClass.Normal, index: 1, ifExpr: "defined(ROUGHNESS_MAP) || defined(METALLIC_MAP) || defined(AO_MAP)" },
-			{ name: "emissiveMap", type: TextureClass.Normal, index: 2, ifExpr: "EMISSIVE_MAP" },
+			{ name: "albedoMap", type: TextureClass.Plain, index: 0, ifExpr: "ALBEDO_MAP" },
+			{ name: "materialMap", type: TextureClass.Plain, index: 1, ifExpr: "defined(ROUGHNESS_MAP) || defined(METALLIC_MAP) || defined(AO_MAP)" },
+			{ name: "emissiveMap", type: TextureClass.Plain, index: 2, ifExpr: "EMISSIVE_MAP" },
 		],
 		code: `
 		MaterialInfo getMaterialInfo(vec2 materialUV) {
@@ -791,16 +768,11 @@ namespace sd.render.effect.gl1 {
 				float NdV;
 			};
 		`],
-		constantBlocks: [
-			{
-				name: "default",
-				fields: [
-					{ name: "normalMatrix", type: SVT.Float3x3 }
-				]
-			}
+		constants: [
+			{ name: "normalMatrix", type: SVT.Float3x3 }
 		],
 		textures: [
-			{ name: "normalHeightMap", type: TextureClass.Normal, index: 3, ifExpr: "defined(NORMAL_MAP) || defined(HEIGHT_MAP)" }
+			{ name: "normalHeightMap", type: TextureClass.Plain, index: 3, ifExpr: "defined(NORMAL_MAP) || defined(HEIGHT_MAP)" }
 		],
 		code: `
 		SurfaceInfo calcSurfaceInfo() {
@@ -847,14 +819,9 @@ namespace sd.render.effect.gl1 {
 		out: [
 			{ name: "vertexPos_world", type: SVT.Float4 }
 		],
-		constantBlocks: [
-			{
-				name: "default",
-				fields: [
-					{ name: "modelMatrix", type: SVT.Float4x4 },
-					{ name: "lightViewProjectionMatrix", type: SVT.Float4x4 }
-				]
-			}
+		constants: [
+			{ name: "modelMatrix", type: SVT.Float4x4 },
+			{ name: "lightViewProjectionMatrix", type: SVT.Float4x4 }
 		],
 		main: `
 			vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);
@@ -869,13 +836,8 @@ namespace sd.render.effect.gl1 {
 		in: [
 			{ name: "vertexPos_world", type: SVT.Float4 }
 		],
-		constantBlocks: [
-			{
-				blockName: "default",
-				constants: [
-					{ name: "lightViewMatrix", type: SVT.Float4x4 }
-				]
-			}
+		constants: [
+			{ name: "lightViewMatrix", type: SVT.Float4x4 }
 		],
 		outCount: 1,
 		main: `
@@ -932,16 +894,11 @@ namespace sd.render.effect.gl1 {
 				{ name: "vertexNormal_cam", type: SVT.Float3 },
 			],
 
-			constantBlocks: [
-				{
-					blockName: "default",
-					constants: [
-						{ name: "modelMatrix", type: SVT.Float4x4 },
-						{ name: "modelViewMatrix", type: SVT.Float4x4 },
-						{ name: "modelViewProjectionMatrix", type: SVT.Float4x4 },
-						{ name: "normalMatrix", type: SVT.Float3x3 },
-					]
-				}
+			constants: [
+				{ name: "modelMatrix", type: SVT.Float4x4 },
+				{ name: "modelViewMatrix", type: SVT.Float4x4 },
+				{ name: "modelViewProjectionMatrix", type: SVT.Float4x4 },
+				{ name: "normalMatrix", type: SVT.Float3x3 },
 			],
 
 			main: `
@@ -955,7 +912,7 @@ namespace sd.render.effect.gl1 {
 		if (feat & Features.VtxUV) {
 			fn.in.push({ name: "vertexUV", type: SVT.Float2, role: AttrRole.UV, index: 2 });
 			fn.out!.push({ name: "vertexUV_intp", type: SVT.Float2 });
-			fn.constantBlocks![0].constants.push({ name: "texScaleOffset", type: SVT.Float4 });
+			fn.constants!.push({ name: "texScaleOffset", type: SVT.Float4 });
 			fn.main += "vertexUV_intp = (vertexUV * texScaleOffset.xy) + texScaleOffset.zw;\n";
 		}
 
@@ -1000,7 +957,7 @@ namespace sd.render.effect.gl1 {
 			in: attr,
 			outCount: 1,
 			extensions: lib.extensions,
-			constantBlocks: lib.constantBlocks,
+			constants: lib.constants,
 			samplers: lib.textures,
 			structs: lib.structs,
 			constValues: lib.constValues,
@@ -1034,7 +991,5 @@ namespace sd.render.effect.gl1 {
 			fragmentFunction
 		};	
 	}
-
-	*/
 
 } // ns sd.render.effect.gl1
