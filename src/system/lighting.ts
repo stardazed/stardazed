@@ -315,6 +315,10 @@ namespace sd.system {
 			// gridWidth, vpHeight
 			return this.lutParam_;
 		}
+
+		get lutTextureSampler() {
+			return { tex: this.lutTexture_, samp: this.lutSampler_};
+		}
 	}
 
 } // ns sd.system
