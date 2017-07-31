@@ -65,8 +65,8 @@ namespace sd.render {
 
 		pipeline: Pipeline;
 
-		textures: Texture[];
-		samplers: Sampler[];
+		textures: (Texture | undefined)[];
+		samplers: (Sampler | undefined)[];
 		constants: TEMPConstant[];
 	}
 
@@ -261,8 +261,8 @@ namespace sd.render {
 				primitiveType: job.primGroup.type,
 				fromElement: job.primGroup.fromElement,
 				elementCount: job.primGroup.elementCount,
-				textureHandles: job.textures.map(t => t.renderResourceHandle),
-				samplerHandles: job.samplers.map(s => s.renderResourceHandle),
+				textureHandles: job.textures.map(t => t ? t.renderResourceHandle : 0),
+				samplerHandles: job.samplers.map(s => s ? s.renderResourceHandle : 0),
 				constants: job.constants
 			});
 		}
