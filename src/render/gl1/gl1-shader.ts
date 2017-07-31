@@ -50,6 +50,11 @@ namespace sd.render.gl1 {
 		combinedConstants: { readonly [name: string]: Readonly<GL1ShaderConstant> };
 	}
 
+	interface GL1SamplerSlot {
+		sampler: SamplerSlot;
+		uniform: WebGLUniformLocation;
+	}
+
 	const valueTypeMap = {
 		attribute: makeLUT<ShaderValueType, string>(
 			ShaderValueType.Int, "float",
@@ -276,6 +281,32 @@ namespace sd.render.gl1 {
 					console.error(`Shader is missing constant named ${sc.name}`, shader);
 				}
 			}
+		}
+
+		// link samplers to desired bind points
+		const combinedSamplers: { [name: string]: GL1SamplerSlot } = {};
+		const allSamplers = (shader.vertexFunction.samplers || []).concat(shader.fragmentFunction.samplers || []);
+		for (const sampler of allSamplers) {
+			if (sampler.name in combinedSamplers) {
+				const existing = combinedSamplers[sampler.name];
+				if (sampler.index !== existing.sampler.index || sampler.type !== existing.sampler.type) {
+					console.error(`Shader has ambigious binding for sampler ${sampler.name}`, shader);
+				}
+			}
+			else {
+				const uniform = gl.getUniformLocation(program, sampler.name);
+				if (! uniform) {
+					console.warn(`Shader has missing uniform for sampler ${sampler.name}, may have been optimized out.`, shader);
+				}
+				else {
+					combinedSamplers[sampler.name] = { sampler, uniform };
+				}
+			}
+		}
+
+		for (const sampName in combinedSamplers) { /* tslint:disable-line:forin */
+			const samp = combinedSamplers[sampName];
+			gl.uniform1i(samp.uniform, samp.sampler.index);
 		}
 
 		return {
