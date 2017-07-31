@@ -21,7 +21,7 @@ namespace sd.entity {
 		range?: number;  // m   (point/spot only)
 		cutoff?: number; // rad (spot only)
 
-		castsShadows: boolean;
+		castsShadows?: boolean;
 		shadowStrength?: number;  // 0..1
 		shadowBias?: number;      // 0.001..0.1
 	}
@@ -90,7 +90,7 @@ namespace sd.entity {
 			this.enabledBase_[instance] = 1;
 
 			// non-shader shadow data (all optional)
-			this.castsShadowsBase_[instance] = +desc.castsShadows;
+			this.castsShadowsBase_[instance] = +(desc.castsShadows || false);
 
 			// write global light data
 			const gldV4Index = instance * 5;
