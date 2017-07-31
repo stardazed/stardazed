@@ -29,6 +29,11 @@ namespace sd.math {
 			this.viewProj_ = mat4.create();
 		}
 
+		resizeViewport(newWidth: number, newHeight: number) {
+			this.viewport_.width = newWidth;
+			this.viewport_.height = newHeight;
+		}
+
 		updateViewProjMatrix() {
 			mat4.multiply(this.viewProj_, this.proj_, this.view_);
 		}
