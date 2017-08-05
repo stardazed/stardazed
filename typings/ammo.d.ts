@@ -6,6 +6,8 @@ declare namespace Ammo {
 		readonly __VoidPtr?: void;
 	}
 
+	function destroy(ammoObject: object): void;
+
 	function _malloc(sizeBytes: number): VoidPtr;
 	function _free(ptr: VoidPtr): void;
 
