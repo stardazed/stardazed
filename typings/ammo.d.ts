@@ -26,6 +26,11 @@ declare namespace Ammo {
 
 	// ---- Linear Math
 
+	interface btScalarArray {
+		size(): number;
+		at(n: number): number;
+	}
+
 	interface btVector3Const {
 		x(): number;
 		y(): number;
@@ -58,6 +63,11 @@ declare namespace Ammo {
 		new(x: number, y: number, z: number): btVector3;
 	}
 	const btVector3: btVector3Static;
+
+	interface btVector3Array {
+		size(): number;
+		at(n: number): btVector3;
+	}
 
 	// ----
 
@@ -244,6 +254,16 @@ declare namespace Ammo {
 		setContactProcessingThreshold (contactProcessingThreshold: number): void;
 	}
 
+	interface btCollisionObjectArray {
+		size(): number;
+		at(n: number): btCollisionObject;
+	}
+
+	interface btConstCollisionObjectArray {
+		size(): number;
+		at(n: number): btCollisionObject;
+	}
+
 	// ----
 
 	const enum CollisionFilterGroups {
@@ -278,6 +298,25 @@ declare namespace Ammo {
 		get_m_hitPointWorld(): btVector3;
 		set_m_hitPointWorld(hpm: btVector3Const): void;
 	}
+
+	class AllHitsRayResultCallback extends RayResultCallback {
+		constructor(from: btVector3Const, to: btVector3Const);
+
+		get_m_rayFromWorld(): btVector3;
+		set_m_rayFromWorld(rfm: btVector3): void;
+		get_m_rayToWorld(): btVector3;
+		set_m_rayToWorld(rtm: btVector3): void;
+
+		get_m_collisionObjects(): btConstCollisionObjectArray;
+		set_m_collisionObjects(coa: btConstCollisionObjectArray): void;
+		get_m_hitNormalWorld(): btVector3Array;
+		set_m_hitNormalWorld(hnm: btVector3Array): void;
+		get_m_hitPointWorld(): btVector3Array;
+		set_m_hitPointWorld(hpm: btVector3Array): void;
+		get_m_hitFractions(): btScalarArray;
+		set_m_hitFractions(hf: btScalarArray): void;
+	}
+
 
 	interface btManifoldPoint {
 		getPositionWorldOnA(): btVector3Const;
