@@ -7,9 +7,22 @@
 
 namespace sd.container {
 
+	/**
+	 * A function that returns the relative order of 2 items.
+	 * If a < b, it returns a number < 0
+	 * If a = b, it returns 0
+	 * If a > b, it returns a number > 0
+	 */
 	export type CompareFn<T> = (a: Readonly<T>, b: Readonly<T>) => number;
 
-	// -- stable insertion sort
+	/**
+	 * In-place stable insertion sort a range of elements inside an array
+	 * @internal
+	 * @param a The array to sort
+	 * @param l Left index (inclusive) inside {a} of the range to operate on
+	 * @param r Right index (exclusive) inside {a} of the range to operate on
+	 * @param pred Function that returns the relative order of 2 items
+	 */
 	function insertionSortInternal<T>(a: T[], l: number, r: number, pred: CompareFn<T>) {
 		const len = r - l;
 		for (let i = 1; i < len + 1; i++) {
@@ -23,11 +36,28 @@ namespace sd.container {
 		}
 	}
 
+	/**
+	 * In-place stable insertion sort for homogeneous standard arrays.
+	 * @param a The array to be sorted (in-place)
+	 * @param pred Function that returns the relative order of 2 items
+	 */
 	export function insertionSort<T>(a: T[], pred: CompareFn<T>) {
 		insertionSortInternal(a, 0, a.length - 1, pred);
 	}
 
-	// standard merging two sorted half arrays into single sorted array
+	/**
+	 * Standard merge of two sorted half arrays into a single sorted array.
+	 * @internal
+	 * @param merged Destination array
+	 * @param start Index into {merged} to start inserting
+	 * @param left Left range of items
+	 * @param startLeft Index into {left} to start from
+	 * @param sizeLeft Count of items in {left} to process
+	 * @param right Right range of items
+	 * @param startRight Index into {right} to start from
+	 * @param sizeRight Count of items in {right} to process
+	 * @param pred Function that returns the relative order of 2 items
+	 */
 	function merge<T>(
 		merged: T[], start: number,
 		left: T[], startLeft: number, sizeLeft: number, 
@@ -58,8 +88,16 @@ namespace sd.container {
 		}
 	}
 
-	// merge sort data during merging without the additional copying back to array
-	// all data movement is done during the course of the merges
+	/**
+	 * Merge sort data during merging without the additional copying back to array.
+	 * All data movement is done during the course of the merges.
+	 * @internal
+	 * @param a Source array
+	 * @param b Duplicate of source array
+	 * @param l Left index (inclusive) inside {a} of the range to operate on
+	 * @param r Right index (exclusive) inside {a} of the range to operate on
+	 * @param pred Function that returns the relative order of 2 items
+	 */
 	function mergeSortInternal<T>(a: T[], b: T[], l: number, r: number, pred: CompareFn<T>) {
 		if (r <= l) {
 			return;
@@ -76,11 +114,14 @@ namespace sd.container {
 		merge(a, l, b, l, m - l + 1, b, m + 1, r - m, pred); // merge
 	}
 
-	// -- stable merge sort
+	/**
+	 * In-place stable merge sort for homogeneous standard arrays.
+	 * @param a The array to be sorted (in-place)
+	 * @param pred Function that returns the relative order of 2 items
+	 */
 	export function mergeSort<T>(a: T[], pred: CompareFn<T>) {
 		const b = a.slice(0);
 		mergeSortInternal(a, b, 0, a.length - 1, pred);
 	}
-
 
 } // ns sd.container
