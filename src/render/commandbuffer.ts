@@ -59,6 +59,11 @@ namespace sd.render {
 		};
 	}
 
+	export interface TEMPConstant {
+		name: string;
+		value: TypedArray;
+	}
+
 	export interface RenderJob {
 		mesh: meshdata.MeshData;
 		primGroup: meshdata.PrimitiveGroup;

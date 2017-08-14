@@ -5,11 +5,6 @@
 
 namespace sd.render {
 
-	export interface TEMPConstant {
-		name: string;
-		value: TypedArray;
-	}
-
 	export interface EffectData {
 		readonly __evd?: void;
 	}
@@ -23,7 +18,8 @@ namespace sd.render {
 			evData: EffectData,
 			camera: math.ProjectionSetup,
 			modelMatrix: Float4x4,
-			mesh: meshdata.MeshData, primGroup: meshdata.PrimitiveGroup,
+			mesh: meshdata.MeshData,
+			primGroup: meshdata.PrimitiveGroup,
 			toBuffer: RenderCommandBuffer
 		): void;
 
