@@ -12,7 +12,7 @@ namespace sd.render {
 	export interface Effect {
 		readonly name: string;
 
-		linkWithDevice(rd: RenderDevice): void;
+		attachToRenderWorld(rw: RenderWorld): void;
 
 		addRenderJobs(
 			evData: EffectData,

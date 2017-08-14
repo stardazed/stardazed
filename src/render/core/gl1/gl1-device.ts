@@ -32,7 +32,6 @@ namespace sd.render.gl1 {
 		readonly extSRGB: EXTsRGB;
 
 		private maxColourAttachments_ = 0;
-		private effects_: { [name: string]: Effect } = {};
 
 		commandList_: RenderCommand[] = [];
 
@@ -131,20 +130,6 @@ namespace sd.render.gl1 {
 				this.maxColourAttachments_ = this.extDrawBuffers ? this.gl.getParameter(this.extDrawBuffers.MAX_COLOR_ATTACHMENTS_WEBGL) : 1;
 			}
 			return this.maxColourAttachments_;
-		}
-
-
-		// -- EffectRegistry implementation
-		registerEffect(effect: Effect) {
-			if (effect.name in this.effects_) {
-				throw new Error(`Tried to register an Effect named '${effect.name}', but that name is already used.`);
-			}
-			this.effects_[effect.name] = effect;
-			effect.linkWithDevice(this);
-		}
-
-		effectByName(name: string): Effect | undefined {
-			return this.effects_[name];
 		}
 
 

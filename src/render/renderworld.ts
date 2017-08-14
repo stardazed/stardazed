@@ -5,11 +5,12 @@
 
 namespace sd.render {
 
-	export class RenderWorld {
+	export class RenderWorld implements EffectRegistry {
 		private canvas_: HTMLCanvasElement;
 		private rd_: RenderDevice;
 		private lighting_: TiledLight;
-
+		private effects_: { [name: string]: Effect } = {};
+		
 		constructor(holderElement: HTMLElement, initialWidth: number, initialHeight: number) {
 			assert(initialWidth > 0 && initialWidth <= 8192, "Invalid drawable width");
 			assert(initialHeight > 0 && initialHeight <= 8192, "Invalid drawable height");
@@ -30,6 +31,7 @@ namespace sd.render {
 		get drawableHeight() {
 			return this.canvas_.height;
 		}
+
 		resizeDrawableTo(width: number, height: number) {
 			assert(width > 0 && width <= 8192, "Invalid drawable width");
 			assert(height > 0 && height <= 8192, "Invalid drawable height");
@@ -38,7 +40,22 @@ namespace sd.render {
 			this.canvas_.height = height;
 		}
 
-		// temporary accessors as I build this out
+
+		// -- EffectRegistry implementation
+		registerEffect(effect: Effect) {
+			if (effect.name in this.effects_) {
+				throw new Error(`Tried to register an Effect named '${effect.name}', but that name is already used.`);
+			}
+			this.effects_[effect.name] = effect;
+			effect.attachToRenderWorld(this);
+		}
+
+		effectByName(name: string): Effect | undefined {
+			return this.effects_[name];
+		}
+
+
+		// -- temporary accessors as I build this out
 		get rd() { return this.rd_; }
 		get lighting() { return this.lighting_; }
 	}

@@ -26,7 +26,7 @@ namespace sd.render {
 		Texture | Sampler | FrameBuffer | meshdata.MeshData | Shader;
 
 
-	export interface RenderDevice extends EffectRegistry {
+	export interface RenderDevice {
 		readonly name: string;
 
 		// current dimensions of screen rendertarget
