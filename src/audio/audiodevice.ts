@@ -3,6 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
+/** @internal */
 declare const webkitAudioContext: {
 	prototype: AudioContext;
 	new (): AudioContext;
