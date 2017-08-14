@@ -9,6 +9,7 @@ declare const webkitAudioContext: {
 	new (): AudioContext;
 };
 
+/** @internal */
 interface Window {
 	webkitAudioContext?: typeof AudioContext;
 	AudioContext?: typeof AudioContext;
