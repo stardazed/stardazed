@@ -1,4 +1,4 @@
-// entity/meshrenderer - standard mesh renderer component
+// entity/meshrenderer - associate meshes with materials and render metadata
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -12,68 +12,54 @@ namespace sd.entity {
 	export type MeshRendererArrayView = InstanceArrayView<MeshRendererComponent>;
 
 	export interface MeshRendererDescriptor {
-		mesh: meshdata.MeshData;
 		materials: number[];
 		castsShadows?: boolean;
 		acceptsShadows?: boolean;
 	}
 
+	export const enum MeshRendererFlags {
+		Enabled = 1,
+		CastsShadows = 2,
+		AcceptsShadows = 4
+	}
+
+	function flagsForDescriptor(desc: MeshRendererDescriptor) {
+		let flags = MeshRendererFlags.Enabled;
+		if (desc.castsShadows) {
+			flags |= MeshRendererFlags.CastsShadows;
+		}
+		if (desc.acceptsShadows) {
+			flags |= MeshRendererFlags.AcceptsShadows;
+		}
+		return flags;
+	}
+
 	export class MeshRendererComponent implements Component<MeshRendererComponent> {
 		private instanceData_: container.MultiArrayBuffer;
 		private entityBase_: EntityArrayView;
-		private transformBase_: TransformArrayView;
-		private enabledBase_: Uint8Array;
-		private shadowCastFlagsBase_: Uint8Array;
+		private flagsBase_: ConstEnumArrayView<MeshRendererFlags>;
 		private materialOffsetCountBase_: Int32Array;
-		private renderJobOffsetCountBase_: Int32Array;
 
-		private meshes_: meshdata.MeshData[];
 		private materials_: number[];
 
-
-		constructor(_rd: render.RenderDevice, private transformComp_: TransformComponent) {
+		constructor() {
 			const instFields: container.MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
-				{ type: SInt32, count: 1 }, // transform
-				{ type: UInt8,  count: 1 }, // enabled
-				{ type: UInt8,  count: 1 }, // shadowCastFlags
+				{ type: UInt8,  count: 1 }, // flags
 				{ type: SInt32, count: 2 }, // materialOffsetCount ([0]: offset, [1]: count)
-				{ type: SInt32, count: 2 }, // renderJobOffsetCount ([0]: offset, [1]: count)
 			];
 			this.instanceData_ = new container.MultiArrayBuffer(1024, instFields);
 
 			this.rebase();
 
 			this.materials_ = [];
-			this.meshes_ = [];
 		}
 
 		private rebase() {
 			this.entityBase_ = this.instanceData_.indexedFieldView(0);
-			this.transformBase_ = this.instanceData_.indexedFieldView(1);
-			this.enabledBase_ = this.instanceData_.indexedFieldView(2);
-			this.shadowCastFlagsBase_ = this.instanceData_.indexedFieldView(3);
-			this.materialOffsetCountBase_ = this.instanceData_.indexedFieldView(4);
-			this.renderJobOffsetCountBase_ = this.instanceData_.indexedFieldView(5);
+			this.flagsBase_ = this.instanceData_.indexedFieldView(1);
+			this.materialOffsetCountBase_ = this.instanceData_.indexedFieldView(2);
 		}
-
-		private updatePrimGroups(modelIx: number) {
-			const mesh = this.meshes_[modelIx];
-			const subMeshes = mesh.subMeshes;
-			const materialsOffsetCount = container.copyIndexedVec2(this.materialOffsetCountBase_, modelIx);
-			// const materialsOffset = materialsOffsetCount[0];
-			const materialCount = materialsOffsetCount[1];
-
-			// -- check correctness of mesh against material list
-			const maxLocalMatIndex = subMeshes.reduce((cur, group) => Math.max(cur, group.materialIx), 0);
-			assert(materialCount >= maxLocalMatIndex - 1, "not enough MaterialIndexes for this mesh");
-
-			// -- append metadata for each primGroup
-			subMeshes.forEach(_group => {
-				// primGroupCount += 1;
-			});
-		}
-
 
 		create(entity: Entity, desc: MeshRendererDescriptor): MeshRendererInstance {
 			if (this.instanceData_.extend() === container.InvalidatePointers.Yes) {
@@ -82,17 +68,14 @@ namespace sd.entity {
 			const ix = this.instanceData_.count;
 
 			this.entityBase_[ix] = entity as number;
-			this.transformBase_[ix] = this.transformComp_.forEntity(entity) as number;
-			this.enabledBase_[ix] = +true;
-			this.shadowCastFlagsBase_[ix] = +(desc.castsShadows === undefined ? true : desc.castsShadows);
+			this.flagsBase_[ix] = flagsForDescriptor(desc);
 
 			// -- save material indexes
+			assert(desc.materials.length > 0, "Must specify at least 1 material.");
 			container.setIndexedVec2(this.materialOffsetCountBase_, ix, [this.materials_.length, desc.materials.length]);
 			for (const mat of desc.materials) {
 				this.materials_.push(mat);
 			}
-
-			this.updatePrimGroups(ix);
 
 			return ix;
 		}
@@ -133,16 +116,50 @@ namespace sd.entity {
 			return this.entityBase_[inst as number];
 		}
 
-		transform(inst: MeshRendererInstance): TransformInstance {
-			return this.transformBase_[inst as number];
-		}
-
 		enabled(inst: MeshRendererInstance): boolean {
-			return this.enabledBase_[inst as number] !== 0;
+			return (this.flagsBase_[inst as number] & MeshRendererFlags.Enabled) !== 0;
 		}
 
 		setEnabled(inst: MeshRendererInstance, newEnabled: boolean) {
-			this.enabledBase_[inst as number] = +newEnabled;
+			if (newEnabled) {
+				this.flagsBase_[inst as number] &= ~MeshRendererFlags.Enabled;
+			}
+			else {
+				this.flagsBase_[inst as number] |= MeshRendererFlags.Enabled;
+			}
+		}
+
+		castsShadows(inst: MeshRendererInstance): boolean {
+			return (this.flagsBase_[inst as number] & MeshRendererFlags.CastsShadows) !== 0;
+		}
+
+		setCastsShadows(inst: MeshRendererInstance, newCasts: boolean) {
+			if (newCasts) {
+				this.flagsBase_[inst as number] &= ~MeshRendererFlags.CastsShadows;
+			}
+			else {
+				this.flagsBase_[inst as number] |= MeshRendererFlags.CastsShadows;
+			}
+		}
+
+		acceptsShadows(inst: MeshRendererInstance): boolean {
+			return (this.flagsBase_[inst as number] & MeshRendererFlags.AcceptsShadows) !== 0;
+		}
+
+		setAcceptsShadows(inst: MeshRendererInstance, newAccepts: boolean) {
+			if (newAccepts) {
+				this.flagsBase_[inst as number] &= ~MeshRendererFlags.AcceptsShadows;
+			}
+			else {
+				this.flagsBase_[inst as number] |= MeshRendererFlags.AcceptsShadows;
+			}
+		}
+
+		materials(inst: MeshRendererInstance): number[] {
+			const ocbIndex = (inst as number) * 2;
+			const offset = this.materialOffsetCountBase_[ocbIndex];
+			const count = this.materialOffsetCountBase_[ocbIndex + 1];
+			return this.materials_.slice(offset, offset + count);
 		}
 	}
 
