@@ -13,7 +13,7 @@ Features and APIs still very much in flux, but functional and usable for actual 
 Goals
 -----
 
-_"A small but powerful alternative to tools like Unity for 3D browser games"_
+_"A small but powerful alternative to tools like Unity for Desktop 3D browser games"_
 
 There is still quite a ways to go for this to become a reality, but I've already used the library
 succesfully for small projects. For the foreseeable future the library will require medium to high
@@ -23,7 +23,7 @@ technical expertise to use.
 - Learn about all aspects of game (engine) programming by implementing them. This is an educational project for myself.
 - Minimal external dependencies, currently:
   - [veclib](https://github.com/stardazed/veclib), a fork of [gl-matrix](https://github.com/toji/gl-matrix) modified specifically for inclusion in SD
-  - [AmmoJS](https://github.com/kripken/ammo.js), a JS compilation of [Bullet](http://bulletphysics.org/wordpress/) for the physics system (in progress)
+  - a custom build of [AmmoJS](https://github.com/stardazed/ammo.js), a JS compilation of [Bullet](http://bulletphysics.org/wordpress/) for the physics system
   - Inflate, a minimal JS port of the inflate algorithm to expand GZipped assets in-client
 - Memory & GC efficiency: a lot of the data is kept in large linear typed arrays, not in millions of tiny objects
 - Scalability: use workers, atomics and shared buffers to allow for multi-threaded rendering and game logic handling
