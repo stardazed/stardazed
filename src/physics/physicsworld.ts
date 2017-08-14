@@ -1,4 +1,4 @@
-// physics/world - physics configuration and world container
+// physics/physicsworld - physics configuration and world container
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -52,6 +52,8 @@ namespace sd.physics {
 		private defaultFriction_: number;
 		private defaultRestitution_: number;
 
+		private readonly tempBtTrans_: Ammo.btTransform;
+		
 		constructor(config: PhysicsConfig) {
 			const collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
 			const dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
@@ -79,6 +81,8 @@ namespace sd.physics {
 			this.defaultAngularDrag_ = config.defaultAngularDrag;
 			this.defaultFriction_ = config.defaultFriction;
 			this.defaultRestitution_ = config.defaultRestitution;
+
+			this.tempBtTrans_ = new Ammo.btTransform();			
 		}
 
 		createRigidBody(desc: RigidBodyDescriptor) {
@@ -135,8 +139,21 @@ namespace sd.physics {
 			this.world_.removeRigidBody(body);
 		}
 
-		get implementation() {
-			return this.world_;
+		update(timeStep: number, colliders: entity.ColliderComponent, transforms: entity.TransformComponent) {
+			this.world_.stepSimulation(timeStep, 2, 1 / 60);
+
+			colliders.forEach((_coll, trans, rigidBody) => {
+				if (rigidBody.isActive()) {
+					const ms = rigidBody.getMotionState();
+					ms.getWorldTransform(this.tempBtTrans_);
+
+					const pos = this.tempBtTrans_.getOrigin();
+					const rot = this.tempBtTrans_.getRotation();
+
+					// FIXME: if item is parented, make position/rotation parent relative
+					transforms.setPositionAndRotation(trans, [pos.x(), pos.y(), pos.z()], [rot.x(), rot.y(), rot.z(), rot.w()]);
+				}
+			});
 		}
 	}
 

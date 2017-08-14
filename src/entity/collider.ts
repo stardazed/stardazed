@@ -95,6 +95,7 @@ namespace sd.entity {
 			return new InstanceLinearRange<ColliderComponent>(1, this.count);
 		}
 
+		// FIXME: HACK, move to physicsworld
 		forEach(fn: (inst: ColliderInstance, tx: TransformInstance, rb: Ammo.btRigidBody) => void) {
 			const max = this.count;
 			for (let cx = 1; cx <= max; ++cx) {

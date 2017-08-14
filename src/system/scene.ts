@@ -61,7 +61,6 @@ namespace sd {
 		readonly colliders: entity.ColliderComponent;
 
 		readonly physicsWorld: physics.PhysicsWorld;
-		readonly physics: physics.PhysicsSystem;
 		readonly camera: math.Camera;
 
 		private state_: SceneState;
@@ -88,8 +87,6 @@ namespace sd {
 			this.colliders = new entity.ColliderComponent(this.physicsWorld, this.transforms);
 
 			// -- controlling systems (scene-local)
-			this.physics = new physics.PhysicsSystem(this.colliders, this.transforms);
-
 			this.camera = new math.Camera(rw.drawableWidth, rw.drawableHeight);
 
 			// -- assets
