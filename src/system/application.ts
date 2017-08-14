@@ -16,7 +16,7 @@ namespace sd {
 
 	export interface Application {
 		readonly globalTime: number;
-		readonly messages: system.Messaging;
+		readonly messages: Messaging;
 		scene: Scene | undefined;
 	}
 
@@ -32,7 +32,7 @@ namespace sd {
 		private rafID_ = 0;
 		private nextFrameFn_: FrameRequestCallback;
 
-		private messages_ = new system.Messaging();
+		private messages_ = new Messaging();
 
 		private scene_: Scene | undefined = undefined;
 
