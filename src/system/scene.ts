@@ -60,7 +60,7 @@ namespace sd {
 		// readonly renderers: entity.MeshRendererComponent;
 		readonly colliders: entity.ColliderComponent;
 
-		readonly lighting: system.Lighting;
+		readonly lighting: material.TiledLight;
 		readonly physicsWorld: physics.PhysicsWorld;
 		readonly physics: physics.PhysicsSystem;
 		readonly camera: math.Camera;
@@ -89,7 +89,7 @@ namespace sd {
 			this.colliders = new entity.ColliderComponent(this.physicsWorld, this.transforms);
 
 			// -- controlling systems (scene-local)
-			this.lighting = new system.Lighting(this.lights, this.transforms, "medium");
+			this.lighting = new material.TiledLight("medium");
 			this.physics = new physics.PhysicsSystem(this.colliders, this.transforms);
 
 			this.camera = new math.Camera(rd.drawableWidth, rd.drawableHeight);

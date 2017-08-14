@@ -1,9 +1,9 @@
-// system/lighting - controlling the lights
+// material/tiledlight - Tiled Light data controller
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.system {
+namespace sd.material {
 
 	const TILE_DIMENSION = 32;
 
@@ -58,7 +58,7 @@ namespace sd.system {
 		toCol: number;
 	}
 
-	export class Lighting {
+	export class TiledLight {
 		private lutWidthPixels_: number;
 		private lutHeightPixels_: number;
 		private lutLightDataRows_: number;
@@ -68,9 +68,6 @@ namespace sd.system {
 		private lutTilesHigh_: number;
 		private lutParam_ = new Float32Array(2);
 
-		private readonly lightComp_: entity.LightComponent;
-		private readonly transformComp_: entity.TransformComponent;
-
 		private readonly tileLightIndexes_: Float32Array;
 		private readonly lightGrid_: Float32Array;
 
@@ -79,10 +76,7 @@ namespace sd.system {
 		private gridRowSpans_: LightGridSpan[][] = [];
 		private readonly nullVec3_: Float32Array;
 
-		constructor(lightComp: entity.LightComponent, transformComp: entity.TransformComponent, lutSize: LightLUTSize) {
-			this.lightComp_ = lightComp;
-			this.transformComp_ = transformComp;
-
+		constructor(lutSize: LightLUTSize) {
 			const lutConfig = lutConfigs[lutSize];
 			this.lutWidthPixels_ = lutConfig.pixelWidth;
 			this.lutHeightPixels_ = lutConfig.lightDataRows + lutConfig.indexListRows + lutConfig.gridRows;
@@ -143,9 +137,12 @@ namespace sd.system {
 		}
 
 
-		private updateLightGrid(range: entity.LightRange, projection: math.ProjectionSetup, viewport: render.Viewport) {
-			const light = this.lightComp_;
-
+		private updateLightGrid(
+			lightComp: entity.LightComponent,
+			range: entity.LightRange,
+			projection: math.ProjectionSetup,
+			viewport: render.Viewport
+		) {
 			const vpHeight = this.lutParam_[1];
 			const tilesWide = this.lutTilesWide_;
 			const tilesHigh = this.lutTilesHigh_;
@@ -167,12 +164,12 @@ namespace sd.system {
 			const iter = range.makeIterator();
 			while (iter.next()) {
 				const lix = iter.current as number;
-				const lightType = light.type(lix);
+				const lightType = lightComp.type(lix);
 
 				if (lightType === entity.LightType.Point) {
 					// calculate screen space bounds based on a simple point and radius cube
-					const lcpos = light.positionCameraSpace(lix);
-					const radius = light.range(lix);
+					const lcpos = lightComp.positionCameraSpace(lix);
+					const radius = lightComp.range(lix);
 					// the resulting rect has the bottom-left as origin (bottom < top)
 					this.projectPointLight(ssb, lcpos, radius, VPP);
 
@@ -235,16 +232,20 @@ namespace sd.system {
 		}
 
 
-		prepareLightsForRender(range: entity.LightRange, proj: math.ProjectionSetup, viewport: render.Viewport, targetDim?: image.PixelDimensions) {
+		prepareLightsForRender(
+			lightComp: entity.LightComponent,
+			range: entity.LightRange,
+			transformComp: entity.TransformComponent,
+			proj: math.ProjectionSetup,
+			viewport: render.Viewport,
+			targetDim?: image.PixelDimensions
+		) {
 			const cmd = new render.RenderCommandBuffer();
 			if (this.lutTexture_.renderResourceHandle === 0) {
 				cmd.allocate(this.lutTexture_);
 				cmd.allocate(this.lutSampler_);
 				return cmd;
 			}
-
-			const light = this.lightComp_;
-			const transform = this.transformComp_;
 
 			// update lut dimensions
 			if (! targetDim) {
@@ -267,37 +268,37 @@ namespace sd.system {
 					highestLightIndex = lix;
 				}
 
-				const type = light.type(lix);
-				const lightTX = light.transform(lix);
+				const type = lightComp.type(lix);
+				const lightTX = lightComp.transform(lix);
 
 				if (type !== entity.LightType.Directional) {
-					const lightPos_world = transform.worldPosition(lightTX); // tslint:disable-line:variable-name
+					const lightPos_world = transformComp.worldPosition(lightTX); // tslint:disable-line:variable-name
 					const lightPos_cam = vec3.transformMat4([], lightPos_world, proj.viewMatrix); // tslint:disable-line:variable-name
 
 					const posCamOffset = (lix * 20) + 4;
-					light.lightData[posCamOffset] = lightPos_cam[0];
-					light.lightData[posCamOffset + 1] = lightPos_cam[1];
-					light.lightData[posCamOffset + 2] = lightPos_cam[2];
+					lightComp.lightData[posCamOffset] = lightPos_cam[0];
+					lightComp.lightData[posCamOffset + 1] = lightPos_cam[1];
+					lightComp.lightData[posCamOffset + 2] = lightPos_cam[2];
 
 					const posWorldOffset = (lix * 20) + 8;
-					light.lightData[posWorldOffset] = lightPos_world[0];
-					light.lightData[posWorldOffset + 1] = lightPos_world[1];
-					light.lightData[posWorldOffset + 2] = lightPos_world[2];
+					lightComp.lightData[posWorldOffset] = lightPos_world[0];
+					lightComp.lightData[posWorldOffset + 1] = lightPos_world[1];
+					lightComp.lightData[posWorldOffset + 2] = lightPos_world[2];
 				}
 				if (type !== entity.LightType.Point) {
-					const rotMat = mat3.normalFromMat4([], transform.worldMatrix(lightTX));
+					const rotMat = mat3.normalFromMat4([], transformComp.worldMatrix(lightTX));
 					const lightDir_world = vec3.transformMat3([], this.nullVec3_, rotMat); // tslint:disable-line:variable-name
 					const lightDir_cam = vec3.transformMat3([], lightDir_world, viewNormalMatrix); // tslint:disable-line:variable-name
 
 					const dirOffset = (lix * 20) + 12;
-					light.lightData[dirOffset] = lightDir_cam[0];
-					light.lightData[dirOffset + 1] = lightDir_cam[1];
-					light.lightData[dirOffset + 2] = lightDir_cam[2];
+					lightComp.lightData[dirOffset] = lightDir_cam[0];
+					lightComp.lightData[dirOffset + 1] = lightDir_cam[1];
+					lightComp.lightData[dirOffset + 2] = lightDir_cam[2];
 				}
 			}
 
 			// recalculate grid
-			const { indexPixelsUsed, gridRowsUsed } = this.updateLightGrid(range, proj, viewport);
+			const { indexPixelsUsed, gridRowsUsed } = this.updateLightGrid(lightComp, range, proj, viewport);
 
 			// update texture data
 			const gllRowsUsed = Math.ceil(highestLightIndex / this.lutWidthPixels_);
@@ -305,7 +306,7 @@ namespace sd.system {
 
 			// resource updates
 			// TODO: should use slice to only pass subarray of data actually being sent?
-			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, 0), image.makePixelDimensions(this.lutWidthPixels_, gllRowsUsed), light.lightData);
+			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, 0), image.makePixelDimensions(this.lutWidthPixels_, gllRowsUsed), lightComp.lightData);
 			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, this.lutLightDataRows_), image.makePixelDimensions(this.lutWidthPixels_, indexRowsUsed), this.tileLightIndexes_);
 			cmd.textureWrite(this.lutTexture_, 0, image.makePixelCoordinate(0, this.lutLightDataRows_ + this.lutIndexListRows_), image.makePixelDimensions(this.lutWidthPixels_, gridRowsUsed), this.lightGrid_);
 			return cmd;
@@ -321,4 +322,4 @@ namespace sd.system {
 		}
 	}
 
-} // ns sd.system
+} // ns sd.material
