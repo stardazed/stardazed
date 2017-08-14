@@ -55,6 +55,33 @@ namespace sd.render {
 		}
 
 
+		// --
+
+		drawScene(scene: Scene) {
+			const cmds = this.lighting_.prepareLightsForRender(
+				scene.lights,
+				scene.lights.allEnabled(),
+				scene.transforms,
+				scene.camera,
+				scene.camera.viewport
+			);
+
+			if (! (this.lighting_.lutTextureSampler && this.lighting_.lutTextureSampler.tex && this.lighting_.lutTextureSampler.tex.renderResourceHandle)) {
+				return cmds;
+			}
+
+			cmds.setFrameBuffer(null, render.ClearMask.ColourDepth, { colour: [0.0, 0.0, 0.0, 1.0] });
+			cmds.setViewport(scene.camera.viewport);
+
+			// for (let bmx = 0; bmx < this.baseMesh.subMeshes.length; ++bmx) {
+			// 	const bsm = this.baseMesh.subMeshes[bmx];
+			// 	const ed = this.baseEDs[bmx];
+			// 	this.legacy.addRenderJobs(ed, this.scene.camera, scene.transforms.worldMatrix(this.baseObject.transform), this.baseMesh, bsm, cmds);
+			// }
+	
+			return cmds;
+		}
+
 		// -- temporary accessors as I build this out
 		get rd() { return this.rd_; }
 		get lighting() { return this.lighting_; }
