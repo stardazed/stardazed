@@ -12,7 +12,7 @@ namespace sd.entity {
 	export type MeshRendererArrayView = InstanceArrayView<MeshRendererComponent>;
 
 	export interface MeshRendererDescriptor {
-		materials: number[];
+		materials: render.EffectData[];
 		castsShadows?: boolean;
 		acceptsShadows?: boolean;
 	}
@@ -40,7 +40,7 @@ namespace sd.entity {
 		private flagsBase_: ConstEnumArrayView<MeshRendererFlags>;
 		private materialOffsetCountBase_: Int32Array;
 
-		private materials_: number[];
+		private materials_: render.EffectData[];
 
 		constructor() {
 			const instFields: container.MABField[] = [
@@ -155,7 +155,7 @@ namespace sd.entity {
 			}
 		}
 
-		materials(inst: MeshRendererInstance): number[] {
+		materials(inst: MeshRendererInstance): render.EffectData[] {
 			const ocbIndex = (inst as number) * 2;
 			const offset = this.materialOffsetCountBase_[ocbIndex];
 			const count = this.materialOffsetCountBase_[ocbIndex + 1];
