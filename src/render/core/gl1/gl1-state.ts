@@ -1,4 +1,4 @@
-// render/gl1/state - WebGL1 state management
+// render/core/gl1/state - WebGL1 state management
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

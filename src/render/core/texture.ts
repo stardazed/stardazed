@@ -1,4 +1,4 @@
-// render/texture - engine-side textures and samplers
+// render/core/texture - engine-side textures and samplers
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

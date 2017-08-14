@@ -1,4 +1,4 @@
-// render/gl1/tools - WebGL1 device utility types
+// render/core/gl1/tools - WebGL1 device utility types
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

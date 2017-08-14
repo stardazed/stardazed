@@ -1,4 +1,4 @@
-// render/gl1/device - WebGL1 implementation of RenderDevice
+// render/core/gl1/device - WebGL1 implementation of RenderDevice
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

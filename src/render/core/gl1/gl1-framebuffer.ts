@@ -1,4 +1,4 @@
-// render/gl1/framebuffer - WebGL1 implementation of FrameBuffer
+// render/core/gl1/framebuffer - WebGL1 implementation of FrameBuffer
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

@@ -1,4 +1,4 @@
-// render/gl1/mesh - WebGL1 implementation of mesh resources
+// render/core/gl1/mesh - WebGL1 implementation of mesh resources
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

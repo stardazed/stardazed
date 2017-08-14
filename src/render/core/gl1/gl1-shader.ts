@@ -1,4 +1,4 @@
-// render/gl1/shader - WebGL1 implementation of pipeline / shader / program
+// render/core/gl1/shader - WebGL1 implementation of pipeline / shader / program
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

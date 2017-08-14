@@ -1,4 +1,4 @@
-// render/shader - Shader resource
+// render/core/shader - Shader resource
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

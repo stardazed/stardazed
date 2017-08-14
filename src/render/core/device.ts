@@ -1,4 +1,4 @@
-// render/device - engine-side view of render constructs
+// render/core/device - engine-side view of render constructs
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

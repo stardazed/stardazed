@@ -1,4 +1,4 @@
-// render/gl1/pixelformat - WebGL1 pixel format conversions
+// render/core/gl1/pixelformat - WebGL1 pixel format conversions
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

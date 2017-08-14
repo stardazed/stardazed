@@ -1,4 +1,4 @@
-// render/gl1/constants - WebGL1 constants defined as TS constants vs locked inside GL object
+// render/core/gl1/constants - WebGL1 constants defined as TS constants vs locked inside GL object
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

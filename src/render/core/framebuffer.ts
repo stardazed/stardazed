@@ -1,4 +1,4 @@
-// render/framebuffer - descriptors and enums related to FrameBuffer objects
+// render/core/framebuffer - descriptors and enums related to FrameBuffer objects
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
