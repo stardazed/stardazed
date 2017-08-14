@@ -10,20 +10,26 @@ namespace sd.render {
 		private rd_: RenderDevice;
 		private lighting_: TiledLight;
 
-		constructor(parentElement: HTMLElement, initialWidth: number, initialHeight: number) {
+		constructor(holderElement: HTMLElement, initialWidth: number, initialHeight: number) {
 			assert(initialWidth > 0 && initialWidth <= 8192, "Invalid drawable width");
 			assert(initialHeight > 0 && initialHeight <= 8192, "Invalid drawable height");
 
-			this.canvas_ = parentElement.ownerDocument.createElement("canvas");
+			this.canvas_ = holderElement.ownerDocument.createElement("canvas");
 			this.canvas_.width = initialWidth;
 			this.canvas_.height = initialHeight;
 
-			parentElement.appendChild(this.canvas_);
+			holderElement.appendChild(this.canvas_);
 			
 			this.rd_ = new gl1.GL1RenderDevice(this.canvas_);
 			this.lighting_ = new TiledLight("medium");
 		}
 
+		get drawableWidth() {
+			return this.canvas_.width;
+		}
+		get drawableHeight() {
+			return this.canvas_.height;
+		}
 		resizeDrawableTo(width: number, height: number) {
 			assert(width > 0 && width <= 8192, "Invalid drawable width");
 			assert(height > 0 && height <= 8192, "Invalid drawable height");

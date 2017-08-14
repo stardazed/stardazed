@@ -50,7 +50,7 @@ namespace sd {
 	}
 
 	export class Scene {
-		readonly rd: render.RenderDevice;
+		readonly rw: render.RenderWorld;
 		readonly ad: audio.AudioDevice;
 
 		readonly entities: entity.EntityManager;
@@ -60,7 +60,6 @@ namespace sd {
 		// readonly renderers: entity.MeshRendererComponent;
 		readonly colliders: entity.ColliderComponent;
 
-		readonly lighting: render.TiledLight;
 		readonly physicsWorld: physics.PhysicsWorld;
 		readonly physics: physics.PhysicsSystem;
 		readonly camera: math.Camera;
@@ -71,13 +70,13 @@ namespace sd {
 		readonly assetURLMapping: { readonly [name: string]: string };
 		readonly assets: { [name: string]: any };
 
-		constructor(rd: render.RenderDevice, ad: audio.AudioDevice, config: SceneConfig) {
+		constructor(rw: render.RenderWorld, ad: audio.AudioDevice, config: SceneConfig) {
 			this.state_ = SceneState.Uninitialized;
 			this.delegate = config.delegate;
 			this.delegate.scene = this;
 
 			// -- global systems
-			this.rd = rd;
+			this.rw = rw;
 			this.ad = ad;
 
 			// -- entities and components (scene-local)
@@ -89,10 +88,9 @@ namespace sd {
 			this.colliders = new entity.ColliderComponent(this.physicsWorld, this.transforms);
 
 			// -- controlling systems (scene-local)
-			this.lighting = new render.TiledLight("medium");
 			this.physics = new physics.PhysicsSystem(this.colliders, this.transforms);
 
-			this.camera = new math.Camera(rd.drawableWidth, rd.drawableHeight);
+			this.camera = new math.Camera(rw.drawableWidth, rw.drawableHeight);
 
 			// -- assets
 			this.assetURLMapping = { ...config.assetURLMapping };
@@ -112,8 +110,8 @@ namespace sd {
 
 			// HACK: LD39
 			this.delegate.loadAssets().then(rcb => {
-				this.rd.dispatch(rcb);
-				this.rd.processFrame();
+				this.rw.rd.dispatch(rcb);
+				this.rw.rd.processFrame();
 
 				if (this.delegate.finishedLoadingAssets) {
 					this.delegate.finishedLoadingAssets();

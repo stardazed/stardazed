@@ -59,8 +59,9 @@ namespace sd {
 			// 	render.makeViewport()
 			// ));
 
-			scene.rd.dispatch(rcmds);
-			scene.rd.processFrame();
+			// FIXME: hack
+			scene.rw.rd.dispatch(rcmds);
+			scene.rw.rd.processFrame();
 		}
 
 		private nextFrame(now: number) {
