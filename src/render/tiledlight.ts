@@ -1,9 +1,9 @@
-// material/tiledlight - Tiled Light data controller
+// render/tiledlight - Tiled Light data controller
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.material {
+namespace sd.render {
 
 	const TILE_DIMENSION = 32;
 
@@ -322,4 +322,4 @@ namespace sd.material {
 		}
 	}
 
-} // ns sd.material
+} // ns sd.scene
