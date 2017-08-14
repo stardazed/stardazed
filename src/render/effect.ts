@@ -6,7 +6,7 @@
 namespace sd.render {
 
 	export interface EffectData {
-		readonly __evd?: void;
+		readonly __effectID: number;
 	}
 
 	export interface Effect {
