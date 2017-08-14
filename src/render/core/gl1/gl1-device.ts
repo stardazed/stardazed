@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../../../typings/webgl.d.ts"/>
+/// <reference path="../../../../typings/webgl.d.ts"/>
 /// <reference path="gl1-constants.ts"/>
 
 namespace sd.render.gl1 {

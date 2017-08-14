@@ -3,9 +3,6 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="./effect.ts" />
-
-
 namespace sd.render {
 
 	export const enum FrontFaceWinding {
