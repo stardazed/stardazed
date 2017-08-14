@@ -4,7 +4,6 @@
 // https://github.com/stardazed/stardazed
 
 // global type augmentations
-/** @internal */
 interface ArrayBufferConstructor {
 	// proposed for ES7
 	transfer(oldBuffer: ArrayBuffer, newByteLength?: number): ArrayBuffer;
