@@ -50,17 +50,9 @@ namespace sd {
 		}
 
 		private processSceneFrame(scene: Scene, dt: number) {
-			const rcmds: render.RenderCommandBuffer = scene.frame(dt);
-
-			// rcmds.push(scene.lighting.prepareLightsForRender(
-			// 	scene.lights.allEnabled(),
-			// 	scene.camera,
-			// 	image.makePixelDimensions(100, 100),
-			// 	render.makeViewport()
-			// ));
-
-			// FIXME: hack
-			scene.rw.rd.dispatch(rcmds);
+			scene.frame(dt);
+			scene.physicsWorld.update(dt, scene.colliders, scene.transforms);			
+			scene.rw.drawScene(scene);
 			scene.rw.rd.processFrame();
 		}
 
