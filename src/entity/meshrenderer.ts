@@ -80,8 +80,11 @@ namespace sd.entity {
 			return ix;
 		}
 
-		destroy(_inst: MeshRendererInstance) {
-			// TBI
+		destroy(inst: MeshRendererInstance) {
+			const ix = inst as number;
+			this.entityBase_[ix] = 0;
+			this.flagsBase_[ix] = 0;
+			container.setIndexedVec2(this.materialOffsetCountBase_, ix, [0, 0]);
 		}
 
 		destroyRange(range: MeshRendererRange) {
@@ -96,7 +99,7 @@ namespace sd.entity {
 		}
 
 		valid(inst: MeshRendererInstance) {
-			return inst <= this.count;
+			return inst > 0 && inst <= this.count && this.entityBase_[inst as number] !== 0;
 		}
 
 		all(): MeshRendererRange {
