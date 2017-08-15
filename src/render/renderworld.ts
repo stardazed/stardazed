@@ -69,20 +69,49 @@ namespace sd.render {
 				scene.camera.viewport
 			);
 
-			if (! (this.lighting_.lutTextureSampler && this.lighting_.lutTextureSampler.tex && this.lighting_.lutTextureSampler.tex.renderResourceHandle)) {
-				return cmds;
+			const lightingReady = this.lighting_.lutTextureSampler && this.lighting_.lutTextureSampler.tex && this.lighting_.lutTextureSampler.tex.renderResourceHandle;
+
+			if (lightingReady) {
+				cmds.setFrameBuffer(null, render.ClearMask.ColourDepth, { colour: [0.0, 0.0, 0.0, 1.0] });
+				cmds.setViewport(scene.camera.viewport);
+
+				const transforms = scene.transforms;
+				const renderers = scene.renderers;
+				const meshes = scene.meshes;
+				const camera = scene.camera;
+
+				renderers.all().forEach(mri => {
+					if (renderers.enabled(mri)) {
+						const ent = renderers.entity(mri);
+						const mi = meshes.forEntity(ent);
+						if (mi !== 0) {
+							const worldMat = transforms.worldMatrix(transforms.forEntity(ent));
+							const mesh = meshes.mesh(mi);
+							const subMeshes = meshes.subMeshes(mi);
+							const materials = renderers.materials(mri);
+							const subMeshCount = subMeshes.length;
+							const materialCount = materials.length;
+							const commandCount = Math.max(subMeshCount, materialCount);
+
+							for (let cix = 0; cix < commandCount; ++cix) {
+								const material = materials[Math.min(cix, materialCount - 1)];
+								const subMesh = subMeshes[Math.min(cix, subMeshCount - 1)];
+								const effect = this.effects_.get(material.__effectID)!;
+								effect.addRenderJobs(
+									material,
+									camera,
+									worldMat,
+									mesh,
+									subMesh,
+									cmds
+								);
+							}
+						}
+					}
+				});
 			}
-
-			cmds.setFrameBuffer(null, render.ClearMask.ColourDepth, { colour: [0.0, 0.0, 0.0, 1.0] });
-			cmds.setViewport(scene.camera.viewport);
-
-			// for (let bmx = 0; bmx < this.baseMesh.subMeshes.length; ++bmx) {
-			// 	const bsm = this.baseMesh.subMeshes[bmx];
-			// 	const ed = this.baseEDs[bmx];
-			// 	this.legacy.addRenderJobs(ed, this.scene.camera, scene.transforms.worldMatrix(this.baseObject.transform), this.baseMesh, bsm, cmds);
-			// }
 	
-			return cmds;
+			this.rd_.dispatch(cmds);			
 		}
 
 		// -- temporary accessors as I build this out
