@@ -57,7 +57,7 @@ namespace sd {
 		readonly transforms: entity.TransformComponent;
 		readonly meshes: entity.MeshComponent;
 		readonly lights: entity.LightComponent;
-		// readonly renderers: entity.MeshRendererComponent;
+		readonly renderers: entity.MeshRendererComponent;
 		readonly colliders: entity.ColliderComponent;
 
 		readonly physicsWorld: physics.PhysicsWorld;
@@ -83,6 +83,7 @@ namespace sd {
 			this.transforms = new entity.TransformComponent();
 			this.meshes = new entity.MeshComponent();
 			this.lights = new entity.LightComponent(this.transforms);
+			this.renderers = new entity.MeshRendererComponent();
 			this.physicsWorld = new physics.PhysicsWorld(config.physicsConfig);
 			this.colliders = new entity.ColliderComponent(this.physicsWorld, this.transforms);
 
