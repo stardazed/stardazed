@@ -11,7 +11,6 @@ namespace sd {
 		// HACK: LD39
 		loadAssets(): Promise<render.RenderCommandBuffer>;
 		buildWorld(): Promise<void>;
-		frame(dt: number): render.RenderCommandBuffer;
 
 		// callbacks
 		willLoadAssets?(): void;
@@ -135,8 +134,10 @@ namespace sd {
 			});
 		}
 
-		frame(dt: number): render.RenderCommandBuffer {
-			return this.delegate.frame(dt);
+		frame(dt: number) {
+			if (this.delegate.update) {
+				this.delegate.update(dt);
+			}
 		}
 
 		suspend() {
