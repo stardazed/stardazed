@@ -11,6 +11,7 @@ namespace sd.render {
 
 	export interface Effect {
 		readonly name: string;
+		readonly id: number;
 
 		attachToRenderWorld(rw: RenderWorld): void;
 

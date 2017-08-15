@@ -9,7 +9,7 @@ namespace sd.render {
 		private canvas_: HTMLCanvasElement;
 		private rd_: RenderDevice;
 		private lighting_: TiledLight;
-		private effects_: { [name: string]: Effect } = {};
+		private effects_: Map<string | number, Effect>;
 		
 		constructor(holderElement: HTMLElement, initialWidth: number, initialHeight: number) {
 			assert(initialWidth > 0 && initialWidth <= 8192, "Invalid drawable width");
@@ -20,6 +20,8 @@ namespace sd.render {
 			this.canvas_.height = initialHeight;
 
 			holderElement.appendChild(this.canvas_);
+
+			this.effects_ = new Map();
 			
 			this.rd_ = new gl1.GL1RenderDevice(this.canvas_);
 			this.lighting_ = new TiledLight("medium");
@@ -46,12 +48,13 @@ namespace sd.render {
 			if (effect.name in this.effects_) {
 				throw new Error(`Tried to register an Effect named '${effect.name}', but that name is already used.`);
 			}
-			this.effects_[effect.name] = effect;
+			this.effects_.set(effect.name, effect);
+			this.effects_.set(effect.id, effect);
 			effect.attachToRenderWorld(this);
 		}
 
 		effectByName(name: string): Effect | undefined {
-			return this.effects_[name];
+			return this.effects_.get(name);
 		}
 
 
