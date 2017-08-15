@@ -56,7 +56,7 @@ namespace sd.entity {
 
 		private entityMap_: Map<Entity, MeshInstance>;
 		private assetMeshMap_: WeakMap<meshdata.MeshData, MeshInstance>;
-
+		private meshes_: meshdata.MeshData[];
 
 		constructor() {
 			const instanceFields: container.MABField[] = [
@@ -81,6 +81,7 @@ namespace sd.entity {
 
 			this.entityMap_ = new Map<Entity, MeshInstance>();
 			this.assetMeshMap_ = new WeakMap<meshdata.MeshData, MeshInstance>();
+			this.meshes_ = [];
 		}
 
 		rebaseInstances() {
@@ -170,6 +171,7 @@ namespace sd.entity {
 
 			// -- remember that we've already instantiated this asset
 			this.assetMeshMap_.set(mesh, instance);
+			this.meshes_[instance] = mesh;
 
 			return instance;
 		}
@@ -210,6 +212,10 @@ namespace sd.entity {
 		}
 
 		// -- single instance getters
+
+		mesh(inst: MeshInstance) {
+			return this.meshes_[inst as number];
+		}
 
 		subMeshCount(inst: MeshInstance) {
 			const offsetCount = container.copyIndexedVec2(this.subMeshOffsetCountBase_, inst as number);
