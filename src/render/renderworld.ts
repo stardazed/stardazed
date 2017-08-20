@@ -99,10 +99,8 @@ namespace sd.render {
 								const effect = this.effects_.get(material.__effectID)!;
 								effect.addRenderJobs(
 									material,
-									camera,
-									worldMat,
-									mesh,
-									subMesh,
+									camera, worldMat,
+									mesh, subMesh,
 									cmds
 								);
 							}
