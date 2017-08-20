@@ -5,14 +5,14 @@
 
 namespace sd.render.shader {
 	
-	export interface Module {
+	export interface ModuleBase {
 		readonly name: string;
 		readonly requires?: string[];
 		readonly provides?: string[];
 	}
 
 	export interface ModuleMap {
-		[name: string]: Module;
+		[name: string]: ModuleBase;
 	}
 
 	function isConceptName(name: string) {
@@ -20,13 +20,13 @@ namespace sd.render.shader {
 		return name.charAt(0) === name.charAt(0).toUpperCase();
 	}
 
-	type Branch = (Module | string)[];
+	type Branch = (ModuleBase | string)[];
 	interface BranchMap {
 		[name: string]: Branch;
 	}
 
 	export class ModuleResolver {
-		private modules_: { [name: string]: Module | undefined; };
+		private modules_: { [name: string]: ModuleBase | undefined; };
 
 		constructor(modules: ModuleMap) {
 			this.modules_ = modules;
@@ -101,7 +101,7 @@ namespace sd.render.shader {
 	
 		private resolveConcepts(main: Branch, concepts: BranchMap) {
 			const resolveBranch = (b: Branch, path: string[] = []) => {
-				const chain: Module[] = [];
+				const chain: ModuleBase[] = [];
 				for (const mc of b) {
 					if (typeof mc === "string") {
 						const c = concepts[mc];
