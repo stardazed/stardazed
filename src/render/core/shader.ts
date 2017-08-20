@@ -23,6 +23,10 @@ namespace sd.render {
 		Float4x4
 	}
 
+	export type Conditional<T> = T & {
+		ifExpr?: string;
+	};
+
 	export interface SamplerSlot {
 		name: string;
 		type: TextureClass;
@@ -45,22 +49,48 @@ namespace sd.render {
 		length?: number;
 	}
 
-	export interface VertexFunction {
-		in: ShaderVertexAttribute[];
-		out?: ShaderAttribute[];
-		// feedback?: any;
-		samplers?: SamplerSlot[];
-		constants?: ShaderConstant[];
+	export interface ShaderDefine {
+		name: string;
+		value?: number | boolean;
 	}
 
-	export interface FragmentFunction {
-		in?: ShaderAttribute[];
+	export interface ExtensionUsage {
+		name: string;
+		action: "enable" | "require";
+	}
+
+	export interface ShaderConstValue {
+		name: string;
+		type: ShaderValueType;
+		expr: string;
+	}
+
+	export interface ShaderModule {
+		extensions?: Conditional<ExtensionUsage>[];
+		samplers?: Conditional<SamplerSlot>[];
+		constants?: Conditional<ShaderConstant>[];
+		constValues?: ShaderConstValue[];
+		structs?: string[];
+		code?: string;
+	}
+
+	export interface ShaderFunction extends ShaderModule {
+		modules?: string[];
+		main: string;
+	}
+
+	export interface VertexFunction extends ShaderFunction {
+		in: Conditional<ShaderVertexAttribute>[];
+		out?: Conditional<ShaderAttribute>[];
+	}
+
+	export interface FragmentFunction extends ShaderFunction {
+		in?: Conditional<ShaderAttribute>[];
 		outCount: number;
-		samplers?: SamplerSlot[];
-		constants?: ShaderConstant[];
 	}
 
 	export interface Shader extends RenderResourceBase {
+		defines: ShaderDefine[];
 		vertexFunction: VertexFunction;
 		fragmentFunction: FragmentFunction;
 	}

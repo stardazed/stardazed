@@ -5,39 +5,8 @@
 
 namespace sd.render.gl1 {
 
-	export interface ExtensionUsage {
-		name: string;
-		action: "enable" | "require";
-	}
-
-	export interface ShaderDefine {
-		name: string;
-		value?: string;
-	}
-
-	export interface ShaderConstValue {
-		name: string;
-		type: ShaderValueType;
-		expr: string;
-	}
-
 	export interface GL1VertexFunction extends VertexFunction {
-		extensions?: ExtensionUsage[];
-		defines?: ShaderDefine[];
-		constValues?: ShaderConstValue[];
-		structs?: string[];
-		code?: string;
-		main: string;
 		attrHash?: number;
-	}
-
-	export interface GL1FragmentFunction extends FragmentFunction {
-		extensions?: ExtensionUsage[];
-		defines?: ShaderDefine[];
-		constValues?: ShaderConstValue[];
-		structs?: string[];
-		code?: string;
-		main: string;
 	}
 
 	export interface GL1ShaderConstant {
@@ -151,9 +120,9 @@ namespace sd.render.gl1 {
 		).join("");
 	}
 
-	function generateVertexSource(fn: GL1VertexFunction) {
+	function generateVertexSource(fn: VertexFunction, defs: ShaderDefine[]) {
 		const extensions = generateExtensionBlock(fn.extensions);
-		const defines = generateDefinesBlock(fn.defines);
+		const defines = generateDefinesBlock(defs);
 		const attributes = generateValueBlock("attribute", fn.in);
 		const varying = generateValueBlock("varying", fn.out);
 		const constValues = generateConstValuesBlock(fn.constValues);
@@ -171,9 +140,9 @@ namespace sd.render.gl1 {
 		}`;
 	}
 
-	function generateFragmentSource(fn: GL1FragmentFunction) {
+	function generateFragmentSource(fn: FragmentFunction, defs: ShaderDefine[]) {
 		const extensions = generateExtensionBlock(fn.extensions);
-		const defines = generateDefinesBlock(fn.defines);
+		const defines = generateDefinesBlock(defs);
 		const varying = generateValueBlock("varying", fn.in);
 		const constValues = generateConstValuesBlock(fn.constValues);
 		const structs = generateStructsBlock(fn.structs);
@@ -240,8 +209,8 @@ namespace sd.render.gl1 {
 	export function createShader(rd: GL1RenderDevice, shader: Shader): GL1ShaderData | undefined {
 		const gl = rd.gl;
 
-		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(shader.vertexFunction as GL1VertexFunction));
-		const fragmentShader = compileFunction(rd, GLConst.FRAGMENT_SHADER, generateFragmentSource(shader.fragmentFunction as GL1FragmentFunction));
+		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(shader.vertexFunction, shader.defines));
+		const fragmentShader = compileFunction(rd, GLConst.FRAGMENT_SHADER, generateFragmentSource(shader.fragmentFunction, shader.defines));
 
 		if (! (vertexShader && fragmentShader)) {
 			return undefined;
