@@ -1,64 +1,11 @@
-// render/shader/gl1-shadermaker - prototype shader gen
+// render/shader/gl1-modules - prototype shader gen
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 namespace sd.render.shader {
 
-	export type Conditional<T> = T & {
-		ifExpr?: string;
-	};
-
-	export interface GL1Module extends Module {
-		extensions?: gl1.ExtensionUsage[];
-		textures?: Conditional<SamplerSlot>[];
-		constants?: Conditional<ShaderConstant>[];
-		constValues?: gl1.ShaderConstValue[];
-		structs?: string[];
-		code?: string;
-	}
-
-	export function mergeModules(modules: GL1Module[]): GL1Module {
-		const module: GL1Module = {
-			name: "",
-			extensions: [],
-			textures: [],
-			constants: [],
-			constValues: [],
-			structs: [],
-			code: ""
-		};
-
-		for (const depModule of modules) {
-			if (depModule.extensions) {
-				module.extensions!.push(...depModule.extensions);
-			}
-			if (depModule.textures) {
-				module.textures!.push(...depModule.textures);
-			}
-			if (depModule.constants) {
-				for (const depConstant of depModule.constants) {
-					let localConstant = module.constants!.find(c => c.name === depConstant.name);
-					if (! localConstant) {
-						localConstant = { name: depConstant.name, type: depConstant.type, length: depConstant.length, ifExpr: depConstant.ifExpr };
-						module.constants!.push(localConstant);
-					}
-				}
-			}
-			if (depModule.constValues) {
-				module.constValues!.push(...depModule.constValues);
-			}
-			if (depModule.structs) {
-				module.structs!.push(...depModule.structs);
-			}
-			if (depModule.code) {
-				module.code += `// module ${depModule.name}\n${depModule.code}`;
-			}
-		}
-
-		return module;
-	}
-
+	export type GL1Module = ModuleBase & ShaderModule;
 
 	// ----
 
@@ -73,13 +20,22 @@ namespace sd.render.shader {
 
 	const gl1Modules: { [name: string]: GL1Module; } = {};
 
-	gl1Modules.gammaConstants = {
-		name: "gammaConstants",
+	gl1Modules.basicSRGB = {
+		name: "basicSRGB",
+		provides: ["ConvertSRGB"],
 		constValues: [
 			{ name: "GAMMA", type: SVT.Float, expr: "2.2" },
 			{ name: "SRGB_TO_LINEAR", type: SVT.Float3, expr: "vec3(GAMMA)" },
 			{ name: "LINEAR_TO_SRGB", type: SVT.Float3, expr: "vec3(1.0 / GAMMA)" }
-		]
+		],
+		code: `
+		vec3 srgbToLinear(vec3 colour) {
+			return pow(colour, SRGB_TO_LINEAR);
+		}
+		vec3 linearToSRGB(vec3 colour) {
+			return pow(colour, LINEAR_TO_SRGB);
+		}
+		`
 	};
 
 	gl1Modules.mathUtils = {
@@ -134,7 +90,7 @@ namespace sd.render.shader {
 		constants: [
 			{ name: "jointIndexOffset", type: SVT.Int }
 		],
-		textures: [
+		samplers: [
 			{ name: "jointData", type: TextureClass.Plain, index: 8 }
 		],
 		code: `
@@ -187,8 +143,9 @@ namespace sd.render.shader {
 		`
 	};
 
-	gl1Modules.parallaxMapping = {
-		name: "parallaxMapping",
+	gl1Modules.heightOcclusionMapping = {
+		name: "heightOcclusionMapping",
+		provides: ["Parallax"],
 		code: `
 		vec2 parallaxMapping(sampler2D heightMap, in vec3 V, in vec2 T, out float parallaxHeight) {
 			// determine optimal number of layers
@@ -378,7 +335,7 @@ namespace sd.render.shader {
 		constValues: [
 			{ name: "PHONG_DIFFUSE", type: SVT.Float, expr: "1.0 / 3.141592654" }
 		],
-		textures: [
+		samplers: [
 			{ name: "brdfLookupMap", type: TextureClass.Plain, index: 4 },
 			{ name: "environmentMap", type: TextureClass.CubeMap, index: 5 },
 		],
@@ -481,7 +438,7 @@ namespace sd.render.shader {
 		requires: [
 			"lightEntry"
 		],
-		textures: [
+		samplers: [
 			{ name: "lightLUTSampler", type: TextureClass.Plain, index: 6 }
 		],
 		constants: [
@@ -533,11 +490,11 @@ namespace sd.render.shader {
 		name: "shadowedTotalLightContrib",
 		requires: [
 			"vsmShadowMapping",
-			"surfaceInfo",
-			"pbrMaterialInfo",
-			"lightEntry"
+			"lightEntry",
+			"SurfaceInfo",
+			"MaterialInfo",
 		],
-		textures: [
+		samplers: [
 			{ name: "shadowSampler", type: TextureClass.Plain, index: 7, ifExpr: "SHADOW_MAP" }
 		],
 		constants: [
@@ -642,8 +599,9 @@ namespace sd.render.shader {
 
 	gl1Modules.pbrMaterialInfo = {
 		name: "pbrMaterialInfo",
+		provides: ["MaterialInfo"],
 		requires: [
-			"gammaConstants"
+			"ConvertSRGB"
 		],
 		constValues: [
 			{ name: "MAT_ROUGHNESS", type: SVT.Int, expr: "0" },
@@ -667,7 +625,7 @@ namespace sd.render.shader {
 			{ name: "emissiveData", type: SVT.Float4 },
 			{ name: "materialParam", type: SVT.Float4 }
 		],
-		textures: [
+		samplers: [
 			{ name: "albedoMap", type: TextureClass.Plain, index: 0, ifExpr: "ALBEDO_MAP" },
 			{ name: "materialMap", type: TextureClass.Plain, index: 1, ifExpr: "defined(ROUGHNESS_MAP) || defined(METALLIC_MAP) || defined(AO_MAP)" },
 			{ name: "emissiveMap", type: TextureClass.Plain, index: 2, ifExpr: "EMISSIVE_MAP" },
@@ -679,12 +637,12 @@ namespace sd.render.shader {
 			#ifdef ALBEDO_MAP
 				vec3 mapColour = texture2D(albedoMap, materialUV).rgb;
 				#ifdef NO_SRGB_TEXTURES
-					mapColour = pow(mapColour, SRGB_TO_LINEAR);
+					mapColour = srgbToLinear(mapColour);
 				#endif
 				colour *= mapColour;
 			#endif
 			#ifdef VERTEX_COLOUR_TINTING
-				vec3 tintColour = pow(vertexColour_intp, SRGB_TO_LINEAR);
+				vec3 tintColour = srgbToLinear(vertexColour_intp);
 				colour *= tintColour;
 			#endif
 			mi.albedo = vec4(colour, 1.0); // FIXME: opacity/cutout support
@@ -727,8 +685,9 @@ namespace sd.render.shader {
 		`
 	};
 
-	gl1Modules.surfaceInfo = {
-		name: "surfaceInfo",
+	gl1Modules.pbrSurfaceInfo = {
+		name: "pbrSurfaceInfo",
+		provides: ["SurfaceInfo"],
 		requires: [
 			"mathUtils",
 			"normalPerturbation",
@@ -747,7 +706,7 @@ namespace sd.render.shader {
 		constants: [
 			{ name: "normalMatrix", type: SVT.Float3x3 }
 		],
-		textures: [
+		samplers: [
 			{ name: "normalHeightMap", type: TextureClass.Plain, index: 3, ifExpr: "defined(NORMAL_MAP) || defined(HEIGHT_MAP)" }
 		],
 		code: `
@@ -788,7 +747,7 @@ namespace sd.render.shader {
 
 	// ----
 
-	const vsmShadowVertexFunction: gl1.GL1VertexFunction = {
+	const vsmShadowVertexFunction: VertexFunction = {
 		in: [
 			{ name: "vertexPos_model", type: SVT.Float3, role: AttrRole.Position, index: 0 }
 		],
@@ -805,7 +764,7 @@ namespace sd.render.shader {
 		`
 	};
 
-	const vsmShadowFragmentFunction: gl1.GL1FragmentFunction = {
+	const vsmShadowFragmentFunction: FragmentFunction = {
 		extensions: [
 			{ name: "GL_OES_standard_derivatives", action: "require" }
 		],
@@ -828,6 +787,7 @@ namespace sd.render.shader {
 	export const vsmShadowShader: Shader = {
 		renderResourceType: ResourceType.Shader,
 		renderResourceHandle: 0,
+		defines: [],
 		vertexFunction: vsmShadowVertexFunction,
 		fragmentFunction: vsmShadowFragmentFunction
 	};
@@ -858,8 +818,8 @@ namespace sd.render.shader {
 
 	// ----
 
-	function standardVertexFunction(feat: Features): gl1.GL1VertexFunction {
-		const fn: gl1.GL1VertexFunction = {
+	function standardVertexFunction(feat: Features): VertexFunction {
+		const fn: VertexFunction = {
 			in: [
 				{ name: "vertexPos_model", type: SVT.Float3, role: AttrRole.Position, index: 0 },
 				{ name: "vertexNormal", type: SVT.Float3, role: AttrRole.Normal, index: 1 },
@@ -901,23 +861,12 @@ namespace sd.render.shader {
 		return fn;
 	}
 
-	function standardFragmentFunction(feat: Features): gl1.GL1FragmentFunction {
-		const defines: gl1.ShaderDefine[] = [];
-		const attr: ShaderAttribute[] = [
+	function standardFragmentFunction(): FragmentFunction {
+		const attr: Conditional<ShaderAttribute>[] = [
 			{ name: "vertexPos_world", type: SVT.Float4 },
 			{ name: "vertexPos_cam", type: SVT.Float3 },
 			{ name: "vertexNormal_cam", type: SVT.Float3 },
 		];
-
-		if (feat & Features.VtxUV) {
-			defines.push({ name: "HAS_BASE_UV" });
-			attr.push({ name: "vertexUV_intp", type: SVT.Float2 });
-		}
-		if (feat & Features.VtxColour) {
-			defines.push({ name: "VERTEX_COLOUR_TINTING" });
-			attr.push({ name: "vertexColour_intp", type: SVT.Float3 });
-		}
-		defines.push({ name: "PBR_LIGHT_QUALITY", value: "2" });
 
 		const dependencies: string[] = [
 			"gammaConstants",
@@ -927,15 +876,14 @@ namespace sd.render.shader {
 			"lightContrib"
 		];
 		const mr = new ModuleResolver(gl1Modules);
-		const lib = mergeModules(mr.resolve(dependencies));
+		const lib = mergeModules(mr.resolve(dependencies) as GL1Module[]);
 
-		const fn: gl1.GL1FragmentFunction = {
-			defines,
+		const fn: FragmentFunction = {
 			in: attr,
 			outCount: 1,
 			extensions: lib.extensions,
 			constants: lib.constants,
-			samplers: lib.textures,
+			samplers: lib.samplers,
 			structs: lib.structs,
 			constValues: lib.constValues,
 			code: lib.code,
@@ -957,13 +905,27 @@ namespace sd.render.shader {
 		return fn;
 	}
 
-	export function makeStdShader() {
+	export function makeStdShader(): Shader {
 		const vertexFunction = standardVertexFunction(0);
-		const fragmentFunction = standardFragmentFunction(0);
+		const fragmentFunction = standardFragmentFunction();
+
+		const defines: ShaderDefine[] = [];
+		const feat: Features = 0;
+		if (feat & Features.VtxUV) {
+			defines.push({ name: "HAS_BASE_UV" });
+			// attr.push({ name: "vertexUV_intp", type: SVT.Float2 });
+		}
+		if (feat & Features.VtxColour) {
+			defines.push({ name: "VERTEX_COLOUR_TINTING" });
+			// attr.push({ name: "vertexColour_intp", type: SVT.Float3 });
+		}
+		defines.push({ name: "PBR_LIGHT_QUALITY", value: 2 });
+
 
 		return {
 			renderResourceType: ResourceType.Shader,
 			renderResourceHandle: 0,
+			defines: [],
 			vertexFunction,
 			fragmentFunction
 		};	
