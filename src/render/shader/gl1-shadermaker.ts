@@ -1,62 +1,26 @@
-// render/effect/gl1/shadermaker - prototype shader gen
+// render/shader/gl1-shadermaker - prototype shader gen
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.render.gl1.effect {
+namespace sd.render.shader {
 
 	export type Conditional<T> = T & {
 		ifExpr?: string;
 	};
 
-	export interface ShaderModule {
-		dependencies?: string[];
-		extensions?: ExtensionUsage[];
+	export interface GL1Module extends Module {
+		extensions?: gl1.ExtensionUsage[];
 		textures?: Conditional<SamplerSlot>[];
 		constants?: Conditional<ShaderConstant>[];
-		constValues?: ShaderConstValue[];
+		constValues?: gl1.ShaderConstValue[];
 		structs?: string[];
 		code?: string;
 	}
 
-	const modules: { [name: string]: ShaderModule | undefined; } = {};
-
-	function stableUnique<T>(arr: T[]) {
-		const seen = new Set<T>();
-		return arr.filter(val => {
-			if (seen.has(val)) {
-				return false;
-			}
-			seen.add(val);
-			return true;
-		});
-	}
-
-	export function resolveModuleDependencies(moduleName: string, inoutList: string[]) {
-		inoutList.unshift(moduleName);
-		const module = modules[moduleName];
-		if (module) {
-			const deps = module.dependencies || [];
-			for (const dep of deps) {
-				resolveModuleDependencies(dep, inoutList);
-			}
-		}
-		else {
-			console.warn(`ShaderModule ${moduleName} not found.`);
-		}
-	}
-
-	export function resolveDependencies(moduleNames: string[]) {
-		const end = moduleNames.length - 1;
-		const depList: string[] = [];
-		for (let index = end; index >= 0; --index) {
-			resolveModuleDependencies(moduleNames[index], depList);
-		}
-		return stableUnique(depList);
-	}
-
-	export function resolveModules(modNames: string[]): ShaderModule {
-		const module: ShaderModule = {
+	export function mergeModules(modules: GL1Module[]): GL1Module {
+		const module: GL1Module = {
+			name: "",
 			extensions: [],
 			textures: [],
 			constants: [],
@@ -65,34 +29,30 @@ namespace sd.render.gl1.effect {
 			code: ""
 		};
 
-		const depList = resolveDependencies(modNames);
-		for (const modName of depList) {
-			const depModule = modules[modName];
-			if (depModule) {
-				if (depModule.extensions) {
-					module.extensions!.push(...depModule.extensions);
-				}
-				if (depModule.textures) {
-					module.textures!.push(...depModule.textures);
-				}
-				if (depModule.constants) {
-					for (const depConstant of depModule.constants) {
-						let localConstant = module.constants!.find(c => c.name === depConstant.name);
-						if (! localConstant) {
-							localConstant = { name: depConstant.name, type: depConstant.type, length: depConstant.length, ifExpr: depConstant.ifExpr };
-							module.constants!.push(localConstant);
-						}
+		for (const depModule of modules) {
+			if (depModule.extensions) {
+				module.extensions!.push(...depModule.extensions);
+			}
+			if (depModule.textures) {
+				module.textures!.push(...depModule.textures);
+			}
+			if (depModule.constants) {
+				for (const depConstant of depModule.constants) {
+					let localConstant = module.constants!.find(c => c.name === depConstant.name);
+					if (! localConstant) {
+						localConstant = { name: depConstant.name, type: depConstant.type, length: depConstant.length, ifExpr: depConstant.ifExpr };
+						module.constants!.push(localConstant);
 					}
 				}
-				if (depModule.constValues) {
-					module.constValues!.push(...depModule.constValues);
-				}
-				if (depModule.structs) {
-					module.structs!.push(...depModule.structs);
-				}
-				if (depModule.code) {
-					module.code += `// module ${modName}\n${depModule.code}`;
-				}
+			}
+			if (depModule.constValues) {
+				module.constValues!.push(...depModule.constValues);
+			}
+			if (depModule.structs) {
+				module.structs!.push(...depModule.structs);
+			}
+			if (depModule.code) {
+				module.code += `// module ${depModule.name}\n${depModule.code}`;
 			}
 		}
 
@@ -111,7 +71,10 @@ namespace sd.render.gl1.effect {
 		CookTorrance,
 	}
 
-	modules.gammaConstants = {
+	const gl1Modules: { [name: string]: GL1Module; } = {};
+
+	gl1Modules.gammaConstants = {
+		name: "gammaConstants",
 		constValues: [
 			{ name: "GAMMA", type: SVT.Float, expr: "2.2" },
 			{ name: "SRGB_TO_LINEAR", type: SVT.Float3, expr: "vec3(GAMMA)" },
@@ -119,7 +82,8 @@ namespace sd.render.gl1.effect {
 		]
 	};
 
-	modules.mathUtils = {
+	gl1Modules.mathUtils = {
+		name: "mathUtils",
 		code: `
 		float linearStep(float low, float high, float v) {
 			return clamp((v-low) / (high-low), 0.0, 1.0);
@@ -159,7 +123,8 @@ namespace sd.render.gl1.effect {
 		`
 	};
 
-	modules.vertexSkinning = {
+	gl1Modules.vertexSkinning = {
+		name: "vertexSkinning",
 		structs: [`
 			struct Joint {
 				vec4 rotation_joint;
@@ -222,7 +187,8 @@ namespace sd.render.gl1.effect {
 		`
 	};
 
-	modules.parallaxMapping = {
+	gl1Modules.parallaxMapping = {
+		name: "parallaxMapping",
 		code: `
 		vec2 parallaxMapping(sampler2D heightMap, in vec3 V, in vec2 T, out float parallaxHeight) {
 			// determine optimal number of layers
@@ -278,7 +244,8 @@ namespace sd.render.gl1.effect {
 		`
 	};
 
-	modules.normalPerturbation = {
+	gl1Modules.normalPerturbation = {
+		name: "normalPerturbation",
 		extensions: [{
 			name: "GL_OES_standard_derivatives",
 			action: "require"
@@ -311,8 +278,9 @@ namespace sd.render.gl1.effect {
 		`
 	};
 
-	modules.vsmShadowMapping = {
-		dependencies: ["mathUtils"],
+	gl1Modules.vsmShadowMapping = {
+		name: "vsmShadowMapping",
+		requires: ["mathUtils"],
 		code: `
 		float VSM(sampler2D shadowMap, vec2 uv, float compare, float strength, float bias) {
 			vec2 moments = texture2D(shadowMap, uv).xy;
@@ -325,7 +293,8 @@ namespace sd.render.gl1.effect {
 		`
 	};
 
-	modules.pbrLightingMath = {
+	gl1Modules.pbrLightingMath = {
+		name: "pbrLightingMath",
 		constValues: [
 			{ name: "PI", type: SVT.Float, expr: "3.1415926536" }
 		],
@@ -395,8 +364,9 @@ namespace sd.render.gl1.effect {
 		`
 	};
 
-	modules.pbrMaterialLighting = {
-		dependencies: [
+	gl1Modules.pbrMaterialLighting = {
+		name: "pbrMaterialLighting",
+		requires: [
 			"gammaConstants",
 			"surfaceInfo",
 			"pbrMaterialInfo",
@@ -491,7 +461,8 @@ namespace sd.render.gl1.effect {
 		`
 	};
 
-	modules.lightEntry = {
+	gl1Modules.lightEntry = {
+		name: "lightEntry",
 		structs: [
 		`
 		struct LightEntry {
@@ -505,8 +476,9 @@ namespace sd.render.gl1.effect {
 		]
 	};
 
-	modules.tiledLight = {
-		dependencies: [
+	gl1Modules.tiledLight = {
+		name: "tiledLight",
+		requires: [
 			"lightEntry"
 		],
 		textures: [
@@ -557,8 +529,9 @@ namespace sd.render.gl1.effect {
 		`
 	};
 
-	modules.shadowedTotalLightContrib = {
-		dependencies: [
+	gl1Modules.shadowedTotalLightContrib = {
+		name: "shadowedTotalLightContrib",
+		requires: [
 			"vsmShadowMapping",
 			"surfaceInfo",
 			"pbrMaterialInfo",
@@ -614,8 +587,9 @@ namespace sd.render.gl1.effect {
 		`
 	};
 
-	modules.lightContrib = {
-		dependencies: [
+	gl1Modules.lightContrib = {
+		name: "lightContrib",
+		requires: [
 			"surfaceInfo",
 			"pbrMaterialInfo",
 			"lightEntry"
@@ -666,8 +640,9 @@ namespace sd.render.gl1.effect {
 		`
 	};
 
-	modules.pbrMaterialInfo = {
-		dependencies: [
+	gl1Modules.pbrMaterialInfo = {
+		name: "pbrMaterialInfo",
+		requires: [
 			"gammaConstants"
 		],
 		constValues: [
@@ -752,8 +727,9 @@ namespace sd.render.gl1.effect {
 		`
 	};
 
-	modules.surfaceInfo = {
-		dependencies: [
+	gl1Modules.surfaceInfo = {
+		name: "surfaceInfo",
+		requires: [
 			"mathUtils",
 			"normalPerturbation",
 			"parallaxMapping"
@@ -812,7 +788,7 @@ namespace sd.render.gl1.effect {
 
 	// ----
 
-	const vsmShadowVertexFunction: GL1VertexFunction = {
+	const vsmShadowVertexFunction: gl1.GL1VertexFunction = {
 		in: [
 			{ name: "vertexPos_model", type: SVT.Float3, role: AttrRole.Position, index: 0 }
 		],
@@ -829,7 +805,7 @@ namespace sd.render.gl1.effect {
 		`
 	};
 
-	const vsmShadowFragmentFunction: GL1FragmentFunction = {
+	const vsmShadowFragmentFunction: gl1.GL1FragmentFunction = {
 		extensions: [
 			{ name: "GL_OES_standard_derivatives", action: "require" }
 		],
@@ -882,8 +858,8 @@ namespace sd.render.gl1.effect {
 
 	// ----
 
-	function standardVertexFunction(feat: Features): GL1VertexFunction {
-		const fn: GL1VertexFunction = {
+	function standardVertexFunction(feat: Features): gl1.GL1VertexFunction {
+		const fn: gl1.GL1VertexFunction = {
 			in: [
 				{ name: "vertexPos_model", type: SVT.Float3, role: AttrRole.Position, index: 0 },
 				{ name: "vertexNormal", type: SVT.Float3, role: AttrRole.Normal, index: 1 },
@@ -925,8 +901,8 @@ namespace sd.render.gl1.effect {
 		return fn;
 	}
 
-	function standardFragmentFunction(feat: Features): GL1FragmentFunction {
-		const defines: ShaderDefine[] = [];
+	function standardFragmentFunction(feat: Features): gl1.GL1FragmentFunction {
+		const defines: gl1.ShaderDefine[] = [];
 		const attr: ShaderAttribute[] = [
 			{ name: "vertexPos_world", type: SVT.Float4 },
 			{ name: "vertexPos_cam", type: SVT.Float3 },
@@ -950,9 +926,10 @@ namespace sd.render.gl1.effect {
 			"pbrMaterialLighting",
 			"lightContrib"
 		];
-		const lib = resolveModules(dependencies);
+		const mr = new ModuleResolver(gl1Modules);
+		const lib = mergeModules(mr.resolve(dependencies));
 
-		const fn: GL1FragmentFunction = {
+		const fn: gl1.GL1FragmentFunction = {
 			defines,
 			in: attr,
 			outCount: 1,
@@ -992,4 +969,4 @@ namespace sd.render.gl1.effect {
 		};	
 	}
 
-} // ns sd.render.effect.gl1
+} // ns sd.render.shader
