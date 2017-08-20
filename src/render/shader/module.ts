@@ -129,5 +129,5 @@ namespace sd.render.shader {
 			return container.stableUnique(resolved);
 		}
 	}
-		
+
 } // ns sd.render

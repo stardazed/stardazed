@@ -78,6 +78,43 @@ namespace sd.render.gl1 {
 		)
 	};
 
+	// ----
+
+	/*
+	function flattenFunction(fn: ShaderFunction): ShaderFunction {
+		for (const depModule of modules) {
+			if (depModule.extensions) {
+				module.extensions!.push(...depModule.extensions);
+			}
+			if (depModule.samplers) {
+				module.samplers!.push(...depModule.samplers);
+			}
+			if (depModule.constants) {
+				for (const depConstant of depModule.constants) {
+					let localConstant = module.constants!.find(c => c.name === depConstant.name);
+					if (! localConstant) {
+						localConstant = { name: depConstant.name, type: depConstant.type, length: depConstant.length, ifExpr: depConstant.ifExpr };
+						module.constants!.push(localConstant);
+					}
+				}
+			}
+			if (depModule.constValues) {
+				module.constValues!.push(...depModule.constValues);
+			}
+			if (depModule.structs) {
+				module.structs!.push(...depModule.structs);
+			}
+			if (depModule.code) {
+				module.code += `// ------------\n${depModule.code}`;
+			}
+		}
+
+		return module;
+	}
+	*/
+
+	// ----
+
 	function generateDefinesBlock(defines: ShaderDefine[] | undefined) {
 		return (defines || []).map(def => {
 			return `#define ${def.name} ${def.value || ""}\n`;
@@ -121,6 +158,9 @@ namespace sd.render.gl1 {
 	}
 
 	function generateVertexSource(fn: VertexFunction, defs: ShaderDefine[]) {
+		// const flattenedFn = flattenFunction(fn, defs);
+		// TODO: use flattenedFn for all except attributes & main
+
 		const extensions = generateExtensionBlock(fn.extensions);
 		const defines = generateDefinesBlock(defs);
 		const attributes = generateValueBlock("attribute", fn.in);
@@ -141,6 +181,9 @@ namespace sd.render.gl1 {
 	}
 
 	function generateFragmentSource(fn: FragmentFunction, defs: ShaderDefine[]) {
+		// const flattenedFn = flattenFunction(fn, defs);
+		// TODO: use flattenedFn for all except attributes & main
+
 		const extensions = generateExtensionBlock(fn.extensions);
 		const defines = generateDefinesBlock(defs);
 		const varying = generateValueBlock("varying", fn.in);
@@ -199,7 +242,7 @@ namespace sd.render.gl1 {
 	 * @param attrs The in attributes of a vertex function
 	 */
 	function calcVertexAttrHash(attrs: ShaderVertexAttribute[]) {
-		const slots =  attrs.map(a => ({ i: a.index, t: a.type }));
+		const slots = attrs.map(a => ({ i: a.index, t: a.type }));
 		slots.sort((a, b) => a.i - b.i); // sort indexes numerically ascending
 		return hashString(slots.map(s => `${s.i}:${s.t}`).join("|"));
 	}
