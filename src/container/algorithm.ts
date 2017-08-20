@@ -124,4 +124,21 @@ namespace sd.container {
 		mergeSortInternal(a, b, 0, a.length - 1, pred);
 	}
 
+	/**
+	 * Remove all duplicates found in the source array leaving only the first
+	 * instance of each individual element, leaving the order of the remaining
+	 * elements intact.
+	 * @param arr Source array
+	 */
+	export function stableUnique<T>(arr: T[]) {
+		const seen = new Set<T>();
+		return arr.filter(val => {
+			if (seen.has(val)) {
+				return false;
+			}
+			seen.add(val);
+			return true;
+		});
+	}
+
 } // ns sd.container
