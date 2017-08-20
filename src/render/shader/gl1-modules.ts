@@ -747,52 +747,6 @@ namespace sd.render.shader {
 
 	// ----
 
-	const vsmShadowVertexFunction: VertexFunction = {
-		in: [
-			{ name: "vertexPos_model", type: SVT.Float3, role: AttrRole.Position, index: 0 }
-		],
-		out: [
-			{ name: "vertexPos_world", type: SVT.Float4 }
-		],
-		constants: [
-			{ name: "modelMatrix", type: SVT.Float4x4 },
-			{ name: "lightViewProjectionMatrix", type: SVT.Float4x4 }
-		],
-		main: `
-			vertexPos_world = modelMatrix * vec4(vertexPos_model, 1.0);
-			gl_Position = lightViewProjectionMatrix * vertexPos_world;
-		`
-	};
-
-	const vsmShadowFragmentFunction: FragmentFunction = {
-		extensions: [
-			{ name: "GL_OES_standard_derivatives", action: "require" }
-		],
-		in: [
-			{ name: "vertexPos_world", type: SVT.Float4 }
-		],
-		constants: [
-			{ name: "lightViewMatrix", type: SVT.Float4x4 }
-		],
-		outCount: 1,
-		main: `
-			vec3 lightPos = (lightViewMatrix * vertexPos_world).xyz;
-			float depth = clamp(length(lightPos) / 12.0, 0.0, 1.0);
-			float dx = dFdx(depth);
-			float dy = dFdy(depth);
-			gl_FragColor = vec4(depth, depth * depth + 0.25 * (dx * dx + dy * dy), 0.0, 1.0);
-		`
-	};
-
-	export const vsmShadowShader: Shader = {
-		renderResourceType: ResourceType.Shader,
-		renderResourceHandle: 0,
-		defines: [],
-		vertexFunction: vsmShadowVertexFunction,
-		fragmentFunction: vsmShadowFragmentFunction
-	};
-
-	// ----
 
 	const enum Features {
 		// VtxPosition and VtxNormal are required and implied
