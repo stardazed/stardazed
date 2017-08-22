@@ -25,7 +25,7 @@ namespace sd.render.shader {
 		[name: string]: Branch;
 	}
 
-	export class ModuleResolver {
+	export class ModuleResolver<Module extends ModuleBase> {
 		private modules_: { [name: string]: ModuleBase | undefined; };
 
 		constructor(modules: ModuleMap) {
@@ -126,7 +126,7 @@ namespace sd.render.shader {
 		resolve(moduleNames: string[]) {
 			const { branch, providers } = this.resolveDependencies(moduleNames);
 			const resolved = this.resolveConcepts(branch, providers);
-			return container.stableUnique(resolved);
+			return container.stableUnique(resolved) as Module[];
 		}
 	}
 
