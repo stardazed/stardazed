@@ -8,6 +8,16 @@
 namespace sd.container {
 
 	/**
+	 * Standard string sort comparison function, used when comparing
+	 * multiple string fields together or when using non-standars sort.
+	 * @param a left string to compare
+	 * @param b right string to compare
+	 */
+	export function stringOrder(a: string, b: string) {
+		return a < b ? -1 : ((a === b) ? 0 : 1);
+	}
+
+	/**
 	 * A function that returns the relative order of 2 items.
 	 * If a < b, it returns a number < 0
 	 * If a = b, it returns 0
