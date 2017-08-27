@@ -7,9 +7,15 @@
 
 namespace sd.container {
 
+	export type ArrayFields<T> = { [P in keyof T]: T[P][]; };
+
+	export interface GroupedItems<T extends object> {
+		[name: string]: ArrayFields<T>;
+	}
+
 	/**
 	 * Takes an array of isomorphic objects and groups the values of the fields together keyed
-	 * by a field name provided as group.
+	 * by a field name provided as group. The grouped values are deduplicated as well.
 	 * @example Given ts = [{n:"a", v:1}, {n:"a", v:2}, {n:"b", v:50}] and group = "n"
 	 * the output will be: { a:{v:[1,2]}, b:{v:[50]} }
 	 * @param group Name of the field in the items that will be used to group the other fields by
@@ -18,9 +24,9 @@ namespace sd.container {
 	export function groupFieldsBy<T extends object, K extends keyof T>(group: K & string, ts: T[]) {
 		return ts.reduce((res, val) => {
 			const key = val[group];
-			let coll: Partial<{[P in keyof T]: T[P][]}>;
+			let coll: ArrayFields<T>;
 			if (!(key in res)) {
-				coll = {};
+				coll = {} as ArrayFields<T>;
 				res[key] = coll;
 			}
 			else {
@@ -37,7 +43,7 @@ namespace sd.container {
 				}
 			}
 			return res;
-		}, {} as { [name: string]: Partial<{ [P in keyof T]: T[P][] }> });
+		}, {} as GroupedItems<T>);
 	}
 
 	/**
