@@ -130,4 +130,115 @@ namespace sd.render.shader {
 		}
 	}
 
+	// ----
+
+	function normalizeConditionals<T extends object>(items: Conditional<T>[]): Conditional<T>[] {
+		const finalExpr = items.map(t => t.ifExpr).reduce(
+			(cur, next) => {
+				if (cur === undefined || next === undefined || next === "") {
+					return undefined;
+				}
+				return cur.length ? (`${cur} || (${next})`) : `(${next})`;
+			}
+		, "");
+
+		return items.map(t => ({
+			...(t as any), // this cast is a workaround for https://github.com/Microsoft/TypeScript/issues/10727 (will be fixed in TS 2.6)
+			ifExpr: finalExpr
+		}));
+	}
+
+	function normalizeExtensions(exts: Conditional<ExtensionUsage>[]) {
+		// by sorting by reverse action,
+		// any duplicates will have action "require" before "enable".
+		// stableUnique will then pick the 1st one and  
+		return container.stableUnique(exts.sort((a, b) => {
+			return (
+				container.stringOrder(b.action, a.action)
+			);
+		}));
+	}
+
+	function normalizeSamplers(samps: Conditional<SamplerSlot>[]) {
+		return samps;
+	}
+
+	function normalizeConstants(cons: Conditional<ShaderConstant>[]) {
+		return cons;
+	}
+
+	function normalizeConstValues(cvs: Conditional<ShaderConstValue>[]) {
+		return cvs;
+	}
+
+	function normalizeStructs(structs: Conditional<ShaderStruct>[]) {
+		return structs;
+	}
+
+	export function normalizeFunction(fn: ShaderFunction) {
+		if (fn.extensions && fn.extensions.length > 1) {
+			fn.extensions = normalizeExtensions(normalizeConditionals(fn.extensions));
+		}
+		if (fn.samplers && fn.samplers.length > 1) {
+			fn.samplers = normalizeSamplers(normalizeConditionals(fn.samplers));
+		}
+		if (fn.constants && fn.constants.length > 1) {
+			fn.constants = normalizeConstants(normalizeConditionals(fn.constants));
+		}
+		if (fn.constValues && fn.constValues.length > 1) {
+			fn.constValues = normalizeConstValues(normalizeConditionals(fn.constValues));
+		}
+		if (fn.structs && fn.structs.length > 1) {
+			fn.structs = normalizeStructs(normalizeConditionals(fn.structs));
+		}
+		
+		return fn;
+	}
+		
+	function mergeModule(dest: ShaderModule, source: Readonly<ShaderModule>) {
+		if (source.extensions && source.extensions.length) {
+			dest.extensions!.push(...source.extensions);
+		}
+		if (source.samplers && source.samplers.length) {
+			dest.samplers!.push(...source.samplers);
+		}
+		if (source.constants && source.constants.length) {
+			dest.constants!.push(...source.constants);
+		}
+		if (source.constValues && source.constValues.length) {
+			dest.constValues!.push(...source.constValues);
+		}
+		if (source.structs && source.structs.length) {
+			dest.structs!.push(...source.structs);
+		}
+		if (source.code) {
+			dest.code += `// ------------\n${source.code}\n`;
+		}
+		return dest;
+	}
+
+	export function flattenFunction<Module extends ModuleBase & ShaderModule>(fn: Readonly<ShaderFunction>, resolver: ModuleResolver<Module>): ShaderFunction {
+		if (! (fn.modules && fn.modules.length)) {
+			return fn;
+		}
+
+		const merged: ShaderFunction = {
+			extensions: fn.extensions ? fn.extensions.slice(0) : [],
+			samplers: fn.samplers ? fn.samplers.slice(0) : [],
+			constants: fn.constants ? fn.constants.slice(0) : [],
+			constValues: fn.constValues ? fn.constValues.slice(0) : [],
+			structs: fn.structs ? fn.structs.slice(0) : [],
+			code: fn.code || "",
+			main: fn.main
+		};
+
+		const modules = resolver.resolve(fn.modules);
+		
+		for (const module of modules) {
+			mergeModule(merged, module);
+		}
+
+		return merged;
+	}
+
 } // ns sd.render
