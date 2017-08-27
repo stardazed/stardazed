@@ -23,7 +23,7 @@ namespace sd.render {
 		Float4x4
 	}
 
-	export type Conditional<T> = T & {
+	export type Conditional<T extends object> = T & {
 		ifExpr?: string;
 	};
 
@@ -65,12 +65,17 @@ namespace sd.render {
 		expr: string;
 	}
 
+	export interface ShaderStruct {
+		name: string;
+		code: string;
+	}
+
 	export interface ShaderModule {
 		extensions?: Conditional<ExtensionUsage>[];
 		samplers?: Conditional<SamplerSlot>[];
 		constants?: Conditional<ShaderConstant>[];
 		constValues?: ShaderConstValue[];
-		structs?: string[];
+		structs?: ShaderStruct[];
 		code?: string;
 	}
 

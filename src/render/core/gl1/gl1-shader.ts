@@ -143,8 +143,8 @@ namespace sd.render.gl1 {
 		}).join("");
 	}
 
-	function generateStructsBlock(structs: string[] | undefined) {
-		return (structs || []).join("\n");
+	function generateStructsBlock(structs: ShaderStruct[] | undefined) {
+		return (structs || []).map(s => s.code).join("\n");
 	}
 
 	function generateValueBlock(keyword: "attribute" | "varying" | "uniform", vals: ShaderConstant[] | undefined) {

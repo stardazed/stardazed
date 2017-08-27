@@ -71,12 +71,15 @@ namespace sd.render.shader {
 
 	gl1Modules.vertexSkinning = {
 		name: "vertexSkinning",
-		structs: [`
+		structs: [{
+			name: "Joint",
+			code: `
 			struct Joint {
 				vec4 rotation_joint;
 				mat4 transform_model;
 			};
-		`],
+			`
+		}],
 		constants: [
 			{ name: "jointIndexOffset", type: SVT.Int }
 		],
@@ -416,17 +419,18 @@ namespace sd.render.shader {
 
 	gl1Modules.lightEntry = {
 		name: "lightEntry",
-		structs: [
-		`
-		struct LightEntry {
-			vec4 colourAndType;
-			vec4 positionCamAndIntensity;
-			vec4 positionWorldAndRange;
-			vec4 directionAndCutoff;
-			vec4 shadowStrengthBias;
-		};
-		`
-		]
+		structs: [{
+			name: "LightEntry",
+			code: `
+			struct LightEntry {
+				vec4 colourAndType;
+				vec4 positionCamAndIntensity;
+				vec4 positionWorldAndRange;
+				vec4 directionAndCutoff;
+				vec4 shadowStrengthBias;
+			};
+			`
+		}]
 	};
 
 	gl1Modules.tiledLight = {
@@ -604,7 +608,9 @@ namespace sd.render.shader {
 			{ name: "MAT_METALLIC", type: SVT.Int, expr: "1" },
 			{ name: "MAT_AMBIENT_OCCLUSION", type: SVT.Int, expr: "2" },
 		],
-		structs: [`
+		structs: [{
+			name: "MaterialInfo",
+			code: `
 			struct MaterialInfo {
 				vec4 albedo;   // premultiplied alpha
 				vec3 emissive; // premultiplied intensity
@@ -615,7 +621,8 @@ namespace sd.render.shader {
 					float alphaCutoff;
 				#endif
 			};
-		`],
+			`}
+		],
 		constants: [
 			{ name: "baseColour", type: SVT.Float4 },
 			{ name: "emissiveData", type: SVT.Float4 },
@@ -689,7 +696,9 @@ namespace sd.render.shader {
 			"normalPerturbation",
 			"parallaxMapping"
 		],
-		structs: [`
+		structs: [{
+			name: "SurfaceInfo",
+			code: `
 			struct SurfaceInfo {
 				vec3 V;  // vertex dir (cam)
 				vec3 N;  // surface normal (cam)
@@ -698,7 +707,8 @@ namespace sd.render.shader {
 				vec2 UV; // (adjusted) main UV
 				float NdV;
 			};
-		`],
+			`
+		}],
 		constants: [
 			{ name: "normalMatrix", type: SVT.Float3x3 }
 		],
