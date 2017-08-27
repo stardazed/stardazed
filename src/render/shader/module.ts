@@ -132,26 +132,50 @@ namespace sd.render.shader {
 
 	// ----
 
-	function normalizeConditionals<T extends object>(items: Conditional<T>[]): Conditional<T>[] {
-		const finalExpr = items.map(t => t.ifExpr).reduce(
+	function normalizeConditionalExpressions(exprs: (string | undefined)[]) {
+		return exprs.reduce(
 			(cur, next) => {
 				if (cur === undefined || next === undefined || next === "") {
 					return undefined;
 				}
 				return cur.length ? (`${cur} || (${next})`) : `(${next})`;
 			}
-		, "");
+			, "");
+	}
 
-		return items.map(t => ({
-			...(t as any), // this cast is a workaround for https://github.com/Microsoft/TypeScript/issues/10727 (will be fixed in TS 2.6)
-			ifExpr: finalExpr
-		}));
+	/**
+	 * Map 
+	 * @param items List of Conditionally applied shader structures
+	 */
+	function normalizeGroupedConditionals<T extends Conditional<object>>(groups: container.GroupedItems<T>) {
+		for (const name in groups) {
+			if (groups.hasOwnProperty(name)) {
+				const collated = groups[name];
+				const finalExpr = normalizeConditionalExpressions(collated.ifExpr);
+
+				collated.ifExpr = [finalExpr];
+			}
+		}
+		return groups;
+	}
+
+	function checkAllGroupsUnique<T extends object, K extends keyof T>(groups: container.GroupedItems<T>, uniqueFields: K[]) {
+		for (const name in groups) {
+			if (groups.hasOwnProperty(name)) {
+				const collated = groups[name];
+				for (const k of uniqueFields) {
+					if (collated[k].length !== 1) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
 	}
 
 	function normalizeExtensions(exts: Conditional<ExtensionUsage>[]) {
-		// by sorting by reverse action,
-		// any duplicates will have action "require" before "enable".
-		// stableUnique will then pick the 1st one and  
+		// By sorting by reverse action, any duplicates will have action "require" before "enable".
+		// stableUnique will then pick the 1st one which will have the strictest requirement.
 		return container.stableUnique(exts.sort((a, b) => {
 			return (
 				container.stringOrder(b.action, a.action)
@@ -160,19 +184,32 @@ namespace sd.render.shader {
 	}
 
 	function normalizeSamplers(samps: Conditional<SamplerSlot>[]) {
-		return samps;
+		const groups = normalizeGroupedConditionals(container.groupFieldsBy("name", samps));
+		if (! checkAllGroupsUnique(groups, ["type", "index"])) {
+			throw new Error("Ambiguous Sampler configuration in shader");
+		}
+		return container.stableUnique(samps);
 	}
 
 	function normalizeConstants(cons: Conditional<ShaderConstant>[]) {
-		return cons;
+		if (! checkAllGroupsUnique(cons, "name", ["type", "length"])) {
+			throw new Error("Ambiguous Constant configuration");
+		}
+		return container.stableUnique(cons);
 	}
 
 	function normalizeConstValues(cvs: Conditional<ShaderConstValue>[]) {
-		return cvs;
+		if (! checkAllGroupsUnique(cvs, "name", ["type", "expr"])) {
+			throw new Error("Ambiguous ConstValue configuration");
+		}
+		return container.stableUnique(cvs);
 	}
 
 	function normalizeStructs(structs: Conditional<ShaderStruct>[]) {
-		return structs;
+		if (! checkAllGroupsUnique(structs, "name", ["code"])) {
+			throw new Error("Ambiguous Sampler configuration");
+		}
+		return container.stableUnique(structs);
 	}
 
 	export function normalizeFunction(fn: ShaderFunction) {
@@ -191,7 +228,6 @@ namespace sd.render.shader {
 		if (fn.structs && fn.structs.length > 1) {
 			fn.structs = normalizeStructs(normalizeConditionals(fn.structs));
 		}
-		
 		return fn;
 	}
 		
