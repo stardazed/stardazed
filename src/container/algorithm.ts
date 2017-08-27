@@ -8,6 +8,39 @@
 namespace sd.container {
 
 	/**
+	 * Takes an array of isomorphic objects and groups the values of the fields together keyed
+	 * by a field name provided as group.
+	 * @example Given ts = [{n:"a", v:1}, {n:"a", v:2}, {n:"b", v:50}] and group = "n"
+	 * the output will be: { a:{v:[1,2]}, b:{v:[50]} }
+	 * @param group Name of the field in the items that will be used to group the other fields by
+	 * @param ts List of objects that have will be grouped by {{group}}
+	 */
+	export function groupFieldsBy<T extends object, K extends keyof T>(group: K & string, ts: T[]) {
+		return ts.reduce((res, val) => {
+			const key = val[group];
+			let coll: Partial<{[P in keyof T]: T[P][]}>;
+			if (!(key in res)) {
+				coll = {};
+				res[key] = coll;
+			}
+			else {
+				coll = res[key];
+			}
+			for (const k in val) {
+				if (k !== group && val.hasOwnProperty(k)) {
+					if (!(k in coll)) {
+						coll[k] = [];
+					}
+					if (coll[k]!.indexOf(val[k]) === -1) {
+						coll[k]!.push(val[k]);
+					}
+				}
+			}
+			return res;
+		}, {} as { [name: string]: Partial<{ [P in keyof T]: T[P][] }> });
+	}
+
+	/**
 	 * Standard string sort comparison function, used when comparing
 	 * multiple string fields together or when using non-standars sort.
 	 * @param a left string to compare
