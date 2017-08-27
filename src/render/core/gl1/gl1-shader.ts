@@ -80,56 +80,6 @@ namespace sd.render.gl1 {
 
 	// ----
 
-	function mergeModule(dest: ShaderModule, source: Readonly<ShaderModule>) {
-		if (source.extensions && source.extensions.length) {
-			dest.extensions!.push(...source.extensions);
-		}
-		if (source.samplers && source.samplers.length) {
-			dest.samplers!.push(...source.samplers);
-		}
-		if (source.constants && source.constants.length) {
-			dest.constants!.push(...source.constants);
-		}
-		if (source.constValues && source.constValues.length) {
-			dest.constValues!.push(...source.constValues);
-		}
-		if (source.structs && source.structs.length) {
-			dest.structs!.push(...source.structs);
-		}
-		if (source.code) {
-			dest.code += `// ------------\n${source.code}\n`;
-		}
-		return dest;
-	}
-
-	function flattenFunction(fn: Readonly<ShaderFunction>): ShaderFunction {
-		if (! (fn.modules && fn.modules.length)) {
-			return fn;
-		}
-
-		const merged: ShaderFunction = {
-			extensions: fn.extensions ? fn.extensions.slice(0) : [],
-			samplers: fn.samplers ? fn.samplers.slice(0) : [],
-			constants: fn.constants ? fn.constants.slice(0) : [],
-			constValues: fn.constValues ? fn.constValues.slice(0) : [],
-			structs: fn.structs ? fn.structs.slice(0) : [],
-			code: fn.code || "",
-			main: fn.main
-		};
-
-		// FIXME: we're grabbing the modules out of thin air mostly
-		const resolver = new shader.ModuleResolver<shader.GL1Module>(shader.gl1Modules);
-		const modules = resolver.resolve(fn.modules);
-		
-		for (const module of modules) {
-			mergeModule(merged, module);
-		}
-
-		return merged;
-	}
-
-	// ----
-
 	function generateDefinesBlock(defines: ShaderDefine[] | undefined) {
 		return (defines || []).map(def => {
 			return `#define ${def.name} ${def.value || ""}\n`;
