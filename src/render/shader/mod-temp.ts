@@ -328,6 +328,9 @@ namespace sd.render.shader {
 			"pbrMaterialInfo",
 			"pbrLightingMath"
 		],
+		provides: [
+			"CoreLight",
+		],
 		extensions: [
 			{ name: "GL_EXT_shader_texture_lod", action: "require" }
 		],
@@ -491,6 +494,7 @@ namespace sd.render.shader {
 		requires: [
 			"vsmShadowMapping",
 			"lightEntry",
+			"lightContrib",
 			"SurfaceInfo",
 			"MaterialInfo",
 		],
@@ -547,8 +551,9 @@ namespace sd.render.shader {
 	gl1Modules.lightContrib = {
 		name: "lightContrib",
 		requires: [
-			"surfaceInfo",
-			"pbrMaterialInfo",
+			"SurfaceInfo",
+			"MaterialInfo",
+			"CoreLight",
 			"lightEntry"
 		],
 		code: `

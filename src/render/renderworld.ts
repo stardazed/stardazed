@@ -24,7 +24,7 @@ namespace sd.render {
 			this.effects_ = new Map();
 			
 			this.rd_ = new gl1.GL1RenderDevice(this.canvas_);
-			this.lighting_ = new TiledLight("medium");
+			this.lighting_ = new TiledLight("large");
 		}
 
 		get drawableWidth() {
