@@ -181,7 +181,7 @@ namespace sd.render.gl1 {
 		if (! gl.getShaderParameter(shader, GLConst.COMPILE_STATUS)) {
 			const errorLog = gl.getShaderInfoLog(shader);
 			console.error("Shader compilation failed:", errorLog);
-			console.error("Source", sourceText.split("\n").map((l, i) => `${i + 1}: ${l}`).join("\n"));
+			console.info(sourceText.split("\n").map((l, i) => `${i + 1}: ${l}`).join("\n"));
 			return undefined;
 		}
 
@@ -268,7 +268,7 @@ namespace sd.render.gl1 {
 					};
 				}
 				else {
-					console.error(`Shader is missing constant named ${sc.name}`, shader);
+					console.warn(`Shader is missing constant named "${sc.name}", are you using it in code?`, rawShader);
 				}
 			}
 		}
@@ -286,7 +286,7 @@ namespace sd.render.gl1 {
 			else {
 				const uniform = gl.getUniformLocation(program, sampler.name);
 				if (! uniform) {
-					console.warn(`Shader has missing uniform for sampler ${sampler.name}, may have been optimized out.`, shader);
+					console.warn(`Shader is missing constant for sampler "${sampler.name}", are you using it in code?`, rawShader);
 				}
 				else {
 					combinedSamplers[sampler.name] = { sampler, uniform };
