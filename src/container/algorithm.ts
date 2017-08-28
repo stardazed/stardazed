@@ -24,6 +24,23 @@ namespace sd.container {
 		return dest;
 	}
 
+	export type MappingFunc<T, U> = (t: T, k: string) => U;
+
+	/**
+	 * Map each keyed propertiy of obj using the provided function returning a new object.
+	 * @param obj The source object to convert
+	 * @param mapper A conversion function that takes each keyed prop of obj and returns a converted value
+	 */
+	export function mapObject<T, K extends keyof T, U>(obj: T, mapper: MappingFunc<T[K], U>) {
+		const result = {} as Record<K, U>;
+		for (const key in obj) {
+			if (obj.hasOwnProperty(key)) {
+				result[key] = mapper(obj[key], key);
+			}
+		}
+		return result;
+	}
+
 	export type ArrayFields<T> = { [P in keyof T]: T[P][]; };
 
 	export interface GroupedItems<T extends object> {
