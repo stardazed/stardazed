@@ -7,6 +7,23 @@
 
 namespace sd.container {
 
+	/**
+	 * Copy all or a specified set of values from source to dest, including undefined values.
+	 * Thus, this may unset values in the destination object as well as set or change them.
+	 * @param dest The object to overwrite values in
+	 * @param source The source object to read values from
+	 * @param keys Optional explicit set of keys to copy, defaults to all values in source
+	 */
+	export function override<T extends object, K extends keyof T>(dest: T, source: Partial<T>, keys?: K[]) {
+		if (keys === undefined) {
+			keys = Object.keys(source) as K[];
+		}
+		for (const k of keys) {
+			dest[k] = source[k];
+		}
+		return dest;
+	}
+
 	export type ArrayFields<T> = { [P in keyof T]: T[P][]; };
 
 	export interface GroupedItems<T extends object> {
