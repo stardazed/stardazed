@@ -132,7 +132,13 @@ namespace sd.render.shader {
 
 	// ----
 
-	function normalizeConditionalExpressions(exprs: (string | undefined)[]) {
+	/**
+	 * Reduce a set of if-expressions to either an empty expression or
+	 * the intersection of each of the expressions.
+	 * @internal
+	 * @param exprs Array of optional shader macro if-expressions
+	 */
+	function reduceConditionalExpressions(exprs: (string | undefined)[]) {
 		return exprs.reduce(
 			(cur, next) => {
 				if (cur === undefined || next === undefined || next === "") {
@@ -144,21 +150,23 @@ namespace sd.render.shader {
 	}
 
 	/**
-	 * Map 
+	 * Reduce the if-expressions for each group of statements, returning a
+	 * map of named, reduced if-expressions.
+	 * @internal
 	 * @param items List of Conditionally applied shader structures
 	 */
 	function normalizeGroupedConditionals<T extends Conditional<object>>(groups: container.GroupedItems<T>) {
-		for (const name in groups) {
-			if (groups.hasOwnProperty(name)) {
-				const collated = groups[name];
-				const finalExpr = normalizeConditionalExpressions(collated.ifExpr);
-
-				collated.ifExpr = [finalExpr];
-			}
-		}
-		return groups;
+		return container.mapObject(groups, (collated) => ({
+			ifExpr: reduceConditionalExpressions(collated.ifExpr)
+		}));
 	}
 
+	/**
+	 * Returns whether each group has only a single value for each specified field.
+	 * @internal
+	 * @param groups Grouped objects with arrays of values for each field
+	 * @param uniqueFields The fieldnames to check for uniqueness
+	 */
 	function checkAllGroupsUnique<T extends object, K extends keyof T>(groups: container.GroupedItems<T>, uniqueFields: K[]) {
 		for (const name in groups) {
 			if (groups.hasOwnProperty(name)) {
@@ -173,60 +181,58 @@ namespace sd.render.shader {
 		return true;
 	}
 
+	/**
+	 * Reduce a set of ungrouped conditional, named structures to a single definition per named structure.
+	 * @internal
+	 * @param kind a type name of the items provided (human-readable)
+	 * @param items A set of ungrouped conditional, named structures
+	 * @param uniqueFields The names of the fields in each structure that will be checked for uniqueness
+	 */
+	function normalizeUniqueConditionalGroups<T extends Conditional<{name: string}>, K extends keyof T>(kind: string, items: T[], uniqueFields: T[K][]) {
+		const groups = container.groupFieldsBy("name", items);
+		if (! checkAllGroupsUnique(groups, uniqueFields)) {
+			throw new Error(`Ambiguous ${kind} configuration in shader`);
+		}
+		const normConditionals = normalizeGroupedConditionals(groups);
+		return container.stableUnique(items).map(item => container.override(item, normConditionals[item.name] as any, ["ifExpr"]));
+	}
+
 	function normalizeExtensions(exts: Conditional<ExtensionUsage>[]) {
-		// By sorting by reverse action, any duplicates will have action "require" before "enable".
-		// stableUnique will then pick the 1st one which will have the strictest requirement.
-		return container.stableUnique(exts.sort((a, b) => {
-			return (
-				container.stringOrder(b.action, a.action)
-			);
+		const groups = container.groupFieldsBy("name", exts);
+
+		// By sorting by the actions in reverse order, they will have any "require" values before "enable".
+		// By then picking the 1st one, we end up with the strictest indicated requirement.
+		const flattened = container.mapObject(groups, (g, name) => ({
+			name,
+			action: g.action.sort((a, b) => container.stringOrder(b, a))[0],
+			ifExpr: reduceConditionalExpressions(g.ifExpr)
 		}));
+
+		// Object.values is still a little too new
+		return Object.keys(flattened).map(k => flattened[k]);
 	}
 
-	function normalizeSamplers(samps: Conditional<SamplerSlot>[]) {
-		const groups = normalizeGroupedConditionals(container.groupFieldsBy("name", samps));
-		if (! checkAllGroupsUnique(groups, ["type", "index"])) {
-			throw new Error("Ambiguous Sampler configuration in shader");
-		}
-		return container.stableUnique(samps);
-	}
-
-	function normalizeConstants(cons: Conditional<ShaderConstant>[]) {
-		if (! checkAllGroupsUnique(cons, "name", ["type", "length"])) {
-			throw new Error("Ambiguous Constant configuration");
-		}
-		return container.stableUnique(cons);
-	}
-
-	function normalizeConstValues(cvs: Conditional<ShaderConstValue>[]) {
-		if (! checkAllGroupsUnique(cvs, "name", ["type", "expr"])) {
-			throw new Error("Ambiguous ConstValue configuration");
-		}
-		return container.stableUnique(cvs);
-	}
-
-	function normalizeStructs(structs: Conditional<ShaderStruct>[]) {
-		if (! checkAllGroupsUnique(structs, "name", ["code"])) {
-			throw new Error("Ambiguous Sampler configuration");
-		}
-		return container.stableUnique(structs);
-	}
-
+	/**
+	 * Normalize (in-place) each of a Function's arrays of statements so that
+	 * for each named item in each array, there is only a single definition.
+	 * @throws {Error} Throws an error if normalization fails.
+	 * @param fn The ShaderFunction to normalize / reduce
+	 */
 	export function normalizeFunction(fn: ShaderFunction) {
 		if (fn.extensions && fn.extensions.length > 1) {
-			fn.extensions = normalizeExtensions(normalizeConditionals(fn.extensions));
+			fn.extensions = normalizeExtensions(fn.extensions);
 		}
 		if (fn.samplers && fn.samplers.length > 1) {
-			fn.samplers = normalizeSamplers(normalizeConditionals(fn.samplers));
+			fn.samplers = normalizeUniqueConditionalGroups("Sampler", fn.samplers, ["type", "index"]);
 		}
 		if (fn.constants && fn.constants.length > 1) {
-			fn.constants = normalizeConstants(normalizeConditionals(fn.constants));
+			fn.constants = normalizeUniqueConditionalGroups("Constant", fn.constants, ["type", "length"]);
 		}
 		if (fn.constValues && fn.constValues.length > 1) {
-			fn.constValues = normalizeConstValues(normalizeConditionals(fn.constValues));
+			fn.constValues = normalizeUniqueConditionalGroups("ConstValue", fn.constValues, ["type", "expr"]);
 		}
 		if (fn.structs && fn.structs.length > 1) {
-			fn.structs = normalizeStructs(normalizeConditionals(fn.structs));
+			fn.structs = normalizeUniqueConditionalGroups("Struct", fn.structs, ["code"]);
 		}
 		return fn;
 	}
@@ -259,11 +265,11 @@ namespace sd.render.shader {
 		}
 
 		const merged: ShaderFunction = {
-			extensions: fn.extensions ? fn.extensions.slice(0) : [],
-			samplers: fn.samplers ? fn.samplers.slice(0) : [],
-			constants: fn.constants ? fn.constants.slice(0) : [],
-			constValues: fn.constValues ? fn.constValues.slice(0) : [],
-			structs: fn.structs ? fn.structs.slice(0) : [],
+			extensions: fn.extensions ? fn.extensions.slice(0) : undefined,
+			samplers: fn.samplers ? fn.samplers.slice(0) : undefined,
+			constants: fn.constants ? fn.constants.slice(0) : undefined,
+			constValues: fn.constValues ? fn.constValues.slice(0) : undefined,
+			structs: fn.structs ? fn.structs.slice(0) : undefined,
 			code: fn.code || "",
 			main: fn.main
 		};
