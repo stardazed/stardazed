@@ -82,46 +82,56 @@ namespace sd.render.gl1 {
 
 	// ----
 
-	function generateDefinesBlock(defines: ShaderDefine[] | undefined) {
-		return (defines || []).map(def => {
-			return `#define ${def.name} ${def.value || ""}\n`;
-		}).join("");
+	function wrapConditionals(items: { code: string; ifExpr: string | undefined; }[]) {
+		return items.map(item => (
+			(item.ifExpr) ? `#if ${item.ifExpr}\n${item.code}\n#endif` : item.code
+		));
 	}
 
-	function generateConstValuesBlock(constVals: ShaderConstValue[] | undefined) {
-		return (constVals || []).map(cv => {
+	function generateDefinesBlock(defines: Conditional<ShaderDefine>[] | undefined) {
+		return wrapConditionals((defines || []).map(def => ({
+			code: `#define ${def.name} ${def.value || ""}\n`,
+			ifExpr: def.ifExpr
+		}))).join("");
+	}
+
+	function generateConstValuesBlock(constVals: Conditional<ShaderConstValue>[] | undefined) {
+		return wrapConditionals((constVals || []).map(cv => {
 			const mappedValueType = valueTypeMap.uniform[cv.type];
-			return `const ${mappedValueType} ${cv.name} = ${cv.expr};\n`;
-		}).join("");
+			return { code: `const ${mappedValueType} ${cv.name} = ${cv.expr};\n`, ifExpr: cv.ifExpr };
+		})).join("");
 	}
 
-	function generateStructsBlock(structs: ShaderStruct[] | undefined) {
-		return (structs || []).map(s => s.code).join("\n");
+	function generateStructsBlock(structs: Conditional<ShaderStruct>[] | undefined) {
+		return wrapConditionals((structs || []).map(s => ({ code: s.code, ifExpr: s.ifExpr }))).join("\n");
 	}
 
-	function generateValueBlock(keyword: "attribute" | "varying" | "uniform", vals: ShaderConstant[] | undefined) {
-		return (vals || []).map(val => {
+	function generateValueBlock(keyword: "attribute" | "varying" | "uniform", vals: Conditional<ShaderConstant>[] | undefined) {
+		return wrapConditionals((vals || []).map(val => {
 			const arrayPostfix = (val.length! > 0) ? `[${val.length}]` : "";
 			const mappedValueType = valueTypeMap[keyword][val.type];
-			return `${keyword} ${mappedValueType} ${val.name}${arrayPostfix};\n`;
-		}).join("");
+			return { code: `${keyword} ${mappedValueType} ${val.name}${arrayPostfix};\n`, ifExpr: val.ifExpr };
+		})).join("");
 	}
 
-	function generateConstantsBlock(constants: ShaderConstant[] | undefined) {
-		return generateValueBlock("uniform", constants || []);
+	function generateConstantsBlock(constants: Conditional<ShaderConstant>[] | undefined) {
+		return generateValueBlock("uniform", constants);
 	}
 
-	function generateSamplerBlock(samplers: SamplerSlot[] | undefined) {
-		return (samplers || []).map(tex => {
+	function generateSamplerBlock(samplers: Conditional<SamplerSlot>[] | undefined) {
+		return wrapConditionals((samplers || []).map(tex => {
 			const mappedTextureType = (tex.type === TextureClass.Plain) ? "sampler2D" : "samplerCube";
-			return `uniform ${mappedTextureType} ${tex.name};\n`;
-		}).join("");
+			return { code: `uniform ${mappedTextureType} ${tex.name};\n`, ifExpr: tex.ifExpr };
+		})).join("");
 	}
 
-	function generateExtensionBlock(exts: ExtensionUsage[] | undefined) {
-		return (exts || []).map(ext =>
-			`#extension ${ext.name} : ${ext.action}\n`
-		).join("");
+	function generateExtensionBlock(exts: Conditional<ExtensionUsage>[] | undefined) {
+		return wrapConditionals((exts || []).map(ext => ({
+			code: `#extension ${ext.name} : ${ext.action}\n`,
+			// by default, wrap `enable` actions in an ifdef with the
+			//  extension name to avoid GLSL compile-time warnings.
+			ifExpr: ext.ifExpr || (ext.action === "enable" ? ext.name : undefined)
+		}))).join("");
 	}
 
 	function generateVertexSource(fn: VertexFunction, resolver: GL1ModuleResolver, defs: ShaderDefine[]) {
