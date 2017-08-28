@@ -138,7 +138,10 @@ namespace sd.render.shader {
 	 * @internal
 	 * @param exprs Array of optional shader macro if-expressions
 	 */
-	function reduceConditionalExpressions(exprs: (string | undefined)[]) {
+	function reduceConditionalExpressions(exprs: (string | undefined)[] | undefined) {
+		if (exprs === undefined) {
+			return undefined;
+		}
 		return exprs.reduce(
 			(cur, next) => {
 				if (cur === undefined || next === undefined || next === "") {
@@ -172,7 +175,7 @@ namespace sd.render.shader {
 			if (groups.hasOwnProperty(name)) {
 				const collated = groups[name];
 				for (const k of uniqueFields) {
-					if (collated[k].length !== 1) {
+					if (collated[k] && (collated[k].length !== 1)) {
 						return false;
 					}
 				}
