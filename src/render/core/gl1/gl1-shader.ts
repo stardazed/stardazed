@@ -5,6 +5,8 @@
 
 namespace sd.render.gl1 {
 
+	type GL1ModuleResolver = shader.ModuleResolver<shader.GL1Module>;
+
 	export interface GL1VertexFunction extends VertexFunction {
 		attrHash?: number;
 	}
@@ -122,18 +124,18 @@ namespace sd.render.gl1 {
 		).join("");
 	}
 
-	function generateVertexSource(fn: VertexFunction, defs: ShaderDefine[]) {
-		// const flattenedFn = flattenFunction(fn, defs);
-		// TODO: use flattenedFn for all except attributes & main
-
-		const extensions = generateExtensionBlock(fn.extensions);
+	function generateVertexSource(fn: VertexFunction, resolver: GL1ModuleResolver, defs: ShaderDefine[]) {
+		// use flattenedFn for all except attributes & main
+		const normalizedFn = shader.normalizeFunction(shader.flattenFunction(fn, resolver));
+		
+		const extensions = generateExtensionBlock(normalizedFn.extensions);
 		const defines = generateDefinesBlock(defs);
 		const attributes = generateValueBlock("attribute", fn.in);
 		const varying = generateValueBlock("varying", fn.out);
-		const constValues = generateConstValuesBlock(fn.constValues);
-		const structs = generateStructsBlock(fn.structs);
-		const uniforms = generateConstantsBlock(fn.constants);
-		const samplers = generateSamplerBlock(fn.samplers);
+		const constValues = generateConstValuesBlock(normalizedFn.constValues);
+		const structs = generateStructsBlock(normalizedFn.structs);
+		const uniforms = generateConstantsBlock(normalizedFn.constants);
+		const samplers = generateSamplerBlock(normalizedFn.samplers);
 		
 		return `${extensions}${defines}
 		${attributes}${varying}
@@ -145,17 +147,16 @@ namespace sd.render.gl1 {
 		}`;
 	}
 
-	function generateFragmentSource(fn: FragmentFunction, defs: ShaderDefine[]) {
-		// const flattenedFn = flattenFunction(fn, defs);
-		// TODO: use flattenedFn for all except attributes & main
+	function generateFragmentSource(fn: FragmentFunction, resolver: GL1ModuleResolver, defs: ShaderDefine[]) {
+		const normalizedFn = shader.normalizeFunction(shader.flattenFunction(fn, resolver));
 
-		const extensions = generateExtensionBlock(fn.extensions);
+		const extensions = generateExtensionBlock(normalizedFn.extensions);
 		const defines = generateDefinesBlock(defs);
 		const varying = generateValueBlock("varying", fn.in);
-		const constValues = generateConstValuesBlock(fn.constValues);
-		const structs = generateStructsBlock(fn.structs);
-		const uniforms = generateConstantsBlock(fn.constants);
-		const samplers = generateSamplerBlock(fn.samplers);
+		const constValues = generateConstValuesBlock(normalizedFn.constValues);
+		const structs = generateStructsBlock(normalizedFn.structs);
+		const uniforms = generateConstantsBlock(normalizedFn.constants);
+		const samplers = generateSamplerBlock(normalizedFn.samplers);
 		
 		return `${extensions}${defines}
 		precision highp float;
@@ -216,9 +217,10 @@ namespace sd.render.gl1 {
 
 	export function createShader(rd: GL1RenderDevice, shader: Shader): GL1ShaderData | undefined {
 		const gl = rd.gl;
+		const resolver = new render.shader.ModuleResolver<render.shader.GL1Module>(render.shader.gl1Modules);
 
-		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(shader.vertexFunction, shader.defines));
-		const fragmentShader = compileFunction(rd, GLConst.FRAGMENT_SHADER, generateFragmentSource(shader.fragmentFunction, shader.defines));
+		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(shader.vertexFunction, resolver, shader.defines));
+		const fragmentShader = compileFunction(rd, GLConst.FRAGMENT_SHADER, generateFragmentSource(shader.fragmentFunction, resolver, shader.defines));
 
 		if (! (vertexShader && fragmentShader)) {
 			return undefined;
@@ -281,9 +283,11 @@ namespace sd.render.gl1 {
 			}
 		}
 
-		for (const sampName in combinedSamplers) { /* tslint:disable-line:forin */
-			const samp = combinedSamplers[sampName];
-			gl.uniform1i(samp.uniform, samp.sampler.index);
+		for (const sampName in combinedSamplers) {
+			if (combinedSamplers.hasOwnProperty(sampName)) {
+				const samp = combinedSamplers[sampName];
+				gl.uniform1i(samp.uniform, samp.sampler.index);
+			}
 		}
 
 		return {
