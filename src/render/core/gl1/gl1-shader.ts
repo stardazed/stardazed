@@ -5,8 +5,6 @@
 
 namespace sd.render.gl1 {
 
-	type GL1ModuleResolver = shader.ModuleResolver<shader.GL1Module>;
-
 	export interface GL1VertexFunction extends VertexFunction {
 		attrHash?: number;
 	}
@@ -134,18 +132,15 @@ namespace sd.render.gl1 {
 		}))).join("");
 	}
 
-	function generateVertexSource(fn: VertexFunction, resolver: GL1ModuleResolver, defs: ShaderDefine[]) {
-		// use flattenedFn for all except attributes & main
-		const normalizedFn = shader.normalizeFunction(shader.flattenFunction(fn, resolver));
-		
-		const extensions = generateExtensionBlock(normalizedFn.extensions);
+	function generateVertexSource(fn: VertexFunction, defs: ShaderDefine[]) {
+		const extensions = generateExtensionBlock(fn.extensions);
 		const defines = generateDefinesBlock(defs);
 		const attributes = generateValueBlock("attribute", fn.in);
 		const varying = generateValueBlock("varying", fn.out);
-		const constValues = generateConstValuesBlock(normalizedFn.constValues);
-		const structs = generateStructsBlock(normalizedFn.structs);
-		const uniforms = generateConstantsBlock(normalizedFn.constants);
-		const samplers = generateSamplerBlock(normalizedFn.samplers);
+		const constValues = generateConstValuesBlock(fn.constValues);
+		const structs = generateStructsBlock(fn.structs);
+		const uniforms = generateConstantsBlock(fn.constants);
+		const samplers = generateSamplerBlock(fn.samplers);
 		
 		return `${extensions}${defines}
 		${attributes}${varying}
@@ -157,16 +152,14 @@ namespace sd.render.gl1 {
 		}`;
 	}
 
-	function generateFragmentSource(fn: FragmentFunction, resolver: GL1ModuleResolver, defs: ShaderDefine[]) {
-		const normalizedFn = shader.normalizeFunction(shader.flattenFunction(fn, resolver));
-
-		const extensions = generateExtensionBlock(normalizedFn.extensions);
+	function generateFragmentSource(fn: FragmentFunction, defs: ShaderDefine[]) {
+		const extensions = generateExtensionBlock(fn.extensions);
 		const defines = generateDefinesBlock(defs);
 		const varying = generateValueBlock("varying", fn.in);
-		const constValues = generateConstValuesBlock(normalizedFn.constValues);
-		const structs = generateStructsBlock(normalizedFn.structs);
-		const uniforms = generateConstantsBlock(normalizedFn.constants);
-		const samplers = generateSamplerBlock(normalizedFn.samplers);
+		const constValues = generateConstValuesBlock(fn.constValues);
+		const structs = generateStructsBlock(fn.structs);
+		const uniforms = generateConstantsBlock(fn.constants);
+		const samplers = generateSamplerBlock(fn.samplers);
 		
 		return `${extensions}${defines}
 		precision highp float;
@@ -225,22 +218,30 @@ namespace sd.render.gl1 {
 
 	// ----
 
-	export function createShader(rd: GL1RenderDevice, shader: Shader): GL1ShaderData | undefined {
+	export function createShader(rd: GL1RenderDevice, rawShader: Shader): GL1ShaderData | undefined {
 		const gl = rd.gl;
-		const resolver = new render.shader.ModuleResolver<render.shader.GL1Module>(render.shader.gl1Modules);
 
-		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(shader.vertexFunction, resolver, shader.defines));
-		const fragmentShader = compileFunction(rd, GLConst.FRAGMENT_SHADER, generateFragmentSource(shader.fragmentFunction, resolver, shader.defines));
+		// first fully resolve and normalize the vertex and fragment functions
+		const resolver = new render.shader.ModuleResolver<render.shader.GL1Module>(render.shader.gl1Modules);
+		const defines = rawShader.defines.filter(def => def.value !== 0);
+
+		const vertexFn = shader.normalizeFunction(shader.flattenFunction(rawShader.vertexFunction, resolver));
+		const fragmentFn = shader.normalizeFunction(shader.flattenFunction(rawShader.fragmentFunction, resolver));
+		
+		// create GL shaders based on function and defines 
+		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(vertexFn, defines));
+		const fragmentShader = compileFunction(rd, GLConst.FRAGMENT_SHADER, generateFragmentSource(fragmentFn, defines));
 
 		if (! (vertexShader && fragmentShader)) {
 			return undefined;
 		}
 
+		// create and link GL program
 		const program = gl.createProgram()!; // TODO: handle resource allocation failure
-		for (const pa of shader.vertexFunction.in) {
+		for (const pa of rawShader.vertexFunction.in) {
 			gl.bindAttribLocation(program, pa.index, pa.name);
 		}
-		(shader.vertexFunction as GL1VertexFunction).attrHash = calcVertexAttrHash(shader.vertexFunction.in);
+		(rawShader.vertexFunction as GL1VertexFunction).attrHash = calcVertexAttrHash(rawShader.vertexFunction.in);
 
 		gl.attachShader(program, vertexShader);
 		gl.attachShader(program, fragmentShader);
@@ -256,7 +257,7 @@ namespace sd.render.gl1 {
 		rd.state.setProgram(program);
 
 		const combinedConstants: { [name: string]: GL1ShaderConstant } = {};
-		const allConstants = (shader.vertexFunction.constants || []).concat(shader.fragmentFunction.constants || []);
+		const allConstants = (vertexFn.constants || []).concat(fragmentFn.constants || []);
 		for (const sc of allConstants) {
 			if (! (sc.name in combinedConstants)) {
 				const uniform = gl.getUniformLocation(program, sc.name);
@@ -274,12 +275,12 @@ namespace sd.render.gl1 {
 
 		// link samplers to desired bind points
 		const combinedSamplers: { [name: string]: GL1SamplerSlot } = {};
-		const allSamplers = (shader.vertexFunction.samplers || []).concat(shader.fragmentFunction.samplers || []);
+		const allSamplers = (vertexFn.samplers || []).concat(fragmentFn.samplers || []);
 		for (const sampler of allSamplers) {
 			if (sampler.name in combinedSamplers) {
 				const existing = combinedSamplers[sampler.name];
 				if (sampler.index !== existing.sampler.index || sampler.type !== existing.sampler.type) {
-					console.error(`Shader has ambigious binding for sampler ${sampler.name}`, shader);
+					console.error(`Shader has ambigious binding for sampler ${sampler.name}`, rawShader);
 				}
 			}
 			else {
