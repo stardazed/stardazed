@@ -219,16 +219,19 @@ namespace sd.container {
 	/**
 	 * Remove all duplicates found in the source array leaving only the first
 	 * instance of each individual element, leaving the order of the remaining
-	 * elements intact.
+	 * elements intact. Elements can optionally be given an explicit comparison proxy
+	 * by means of a provided helper function.
 	 * @param arr Source array
+	 * @param idGen Optional function to provide a unique identifier for each item
 	 */
-	export function stableUnique<T>(arr: T[]) {
-		const seen = new Set<T>();
+	export function stableUnique<T, U>(arr: T[], idGen?: (t: T) => U) {
+		const seen = new Set<T | U>();
 		return arr.filter(val => {
-			if (seen.has(val)) {
+			const key = idGen ? idGen(val) : val;
+			if (seen.has(key)) {
 				return false;
 			}
-			seen.add(val);
+			seen.add(key);
 			return true;
 		});
 	}
