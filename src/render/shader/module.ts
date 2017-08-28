@@ -197,7 +197,8 @@ namespace sd.render.shader {
 			throw new Error(`Ambiguous ${kind} configuration in shader`);
 		}
 		const normConditionals = normalizeGroupedConditionals(groups);
-		return container.stableUnique(items).map(item => container.override(item, normConditionals[item.name] as any, ["ifExpr"]));
+		return container.stableUnique(items, it => it.name)
+			.map(item => container.override(item, normConditionals[item.name] as any, ["ifExpr"]));
 	}
 
 	function normalizeExtensions(exts: Conditional<ExtensionUsage>[]) {
@@ -221,7 +222,7 @@ namespace sd.render.shader {
 	 * @throws {Error} Throws an error if normalization fails.
 	 * @param fn The ShaderFunction to normalize / reduce
 	 */
-	export function normalizeFunction(fn: ShaderFunction) {
+	export function normalizeFunction<Func extends ShaderFunction>(fn: Func) {
 		if (fn.extensions && fn.extensions.length > 1) {
 			fn.extensions = normalizeExtensions(fn.extensions);
 		}
@@ -275,22 +276,21 @@ namespace sd.render.shader {
 	 * @param fn The ShaderFunction to flatten
 	 * @param resolver The ModuleResolver instance to use for module resolution
 	 */
-	export function flattenFunction<Module extends ModuleBase & ShaderModule>(fn: Readonly<ShaderFunction>, resolver: ModuleResolver<Module>): ShaderFunction {
+	export function flattenFunction<Func extends ShaderFunction, Module extends ModuleBase & ShaderModule>(fn: Readonly<Func>, resolver: ModuleResolver<Module>): Func {
 		if (! (fn.modules && fn.modules.length)) {
 			return fn;
 		}
 
-		const merged: ShaderFunction = {
+		const merged: Func = {
+			...fn as any,
 			extensions: fn.extensions && fn.extensions.slice(0),
 			samplers: fn.samplers && fn.samplers.slice(0),
 			constants: fn.constants && fn.constants.slice(0),
 			constValues: fn.constValues && fn.constValues.slice(0),
 			structs: fn.structs && fn.structs.slice(0),
-			code: fn.code,
-			main: fn.main
 		};
 
-		const modules = resolver.resolve(fn.modules);
+		const modules = resolver.resolve(fn.modules as string[]);
 		for (const module of modules) {
 			mergeModule(merged, module);
 		}
