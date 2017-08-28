@@ -174,6 +174,11 @@ namespace sd.container {
 	}
 
 	/**
+	 * @alias The common stable sort algorithm.
+	 */
+	export const stableSort = mergeSort;
+
+	/**
 	 * Remove all duplicates found in the source array leaving only the first
 	 * instance of each individual element, leaving the order of the remaining
 	 * elements intact.
