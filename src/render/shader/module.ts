@@ -236,46 +236,58 @@ namespace sd.render.shader {
 		}
 		return fn;
 	}
-		
+
+	/**
+	 * Merge all fields and code from a source module into a destination module.
+	 * @internal
+	 * @param dest Module that will receive all data from source
+	 * @param source Module whose data will be merged into dest
+	 * @returns The destination module
+	 */
 	function mergeModule(dest: ShaderModule, source: Readonly<ShaderModule>) {
 		if (source.extensions && source.extensions.length) {
-			dest.extensions!.push(...source.extensions);
+			dest.extensions = dest.extensions ? dest.extensions.concat(source.extensions) : source.extensions.slice(0);
 		}
 		if (source.samplers && source.samplers.length) {
-			dest.samplers!.push(...source.samplers);
+			dest.samplers = dest.samplers ? dest.samplers.concat(source.samplers) : source.samplers.slice(0);
 		}
 		if (source.constants && source.constants.length) {
-			dest.constants!.push(...source.constants);
+			dest.constants = dest.constants ? dest.constants.concat(source.constants) : source.constants.slice(0);
 		}
 		if (source.constValues && source.constValues.length) {
-			dest.constValues!.push(...source.constValues);
+			dest.constValues = dest.constValues ? dest.constValues.concat(source.constValues) : source.constValues.slice(0);
 		}
 		if (source.structs && source.structs.length) {
-			dest.structs!.push(...source.structs);
+			dest.structs = dest.structs ? dest.structs.concat(source.structs) : source.structs.slice(0);
 		}
 		if (source.code) {
-			dest.code += `// ------------\n${source.code}\n`;
+			dest.code = (dest.code || "") + `// ------------\n${source.code}\n`;
 		}
 		return dest;
 	}
 
+	/**
+	 * If a ShaderFunction uses modules, returns a new ShaderFunction will modules resolved and merged into a single Function.
+	 * The returned function is not yet normalized and may thus contain duplicate definitions for any of its substructures.
+	 * @param fn The ShaderFunction to flatten
+	 * @param resolver The ModuleResolver instance to use for module resolution
+	 */
 	export function flattenFunction<Module extends ModuleBase & ShaderModule>(fn: Readonly<ShaderFunction>, resolver: ModuleResolver<Module>): ShaderFunction {
 		if (! (fn.modules && fn.modules.length)) {
 			return fn;
 		}
 
 		const merged: ShaderFunction = {
-			extensions: fn.extensions ? fn.extensions.slice(0) : undefined,
-			samplers: fn.samplers ? fn.samplers.slice(0) : undefined,
-			constants: fn.constants ? fn.constants.slice(0) : undefined,
-			constValues: fn.constValues ? fn.constValues.slice(0) : undefined,
-			structs: fn.structs ? fn.structs.slice(0) : undefined,
-			code: fn.code || "",
+			extensions: fn.extensions && fn.extensions.slice(0),
+			samplers: fn.samplers && fn.samplers.slice(0),
+			constants: fn.constants && fn.constants.slice(0),
+			constValues: fn.constValues && fn.constValues.slice(0),
+			structs: fn.structs && fn.structs.slice(0),
+			code: fn.code,
 			main: fn.main
 		};
 
 		const modules = resolver.resolve(fn.modules);
-		
 		for (const module of modules) {
 			mergeModule(merged, module);
 		}
