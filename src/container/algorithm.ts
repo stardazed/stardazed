@@ -89,9 +89,11 @@ namespace sd.container {
 	 * In-place stable insertion sort for homogeneous standard arrays.
 	 * @param a The array to be sorted (in-place)
 	 * @param pred Function that returns the relative order of 2 items
+	 * @returns The sorted array
 	 */
 	export function insertionSort<T>(a: T[], pred: CompareFn<T>) {
 		insertionSortInternal(a, 0, a.length - 1, pred);
+		return a;
 	}
 
 	/**
@@ -167,10 +169,12 @@ namespace sd.container {
 	 * In-place stable merge sort for homogeneous standard arrays.
 	 * @param a The array to be sorted (in-place)
 	 * @param pred Function that returns the relative order of 2 items
+	 * @returns The sorted array
 	 */
 	export function mergeSort<T>(a: T[], pred: CompareFn<T>) {
 		const b = a.slice(0);
 		mergeSortInternal(a, b, 0, a.length - 1, pred);
+		return a;
 	}
 
 	/**
