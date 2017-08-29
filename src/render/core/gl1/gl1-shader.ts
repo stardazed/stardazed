@@ -253,12 +253,16 @@ namespace sd.render.gl1 {
 		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(vertexFn, defines));
 		const fragmentShader = compileFunction(rd, GLConst.FRAGMENT_SHADER, generateFragmentSource(fragmentFn, defines));
 
+		// create and link GL program
 		if (! (vertexShader && fragmentShader)) {
 			return undefined;
 		}
+		const program = gl.createProgram();
+		if (! program) {
+			console.warn(`Failed to allocate a program resource, Error: ${gl.getError()}`);			
+			return undefined;
+		}
 
-		// create and link GL program
-		const program = gl.createProgram()!; // TODO: handle resource allocation failure
 		for (const pa of rawShader.vertexFunction.in) {
 			gl.bindAttribLocation(program, pa.index, pa.name);
 		}
