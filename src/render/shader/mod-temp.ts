@@ -691,7 +691,7 @@ namespace sd.render.shader {
 					mi.metallic = materialParam[MAT_METALLIC];
 				#endif
 				#ifdef AO_MAP
-					mi.ao = mapRMA[MAT_AO];
+					mi.ao = mapRMA[MAT_AMBIENT_OCCLUSION];
 				#else
 					mi.ao = 1.0;
 				#endif
