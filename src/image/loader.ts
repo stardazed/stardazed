@@ -5,10 +5,10 @@
 
 namespace sd.image {
 
-	export function loadImage(url: URL, extension?: string): Promise<PixelDataProvider>;
-	export function loadImage(buffer: ArrayBufferView, extension: string): Promise<PixelDataProvider>;
-	export function loadImage(source: URL | ArrayBufferView, extension?: string): Promise<PixelDataProvider> {
-		return (source instanceof URL) ? loadImageFromURL(source) : loadImageFromBufferView(source, extension!);
+	export function loadImage(url: URL, colourSpace: ColourSpace, extension?: string): Promise<PixelDataProvider>;
+	export function loadImage(buffer: ArrayBufferView, colourSpace: ColourSpace, extension: string): Promise<PixelDataProvider>;
+	export function loadImage(source: URL | ArrayBufferView, colourSpace: ColourSpace, extension?: string): Promise<PixelDataProvider> {
+		return (source instanceof URL) ? loadImageFromURL(source, colourSpace, extension) : loadImageFromBufferView(source, colourSpace, extension!);
 	}
 
 	// ----
@@ -28,7 +28,7 @@ namespace sd.image {
 		return Promise.resolve(nativeTGASupport);
 	}
 
-	function loadImageFromURL(url: URL, extension?: string): Promise<PixelDataProvider> {
+	function loadImageFromURL(url: URL, colourSpace: ColourSpace, extension?: string): Promise<PixelDataProvider> {
 		if (! extension) {
 			extension = io.fileExtensionOfURL(url);
 		}
@@ -46,7 +46,7 @@ namespace sd.image {
 		if (extension === "tga") {
 			return checkNativeTGASupport().then(supported => {
 				if (supported) {
-					return loadBuiltInImageFromURL(url);
+					return loadBuiltInImageFromURL(url, colourSpace);
 				}
 				return io.loadFile<ArrayBuffer>(url.href, { responseType: io.FileLoadType.ArrayBuffer })
 					.then<PixelDataProvider>(buf => {
@@ -55,15 +55,15 @@ namespace sd.image {
 			});
 		}
 
-		return loadBuiltInImageFromURL(url);
+		return loadBuiltInImageFromURL(url, colourSpace);
 	}
 
 
-	function loadImageFromBufferView(view: ArrayBufferView, extension: string): Promise<PixelDataProvider> {
+	function loadImageFromBufferView(view: ArrayBufferView, colourSpace: ColourSpace, extension: string): Promise<PixelDataProvider> {
 		if (extension === "tga") {
 			return checkNativeTGASupport().then(supported => {
 				if (supported) {
-					return loadBuiltInImageFromBufferView(view, extension);
+					return loadBuiltInImageFromBufferView(view, colourSpace, extension);
 				}
 				else {
 					return new TGADataProvider(view);
@@ -75,7 +75,7 @@ namespace sd.image {
 			return Promise.resolve(new DDSDataProvider(view));
 		}
 
-		return loadBuiltInImageFromBufferView(view, extension);
+		return loadBuiltInImageFromBufferView(view, colourSpace, extension);
 	}
 
 
@@ -91,13 +91,13 @@ namespace sd.image {
 		readonly dim: PixelDimensions;
 		readonly mipMapCount = 1;
 
-		constructor(private image_: HTMLImageElement, extension?: string) {
+		constructor(private image_: HTMLImageElement, colourSpace: ColourSpace, extension?: string) {
 			if (! extension) {
 				const realSrc = image_.currentSrc || image_.src;
 				extension = io.fileExtensionOfURL(realSrc);
 			}
 
-			this.colourSpace = (["jpg", "png"].indexOf(extension) > -1) ? ColourSpace.sRGB : ColourSpace.Linear;
+			this.colourSpace = colourSpace;
 			this.pixelFormat = (this.colourSpace === ColourSpace.sRGB) ? PixelFormat.SRGB8_Alpha8 : PixelFormat.RGBA8;
 			this.dim = makePixelDimensions(image_.width, image_.height);
 		}
@@ -116,11 +116,11 @@ namespace sd.image {
 		}
 	}
 
-	function loadBuiltInImageFromURL(url: URL) {
+	function loadBuiltInImageFromURL(url: URL, colourSpace: ColourSpace) {
 		return new Promise<PixelDataProvider>((resolve, reject) => {
 			const image = new Image();
 			image.onload = () => {
-				resolve(new HTMLImageDataProvider(image));
+				resolve(new HTMLImageDataProvider(image, colourSpace));
 			};
 			image.onerror = () => {
 				reject(`${url.href} doesn't exist or is not supported`);
@@ -136,7 +136,7 @@ namespace sd.image {
 	}
 
 
-	function loadBuiltInImageFromBufferView(view: ArrayBufferView, extension: string) {
+	function loadBuiltInImageFromBufferView(view: ArrayBufferView, colourSpace: ColourSpace, extension: string) {
 		return new Promise<PixelDataProvider>((resolve, reject) => {
 			const blob = new Blob([view], { type: extension });
 
@@ -144,7 +144,7 @@ namespace sd.image {
 				dataURL => {
 					const image = new Image();
 					image.onload = () => {
-						resolve(new HTMLImageDataProvider(image));
+						resolve(new HTMLImageDataProvider(image, colourSpace));
 					};
 					image.onerror = () => {
 						reject("Bad or unsupported image data.");
