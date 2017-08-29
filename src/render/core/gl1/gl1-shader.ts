@@ -203,7 +203,11 @@ namespace sd.render.gl1 {
 	 */
 	function compileFunction(rd: GL1RenderDevice, type: number, sourceText: string) {
 		const gl = rd.gl;
-		const shader = gl.createShader(type)!; // TODO: handle resource allocation failure
+		const shader = gl.createShader(type);
+		if (! shader) {
+			console.warn(`Failed to allocate a shader resource, Error: ${gl.getError()}`);
+			return undefined;
+		}
 		gl.shaderSource(shader, sourceText);
 		gl.compileShader(shader);
 
