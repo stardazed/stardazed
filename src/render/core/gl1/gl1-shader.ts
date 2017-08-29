@@ -98,8 +98,8 @@ namespace sd.render.gl1 {
 		return items.map(item => 
 			(item.ifExpr)
 				? ((item.ifExpr.indexOf("defined") > -1)
-					? `#if ${item.ifExpr}\n${item.code}#endif`
-					: `#ifdef ${item.ifExpr}\n${item.code}#endif`
+					? `#if ${item.ifExpr}\n${item.code}#endif\n`
+					: `#ifdef ${item.ifExpr}\n${item.code}#endif\n`
 				)
 				: item.code
 		);
@@ -270,6 +270,7 @@ namespace sd.render.gl1 {
 		// generate a hash of the attributes used for mesh VAO linkage (see render/gl1/gl1-render.ts#147)
 		(rawShader.vertexFunction as GL1VertexFunction).attrHash = calcVertexAttrHash(rawShader.vertexFunction.in);
 
+		// try and link the GL program
 		gl.attachShader(program, vertexShader);
 		gl.attachShader(program, fragmentShader);
 		gl.linkProgram(program);
@@ -300,7 +301,7 @@ namespace sd.render.gl1 {
 			}
 		}
 
-		// link samplers to desired bind points
+		// enumerate and find samplers
 		const combinedSamplers: { [name: string]: GL1SamplerSlot } = {};
 		const allSamplers = (vertexFn.samplers || []).concat(fragmentFn.samplers || []);
 		for (const sampler of allSamplers) {
@@ -318,6 +319,7 @@ namespace sd.render.gl1 {
 			}
 		}
 
+		// link samplers to desired bind points
 		for (const sampName in combinedSamplers) {
 			if (combinedSamplers.hasOwnProperty(sampName)) {
 				const samp = combinedSamplers[sampName];
