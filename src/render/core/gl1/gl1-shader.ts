@@ -80,10 +80,21 @@ namespace sd.render.gl1 {
 
 	// ----
 
+	/**
+	 * Wrap code blocks in preprocessor conditionals if specified.
+	 * It tries to be smart and uses either an #ifdef or an #if depending
+	 * on the contents of the if-expression.
+	 * @param items List of code blocks that are optionally conditional
+	 */
 	function wrapConditionals(items: { code: string; ifExpr: string | undefined; }[]) {
-		return items.map(item => (
-			(item.ifExpr) ? `#if ${item.ifExpr}\n${item.code}\n#endif` : item.code
-		));
+		return items.map(item => 
+			(item.ifExpr)
+				? ((item.ifExpr.indexOf("defined") > -1)
+					? `#if ${item.ifExpr}\n${item.code}\n#endif`
+					: `#ifdef ${item.ifExpr}\n${item.code}\n#endif`
+				)
+				: item.code
+		);
 	}
 
 	function generateDefinesBlock(defines: Conditional<ShaderDefine>[] | undefined) {
@@ -228,7 +239,7 @@ namespace sd.render.gl1 {
 		const vertexFn = shader.normalizeFunction(shader.flattenFunction(rawShader.vertexFunction, resolver));
 		const fragmentFn = shader.normalizeFunction(shader.flattenFunction(rawShader.fragmentFunction, resolver));
 		
-		// create GL shaders based on function and defines 
+		// create GL shaders based on normalized functions and defines 
 		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(vertexFn, defines));
 		const fragmentShader = compileFunction(rd, GLConst.FRAGMENT_SHADER, generateFragmentSource(fragmentFn, defines));
 
