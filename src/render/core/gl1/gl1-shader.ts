@@ -24,6 +24,13 @@ namespace sd.render.gl1 {
 		uniform: WebGLUniformLocation;
 	}
 
+	/**
+	 * @internal
+	 * Provide a mapping of standard shader value types to typenames
+	 * used in different contexts in the shader. GL1 for example allows
+	 * for ints only as uniforms, not attributes or varyings, additionally
+	 * half floats are not present and mapped to normal floats.
+	 */
 	const valueTypeMap = {
 		attribute: makeLUT<ShaderValueType, string>(
 			ShaderValueType.Int, "float",
@@ -84,6 +91,7 @@ namespace sd.render.gl1 {
 	 * Wrap code blocks in preprocessor conditionals if specified.
 	 * It tries to be smart and uses either an #ifdef or an #if depending
 	 * on the contents of the if-expression.
+	 * @internal
 	 * @param items List of code blocks that are optionally conditional
 	 */
 	function wrapConditionals(items: { code: string; ifExpr: string | undefined; }[]) {
@@ -112,7 +120,9 @@ namespace sd.render.gl1 {
 	}
 
 	function generateStructsBlock(structs: Conditional<ShaderStruct>[] | undefined) {
-		return wrapConditionals((structs || []).map(s => ({ code: s.code, ifExpr: s.ifExpr }))).join("\n");
+		return wrapConditionals((structs || []).map(s =>
+			({ code: s.code, ifExpr: s.ifExpr })
+		)).join("\n");
 	}
 
 	function generateValueBlock(keyword: "attribute" | "varying" | "uniform", vals: Conditional<ShaderConstant>[] | undefined) {
@@ -183,6 +193,14 @@ namespace sd.render.gl1 {
 		}`;
 	}
 
+	/**
+	 * Try and create a GL1 shader resource on the RenderDevice. Will output
+	 * error information and source with line numbers on failure.
+	 * @internal
+	 * @param rd The RenderDevice to create the shader in
+	 * @param type Either GLConst.VERTEX_SHADER or GLConst.FRAGMENT_SHADER
+	 * @param sourceText The full GLSL 1.0 source for this shader
+	 */
 	function compileFunction(rd: GL1RenderDevice, type: number, sourceText: string) {
 		const gl = rd.gl;
 		const shader = gl.createShader(type)!; // TODO: handle resource allocation failure
@@ -211,8 +229,12 @@ namespace sd.render.gl1 {
 		return container.hashString(slots.map(s => `${s.i}:${s.t}`).join("|"));
 	}
 
-	// ----
-
+	/**
+	 * Resolve and allocate a full GPU representation of a Shader. Returns mappings of relevant
+	 * shader resources for the render runtime.
+	 * @param rd The RenderDevice to create the shader in
+	 * @param rawShader A Shader definition containing (unnormalized) functions and a set of defines governing behaviour
+	 */
 	export function createShader(rd: GL1RenderDevice, rawShader: Shader): GL1ShaderData | undefined {
 		const gl = rd.gl;
 
