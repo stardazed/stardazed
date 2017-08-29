@@ -199,22 +199,6 @@ namespace sd.render.gl1 {
 		return shader;
 	}
 
-	// ----
-
-	function hashString(s: string) {
-		if (s.length === 0) {
-			return 0;
-		}
-
-		let hash = 0, chr: number;
-		for (let i = 0; i < s.length; ++i) {
-			chr = s.charCodeAt(i);
-			hash = ((hash << 5) - hash) + chr;
-			hash |= 0;
-		}
-		return hash;
-	}
-
 	/**
 	 * Calculate a numerical hash of a shader's input signature.
 	 * This is used inside the render loop to quickly associate a shader
@@ -224,7 +208,7 @@ namespace sd.render.gl1 {
 	function calcVertexAttrHash(attrs: ShaderVertexAttribute[]) {
 		const slots = attrs.map(a => ({ i: a.index, t: a.type }));
 		slots.sort((a, b) => a.i - b.i); // sort indexes numerically ascending
-		return hashString(slots.map(s => `${s.i}:${s.t}`).join("|"));
+		return container.hashString(slots.map(s => `${s.i}:${s.t}`).join("|"));
 	}
 
 	// ----
