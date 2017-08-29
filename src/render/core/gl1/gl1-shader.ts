@@ -252,20 +252,22 @@ namespace sd.render.gl1 {
 		// create GL shaders based on normalized functions and defines 
 		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(vertexFn, defines));
 		const fragmentShader = compileFunction(rd, GLConst.FRAGMENT_SHADER, generateFragmentSource(fragmentFn, defines));
-
-		// create and link GL program
 		if (! (vertexShader && fragmentShader)) {
 			return undefined;
 		}
+
+		// create GL program
 		const program = gl.createProgram();
 		if (! program) {
 			console.warn(`Failed to allocate a program resource, Error: ${gl.getError()}`);			
 			return undefined;
 		}
 
+		// explicitly bind specified attributes to indexes
 		for (const pa of rawShader.vertexFunction.in) {
 			gl.bindAttribLocation(program, pa.index, pa.name);
 		}
+		// generate a hash of the attributes used for mesh VAO linkage (see render/gl1/gl1-render.ts#147)
 		(rawShader.vertexFunction as GL1VertexFunction).attrHash = calcVertexAttrHash(rawShader.vertexFunction.in);
 
 		gl.attachShader(program, vertexShader);
