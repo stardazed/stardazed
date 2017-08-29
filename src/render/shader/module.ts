@@ -147,7 +147,7 @@ namespace sd.render.shader {
 				if (cur === undefined || next === undefined || next === "") {
 					return undefined;
 				}
-				return cur.length ? (`${cur} || (${next})`) : `(${next})`;
+				return cur.length ? (`${cur} || ${next}`) : `${next}`;
 			}
 			, "");
 	}
