@@ -98,8 +98,8 @@ namespace sd.render.gl1 {
 		return items.map(item => 
 			(item.ifExpr)
 				? ((item.ifExpr.indexOf("defined") > -1)
-					? `#if ${item.ifExpr}\n${item.code}\n#endif`
-					: `#ifdef ${item.ifExpr}\n${item.code}\n#endif`
+					? `#if ${item.ifExpr}\n${item.code}#endif`
+					: `#ifdef ${item.ifExpr}\n${item.code}#endif`
 				)
 				: item.code
 		);
@@ -298,16 +298,13 @@ namespace sd.render.gl1 {
 		const combinedSamplers: { [name: string]: GL1SamplerSlot } = {};
 		const allSamplers = (vertexFn.samplers || []).concat(fragmentFn.samplers || []);
 		for (const sampler of allSamplers) {
-			if (sampler.name in combinedSamplers) {
-				const existing = combinedSamplers[sampler.name];
-				if (sampler.index !== existing.sampler.index || sampler.type !== existing.sampler.type) {
-					console.error(`Shader has ambigious binding for sampler ${sampler.name}`, rawShader);
-				}
-			}
-			else {
+			if (! (sampler.name in combinedSamplers)) {
 				const uniform = gl.getUniformLocation(program, sampler.name);
 				if (! uniform) {
-					console.warn(`Shader is missing constant for sampler "${sampler.name}", are you using it in code?`, rawShader);
+					if (sampler.ifExpr === undefined) {
+						console.warn(`Shader is missing constant for sampler "${sampler.name}", are you using it in code?`, rawShader);
+					}
+					// else assume it was removed by the preprocessor
 				}
 				else {
 					combinedSamplers[sampler.name] = { sampler, uniform };
