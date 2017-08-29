@@ -10,6 +10,19 @@ namespace sd.render.shader {
 	export type GL1Module = ModuleBase & ShaderModule;
 	export const gl1Modules: { [name: string]: GL1Module; } = {};
 
+	gl1Modules.lofiSRGB = {
+		name: "lofiSRGB",
+		provides: ["ConvertSRGB"],
+		code: `
+		vec3 srgbToLinear(vec3 colour) {
+			return colour * colour;
+		}
+		vec3 linearToSRGB(vec3 colour) {
+			return sqrt(colour);
+		}
+		`
+	};
+
 	gl1Modules.basicSRGB = {
 		name: "basicSRGB",
 		provides: ["ConvertSRGB"],
@@ -641,7 +654,7 @@ namespace sd.render.shader {
 		code: `
 		MaterialInfo getMaterialInfo(vec2 materialUV) {
 			MaterialInfo mi;
-			vec3 colour = pow(baseColour.rgb, SRGB_TO_LINEAR);
+			vec3 colour = srgbToLinear(baseColour.rgb);
 			#ifdef ALBEDO_MAP
 				vec3 mapColour = texture2D(albedoMap, materialUV).rgb;
 				#ifdef NO_SRGB_TEXTURES
