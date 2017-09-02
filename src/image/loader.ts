@@ -95,12 +95,17 @@ namespace sd.image {
 				resolve(new HTMLImageDataProvider(image, colourSpace));
 			};
 			image.onerror = () => {
-				reject(`${url.href} doesn't exist or is not supported`);
+				if (url.protocol === "data:") {
+					reject(`Data URL '${url.href.substr(0, 72)}...' is not supported or malformed`);
+				}
+				else {
+					reject(`The file at '${url.href}' doesn't exist or is not supported`);
+				}
 			};
 
 			// When requesting cross-domain media, always try the CORS route
 			// GL will not allow tainted data to be loaded so if it fails, we can't use the image anyway
-			if (url.origin !== location.origin) {
+			if (url.protocol !== "data:" && url.origin !== location.origin) {
 				image.crossOrigin = "anonymous";
 			}
 			image.src = url.href;
@@ -109,25 +114,11 @@ namespace sd.image {
 
 
 	function loadBuiltInImageFromBufferView(view: ArrayBufferView, colourSpace: ColourSpace, extension: string) {
-		return new Promise<PixelDataProvider>((resolve, reject) => {
-			const blob = new Blob([view], { type: extension });
+		const blob = new Blob([view], { type: extension });
 
-			io.BlobReader.readAsDataURL(blob).then(
-				dataURL => {
-					const image = new Image();
-					image.onload = () => {
-						resolve(new HTMLImageDataProvider(image, colourSpace));
-					};
-					image.onerror = () => {
-						reject("Bad or unsupported image data.");
-					};
-					image.src = dataURL;
-				},
-				error => {
-					reject(error);
-				}
-			);
-		});
+		return io.BlobReader.readAsDataURL(blob).then(
+			dataURL => loadBuiltInImageFromURL(new URL(dataURL), colourSpace)
+		);
 	}
 
 } // ns sd.image
