@@ -53,6 +53,9 @@ namespace sd.asset {
 	namedLoaderClasses.set("RelativeURLLoader", RelativeURLLoader);
 
 
+	// --------------------------------------------------------------------
+
+
 	export interface FallbackLoaderConfig {
 		loader: Loader;
 		fallback?: Loader;
@@ -90,12 +93,13 @@ namespace sd.asset {
 	};
 
 	/*
+	Example JSON config
 	roots: [
 		{
 			name: "data",
 			loaders: [
-				{ type: "localURLLoader", path: "data/", caching: "normal" | "reload" },
-				{ type: "indexedDBLoader", db: "cached_data", maxSize: 500 * 1024 * 1024 }
+				{ type: "RelativeURLLoader", path: "data/", caching: "normal" | "reload" },
+				{ type: "IndexedDBLoader", db: "cached_data", maxSize: 500 * 1024 * 1024 }
 			]
 		}
 	]
