@@ -51,7 +51,7 @@ namespace sd.io {
 
 			const xhr = new XMLHttpRequest();
 			if (opts.tryBreakCache) {
-				// FIXME: check for URL type
+				// URLs will degrade to their href when cast to a string
 				url += `?__sd=${Date.now()}`;
 			}
 			xhr.open("GET", (url instanceof URL) ? url.href : url);
