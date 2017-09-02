@@ -57,37 +57,6 @@ namespace sd.image {
 	// |___/\_,_|_|_|\__|   |_|_||_|
 	//
 
-	class HTMLImageDataProvider implements PixelDataProvider {
-		readonly colourSpace: ColourSpace;
-		readonly pixelFormat: PixelFormat;
-		readonly dim: PixelDimensions;
-		readonly mipMapCount = 1;
-
-		constructor(private image_: HTMLImageElement, colourSpace: ColourSpace, extension?: string) {
-			if (! extension) {
-				const realSrc = image_.currentSrc || image_.src;
-				extension = io.fileExtensionOfURL(realSrc);
-			}
-
-			this.colourSpace = colourSpace;
-			this.pixelFormat = (this.colourSpace === ColourSpace.sRGB) ? PixelFormat.SRGB8_Alpha8 : PixelFormat.RGBA8;
-			this.dim = makePixelDimensions(image_.width, image_.height);
-		}
-
-		pixelBufferForLevel(level: number): PixelBuffer | undefined {
-			if (level !== 0) {
-				return undefined;
-			}
-
-			return {
-				colourSpace: this.colourSpace,
-				pixelFormat: this.pixelFormat,
-				dim: { ...this.dim },
-				data: this.image_
-			};
-		}
-	}
-
 	function loadBuiltInImageFromURL(url: URL, colourSpace: ColourSpace) {
 		return new Promise<PixelDataProvider>((resolve, reject) => {
 			const image = new Image();
