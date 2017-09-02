@@ -139,7 +139,7 @@ namespace sd.render {
 		layers?: number;
 
 		// If omitted, new textures will be created with zeroed data.
-		// If included, the number of entries MUST equal `layers` * `dim.depth` for normal and 6 * `layers` for cubemap textures.
+		// If included, the number of entries MUST equal `layers` * `dim.depth` for plain and 6 * `layers` for cubemap textures.
 		pixelData?: image.PixelDataProvider[];
 	}
 
