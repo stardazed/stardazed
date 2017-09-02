@@ -52,7 +52,7 @@ namespace sd.container {
 	 * @param mapper A conversion function that takes each keyed prop of obj and returns a converted value
 	 */
 	export function mapObject<T, K extends keyof T, U>(obj: T, mapper: MappingFunc<T[K], U>) {
-		const result = {} as Record<K, U>;
+		const result = {} as Record<keyof T, U>;
 		for (const key in obj) {
 			if (obj.hasOwnProperty(key)) {
 				result[key] = mapper(obj[key], key);
