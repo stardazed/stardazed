@@ -13,21 +13,6 @@ namespace sd.image {
 
 	// ----
 
-	let nativeTGASupport: boolean | null = null;
-
-	function checkNativeTGASupport(): Promise<boolean> {
-		if (nativeTGASupport === null) {
-			return new Promise((resolve, _) => {
-				const img = new Image();
-				img.onload = () => { nativeTGASupport = true; resolve(true); };
-				img.onerror = () => { nativeTGASupport = false; resolve(false); };
-				img.src = "data:image/tga;base64,AAACAAAAAAAAAAAAAQABABgA////";
-			});
-		}
-
-		return Promise.resolve(nativeTGASupport);
-	}
-
 	function loadImageFromURL(url: URL, colourSpace: ColourSpace, extension?: string): Promise<PixelDataProvider> {
 		if (! extension) {
 			extension = io.fileExtensionOfURL(url);
@@ -44,15 +29,10 @@ namespace sd.image {
 		}
 
 		if (extension === "tga") {
-			return checkNativeTGASupport().then(supported => {
-				if (supported) {
-					return loadBuiltInImageFromURL(url, colourSpace);
-				}
-				return io.loadFile<ArrayBuffer>(url.href, { responseType: io.FileLoadType.ArrayBuffer })
-					.then<PixelDataProvider>(buf => {
-						return new TGADataProvider(new Uint8ClampedArray(buf));
-					});
-			});
+			return io.loadFile<ArrayBuffer>(url.href, { responseType: io.FileLoadType.ArrayBuffer })
+				.then<PixelDataProvider>(buf => {
+					return new TGADataProvider(new Uint8ClampedArray(buf));
+				});
 		}
 
 		return loadBuiltInImageFromURL(url, colourSpace);
@@ -61,16 +41,8 @@ namespace sd.image {
 
 	function loadImageFromBufferView(view: ArrayBufferView, colourSpace: ColourSpace, extension: string): Promise<PixelDataProvider> {
 		if (extension === "tga") {
-			return checkNativeTGASupport().then(supported => {
-				if (supported) {
-					return loadBuiltInImageFromBufferView(view, colourSpace, extension);
-				}
-				else {
-					return new TGADataProvider(view);
-				}
-			});
+			return Promise.resolve(new TGADataProvider(view));
 		}
-
 		if (extension === "dds") {
 			return Promise.resolve(new DDSDataProvider(view));
 		}
