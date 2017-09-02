@@ -32,10 +32,10 @@ namespace sd.asset {
 
 	function loadImageFromBufferView(view: ArrayBufferView, colourSpace: image.ColourSpace, mimeType: string): Promise<image.PixelDataProvider> {
 		if (mimeType === "image/tga") {
-			return Promise.resolve(new image.TGADataProvider(view));
+			return new Promise(resolve => resolve(new image.TGADataProvider(view)));
 		}
 		if (mimeType === "image/dds") {
-			return Promise.resolve(new image.DDSDataProvider(view));
+			return new Promise(resolve => resolve(new image.DDSDataProvider(view)));
 		}
 
 		return loadBuiltInImageFromBufferView(view, colourSpace, mimeType);
@@ -83,6 +83,7 @@ namespace sd.asset {
 				throw err;
 			}
 		);
+
 		// return io.BlobReader.readAsDataURL(blob).then(
 		// 	dataURL => loadBuiltInImageFromURL(new URL(dataURL), colourSpace)
 		// );
