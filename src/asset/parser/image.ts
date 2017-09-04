@@ -1,7 +1,9 @@
-// asset/parser/image - image asset parser
+// asset/parser/image - image asset parser front-end
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
+
+/// <reference path="../registry.ts" />
 
 namespace sd.asset.parser {
 
@@ -9,50 +11,28 @@ namespace sd.asset.parser {
 		colourSpace: image.ColourSpace;
 	}
 
+	export type ImageAssetParser = AssetParser<image.PixelDataProvider, ImageAssetOptions>;
+	const imageParsers = new Map<string, ImageAssetParser>();
+
+	export function registerImageParser(parser: ImageAssetParser, mimeType: string) {
+		assert(! imageParsers.has(mimeType), `Trying to register more than 1 image parser for mime-type: ${mimeType}`);
+		imageParsers.set(mimeType, parser);
+	}
+
 	/**
 	 * Create a PixelDataProvider for an asset blob
-	 * @implements AssetParser
 	 * @param blob Image data to parse
 	 * @param path The asset path
 	 * @param options Image-specific options
 	 */
 	export function parseImage(blob: Blob, path: string, options: ImageAssetOptions) {
-		const mimeType = blob.type;
-		if (mimeType === "image/dds") {
-			return io.BlobReader.readAsArrayBuffer(blob)
-				.then(buf => {
-					return new parser.DDSDataProvider(new Uint8ClampedArray(buf));
-				});
-		}
-		if (mimeType === "image/tga") {
-			return io.BlobReader.readAsArrayBuffer(blob)
-				.then(buf => {
-					return new parser.TGADataProvider(new Uint8ClampedArray(buf));
-				});
-		}
-
-		return parseBuiltInImage(blob, path, options);
-	}
-
-	function parseBuiltInImage(blob: Blob, path: string, options: ImageAssetOptions) {
-		const blobURL = URL.createObjectURL(blob);
-
 		return new Promise<image.PixelDataProvider>((resolve, reject) => {
-			const builtin = new Image();
-			builtin.onload = () => {
-				resolve(new parser.HTMLImageDataProvider(builtin, options.colourSpace));
-			};
-			builtin.onerror = () => {
-				reject(`The image at '${path}' is not supported`);
-			};
-
-			// Always enable CORS as GL will not allow tainted data to be loaded so if it fails, we can't use the image
-			// and enabling it for local resources does no harm.
-			builtin.crossOrigin = "anonymous";
-			builtin.src = blobURL;
-		}).then(provider => {
-			URL.revokeObjectURL(blobURL);				
-			return provider;
+			const mimeType = blob.type;
+			const parser = imageParsers.get(mimeType);
+			if (! parser) {
+				return reject(`Cannot load images of type: ${mimeType}`);
+			}
+			resolve(parser(blob, path, options));
 		});
 	}
 
