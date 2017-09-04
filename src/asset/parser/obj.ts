@@ -1,4 +1,4 @@
-// asset/loader/obj - Wavefront OBJ mesh file + MTL material file parser
+// asset/parser/obj - Wavefront OBJ mesh file + MTL material file parser
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

@@ -1,4 +1,4 @@
-// asset/image - image asset parser
+// asset/parser/image - image asset parser
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -15,7 +15,7 @@ namespace sd.asset {
 		if (mimeType === "image/dds") {
 			return io.loadFile<ArrayBuffer>(url.href, { responseType: io.FileLoadType.ArrayBuffer })
 				.then(buf => {
-					return new image.DDSDataProvider(new Uint8ClampedArray(buf));
+					return new parser.DDSDataProvider(new Uint8ClampedArray(buf));
 				});
 		}
 
@@ -35,7 +35,7 @@ namespace sd.asset {
 			return new Promise(resolve => resolve(new image.TGADataProvider(view)));
 		}
 		if (mimeType === "image/dds") {
-			return new Promise(resolve => resolve(new image.DDSDataProvider(view)));
+			return new Promise(resolve => resolve(new parser.DDSDataProvider(view)));
 		}
 
 		return loadBuiltInImageFromBufferView(view, colourSpace, mimeType);
