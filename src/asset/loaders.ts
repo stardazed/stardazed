@@ -53,6 +53,34 @@ namespace sd.asset.loader {
 	namedLoaderClasses.set("RelativeURLLoader", RelativeURLLoader);
 
 
+	/**
+	 * Loads any base64-encoded data URL, always uses mime-type given in the URL
+	 * @param _config ignored, this loader has no configuration options
+	 */
+	export const DataURLLoader = (_config: {}) =>
+		(path: string, mimeType?: string) => new Promise<Blob>((resolve, reject) => {
+			if (path.substr(0, 5) !== "data:") {
+				reject("Not a data url");
+			}
+			const marker = ";base64,";
+			const markerIndex = path.indexOf(marker);
+			if (markerIndex <= 5) {
+				reject("Not a base64 data url");
+			}
+
+			// simply override any given mime-type with the one provided inside the url
+			mimeType = path.substring(5, markerIndex);
+
+			// convert the data through the various stages of grief
+			const data64 = path.substr(markerIndex + marker.length);
+			const dataStr = atob(data64);
+			const dataArray = Array.prototype.map.call(dataStr, (_: string, i: number, s: string) => s.charCodeAt(i)) as number[];
+			const data = new Uint8Array(dataArray);
+			resolve(new Blob([data], { type: mimeType }));
+		});
+	namedLoaderClasses.set("DataURLLoader", DataURLLoader);
+		
+
 	// --------------------------------------------------------------------
 
 
@@ -80,7 +108,7 @@ namespace sd.asset.loader {
 
 	/**
 	 * Creates a chain of {{FallbackLoader}}s, with the first loader being the innermost and
-	 * the last being the outermost. Loads start at the outer loader going down sequentially.
+	 * the last being the outermost. Loads start at the outer loader and go down sequentially.
 	 * @param config An array of loaders that will be called last to first until one succeeds
 	 */
 	export const ChainedLoader = (config: Loader[]) => {
