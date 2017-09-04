@@ -7,11 +7,30 @@
 
 namespace sd.asset.parser {
 
+	export function parseOBJGroup(blob: Blob, path: string, _options: GroupAssetOptions): Promise<AssetGroup> {
+		return io.BlobReader.readAsText(blob)
+			.then(text =>
+				preflightOBJSource(path, text)
+			)
+			.then(preproc => {
+				const group = parseOBJSource(preproc, false);
 
+				// add the linked object as a Model to the group
+				const model = asset.makeModel(`obj_${objSequenceNumber}_model`);
+				model.mesh = group.meshes[0];
+				model.materials = group.materials;
+				model.transform = asset.makeTransform();
+				group.addModel(model);
 
+				objSequenceNumber += 1;
+				return group;
+			});
 	}
 
+	registerFileExtension("obj", "application/wavefront-obj");
+	registerGroupParser(parseOBJGroup, "application/wavefront-obj");
 
+	
 	interface OBJPreProcSource {
 		lines: string[];
 
@@ -24,7 +43,7 @@ namespace sd.asset.parser {
 	}
 
 
-	function preflightOBJSource(group: AssetGroup, filePath: string, text: string) {
+	function preflightOBJSource(_path: string, text: string) {
 		let mtlFileRelPath = "";
 		const preproc: OBJPreProcSource = {
 			lines: [],
@@ -55,9 +74,10 @@ namespace sd.asset.parser {
 		}
 
 		if (mtlFileRelPath.length) {
-			return loadMTLFile(new URL(mtlFileRelPath, filePath), group).then(_ => {
-				return preproc;
-			});
+			// return parseMTLGroup(new URL(mtlFileRelPath, filePath), group).then(_ => {
+				// return preproc;
+			// });
+			return Promise.resolve(preproc);
 		}
 		else {
 			return Promise.resolve(preproc);
@@ -67,7 +87,9 @@ namespace sd.asset.parser {
 
 	let objSequenceNumber = 0;
 
-	function parseOBJSource(group: AssetGroup, preproc: OBJPreProcSource, hasColourAttr: boolean) {
+	function parseOBJSource(preproc: OBJPreProcSource, hasColourAttr: boolean) {
+		const group = new AssetGroup();
+
 		const positions: Float32Array = new Float32Array(preproc.positionCount * 3);
 		const positionIndexes = new Uint32Array(preproc.vertexCount);
 		const streams: meshdata.VertexAttributeStream[] = [];
@@ -195,29 +217,7 @@ namespace sd.asset.parser {
 		}
 
 		group.addMesh(builder.complete());
-	}
-
-
-	export function parseOBJGroup(blob: Blob, path: string, materialsAsColours = false): Promise<AssetGroup> {
-		const group = new AssetGroup();
-
-		return io.BlobReader.readAsText(blob)
-			.then(text =>
-				preflightOBJSource(group, path, text)
-			)
-			.then(preproc => {
-				parseOBJSource(group, preproc, materialsAsColours);
-
-				// add the linked object as a Model to the group
-				const model = asset.makeModel(`obj_${objSequenceNumber}_model`);
-				model.mesh = group.meshes[0];
-				model.materials = group.materials;
-				model.transform = asset.makeTransform();
-				group.addModel(model);
-
-				objSequenceNumber += 1;
-				return group;
-			});
+		return group;
 	}
 
 } // ns sd.asset.parser
