@@ -1,9 +1,9 @@
-// image/dds - DDS (DXT 1, 3, 5) image provider
+// asset/parser/image-dds - DDS (DXT 1, 3, 5) image provider
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.image {
+namespace sd.asset.parser {
 
 	const enum DDSPixelFormatOffsets {
 		dwSize = 0, // uint32
@@ -39,11 +39,11 @@ namespace sd.image {
 		return (fcc.charCodeAt(3) << 24) | (fcc.charCodeAt(2) << 16) | (fcc.charCodeAt(1) << 8) | fcc.charCodeAt(0);
 	}
 
-	export class DDSDataProvider implements PixelDataProvider {
+	export class DDSDataProvider implements image.PixelDataProvider {
 		private width_: number;
 		private height_: number;
 		private mipMaps_: number;
-		private format_: PixelFormat;
+		private format_: image.PixelFormat;
 		private data_: ArrayBufferView;
 
 		constructor(view: ArrayBufferView) {
@@ -56,12 +56,12 @@ namespace sd.image {
 			this.height_ = headerView.getUint32(DDSOffsets.dwHeight, true);
 
 			switch (headerView.getUint32(DDSOffsets.ddspf + DDSPixelFormatOffsets.dwFourCC, true)) {
-				case fourCharCode("DXT1"): this.format_ = PixelFormat.RGBA_DXT1; break;
-				case fourCharCode("DXT3"): this.format_ = PixelFormat.RGBA_DXT3; break;
-				case fourCharCode("DXT5"): this.format_ = PixelFormat.RGBA_DXT5; break;
+				case fourCharCode("DXT1"): this.format_ = image.PixelFormat.RGBA_DXT1; break;
+				case fourCharCode("DXT3"): this.format_ = image.PixelFormat.RGBA_DXT3; break;
+				case fourCharCode("DXT5"): this.format_ = image.PixelFormat.RGBA_DXT5; break;
 				default:
 					assert(false, "Unsupported pixel format of DDS file");
-					this.format_ = PixelFormat.None;
+					this.format_ = image.PixelFormat.None;
 					break;
 			}
 
@@ -74,13 +74,13 @@ namespace sd.image {
 		get pixelFormat() { return this.format_; }
 		get colourSpace() { return ColourSpace.Linear; }
 		get mipMapCount() { return this.mipMaps_; }
-		get dim() { return makePixelDimensions(this.width_, this.height_); }
+		get dim() { return image.makePixelDimensions(this.width_, this.height_); }
 
 		private dataSizeForLevel(level: number) {
-			const mipWidth = dimensionAtMipLevel(this.width_, level);
-			const mipHeight = dimensionAtMipLevel(this.height_, level);
+			const mipWidth = image.dimensionAtMipLevel(this.width_, level);
+			const mipHeight = image.dimensionAtMipLevel(this.height_, level);
 
-			return dataSizeBytesForPixelFormatAndDimensions(this.format_, makePixelDimensions(mipWidth, mipHeight));
+			return image.dataSizeBytesForPixelFormatAndDimensions(this.format_, image.makePixelDimensions(mipWidth, mipHeight));
 		}
 
 		private dataOffsetForLevel(level: number) {
@@ -91,8 +91,8 @@ namespace sd.image {
 			return mipOffset;
 		}
 
-		pixelBufferForLevel(level: number): PixelBuffer | undefined {
-			if (level < 0 || level >= this.mipMaps_ || this.format_ === PixelFormat.None) {
+		pixelBufferForLevel(level: number): image.PixelBuffer | undefined {
+			if (level < 0 || level >= this.mipMaps_ || this.format_ === image.PixelFormat.None) {
 				return undefined;
 			}
 
@@ -101,16 +101,16 @@ namespace sd.image {
 				mipOffset += this.dataSizeForLevel(lv);
 			}
 
-			const mipWidth = dimensionAtMipLevel(this.width_, level);
-			const mipHeight = dimensionAtMipLevel(this.height_, level);
+			const mipWidth = image.dimensionAtMipLevel(this.width_, level);
+			const mipHeight = image.dimensionAtMipLevel(this.height_, level);
 
 			return {
 				pixelFormat: this.pixelFormat,
 				colourSpace: this.colourSpace,
-				dim: makePixelDimensions(mipWidth, mipHeight),
+				dim: image.makePixelDimensions(mipWidth, mipHeight),
 				data: new Uint8ClampedArray(this.data_.buffer, this.data_.byteOffset + mipOffset, this.dataSizeForLevel(level))
 			};
 		}
 	}
 
-} // ns sd.image
+} // ns sd.asset.parser

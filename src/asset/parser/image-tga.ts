@@ -1,9 +1,9 @@
-// image/tga - TGA image provider
+// asset/parser/image-tga - TGA image provider
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.image {
+namespace sd.asset.parser {
 
 	const enum TGAImageType /* uint8 */ {
 		None = 0,
@@ -165,19 +165,19 @@ namespace sd.image {
 	}
 
 
-	export class TGADataProvider implements PixelDataProvider {
+	export class TGADataProvider implements image.PixelDataProvider {
 		private data_: ImageData;
 
 		constructor(source: ArrayBufferView) {
 			this.data_ = loadTGAImageFromBufferView(source);
 		}
 
-		get pixelFormat() { return PixelFormat.RGBA8; }
-		get colourSpace() { return ColourSpace.Linear; }
+		get pixelFormat() { return image.PixelFormat.RGBA8; }
+		get colourSpace() { return image.ColourSpace.Linear; }
 		get mipMapCount() { return 1; }
-		get dim() { return makePixelDimensions(this.data_.width, this.data_.height); }
+		get dim() { return image.makePixelDimensions(this.data_.width, this.data_.height); }
 
-		pixelBufferForLevel(level: number): PixelBuffer | undefined {
+		pixelBufferForLevel(level: number): image.PixelBuffer | undefined {
 			if (level !== 0) {
 				return undefined;
 			}
@@ -190,4 +190,4 @@ namespace sd.image {
 		}
 	}
 
-} // ns sd.image
+} // ns sd.asset.parser
