@@ -1,13 +1,21 @@
-// asset/parser/image-dds - DDS (DXT 1, 3, 5) image provider
+// asset/parser/image-dds - DDS (DXT 1, 3, 5) image parser
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../registry.ts" />
+/// <reference path="./image.ts" />
 
 namespace sd.asset.parser {
 
+	export function parseDDSImage(blob: Blob, _path: string, _options: ImageAssetOptions) {
+		return io.BlobReader.readAsArrayBuffer(blob)
+			.then(buf => {
+				return new DDSDataProvider(new Uint8ClampedArray(buf));
+			});
+	}
+
 	registerFileExtension("dds", "image/dds");
+	registerImageParser(parseDDSImage, "image/dds");
 
 	const enum DDSPixelFormatOffsets {
 		dwSize = 0, // uint32

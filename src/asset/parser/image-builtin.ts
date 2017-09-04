@@ -3,9 +3,31 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../registry.ts" />
+/// <reference path="./image.ts" />
 
 namespace sd.asset.parser {
+
+	function parseBuiltInImage(blob: Blob, path: string, options: ImageAssetOptions) {
+		const blobURL = URL.createObjectURL(blob);
+
+		return new Promise<image.PixelDataProvider>((resolve, reject) => {
+			const builtin = new Image();
+			builtin.onload = () => {
+				resolve(new parser.HTMLImageDataProvider(builtin, options.colourSpace));
+			};
+			builtin.onerror = () => {
+				reject(`The image at '${path}' is not supported`);
+			};
+
+			// Always enable CORS as GL will not allow tainted data to be loaded so if it fails, we can't use the image
+			// and enabling it for local resources does no harm.
+			builtin.crossOrigin = "anonymous";
+			builtin.src = blobURL;
+		}).then(provider => {
+			URL.revokeObjectURL(blobURL);				
+			return provider;
+		});
+	}
 
 	registerFileExtension("bm", "image/bmp");
 	registerFileExtension("bmp", "image/bmp");
@@ -13,6 +35,11 @@ namespace sd.asset.parser {
 	registerFileExtension("jpeg", "image/jpeg");
 	registerFileExtension("png", "image/png");
 
+	registerImageParser(parseBuiltInImage, "image/bmp");
+	registerImageParser(parseBuiltInImage, "image/jpeg");
+	registerImageParser(parseBuiltInImage, "image/png");
+	
+	
 	export class HTMLImageDataProvider implements image.PixelDataProvider {
 		readonly colourSpace: image.ColourSpace;
 		readonly pixelFormat: image.PixelFormat;
