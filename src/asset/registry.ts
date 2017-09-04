@@ -1,4 +1,4 @@
-// asset/registry - library-wide registry of asset loaders
+// asset/registry - library-wide registry of asset parsers
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -30,41 +30,61 @@ namespace sd.asset {
 		return mimeTypeForFileExtension(extension);
 	}
 
-/*
+
 	// --------------------------------------------------------------------
-	// library-wide asset loader registry
+	// library-wide parser registry
 
-	export type URLAssetLoader = (url: URL, mimeType: string) => Promise<AssetGroup>;
-	export type BufferViewAssetLoader = (bufferView: ArrayBufferView, mimeType: string) => Promise<AssetGroup>;
+	export type AssetParser<Resource, Options extends object, ExtOptions extends Options = Options> = (blob: Blob, path: string, options: ExtOptions) => Promise<Resource>;
+	type AssetParserMap<P, O extends object> = Map<string, AssetParser<P, O>>;
 
-	const urlAssetLoaders = new Map<string, URLAssetLoader>();
-	const bufferAssetLoaders = new Map<string, BufferViewAssetLoader>();
+	const allMimeTypes = new Set<string>();
 
-	export function registerURLLoaderForMIMEType(mimeType: string, loader: URLAssetLoader) {
-		const mime = mimeType.toLowerCase().trim();
-		assert(! urlAssetLoaders.has(mime), `Tried to override file loader for MIME type '${mime}'`);
-		urlAssetLoaders.set(mime, loader);
+	/**
+	 * Associate an asset parser with one or more mime-types
+	 * @param parser Parser to use
+	 * @param mimeTypes List of mime-types
+	 */
+	function registerParserForMimeTypes<P, O extends object>(parser: AssetParser<P, O>, map: AssetParserMap<P, O>, mimeTypes: string[]) {
+		for (const mimeType of mimeTypes) {
+			const normalized = mimeType.toLowerCase();
+			assert(! allMimeTypes.has(normalized), `Trying to register more than 1 parser for mime-type: ${normalized}`);
+			allMimeTypes.add(normalized);
+			map.set(normalized, parser);
+		}
 	}
 
-	export function registerBufferViewLoaderForMIMEType(mimeType: string, loader: BufferViewAssetLoader) {
-		const mime = mimeType.toLowerCase().trim();
-		assert(! bufferAssetLoaders.has(mime), `Tried to override buffer loader for MIME type '${mime}'`);
-		bufferAssetLoaders.set(mime, loader);
+
+	// --------------------------------------------------------------------
+	// generic assets
+
+	/**
+	 * A parser that just returns the contents of an asset as an ArrayBuffer.
+	 * @internal
+	 */
+	const GenericBinaryAssetParser = (blob: Blob, _path: string, _options: {}) =>
+		io.BlobReader.readAsArrayBuffer(blob);
+
+	/**
+	 * Mark a list of mime-types as generic binary data.
+	 * @param mimeTypes List of mime-types to mark as generic binary
+	 */
+	export function useGenericBinaryAssetParserForMimeTypes(mimeTypes: string[]) {
+		registerParserForMimeTypes(GenericBinaryAssetParser, mimeTypes);
 	}
 
-	export function registerLoadersForMIMEType(mimeType: string, urlLoader: URLAssetLoader, bufferViewLoader: BufferViewAssetLoader) {
-		registerURLLoaderForMIMEType(mimeType, urlLoader);
-		registerBufferViewLoaderForMIMEType(mimeType, bufferViewLoader);
+	/**
+	 * A parser that just returns the contents of an asset as a a string.
+	 * @internal
+	 */
+	const GenericTextAssetParser = (blob: Blob, _path: string, _options: {}) =>
+		io.BlobReader.readAsText(blob);
+
+	/**
+	 * Mark a list of mime-types as generic text data.
+	 * @param mimeTypes List of mime-types to mark as generic text
+	 */
+	export function useGenericTextAssetParserForMimeTypes(mimeTypes: string[]) {
+		registerParserForMimeTypes(GenericTextAssetParser, mimeTypes);
 	}
 
-	export function urlLoaderForMIMEType(mimeType: string) {
-		const mime = mimeType.toLowerCase().trim();
-		return urlAssetLoaders.get(mime);
-	}
-
-	export function bufferLoaderForMIMEType(mimeType: string) {
-		const mime = mimeType.toLowerCase().trim();
-		return bufferAssetLoaders.get(mime);
-	}
-*/
 } // ns sd.asset
