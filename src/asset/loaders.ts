@@ -196,4 +196,4 @@ namespace sd.asset.loader {
 		};
 	};
 
-} // ns sd.asset
+} // ns sd.asset.loader

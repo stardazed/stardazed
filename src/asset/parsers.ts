@@ -84,4 +84,4 @@ namespace sd.asset.parser {
 		registerParser(GenericTextAssetParser, mimeType);
 	}
 
-} // ns sd.asset
+} // ns sd.asset.parser

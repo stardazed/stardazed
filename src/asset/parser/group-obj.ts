@@ -1,9 +1,9 @@
-// asset/parser/obj - Wavefront OBJ mesh file + MTL material file parser
+// asset/parser/group-obj - Wavefront OBJ mesh file + MTL material file parser
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.asset {
+namespace sd.asset.parser {
 
 	interface MTLTextureSpec {
 		relPath: string;
@@ -451,4 +451,4 @@ namespace sd.asset {
 			});
 	}
 
-} // ns sd.asset
+} // ns sd.asset.parser

@@ -37,4 +37,4 @@ namespace sd.asset.parser {
 		});
 	}
 
-} // ns sd.image
+} // ns sd.asset.parser
