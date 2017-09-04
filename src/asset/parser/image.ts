@@ -3,90 +3,57 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.asset {
+namespace sd.asset.parser {
 
-	export function loadImage(source: URL | ArrayBufferView, colourSpace: image.ColourSpace, mimeType: string): Promise<image.PixelDataProvider> {
-		return (source instanceof URL) ?
-			loadImageFromURL(source, colourSpace, mimeType) :
-			loadImageFromBufferView(source, colourSpace, mimeType);
+	export interface ImageAssetOptions {
+		colourSpace: image.ColourSpace;
 	}
 
-	function loadImageFromURL(url: URL, colourSpace: image.ColourSpace, mimeType: string): Promise<image.PixelDataProvider> {
+	/**
+	 * Create a PixelDataProvider for an asset blob
+	 * @implements AssetParser
+	 * @param blob Image data to parse
+	 * @param path The asset path
+	 * @param options Image-specific options
+	 */
+	export function parseImage(blob: Blob, path: string, options: ImageAssetOptions) {
+		const mimeType = blob.type;
 		if (mimeType === "image/dds") {
-			return io.loadFile<ArrayBuffer>(url.href, { responseType: io.FileLoadType.ArrayBuffer })
+			return io.BlobReader.readAsArrayBuffer(blob)
 				.then(buf => {
 					return new parser.DDSDataProvider(new Uint8ClampedArray(buf));
 				});
 		}
-
 		if (mimeType === "image/tga") {
-			return io.loadFile<ArrayBuffer>(url.href, { responseType: io.FileLoadType.ArrayBuffer })
-				.then<image.PixelDataProvider>(buf => {
-					return new image.TGADataProvider(new Uint8ClampedArray(buf));
+			return io.BlobReader.readAsArrayBuffer(blob)
+				.then(buf => {
+					return new parser.TGADataProvider(new Uint8ClampedArray(buf));
 				});
 		}
 
-		return loadBuiltInImageFromURL(url, colourSpace);
+		return parseBuiltInImage(blob, path, options.colourSpace);
 	}
 
+	function parseBuiltInImage(blob: Blob, path: string, colourSpace: image.ColourSpace) {
+		const blobURL = URL.createObjectURL(blob);
 
-	function loadImageFromBufferView(view: ArrayBufferView, colourSpace: image.ColourSpace, mimeType: string): Promise<image.PixelDataProvider> {
-		if (mimeType === "image/tga") {
-			return new Promise(resolve => resolve(new image.TGADataProvider(view)));
-		}
-		if (mimeType === "image/dds") {
-			return new Promise(resolve => resolve(new parser.DDSDataProvider(view)));
-		}
-
-		return loadBuiltInImageFromBufferView(view, colourSpace, mimeType);
-	}
-
-
-	function loadBuiltInImageFromURL(url: URL, colourSpace: image.ColourSpace) {
 		return new Promise<image.PixelDataProvider>((resolve, reject) => {
 			const builtin = new Image();
 			builtin.onload = () => {
-				resolve(new image.HTMLImageDataProvider(builtin, colourSpace));
+				resolve(new parser.HTMLImageDataProvider(builtin, colourSpace));
 			};
 			builtin.onerror = () => {
-				if (url.protocol === "data:") {
-					reject(`Data URL '${url.href.substr(0, 72)}...' is not supported or malformed`);
-				}
-				else if (url.protocol === "blob:") {
-					reject(`The object referenced by '${url.href}' is not supported, malformed or inaccessible`);
-				}
-				else {
-					reject(`The resource at '${url.href}' doesn't exist or is not supported`);
-				}
+				reject(`The image at '${path}' is not supported`);
 			};
 
-			// When requesting cross-domain media, always try the CORS route
-			// GL will not allow tainted data to be loaded so if it fails, we can't use the image anyway
-			if (url.protocol !== "data:" && url.protocol !== "blob:" && url.origin !== location.origin) {
-				builtin.crossOrigin = "anonymous";
-			}
-			builtin.src = url.href;
+			// Always enable CORS as GL will not allow tainted data to be loaded so if it fails, we can't use the image
+			// and enabling it for local resources does no harm.
+			builtin.crossOrigin = "anonymous";
+			builtin.src = blobURL;
+		}).then(provider => {
+			URL.revokeObjectURL(blobURL);				
+			return provider;
 		});
-	}
-
-	function loadBuiltInImageFromBufferView(view: ArrayBufferView, colourSpace: image.ColourSpace, mimeType: string) {
-		const blob = new Blob([view], { type: mimeType });
-		const blobURL = URL.createObjectURL(blob);
-
-		return loadBuiltInImageFromURL(new URL(blobURL), colourSpace).then(
-			provider => {
-				URL.revokeObjectURL(blobURL);
-				return provider;
-			},
-			err => {
-				URL.revokeObjectURL(blobURL);
-				throw err;
-			}
-		);
-
-		// return io.BlobReader.readAsDataURL(blob).then(
-		// 	dataURL => loadBuiltInImageFromURL(new URL(dataURL), colourSpace)
-		// );
 	}
 
 } // ns sd.image
