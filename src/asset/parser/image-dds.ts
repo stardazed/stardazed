@@ -72,7 +72,7 @@ namespace sd.asset.parser {
 		}
 
 		get pixelFormat() { return this.format_; }
-		get colourSpace() { return ColourSpace.Linear; }
+		get colourSpace() { return image.ColourSpace.Linear; }
 		get mipMapCount() { return this.mipMaps_; }
 		get dim() { return image.makePixelDimensions(this.width_, this.height_); }
 
