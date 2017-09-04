@@ -5,11 +5,6 @@
 
 namespace sd.image {
 
-	export const enum ColourSpace {
-		sRGB,
-		Linear
-	}
-
 	export const enum PixelFormat {
 		None,
 

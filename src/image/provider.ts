@@ -5,6 +5,11 @@
 
 namespace sd.image {
 
+	export const enum ColourSpace {
+		sRGB,
+		Linear
+	}
+
 	export interface PixelCoordinate {
 		x: number;
 		y: number;
