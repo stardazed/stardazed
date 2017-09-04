@@ -42,7 +42,7 @@ namespace sd.asset {
 
 	/**
 	 * Meta-loader that creates an {{URLLoader}} with the root URL being a path relative to the
-	 * current site's root URL.
+	 * current site's base URL.
 	 * @param config Configuration taking mainly the site-relative path that will be the root URL
 	 */
 	export const RelativeURLLoader = (config: RelativeURLLoaderConfig) =>
