@@ -31,16 +31,16 @@ namespace sd.asset.parser {
 				});
 		}
 
-		return parseBuiltInImage(blob, path, options.colourSpace);
+		return parseBuiltInImage(blob, path, options);
 	}
 
-	function parseBuiltInImage(blob: Blob, path: string, colourSpace: image.ColourSpace) {
+	function parseBuiltInImage(blob: Blob, path: string, options: ImageAssetOptions) {
 		const blobURL = URL.createObjectURL(blob);
 
 		return new Promise<image.PixelDataProvider>((resolve, reject) => {
 			const builtin = new Image();
 			builtin.onload = () => {
-				resolve(new parser.HTMLImageDataProvider(builtin, colourSpace));
+				resolve(new parser.HTMLImageDataProvider(builtin, options.colourSpace));
 			};
 			builtin.onerror = () => {
 				reject(`The image at '${path}' is not supported`);
