@@ -1,9 +1,9 @@
-// asset/loaders - composable loader functions
+// asset/loader - composable loader functions
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.asset {
+namespace sd.asset.loader {
 
 	export type Loader = (path: string, mimeType?: string) => Promise<Blob>;
 	export type LoaderClass = (config: any) => Loader;
