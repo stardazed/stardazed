@@ -1,11 +1,11 @@
-// asset/registry - library-wide registry of asset parsers
+// asset/parsers - library-wide registry of asset parsers
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 /// <reference path="../core/util.ts" />
 
-namespace sd.asset {
+namespace sd.asset.parser {
 
 	// --------------------------------------------------------------------
 	// library-wide file extension to mime-type registry
@@ -32,25 +32,22 @@ namespace sd.asset {
 
 
 	// --------------------------------------------------------------------
-	// library-wide parser registry
-
+	// library-wide generic parser registry
+	
 	export type AssetParser<Resource, Options extends object, ExtOptions extends Options = Options> = (blob: Blob, path: string, options: ExtOptions) => Promise<Resource>;
-	type AssetParserMap<P, O extends object> = Map<string, AssetParser<P, O>>;
 
-	const allMimeTypes = new Set<string>();
+	const allParsers = new Map<string, AssetParser<any, any>>();
 
 	/**
-	 * Associate an asset parser with one or more mime-types
+	 * Associates an asset parser with one or more mime-types.
+	 * This is the most generic registry and has no types for the parsers' outputs.
 	 * @param parser Parser to use
-	 * @param mimeTypes List of mime-types
+	 * @param mimeTypes Mime-type to associate
 	 */
-	function registerParserForMimeTypes<P, O extends object>(parser: AssetParser<P, O>, map: AssetParserMap<P, O>, mimeTypes: string[]) {
-		for (const mimeType of mimeTypes) {
-			const normalized = mimeType.toLowerCase();
-			assert(! allMimeTypes.has(normalized), `Trying to register more than 1 parser for mime-type: ${normalized}`);
-			allMimeTypes.add(normalized);
-			map.set(normalized, parser);
-		}
+	export function registerParser(parser: AssetParser<any, any>, mimeType: string) {
+		const mime = mimeType.toLowerCase();
+		assert(! allParsers.has(mime), `Trying to register more than 1 parser for mime-type: ${mime}`);
+		allParsers.set(mime, parser);
 	}
 
 
@@ -66,10 +63,10 @@ namespace sd.asset {
 
 	/**
 	 * Mark a list of mime-types as generic binary data.
-	 * @param mimeTypes List of mime-types to mark as generic binary
+	 * @param mimeType List of mime-types to mark as generic binary
 	 */
-	export function useGenericBinaryAssetParserForMimeTypes(mimeTypes: string[]) {
-		registerParserForMimeTypes(GenericBinaryAssetParser, mimeTypes);
+	export function useGenericBinaryAssetParserForMimeType(mimeType: string) {
+		registerParser(GenericBinaryAssetParser, mimeType);
 	}
 
 	/**
@@ -80,11 +77,11 @@ namespace sd.asset {
 		io.BlobReader.readAsText(blob);
 
 	/**
-	 * Mark a list of mime-types as generic text data.
-	 * @param mimeTypes List of mime-types to mark as generic text
+	 * Mark a mime-type as generic text data.
+	 * @param mimeType Mime-type to mark as generic text
 	 */
-	export function useGenericTextAssetParserForMimeTypes(mimeTypes: string[]) {
-		registerParserForMimeTypes(GenericTextAssetParser, mimeTypes);
+	export function useGenericTextAssetParserForMimeTypes(mimeType: string) {
+		registerParser(GenericTextAssetParser, mimeType);
 	}
 
 } // ns sd.asset

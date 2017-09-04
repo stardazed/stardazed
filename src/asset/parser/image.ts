@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../registry.ts" />
+/// <reference path="../parsers.ts" />
 
 namespace sd.asset.parser {
 
