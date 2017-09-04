@@ -3,7 +3,15 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
+/// <reference path="../registry.ts" />
+
 namespace sd.asset.parser {
+
+	registerFileExtension("bm", "image/bmp");
+	registerFileExtension("bmp", "image/bmp");
+	registerFileExtension("jpg", "image/jpeg");
+	registerFileExtension("jpeg", "image/jpeg");
+	registerFileExtension("png", "image/png");
 
 	export class HTMLImageDataProvider implements image.PixelDataProvider {
 		readonly colourSpace: image.ColourSpace;

@@ -3,7 +3,11 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
+/// <reference path="../registry.ts" />
+
 namespace sd.asset.parser {
+
+	registerFileExtension("dds", "image/dds");
 
 	const enum DDSPixelFormatOffsets {
 		dwSize = 0, // uint32
