@@ -1,7 +1,9 @@
-// asset/parser/group-obj - Wavefront OBJ mesh file + MTL material file parser
+// asset/parser/group-obj - Wavefront OBJ mesh file parser
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
+
+/// <reference path="./group.ts" />
 
 namespace sd.asset.parser {
 
@@ -429,14 +431,14 @@ namespace sd.asset.parser {
 	}
 
 
-	export function loadOBJFile(url: URL, materialsAsColours = false, intoAssetGroup?: AssetGroup): Promise<AssetGroup> {
-		const group = intoAssetGroup || new AssetGroup();
+	export function parseOBJGroup(blob: Blob, path: string, materialsAsColours = false): Promise<AssetGroup> {
+		const group = new AssetGroup();
 
-		return io.loadFile(url)
-			.then((text: string) => {
-				return preflightOBJSource(group, url.href, text);
-			})
-			.then((preproc: OBJPreProcSource) => {
+		return io.BlobReader.readAsText(blob)
+			.then(text =>
+				preflightOBJSource(group, path, text)
+			)
+			.then(preproc => {
 				parseOBJSource(group, preproc, materialsAsColours);
 
 				// add the linked object as a Model to the group
