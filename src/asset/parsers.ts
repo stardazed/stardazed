@@ -34,9 +34,9 @@ namespace sd.asset.parser {
 	/**
 	 * A function that takes a resource and returns the parsed contents.
 	 * Any data type that has to be read through the asset system needs
-	 * a corresponding AssetParser. The options 
+	 * a corresponding AssetParser. The metadata varies per asset type.
 	 */
-	export type AssetParser<Resource, Options extends object> = (blob: Blob, path: string, options: Partial<Options>) => Promise<Resource>;
+	export type AssetParser<Resource, Metadata extends object> = (blob: Blob, path: string, metadata: Partial<Metadata>) => Promise<Resource>;
 
 
 	// --------------------------------------------------------------------
