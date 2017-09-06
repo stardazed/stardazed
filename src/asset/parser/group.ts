@@ -11,7 +11,7 @@ namespace sd.asset.parser {
 		loader: loader.Loader;
 	}
 
-	export type GroupAssetParser = AssetParser<AssetGroup, GroupAssetOptions>;
+	export type GroupAssetParser = AssetParser<AssetGroup, Partial<GroupAssetOptions>>;
 	const groupParsers = new Map<string, GroupAssetParser>();
 
 	export function registerGroupParser(parser: GroupAssetParser, mimeType: string) {

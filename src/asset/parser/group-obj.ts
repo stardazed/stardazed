@@ -7,7 +7,7 @@
 
 namespace sd.asset.parser {
 
-	export function parseOBJGroup(blob: Blob, path: string, _options: GroupAssetOptions): Promise<AssetGroup> {
+	export function parseOBJGroup(blob: Blob, path: string, _options: Partial<GroupAssetOptions>): Promise<AssetGroup> {
 		return io.BlobReader.readAsText(blob)
 			.then(text =>
 				preflightOBJSource(path, text)

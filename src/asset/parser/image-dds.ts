@@ -7,7 +7,7 @@
 
 namespace sd.asset.parser {
 
-	export function parseDDSImage(blob: Blob, _path: string, _options: ImageAssetOptions) {
+	export function parseDDSImage(blob: Blob, _path: string, _options: Partial<ImageAssetOptions>) {
 		return io.BlobReader.readAsArrayBuffer(blob)
 			.then(buf => {
 				return new DDSDataProvider(new Uint8ClampedArray(buf));

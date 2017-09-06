@@ -7,7 +7,7 @@
 
 namespace sd.asset.parser {
 
-	export function parseTGAImage(blob: Blob, _path: string, _options: ImageAssetOptions) {
+	export function parseTGAImage(blob: Blob, _path: string, _options: Partial<ImageAssetOptions>) {
 		return io.BlobReader.readAsArrayBuffer(blob)
 			.then(buf => {
 				return new TGADataProvider(new Uint8ClampedArray(buf));

@@ -7,13 +7,13 @@
 
 namespace sd.asset.parser {
 
-	function parseBuiltInImage(blob: Blob, path: string, options: ImageAssetOptions) {
+	function parseBuiltInImage(blob: Blob, path: string, options: Partial<ImageAssetOptions>) {
 		const blobURL = URL.createObjectURL(blob);
 
 		return new Promise<image.PixelDataProvider>((resolve, reject) => {
 			const builtin = new Image();
 			builtin.onload = () => {
-				resolve(new parser.HTMLImageDataProvider(builtin, options.colourSpace));
+				resolve(new parser.HTMLImageDataProvider(builtin, options.colourSpace || image.ColourSpace.sRGB));
 			};
 			builtin.onerror = () => {
 				reject(`The image at '${path}' is not supported`);

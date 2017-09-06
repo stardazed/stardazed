@@ -7,7 +7,7 @@
 
 namespace sd.asset.parser {
 
-	export const parseMTLGroup = (blob: Blob, path: string, _options: GroupAssetOptions) =>
+	export const parseMTLGroup = (blob: Blob, path: string, _options: Partial<GroupAssetOptions>) =>
 		io.BlobReader.readAsText(blob).then(text =>
 			parseMTLSource(path, text)
 		);

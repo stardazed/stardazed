@@ -34,7 +34,6 @@ namespace sd.asset.parser {
 	// --------------------------------------------------------------------
 	// library-wide generic parser registry
 	
-	export type AssetParser<Resource, Options extends object, ExtOptions extends Options = Options> = (blob: Blob, path: string, options: ExtOptions) => Promise<Resource>;
 
 	const allParsers = new Map<string, AssetParser<any, any>>();
 
@@ -49,6 +48,7 @@ namespace sd.asset.parser {
 		assert(! allParsers.has(mime), `Trying to register more than 1 parser for mime-type: ${mime}`);
 		allParsers.set(mime, parser);
 	}
+	export type AssetParser<Resource, Options extends object> = (blob: Blob, path: string, options: Partial<Options>) => Promise<Resource>;
 
 
 	// --------------------------------------------------------------------

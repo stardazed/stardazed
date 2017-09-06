@@ -11,7 +11,7 @@ namespace sd.asset.parser {
 		colourSpace: image.ColourSpace;
 	}
 
-	export type ImageAssetParser = AssetParser<image.PixelDataProvider, ImageAssetOptions>;
+	export type ImageAssetParser = AssetParser<image.PixelDataProvider, Partial<ImageAssetOptions>>;
 	const imageParsers = new Map<string, ImageAssetParser>();
 
 	export function registerImageParser(parser: ImageAssetParser, mimeType: string) {
@@ -26,7 +26,7 @@ namespace sd.asset.parser {
 	 * @param path The asset path
 	 * @param options Image-specific options
 	 */
-	export function parseImage(blob: Blob, path: string, options: ImageAssetOptions) {
+	export function parseImage(blob: Blob, path: string, options: Partial<ImageAssetOptions>) {
 		return new Promise<image.PixelDataProvider>((resolve, reject) => {
 			const mimeType = blob.type;
 			const parser = imageParsers.get(mimeType);
