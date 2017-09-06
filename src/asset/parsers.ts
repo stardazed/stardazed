@@ -31,23 +31,11 @@ namespace sd.asset.parser {
 	}
 
 
-	// --------------------------------------------------------------------
-	// library-wide generic parser registry
-	
-
-	const allParsers = new Map<string, AssetParser<any, any>>();
-
 	/**
-	 * Associates an asset parser with one or more mime-types.
-	 * This is the most generic registry and has no types for the parsers' outputs.
-	 * @param parser Parser to use
-	 * @param mimeTypes Mime-type to associate
+	 * A function that takes a resource and returns the parsed contents.
+	 * Any data type that has to be read through the asset system needs
+	 * a corresponding AssetParser. The options 
 	 */
-	export function registerParser(parser: AssetParser<any, any>, mimeType: string) {
-		const mime = mimeType.toLowerCase();
-		assert(! allParsers.has(mime), `Trying to register more than 1 parser for mime-type: ${mime}`);
-		allParsers.set(mime, parser);
-	}
 	export type AssetParser<Resource, Options extends object> = (blob: Blob, path: string, options: Partial<Options>) => Promise<Resource>;
 
 

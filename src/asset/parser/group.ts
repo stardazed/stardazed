@@ -17,7 +17,6 @@ namespace sd.asset.parser {
 	export function registerGroupParser(parser: GroupAssetParser, mimeType: string) {
 		assert(! groupParsers.has(mimeType), `Trying to register more than 1 group parser for mime-type: ${mimeType}`);
 		groupParsers.set(mimeType, parser);
-		registerParser(parser, mimeType);
 	}
 
 	/**

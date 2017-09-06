@@ -17,7 +17,6 @@ namespace sd.asset.parser {
 	export function registerImageParser(parser: ImageAssetParser, mimeType: string) {
 		assert(! imageParsers.has(mimeType), `Trying to register more than 1 image parser for mime-type: ${mimeType}`);
 		imageParsers.set(mimeType, parser);
-		registerParser(parser, mimeType);
 	}
 
 	/**
