@@ -40,36 +40,26 @@ namespace sd.asset.parser {
 
 
 	// --------------------------------------------------------------------
-	// generic assets
+	// generic parsers
 
 	/**
 	 * A parser that just returns the contents of an asset as an ArrayBuffer.
-	 * @internal
 	 */
-	const GenericBinaryAssetParser = (blob: Blob, _path: string, _options: {}) =>
+	export const parseGenericBinary = (blob: Blob, _path: string, _options: any) =>
 		io.BlobReader.readAsArrayBuffer(blob);
 
 	/**
-	 * Mark a list of mime-types as generic binary data.
-	 * @param mimeType List of mime-types to mark as generic binary
-	 */
-	export function useGenericBinaryAssetParserForMimeType(mimeType: string) {
-		registerParser(GenericBinaryAssetParser, mimeType);
-	}
-
-	/**
 	 * A parser that just returns the contents of an asset as a a string.
-	 * @internal
 	 */
-	const GenericTextAssetParser = (blob: Blob, _path: string, _options: {}) =>
+	export const parseGenericText = (blob: Blob, _path: string, _options: any) =>
 		io.BlobReader.readAsText(blob);
 
 	/**
-	 * Mark a mime-type as generic text data.
-	 * @param mimeType Mime-type to mark as generic text
+	 * A parser that returns the contents of an asset as a JSON object.
 	 */
-	export function useGenericTextAssetParserForMimeTypes(mimeType: string) {
-		registerParser(GenericTextAssetParser, mimeType);
-	}
+	export const parseJSON = (blob: Blob, _path: string, _options: any) =>
+		parseGenericText(blob, _path, _options).then(
+			text => JSON.parse(text)
+		);
 
 } // ns sd.asset.parser
