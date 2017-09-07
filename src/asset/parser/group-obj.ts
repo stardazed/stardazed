@@ -7,10 +7,10 @@
 
 namespace sd.asset.parser {
 
-	export function parseOBJGroup(blob: Blob, path: string, _options: Partial<GroupAssetOptions>): Promise<AssetGroup> {
-		return io.BlobReader.readAsText(blob)
+	export function parseOBJGroup(resource: RawAsset<GroupAssetOptions>): Promise<AssetGroup> {
+		return io.BlobReader.readAsText(resource.blob)
 			.then(text =>
-				preflightOBJSource(path, text)
+				preflightOBJSource(resource.path, text)
 			)
 			.then(preproc => {
 				const group = parseOBJSource(preproc, false);

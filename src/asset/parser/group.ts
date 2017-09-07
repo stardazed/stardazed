@@ -21,18 +21,16 @@ namespace sd.asset.parser {
 
 	/**
 	 * Create an AssetGroup for an asset blob
-	 * @param blob Group data to parse
-	 * @param path The asset path
-	 * @param options Group-specific options
+	 * @param resource The source data to be parsed
 	 */
-	export function parseGroup(blob: Blob, path: string, options: GroupAssetOptions) {
+	export function parseGroup(resource: RawAsset<GroupAssetOptions>) {
 		return new Promise<AssetGroup>((resolve, reject) => {
-			const mimeType = blob.type;
+			const mimeType = resource.blob.type;
 			const parser = groupParsers.get(mimeType);
 			if (! parser) {
 				return reject(`Cannot load groups of type: ${mimeType}`);
 			}
-			resolve(parser(blob, path, options));
+			resolve(parser(resource));
 		});
 	}
 

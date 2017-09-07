@@ -52,7 +52,7 @@ namespace sd.asset.parser {
 	 * Any data type that has to be read through the asset system needs
 	 * a corresponding AssetParser. The metadata varies per asset type.
 	 */
-	export type AssetParser<Resource, Metadata extends object> = (blob: Blob, path: string, metadata: Partial<Metadata>) => Promise<Resource>;
+	export type AssetParser<Asset, Metadata extends object> = (resource: RawAsset<Metadata>) => Promise<Asset>;
 
 
 	// --------------------------------------------------------------------

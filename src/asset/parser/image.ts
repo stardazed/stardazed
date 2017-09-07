@@ -21,18 +21,16 @@ namespace sd.asset.parser {
 
 	/**
 	 * Create a PixelDataProvider for an asset blob
-	 * @param blob Image data to parse
-	 * @param path The asset path
-	 * @param options Image-specific options
+	 * @param resource The source data to be parsed
 	 */
-	export function parseImage(blob: Blob, path: string, options: Partial<ImageAssetOptions>) {
+	export function parseImage(resource: RawAsset<ImageAssetOptions>) {
 		return new Promise<image.PixelDataProvider>((resolve, reject) => {
-			const mimeType = blob.type;
+			const mimeType = resource.blob.type;
 			const parser = imageParsers.get(mimeType);
 			if (! parser) {
 				return reject(`Cannot load images of type: ${mimeType}`);
 			}
-			resolve(parser(blob, path, options));
+			resolve(parser(resource));
 		});
 	}
 

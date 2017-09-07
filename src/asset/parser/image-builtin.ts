@@ -7,16 +7,16 @@
 
 namespace sd.asset.parser {
 
-	function parseBuiltInImage(blob: Blob, path: string, options: Partial<ImageAssetOptions>) {
-		const blobURL = URL.createObjectURL(blob);
+	function parseBuiltInImage(resource: RawAsset<ImageAssetOptions>) {
+		const blobURL = URL.createObjectURL(resource.blob);
 
 		return new Promise<image.PixelDataProvider>((resolve, reject) => {
 			const builtin = new Image();
 			builtin.onload = () => {
-				resolve(new parser.HTMLImageDataProvider(builtin, options.colourSpace || image.ColourSpace.sRGB));
+				resolve(new parser.HTMLImageDataProvider(builtin, resource.metadata.colourSpace || image.ColourSpace.sRGB));
 			};
 			builtin.onerror = () => {
-				reject(`The image at '${path}' is not supported`);
+				reject(`The image at '${resource.path}' is not supported`);
 			};
 
 			// Always enable CORS as GL will not allow tainted data to be loaded so if it fails, we can't use the image
