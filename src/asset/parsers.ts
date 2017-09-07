@@ -30,6 +30,22 @@ namespace sd.asset.parser {
 		return mimeTypeForFileExtension(extension);
 	}
 
+	/**
+	 * Unprocessed data and metadata describing an asset. The data is
+	 * always provided as a Blob, the metadata is a basic key-value set.
+	 * Because assets are loaded from arbitrary files, the keys in the
+	 * metadata are all made optional to force AssetParsers to provide
+	 * default values. Each asset has a name and it must be unique
+	 * application-wide. The kind field indicates the top-level type
+	 * of the asset.
+	 */
+	export interface RawAsset<Metadata extends object> {
+		blob: Blob;
+		kind: string;
+		path: string;
+		name: string;
+		metadata: Partial<Metadata>;
+	}
 
 	/**
 	 * A function that takes a resource and returns the parsed contents.
