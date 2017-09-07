@@ -44,7 +44,6 @@ namespace sd {
 	// for now, this represents what would be present in a level file
 	export interface SceneConfig {
 		delegate: SceneDelegate;
-		assetURLMapping: { [name: string]: string }; // name -> url mapping
 		physicsConfig: physics.PhysicsConfig;
 	}
 
@@ -64,9 +63,6 @@ namespace sd {
 
 		private state_: SceneState;
 		readonly delegate: SceneDelegate;
-
-		readonly assetURLMapping: { readonly [name: string]: string };
-		readonly assets: { [name: string]: any };
 
 		constructor(rw: render.RenderWorld, ad: audio.AudioDevice, config: SceneConfig) {
 			this.state_ = SceneState.Uninitialized;
@@ -90,8 +86,6 @@ namespace sd {
 			this.camera = new math.Camera(rw.drawableWidth, rw.drawableHeight);
 
 			// -- assets
-			this.assetURLMapping = { ...config.assetURLMapping };
-			this.assets = {};
 			this.startLoading();
 		}
 
