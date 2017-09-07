@@ -5,13 +5,13 @@
 
 namespace sd.asset {
 
-	export interface Asset {
+	export interface AssetOld {
 		name: string;
 		userRef?: any;
 	}
 
 
-	export interface Texture2D extends Asset {
+	export interface Texture2D extends AssetOld {
 		url?: URL;
 		mipMapMode: render.MipMapMode;
 		colourSpace: image.ColourSpace;
@@ -19,7 +19,7 @@ namespace sd.asset {
 	}
 
 
-	export interface TextureCube extends Asset {
+	export interface TextureCube extends AssetOld {
 		filePathPosX?: string;
 		filePathNegX?: string;
 		filePathPosY?: string;
@@ -42,7 +42,7 @@ namespace sd.asset {
 	}
 
 
-	export interface Material extends Asset {
+	export interface Material extends AssetOld {
 		flags: MaterialFlags;
 
 		baseColour: Float3;
@@ -108,7 +108,7 @@ namespace sd.asset {
 		};
 	}
 
-	export interface Model extends Asset {
+	export interface Model extends AssetOld {
 		transform: entity.Transform;
 		children: Model[];
 		parent?: Model;
