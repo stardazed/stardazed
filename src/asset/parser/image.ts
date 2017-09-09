@@ -5,33 +5,48 @@
 
 /// <reference path="../parsers.ts" />
 
-namespace sd.asset.parser {
+namespace sd.asset {
 
-	export interface ImageAssetOptions {
-		colourSpace: image.ColourSpace;
+	export namespace parser {
+		export interface ImageAssetOptions {
+			colourSpace: image.ColourSpace;
+		}
+
+		export type ImageAssetParser = AssetParser<image.PixelDataProvider, Partial<ImageAssetOptions>>;
+		const imageParsers = new Map<string, ImageAssetParser>();
+
+		export function registerImageParser(imgParser: ImageAssetParser, mimeType: string) {
+			assert(! imageParsers.has(mimeType), `Trying to register more than 1 image parser for mime-type: ${mimeType}`);
+			imageParsers.set(mimeType, imgParser);
+		}
+
+		/**
+		 * Create a PixelDataProvider for an asset blob
+		 * @param resource The source data to be parsed
+		 */
+		export function parseImage(resource: RawAsset<ImageAssetOptions>) {
+			return new Promise<image.PixelDataProvider>((resolve, reject) => {
+				const mimeType = resource.blob.type;
+				const imgParser = imageParsers.get(mimeType);
+				if (! imgParser) {
+					return reject(`Cannot load images of type: ${mimeType}`);
+				}
+				resolve(imgParser(resource));
+			});
+		}
 	}
 
-	export type ImageAssetParser = AssetParser<image.PixelDataProvider, Partial<ImageAssetOptions>>;
-	const imageParsers = new Map<string, ImageAssetParser>();
-
-	export function registerImageParser(parser: ImageAssetParser, mimeType: string) {
-		assert(! imageParsers.has(mimeType), `Trying to register more than 1 image parser for mime-type: ${mimeType}`);
-		imageParsers.set(mimeType, parser);
+	export interface Library {
+		loadImage(sa: SerializedAsset): Promise<image.PixelDataProvider>;
 	}
 
-	/**
-	 * Create a PixelDataProvider for an asset blob
-	 * @param resource The source data to be parsed
-	 */
-	export function parseImage(resource: RawAsset<ImageAssetOptions>) {
-		return new Promise<image.PixelDataProvider>((resolve, reject) => {
-			const mimeType = resource.blob.type;
-			const parser = imageParsers.get(mimeType);
-			if (! parser) {
-				return reject(`Cannot load images of type: ${mimeType}`);
+	const ImageLoader = <T extends Constructor<LibraryBase>>(Lib: T) =>
+		class extends Lib {
+			loadImage(sa: SerializedAsset) {
+				return this.loadData(sa).then(resource => parser.parseImage(resource));
 			}
-			resolve(parser(resource));
-		});
-	}
+		};
 
-} // ns sd.asset.parser
+	addLibraryExtension(ImageLoader);
+
+} // ns sd.asset
