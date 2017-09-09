@@ -35,11 +35,11 @@ namespace sd.asset {
 		}
 
 		loadAny(sa: SerializedAsset) {
-			const loadFunc = this.loadParseFuncs[sa.kind];
-			if (loadFunc) {
-				return loadFunc(sa);
+			const loaderParser = this.loadParseFuncs[sa.kind];
+			if (loaderParser) {
+				return loaderParser(sa);
 			}
-			return Promise.reject(new Error(`No registered parser for asset kind : ${sa.kind}, requested path: ${sa.path}`));
+			return Promise.reject(new Error(`No registered parser for asset kind: ${sa.kind}, requested path: ${sa.path}`));
 		}
 
 		loadAssetFile(assets: SerializedAsset[]) {
