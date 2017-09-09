@@ -12,13 +12,17 @@ interface Console {
 
 namespace sd {
 
+	/**
+	 * asserts a condition to be true or throw an error otherwise
+	 * @param cond A condition that can be evaluated to true or false
+	 * @param msg Error message that will be thrown if cond is false
+	 */
 	export function assert(cond: any, msg?: string) {
 		if (! cond) {
 			console.error(msg || "assertion failed");
 			throw new Error(msg || "assertion failed");
 		}
 	}
-
 
 	/**
 	 * Deep clone an object. Use only for simple struct types.
@@ -37,7 +41,6 @@ namespace sd {
 		return copy as T;
 	}
 
-
 	/**
 	 * Create an immutable object that acts as a lookup table with numerical keys, such as (const) enum values.
 	 * @param keyVals Alternating key, value pairs
@@ -51,4 +54,9 @@ namespace sd {
 		return Object.freeze(lut);
 	}
 
+	/**
+	 * Mix-in constructor type used for TS-style class mix-ins
+	 */
+	export type Constructor<T> = new (...args: any[]) => T;
+	
 } // ns sd
