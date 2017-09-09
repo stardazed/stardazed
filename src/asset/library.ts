@@ -14,7 +14,7 @@ namespace sd.asset {
 		[key: string]: string | number | boolean | undefined;
 	}
 
-	export class Library {
+	export class LibraryBase {
 		private loader_: loader.Loader;
 		protected loadParseFuncs: { [kind: string]: ((sa: SerializedAsset) => Promise<any>) | undefined; } = {};
 
@@ -46,5 +46,26 @@ namespace sd.asset {
 			return Promise.all(assets.map(sa => this.loadAny(sa)));
 		}
 	}
+
+	export type LibraryExtension = (Base: Constructor<LibraryBase>) => Constructor<LibraryBase>;
+	const mixins: LibraryExtension[] = [];
+
+	export const addLibraryExtension = (mixin: LibraryExtension) => {
+		mixins.push(mixin);
+	};
+
+	export interface Library {
+		// generic load-parse methods
+		loadAny(sa: SerializedAsset): Promise<any>;
+		loadAssetFile(assets: SerializedAsset[]): Promise<any[]>;
+	}
+
+	export const makeLibrary = (roots: loader.AssetRootSpec[]): Library => {
+		let Lib = LibraryBase;
+		for (const m of mixins) {
+			Lib = m(Lib);
+		}
+		return (new Lib(roots)) as any as Library;				
+	};
 
 } // ns sd.asset
