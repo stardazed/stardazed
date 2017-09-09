@@ -42,8 +42,24 @@ namespace sd.asset {
 
 	const ImageLoader = <T extends Constructor<LibraryBase>>(Lib: T) =>
 		class extends Lib {
+			images_ = new Map<string, image.PixelDataProvider>();
+
+			constructor(...args: any[]) {
+				super(...args);
+				this.loaderParserFuncs_.image = this.loadImage;
+			}
+
 			loadImage(sa: SerializedAsset) {
-				return this.loadData(sa).then(resource => parser.parseImage(resource));
+				return this.loadData(sa)
+					.then(resource => parser.parseImage(resource))
+					.then(pdp => {
+						this.images_.set(sa.name, pdp);
+						return pdp;
+					});
+			}
+
+			imageByName(name: string) {
+				return this.images_.get(name);
 			}
 		};
 

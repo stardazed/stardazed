@@ -44,8 +44,24 @@ namespace sd.asset {
 
 	const GroupAsset = <T extends Constructor<LibraryBase>>(Lib: T) =>
 		class extends Lib {
-			loadImage(sa: SerializedAsset) {
-				return this.loadData(sa).then(resource => parser.parseGroup(resource));
+			groups_ = new Map<string, AssetGroup>();
+
+			constructor(...args: any[]) {
+				super(...args);
+				this.loaderParserFuncs_.image = this.loadGroup;
+			}
+
+			loadGroup(sa: SerializedAsset) {
+				return this.loadData(sa)
+					.then(resource => parser.parseGroup(resource))
+					.then(ag => {
+						this.groups_.set(sa.name, ag);
+						return ag;
+					});
+			}
+
+			groupByName(name: string) {
+				return this.groups_.get(name);
 			}
 		};
 
