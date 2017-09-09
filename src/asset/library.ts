@@ -6,6 +6,7 @@
 namespace sd.asset {
 
 	export interface SerializedAsset {
+		name: string;
 		kind: string;
 		path: string;
 		mimeType?: string;
@@ -21,8 +22,16 @@ namespace sd.asset {
 			this.loader_ = loader.AssetLoader(roots);
 		}
 
-		protected loadData(sa: SerializedAsset) {
-			return this.loader_(sa.path, sa.mimeType);
+		protected loadData<Metadata extends object>(sa: SerializedAsset): Promise<parser.RawAsset<Metadata>> {
+			return this.loader_(sa.path, sa.mimeType).then(
+				blob => ({
+					blob,
+					name: sa.name,
+					kind: sa.kind,
+					path: sa.path,
+					metadata: { ...sa as any }
+				})
+			);
 		}
 
 		loadAny(sa: SerializedAsset) {
