@@ -40,6 +40,7 @@ namespace sd.asset {
 
 	export interface Library {
 		loadGroup(sa: SerializedAsset): Promise<AssetGroup>;
+		groupByName(name: string): AssetGroup | undefined;
 	}
 
 	const GroupAsset = <T extends Constructor<LibraryBase>>(Lib: T) =>

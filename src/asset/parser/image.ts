@@ -38,6 +38,7 @@ namespace sd.asset {
 
 	export interface Library {
 		loadImage(sa: SerializedAsset): Promise<image.PixelDataProvider>;
+		imageByName(name: string): image.PixelDataProvider | undefined;
 	}
 
 	const ImageLoader = <T extends Constructor<LibraryBase>>(Lib: T) =>
