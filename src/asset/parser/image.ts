@@ -9,7 +9,7 @@ namespace sd.asset {
 
 	export namespace parser {
 		export interface ImageAssetOptions {
-			colourSpace: image.ColourSpace;
+			colourSpace: string;
 		}
 
 		export type ImageAssetParser = AssetParser<image.PixelDataProvider, Partial<ImageAssetOptions>>;

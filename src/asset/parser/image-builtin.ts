@@ -13,7 +13,8 @@ namespace sd.asset.parser {
 		return new Promise<image.PixelDataProvider>((resolve, reject) => {
 			const builtin = new Image();
 			builtin.onload = () => {
-				resolve(new HTMLImageDataProvider(builtin, resource.metadata.colourSpace || image.ColourSpace.sRGB));
+				const colourSpace = resource.metadata.colourSpace === "linear" ? image.ColourSpace.Linear : image.ColourSpace.sRGB;
+				resolve(new HTMLImageDataProvider(builtin, colourSpace));
 			};
 			builtin.onerror = () => {
 				reject(`The image at '${resource.path}' is not supported`);
