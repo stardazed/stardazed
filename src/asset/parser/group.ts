@@ -48,7 +48,7 @@ namespace sd.asset {
 
 			constructor(...args: any[]) {
 				super(...args);
-				this.loaderParserFuncs_.image = this.loadGroup;
+				this.registerLoaderParser("group", this.loadGroup);
 			}
 
 			loadGroup(sa: SerializedAsset) {

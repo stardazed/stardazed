@@ -16,10 +16,14 @@ namespace sd.asset {
 
 	export class LibraryBase {
 		private loader_: loader.Loader;
-		protected loaderParserFuncs_: { [kind: string]: ((sa: SerializedAsset) => Promise<any>) | undefined; } = {};
+		private loaderParserFuncs_: { [kind: string]: ((sa: SerializedAsset) => Promise<any>) | undefined; } = {};
 
 		constructor(roots: loader.AssetRootSpec[]) {
 			this.loader_ = loader.AssetLoader(roots);
+		}
+
+		protected registerLoaderParser(forKind: string, lp: (sa: SerializedAsset) => Promise<any>) {
+			this.loaderParserFuncs_[forKind] = lp.bind(this);
 		}
 
 		protected loadData<Metadata extends object>(sa: SerializedAsset): Promise<parser.RawAsset<Metadata>> {
