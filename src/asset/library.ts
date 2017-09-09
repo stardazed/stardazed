@@ -16,7 +16,7 @@ namespace sd.asset {
 
 	export class LibraryBase {
 		private loader_: loader.Loader;
-		protected loadParseFuncs: { [kind: string]: ((sa: SerializedAsset) => Promise<any>) | undefined; } = {};
+		protected loaderParserFuncs_: { [kind: string]: ((sa: SerializedAsset) => Promise<any>) | undefined; } = {};
 
 		constructor(roots: loader.AssetRootSpec[]) {
 			this.loader_ = loader.AssetLoader(roots);
@@ -35,7 +35,7 @@ namespace sd.asset {
 		}
 
 		loadAny(sa: SerializedAsset) {
-			const loaderParser = this.loadParseFuncs[sa.kind];
+			const loaderParser = this.loaderParserFuncs_[sa.kind];
 			if (loaderParser) {
 				return loaderParser(sa);
 			}
