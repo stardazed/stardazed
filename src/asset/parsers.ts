@@ -54,28 +54,4 @@ namespace sd.asset.parser {
 	 */
 	export type AssetParser<Asset, Metadata extends object> = (resource: RawAsset<Metadata>) => Promise<Asset>;
 
-
-	// --------------------------------------------------------------------
-	// generic parsers
-
-	/**
-	 * A parser that just returns the contents of an asset as an ArrayBuffer.
-	 */
-	export const parseGenericBinary = (blob: Blob, _path: string, _options: any) =>
-		io.BlobReader.readAsArrayBuffer(blob);
-
-	/**
-	 * A parser that just returns the contents of an asset as a a string.
-	 */
-	export const parseGenericText = (blob: Blob, _path: string, _options: any) =>
-		io.BlobReader.readAsText(blob);
-
-	/**
-	 * A parser that returns the contents of an asset as a JSON object.
-	 */
-	export const parseJSON = (blob: Blob, _path: string, _options: any) =>
-		parseGenericText(blob, _path, _options).then(
-			text => JSON.parse(text)
-		);
-
 } // ns sd.asset.parser
