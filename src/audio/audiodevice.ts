@@ -8,12 +8,6 @@ declare const webkitAudioContext: {
 	new (): AudioContext;
 };
 
-interface Window {
-	webkitAudioContext?: typeof AudioContext;
-	AudioContext?: typeof AudioContext;
-}
-
-
 namespace sd.audio {
 
 	let sharedAudioContext_: AudioContext | undefined;
@@ -56,17 +50,10 @@ namespace sd.audio {
 	}
 
 
-	export function makeAudioDevice(): AudioDevice | null {
-		const ac = window.AudioContext ? new (window.AudioContext)() : (window.webkitAudioContext ? new webkitAudioContext() : null);
-
-		if (ac) {
-			return {
-				ctx: ac
-			};
-		}
-		else {
-			return null;
-		}
+	export function makeAudioDevice(): AudioDevice {
+		return {
+			ctx: sharedAudioContext()
+		};
 	}
 
 } // ns sd.audio
