@@ -1,4 +1,4 @@
-// audio/device - audio interfaces
+// audio/device - audio interface
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -15,6 +15,26 @@ interface Window {
 
 
 namespace sd.audio {
+
+	let sharedAudioContext_: AudioContext | undefined;
+
+	/**
+	 * @internal
+	 */
+	export const sharedAudioContext = () => {
+		if (! sharedAudioContext_) {
+			if ("AudioContext" in window) {
+				sharedAudioContext_ = new AudioContext();
+			}
+			else if ("webkitAudioContext" in window) {
+				sharedAudioContext_ = new webkitAudioContext();
+			}
+			else {
+				throw new Error("WebAudio is not supported.");
+			}
+		}
+		return sharedAudioContext_;
+	};
 
 	export interface AudioDevice {
 		ctx: AudioContext;
