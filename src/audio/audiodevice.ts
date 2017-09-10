@@ -34,22 +34,6 @@ namespace sd.audio {
 		ctx: AudioContext;
 	}
 
-
-	export function makeAudioBufferFromData(ac: AudioDevice, data: ArrayBuffer): Promise<AudioBuffer> {
-		return new Promise<AudioBuffer>((resolve, reject) => {
-			ac.ctx.decodeAudioData(
-				data,
-				audioData => {
-					resolve(audioData);
-				},
-				() => {
-					reject("invalid audio data");
-				}
-			);
-		});
-	}
-
-
 	export function makeAudioDevice(): AudioDevice {
 		return {
 			ctx: sharedAudioContext()
