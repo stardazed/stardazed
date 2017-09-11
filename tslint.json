@@ -50,6 +50,7 @@
 		// "no-for-in-array": true, // requires type checking
 		"no-null-keyword": false,
 		"no-unused-expression": [true, "allow-fast-null-checks", "allow-new"],
+		"no-string-literal": false,
 		// "radix": false,
 
 		/* Style */
