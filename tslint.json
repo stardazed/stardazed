@@ -51,6 +51,7 @@
 		"no-null-keyword": false,
 		"no-unused-expression": [true, "allow-fast-null-checks", "allow-new"],
 		"no-string-literal": false,
+		"no-empty-interface": false,
 		// "radix": false,
 
 		/* Style */
