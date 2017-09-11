@@ -42,8 +42,8 @@ namespace sd.asset.parser {
 	}
 
 
-	function preflightOBJSource(_path: string, text: string) {
-		let mtlFileRelPath = "";
+	function preflightOBJSource(path: string, text: string) {
+		let mtlFilePath = "";
 		const preproc: OBJPreProcSource = {
 			lines: [],
 			positionCount: 0,
@@ -68,7 +68,12 @@ namespace sd.asset.parser {
 				preproc.vertexCount += tokens.length - 1;
 			}
 			else if (directive === "mtllib") {
-				mtlFileRelPath = tokens[1] || "";
+				if (tokens[1]) {
+					mtlFilePath = io.resolveRelativePath(tokens[1], path);
+				}
+				else {
+					console.warn("OBJ parser: ignoring empty mtllib reference.");
+				}
 			}
 		}
 
