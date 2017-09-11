@@ -1,0 +1,107 @@
+// asset/parser/texture - texture higher-level asset
+// Part of Stardazed
+// (c) 2015-2017 by Arthur Langereis - @zenmumbler
+// https://github.com/stardazed/stardazed
+
+/// <reference path="../parsers.ts" />
+
+namespace sd.asset {
+
+	export namespace parser {
+		export interface TextureAssetOptions {
+			mipmaps: "source" | "strip" | "regenerate";
+			repeatS: "repeat" | "mirror" | "clamp";
+			repeatT: "repeat" | "mirror" | "clamp";
+			filtering: "nearest" | "linear" | "bilinear" | "trilinear";
+			image: SerializedAsset;
+		}
+
+		const parseMipMapMode = (mmm: "source" | "strip" | "regenerate" | undefined) => {
+			if (["source", "strip", "regenerate"].indexOf(mmm || "") === -1) {
+				mmm = "source";
+			}
+			return ({
+				source: render.MipMapMode.Source,
+				strip: render.MipMapMode.Strip,
+				regenerate: render.MipMapMode.Regenerate,
+			})[mmm!];
+		};
+
+		const parseRepeat = (rep: "repeat" | "mirror" | "clamp" | undefined) => {
+			if (["repeat", "mirror", "clamp"].indexOf(rep || "") === -1) {
+				rep = "repeat";
+			}
+			return ({
+				repeat: render.TextureRepeatMode.Repeat,
+				mirror: render.TextureRepeatMode.MirroredRepeat,
+				clamp: render.TextureRepeatMode.ClampToEdge
+			})[rep!];
+		};
+
+		const parseFiltering = (filt: "nearest" | "linear" | "bilinear" | "trilinear" | undefined) => {
+			if (["nearest", "linear", "bilinear", "trilinear"].indexOf(filt || "") === -1) {
+				filt = "bilinear";
+			}
+			return ({
+				nearest: { size: render.TextureSizingFilter.Nearest, mip: render.TextureMipFilter.None },
+				linear: { size: render.TextureSizingFilter.Linear, mip: render.TextureMipFilter.None },
+				bilinear: { size: render.TextureSizingFilter.Linear, mip: render.TextureMipFilter.Nearest },
+				trilinear: { size: render.TextureSizingFilter.Linear, mip: render.TextureMipFilter.Linear } 
+			})[filt!];
+		};
+
+		export type TextureAssetParser = AssetParser<render.Texture, Partial<TextureAssetOptions>>;
+
+		/**
+		 * Create a Texture for an asset blob
+		 * @param resource The source data to be parsed
+		 */
+		export function* parseTexture(resource: RawAsset<TextureAssetOptions>) {
+			const imageSA = resource.metadata.image;
+			if (imageSA && imageSA.kind === "image") {
+				const images: image.PixelDataProvider[] = yield [imageSA];
+				const mipmaps = parseMipMapMode(resource.metadata.mipmaps);
+				const repeatS = parseRepeat(resource.metadata.repeatS);
+				const repeatT = parseRepeat(resource.metadata.repeatT);
+				const filtering = parseFiltering(resource.metadata.filtering);
+				console.info(repeatS, repeatT, filtering); // make TS shut up about unused items
+				const texture = render.makeTex2DFromProvider(images[0], mipmaps);
+				return texture;
+			}
+			else {
+				throw new Error(`Texture parser: required image sub-resource is missing.`);
+			}
+		}
+	}
+
+	export interface Library {
+		loadTexture(sa: SerializedAsset): Promise<render.Texture>;
+		textureByName(name: string): render.Texture | undefined;
+	}
+
+	const TextureLoader = <T extends Constructor<LibraryBase>>(Lib: T) =>
+		class extends Lib {
+			textures_ = new Map<string, render.Texture>();
+
+			constructor(...args: any[]) {
+				super(...args);
+				this.registerLoaderParser("texture", this.loadTexture);
+			}
+
+			loadTexture(sa: SerializedAsset) {
+				return this.loadData(sa)
+					.then(resource => this.processLoaderParser(parser.parseTexture(resource)))
+					.then(tex => {
+						this.textures_.set(sa.name, tex);
+						return tex;
+					});
+			}
+
+			textureByName(name: string) {
+				return this.textures_.get(name);
+			}
+		};
+
+	addLibraryExtension(TextureLoader);
+
+} // ns sd.asset
