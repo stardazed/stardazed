@@ -138,7 +138,7 @@ namespace sd.asset.parser {
 
 			// fill the colourValues list with the baseColour of each material
 			for (let matIx = 0; matIx < group.materials.length; ++matIx) {
-				container.setIndexedVec3(colourValues, matIx, group.materials[matIx].baseColour);
+				container.setIndexedVec3(colourValues, matIx, group.materials[matIx].colour.baseColour);
 			}
 
 			streams.push({
