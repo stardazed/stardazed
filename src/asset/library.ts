@@ -27,6 +27,9 @@ namespace sd.asset {
 		}
 
 		protected loadData<Metadata extends object>(sa: SerializedAsset): Promise<parser.RawAsset<Metadata>> {
+			if (sa.mimeType === undefined) {
+				sa.mimeType = parser.mimeTypeForFileExtension(io.fileExtensionOfURL(sa.path));
+			}
 			return this.loader_(sa.path, sa.mimeType).then(
 				blob => ({
 					blob,
