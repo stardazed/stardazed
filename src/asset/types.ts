@@ -1,4 +1,4 @@
-// asset/types - main asset types and functions
+// asset/types - WIP - main asset types and functions
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -12,92 +12,127 @@ namespace sd.asset {
 
 
 	export interface Texture2D extends AssetOld {
-		url?: URL;
-		mipMapMode: render.MipMapMode;
-		colourSpace: image.ColourSpace;
-		texture?: render.Texture;
-	}
-
-
-	export interface TextureCube extends AssetOld {
-		filePathPosX?: string;
-		filePathNegX?: string;
-		filePathPosY?: string;
-		filePathNegY?: string;
-		filePathPosZ?: string;
-		filePathNegZ?: string;
 		texture: render.Texture;
+		uvScale: Float2;
+		uvOffset: Float2;
+		anisotropy: number; // 1..16
 	}
 
 
-	export const enum MaterialFlags {
-		usesSpecular               = 0x00000001,
-		usesEmissive               = 0x00000002,
-		isTranslucent              = 0x00000004,
-
-		diffuseAlphaIsTransparency = 0x00000100,
-		diffuseAlphaIsOpacity      = 0x00000200,
-
-		normalAlphaIsHeight        = 0x00000800,
+	export const enum AlphaCoverage {
+		Ignore,
+		Mask,
+		Transparent
 	}
 
-
-	export interface Material extends AssetOld {
-		flags: MaterialFlags;
-
+	export interface DiffuseColourResponse {
+		type: "diffuse";
 		baseColour: Float3;
+		colourTexture?: Texture2D;
+	}
+
+	export interface DiffuseSpecularColourResponse {
+		type: "diffusespecular";
+		baseColour: Float3;
+		colourTexture?: Texture2D;
 
 		specularColour: Float3;
 		specularIntensity: number;
 		specularExponent: number;
+		specularTexture?: Texture2D;
+	}
+
+	export interface PBRMetallicColourResponse {
+		type: "pbrmetallic";
+		baseColour: Float3;
+		colourTexture?: Texture2D;
+
+		metallic: number; // 0: fully di-electric, 1: fully metallic
+		metallicTexture?: Texture2D;
+
+		roughness: number; // 0: fully smooth, 1: fully rough
+		roughnessTexture?: Texture2D;
+	}
+
+	export interface PBRSpecularColourResponse {
+		type: "pbrspecular";
+		baseColour: Float3;
+		colourTexture?: Texture2D;
+
+		specularColour: Float3;
+		specularTexture?: Texture2D;
+		
+		roughness: number; // 0: fully smooth (default), 1: fully rough
+		roughnessTexture?: Texture2D;
+	}
+
+	export type ColourResponse = DiffuseColourResponse | DiffuseSpecularColourResponse | PBRMetallicColourResponse | PBRSpecularColourResponse;
+	export type AnyColourResponse = DiffuseColourResponse & DiffuseSpecularColourResponse & PBRMetallicColourResponse & PBRSpecularColourResponse;
+
+	export const makeDiffuseResponse = (): DiffuseColourResponse => ({
+		type: "diffuse",
+		baseColour: [1, 1, 1]
+	});
+
+	export const makeDiffuseSpecularResponse = (source?: DiffuseColourResponse): DiffuseSpecularColourResponse => ({
+		...(source || makeDiffuseResponse()),
+		type: "diffusespecular",
+
+		specularColour: [0, 0, 0],
+		specularIntensity: 0,
+		specularExponent: 0,
+	});
+
+	export const makePBRMetallicResponse = (source?: DiffuseColourResponse): PBRMetallicColourResponse => ({
+		...(source || makeDiffuseResponse()),
+		type: "pbrmetallic",
+
+		metallic: 1,
+		roughness: 1,
+	});
+
+	export const makePBRSpecularResponse = (source?: DiffuseColourResponse): PBRSpecularColourResponse => ({
+		...(source || makeDiffuseResponse()),
+		type: "pbrspecular",
+
+		specularColour: [1, 1, 1],
+		roughness: 1,
+	});
+
+
+	export interface Material extends AssetOld {
+		colour: ColourResponse;
+		
+		alphaCoverage: AlphaCoverage;
+		opacity: number; // 0: fully transparent, 1: fully opaque (default)
+		alphaTexture?: Texture2D;
+
+		normalTexture?: Texture2D;
+		ambientOcclusionTexture?: Texture2D;
+
+		heightRange: number;
+		heightTexture?: Texture2D;
 
 		emissiveColour: Float3;
 		emissiveIntensity: number;
-
-		opacity: number; // 0: fully transparent, 1: fully opaque (default)
-		metallic: number; // 0: fully di-electric (default), 1: fully metallic
-		roughness: number; // 0: fully smooth (default), 1: fully rough
-		anisotropy: number; // 1..16
-
-		textureScale: Float2;
-		textureOffset: Float2;
-
-		albedoTexture?: Texture2D;	// TODO: change this to array of textures with typed channels
-		specularTexture?: Texture2D;
-		normalTexture?: Texture2D;
-		heightTexture?: Texture2D;
-		transparencyTexture?: Texture2D;
 		emissiveTexture?: Texture2D;
-
-		roughnessTexture?: Texture2D;
-		metallicTexture?: Texture2D;
-		ambientOcclusionTexture?: Texture2D;
 	}
 
+	export const makeMaterial = (name: string): Material => ({
+		name,
+		colour: {
+			type: "diffuse",
+			baseColour: [1, 1, 1]
+		},
 
-	export function makeMaterial(name?: string): Material {
-		return {
-			name: name || "",
-			flags: 0,
+		alphaCoverage: AlphaCoverage.Ignore,
+		opacity: 1,
 
-			baseColour: [1, 1, 1],
+		heightRange: 0,
 
-			specularColour: [0, 0, 0],
-			specularIntensity: 0,
-			specularExponent: 0,
-
-			emissiveColour: [0, 0, 0],
-			emissiveIntensity: 0,
-
-			textureScale: [1, 1],
-			textureOffset: [0, 0],
-
-			opacity: 1,
-			anisotropy: 1,
-			metallic: 0,
-			roughness: 0
-		};
-	}
+		emissiveColour: [0, 0, 0],
+		emissiveIntensity: 0,
+	});
 
 
 	export function makeTransform(): entity.Transform {
