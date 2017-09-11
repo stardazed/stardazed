@@ -31,6 +31,7 @@ namespace sd.asset.parser {
 
 	
 	interface OBJPreProcSource {
+		path: string;
 		lines: string[];
 
 		positionCount: number;
@@ -45,6 +46,7 @@ namespace sd.asset.parser {
 	function preflightOBJSource(path: string, text: string) {
 		let mtlFilePath = "";
 		const preproc: OBJPreProcSource = {
+			path,
 			lines: [],
 			positionCount: 0,
 			normalCount: 0,
@@ -204,7 +206,7 @@ namespace sd.asset.parser {
 				case "usemtl":
 					const newMatIx = matNameIndexMap.get(tokens[1]);
 					if (newMatIx === undefined) {
-						console.warn(`OBJ parser: tried to set material to non-existent name: "${tokens[1]}"`);
+						console.warn(`OBJ parser: referencing non-existent material: "${tokens[1]}" in asset "${preproc.path}"`);
 					}
 					else {
 						curMatIx = newMatIx;
