@@ -14,15 +14,17 @@ namespace sd.asset {
 		[key: string]: string | number | boolean | undefined;
 	}
 
+	export type LoaderParser = (sa: SerializedAsset, lib: Library) => Promise<any>;
+
 	export class LibraryBase {
 		private loader_: loader.Loader;
-		private loaderParserFuncs_: { [kind: string]: ((sa: SerializedAsset) => Promise<any>) | undefined; } = {};
+		private loaderParserFuncs_: { [kind: string]: LoaderParser | undefined; } = {};
 
 		constructor(roots: loader.AssetRootSpec[]) {
 			this.loader_ = loader.AssetLoader(roots);
 		}
 
-		protected registerLoaderParser(forKind: string, lp: (sa: SerializedAsset) => Promise<any>) {
+		protected registerLoaderParser(forKind: string, lp: LoaderParser) {
 			this.loaderParserFuncs_[forKind] = lp.bind(this);
 		}
 
@@ -44,7 +46,7 @@ namespace sd.asset {
 		loadAny(sa: SerializedAsset) {
 			const loaderParser = this.loaderParserFuncs_[sa.kind];
 			if (loaderParser) {
-				return loaderParser(sa);
+				return loaderParser(sa, this as any as Library);
 			}
 			return Promise.reject(new Error(`No registered parser for asset kind: ${sa.kind}, requested path: ${sa.path}`));
 		}
