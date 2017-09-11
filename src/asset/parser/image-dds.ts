@@ -7,12 +7,11 @@
 
 namespace sd.asset.parser {
 
-	export function parseDDSImage(resource: RawAsset<ImageAssetOptions>) {
-		return io.BlobReader.readAsArrayBuffer(resource.blob)
+	export const parseDDSImage = (resource: RawAsset<ImageAssetOptions>) =>
+		parseGenericBinary(resource)
 			.then(buf => {
 				return new DDSDataProvider(new Uint8ClampedArray(buf));
 			});
-	}
 
 	registerFileExtension("dds", "image/dds");
 	registerImageParser(parseDDSImage, "image/dds");

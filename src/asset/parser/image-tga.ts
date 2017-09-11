@@ -7,12 +7,11 @@
 
 namespace sd.asset.parser {
 
-	export function parseTGAImage(resource: RawAsset<ImageAssetOptions>) {
-		return io.BlobReader.readAsArrayBuffer(resource.blob)
+	export const parseTGAImage = (resource: RawAsset<ImageAssetOptions>) =>
+		parseGenericBinary(resource)
 			.then(buf => {
 				return new TGADataProvider(new Uint8ClampedArray(buf));
 			});
-	}
 
 	registerFileExtension("tga", "image/tga");
 	registerImageParser(parseTGAImage, "image/tga");

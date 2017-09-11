@@ -7,8 +7,8 @@
 
 namespace sd.asset.parser {
 
-	export function parseOBJGroup(resource: RawAsset<GroupAssetOptions>): Promise<AssetGroup> {
-		return io.BlobReader.readAsText(resource.blob)
+	export const parseOBJGroup = (resource: RawAsset<GroupAssetOptions>): Promise<AssetGroup> =>
+		parseGenericText(resource)
 			.then(text =>
 				preflightOBJSource(resource.path, text)
 			)
@@ -25,7 +25,6 @@ namespace sd.asset.parser {
 				objSequenceNumber += 1;
 				return group;
 			});
-	}
 
 	registerFileExtension("obj", "application/wavefront-obj");
 	registerGroupParser(parseOBJGroup, "application/wavefront-obj");
