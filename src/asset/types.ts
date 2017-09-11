@@ -104,6 +104,7 @@ namespace sd.asset {
 		colour: ColourResponse;
 		
 		alphaCoverage: AlphaCoverage;
+		alphaCutoff: number;
 		opacity: number; // 0: fully transparent, 1: fully opaque (default)
 		alphaTexture?: Texture2D;
 
@@ -126,6 +127,7 @@ namespace sd.asset {
 		},
 
 		alphaCoverage: AlphaCoverage.Ignore,
+		alphaCutoff: 0,
 		opacity: 1,
 
 		heightRange: 0,
