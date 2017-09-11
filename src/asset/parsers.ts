@@ -42,8 +42,8 @@ namespace sd.asset.parser {
 	export interface RawAsset<Metadata extends object> {
 		blob: Blob;
 		kind: string;
-		path: string;
 		name: string;
+		path?: string;
 		metadata: Partial<Metadata>;
 	}
 

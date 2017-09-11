@@ -8,7 +8,7 @@ namespace sd.asset {
 	export interface SerializedAsset {
 		name: string;
 		kind: string;
-		path: string;
+		path?: string;
 		mimeType?: string;
 		// metadata
 		[key: string]: string | number | boolean | undefined;
@@ -29,10 +29,13 @@ namespace sd.asset {
 		}
 
 		protected loadData<Metadata extends object>(sa: SerializedAsset): Promise<parser.RawAsset<Metadata>> {
-			if (sa.mimeType === undefined) {
+			if (sa.mimeType === undefined && sa.path) {
 				sa.mimeType = parser.mimeTypeForFileExtension(io.fileExtensionOfURL(sa.path));
 			}
-			return this.loader_(sa.path, sa.mimeType).then(
+
+			const dataPromise = sa.path ? this.loader_(sa.path, sa.mimeType) : Promise.resolve(new Blob());
+
+			return dataPromise.then(
 				blob => ({
 					blob,
 					name: sa.name,

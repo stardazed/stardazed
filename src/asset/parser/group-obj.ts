@@ -10,7 +10,7 @@ namespace sd.asset.parser {
 	export const parseOBJGroup = (resource: RawAsset<GroupAssetOptions>): Promise<AssetGroup> =>
 		parseGenericText(resource)
 			.then(text =>
-				preflightOBJSource(resource.path, text)
+				preflightOBJSource(resource.path || "", text)
 			)
 			.then(preproc => {
 				const group = parseOBJSource(preproc, false);

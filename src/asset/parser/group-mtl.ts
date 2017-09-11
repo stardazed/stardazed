@@ -9,7 +9,7 @@ namespace sd.asset.parser {
 
 	export const parseMTLGroup = (resource: RawAsset<GroupAssetOptions>) =>
 		parseGenericText(resource).then(text =>
-			parseMTLSource(resource.path, text)
+			parseMTLSource(resource.path || "", text)
 		);
 
 	registerFileExtension("mtl", "application/wavefront-mtl");
