@@ -14,10 +14,13 @@ namespace sd.io {
 		return "";
 	}
 
-	export function localURL(path: string) {
-		return new URL(path, document.baseURI!);
-	}
+	export const localURL = (path: string) =>
+		new URL(path, document.baseURI!);
 
+	export const resolveRelativePath = (relPath: string, basePath: string) => 
+		(new URL(relPath, "file:///" + basePath)).pathname;
+
+		
 	export const enum FileLoadType {
 		ArrayBuffer = 1,
 		Blob,
