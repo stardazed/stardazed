@@ -119,12 +119,9 @@ namespace sd.asset {
 		emissiveTexture?: Texture2D;
 	}
 
-	export const makeMaterial = (name: string): Material => ({
+	export const makeMaterial = (name: string, colour?: ColourResponse): Material => ({
 		name,
-		colour: {
-			type: "diffuse",
-			baseColour: [1, 1, 1]
-		},
+		colour: colour || makeDiffuseResponse(),
 
 		alphaCoverage: AlphaCoverage.Ignore,
 		alphaCutoff: 0,
