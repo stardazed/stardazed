@@ -10,7 +10,6 @@ namespace sd.asset {
 	export namespace parser {
 
 		export interface GroupAssetOptions {
-			loader: loader.Loader;
 		}
 		
 		export type GroupAssetParser = AssetParser<AssetGroup, Partial<GroupAssetOptions>>;

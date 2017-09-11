@@ -14,7 +14,13 @@ namespace sd.asset {
 		[key: string]: string | number | boolean | undefined;
 	}
 
-	export type LoaderParser = (sa: SerializedAsset, lib: Library) => Promise<any>;
+	export const isSerializedAsset = (sa: any): sa is SerializedAsset => {
+		return typeof sa.name === "string" &&
+			typeof sa.kind === "string" &&
+			(typeof sa.path === "string" || typeof sa.path === "undefined");
+	};
+
+	export type LoaderParser = (sa: SerializedAsset) => Promise<any> | Iterator<SerializedAsset[] | any>;
 
 	export class LibraryBase {
 		private loader_: loader.Loader;
@@ -46,10 +52,30 @@ namespace sd.asset {
 			);
 		}
 
+		protected async processLoaderParser(res: Promise<any> | Iterator<any>) {
+			if (res instanceof Promise) {
+				return res;
+			}
+			else {
+				let subAssets: any[] | undefined;
+				do {
+					const itr = res.next(subAssets);
+					if (itr.done) {
+						return itr.value;
+					}
+					else {
+						const sas: SerializedAsset[] = itr.value;
+						assert(Array.isArray(sas) && sas.every(sa => isSerializedAsset(sa)), "Library: Iterator AssetParser must yield only arrays of SerializedAssets");
+						subAssets = await this.loadAssetFile(sas);
+					}
+				} while (true);
+			}
+		}
+
 		loadAny(sa: SerializedAsset) {
 			const loaderParser = this.loaderParserFuncs_[sa.kind];
 			if (loaderParser) {
-				return loaderParser(sa, this as any as Library);
+				return this.processLoaderParser(loaderParser(sa));
 			}
 			return Promise.reject(new Error(`No registered parser for asset kind: ${sa.kind}, requested path: ${sa.path}`));
 		}
