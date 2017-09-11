@@ -77,10 +77,7 @@ namespace sd.asset.parser {
 			}
 		}
 
-		if (mtlFileRelPath.length) {
-			// return parseMTLGroup(new URL(mtlFileRelPath, filePath), group).then(_ => {
-				// return preproc;
-			// });
+		if (mtlFilePath.length) {
 			return Promise.resolve(preproc);
 		}
 		else {
@@ -207,8 +204,7 @@ namespace sd.asset.parser {
 				case "usemtl":
 					const newMatIx = matNameIndexMap.get(tokens[1]);
 					if (newMatIx === undefined) {
-						// issue an error/warning
-						console.warn(`Tried to set material to non-existent name: ${tokens[1]}`);
+						console.warn(`OBJ parser: tried to set material to non-existent name: "${tokens[1]}"`);
 					}
 					else {
 						curMatIx = newMatIx;
