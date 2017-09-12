@@ -16,16 +16,10 @@ namespace sd.asset.parser {
 	registerGroupParser(parseMTLGroup, "application/wavefront-mtl");
 		
 
-	interface MTLTextureSpec {
-		path: string;
-		texOffset?: number[];
-		texScale?: number[];
-	}
-
 	interface MTLMaterial {
 		name: string;
 		colours: { [type: string]: Float3 | undefined };
-		textures: { [type: string]: MTLTextureSpec | undefined };
+		textures: { [type: string]: SerializedAsset | undefined };
 		specularExponent?: number;
 		opacity?: number;
 		roughness?: number;
@@ -149,7 +143,7 @@ namespace sd.asset.parser {
 	}
 
 
-	function parseMTLTextureSpec(basePath: string, line: string[]): MTLTextureSpec | undefined {
+	function parseMTLTextureSpec(directive: string, basePath: string, line: string[]): SerializedAsset | undefined {
 		if (line.length < 2) {
 			return undefined;
 		}
@@ -159,8 +153,15 @@ namespace sd.asset.parser {
 		// the last token is the relative path of the texture (no spaces allowed)
 		const relPath = tokens.pop()!;
 
-		const spec: MTLTextureSpec = {
-			path: io.resolveRelativePath(relPath, basePath)
+		const spec: SerializedAsset = {
+			kind: "texture",
+			name: `mtl_tex_${relPath}`,
+			image: {
+				kind: "image",
+				path: io.resolveRelativePath(relPath, basePath),
+				name: "mtl_img_${relPath}"
+			},
+			colourSpace: (["Kd", "Ks", "Ke"].indexOf(directive) > -1) ? "srgb" : "linear"
 		};
 
 		// what remains are texture options
@@ -181,10 +182,10 @@ namespace sd.asset.parser {
 						}
 						else {
 							if (opt === "-o") {
-								spec.texOffset = xy;
+								spec.uvOffset = xy;
 							}
 							else {
-								spec.texScale = xy;
+								spec.uvScale = xy;
 							}
 						}
 					}
@@ -320,7 +321,7 @@ namespace sd.asset.parser {
 						case "norm":
 						case "bump":
 						case "disp": {
-							const texSpec = parseMTLTextureSpec(directive, tokens);
+							const texSpec = parseMTLTextureSpec(directive, path, tokens);
 							if (texSpec) {
 								if (directive === "map_Tr") {
 									console.warn(`MTL parser: unsupported map_Tr texture (convert to a map_d) for material "${curMat.name}" in asset "${path}"`);
