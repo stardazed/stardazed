@@ -13,7 +13,7 @@ namespace sd.asset.parser {
 		);
 
 	registerFileExtension("mtl", "application/wavefront-mtl");
-	registerGroupParser(parseMTLGroup, "application/wavefront-mtl");
+	registerGroupParser(parseMTLGroup as any, "application/wavefront-mtl");
 		
 
 	interface MTLMaterial {
@@ -33,7 +33,7 @@ namespace sd.asset.parser {
 		textures: {}
 	});
 
-	function resolveMTLColourResponse(mtl: MTLMaterial): ColourResponse {
+	function* resolveMTLColourResponse(mtl: MTLMaterial) {
 		const allMTLKeys = Object.keys(mtl).concat(Object.keys(mtl.colours)).concat(Object.keys(mtl.textures));
 		const mtlIncludesSome = (tests: string[]) =>
 			tests.some(t => allMTLKeys.indexOf(t) > -1);
@@ -101,14 +101,14 @@ namespace sd.asset.parser {
 
 		// shared among all colour response types
 		if (mtl.textures["map_Kd"]) {
-			//
+			colour.colourTexture = (yield [mtl.textures["map_Kd"]!])[0];
 		}
 		colour.baseColour = mtl.colours["Kd"] || [1, 1, 1];
 		return colour;
 	}
 
-	function resolveMTLMaterial(mtl: MTLMaterial): Material {
-		const colour = resolveMTLColourResponse(mtl);
+	function* resolveMTLMaterial(mtl: MTLMaterial) {
+		const colour = yield* resolveMTLColourResponse(mtl);
 		const material = makeMaterial(mtl.name, colour);
 
 		// alpha
@@ -204,7 +204,7 @@ namespace sd.asset.parser {
 	}
 
 
-	function parseMTLSource(path: string, text: string) {
+	function* parseMTLSource(path: string, text: string) {
 		const group = new AssetGroup();
 
 		const lines = text.split("\n");
@@ -238,7 +238,7 @@ namespace sd.asset.parser {
 			if (directive === "newmtl") {
 				if (checkArgCount(directive, 1)) {
 					if (curMat) {
-						group.addMaterial(resolveMTLMaterial(curMat));
+						group.addMaterial(yield* resolveMTLMaterial(curMat));
 					}
 					const matName = tokens[1];
 					curMat = makeMTLMaterial(matName);
@@ -345,7 +345,7 @@ namespace sd.asset.parser {
 		}
 
 		if (curMat) {
-			group.addMaterial(resolveMTLMaterial(curMat));
+			group.addMaterial(yield* resolveMTLMaterial(curMat));
 		}
 
 		return group;
