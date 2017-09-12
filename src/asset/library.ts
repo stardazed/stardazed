@@ -13,7 +13,7 @@ namespace sd.asset {
 		path?: string;
 		mimeType?: string;
 		// metadata
-		[key: string]: string | number | boolean | undefined;
+		[key: string]: any;
 	}
 
 	export const isSerializedAsset = (sa: any): sa is SerializedAsset => {
@@ -54,9 +54,16 @@ namespace sd.asset {
 			);
 		}
 
-		protected async processLoaderParser(res: Promise<any> | Iterator<any>) {
+		protected async processLoaderParser(res: Promise<any> | Iterator<any>): Promise<any> {
 			if (res instanceof Promise) {
-				return res;
+				return res.then(internal => {
+					if (isIterator(internal)) {
+						return this.processLoaderParser(internal);
+					}
+					else {
+						return internal;
+					}
+				});
 			}
 			else {
 				let subAssets: any[] | undefined;
