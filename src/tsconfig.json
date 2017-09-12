@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"module": "amd",
-		"target": "es5",
+		"target": "es2015",
 
 		"outFile": "../dist/stardazed.js",
 		"declaration": true,
