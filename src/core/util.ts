@@ -54,6 +54,8 @@ namespace sd {
 		return Object.freeze(lut);
 	}
 
+	export const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
+
 	/**
 	 * Mix-in constructor type used for TS-style class mix-ins
 	 */
