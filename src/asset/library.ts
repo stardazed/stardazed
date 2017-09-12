@@ -20,7 +20,7 @@ namespace sd.asset {
 			(typeof sa.path === "string" || typeof sa.path === "undefined");
 	};
 
-	export type LoaderParser = (sa: SerializedAsset) => Promise<any> | Iterator<SerializedAsset[] | any>;
+	export type LoaderParser = (sa: SerializedAsset) => Promise<any> | Iterator<any>;
 
 	export class LibraryBase {
 		private loader_: loader.Loader;

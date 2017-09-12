@@ -25,7 +25,7 @@ namespace sd.asset {
 		 * @param resource The source data to be parsed
 		 */
 		export function parseImage(resource: RawAsset<ImageAssetOptions>) {
-			return new Promise<image.PixelDataProvider>((resolve, reject) => {
+			return new Promise<image.PixelDataProvider | Iterator<image.PixelDataProvider>>((resolve, reject) => {
 				const mimeType = resource.blob.type;
 				const imgParser = imageParsers.get(mimeType);
 				if (! imgParser) {

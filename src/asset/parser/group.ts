@@ -25,7 +25,7 @@ namespace sd.asset {
 		 * @param resource The source data to be parsed
 		 */
 		export function parseGroup(resource: RawAsset<GroupAssetOptions>) {
-			return new Promise<AssetGroup>((resolve, reject) => {
+			return new Promise<AssetGroup | Iterator<AssetGroup>>((resolve, reject) => {
 				const mimeType = resource.blob.type;
 				const groupParser = groupParsers.get(mimeType);
 				if (! groupParser) {

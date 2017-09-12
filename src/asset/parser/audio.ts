@@ -15,7 +15,7 @@ namespace sd.asset {
 		 * Create an AudioBuffer for an asset blob
 		 * @param resource The source data to be parsed
 		 */
-		export const parseAudio = (resource: RawAsset<AudioAssetOptions>) =>
+		export const parseAudio: AssetParser<AudioBuffer, AudioAssetOptions> = (resource: RawAsset<AudioAssetOptions>) =>
 			parseGenericBinary(resource).then(
 				data => new Promise<AudioBuffer>((resolve, reject) => {
 					audio.sharedAudioContext().decodeAudioData(
