@@ -7,24 +7,11 @@
 
 namespace sd.asset.parser {
 
-	export const parseOBJGroup = (resource: RawAsset<GroupAssetOptions>): Promise<AssetGroup> =>
+	export const parseOBJGroup = (resource: RawAsset<GroupAssetOptions>): Promise<AssetGroup | Iterator<AssetGroup>> =>
 		parseGenericText(resource)
 			.then(text =>
-				preflightOBJSource(resource.path || "", text)
-			)
-			.then(preproc => {
-				const group = parseOBJSource(preproc, false);
-
-				// add the linked object as a Model to the group
-				const model = asset.makeModel(`obj_${objSequenceNumber}_model`);
-				model.mesh = group.meshes[0];
-				model.materials = group.materials;
-				model.transform = asset.makeTransform();
-				group.addModel(model);
-
-				objSequenceNumber += 1;
-				return group;
-			});
+				parseOBJ(resource.path || "", text, false)
+			) as any;
 
 	registerFileExtension("obj", "application/wavefront-obj");
 	registerGroupParser(parseOBJGroup, "application/wavefront-obj");
@@ -33,6 +20,7 @@ namespace sd.asset.parser {
 	interface OBJPreProcSource {
 		path: string;
 		lines: string[];
+		group: AssetGroup;
 
 		positionCount: number;
 		normalCount: number;
@@ -43,10 +31,11 @@ namespace sd.asset.parser {
 	}
 
 
-	function preflightOBJSource(path: string, text: string) {
+	function* preflightOBJSource(path: string, text: string) {
 		let mtlFilePath = "";
 		const preproc: OBJPreProcSource = {
 			path,
+			group: new AssetGroup(),
 			lines: [],
 			positionCount: 0,
 			normalCount: 0,
@@ -80,18 +69,16 @@ namespace sd.asset.parser {
 		}
 
 		if (mtlFilePath.length) {
-			return Promise.resolve(preproc);
+			preproc.group = (yield [{ kind: "group", path: mtlFilePath, name: "mtl_" }])[0];
 		}
-		else {
-			return Promise.resolve(preproc);
-		}
+		return preproc;
 	}
 
 
 	let objSequenceNumber = 0;
 
 	function parseOBJSource(preproc: OBJPreProcSource, hasColourAttr: boolean) {
-		const group = new AssetGroup();
+		const group = preproc.group;
 
 		const positions: Float32Array = new Float32Array(preproc.positionCount * 3);
 		const positionIndexes = new Uint32Array(preproc.vertexCount);
@@ -219,6 +206,21 @@ namespace sd.asset.parser {
 		}
 
 		group.addMesh(builder.complete());
+		return group;
+	}
+
+	function* parseOBJ(path: string, text: string, hasColourAttr: boolean) {
+		const preproc = yield* preflightOBJSource(path, text);
+		const group = parseOBJSource(preproc, hasColourAttr);
+
+		// add the linked object as a Model to the group
+		const model = asset.makeModel(`obj_${objSequenceNumber}_model`);
+		model.mesh = group.meshes[0];
+		model.materials = group.materials;
+		model.transform = asset.makeTransform();
+		group.addModel(model);
+
+		objSequenceNumber += 1;
 		return group;
 	}
 
