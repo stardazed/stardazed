@@ -3,6 +3,8 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
+/// <reference path="./parsers.ts" />
+
 namespace sd.asset {
 
 	export interface SerializedAsset {
@@ -90,6 +92,36 @@ namespace sd.asset {
 
 	export const addLibraryExtension = (mixin: LibraryExtension) => {
 		mixins.push(mixin);
+	};
+
+	export const registerAssetLoaderParser = <R, M extends object>(kind: string, assetParser: parser.AssetParser<R, M>) => {
+		const cacheArrayName = `${kind}s_`;
+		const loadFuncName = `load${capitalize(kind)}`;
+		const lookupFuncName = `${kind}ByName`;
+
+		const LoaderMixin = <T extends Constructor<LibraryBase>>(Lib: T) =>
+			class extends Lib {
+				constructor(...args: any[]) {
+					super(...args);
+					(this as any)[cacheArrayName] = new Map<string, R>();
+					this.registerLoaderParser(kind, (this as any)[loadFuncName]);
+				}
+
+				[loadFuncName](sa: SerializedAsset) {
+					return this.loadData(sa)
+						.then(resource => this.processLoaderParser(assetParser(resource)))
+						.then(tex => {
+							(this as any)[cacheArrayName].set(sa.name, tex);
+							return tex;
+						});
+				}
+
+				[lookupFuncName](name: string) {
+					return (this as any)[cacheArrayName].get(name);
+				}
+			};
+
+		addLibraryExtension(LoaderMixin);
 	};
 
 	export interface Library {

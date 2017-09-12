@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../parsers.ts" />
+/// <reference path="../library.ts" />
 
 namespace sd.asset {
 
@@ -78,30 +78,6 @@ namespace sd.asset {
 		loadTexture(sa: SerializedAsset): Promise<render.Texture>;
 		textureByName(name: string): render.Texture | undefined;
 	}
-
-	const TextureLoader = <T extends Constructor<LibraryBase>>(Lib: T) =>
-		class extends Lib {
-			textures_ = new Map<string, render.Texture>();
-
-			constructor(...args: any[]) {
-				super(...args);
-				this.registerLoaderParser("texture", this.loadTexture);
-			}
-
-			loadTexture(sa: SerializedAsset) {
-				return this.loadData(sa)
-					.then(resource => this.processLoaderParser(parser.parseTexture(resource)))
-					.then(tex => {
-						this.textures_.set(sa.name, tex);
-						return tex;
-					});
-			}
-
-			textureByName(name: string) {
-				return this.textures_.get(name);
-			}
-		};
-
-	addLibraryExtension(TextureLoader);
+	registerAssetLoaderParser("texture", parser.parseTexture);
 
 } // ns sd.asset

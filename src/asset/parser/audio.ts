@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../parsers.ts" />
+/// <reference path="../library.ts" />
 
 namespace sd.asset {
 
@@ -46,30 +46,6 @@ namespace sd.asset {
 		loadAudio(sa: SerializedAsset): Promise<AudioBuffer>;
 		audioByName(name: string): AudioBuffer | undefined;
 	}
-
-	const AudioLoader = <T extends Constructor<LibraryBase>>(Lib: T) =>
-		class extends Lib {
-			audio_ = new Map<string, AudioBuffer>();
-
-			constructor(...args: any[]) {
-				super(...args);
-				this.registerLoaderParser("audio", this.loadAudio);
-			}
-
-			loadAudio(sa: SerializedAsset) {
-				return this.loadData(sa)
-					.then(resource => parser.parseAudio(resource))
-					.then(ab => {
-						this.audio_.set(sa.name, ab);
-						return ab;
-					});
-			}
-
-			audioByName(name: string) {
-				return this.audio_.get(name);
-			}
-		};
-
-	addLibraryExtension(AudioLoader);
+	registerAssetLoaderParser("audio", parser.parseAudio);
 
 } // ns sd.asset

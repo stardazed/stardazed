@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../parsers.ts" />
+/// <reference path="../library.ts" />
 
 namespace sd.asset {
 
@@ -41,30 +41,6 @@ namespace sd.asset {
 		loadGroup(sa: SerializedAsset): Promise<AssetGroup>;
 		groupByName(name: string): AssetGroup | undefined;
 	}
-
-	const GroupAsset = <T extends Constructor<LibraryBase>>(Lib: T) =>
-		class extends Lib {
-			groups_ = new Map<string, AssetGroup>();
-
-			constructor(...args: any[]) {
-				super(...args);
-				this.registerLoaderParser("group", this.loadGroup);
-			}
-
-			loadGroup(sa: SerializedAsset) {
-				return this.loadData(sa)
-					.then(resource => parser.parseGroup(resource))
-					.then(ag => {
-						this.groups_.set(sa.name, ag);
-						return ag;
-					});
-			}
-
-			groupByName(name: string) {
-				return this.groups_.get(name);
-			}
-		};
-
-	addLibraryExtension(GroupAsset);
+	registerAssetLoaderParser("group", parser.parseGroup);
 
 } // ns sd.asset

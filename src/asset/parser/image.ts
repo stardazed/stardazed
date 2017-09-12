@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../parsers.ts" />
+/// <reference path="../library.ts" />
 
 namespace sd.asset {
 
@@ -40,30 +40,6 @@ namespace sd.asset {
 		loadImage(sa: SerializedAsset): Promise<image.PixelDataProvider>;
 		imageByName(name: string): image.PixelDataProvider | undefined;
 	}
-
-	const ImageLoader = <T extends Constructor<LibraryBase>>(Lib: T) =>
-		class extends Lib {
-			images_ = new Map<string, image.PixelDataProvider>();
-
-			constructor(...args: any[]) {
-				super(...args);
-				this.registerLoaderParser("image", this.loadImage);
-			}
-
-			loadImage(sa: SerializedAsset) {
-				return this.loadData(sa)
-					.then(resource => parser.parseImage(resource))
-					.then(pdp => {
-						this.images_.set(sa.name, pdp);
-						return pdp;
-					});
-			}
-
-			imageByName(name: string) {
-				return this.images_.get(name);
-			}
-		};
-
-	addLibraryExtension(ImageLoader);
+	registerAssetLoaderParser("image", parser.parseImage);
 
 } // ns sd.asset
