@@ -60,5 +60,12 @@ namespace sd {
 	 * Mix-in constructor type used for TS-style class mix-ins
 	 */
 	export type Constructor<T> = new (...args: any[]) => T;
+
+	export const isIterator = <T = any>(it: any): it is Iterator<T> => {
+		if (typeof it === "object") {
+			return typeof it.next === "function" && it.next.length === 1;
+		}
+		return false;
+	};
 	
 } // ns sd
