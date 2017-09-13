@@ -69,7 +69,7 @@ namespace sd.asset.parser {
 		}
 
 		if (mtlFilePath.length) {
-			preproc.group = (yield [{ kind: "group", path: mtlFilePath, name: "mtl_" }])[0];
+			preproc.group = yield { kind: "group", path: mtlFilePath, name: `mtl_${objSequenceNumber}` };
 		}
 		return preproc;
 	}
