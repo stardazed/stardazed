@@ -50,7 +50,7 @@ namespace sd.asset {
 			})[filt!];
 		};
 
-		export type TextureAssetParser = AssetParser<render.Texture, Partial<TextureAssetOptions>>;
+		export type TextureAssetParser = AssetParser<Texture2D, Partial<TextureAssetOptions>>;
 
 		/**
 		 * Create a Texture for an asset blob
@@ -59,14 +59,22 @@ namespace sd.asset {
 		export function* parseTexture(resource: RawAsset<TextureAssetOptions>) {
 			const imageSA = resource.metadata.image;
 			if (imageSA && imageSA.kind === "image") {
-				const images: image.PixelDataProvider[] = yield [imageSA];
+				const image: image.PixelDataProvider = yield imageSA;
 				const mipmaps = parseMipMapMode(resource.metadata.mipmaps);
 				const repeatS = parseRepeat(resource.metadata.repeatS);
 				const repeatT = parseRepeat(resource.metadata.repeatT);
 				const filtering = parseFiltering(resource.metadata.filtering);
 				console.info(repeatS, repeatT, filtering); // make TS shut up about unused items
-				const texture = render.makeTex2DFromProvider(images[0], mipmaps);
-				return texture;
+				const texture = render.makeTex2DFromProvider(image, mipmaps);
+
+				const tex2D: Texture2D = {
+					texture,
+					name: "",
+					uvOffset: [0, 0],
+					uvScale: [1, 1],
+					anisotropy: 1
+				};
+				return tex2D;
 			}
 			else {
 				throw new Error(`Texture parser: required image sub-resource is missing.`);
@@ -75,8 +83,8 @@ namespace sd.asset {
 	}
 
 	export interface Library {
-		loadTexture(sa: SerializedAsset): Promise<render.Texture>;
-		textureByName(name: string): render.Texture | undefined;
+		loadTexture(sa: SerializedAsset): Promise<Texture2D>;
+		textureByName(name: string): Texture2D | undefined;
 	}
 	registerAssetLoaderParser("texture", parser.parseTexture);
 
