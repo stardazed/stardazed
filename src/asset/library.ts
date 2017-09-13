@@ -8,8 +8,8 @@
 namespace sd.asset {
 
 	export interface SerializedAsset {
-		name: string;
 		kind: string;
+		name: string;
 		path?: string;
 		mimeType?: string;
 		// metadata
@@ -66,16 +66,23 @@ namespace sd.asset {
 				});
 			}
 			else {
-				let subAssets: any[] | undefined;
+				let subAssets: any[] | any | undefined; // evals to just "any", but explicitly specified here for doc-purposes
 				do {
 					const itr = res.next(subAssets);
 					if (itr.done) {
 						return itr.value;
 					}
 					else {
-						const sas: SerializedAsset[] = itr.value;
-						assert(Array.isArray(sas) && sas.every(sa => isSerializedAsset(sa)), "Library: Iterator AssetParser must yield only arrays of SerializedAssets");
-						subAssets = await this.loadAssetFile(sas);
+						const sas: SerializedAsset | SerializedAsset[] = itr.value;
+						if (Array.isArray(sas)) {
+							assert(sas.every(sa => isSerializedAsset(sa)), "Library: Iterator AssetParser must yield only (arrays of) SerializedAssets");
+							subAssets = await this.loadAssetFile(sas);
+						}
+						else {
+							assert(isSerializedAsset(sas), "Library: Iterator AssetParser must yield only (arrays of) SerializedAssets");
+							subAssets = await this.loadAny(sas);
+						}
+						
 					}
 				} while (true);
 			}
