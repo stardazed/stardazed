@@ -44,6 +44,9 @@ namespace sd.asset.parser {
 		if (mtlIncludesSome(["metallic", "roughness", "map_Pr", "map_Pm"])) {
 			// PBR colour response
 			let pbr: PBRMetallicColourResponse | PBRSpecularColourResponse;
+			let metallicTexAsset: SerializedAsset | undefined;
+			let roughnessTexAsset: SerializedAsset | undefined;
+
 			if (mtlIncludesSome(["metallic", "map_Pm"])) {
 				// PBR Metallic
 				pbr = makePBRMetallicResponse();
@@ -51,7 +54,7 @@ namespace sd.asset.parser {
 					pbr.metallic = mtl.metallic;
 				}
 				if (mtl.textures["map_Pm"]) {
-					// 
+					metallicTexAsset = mtl.textures["map_Pm"]!;
 				}
 			}
 			else {
@@ -59,7 +62,7 @@ namespace sd.asset.parser {
 				pbr = makePBRSpecularResponse();
 				const specTex = mtl.textures["map_Ks"];
 				if (specTex) {
-					//
+					pbr.specularTexture = yield mtl.textures["map_Ks"]!;
 				}
 				// if spec tex exists, the colour is a multiplier, otherwise default to
 				// dielectric specular standard response, 4% gray.
@@ -71,8 +74,24 @@ namespace sd.asset.parser {
 				pbr.roughness = mtl.roughness;
 			}
 			if (mtl.textures["map_Pr"]) {
-				// 
+				roughnessTexAsset = mtl.textures["map_Pm"]!;
 			}
+
+			// resolve potentially shared RM texture
+			if (metallicTexAsset || roughnessTexAsset) {
+				if (metallicTexAsset && roughnessTexAsset && metallicTexAsset.path === roughnessTexAsset.path) {
+					pbr.roughnessTexture = (pbr as PBRMetallicColourResponse).metallicTexture = yield roughnessTexAsset;
+				}
+				else {
+					if (metallicTexAsset) {
+						(pbr as PBRMetallicColourResponse).metallicTexture = yield metallicTexAsset;
+					}
+					if (roughnessTexAsset) {
+						pbr.roughnessTexture = yield roughnessTexAsset;
+					}
+				}
+			}
+
 			colour = pbr;
 		}
 		else {
@@ -83,7 +102,7 @@ namespace sd.asset.parser {
 				classic = makeDiffuseSpecularResponse();
 				const specTex = mtl.textures["map_Ks"];
 				if (specTex) {
-					//
+					classic.specularTexture = yield mtl.textures["map_Ks"]!;
 				}
 				// if spec tex exists, the colour is a multiplier, otherwise default to
 				// dielectric specular standard response, 4% gray.
@@ -101,7 +120,7 @@ namespace sd.asset.parser {
 
 		// shared among all colour response types
 		if (mtl.textures["map_Kd"]) {
-			colour.colourTexture = (yield [mtl.textures["map_Kd"]!])[0];
+			colour.colourTexture = yield mtl.textures["map_Kd"]!;
 		}
 		colour.baseColour = mtl.colours["Kd"] || [1, 1, 1];
 		return colour;
@@ -111,33 +130,50 @@ namespace sd.asset.parser {
 		const colour = yield* resolveMTLColourResponse(mtl);
 		const material = makeMaterial(mtl.name, colour);
 
-		// alpha
+		// alpha, can be same as colour texture
 		if (mtl.textures["map_d"]) {
 			material.alphaCoverage = AlphaCoverage.Mask;
 			material.alphaCutoff = 0.5;
-			//
+			
+			const alphaTexAsset = mtl.textures["map_d"]!;
+			const colourTexAsset = mtl.textures["map_Kd"];
+			if (colourTexAsset && colourTexAsset.path === alphaTexAsset.path) {
+				material.alphaTexture = colour.colourTexture;
+			}
+			else {
+				material.alphaTexture = yield alphaTexAsset;
+			}
 		}
 
-		// normal
-		if (mtl.textures["norm"]) {
-			//
-		}
-
-		// height
-		if (mtl.textures["disp"]) {
+		// normal and height
+		const normalTexAsset = mtl.textures["norm"];
+		const heightTexAsset = mtl.textures["disp"];
+		if (heightTexAsset) {
 			material.heightRange = 0.04;
-			//
+		}
+		if (normalTexAsset && heightTexAsset && normalTexAsset.path === heightTexAsset.path) {
+			material.normalTexture = material.heightTexture = yield normalTexAsset;
+		}
+		else {
+			if (normalTexAsset) {
+				material.normalTexture = yield normalTexAsset;
+			}
+			if (heightTexAsset) {
+				material.heightTexture = yield heightTexAsset;
+			}
 		}
 
 		// emissive
 		if (mtl.textures["map_Ke"] || mtl.colours["Ke"]) {
 			material.emissiveIntensity = 1;
 			material.emissiveColour = mtl.colours["Ke"] || [1, 1, 1];
-			//
+			if (mtl.textures["map_Ke"]) {
+				material.emissiveTexture = yield mtl.textures["map_Ke"];
+			}
 		}
 
 		// anisotropy
-		// apply mtl.anisotropy to all textures
+		// TODO: apply mtl.anisotropy to all textures
 
 		return material;
 	}
@@ -156,12 +192,13 @@ namespace sd.asset.parser {
 		const spec: SerializedAsset = {
 			kind: "texture",
 			name: `mtl_tex_${relPath}`,
+			mipmaps: "regenerate",
 			image: {
 				kind: "image",
 				path: io.resolveRelativePath(relPath, basePath),
-				name: "mtl_img_${relPath}"
+				name: "mtl_img_${relPath}",
+				colourSpace: (["map_Kd", "map_Ks", "map_Ke"].indexOf(directive) > -1) ? "srgb" : "linear",
 			},
-			colourSpace: (["Kd", "Ks", "Ke"].indexOf(directive) > -1) ? "srgb" : "linear"
 		};
 
 		// what remains are texture options
@@ -178,7 +215,7 @@ namespace sd.asset.parser {
 							parseFloat(tokens[++tix])
 						];
 						if (isNaN(xy[0]) || isNaN(xy[1])) {
-							// TODO: report invalid vector
+							console.warn(`MTL parser: invalid vector for texture option ${opt} in line "${line.join(" ")}" in asset ${basePath}"`);
 						}
 						else {
 							if (opt === "-o") {
@@ -190,7 +227,8 @@ namespace sd.asset.parser {
 						}
 					}
 					else {
-						// TODO: report invalid option
+						// malformed options probably means big trouble so return nothing, warning is issued in calling function
+						return undefined;
 					}
 					break;
 				default:
@@ -327,7 +365,8 @@ namespace sd.asset.parser {
 									console.warn(`MTL parser: unsupported map_Tr texture (convert to a map_d) for material "${curMat.name}" in asset "${path}"`);
 								}
 								else {
-									curMat.textures[directive] = texSpec;
+									const texType = directive === "bump" ? "norm" : directive;
+									curMat.textures[texType] = texSpec;
 								}
 							}
 							else {
