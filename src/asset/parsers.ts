@@ -56,6 +56,27 @@ namespace sd.asset.parser {
 
 
 	/**
+	 * Helper that returns the external data of an asset as an ArrayBuffer.
+	 */
+	export const getArrayBuffer = (ra: RawAsset) =>
+		ra.dataBlob ? io.BlobReader.readAsArrayBuffer(ra.dataBlob) : Promise.reject("getArrayBuffer: no blobData in RawAsset");
+
+	/**
+	 * Helper that returns the external data of an asset as a string.
+	 */
+	export const getText = (ra: RawAsset) =>
+		ra.dataBlob ? io.BlobReader.readAsText(ra.dataBlob) : Promise.reject("getText: no blobData in RawAsset");
+
+	/**
+	 * Helper that returns the external data of an asset as a JSON object.
+	 */
+	export const getJSON = (ra: RawAsset) =>
+		getText(ra).then(
+			text => JSON.parse(text)
+		);
+
+
+	/**
 	 * A function that takes a resource and returns the parsed contents.
 	 * Any data type that has to be read through the asset system needs
 	 * a corresponding AssetParser. The metadata varies per asset type.
