@@ -8,7 +8,7 @@
 namespace sd.asset.parser {
 
 	export const parseMTLGroup = (resource: RawAsset<GroupAssetOptions>) =>
-		parseGenericText(resource).then(text =>
+		parseText(resource).then(text =>
 			parseMTLSource(resource.path || "", text)
 		);
 

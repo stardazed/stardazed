@@ -11,20 +11,20 @@ namespace sd.asset {
 		/**
 		 * A parser that just returns the contents of an asset as an ArrayBuffer.
 		 */
-		export const parseGenericBinary = (resource: RawAsset<{}>) =>
+		export const parseBuffer = (resource: RawAsset<{}>) =>
 			io.BlobReader.readAsArrayBuffer(resource.blob);
 
 		/**
 		 * A parser that just returns the contents of an asset as a a string.
 		 */
-		export const parseGenericText = (resource: RawAsset<{}>) =>
+		export const parseText = (resource: RawAsset<{}>) =>
 			io.BlobReader.readAsText(resource.blob);
 
 		/**
 		 * A parser that returns the contents of an asset as a JSON object.
 		 */
 		export const parseJSON = (resource: RawAsset<{}>) =>
-			parseGenericText(resource).then(
+			parseText(resource).then(
 				text => JSON.parse(text)
 			);
 	}
@@ -38,11 +38,11 @@ namespace sd.asset {
 	const GenericLoaders = <T extends Constructor<LibraryBase>>(Base: T) =>
 		class extends Base {
 			loadGenericBinary(sa: SerializedAsset) {
-				return this.loadData(sa).then(resource => parser.parseGenericBinary(resource));
+				return this.loadData(sa).then(resource => parser.parseBuffer(resource));
 			}
 
 			loadGenericText(sa: SerializedAsset) {
-				return this.loadData(sa).then(resource => parser.parseGenericText(resource));
+				return this.loadData(sa).then(resource => parser.parseText(resource));
 			}
 
 			loadJSON(sa: SerializedAsset) {

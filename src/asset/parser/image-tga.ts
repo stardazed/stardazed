@@ -8,7 +8,7 @@
 namespace sd.asset.parser {
 
 	export const parseTGAImage = (resource: RawAsset<ImageAssetOptions>) =>
-		parseGenericBinary(resource)
+		parseBuffer(resource)
 			.then(buf => {
 				return new TGADataProvider(new Uint8ClampedArray(buf));
 			});

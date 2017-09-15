@@ -8,7 +8,7 @@
 namespace sd.asset.parser {
 
 	export const parseOBJGroup = (resource: RawAsset<GroupAssetOptions>): Promise<AssetGroup | Iterator<AssetGroup>> =>
-		parseGenericText(resource)
+		parseText(resource)
 			.then(text =>
 				parseOBJ(resource.path || "", text, false)
 			) as any;
@@ -16,7 +16,7 @@ namespace sd.asset.parser {
 	registerFileExtension("obj", "application/wavefront-obj");
 	registerGroupParser(parseOBJGroup, "application/wavefront-obj");
 
-	
+
 	interface OBJPreProcSource {
 		path: string;
 		lines: string[];

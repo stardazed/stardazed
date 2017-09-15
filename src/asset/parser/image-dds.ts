@@ -8,7 +8,7 @@
 namespace sd.asset.parser {
 
 	export const parseDDSImage = (resource: RawAsset<ImageAssetOptions>) =>
-		parseGenericBinary(resource)
+		parseBuffer(resource)
 			.then(buf => {
 				return new DDSDataProvider(new Uint8ClampedArray(buf));
 			});
