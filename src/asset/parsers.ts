@@ -1,4 +1,4 @@
-// asset/parsers - library-wide registry of asset parsers
+// asset/parsers - raw assets, parsers and mime-types
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -7,7 +7,6 @@
 
 namespace sd.asset.parser {
 
-	// --------------------------------------------------------------------
 	// library-wide file extension to mime-type registry
 
 	const extensionMimeTypeMap = new Map<string, string>();
@@ -39,19 +38,28 @@ namespace sd.asset.parser {
 	 * application-wide. The kind field indicates the top-level type
 	 * of the asset.
 	 */
-	export interface RawAsset<Metadata extends object> {
-		blob: Blob;
+	export interface RawAsset<Metadata extends object = any> {
 		kind: string;
-		name: string;
-		path?: string;
+		name?: string;
+		dataPath?: string;
+		dataBlob?: Blob;
+		mimeType?: string;
 		metadata: Partial<Metadata>;
 	}
+
+	export const isRawAsset = (sa: any): sa is RawAsset<any> =>
+		typeof sa.kind === "string" &&
+		(sa.name === void 0 || typeof sa.name === "string") &&
+		(sa.dataPath === void 0 || typeof sa.dataPath === "string") &&
+		(sa.dataBlob === void 0 || sa.dataBlob instanceof Blob) &&
+		(sa.mimeType === void 0 || typeof sa.mimeType === "string");
+
 
 	/**
 	 * A function that takes a resource and returns the parsed contents.
 	 * Any data type that has to be read through the asset system needs
 	 * a corresponding AssetParser. The metadata varies per asset type.
 	 */
-	export type AssetParser<Asset, Metadata extends object> = (resource: RawAsset<Metadata>) => Promise<Asset | Iterator<Asset>> | Iterator<Asset>;
+	export type AssetParser<A, Metadata extends object> = (resource: RawAsset<Metadata>) => Promise<A | Iterator<A>> | Iterator<A>;
 
 } // ns sd.asset.parser

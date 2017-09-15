@@ -7,22 +7,7 @@
 
 namespace sd.asset {
 
-	export interface SerializedAsset {
-		kind: string;
-		name: string;
-		path?: string;
-		mimeType?: string;
-		// metadata
-		[key: string]: any;
-	}
-
-	export const isSerializedAsset = (sa: any): sa is SerializedAsset => {
-		return typeof sa.name === "string" &&
-			typeof sa.kind === "string" &&
-			(typeof sa.path === "string" || typeof sa.path === "undefined");
-	};
-
-	export type LoaderParser = (sa: SerializedAsset) => Promise<any> | Iterator<any>;
+	export type LoaderParser = (sa: parser.RawAsset) => Promise<any> | Iterator<any>;
 
 	export class LibraryBase {
 		private loader_: loader.Loader;
@@ -36,22 +21,22 @@ namespace sd.asset {
 			this.loaderParserFuncs_[forKind] = lp.bind(this);
 		}
 
-		protected loadData<Metadata extends object>(sa: SerializedAsset): Promise<parser.RawAsset<Metadata>> {
-			if (sa.mimeType === undefined && sa.path) {
-				sa.mimeType = parser.mimeTypeForFileExtension(io.fileExtensionOfURL(sa.path));
+		protected loadData<Metadata extends object>(ra: parser.RawAsset<Metadata>): Promise<parser.RawAsset<Metadata>> {
+			if (ra.dataPath !== void 0 && ra.dataBlob === void 0) {
+				if (ra.mimeType === undefined) {
+					ra.mimeType = parser.mimeTypeForFileExtension(io.fileExtensionOfURL(ra.dataPath));
+				}
+	
+				return this.loader_(ra.dataPath, ra.mimeType).then(
+					blob => {
+						ra.dataBlob = blob;
+						return ra;
+					}
+				);
 			}
-
-			const dataPromise = sa.path ? this.loader_(sa.path, sa.mimeType) : Promise.resolve(new Blob());
-
-			return dataPromise.then(
-				blob => ({
-					blob,
-					name: sa.name,
-					kind: sa.kind,
-					path: sa.path,
-					metadata: { ...sa as any }
-				})
-			);
+			else {
+				return Promise.resolve(ra);
+			}
 		}
 
 		protected async processLoaderParser(res: Promise<any> | Iterator<any>): Promise<any> {
@@ -73,14 +58,14 @@ namespace sd.asset {
 						return itr.value;
 					}
 					else {
-						const sas: SerializedAsset | SerializedAsset[] = itr.value;
-						if (Array.isArray(sas)) {
-							assert(sas.every(sa => isSerializedAsset(sa)), "Library: Iterator AssetParser must yield only (arrays of) SerializedAssets");
-							subAssets = await this.loadAssetFile(sas);
+						const ras: parser.RawAsset | parser.RawAsset[] = itr.value;
+						if (Array.isArray(ras)) {
+							assert(ras.every(sa => parser.isRawAsset(sa)), "Library: Iterator AssetParser must yield only (arrays of) RawAssets");
+							subAssets = await this.loadAssetFile(ras);
 						}
 						else {
-							assert(isSerializedAsset(sas), "Library: Iterator AssetParser must yield only (arrays of) SerializedAssets");
-							subAssets = await this.loadAny(sas);
+							assert(parser.isRawAsset(ras), "Library: Iterator AssetParser must yield only (arrays of) RawAssets");
+							subAssets = await this.loadAny(ras);
 						}
 						
 					}
@@ -88,15 +73,15 @@ namespace sd.asset {
 			}
 		}
 
-		loadAny(sa: SerializedAsset) {
+		loadAny(sa: parser.RawAsset) {
 			const loaderParser = this.loaderParserFuncs_[sa.kind];
 			if (loaderParser) {
 				return this.processLoaderParser(loaderParser(sa));
 			}
-			return Promise.reject(new Error(`No registered parser for asset kind: ${sa.kind}, requested path: ${sa.path}`));
+			return Promise.reject(new Error(`No registered parser for asset kind: ${sa.kind}, requested path: ${sa.dataPath}`));
 		}
 
-		loadAssetFile(assets: SerializedAsset[]) {
+		loadAssetFile(assets: parser.RawAsset[]) {
 			return Promise.all(assets.map(sa => this.loadAny(sa)));
 		}
 	}
@@ -108,7 +93,7 @@ namespace sd.asset {
 		mixins.push(mixin);
 	};
 
-	export const registerAssetLoaderParser = <R, M extends object>(kind: string, assetParser: parser.AssetParser<R, M>) => {
+	export const registerAssetLoaderParser = <A, M extends object>(kind: string, assetParser: parser.AssetParser<A, M>) => {
 		const cacheArrayName = `${kind}s_`;
 		const loadFuncName = `load${capitalize(kind)}`;
 		const lookupFuncName = `${kind}ByName`;
@@ -117,15 +102,15 @@ namespace sd.asset {
 			class extends Lib {
 				constructor(...args: any[]) {
 					super(...args);
-					(this as any)[cacheArrayName] = new Map<string, R>();
+					(this as any)[cacheArrayName] = new Map<string, A>();
 					this.registerLoaderParser(kind, (this as any)[loadFuncName]);
 				}
 
-				[loadFuncName](sa: SerializedAsset) {
-					return this.loadData(sa)
+				[loadFuncName](ra: parser.RawAsset) {
+					return this.loadData(ra)
 						.then(resource => this.processLoaderParser(assetParser(resource)))
 						.then(tex => {
-							(this as any)[cacheArrayName].set(sa.name, tex);
+							(this as any)[cacheArrayName].set(ra.name, tex);
 							return tex;
 						});
 				}
@@ -140,8 +125,8 @@ namespace sd.asset {
 
 	export interface Library {
 		// generic load-parse methods
-		loadAny(sa: SerializedAsset): Promise<any>;
-		loadAssetFile(assets: SerializedAsset[]): Promise<any[]>;
+		loadAny(sa: parser.RawAsset): Promise<any>;
+		loadAssetFile(assets: parser.RawAsset[]): Promise<any[]>;
 	}
 
 	export const makeLibrary = (roots: loader.AssetRootSpec[]): Library => {
