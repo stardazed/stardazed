@@ -1,0 +1,35 @@
+Assets
+======
+
+1. Elemental
+
+	* audio => AudioBuffer
+	* image => PixelDataProvider
+	* buffer => ArrayBuffer
+	* text => string
+	* json => JSON
+
+	Definition:
+
+	{
+		kind: string;
+		awuid: number; // 32-bit signed positive int (1 and up), App-Wide Unique ID, if you need > 2B assets, give me a call
+		name?: string; // optional name
+
+		path?: string; // path to external file / data that will yield a Blob
+
+	}
+
+
+2. Composite
+
+	* sample = (audio[]]) => Sample
+	* texture = (image[]) => Texture2D | TextureCube
+	* mesh = (buffer[]) => MeshData
+	* skeleton = (buffer[]) => Skeleton
+	* animation = (buffer[]) => Animation
+
+2.1. Higher-level Composite
+
+	* material = (texture[]) => Material
+	* model = (material[], mesh[], skeleton[]) => Model
