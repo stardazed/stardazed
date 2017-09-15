@@ -28,12 +28,27 @@ namespace sd.asset {
 		(a.name === void 0 || typeof a.name === "string");
 
 
-		texture: render.Texture;
-		uvScale: Float2;
-		uvOffset: Float2;
-		anisotropy: number; // 1..16
+	// ------------------------
+
+	export interface Audio extends Asset {
+		buffer: AudioBuffer;
 	}
 
+	export interface Image extends Asset {
+		provider: image.PixelDataProvider;
+	}
+
+	// ------------------------
+
+	export interface TextureSampler extends Asset {
+		sampler: render.Sampler;
+	}
+
+	export interface Texture2D extends Asset {
+		texture: render.Texture;
+		samplerAsset?: TextureSampler; // hmm
+		anisotropy: number; // 1..16
+	}
 
 	export const enum AlphaCoverage {
 		Ignore,
@@ -116,7 +131,7 @@ namespace sd.asset {
 	});
 
 
-	export interface Material extends AssetOld {
+	export interface Material extends Asset {
 		colour: ColourResponse;
 		
 		alphaCoverage: AlphaCoverage;
@@ -136,7 +151,7 @@ namespace sd.asset {
 	}
 
 	export const makeMaterial = (name: string, colour?: ColourResponse): Material => ({
-		name,
+		...makeAsset("material", name),
 		colour: colour || makeDiffuseResponse(),
 
 		alphaCoverage: AlphaCoverage.Ignore,
@@ -158,7 +173,7 @@ namespace sd.asset {
 		};
 	}
 
-	export interface Model extends AssetOld {
+	export interface Model extends Asset {
 		transform: entity.Transform;
 		children: Model[];
 		parent?: Model;
@@ -169,17 +184,19 @@ namespace sd.asset {
 		light?: entity.Light;
 	}
 
-	export function makeModel(name: string, ref?: any): Model {
+	export function makeModel(name: string): Model {
 		return {
-			name,
-			userRef: ref,
+			...makeAsset("model", name),
 			transform: makeTransform(),
 			children: []
 		};
 	}
 
 
-	export class AssetGroup {
+	export class AssetGroup implements Asset {
+		guid = "FIXME";
+		kind = "group";
+
 		meshes: meshdata.MeshData[] = [];
 		textures: (Texture2D | null)[] = []; // FIXME: handling of optional textures
 		materials: Material[] = [];

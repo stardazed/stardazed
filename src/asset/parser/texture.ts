@@ -13,7 +13,7 @@ namespace sd.asset {
 			repeatS: "repeat" | "mirror" | "clamp";
 			repeatT: "repeat" | "mirror" | "clamp";
 			filtering: "nearest" | "linear" | "bilinear" | "trilinear";
-			image: SerializedAsset;
+			image: RawAsset<ImageAssetOptions>;
 		}
 
 		const parseMipMapMode = (mmm: "source" | "strip" | "regenerate" | undefined) => {
@@ -59,19 +59,17 @@ namespace sd.asset {
 		export function* parseTexture(resource: RawAsset<TextureAssetOptions>) {
 			const imageSA = resource.metadata.image;
 			if (imageSA && imageSA.kind === "image") {
-				const image: image.PixelDataProvider = yield imageSA;
+				const image: asset.Image = yield imageSA;
 				const mipmaps = parseMipMapMode(resource.metadata.mipmaps);
 				const repeatS = parseRepeat(resource.metadata.repeatS);
 				const repeatT = parseRepeat(resource.metadata.repeatT);
 				const filtering = parseFiltering(resource.metadata.filtering);
 				console.info(repeatS, repeatT, filtering); // make TS shut up about unused items
-				const texture = render.makeTex2DFromProvider(image, mipmaps);
+				const texture = render.makeTex2DFromProvider(image.provider, mipmaps);
 
 				const tex2D: Texture2D = {
+					...makeAsset("texture", resource.name),
 					texture,
-					name: "",
-					uvOffset: [0, 0],
-					uvScale: [1, 1],
 					anisotropy: 1
 				};
 				return tex2D;
@@ -83,7 +81,7 @@ namespace sd.asset {
 	}
 
 	export interface Library {
-		loadTexture(sa: SerializedAsset): Promise<Texture2D>;
+		loadTexture(ra: parser.RawAsset): Promise<Texture2D>;
 		textureByName(name: string): Texture2D | undefined;
 	}
 	registerAssetLoaderParser("texture", parser.parseTexture);

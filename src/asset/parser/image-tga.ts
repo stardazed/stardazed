@@ -8,10 +8,10 @@
 namespace sd.asset.parser {
 
 	export const parseTGAImage = (resource: RawAsset<ImageAssetOptions>) =>
-		parseBuffer(resource)
-			.then(buf => {
-				return new TGADataProvider(new Uint8ClampedArray(buf));
-			});
+		getArrayBuffer(resource).then(buf => ({
+			...makeAsset("image", resource.name),
+			provider: new TGADataProvider(new Uint8ClampedArray(buf))
+		}));
 
 	registerFileExtension("tga", "image/tga");
 	registerImageParser(parseTGAImage, "image/tga");

@@ -8,8 +8,8 @@
 namespace sd.asset.parser {
 
 	export const parseMTLGroup = (resource: RawAsset<GroupAssetOptions>) =>
-		parseText(resource).then(text =>
-			parseMTLSource(resource.path || "", text)
+		getText(resource).then(text =>
+			parseMTLSource(resource.dataPath || "", text)
 		);
 
 	registerFileExtension("mtl", "application/wavefront-mtl");
@@ -19,7 +19,7 @@ namespace sd.asset.parser {
 	interface MTLMaterial {
 		name: string;
 		colours: { [type: string]: Float3 | undefined };
-		textures: { [type: string]: SerializedAsset | undefined };
+		textures: { [type: string]: RawAsset<TextureAssetOptions> | undefined };
 		specularExponent?: number;
 		opacity?: number;
 		roughness?: number;
@@ -44,8 +44,8 @@ namespace sd.asset.parser {
 		if (mtlIncludesSome(["metallic", "roughness", "map_Pr", "map_Pm"])) {
 			// PBR colour response
 			let pbr: PBRMetallicColourResponse | PBRSpecularColourResponse;
-			let metallicTexAsset: SerializedAsset | undefined;
-			let roughnessTexAsset: SerializedAsset | undefined;
+			let metallicTexAsset: RawAsset | undefined;
+			let roughnessTexAsset: RawAsset | undefined;
 
 			if (mtlIncludesSome(["metallic", "map_Pm"])) {
 				// PBR Metallic
@@ -79,7 +79,7 @@ namespace sd.asset.parser {
 
 			// resolve potentially shared RM texture
 			if (metallicTexAsset || roughnessTexAsset) {
-				if (metallicTexAsset && roughnessTexAsset && metallicTexAsset.path === roughnessTexAsset.path) {
+				if (metallicTexAsset && roughnessTexAsset && metallicTexAsset.dataPath === roughnessTexAsset.dataPath) {
 					pbr.roughnessTexture = (pbr as PBRMetallicColourResponse).metallicTexture = yield roughnessTexAsset;
 				}
 				else {
@@ -137,7 +137,7 @@ namespace sd.asset.parser {
 			
 			const alphaTexAsset = mtl.textures["map_d"]!;
 			const colourTexAsset = mtl.textures["map_Kd"];
-			if (colourTexAsset && colourTexAsset.path === alphaTexAsset.path) {
+			if (colourTexAsset && colourTexAsset.dataPath === alphaTexAsset.dataPath) {
 				material.alphaTexture = colour.colourTexture;
 			}
 			else {
@@ -151,7 +151,7 @@ namespace sd.asset.parser {
 		if (heightTexAsset) {
 			material.heightRange = 0.04;
 		}
-		if (normalTexAsset && heightTexAsset && normalTexAsset.path === heightTexAsset.path) {
+		if (normalTexAsset && heightTexAsset && normalTexAsset.dataPath === heightTexAsset.dataPath) {
 			material.normalTexture = material.heightTexture = yield normalTexAsset;
 		}
 		else {
@@ -168,7 +168,7 @@ namespace sd.asset.parser {
 			material.emissiveIntensity = 1;
 			material.emissiveColour = mtl.colours["Ke"] || [1, 1, 1];
 			if (mtl.textures["map_Ke"]) {
-				material.emissiveTexture = yield mtl.textures["map_Ke"];
+				material.emissiveTexture = yield mtl.textures["map_Ke"]!;
 			}
 		}
 
@@ -179,7 +179,7 @@ namespace sd.asset.parser {
 	}
 
 
-	function parseMTLTextureSpec(directive: string, basePath: string, line: string[]): SerializedAsset | undefined {
+	function parseMTLTextureSpec(directive: string, basePath: string, line: string[]): RawAsset | undefined {
 		if (line.length < 2) {
 			return undefined;
 		}
@@ -189,16 +189,18 @@ namespace sd.asset.parser {
 		// the last token is the relative path of the texture (no spaces allowed)
 		const relPath = tokens.pop()!;
 
-		const spec: SerializedAsset = {
+		const spec: RawAsset<TextureAssetOptions> = {
 			kind: "texture",
-			name: `mtl_tex_${relPath}`,
-			mipmaps: "regenerate",
-			image: {
-				kind: "image",
-				path: io.resolveRelativePath(relPath, basePath),
-				name: "mtl_img_${relPath}",
-				colourSpace: (["map_Kd", "map_Ks", "map_Ke"].indexOf(directive) > -1) ? "srgb" : "linear",
-			},
+			metadata: {
+				mipmaps: "regenerate",
+				image: {
+					kind: "image",
+					dataPath: io.resolveRelativePath(relPath, basePath),
+					metadata: {
+						colourSpace: (["map_Kd", "map_Ks", "map_Ke"].indexOf(directive) > -1) ? "srgb" : "linear",
+					}
+				},	
+			}
 		};
 
 		// what remains are texture options
@@ -218,11 +220,12 @@ namespace sd.asset.parser {
 							console.warn(`MTL parser: invalid vector for texture option ${opt} in line "${line.join(" ")}" in asset ${basePath}"`);
 						}
 						else {
+							// TODO: collect scale and offset data and place in material
 							if (opt === "-o") {
-								spec.uvOffset = xy;
+								// spec.metadata.uvOffset = xy;
 							}
-							else {
-								spec.uvScale = xy;
+							else { // -s
+								// spec.metadata.uvScale = xy;
 							}
 						}
 					}

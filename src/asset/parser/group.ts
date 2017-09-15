@@ -26,7 +26,7 @@ namespace sd.asset {
 		 */
 		export function parseGroup(resource: RawAsset<GroupAssetOptions>) {
 			return new Promise<AssetGroup | Iterator<AssetGroup>>((resolve, reject) => {
-				const mimeType = resource.blob.type;
+				const mimeType = resource.dataBlob!.type;
 				const groupParser = groupParsers.get(mimeType);
 				if (! groupParser) {
 					return reject(`Cannot load groups of type: ${mimeType}`);
@@ -38,7 +38,7 @@ namespace sd.asset {
 	} // ns parser
 
 	export interface Library {
-		loadGroup(sa: SerializedAsset): Promise<AssetGroup>;
+		loadGroup(ra: parser.RawAsset): Promise<AssetGroup>;
 		groupByName(name: string): AssetGroup | undefined;
 	}
 	registerAssetLoaderParser("group", parser.parseGroup);

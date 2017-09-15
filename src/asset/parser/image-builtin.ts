@@ -7,17 +7,20 @@
 
 namespace sd.asset.parser {
 
-	function parseBuiltInImage(resource: RawAsset<ImageAssetOptions>) {
-		const blobURL = URL.createObjectURL(resource.blob);
+	const parseBuiltInImage: ImageAssetParser = (resource: RawAsset<ImageAssetOptions>) => {
+		const blobURL = URL.createObjectURL(resource.dataBlob);
 
-		return new Promise<image.PixelDataProvider>((resolve, reject) => {
+		return new Promise<asset.Image>((resolve, reject) => {
 			const builtin = new Image();
 			builtin.onload = () => {
 				const colourSpace = resource.metadata.colourSpace === "linear" ? image.ColourSpace.Linear : image.ColourSpace.sRGB;
-				resolve(new HTMLImageDataProvider(builtin, colourSpace));
+				resolve({
+					...makeAsset("image", resource.name),
+					provider: new HTMLImageDataProvider(builtin, colourSpace)
+				});
 			};
 			builtin.onerror = () => {
-				reject(`The image at '${resource.path}' is not supported`);
+				reject(`The image at '${resource.dataPath}' is not supported`);
 			};
 
 			// Always enable CORS as GL will not allow tainted data to be loaded so if it fails, we can't use the image
@@ -28,7 +31,7 @@ namespace sd.asset.parser {
 			URL.revokeObjectURL(blobURL);				
 			return provider;
 		});
-	}
+	};
 
 	registerFileExtension("bm", "image/bmp");
 	registerFileExtension("bmp", "image/bmp");

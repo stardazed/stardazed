@@ -8,10 +8,9 @@
 namespace sd.asset.parser {
 
 	export const parseOBJGroup = (resource: RawAsset<GroupAssetOptions>): Promise<AssetGroup | Iterator<AssetGroup>> =>
-		parseText(resource)
-			.then(text =>
-				parseOBJ(resource.path || "", text, false)
-			) as any;
+		getText(resource).then(text =>
+			parseOBJ(resource.dataPath || "", text, false)
+		) as any;
 
 	registerFileExtension("obj", "application/wavefront-obj");
 	registerGroupParser(parseOBJGroup, "application/wavefront-obj");
@@ -69,7 +68,7 @@ namespace sd.asset.parser {
 		}
 
 		if (mtlFilePath.length) {
-			preproc.group = yield { kind: "group", path: mtlFilePath, name: `mtl_${objSequenceNumber}` };
+			preproc.group = yield { kind: "group", dataPath: mtlFilePath, name: `mtl_${objSequenceNumber}` };
 		}
 		return preproc;
 	}
@@ -94,7 +93,7 @@ namespace sd.asset.parser {
 		// map each material's name to its index
 		const matNameIndexMap = new Map<string, number>();
 		for (let matIx = 0; matIx < group.materials.length; ++matIx) {
-			matNameIndexMap.set(group.materials[matIx].name, matIx);
+			matNameIndexMap.set(group.materials[matIx].name!, matIx);
 		}
 
 		if (preproc.normalCount > 0) {

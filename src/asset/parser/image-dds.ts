@@ -7,11 +7,11 @@
 
 namespace sd.asset.parser {
 
-	export const parseDDSImage = (resource: RawAsset<ImageAssetOptions>) =>
-		parseBuffer(resource)
-			.then(buf => {
-				return new DDSDataProvider(new Uint8ClampedArray(buf));
-			});
+	export const parseDDSImage: ImageAssetParser = (resource: RawAsset<ImageAssetOptions>) =>
+		getArrayBuffer(resource).then(buf => ({
+			...makeAsset("image", resource.name),
+			provider: new DDSDataProvider(new Uint8ClampedArray(buf))
+		}));
 
 	registerFileExtension("dds", "image/dds");
 	registerImageParser(parseDDSImage, "image/dds");

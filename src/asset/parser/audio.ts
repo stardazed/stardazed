@@ -15,13 +15,16 @@ namespace sd.asset {
 		 * Create an AudioBuffer for an asset blob
 		 * @param resource The source data to be parsed
 		 */
-		export const parseAudio: AssetParser<AudioBuffer, AudioAssetOptions> = (resource: RawAsset<AudioAssetOptions>) =>
-			parseBuffer(resource).then(
-				data => new Promise<AudioBuffer>((resolve, reject) => {
+		export const parseAudio: AssetParser<Audio, AudioAssetOptions> = (resource: RawAsset<AudioAssetOptions>) =>
+			getArrayBuffer(resource).then(
+				data => new Promise<Audio>((resolve, reject) => {
 					audio.sharedAudioContext().decodeAudioData(
 						data,
 						audioData => {
-							resolve(audioData);
+							resolve({
+								...makeAsset("audio", resource.name),
+								buffer: audioData
+							});
 						},
 						err => {
 							reject(`Invalid audio data, error: ${err}`);
@@ -43,8 +46,8 @@ namespace sd.asset {
 	}
 
 	export interface Library {
-		loadAudio(sa: SerializedAsset): Promise<AudioBuffer>;
-		audioByName(name: string): AudioBuffer | undefined;
+		loadAudio(sa: parser.RawAsset): Promise<Audio>;
+		audioByName(name: string): Audio | undefined;
 	}
 	registerAssetLoaderParser("audio", parser.parseAudio);
 

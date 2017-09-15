@@ -12,7 +12,7 @@ namespace sd.asset {
 			colourSpace: string;
 		}
 
-		export type ImageAssetParser = AssetParser<image.PixelDataProvider, Partial<ImageAssetOptions>>;
+		export type ImageAssetParser = AssetParser<asset.Image, Partial<ImageAssetOptions>>;
 		const imageParsers = new Map<string, ImageAssetParser>();
 
 		export function registerImageParser(imgParser: ImageAssetParser, mimeType: string) {
@@ -24,21 +24,21 @@ namespace sd.asset {
 		 * Create a PixelDataProvider for an asset blob
 		 * @param resource The source data to be parsed
 		 */
-		export function parseImage(resource: RawAsset<ImageAssetOptions>) {
-			return new Promise<image.PixelDataProvider | Iterator<image.PixelDataProvider>>((resolve, reject) => {
-				const mimeType = resource.blob.type;
+		export const parseImage: ImageAssetParser = (resource: RawAsset<ImageAssetOptions>) => {
+			return new Promise<asset.Image | Iterator<asset.Image>>((resolve, reject) => {
+				const mimeType = resource.dataBlob!.type;
 				const imgParser = imageParsers.get(mimeType);
 				if (! imgParser) {
 					return reject(`Cannot load images of type: ${mimeType}`);
 				}
 				resolve(imgParser(resource));
 			});
-		}
+		};
 	}
 
 	export interface Library {
-		loadImage(sa: SerializedAsset): Promise<image.PixelDataProvider>;
-		imageByName(name: string): image.PixelDataProvider | undefined;
+		loadImage(ra: parser.RawAsset): Promise<asset.Image>;
+		imageByName(name: string): asset.Image | undefined;
 	}
 	registerAssetLoaderParser("image", parser.parseImage);
 
