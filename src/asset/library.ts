@@ -13,8 +13,8 @@ namespace sd.asset {
 		private loader_: loader.Loader;
 		private loaderParserFuncs_: { [kind: string]: LoaderParser | undefined; } = {};
 
-		constructor(roots: loader.AssetRootSpec[]) {
-			this.loader_ = loader.AssetLoader(roots);
+		constructor(loaderInfo: loader.LoaderInfo) {
+			this.loader_ = loader.makeLoader(loaderInfo);
 		}
 
 		protected registerLoaderParser(forKind: string, lp: LoaderParser) {
@@ -129,12 +129,12 @@ namespace sd.asset {
 		loadAssetFile(assets: parser.RawAsset[]): Promise<any[]>;
 	}
 
-	export const makeLibrary = (roots: loader.AssetRootSpec[]): Library => {
+	export const makeLibrary = (rootLoader: loader.LoaderInfo): Library => {
 		let Lib = LibraryBase;
 		for (const m of mixins) {
 			Lib = m(Lib);
 		}
-		return (new Lib(roots)) as any as Library;				
+		return (new Lib(rootLoader)) as any as Library;
 	};
 
 } // ns sd.asset
