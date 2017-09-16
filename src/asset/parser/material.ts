@@ -54,10 +54,39 @@ namespace sd.asset {
 			rawAssets: RawAsset<TextureAssetMetadata>[] = [];
 
 			add(role: RawTextureRole, tex: RawAsset<TextureAssetMetadata> | undefined) {
-				if (tex) {
-					this.roles.push(role);
-					this.rawAssets.push(tex);
+				if (tex !== void 0) {
+					if (isRawAsset(tex) && tex.kind === "texture") {
+						this.roles.push(role);
+						this.rawAssets.push(tex);
+					}
+					else {
+						console.warn(`Material parser: ignoring invalid texture asset`, tex);
+					}
 				}
+			}
+
+			resolve() {
+				const uniques = new Map<string, { tex: RawAsset<TextureAssetMetadata>, roles: RawTextureRole[] }>();
+
+				for (let ix = 0; ix < this.roles.length; ++ix) {
+					const role = this.roles[ix];
+					const tex = this.rawAssets[ix];
+					const path = tex.dataPath || "missing_path";
+					const entry = uniques.get(path);
+					if (! entry) {
+						uniques.set(path, { tex, roles: [role] });
+					}
+					else {
+						entry.roles.push(role);
+					}
+				}
+
+				const result = new Map<RawAsset<TextureAssetMetadata>, RawTextureRole[]>();
+				uniques.forEach(({ tex, roles }) => {
+					result.set(tex, roles);
+				});
+
+				return result;
 			}
 		}
 
@@ -277,21 +306,41 @@ namespace sd.asset {
 			return response;
 		}
 
+		function assignTextures(mat: Material, textures: Texture2D[], rolesPerTex: RawTextureRole[][]) {
+			for (let ix = 0; ix < textures.length; ++ix) {
+				const tex = textures[ix];
+				const roles = rolesPerTex[ix];
+				for (const role of roles) {
+					switch (role) {
+						case "colour": mat.colour.colourTexture = tex;
+						case "metallic": (mat.colour as PBRMetallicColourResponse).metallicTexture = tex;
+						case "roughness": (mat.colour as PBRMetallicColourResponse).roughnessTexture = tex;
+						case "specular": (mat.colour as PBRSpecularColourResponse).specularTexture = tex;
+						case "alpha": mat.alphaTexture = tex;
+						case "emissive": mat.emissiveTexture = tex;
+						case "normal": mat.normalTexture = tex;
+						case "height": mat.heightTexture = tex;
+						case "ao": mat.ambientOcclusionTexture = tex;
+					}
+				}
+			}
+		}
+
 		/**
 		 * Create a standard Material.
 		 * @param resource The source data to be parsed
 		 */
 		export function* parseMaterial(resource: RawAsset<MaterialAssetMetadata>) {
-			const textures = new RawTextures();
+			const rawTex = new RawTextures();
 			const meta = resource.metadata;
 
 			let colour: ColourResponse;
 			const colourType = meta.colour && meta.colour.type;
 			switch (colourType) {
-				case "diffuse": colour = getDiffuseResponseData(meta, textures); break;
-				case "diffuseSpecular": colour = getDiffuseSpecularResponseData(meta, textures); break;
-				case "pbrMetallic": colour = getPBRMetallicResponseData(meta, textures); break;
-				case "pbrSpecular": colour = getPBRSpecularResponseData(meta, textures); break;
+				case "diffuse": colour = getDiffuseResponseData(meta, rawTex); break;
+				case "diffuseSpecular": colour = getDiffuseSpecularResponseData(meta, rawTex); break;
+				case "pbrMetallic": colour = getPBRMetallicResponseData(meta, rawTex); break;
+				case "pbrSpecular": colour = getPBRSpecularResponseData(meta, rawTex); break;
 				default:
 					throw new Error("Material parser: missing or invalid colour type.");
 			}
@@ -306,11 +355,17 @@ namespace sd.asset {
 			mat.uvScale = getUVScale(meta, mat.uvScale);
 			mat.uvOffset = getUVOffset(meta, mat.uvOffset);
 
-			textures.add("alpha", meta.alphaTexture);
-			textures.add("normal", meta.normalTexture);
-			textures.add("height", meta.heightTexture);
-			textures.add("ao", meta.ambientOcclusionTexture);
-			textures.add("emissive", meta.emissiveTexture);
+			rawTex.add("alpha", meta.alphaTexture);
+			rawTex.add("normal", meta.normalTexture);
+			rawTex.add("height", meta.heightTexture);
+			rawTex.add("ao", meta.ambientOcclusionTexture);
+			rawTex.add("emissive", meta.emissiveTexture);
+
+			const texBindings = rawTex.resolve();
+			const texAssets = Array.from(texBindings.keys());
+			const texRoles = Array.from(texBindings.values());
+			const textures: Texture2D[] = yield texAssets;
+			assignTextures(mat, textures, texRoles);
 			
 			return mat;
 		}
