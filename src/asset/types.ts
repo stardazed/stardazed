@@ -150,7 +150,7 @@ namespace sd.asset {
 		uvOffset: Float2;
 	}
 
-	export const makeMaterial = (name: string, colour?: ColourResponse): Material => ({
+	export const makeMaterial = (name?: string, colour?: ColourResponse): Material => ({
 		...makeAsset("material", name),
 		colour: colour || makeDiffuseResponse(),
 
@@ -186,7 +186,7 @@ namespace sd.asset {
 		light?: entity.Light;
 	}
 
-	export function makeModel(name: string): Model {
+	export function makeModel(name?: string): Model {
 		return {
 			...makeAsset("model", name),
 			transform: makeTransform(),
