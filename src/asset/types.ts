@@ -67,8 +67,7 @@ namespace sd.asset {
 		baseColour: Float3;
 		colourTexture?: Texture2D;
 
-		specularColour: Float3;
-		specularIntensity: number;
+		specularFactor: Float3;
 		specularExponent: number;
 		specularTexture?: Texture2D;
 	}
@@ -90,7 +89,7 @@ namespace sd.asset {
 		baseColour: Float3;
 		colourTexture?: Texture2D;
 
-		specularColour: Float3;
+		specularFactor: Float3;
 		specularTexture?: Texture2D;
 		
 		roughness: number; // 0: fully smooth (default), 1: fully rough
@@ -109,8 +108,7 @@ namespace sd.asset {
 		...(source || makeDiffuseResponse()),
 		type: "diffusespecular",
 
-		specularColour: [0, 0, 0],
-		specularIntensity: 0,
+		specularFactor: [0, 0, 0],
 		specularExponent: 0,
 	});
 
@@ -126,7 +124,7 @@ namespace sd.asset {
 		...(source || makeDiffuseResponse()),
 		type: "pbrspecular",
 
-		specularColour: [1, 1, 1],
+		specularFactor: [1, 1, 1],
 		roughness: 1,
 	});
 
@@ -145,9 +143,11 @@ namespace sd.asset {
 		heightRange: number;
 		heightTexture?: Texture2D;
 
-		emissiveColour: Float3;
-		emissiveIntensity: number;
+		emissiveFactor: Float3;
 		emissiveTexture?: Texture2D;
+
+		uvScale: Float2;
+		uvOffset: Float2;
 	}
 
 	export const makeMaterial = (name: string, colour?: ColourResponse): Material => ({
@@ -160,8 +160,10 @@ namespace sd.asset {
 
 		heightRange: 0,
 
-		emissiveColour: [0, 0, 0],
-		emissiveIntensity: 0,
+		emissiveFactor: [0, 0, 0],
+
+		uvScale: [1, 1],
+		uvOffset: [0, 0]
 	});
 
 

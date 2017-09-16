@@ -64,10 +64,9 @@ namespace sd.asset.parser {
 				if (specTex) {
 					pbr.specularTexture = yield mtl.textures["map_Ks"]!;
 				}
-				// if spec tex exists, the colour is a multiplier, otherwise default to
-				// dielectric specular standard response, 4% gray.
-				const defaultSpecularColour = specTex ? [1, 1, 1] : [0.04, 0.04, 0.04];
-				pbr.specularColour = mtl.colours["Ks"] || defaultSpecularColour;
+
+				const defaultSpecularColour = [1, 1, 1];
+				pbr.specularFactor = mtl.colours["Ks"] || defaultSpecularColour;
 			}
 
 			if (mtl.roughness !== undefined) {
@@ -104,12 +103,10 @@ namespace sd.asset.parser {
 				if (specTex) {
 					classic.specularTexture = yield mtl.textures["map_Ks"]!;
 				}
-				// if spec tex exists, the colour is a multiplier, otherwise default to
-				// dielectric specular standard response, 4% gray.
-				const defaultSpecularColour = specTex ? [1, 1, 1] : [0.04, 0.04, 0.04];
-				classic.specularColour = mtl.colours["Ks"] || defaultSpecularColour;
+
+				const defaultSpecularColour = [1, 1, 1];
+				classic.specularFactor = mtl.colours["Ks"] || defaultSpecularColour;
 				classic.specularExponent = mtl.specularExponent || 1;
-				classic.specularIntensity = 1;
 			}
 			else {
 				// Diffuse
@@ -165,8 +162,7 @@ namespace sd.asset.parser {
 
 		// emissive
 		if (mtl.textures["map_Ke"] || mtl.colours["Ke"]) {
-			material.emissiveIntensity = 1;
-			material.emissiveColour = mtl.colours["Ke"] || [1, 1, 1];
+			material.emissiveFactor = mtl.colours["Ke"] || [1, 1, 1];
 			if (mtl.textures["map_Ke"]) {
 				material.emissiveTexture = yield mtl.textures["map_Ke"]!;
 			}
