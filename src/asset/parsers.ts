@@ -75,7 +75,6 @@ namespace sd.asset.parser {
 			text => JSON.parse(text)
 		);
 
-
 	/**
 	 * A function that takes a resource and returns the parsed contents.
 	 * Any data type that has to be read through the asset system needs

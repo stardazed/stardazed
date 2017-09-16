@@ -134,7 +134,7 @@ namespace sd.asset {
 		
 		alphaCoverage: AlphaCoverage;
 		alphaCutoff: number;
-		opacity: number; // 0: fully transparent, 1: fully opaque (default)
+		alphaFactor: number;
 		alphaTexture?: Texture2D;
 
 		normalTexture?: Texture2D;
@@ -146,6 +146,7 @@ namespace sd.asset {
 		emissiveFactor: Float3;
 		emissiveTexture?: Texture2D;
 
+		doubleSided: boolean;
 		uvScale: Float2;
 		uvOffset: Float2;
 	}
@@ -156,12 +157,13 @@ namespace sd.asset {
 
 		alphaCoverage: AlphaCoverage.Ignore,
 		alphaCutoff: 0,
-		opacity: 1,
+		alphaFactor: 1,
 
 		heightRange: 0,
 
 		emissiveFactor: [0, 0, 0],
 
+		doubleSided: false,
 		uvScale: [1, 1],
 		uvOffset: [0, 0]
 	});
