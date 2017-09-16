@@ -71,7 +71,7 @@ namespace sd.asset {
 				for (let ix = 0; ix < this.roles.length; ++ix) {
 					const role = this.roles[ix];
 					const tex = this.rawAssets[ix];
-					const path = tex.dataPath || "missing_path";
+					const path = (tex.metadata.image && tex.metadata.image.dataPath) || "missing_image_path";
 					const entry = uniques.get(path);
 					if (! entry) {
 						uniques.set(path, { tex, roles: [role] });
@@ -312,15 +312,15 @@ namespace sd.asset {
 				const roles = rolesPerTex[ix];
 				for (const role of roles) {
 					switch (role) {
-						case "colour": mat.colour.colourTexture = tex;
-						case "metallic": (mat.colour as PBRMetallicColourResponse).metallicTexture = tex;
-						case "roughness": (mat.colour as PBRMetallicColourResponse).roughnessTexture = tex;
-						case "specular": (mat.colour as PBRSpecularColourResponse).specularTexture = tex;
-						case "alpha": mat.alphaTexture = tex;
-						case "emissive": mat.emissiveTexture = tex;
-						case "normal": mat.normalTexture = tex;
-						case "height": mat.heightTexture = tex;
-						case "ao": mat.ambientOcclusionTexture = tex;
+						case "colour": mat.colour.colourTexture = tex; break;
+						case "metallic": (mat.colour as PBRMetallicColourResponse).metallicTexture = tex; break;
+						case "roughness": (mat.colour as PBRMetallicColourResponse).roughnessTexture = tex; break;
+						case "specular": (mat.colour as PBRSpecularColourResponse).specularTexture = tex; break;
+						case "alpha": mat.alphaTexture = tex; break;
+						case "emissive": mat.emissiveTexture = tex; break;
+						case "normal": mat.normalTexture = tex; break;
+						case "height": mat.heightTexture = tex; break;
+						case "ao": mat.ambientOcclusionTexture = tex; break;
 					}
 				}
 			}
