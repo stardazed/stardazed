@@ -43,7 +43,8 @@ namespace sd.asset {
 		registerFileExtension("aif", "audio/x-aiff");
 		registerFileExtension("aifc", "audio/x-aiff");
 		registerFileExtension("aiff", "audio/x-aiff");
-	}
+
+	} // ns parser
 
 	export interface Library {
 		loadAudio(sa: parser.RawAsset): Promise<Audio>;
