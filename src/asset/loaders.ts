@@ -5,13 +5,28 @@
 
 namespace sd.asset.loader {
 
-	export type Loader = (path: string, mimeType?: string) => Promise<Blob>;
+	export type Loader = (source: string, mimeType?: string) => Promise<Blob>;
 	export type LoaderClass = (config: any) => Loader;
 
 	const namedLoaderClasses = new Map<string, LoaderClass>();
 
+	export interface LoaderInfo {
+		type: string;
+		[key: string]: any;
+	}
+
+	export const makeLoader = (info: LoaderInfo) => {
+		const loader = namedLoaderClasses.get(info.type);
+		if (! loader) {
+			throw new Error(`There is no asset loader of type "${info.type}"`);
+		}
+		return loader(info);
+	};
+
+	// --------------------------------------------------------------------
+
 	export interface URLLoaderConfig {
-		rootURL: URL;
+		rootURL?: string;
 		disableCache?: boolean;
 	}
 
@@ -20,9 +35,23 @@ namespace sd.asset.loader {
 	 * root. This loader will generally be the final loader in a chain.
 	 * @param config Configuration for the Loader to create
 	 */
-	export const URLLoader = (config: URLLoaderConfig) =>
-		(path: string, mimeType?: string) => {
-			const fullURL = new URL(path, config.rootURL.href);
+	export const URLLoader: LoaderClass = (config: URLLoaderConfig) => {
+		let rootURL: URL;
+		try {
+			rootURL = new URL(config.rootURL || "");
+		}
+		catch {
+			throw new Error(`URLLoader: a valid, absolute rootURL must be provided.`);
+		}
+		if (config.disableCache !== true && config.disableCache !== false) {
+			if (config.disableCache !== void 0) {
+				console.warn(`URLLoader: disableCache must be a boolean property, got:`, config.disableCache);
+			}
+			config.disableCache = false;
+		}
+
+		return (source: string, mimeType?: string) => {
+			const fullURL = new URL(source, rootURL.href);
 
 			return io.loadFile<Blob>(
 				fullURL, {
@@ -32,11 +61,13 @@ namespace sd.asset.loader {
 				}
 			);
 		};
-	namedLoaderClasses.set("URLLoader", URLLoader);
+	};
+	namedLoaderClasses.set("absolute-url", URLLoader);
 
+	// --------------------------------------------------------------------
 
 	export interface RelativeURLLoaderConfig {
-		relPath: string;
+		relPath?: string;
 		disableCache?: boolean;
 	}
 
@@ -45,44 +76,43 @@ namespace sd.asset.loader {
 	 * current site's base URL.
 	 * @param config Configuration taking mainly the site-relative path that will be the root URL
 	 */
-	export const RelativeURLLoader = (config: RelativeURLLoaderConfig) =>
+	export const RelativeURLLoader: LoaderClass = (config: RelativeURLLoaderConfig) =>
 		URLLoader({
-			rootURL: new URL(config.relPath, document.baseURI!),
+			rootURL: new URL(config.relPath || "", document.baseURI!).href,
 			disableCache: config.disableCache
 		});
-	namedLoaderClasses.set("RelativeURLLoader", RelativeURLLoader);
+	namedLoaderClasses.set("relative-url", RelativeURLLoader);
 
+	// --------------------------------------------------------------------
 
 	/**
 	 * Loads any base64-encoded data URL, always uses mime-type given in the URL
 	 * @param _config ignored, this loader has no configuration options
 	 */
-	export const DataURLLoader = (_config: {}) =>
-		(path: string, mimeType?: string) => new Promise<Blob>((resolve, reject) => {
-			if (path.substr(0, 5) !== "data:") {
-				reject("Not a data url");
+	export const DataURLLoader: LoaderClass = (_config: {}) =>
+		(source: string, mimeType?: string) => new Promise<Blob>((resolve, reject) => {
+			if (source.substr(0, 5) !== "data:") {
+				return reject("Not a data url");
 			}
 			const marker = ";base64,";
-			const markerIndex = path.indexOf(marker);
+			const markerIndex = source.indexOf(marker);
 			if (markerIndex <= 5) {
-				reject("Not a base64 data url");
+				return reject("Not a base64 data url");
 			}
 
 			// simply override any given mime-type with the one provided inside the url
-			mimeType = path.substring(5, markerIndex);
+			mimeType = source.substring(5, markerIndex);
 
 			// convert the data through the various stages of grief
-			const data64 = path.substr(markerIndex + marker.length);
+			const data64 = source.substr(markerIndex + marker.length);
 			const dataStr = atob(data64);
 			const dataArray = Array.prototype.map.call(dataStr, (_: string, i: number, s: string) => s.charCodeAt(i)) as number[];
 			const data = new Uint8Array(dataArray);
 			resolve(new Blob([data], { type: mimeType }));
 		});
-	namedLoaderClasses.set("DataURLLoader", DataURLLoader);
-		
+	namedLoaderClasses.set("data-url", DataURLLoader);
 
 	// --------------------------------------------------------------------
-
 
 	export interface FallbackLoaderConfig {
 		loader: Loader;
@@ -93,8 +123,9 @@ namespace sd.asset.loader {
 	 * Tries to load an asset with the main loader and, if that fails, will try it using
 	 * the fallback loader, if provided.
 	 * @param config A loader function and its optional fallback loader
+	 * @internal
 	 */
-	export const FallbackLoader = (config: FallbackLoaderConfig) =>
+	export const FallbackLoader: LoaderClass = (config: FallbackLoaderConfig) =>
 		(path: string, mimeType?: string) =>
 			config.loader(path, mimeType).catch(
 				err => {
@@ -104,96 +135,58 @@ namespace sd.asset.loader {
 					throw err;
 				}
 			);
-		
+
+	// --------------------------------------------------------------------
+
+	export interface ChainedLoaderConfig {
+		loaders?: LoaderInfo[];
+	}
 
 	/**
-	 * Creates a chain of {{FallbackLoader}}s, with the first loader being the innermost and
-	 * the last being the outermost. Loads start at the outer loader and go down sequentially.
+	 * Creates a chain of {{FallbackLoader}}s, with the first loader being the outermost and
+	 * the last being the innermost. Loads start at the outer loader and go down sequentially.
 	 * @param config An array of loaders that will be called last to first until one succeeds
 	 */
-	export const ChainedLoader = (config: Loader[]) => {
-		assert(config.length, "At least 1 loader must be provided");
+	export const ChainedLoader: LoaderClass = (config: ChainedLoaderConfig) => {
+		const loaders = (Array.isArray(config.loaders) ? config.loaders : []).reverse();
+		assert(loaders.length > 0, "ChainedLoader: an array of loaders must be provided (min. 1)");
 
 		let prev: Loader | undefined, cur: Loader | undefined;
-		return config.map(
-			loader => (prev = cur, cur = FallbackLoader({ loader, fallback: prev }))
+		return loaders.map(
+			loaderInfo => {
+				const loader = makeLoader(loaderInfo);
+				prev = cur;
+				cur = FallbackLoader({ loader, fallback: prev });
+				return cur;
+			}
 		).pop()!;
 	};
+	namedLoaderClasses.set("chain", ChainedLoader);
 
-	/*
-	Example JSON config
-	roots: [
-		{
-			name: "data",
-			loaders: [
-				{ type: "RelativeURLLoader", path: "data/", caching: "normal" | "reload" },
-				{ type: "IndexedDBLoader", db: "cached_data", maxSize: 500 * 1024 * 1024 }
-			]
-		}
-	]
-	*/
-	
-	export interface AssetRootSpec {
-		name: string;
-		loaders: {
-			type: string;
-			[key: string]: any;
-		}[];
+	// --------------------------------------------------------------------
+
+	export interface RootedURLLoaderConfig {
+		prefix?: string;
+		loader?: LoaderInfo;
 	}
 
-	interface AssetRoot {
-		name: string;
-		loader: Loader;
-	}
+	export const RootedURLLoader: LoaderClass = (config: RootedURLLoaderConfig) => {
+		const prefix = config.prefix || "";
+		assert(prefix.length > 0, "RootedURLLoader: a path prefix must be provided.");
+		const loader = config.loader && makeLoader(config.loader);
+		assert(loader, "RootedURLLoader: a loader must be provided.");
 
-	/**
-	 * Returns a loader function that will use the first relative part of the provided
-	 * path to index into a pre-specified named set of "roots", which are loading
-	 * specifications.
-	 * @param rootSpecs One or more named root specifications to look for assets
-	 */
-	export const AssetLoader = (rootSpecs: AssetRootSpec | AssetRootSpec[]): Loader => {
-		const roots: { [name: string]: AssetRoot } = {};
+		return (source: string, mimeType?: string) => new Promise<Blob>((resolve, reject) => {
+			const firstSlash = source.indexOf("/");
+			const rootName = source.substring(0, firstSlash);
+			if (rootName !== prefix) {
+				return reject("Not a url in this root");
+			}
 
-		const makeRoot = (spec: AssetRootSpec): AssetRoot => {
-			assert(! (spec.name in roots), "Each root must have a unique, case-sensitive name");
-
-			// Resolve the named loader classes and parameters to a list of Loaders
-			const loaderClasses = spec.loaders.map(l => namedLoaderClasses.get(l.type)!);
-			assert(loaderClasses.every(lc => lc !== undefined), `Could not find all loaderClasses: ${spec.loaders}`);
-			const loaders = loaderClasses.map((lc, index) => lc(spec.loaders[index]));
-			
-			return {
-				name: spec.name,
-				loader: ChainedLoader(loaders)
-			};
-		};
-
-		if (! Array.isArray(rootSpecs)) {
-			rootSpecs = [rootSpecs];
-		}
-		assert(rootSpecs.length > 0, "At least 1 AssetRootSpec must be provided");
-		for (const spec of rootSpecs) {
-			roots[spec.name] = makeRoot(spec);
-		}
-
-		return (path: string, mimeType?: string) => {
-			// The first slash separates the root name from the file path.
-			// The root name must be at least 1 character in length.
-			// The file path can be empty.
-			// The slash separating the root and path is mandatory.
-			// Roots are not sandboxes, you can use .., etc. to escape the root (FIXME?)
-
-			const firstSlash = path.indexOf("/");
-			assert(firstSlash > 0, "Path must have a root name and separating slash");
-
-			const rootName = path.substring(0, firstSlash);
-			const root = roots[rootName];
-			assert(root, `root ${rootName} does not exist`);
-
-			const resourcePath = path.substring(firstSlash + 1);
-			return root.loader(resourcePath, mimeType);
-		};
+			const resourcePath = source.substring(firstSlash + 1);
+			resolve(loader!(resourcePath, mimeType));
+		});
 	};
+	namedLoaderClasses.set("rooted", RootedURLLoader);
 
 } // ns sd.asset.loader
