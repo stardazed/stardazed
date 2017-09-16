@@ -30,5 +30,5 @@ Assets
 
 2.1. Higher-level Composite
 
-	* material = (texture[]) => Material
+	* √ material = (texture[]) => Material
 	* model = (material[], mesh[], skeleton[]) => Model

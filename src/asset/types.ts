@@ -183,8 +183,8 @@ namespace sd.asset {
 		parent?: Model;
 
 		// components
+		materials: Material[];
 		mesh?: meshdata.MeshData;
-		materials?: Material[];
 		light?: entity.Light;
 	}
 
@@ -192,7 +192,8 @@ namespace sd.asset {
 		return {
 			...makeAsset("model", name),
 			transform: makeTransform(),
-			children: []
+			children: [],
+			materials: []
 		};
 	}
 
