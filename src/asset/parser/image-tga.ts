@@ -7,7 +7,7 @@
 
 namespace sd.asset.parser {
 
-	export const parseTGAImage = (resource: RawAsset<ImageAssetOptions>) =>
+	export const parseTGAImage = (resource: RawAsset<ImageAssetMetadata>) =>
 		getArrayBuffer(resource).then(buf => ({
 			...makeAsset("image", resource.name),
 			provider: new TGADataProvider(new Uint8ClampedArray(buf))

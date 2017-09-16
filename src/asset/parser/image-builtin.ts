@@ -7,7 +7,7 @@
 
 namespace sd.asset.parser {
 
-	const parseBuiltInImage: ImageAssetParser = (resource: RawAsset<ImageAssetOptions>) => {
+	const parseBuiltInImage: ImageAssetParser = (resource: RawAsset<ImageAssetMetadata>) => {
 		const blobURL = URL.createObjectURL(resource.dataBlob);
 
 		return new Promise<asset.Image>((resolve, reject) => {

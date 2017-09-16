@@ -7,7 +7,7 @@
 
 namespace sd.asset.parser {
 
-	export const parseMTLGroup = (resource: RawAsset<GroupAssetOptions>) =>
+	export const parseMTLGroup = (resource: RawAsset<GroupAssetMetadata>) =>
 		getText(resource).then(text =>
 			parseMTLSource(resource.dataPath || "", text)
 		);
@@ -19,7 +19,7 @@ namespace sd.asset.parser {
 	interface MTLMaterial {
 		name: string;
 		colours: { [type: string]: Float3 | undefined };
-		textures: { [type: string]: RawAsset<TextureAssetOptions> | undefined };
+		textures: { [type: string]: RawAsset<TextureAssetMetadata> | undefined };
 		specularExponent?: number;
 		opacity?: number;
 		roughness?: number;
@@ -189,7 +189,7 @@ namespace sd.asset.parser {
 		// the last token is the relative path of the texture (no spaces allowed)
 		const relPath = tokens.pop()!;
 
-		const spec: RawAsset<TextureAssetOptions> = {
+		const spec: RawAsset<TextureAssetMetadata> = {
 			kind: "texture",
 			metadata: {
 				mipmaps: "regenerate",

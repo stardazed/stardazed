@@ -8,14 +8,14 @@
 namespace sd.asset {
 
 	export namespace parser {
-		export interface AudioAssetOptions {
+		export interface AudioAssetMetadata {
 		}
 
 		/**
 		 * Create an AudioBuffer for an asset blob
 		 * @param resource The source data to be parsed
 		 */
-		export const parseAudio: AssetParser<Audio, AudioAssetOptions> = (resource: RawAsset<AudioAssetOptions>) =>
+		export const parseAudio: AssetParser<Audio, AudioAssetMetadata> = (resource: RawAsset<AudioAssetMetadata>) =>
 			getArrayBuffer(resource).then(
 				data => new Promise<Audio>((resolve, reject) => {
 					audio.sharedAudioContext().decodeAudioData(

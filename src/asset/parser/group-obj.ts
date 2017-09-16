@@ -7,7 +7,7 @@
 
 namespace sd.asset.parser {
 
-	export const parseOBJGroup = (resource: RawAsset<GroupAssetOptions>): Promise<AssetGroup | Iterator<AssetGroup>> =>
+	export const parseOBJGroup = (resource: RawAsset<GroupAssetMetadata>): Promise<AssetGroup | Iterator<AssetGroup>> =>
 		getText(resource).then(text =>
 			parseOBJ(resource.dataPath || "", text, false)
 		) as any;

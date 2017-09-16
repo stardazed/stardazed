@@ -8,11 +8,11 @@
 namespace sd.asset {
 
 	export namespace parser {
-		export interface ImageAssetOptions {
+		export interface ImageAssetMetadata {
 			colourSpace: string;
 		}
 
-		export type ImageAssetParser = AssetParser<asset.Image, Partial<ImageAssetOptions>>;
+		export type ImageAssetParser = AssetParser<asset.Image, Partial<ImageAssetMetadata>>;
 		const imageParsers = new Map<string, ImageAssetParser>();
 
 		export function registerImageParser(imgParser: ImageAssetParser, mimeType: string) {
@@ -24,7 +24,7 @@ namespace sd.asset {
 		 * Create a PixelDataProvider for an asset blob
 		 * @param resource The source data to be parsed
 		 */
-		export const parseImage: ImageAssetParser = (resource: RawAsset<ImageAssetOptions>) => {
+		export const parseImage: ImageAssetParser = (resource: RawAsset<ImageAssetMetadata>) => {
 			return new Promise<asset.Image | Iterator<asset.Image>>((resolve, reject) => {
 				const mimeType = resource.dataBlob!.type;
 				const imgParser = imageParsers.get(mimeType);

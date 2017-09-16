@@ -9,10 +9,10 @@ namespace sd.asset {
 
 	export namespace parser {
 
-		export interface GroupAssetOptions {
+		export interface GroupAssetMetadata {
 		}
 		
-		export type GroupAssetParser = AssetParser<AssetGroup, Partial<GroupAssetOptions>>;
+		export type GroupAssetParser = AssetParser<AssetGroup, Partial<GroupAssetMetadata>>;
 		const groupParsers = new Map<string, GroupAssetParser>();
 		
 		export function registerGroupParser(groupParser: GroupAssetParser, mimeType: string) {
@@ -24,7 +24,7 @@ namespace sd.asset {
 		 * Create an AssetGroup for an asset blob
 		 * @param resource The source data to be parsed
 		 */
-		export function parseGroup(resource: RawAsset<GroupAssetOptions>) {
+		export function parseGroup(resource: RawAsset<GroupAssetMetadata>) {
 			return new Promise<AssetGroup | Iterator<AssetGroup>>((resolve, reject) => {
 				const mimeType = resource.dataBlob!.type;
 				const groupParser = groupParsers.get(mimeType);

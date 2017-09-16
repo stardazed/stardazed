@@ -8,12 +8,12 @@
 namespace sd.asset {
 
 	export namespace parser {
-		export interface TextureAssetOptions {
+		export interface TextureAssetMetadata {
 			mipmaps: "source" | "strip" | "regenerate";
 			repeatS: "repeat" | "mirror" | "clamp";
 			repeatT: "repeat" | "mirror" | "clamp";
 			filtering: "nearest" | "linear" | "bilinear" | "trilinear";
-			image: RawAsset<ImageAssetOptions>;
+			image: RawAsset<ImageAssetMetadata>;
 		}
 
 		const parseMipMapMode = (mmm: "source" | "strip" | "regenerate" | undefined) => {
@@ -50,13 +50,13 @@ namespace sd.asset {
 			})[filt!];
 		};
 
-		export type TextureAssetParser = AssetParser<Texture2D, Partial<TextureAssetOptions>>;
+		export type TextureAssetParser = AssetParser<Texture2D, Partial<TextureAssetMetadata>>;
 
 		/**
 		 * Create a Texture for an asset blob
 		 * @param resource The source data to be parsed
 		 */
-		export function* parseTexture(resource: RawAsset<TextureAssetOptions>) {
+		export function* parseTexture(resource: RawAsset<TextureAssetMetadata>) {
 			const imageSA = resource.metadata.image;
 			if (imageSA && imageSA.kind === "image") {
 				const image: asset.Image = yield imageSA;
