@@ -33,149 +33,115 @@ namespace sd.asset.parser {
 		textures: {}
 	});
 
-	function* resolveMTLColourResponse(mtl: MTLMaterial) {
+	function resolveMTLColourResponse(mtl: MTLMaterial) {
 		const allMTLKeys = Object.keys(mtl).concat(Object.keys(mtl.colours)).concat(Object.keys(mtl.textures));
 		const mtlIncludesSome = (tests: string[]) =>
 			tests.some(t => allMTLKeys.indexOf(t) > -1);
 
-		let colour: DiffuseColourResponse | DiffuseSpecularColourResponse |
-			PBRMetallicColourResponse | PBRSpecularColourResponse;
+		const colour: Partial<MaterialColourMetadata> = {};
 
 		if (mtlIncludesSome(["metallic", "roughness", "map_Pr", "map_Pm"])) {
 			// PBR colour response
-			let pbr: PBRMetallicColourResponse | PBRSpecularColourResponse;
-			let metallicTexAsset: RawAsset | undefined;
-			let roughnessTexAsset: RawAsset | undefined;
-
 			if (mtlIncludesSome(["metallic", "map_Pm"])) {
 				// PBR Metallic
-				pbr = makePBRMetallicResponse();
+				colour.type = "pbrMetallic";
 				if (mtl.metallic !== undefined) {
-					pbr.metallic = mtl.metallic;
+					colour.metallic = mtl.metallic;
 				}
 				if (mtl.textures["map_Pm"]) {
-					metallicTexAsset = mtl.textures["map_Pm"]!;
+					colour.metallicTexture = mtl.textures["map_Pm"]!;
 				}
 			}
 			else {
 				// PBR Specular
-				pbr = makePBRSpecularResponse();
-				const specTex = mtl.textures["map_Ks"];
-				if (specTex) {
-					pbr.specularTexture = yield mtl.textures["map_Ks"]!;
+				colour.type = "pbrSpecular";
+				if (mtl.textures["map_Ks"]) {
+					colour.specularTexture = mtl.textures["map_Ks"]!;
 				}
-
-				const defaultSpecularColour = [1, 1, 1];
-				pbr.specularFactor = mtl.colours["Ks"] || defaultSpecularColour;
+				if (mtl.colours["Ks"]) {
+					colour.specularFactor = mtl.colours["Ks"];
+				}
 			}
 
-			if (mtl.roughness !== undefined) {
-				pbr.roughness = mtl.roughness;
+			if (mtl.roughness !== void 0) {
+				colour.roughness = mtl.roughness;
 			}
 			if (mtl.textures["map_Pr"]) {
-				roughnessTexAsset = mtl.textures["map_Pm"]!;
+				colour.roughnessTexture = mtl.textures["map_Pm"]!;
 			}
-
-			// resolve potentially shared RM texture
-			if (metallicTexAsset || roughnessTexAsset) {
-				if (metallicTexAsset && roughnessTexAsset && metallicTexAsset.dataPath === roughnessTexAsset.dataPath) {
-					pbr.roughnessTexture = (pbr as PBRMetallicColourResponse).metallicTexture = yield roughnessTexAsset;
-				}
-				else {
-					if (metallicTexAsset) {
-						(pbr as PBRMetallicColourResponse).metallicTexture = yield metallicTexAsset;
-					}
-					if (roughnessTexAsset) {
-						pbr.roughnessTexture = yield roughnessTexAsset;
-					}
-				}
-			}
-
-			colour = pbr;
 		}
 		else {
 			// Non-PBR "classic" colour response
-			let classic: DiffuseColourResponse | DiffuseSpecularColourResponse;
 			if (mtlIncludesSome(["Ks", "specularExponent", "map_Ks"])) {
 				// Diffuse-Specular
-				classic = makeDiffuseSpecularResponse();
-				const specTex = mtl.textures["map_Ks"];
-				if (specTex) {
-					classic.specularTexture = yield mtl.textures["map_Ks"]!;
+				colour.type = "diffuseSpecular";
+				if (mtl.textures["map_Ks"]) {
+					colour.specularTexture = mtl.textures["map_Ks"]!;
 				}
-
-				const defaultSpecularColour = [1, 1, 1];
-				classic.specularFactor = mtl.colours["Ks"] || defaultSpecularColour;
-				classic.specularExponent = mtl.specularExponent || 1;
+				if (mtl.colours["Ks"]) {
+					colour.specularFactor = mtl.colours["Ks"];
+				}
+				colour.specularExponent = mtl.specularExponent || 1;
 			}
 			else {
 				// Diffuse
-				classic = makeDiffuseResponse();
+				colour.type = "diffuse";
 			}
-			colour = classic;
 		}
 
 		// shared among all colour response types
 		if (mtl.textures["map_Kd"]) {
-			colour.colourTexture = yield mtl.textures["map_Kd"]!;
+			colour.colourTexture = mtl.textures["map_Kd"]!;
 		}
-		colour.baseColour = mtl.colours["Kd"] || [1, 1, 1];
+		if (mtl.colours["Kd"]) {
+			colour.baseColour = mtl.colours["Kd"];
+		}
 		return colour;
 	}
 
-	function* resolveMTLMaterial(mtl: MTLMaterial) {
-		const colour = yield* resolveMTLColourResponse(mtl);
-		const material = makeMaterial(mtl.name, colour);
+	function resolveMTLMaterial(mtl: MTLMaterial): RawAsset<MaterialAssetMetadata> {
+		const material: Partial<MaterialAssetMetadata> = {
+			colour: resolveMTLColourResponse(mtl)
+		};
 
 		// alpha, can be same as colour texture
 		if (mtl.textures["map_d"]) {
-			material.alphaCoverage = AlphaCoverage.Mask;
+			material.alphaCoverage = "mask";
 			material.alphaCutoff = 0.5;
-			
-			const alphaTexAsset = mtl.textures["map_d"]!;
-			const colourTexAsset = mtl.textures["map_Kd"];
-			if (colourTexAsset && colourTexAsset.dataPath === alphaTexAsset.dataPath) {
-				material.alphaTexture = colour.colourTexture;
-			}
-			else {
-				material.alphaTexture = yield alphaTexAsset;
-			}
+			material.alphaTexture = mtl.textures["map_d"];
 		}
 
 		// normal and height
-		const normalTexAsset = mtl.textures["norm"];
-		const heightTexAsset = mtl.textures["disp"];
-		if (heightTexAsset) {
+		if (mtl.textures["norm"]) {
+			material.normalTexture = mtl.textures["norm"];
+		}
+		if (mtl.textures["disp"]) {
 			material.heightRange = 0.04;
-		}
-		if (normalTexAsset && heightTexAsset && normalTexAsset.dataPath === heightTexAsset.dataPath) {
-			material.normalTexture = material.heightTexture = yield normalTexAsset;
-		}
-		else {
-			if (normalTexAsset) {
-				material.normalTexture = yield normalTexAsset;
-			}
-			if (heightTexAsset) {
-				material.heightTexture = yield heightTexAsset;
-			}
+			material.heightTexture = mtl.textures["disp"];
 		}
 
 		// emissive
 		if (mtl.textures["map_Ke"] || mtl.colours["Ke"]) {
-			material.emissiveFactor = mtl.colours["Ke"] || [1, 1, 1];
+			if (mtl.colours["Ke"]) {
+				material.emissiveFactor = mtl.colours["Ke"];
+			}
 			if (mtl.textures["map_Ke"]) {
-				material.emissiveTexture = yield mtl.textures["map_Ke"]!;
+				material.emissiveTexture = mtl.textures["map_Ke"];
 			}
 		}
 
 		// anisotropy
 		// TODO: apply mtl.anisotropy to all textures
 
-		return material;
+		return {
+			kind: "material",
+			name: mtl.name,
+			metadata: material as MaterialAssetMetadata
+		};
 	}
 
 
-	function parseMTLTextureSpec(directive: string, basePath: string, line: string[]): RawAsset | undefined {
+	function parseMTLTextureSpec(directive: string, basePath: string, line: string[]): RawAsset<TextureAssetMetadata> | undefined {
 		if (line.length < 2) {
 			return undefined;
 		}
@@ -247,6 +213,7 @@ namespace sd.asset.parser {
 		const lines = text.split("\n");
 		let tokens: string[];
 		let curMat: MTLMaterial | undefined;
+		const rawMaterials: RawAsset<MaterialAssetMetadata>[] = [];
 
 		const checkArgCount = (cmd: string, count: number) => {
 			const ok = count === tokens.length - 1;
@@ -275,7 +242,7 @@ namespace sd.asset.parser {
 			if (directive === "newmtl") {
 				if (checkArgCount(directive, 1)) {
 					if (curMat) {
-						group.addMaterial(yield* resolveMTLMaterial(curMat));
+						rawMaterials.push(resolveMTLMaterial(curMat));
 					}
 					const matName = tokens[1];
 					curMat = makeMTLMaterial(matName);
@@ -383,7 +350,13 @@ namespace sd.asset.parser {
 		}
 
 		if (curMat) {
-			group.addMaterial(yield* resolveMTLMaterial(curMat));
+			rawMaterials.push(resolveMTLMaterial(curMat));
+		}
+
+		// load all materials and add to group
+		const materials: Material[] = yield rawMaterials;
+		for (const mat of materials) {
+			group.addMaterial(mat);
 		}
 
 		return group;
