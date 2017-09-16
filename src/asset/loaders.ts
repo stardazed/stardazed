@@ -8,7 +8,11 @@ namespace sd.asset.loader {
 	export type Loader = (source: string, mimeType?: string) => Promise<Blob>;
 	export type LoaderClass = (config: any) => Loader;
 
-	const namedLoaderClasses = new Map<string, LoaderClass>();
+	const loaderClasses = new Map<string, LoaderClass>();
+	export const registerLoaderClass = (type: string, loca: LoaderClass) => {
+		assert(! loaderClasses.has(type), `Tried to register duplicate LoaderClass of type "${type}"`);
+		loaderClasses.set(type, loca);
+	};
 
 	export interface LoaderInfo {
 		type: string;
@@ -16,7 +20,7 @@ namespace sd.asset.loader {
 	}
 
 	export const makeLoader = (info: LoaderInfo) => {
-		const loader = namedLoaderClasses.get(info.type);
+		const loader = loaderClasses.get(info.type);
 		if (! loader) {
 			throw new Error(`There is no asset loader of type "${info.type}"`);
 		}
@@ -62,7 +66,7 @@ namespace sd.asset.loader {
 			);
 		};
 	};
-	namedLoaderClasses.set("absolute-url", URLLoader);
+	registerLoaderClass("absolute-url", URLLoader);
 
 	// --------------------------------------------------------------------
 
@@ -81,7 +85,7 @@ namespace sd.asset.loader {
 			rootURL: new URL(config.relPath || "", document.baseURI!).href,
 			disableCache: config.disableCache
 		});
-	namedLoaderClasses.set("relative-url", RelativeURLLoader);
+	registerLoaderClass("relative-url", RelativeURLLoader);
 
 	// --------------------------------------------------------------------
 
@@ -110,7 +114,7 @@ namespace sd.asset.loader {
 			const data = new Uint8Array(dataArray);
 			resolve(new Blob([data], { type: mimeType }));
 		});
-	namedLoaderClasses.set("data-url", DataURLLoader);
+	registerLoaderClass("data-url", DataURLLoader);
 
 	// --------------------------------------------------------------------
 
@@ -161,7 +165,7 @@ namespace sd.asset.loader {
 			}
 		).pop()!;
 	};
-	namedLoaderClasses.set("chain", ChainedLoader);
+	registerLoaderClass("chain", ChainedLoader);
 
 	// --------------------------------------------------------------------
 
@@ -187,6 +191,6 @@ namespace sd.asset.loader {
 			resolve(loader!(resourcePath, mimeType));
 		});
 	};
-	namedLoaderClasses.set("rooted", RootedURLLoader);
+	registerLoaderClass("rooted", RootedURLLoader);
 
 } // ns sd.asset.loader
