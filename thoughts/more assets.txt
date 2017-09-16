@@ -3,11 +3,11 @@ Assets
 
 1. Elemental
 
-	* audio => AudioBuffer
-	* image => PixelDataProvider
-	* buffer => ArrayBuffer
-	* text => string
-	* json => JSON
+	* √ audio => AudioBuffer
+	* √ image => PixelDataProvider
+	* √ buffer => ArrayBuffer
+	* √ text => string
+	* √ json => JSON
 
 	Definition:
 
@@ -20,14 +20,13 @@ Assets
 
 	}
 
-
 2. Composite
 
 	* sample = (audio[]]) => Sample
-	* texture = (image[]) => Texture2D | TextureCube
+	* √ texture = (image[]) => Texture2D | TextureCube
+	* animation = (buffer[]) => Animation
 	* mesh = (buffer[]) => MeshData
 	* skeleton = (buffer[]) => Skeleton
-	* animation = (buffer[]) => Animation
 
 2.1. Higher-level Composite
 
