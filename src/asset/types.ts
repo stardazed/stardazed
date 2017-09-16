@@ -30,6 +30,10 @@ namespace sd.asset {
 
 	// ------------------------
 
+	export interface Binary extends Asset {
+		buffer: ArrayBuffer;
+	}
+
 	export interface Audio extends Asset {
 		buffer: AudioBuffer;
 	}
