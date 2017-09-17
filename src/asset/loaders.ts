@@ -5,7 +5,7 @@
 
 namespace sd.asset.loader {
 
-	export type Loader = (source: string, mimeType?: string) => Promise<Blob>;
+	export type Loader = (dataPath: string, mimeType?: string) => Promise<Blob>;
 	export type LoaderClass = (config: any) => Loader;
 
 	const loaderClasses = new Map<string, LoaderClass>();
@@ -54,8 +54,8 @@ namespace sd.asset.loader {
 			config.disableCache = false;
 		}
 
-		return (source: string, mimeType?: string) => {
-			const fullURL = new URL(source, rootURL.href);
+		return (dataPath: string, mimeType?: string) => {
+			const fullURL = new URL(dataPath, rootURL.href);
 
 			return io.loadFile<Blob>(
 				fullURL, {
@@ -94,21 +94,21 @@ namespace sd.asset.loader {
 	 * @param _config ignored, this loader has no configuration options
 	 */
 	export const DataURLLoader: LoaderClass = (_config: {}) =>
-		(source: string, mimeType?: string) => new Promise<Blob>((resolve, reject) => {
-			if (source.substr(0, 5) !== "data:") {
+		(dataPath: string, mimeType?: string) => new Promise<Blob>((resolve, reject) => {
+			if (dataPath.substr(0, 5) !== "data:") {
 				return reject("Not a data url");
 			}
 			const marker = ";base64,";
-			const markerIndex = source.indexOf(marker);
+			const markerIndex = dataPath.indexOf(marker);
 			if (markerIndex <= 5) {
 				return reject("Not a base64 data url");
 			}
 
 			// simply override any given mime-type with the one provided inside the url
-			mimeType = source.substring(5, markerIndex);
+			mimeType = dataPath.substring(5, markerIndex);
 
 			// convert the data through the various stages of grief
-			const data64 = source.substr(markerIndex + marker.length);
+			const data64 = dataPath.substr(markerIndex + marker.length);
 			const dataStr = atob(data64);
 			const dataArray = Array.prototype.map.call(dataStr, (_: string, i: number, s: string) => s.charCodeAt(i)) as number[];
 			const data = new Uint8Array(dataArray);
@@ -180,14 +180,14 @@ namespace sd.asset.loader {
 		const loader = config.loader && makeLoader(config.loader);
 		assert(loader, "RootedURLLoader: a loader must be provided.");
 
-		return (source: string, mimeType?: string) => new Promise<Blob>((resolve, reject) => {
-			const firstSlash = source.indexOf("/");
-			const rootName = source.substring(0, firstSlash);
+		return (dataPath: string, mimeType?: string) => new Promise<Blob>((resolve, reject) => {
+			const firstSlash = dataPath.indexOf("/");
+			const rootName = dataPath.substring(0, firstSlash);
 			if (rootName !== prefix) {
 				return reject("Not a url in this root");
 			}
 
-			const resourcePath = source.substring(firstSlash + 1);
+			const resourcePath = dataPath.substring(firstSlash + 1);
 			resolve(loader!(resourcePath, mimeType));
 		});
 	};
