@@ -39,11 +39,11 @@ namespace sd.asset {
 			}
 		}
 
-		protected async processLoaderParser(res: Promise<any> | Iterator<any>): Promise<any> {
+		protected async processParser(res: Promise<any> | Iterator<any>): Promise<any> {
 			if (res instanceof Promise) {
 				return res.then(internal => {
 					if (isIterator(internal)) {
-						return this.processLoaderParser(internal);
+						return this.processParser(internal);
 					}
 					else {
 						return internal;
@@ -73,12 +73,18 @@ namespace sd.asset {
 			}
 		}
 
-		loadAny(sa: parser.RawAsset) {
-			const loaderParser = this.loaderParserFuncs_[sa.kind];
-			if (loaderParser) {
-				return this.processLoaderParser(loaderParser(sa));
-			}
-			return Promise.reject(new Error(`No registered parser for asset kind: ${sa.kind}, requested path: ${sa.dataPath}`));
+		protected preprocessRawAsset(ra: parser.RawAsset) {
+			return this.loadData(ra);
+		}
+
+		loadAny(ra: parser.RawAsset) {
+			return this.preprocessRawAsset(ra).then(pra => {
+				const loaderParser = this.loaderParserFuncs_[pra.kind];
+				if (loaderParser) {
+					return this.processParser(loaderParser(pra));
+				}
+				return Promise.reject(new Error(`No registered parser for asset kind: ${pra.kind}, requested path: ${pra.dataPath}`));
+			});
 		}
 
 		loadAssetFile(assets: parser.RawAsset[]) {
@@ -107,11 +113,11 @@ namespace sd.asset {
 				}
 
 				[loadFuncName](ra: parser.RawAsset) {
-					return this.loadData(ra)
-						.then(resource => this.processLoaderParser(assetParser(resource)))
-						.then(tex => {
-							(this as any)[cacheArrayName].set(ra.name, tex);
-							return tex;
+					return this.preprocessRawAsset(ra)
+						.then(resource => this.processParser(assetParser(resource)))
+						.then(asset => {
+							(this as any)[cacheArrayName].set(ra.name, asset);
+							return asset;
 						});
 				}
 
