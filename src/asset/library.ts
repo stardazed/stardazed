@@ -13,8 +13,8 @@ namespace sd.asset {
 		item?: AssetItem;
 	}
 	
-	export type AssetProcessor = (ra: Asset) => Promise<Asset>;
-	export type LibraryPlugin = (lib: AssetLibrary) => void;
+	export type AssetProcessor = (asset: Asset) => Promise<Asset>;
+	export type LibraryPlugin = (library: AssetLibrary) => void;
 	
 	export interface AssetLibrary {
 		process: AssetProcessor;

@@ -88,20 +88,20 @@ namespace sd.asset {
 		/**
 		 * Helper that returns the external data of an asset as an ArrayBuffer.
 		 */
-		export const getArrayBuffer = (a: Asset) =>
-			a.dataBlob ? io.BlobReader.readAsArrayBuffer(a.dataBlob) : Promise.reject("getArrayBuffer: no blobData in RawAsset");
+		export const getArrayBuffer = (asset: Asset) =>
+			asset.blob ? io.BlobReader.readAsArrayBuffer(asset.blob) : Promise.reject("getArrayBuffer: no blob present in Asset");
 
 		/**
 		 * Helper that returns the external data of an asset as a string.
 		 */
-		export const getText = (a: Asset) =>
-			a.dataBlob ? io.BlobReader.readAsText(a.dataBlob) : Promise.reject("getText: no blobData in RawAsset");
+		export const getText = (asset: Asset) =>
+			asset.blob ? io.BlobReader.readAsText(asset.blob) : Promise.reject("getText: no blob present in Asset");
 
 		/**
 		 * Helper that returns the external data of an asset as a JSON object.
 		 */
-		export const getJSON = (a: Asset) =>
-			getText(a).then(
+		export const getJSON = (asset: Asset) =>
+			getText(asset).then(
 				text => JSON.parse(text)
 			);
 
