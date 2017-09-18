@@ -7,6 +7,9 @@
 
 namespace sd.asset {
 
+	/**
+	 * Extend an AssetLibrary with the capacity to parse asset data and metadata.
+	 */
 	export const parserPlugin: LibraryPlugin = (lib: AssetLibrary) => {
 		const assetParser: AssetProcessor = (asset: Asset) =>
 			new Promise<Asset>((resolve, reject) => {
