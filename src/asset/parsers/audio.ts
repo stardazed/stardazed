@@ -7,10 +7,6 @@
 
 namespace sd.asset.parser {
 
-	/**
-	 * Create an AudioBuffer for an asset blob
-	 * @param resource The source data to be parsed
-	 */
 	export const parseAudio: AssetProcessor = (asset: Asset<AudioBuffer, {}>) =>
 		getArrayBuffer(asset).then(
 			data => new Promise<Asset>((resolve, reject) => {

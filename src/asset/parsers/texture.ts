@@ -7,14 +7,52 @@
 
 namespace sd.asset {
 
+	export interface Texture2D {
+		texture: render.Texture;
+		repeatS: render.TextureRepeatMode;
+		repeatT: render.TextureRepeatMode;
+		sizeFilter: render.TextureSizingFilter;
+		mipFilter: render.TextureMipFilter;
+		anisotropy: number; // 1..16
+	}
+
 	export namespace parser {
+
 		export interface TextureAssetMetadata {
 			mipmaps: "source" | "strip" | "regenerate";
 			repeatS: "repeat" | "mirror" | "clamp";
 			repeatT: "repeat" | "mirror" | "clamp";
 			filtering: "nearest" | "linear" | "bilinear" | "trilinear";
-			image: RawAsset<ImageAssetMetadata>;
 		}
+
+		export const parseTexture = (asset: Asset<Texture2D, TextureAssetMetadata>) => {
+			const imageAsset: Asset<image.PixelDataProvider> = asset.dependencies && asset.dependencies[0];
+			const metadata = asset.metadata || {};
+
+			if (! (imageAsset && imageAsset.kind === "image")) {
+				throw new Error(`Texture parser: required image dependency is missing.`);
+			}
+
+			const mipmaps = parseMipMapMode(metadata.mipmaps);
+			const repeatS = parseRepeat(metadata.repeatS);
+			const repeatT = parseRepeat(metadata.repeatT);
+			const filtering = parseFiltering(metadata.filtering);
+
+			const texture = render.makeTex2DFromProvider(imageAsset.item!, mipmaps);
+			
+			const tex2D: Texture2D = {
+				texture,
+				repeatS,
+				repeatT,
+				sizeFilter: filtering.size,
+				mipFilter: filtering.mip,
+				anisotropy: 1
+			};
+			asset.item = tex2D;
+			return Promise.resolve(asset);
+		};
+
+		registerParser("texture", parseTexture);
 
 		const parseMipMapMode = (mmm: "source" | "strip" | "regenerate" | undefined) => {
 			if (["source", "strip", "regenerate"].indexOf(mmm || "") === -1) {
@@ -50,50 +88,6 @@ namespace sd.asset {
 			})[filt!];
 		};
 
-		export type TextureAssetParser = AssetParser<Texture2D, Partial<TextureAssetMetadata>>;
-
-		/**
-		 * Create a Texture for an asset blob
-		 * @param resource The source data to be parsed
-		 */
-		export function* parseTexture(resource: RawAsset<TextureAssetMetadata>) {
-			const imageSA = resource.metadata.image;
-			if (imageSA && imageSA.kind === "image") {
-				const image: asset.Image = yield imageSA;
-				const mipmaps = parseMipMapMode(resource.metadata.mipmaps);
-				const repeatS = parseRepeat(resource.metadata.repeatS);
-				const repeatT = parseRepeat(resource.metadata.repeatT);
-				const filtering = parseFiltering(resource.metadata.filtering);
-				console.info(repeatS, repeatT, filtering); // make TS shut up about unused items
-				const texture = render.makeTex2DFromProvider(image.provider, mipmaps);
-
-				const tex2D: Texture2D = {
-					...makeAsset("texture", resource.name),
-					texture,
-					anisotropy: 1
-				};
-				return tex2D;
-			}
-			else {
-				throw new Error(`Texture parser: required image sub-resource is missing.`);
-			}
-		}
 	} // ns parser
-
-	export interface TextureSampler extends Asset {
-		sampler: render.Sampler;
-	}
-
-	export interface Texture2D extends Asset {
-		texture: render.Texture;
-		samplerAsset?: TextureSampler; // hmm
-		anisotropy: number; // 1..16
-	}
-
-	export interface Library {
-		loadTexture(ra: parser.RawAsset): Promise<Texture2D>;
-		textureByName(name: string): Texture2D | undefined;
-	}
-	registerAssetLoaderParser("texture", parser.parseTexture);
 
 } // ns sd.asset
