@@ -33,10 +33,12 @@ namespace sd.asset {
 		return library;
 	};
 
-	// plugins = [generator, loader, importer, dependencies, parser]
 	export const makeDefaultLibrary = (loader: loader.LoaderInfo | loader.Loader) =>
 		makeLibrary([
+			// generatorPlugin,
 			loaderPlugin(loader),
+			// importerPlugin,
+			dependenciesPlugin,
 			parserPlugin
 		]);
 	
