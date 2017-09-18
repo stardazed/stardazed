@@ -9,7 +9,7 @@ namespace sd.asset.parser {
 
 	export const parseOBJGroup = (resource: RawAsset<GroupAssetMetadata>): Promise<AssetGroup | Iterator<AssetGroup>> =>
 		getText(resource).then(text =>
-			parseOBJ(resource.dataPath || "", text, false)
+			parseOBJ(resource.uri || "", text, false)
 		) as any;
 
 	registerFileExtension("obj", "application/wavefront-obj");
@@ -68,7 +68,7 @@ namespace sd.asset.parser {
 		}
 
 		if (mtlFilePath.length) {
-			preproc.group = yield { kind: "group", dataPath: mtlFilePath };
+			preproc.group = yield { kind: "group", uri: mtlFilePath };
 		}
 		return preproc;
 	}

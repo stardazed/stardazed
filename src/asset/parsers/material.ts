@@ -71,7 +71,7 @@ namespace sd.asset {
 				for (let ix = 0; ix < this.roles.length; ++ix) {
 					const role = this.roles[ix];
 					const tex = this.rawAssets[ix];
-					const path = (tex.metadata.image && tex.metadata.image.dataPath) || "missing_image_path";
+					const path = (tex.metadata.image && tex.metadata.image.uri) || "missing_image_path";
 					const entry = uniques.get(path);
 					if (! entry) {
 						uniques.set(path, { tex, roles: [role] });

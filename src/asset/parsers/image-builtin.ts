@@ -20,7 +20,7 @@ namespace sd.asset.parser {
 				});
 			};
 			builtin.onerror = () => {
-				reject(`The image at '${resource.dataPath}' is not supported`);
+				reject(`The image at '${resource.uri}' is not supported`);
 			};
 
 			// Always enable CORS as GL will not allow tainted data to be loaded so if it fails, we can't use the image

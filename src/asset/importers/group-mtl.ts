@@ -9,7 +9,7 @@ namespace sd.asset.parser {
 
 	export const parseMTLGroup = (resource: RawAsset<GroupAssetMetadata>) =>
 		getText(resource).then(text =>
-			parseMTLSource(resource.dataPath || "", text)
+			parseMTLSource(resource.uri || "", text)
 		);
 
 	registerFileExtension("mtl", "application/wavefront-mtl");
@@ -157,7 +157,7 @@ namespace sd.asset.parser {
 				mipmaps: "regenerate",
 				image: {
 					kind: "image",
-					dataPath: io.resolveRelativePath(relPath, basePath),
+					uri: io.resolveRelativePath(relPath, basePath),
 					metadata: {
 						colourSpace: (["map_Kd", "map_Ks", "map_Ke"].indexOf(directive) > -1) ? "srgb" : "linear",
 					}
