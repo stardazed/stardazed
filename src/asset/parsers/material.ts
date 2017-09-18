@@ -17,11 +17,6 @@ namespace sd.asset {
 			specularExponent: number;
 			metallic: number;
 			roughness: number;
-
-			colourTexture: RawAsset<TextureAssetMetadata>;
-			metallicTexture: RawAsset<TextureAssetMetadata>;
-			roughnessTexture: RawAsset<TextureAssetMetadata>;
-			specularTexture: RawAsset<TextureAssetMetadata>;
 		}
 
 		export interface MaterialAssetMetadata {
@@ -37,57 +32,20 @@ namespace sd.asset {
 
 			emissiveFactor: Float3;
 			heightRange: number;
-
-			alphaTexture: RawAsset<TextureAssetMetadata>;
-			emissiveTexture: RawAsset<TextureAssetMetadata>;
-			normalTexture: RawAsset<TextureAssetMetadata>;
-			heightTexture: RawAsset<TextureAssetMetadata>;
-			ambientOcclusionTexture: RawAsset<TextureAssetMetadata>;
 		}
 
-		// ----------------
+		type TextureAsset = Asset<Texture2D, TextureAssetMetadata>;
 
-		type RawTextureRole = "colour" | "metallic" | "roughness" | "specular" | "alpha" | "emissive" | "normal" | "height" | "ao";
-
-		class RawTextures {
-			roles: RawTextureRole[] = [];
-			rawAssets: RawAsset<TextureAssetMetadata>[] = [];
-
-			add(role: RawTextureRole, tex: RawAsset<TextureAssetMetadata> | undefined) {
-				if (tex !== void 0) {
-					if (isRawAsset(tex) && tex.kind === "texture") {
-						this.roles.push(role);
-						this.rawAssets.push(tex);
-					}
-					else {
-						console.warn(`Material parser: ignoring invalid texture asset`, tex);
-					}
-				}
-			}
-
-			resolve() {
-				const uniques = new Map<string, { tex: RawAsset<TextureAssetMetadata>, roles: RawTextureRole[] }>();
-
-				for (let ix = 0; ix < this.roles.length; ++ix) {
-					const role = this.roles[ix];
-					const tex = this.rawAssets[ix];
-					const path = (tex.metadata.image && tex.metadata.image.uri) || "missing_image_path";
-					const entry = uniques.get(path);
-					if (! entry) {
-						uniques.set(path, { tex, roles: [role] });
-					}
-					else {
-						entry.roles.push(role);
-					}
-				}
-
-				const result = new Map<RawAsset<TextureAssetMetadata>, RawTextureRole[]>();
-				uniques.forEach(({ tex, roles }) => {
-					result.set(tex, roles);
-				});
-
-				return result;
-			}
+		interface MaterialDependencies {
+			colourTexture?: TextureAsset;
+			metallicTexture?: TextureAsset;
+			roughnessTexture?: TextureAsset;
+			specularTexture?: TextureAsset;
+			alphaTexture?: TextureAsset;
+			emissiveTexture?: TextureAsset;
+			normalTexture?: TextureAsset;
+			heightTexture?: TextureAsset;
+			ambientOcclusionTexture?: TextureAsset;
 		}
 
 		// ----------------
@@ -261,41 +219,49 @@ namespace sd.asset {
 
 		// ------------
 
-		function getDiffuseResponseData(meta: Partial<MaterialAssetMetadata>, rawTex: RawTextures) {
+		function getDiffuseResponseData(meta: Partial<MaterialAssetMetadata>, deps: MaterialDependencies) {
 			const response = makeDiffuseResponse();
 			const colour = meta.colour!;
 
 			response.baseColour = getBaseColour(colour, response.baseColour);
-			rawTex.add("colour", colour.colourTexture);
+			if (deps.colourTexture) {
+				response.colourTexture = deps.colourTexture.item;
+			}
 
 			return response;
 		}
 
-		function getDiffuseSpecularResponseData(meta: Partial<MaterialAssetMetadata>, rawTex: RawTextures) {
-			const response = makeDiffuseSpecularResponse(getDiffuseResponseData(meta, rawTex));
+		function getDiffuseSpecularResponseData(meta: Partial<MaterialAssetMetadata>, deps: MaterialDependencies) {
+			const response = makeDiffuseSpecularResponse(getDiffuseResponseData(meta, deps));
 			const colour = meta.colour!;
 			
 			response.specularFactor = getSpecularFactor(colour, response.specularFactor);
 			response.specularExponent = getSpecularExponent(colour, response.specularExponent);
-			rawTex.add("specular", colour.specularTexture);
+			if (deps.specularTexture) {
+				response.specularTexture = deps.specularTexture.item;
+			}
 
 			return response;
 		}
 
-		function getPBRMetallicResponseData(meta: Partial<MaterialAssetMetadata>, rawTex: RawTextures) {
-			const response = makePBRMetallicResponse(getDiffuseResponseData(meta, rawTex));
+		function getPBRMetallicResponseData(meta: Partial<MaterialAssetMetadata>, deps: MaterialDependencies) {
+			const response = makePBRMetallicResponse(getDiffuseResponseData(meta, deps));
 			const colour = meta.colour!;
 
 			response.metallic = getMetallicFactor(colour, response.metallic);
 			response.roughness = getRoughnessFactor(colour, response.roughness);
-			rawTex.add("metallic", colour.metallicTexture);
-			rawTex.add("roughness", colour.roughnessTexture);
+			if (deps.metallicTexture) {
+				response.metallicTexture = deps.metallicTexture.item;
+			}
+			if (deps.roughnessTexture) {
+				response.roughnessTexture = deps.roughnessTexture.item;
+			}
 
 			return response;
 		}
 
-		function getPBRSpecularResponseData(meta: Partial<MaterialAssetMetadata>, rawTex: RawTextures) {
-			const response = makePBRSpecularResponse(getDiffuseResponseData(meta, rawTex));
+		function getPBRSpecularResponseData(meta: Partial<MaterialAssetMetadata>, deps: MaterialDependencies) {
+			const response = makePBRSpecularResponse(getDiffuseResponseData(meta, deps));
 			const colour = meta.colour!;
 
 			response.specularFactor = getSpecularFactor(colour, response.specularFactor);
@@ -306,46 +272,26 @@ namespace sd.asset {
 			return response;
 		}
 
-		function assignTextures(mat: Material, textures: Texture2D[], rolesPerTex: RawTextureRole[][]) {
-			for (let ix = 0; ix < textures.length; ++ix) {
-				const tex = textures[ix];
-				const roles = rolesPerTex[ix];
-				for (const role of roles) {
-					switch (role) {
-						case "colour": mat.colour.colourTexture = tex; break;
-						case "metallic": (mat.colour as PBRMetallicColourResponse).metallicTexture = tex; break;
-						case "roughness": (mat.colour as PBRMetallicColourResponse).roughnessTexture = tex; break;
-						case "specular": (mat.colour as PBRSpecularColourResponse).specularTexture = tex; break;
-						case "alpha": mat.alphaTexture = tex; break;
-						case "emissive": mat.emissiveTexture = tex; break;
-						case "normal": mat.normalTexture = tex; break;
-						case "height": mat.heightTexture = tex; break;
-						case "ao": mat.ambientOcclusionTexture = tex; break;
-					}
-				}
-			}
-		}
-
 		/**
 		 * Create a standard Material.
-		 * @param resource The source data to be parsed
+		 * @param asset The source data to be parsed
 		 */
-		export function* parseMaterial(resource: RawAsset<MaterialAssetMetadata>) {
-			const rawTex = new RawTextures();
-			const meta = resource.metadata;
+		export function parseMaterial(asset: Asset<Material, MaterialAssetMetadata>) {
+			const meta = asset.metadata || {};
+			const deps = (asset.dependencies || {}) as any as MaterialDependencies;
 
 			let colour: ColourResponse;
 			const colourType = meta.colour && meta.colour.type;
 			switch (colourType) {
-				case "diffuse": colour = getDiffuseResponseData(meta, rawTex); break;
-				case "diffuseSpecular": colour = getDiffuseSpecularResponseData(meta, rawTex); break;
-				case "pbrMetallic": colour = getPBRMetallicResponseData(meta, rawTex); break;
-				case "pbrSpecular": colour = getPBRSpecularResponseData(meta, rawTex); break;
+				case "diffuse": colour = getDiffuseResponseData(meta, deps); break;
+				case "diffuseSpecular": colour = getDiffuseSpecularResponseData(meta, deps); break;
+				case "pbrMetallic": colour = getPBRMetallicResponseData(meta, deps); break;
+				case "pbrSpecular": colour = getPBRSpecularResponseData(meta, deps); break;
 				default:
 					throw new Error("Material parser: missing or invalid colour type.");
 			}
 
-			const mat = makeMaterial(resource.name, colour);
+			const mat = makeMaterial(asset.name, colour);
 			mat.alphaCoverage = getAlphaCoverage(meta, mat.alphaCoverage);
 			mat.alphaCutoff = getAlphaCutoff(meta, mat.alphaCutoff);
 			mat.alphaFactor = getAlphaFactor(meta, mat.alphaFactor);
@@ -355,18 +301,12 @@ namespace sd.asset {
 			mat.uvScale = getUVScale(meta, mat.uvScale);
 			mat.uvOffset = getUVOffset(meta, mat.uvOffset);
 
-			rawTex.add("alpha", meta.alphaTexture);
-			rawTex.add("normal", meta.normalTexture);
-			rawTex.add("height", meta.heightTexture);
-			rawTex.add("ao", meta.ambientOcclusionTexture);
-			rawTex.add("emissive", meta.emissiveTexture);
+			rawTex.add("alpha", deps.alphaTexture);
+			rawTex.add("normal", deps.normalTexture);
+			rawTex.add("height", deps.heightTexture);
+			rawTex.add("ao", deps.ambientOcclusionTexture);
+			rawTex.add("emissive", deps.emissiveTexture);
 
-			const texBindings = rawTex.resolve();
-			const texAssets = Array.from(texBindings.keys());
-			const texRoles = Array.from(texBindings.values());
-			const textures: Texture2D[] = yield texAssets;
-			assignTextures(mat, textures, texRoles);
-			
 			return mat;
 		}
 
