@@ -31,7 +31,7 @@ namespace sd {
 	export function cloneStructDeep<T extends object>(object: T): T {
 		const copy: any = {};
 		Object.getOwnPropertyNames(object).forEach(name => {
-			if (typeof (object as any)[name] === "object") {
+			if (typeof (object as any)[name] === "object" && (object as any)[name] !== null) {
 				copy[name] = cloneStructDeep((object as any)[name]);
 			}
 			else {
@@ -62,7 +62,7 @@ namespace sd {
 	export type Constructor<T> = new (...args: any[]) => T;
 
 	export const isIterator = <T = any>(it: any): it is Iterator<T> => {
-		if (typeof it === "object") {
+		if (typeof it === "object" && it !== null) {
 			return typeof it.next === "function" && it.next.length === 1;
 		}
 		return false;
