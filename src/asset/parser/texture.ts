@@ -78,6 +78,16 @@ namespace sd.asset {
 				throw new Error(`Texture parser: required image sub-resource is missing.`);
 			}
 		}
+	} // ns parser
+
+	export interface TextureSampler extends Asset {
+		sampler: render.Sampler;
+	}
+
+	export interface Texture2D extends Asset {
+		texture: render.Texture;
+		samplerAsset?: TextureSampler; // hmm
+		anisotropy: number; // 1..16
 	}
 
 	export interface Library {

@@ -1,4 +1,4 @@
-// asset/parsers - raw assets, parsers and mime-types
+// asset/parsers - parsing final content based on kind, mimeType or data path extension
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

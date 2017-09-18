@@ -37,6 +37,65 @@ namespace sd.asset {
 
 	} // ns parser
 
+
+	export function makeTransform(): entity.Transform {
+		return {
+			position: [0, 0, 0],
+			rotation: [0, 0, 0, 1],
+			scale: [1, 1, 1]
+		};
+	}
+
+	export interface Model extends Asset {
+		transform: entity.Transform;
+		children: Model[];
+		parent?: Model;
+
+		// components
+		materials: Material[];
+		mesh?: meshdata.MeshData;
+		light?: entity.Light;
+	}
+
+	export function makeModel(name?: string): Model {
+		return {
+			...makeAsset("model", name),
+			transform: makeTransform(),
+			children: [],
+			materials: []
+		};
+	}
+
+	export class AssetGroup implements Asset {
+		guid = "FIXME";
+		kind = "group";
+
+		meshes: meshdata.MeshData[] = [];
+		textures: (Texture2D | null)[] = []; // FIXME: handling of optional textures
+		materials: Material[] = [];
+		models: Model[] = [];
+
+		addMesh(mesh: meshdata.MeshData): number {
+			this.meshes.push(mesh);
+			return this.meshes.length - 1;
+		}
+
+		addTexture(tex: Texture2D | null): number { // FIXME: handling of optional textures
+			this.textures.push(tex);
+			return this.textures.length - 1;
+		}
+
+		addMaterial(mat: Material): number {
+			this.materials.push(mat);
+			return this.materials.length - 1;
+		}
+
+		addModel(model: Model): number {
+			this.models.push(model);
+			return this.models.length - 1;
+		}
+	}
+
 	export interface Library {
 		loadGroup(ra: parser.RawAsset): Promise<AssetGroup>;
 		groupByName(name: string): AssetGroup | undefined;

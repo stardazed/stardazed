@@ -372,6 +372,125 @@ namespace sd.asset {
 
 	} // ns parser
 
+
+	export const enum AlphaCoverage {
+		Ignore,
+		Mask,
+		Transparent
+	}
+
+	export interface DiffuseColourResponse {
+		type: "diffuse";
+		baseColour: Float3;
+		colourTexture?: Texture2D;
+	}
+
+	export interface DiffuseSpecularColourResponse {
+		type: "diffusespecular";
+		baseColour: Float3;
+		colourTexture?: Texture2D;
+
+		specularFactor: Float3;
+		specularExponent: number;
+		specularTexture?: Texture2D;
+	}
+
+	export interface PBRMetallicColourResponse {
+		type: "pbrmetallic";
+		baseColour: Float3;
+		colourTexture?: Texture2D;
+
+		metallic: number; // 0: fully di-electric, 1: fully metallic
+		metallicTexture?: Texture2D;
+
+		roughness: number; // 0: fully smooth, 1: fully rough
+		roughnessTexture?: Texture2D;
+	}
+
+	export interface PBRSpecularColourResponse {
+		type: "pbrspecular";
+		baseColour: Float3;
+		colourTexture?: Texture2D;
+
+		specularFactor: Float3;
+		specularTexture?: Texture2D;
+		
+		roughness: number; // 0: fully smooth (default), 1: fully rough
+		roughnessTexture?: Texture2D;
+	}
+
+	export type ColourResponse = DiffuseColourResponse | DiffuseSpecularColourResponse | PBRMetallicColourResponse | PBRSpecularColourResponse;
+	export type AnyColourResponse = DiffuseColourResponse & DiffuseSpecularColourResponse & PBRMetallicColourResponse & PBRSpecularColourResponse;
+
+	export const makeDiffuseResponse = (): DiffuseColourResponse => ({
+		type: "diffuse",
+		baseColour: [1, 1, 1]
+	});
+
+	export const makeDiffuseSpecularResponse = (source?: DiffuseColourResponse): DiffuseSpecularColourResponse => ({
+		...(source || makeDiffuseResponse()),
+		type: "diffusespecular",
+
+		specularFactor: [0, 0, 0],
+		specularExponent: 0,
+	});
+
+	export const makePBRMetallicResponse = (source?: DiffuseColourResponse): PBRMetallicColourResponse => ({
+		...(source || makeDiffuseResponse()),
+		type: "pbrmetallic",
+
+		metallic: 1,
+		roughness: 1,
+	});
+
+	export const makePBRSpecularResponse = (source?: DiffuseColourResponse): PBRSpecularColourResponse => ({
+		...(source || makeDiffuseResponse()),
+		type: "pbrspecular",
+
+		specularFactor: [1, 1, 1],
+		roughness: 1,
+	});
+
+
+	export interface Material extends Asset {
+		colour: ColourResponse;
+		
+		alphaCoverage: AlphaCoverage;
+		alphaCutoff: number;
+		alphaFactor: number;
+		alphaTexture?: Texture2D;
+
+		normalTexture?: Texture2D;
+		ambientOcclusionTexture?: Texture2D;
+
+		heightRange: number;
+		heightTexture?: Texture2D;
+
+		emissiveFactor: Float3;
+		emissiveTexture?: Texture2D;
+
+		doubleSided: boolean;
+		uvScale: Float2;
+		uvOffset: Float2;
+	}
+
+	export const makeMaterial = (name?: string, colour?: ColourResponse): Material => ({
+		...makeAsset("material", name),
+		colour: colour || makeDiffuseResponse(),
+
+		alphaCoverage: AlphaCoverage.Ignore,
+		alphaCutoff: 0,
+		alphaFactor: 1,
+
+		heightRange: 0,
+
+		emissiveFactor: [0, 0, 0],
+
+		doubleSided: false,
+		uvScale: [1, 1],
+		uvOffset: [0, 0]
+	});
+
 	export interface Library {
 		loadMaterial(ra: parser.RawAsset): Promise<Material>;
 		materialByName(name: string): Material | undefined;

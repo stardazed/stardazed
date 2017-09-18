@@ -46,6 +46,10 @@ namespace sd.asset {
 
 	} // ns parser
 
+	export interface Audio extends Asset {
+		buffer: AudioBuffer;
+	}
+
 	export interface Library {
 		loadAudio(sa: parser.RawAsset): Promise<Audio>;
 		audioByName(name: string): Audio | undefined;

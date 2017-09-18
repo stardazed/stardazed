@@ -19,6 +19,10 @@ namespace sd.asset {
 
 	} // ns parser
 
+	export interface Binary extends Asset {
+		buffer: ArrayBuffer;
+	}
+
 	export interface Library {
 		loadBinary(sa: parser.RawAsset): Promise<Binary>;
 		binaryByName(name: string): Binary | undefined;

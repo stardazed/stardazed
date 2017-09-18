@@ -36,6 +36,10 @@ namespace sd.asset {
 		};
 	}
 
+	export interface Image extends Asset {
+		provider: image.PixelDataProvider;
+	}
+
 	export interface Library {
 		loadImage(ra: parser.RawAsset): Promise<asset.Image>;
 		imageByName(name: string): asset.Image | undefined;
