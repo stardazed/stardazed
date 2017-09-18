@@ -7,24 +7,20 @@
 
 namespace sd.asset.parser {
 
-	const parseBuiltInImage = (resource: RawAsset<ImageAssetMetadata>) => {
-		const blobURL = URL.createObjectURL(resource.dataBlob);
+	const parseBuiltInImage = (data: Blob, colourSpace: image.ColourSpace) => {
+		const blobURL = URL.createObjectURL(data);
 
-		return new Promise<asset.Image>((resolve, reject) => {
+		return new Promise<image.PixelDataProvider>((resolve, reject) => {
 			const builtin = new Image();
 			builtin.onload = () => {
-				const colourSpace = resource.metadata.colourSpace === "linear" ? image.ColourSpace.Linear : image.ColourSpace.sRGB;
-				resolve({
-					...makeAsset("image", resource.name),
-					provider: new HTMLImageDataProvider(builtin, colourSpace)
-				});
+				resolve(new HTMLImageDataProvider(builtin, colourSpace));
 			};
 			builtin.onerror = () => {
-				reject(`The image at '${resource.uri}' is not supported`);
+				reject(`The image at '${blobURL}' is not supported`);
 			};
 
-			// Always enable CORS as GL will not allow tainted data to be loaded so if it fails, we can't use the image
-			// and enabling it for local resources does no harm.
+			// Always enable CORS as GL will not allow tainted data to be loaded so if it fails
+			// we can't use the image anyway and enabling it for local resources does no harm.
 			builtin.crossOrigin = "anonymous";
 			builtin.src = blobURL;
 		}).then(provider => {
