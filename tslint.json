@@ -52,6 +52,7 @@
 		"no-unused-expression": [true, "allow-fast-null-checks", "allow-new"],
 		"no-string-literal": false,
 		"no-empty-interface": false,
+		"no-shadowed-variable": false,
 		// "radix": false,
 
 		/* Style */
