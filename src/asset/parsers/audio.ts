@@ -1,4 +1,4 @@
-// asset/parser/image - image asset parser front-end
+// asset/parser/audio - audio file parser
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -15,16 +15,14 @@ namespace sd.asset {
 		 * Create an AudioBuffer for an asset blob
 		 * @param resource The source data to be parsed
 		 */
-		export const parseAudio: AssetParser<Audio, AudioAssetMetadata> = (resource: RawAsset<AudioAssetMetadata>) =>
-			getArrayBuffer(resource).then(
-				data => new Promise<Audio>((resolve, reject) => {
+		export const parseAudio: AssetProcessor = (asset: Asset<AudioBuffer, AudioAssetMetadata>) =>
+			getArrayBuffer(asset).then(
+				data => new Promise<Asset>((resolve, reject) => {
 					audio.sharedAudioContext().decodeAudioData(
 						data,
 						audioData => {
-							resolve({
-								...makeAsset("audio", resource.name),
-								buffer: audioData
-							});
+							asset.item = audioData;
+							resolve(asset);
 						},
 						err => {
 							reject(`Invalid audio data, error: ${err}`);
@@ -36,24 +34,20 @@ namespace sd.asset {
 		registerFileExtension("mp3", "audio/mpeg");
 		registerFileExtension("m4a", "audio/mp4");
 		registerFileExtension("mp4", "audio/mp4");
-
 		registerFileExtension("ogg", "audio/ogg");
-		
 		registerFileExtension("wav", "audio/vnd.wav");
 		registerFileExtension("aif", "audio/x-aiff");
 		registerFileExtension("aifc", "audio/x-aiff");
 		registerFileExtension("aiff", "audio/x-aiff");
 
+		mapMimeTypeToAssetKind("audio/mpeg", "audio");
+		mapMimeTypeToAssetKind("audio/mp4", "audio");
+		mapMimeTypeToAssetKind("audio/ogg", "audio");
+		mapMimeTypeToAssetKind("audio/vnd.wav", "audio");
+		mapMimeTypeToAssetKind("audio/x-aiff", "audio");
+
+		registerParser("audio", parseAudio);
+	
 	} // ns parser
-
-	export interface Audio extends Asset {
-		buffer: AudioBuffer;
-	}
-
-	export interface Library {
-		loadAudio(sa: parser.RawAsset): Promise<Audio>;
-		audioByName(name: string): Audio | undefined;
-	}
-	registerAssetLoaderParser("audio", parser.parseAudio);
 
 } // ns sd.asset
