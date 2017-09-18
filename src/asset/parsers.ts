@@ -7,15 +7,13 @@
 
 namespace sd.asset.parser {
 
-	// library-wide file extension to mime-type registry
-
 	const extensionMimeTypeMap = new Map<string, string>();
 
 	export function registerFileExtension(extension: string, mimeType: string) {
-		const ext = extension.toLowerCase().trim();
-		const mime = mimeType.toLowerCase().trim();
-		assert(ext.length > 0, "empty file extension provided");
-		assert(mime.length > 0, "empty mime-type provided");
+		const ext = extension.toLowerCase();
+		const mime = mimeType.toLowerCase();
+		assert(ext.length > 0, "registerFileExtension: empty file extension provided");
+		assert(mime.length > 0, "registerFileExtension: empty mime-type provided");
 		extensionMimeTypeMap.set(ext, mime);
 	}
 
@@ -28,6 +26,19 @@ namespace sd.asset.parser {
 		const extension = io.fileExtensionOfURL(url);
 		return mimeTypeForFileExtension(extension);
 	}
+
+	const mimeTypeAssetKindMap = new Map<string, string>();
+
+	export const mapMimeTypeToAssetKind = (mimeType: string, assetKind: string) => {
+		const mime = mimeType.toLowerCase();
+		const kind = assetKind.toLowerCase();
+		assert(mime.length > 0, "mapMimeTypeToAssetKind: empty mime-type provided");
+		assert(kind.length > 0, "mapMimeTypeToAssetKind: empty asset kind provided");
+		mimeTypeAssetKindMap.set(mime, kind);
+	};
+
+	export const assetKindForMimeType = (mimeType: string) =>
+		mimeTypeAssetKindMap.get(mimeType.toLowerCase());
 
 	/**
 	 * Unprocessed data and metadata describing an asset. The data is
