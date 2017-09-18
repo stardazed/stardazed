@@ -50,6 +50,10 @@ namespace sd.asset {
 							throw new Error(`Each field in a dependencies property must be a single Asset, null or undefined.`);
 						}
 					}
+					else if (dep === null) {
+						// normalize any JSON-originating null values to undefined
+						deps[key] = undefined;
+					}
 				}
 			}
 
