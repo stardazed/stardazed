@@ -7,11 +7,6 @@
 
 namespace sd.asset {
 
-	const parsers: { [kind: string]: AssetProcessor; } = {};
-	export const registerParser = (kind: string, parser: AssetProcessor) => {
-		parsers[kind] = parser;
-	};
-
 	export const parserPlugin: LibraryPlugin = (lib: AssetLibrary) => {
 		const assetParser: AssetProcessor = (asset: Asset) =>
 			new Promise<Asset>((resolve, reject) => {
@@ -21,9 +16,9 @@ namespace sd.asset {
 				const kind = parser.assetKindForAsset(asset);
 				if (kind !== void 0) {
 					asset.kind = kind;
-					const parser = parsers[kind];
-					if (parser !== void 0) {
-						return resolve(parser(asset));
+					const kp = parser.parserForAssetKind(kind);
+					if (kp !== void 0) {
+						return resolve(kp(asset));
 					}
 					return reject(`No parser registered for asset kind "${asset.kind}"`);
 				}
@@ -36,6 +31,17 @@ namespace sd.asset {
 	};
 
 	export namespace parser {
+
+		const parsersByKind: { [kind: string]: AssetProcessor | undefined; } = {};
+
+		export const registerParser = (kind: string, parser: AssetProcessor) => {
+			parsersByKind[kind] = parser;
+		};
+
+		export const parserForAssetKind = (kind: string) =>
+			parsersByKind[kind];
+		
+		// ----
 
 		const extensionMimeTypeMap = new Map<string, string>();
 
