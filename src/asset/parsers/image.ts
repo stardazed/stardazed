@@ -3,47 +3,58 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../library.ts" />
+/// <reference path="../parser.ts" />
 
-namespace sd.asset {
+namespace sd.asset.parser {
 
-	export namespace parser {
-		export interface ImageAssetMetadata {
-			colourSpace: string;
+	export interface ImageAssetMetadata {
+		colourSpace: string;
+	}
+
+	export type ImageDataParser = (data: Blob, colourSpace: image.ColourSpace) => Promise<image.PixelDataProvider>;
+	const imageParsers = new Map<string, ImageDataParser>();
+
+	export const registerImageParser = (imgParser: ImageDataParser, mimeType: string) => {
+		assert(! imageParsers.has(mimeType), `Trying to register more than 1 image parser for mime-type: ${mimeType}`);
+		imageParsers.set(mimeType, imgParser);
+	};
+
+	export const parseImage = (asset: Asset<image.PixelDataProvider, ImageAssetMetadata>) => {
+		return new Promise<Asset>((resolve, reject) => {
+			const blob = asset.blob;
+			const metadata = asset.metadata || {};
+
+			if (! blob) {
+				return reject("parseImage: No image data was loaded, cannot parse.");
+			}
+			const mimeType = blob.type;
+			const imgParser = imageParsers.get(mimeType);
+			if (! imgParser) {
+				return reject(`Cannot load images of type: ${mimeType}`);
+			}
+
+			const colourSpace = parseColourSpace(metadata.colourSpace);
+
+			resolve(imgParser(blob, colourSpace).then(pdp => {
+				asset.item = pdp;
+				return asset;
+			}));
+		});
+	};
+
+	registerParser("image", parseImage);
+
+	const parseColourSpace = (cs: string | undefined) => {
+		if (cs === "linear") {
+			return image.ColourSpace.Linear;
 		}
-
-		export type ImageAssetParser = AssetParser<asset.Image, Partial<ImageAssetMetadata>>;
-		const imageParsers = new Map<string, ImageAssetParser>();
-
-		export function registerImageParser(imgParser: ImageAssetParser, mimeType: string) {
-			assert(! imageParsers.has(mimeType), `Trying to register more than 1 image parser for mime-type: ${mimeType}`);
-			imageParsers.set(mimeType, imgParser);
+		if (cs === "srgb") {
+			return image.ColourSpace.sRGB;
 		}
+		if (cs !== void 0) {
+			console.warn(`Image parser: ignoring invalid colourSpace`, cs);
+		}
+		return image.ColourSpace.sRGB;
+	};
 
-		/**
-		 * Create a PixelDataProvider for an asset blob
-		 * @param resource The source data to be parsed
-		 */
-		export const parseImage: ImageAssetParser = (resource: RawAsset<ImageAssetMetadata>) => {
-			return new Promise<asset.Image | Iterator<asset.Image>>((resolve, reject) => {
-				const mimeType = resource.dataBlob!.type;
-				const imgParser = imageParsers.get(mimeType);
-				if (! imgParser) {
-					return reject(`Cannot load images of type: ${mimeType}`);
-				}
-				resolve(imgParser(resource));
-			});
-		};
-	}
-
-	export interface Image extends Asset {
-		provider: image.PixelDataProvider;
-	}
-
-	export interface Library {
-		loadImage(ra: parser.RawAsset): Promise<asset.Image>;
-		imageByName(name: string): asset.Image | undefined;
-	}
-	registerAssetLoaderParser("image", parser.parseImage);
-
-} // ns sd.asset
+} // ns sd.asset.parser
