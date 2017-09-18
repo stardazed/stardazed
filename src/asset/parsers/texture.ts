@@ -26,7 +26,7 @@ namespace sd.asset {
 		}
 
 		export const parseTexture = (asset: Asset<Texture2D, TextureAssetMetadata>) => {
-			const imageAsset: Asset<image.PixelDataProvider> | undefined = asset.dependencies && asset.dependencies[0];
+			const imageAsset = asset.dependencies && asset.dependencies.image;
 			const metadata = asset.metadata || {};
 
 			if (! (imageAsset && imageAsset.kind === "image")) {
