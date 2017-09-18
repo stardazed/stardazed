@@ -11,21 +11,23 @@ namespace sd.asset {
 	export const registerParser = (kind: string, parser: AssetProcessor) => {
 		parsers[kind] = parser;
 	};
-	
+
 	export const parserPlugin: LibraryPlugin = (lib: AssetLibrary) => {
 		const assetParser: AssetProcessor = (asset: Asset) =>
 			new Promise<Asset>((resolve, reject) => {
 				if (asset.item !== void 0) {
 					return resolve(asset);
 				}
-				if (asset.kind !== void 0) {
-					const parser = parsers[asset.kind];
+				const kind = parser.assetKindForAsset(asset);
+				if (kind !== void 0) {
+					asset.kind = kind;
+					const parser = parsers[kind];
 					if (parser !== void 0) {
 						return resolve(parser(asset));
 					}
 					return reject(`No parser registered for asset kind "${asset.kind}"`);
 				}
-				return reject("Asset does not have a kind property, cannot parse.");
+				return reject("Cannot determine asset kind, cannot parse.");
 			});
 
 		// place next processor at end of chain
@@ -49,8 +51,8 @@ namespace sd.asset {
 			return extensionMimeTypeMap.get(ext);
 		}
 
-		export function mimeTypeForURL(url: URL | string): string | undefined {
-			const extension = io.fileExtensionOfURL(url);
+		export function mimeTypeForURI(uri: URL | string): string | undefined {
+			const extension = io.fileExtensionOfURL(uri);
 			return mimeTypeForFileExtension(extension);
 		}
 
@@ -66,6 +68,22 @@ namespace sd.asset {
 
 		export const assetKindForMimeType = (mimeType: string) =>
 			mimeTypeAssetKindMap.get(mimeType.toLowerCase());
+
+		export const assetKindForAsset = (asset: Asset) => {
+			if (typeof asset.kind === "string" && asset.kind.length > 0) {
+				return asset.kind.toLowerCase();
+			}
+			if (typeof asset.mimeType === "string" && asset.mimeType.length > 0) {
+				return assetKindForMimeType(asset.mimeType);
+			}
+			if (typeof asset.uri === "string" && asset.uri.length > 0) {
+				const mimeType = mimeTypeForURI(asset.uri);
+				if (mimeType) {
+					return assetKindForMimeType(mimeType);
+				}
+			}
+			return undefined;
+		};
 
 		/**
 		 * Helper that returns the external data of an asset as an ArrayBuffer.
