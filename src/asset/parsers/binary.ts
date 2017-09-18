@@ -5,28 +5,18 @@
 
 /// <reference path="../library.ts" />
 
-namespace sd.asset {
-	
-	export namespace parser {
+namespace sd.asset.parser {
 
-		export const parseBinary: AssetParser<Binary, {}> = (resource: RawAsset<{}>) =>
-			getArrayBuffer(resource).then(buffer => ({
-				...makeAsset("binary", resource.name),
-				buffer
-			}));
+	export const parseBinary: AssetProcessor = (asset: Asset<ArrayBuffer, {}>) =>
+		getArrayBuffer(asset).then(buffer => {
+			asset.item = buffer;
+			return asset;
+		});
 
-		registerFileExtension("bin", "application/octet-stream");
+	registerFileExtension("bin", "application/octet-stream");
 
-	} // ns parser
+	mapMimeTypeToAssetKind("application/octet-stream", "binary");
 
-	export interface Binary extends Asset {
-		buffer: ArrayBuffer;
-	}
+	registerParser("binary", parser.parseBinary);
 
-	export interface Library {
-		loadBinary(sa: parser.RawAsset): Promise<Binary>;
-		binaryByName(name: string): Binary | undefined;
-	}
-	registerAssetLoaderParser("binary", parser.parseBinary);
-
-} // ns sd.asset
+} // ns sd.asset.parser
