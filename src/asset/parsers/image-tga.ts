@@ -1,4 +1,4 @@
-// asset/parser/image-tga - TGA image parser
+// asset/parser/image-tga - TGA image data parser
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -7,13 +7,13 @@
 
 namespace sd.asset.parser {
 
-	export const parseTGAImage = (resource: RawAsset<ImageAssetMetadata>) =>
-		getArrayBuffer(resource).then(buf => ({
-			...makeAsset("image", resource.name),
-			provider: new TGADataProvider(new Uint8ClampedArray(buf))
-		}));
+	export const parseTGAImage = (data: Blob, _colourSpace: image.ColourSpace) =>
+		io.BlobReader.readAsArrayBuffer(data).then(buffer =>
+			new TGADataProvider(new Uint8ClampedArray(buffer)));
 
 	registerFileExtension("tga", "image/tga");
+	mapMimeTypeToAssetKind("image/tga", "image");
+
 	registerImageParser(parseTGAImage, "image/tga");
 
 	const enum TGAImageType /* uint8 */ {
