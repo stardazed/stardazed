@@ -7,7 +7,7 @@
 
 namespace sd.asset.parser {
 
-	export const parseDDSImage: ImageAssetParser = (resource: RawAsset<ImageAssetMetadata>) =>
+	export const parseDDSImage = (resource: RawAsset<ImageAssetMetadata>) =>
 		getArrayBuffer(resource).then(buf => ({
 			...makeAsset("image", resource.name),
 			provider: new DDSDataProvider(new Uint8ClampedArray(buf))

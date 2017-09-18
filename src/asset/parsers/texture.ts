@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../library.ts" />
+/// <reference path="../parser.ts" />
 
 namespace sd.asset {
 
@@ -26,7 +26,7 @@ namespace sd.asset {
 		}
 
 		export const parseTexture = (asset: Asset<Texture2D, TextureAssetMetadata>) => {
-			const imageAsset: Asset<image.PixelDataProvider> = asset.dependencies && asset.dependencies[0];
+			const imageAsset: Asset<image.PixelDataProvider> | undefined = asset.dependencies && asset.dependencies[0];
 			const metadata = asset.metadata || {};
 
 			if (! (imageAsset && imageAsset.kind === "image")) {
