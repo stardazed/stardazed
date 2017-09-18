@@ -31,7 +31,8 @@ namespace sd.asset {
 			});
 
 		// place next processor at end of chain
-		lib.process = (asset: Asset) => lib.process(asset).then(assetParser);
+		const process = lib.process;
+		lib.process = (asset: Asset) => process(asset).then(assetParser);
 	};
 
 	export namespace parser {

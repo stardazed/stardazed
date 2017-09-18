@@ -28,12 +28,14 @@ namespace sd.asset {
 			}
 			return Promise.resolve(asset);
 		};
-	
-		lib.process = (asset: Asset) => loaderProcessor(asset).then(lib.process);
-	};
-	
-	export namespace loader {
 
+		// place next processor at end of chain
+		const process = lib.process;
+		lib.process = (asset: Asset) => process(asset).then(loaderProcessor);
+	};
+
+
+	export namespace loader {
 		/**
 		 * A Loader is a function provided with a URI to load.
 		 * The resulting data must always be provided as a typed Blob.
@@ -79,7 +81,6 @@ namespace sd.asset {
 			}
 			return loader(info);
 		};
-
 	} // ns loader
 
 } // ns sd.asset
