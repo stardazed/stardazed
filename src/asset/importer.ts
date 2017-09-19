@@ -1,42 +1,67 @@
-// asset/parser/group - group asset parser front-end
+// asset/importer - import assets from other asset containers
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../library.ts" />
-
 namespace sd.asset {
 
-	export namespace parser {
+	/**
+	 * Extend an AssetLibrary with the capacity to import non-SD asset files.
+	 */
+	export const importerPlugin: LibraryPlugin = (lib: AssetLibrary) => {
+		const assetImporter: AssetProcessor = (asset: Asset) =>
+			new Promise<Asset>((resolve, reject) => {
+				if (asset.kind === "import") {
+					if (typeof asset.uri !== "string") {
+						return reject("Importer: import asset did not specify a uri");
+					}
+					if (!(asset.blob instanceof Blob)) {
+						return reject("Importer: external asset data was not loaded");
+					}
 
-		export interface GroupAssetMetadata {
-		}
-		
-		export type GroupAssetParser = AssetParser<AssetGroup, Partial<GroupAssetMetadata>>;
-		const groupParsers = new Map<string, GroupAssetParser>();
-		
-		export function registerGroupParser(groupParser: GroupAssetParser, mimeType: string) {
-			assert(! groupParsers.has(mimeType), `Trying to register more than 1 group parser for mime-type: ${mimeType}`);
-			groupParsers.set(mimeType, groupParser);
-		}
-		
-		/**
-		 * Create an AssetGroup for an asset blob
-		 * @param resource The source data to be parsed
-		 */
-		export function parseGroup(resource: RawAsset<GroupAssetMetadata>) {
-			return new Promise<AssetGroup | Iterator<AssetGroup>>((resolve, reject) => {
-				const mimeType = resource.dataBlob!.type;
-				const groupParser = groupParsers.get(mimeType);
-				if (! groupParser) {
-					return reject(`Cannot load groups of type: ${mimeType}`);
+					importer.importAssets(asset.blob, asset.uri)
+						.then(dependencies => {
+							asset.dependencies = dependencies;
+							resolve(asset);
+						});
 				}
-				resolve(groupParser(resource));
+				else {
+					resolve(asset);
+				}
 			});
-		}
 
-	} // ns parser
+		// place next processor at end of chain
+		const process = lib.process;
+		lib.process = (asset: Asset) => process(asset).then(assetImporter);
+	};
 
+
+	export namespace importer {
+
+		export type AssetImporter = (data: Blob, uri: string) => Promise<AssetDependencies>;
+		const importers = new Map<string, AssetImporter>();
+		
+		export const registerImporter = (importer: AssetImporter, mimeType: string) => {
+			assert(! importers.has(mimeType), `Trying to register more than 1 importer for mime-type: ${mimeType}`);
+			importers.set(mimeType, importer);
+
+			parser.mapMimeTypeToAssetKind(mimeType, "import");
+		};
+		
+		export const importAssets = (data: Blob, uri: string) =>
+			new Promise<AssetDependencies>((resolve, reject) => {
+				const mimeType = data.type;
+				const dataImporter = importers.get(mimeType);
+				if (! dataImporter) {
+					return reject(`Importer: cannot load asset files of type: ${mimeType}`);
+				}
+				resolve(dataImporter(data, uri));
+			});
+
+	} // ns importer
+
+
+	// ---- below: WIP, to be moved out
 
 	export function makeTransform(): entity.Transform {
 		return {
@@ -46,7 +71,7 @@ namespace sd.asset {
 		};
 	}
 
-	export interface Model extends Asset {
+	export interface Model {
 		transform: entity.Transform;
 		children: Model[];
 		parent?: Model;
@@ -57,17 +82,15 @@ namespace sd.asset {
 		light?: entity.Light;
 	}
 
-	export function makeModel(name?: string): Model {
+	export function makeModel(): Model {
 		return {
-			...makeAsset("model", name),
 			transform: makeTransform(),
 			children: [],
 			materials: []
 		};
 	}
 
-	export class AssetGroup implements Asset {
-		guid = "FIXME";
+	export class AssetGroup {
 		kind = "group";
 
 		meshes: meshdata.MeshData[] = [];
@@ -95,11 +118,5 @@ namespace sd.asset {
 			return this.models.length - 1;
 		}
 	}
-
-	export interface Library {
-		loadGroup(ra: parser.RawAsset): Promise<AssetGroup>;
-		groupByName(name: string): AssetGroup | undefined;
-	}
-	registerAssetLoaderParser("group", parser.parseGroup);
 
 } // ns sd.asset
