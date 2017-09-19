@@ -4,9 +4,13 @@
 // https://github.com/stardazed/stardazed
 
 namespace sd.asset {
-	
+
+	export interface AssetDependencies {
+		[key: string]: Asset | undefined;
+	}
+
 	export interface Asset {
-		dependencies?: { [key: string]: Asset | undefined | null };
+		dependencies?: AssetDependencies;
 	}
 
 	/**
