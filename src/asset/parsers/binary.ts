@@ -17,6 +17,6 @@ namespace sd.asset.parser {
 
 	mapMimeTypeToAssetKind("application/octet-stream", "binary");
 
-	registerParser("binary", parser.parseBinary);
+	registerParser("binary", parseBinary);
 
 } // ns sd.asset.parser
