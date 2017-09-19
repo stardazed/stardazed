@@ -1,11 +1,129 @@
-// asset/parser/material - standard material assets
+// asset/parser/material - standard material asset parser
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../library.ts" />
+/// <reference path="../parser.ts" />
 
 namespace sd.asset {
+
+	export const enum AlphaCoverage {
+		Ignore,
+		Mask,
+		Transparent
+	}
+
+	export interface DiffuseColourResponse {
+		type: "diffuse";
+		baseColour: Float3;
+		colourTexture?: Texture2D;
+	}
+
+	export interface DiffuseSpecularColourResponse {
+		type: "diffusespecular";
+		baseColour: Float3;
+		colourTexture?: Texture2D;
+
+		specularFactor: Float3;
+		specularExponent: number;
+		specularTexture?: Texture2D;
+	}
+
+	export interface PBRMetallicColourResponse {
+		type: "pbrmetallic";
+		baseColour: Float3;
+		colourTexture?: Texture2D;
+
+		metallic: number; // 0: fully di-electric, 1: fully metallic
+		metallicTexture?: Texture2D;
+
+		roughness: number; // 0: fully smooth, 1: fully rough
+		roughnessTexture?: Texture2D;
+	}
+
+	export interface PBRSpecularColourResponse {
+		type: "pbrspecular";
+		baseColour: Float3;
+		colourTexture?: Texture2D;
+
+		specularFactor: Float3;
+		specularTexture?: Texture2D;
+		
+		roughness: number; // 0: fully smooth (default), 1: fully rough
+		roughnessTexture?: Texture2D;
+	}
+
+	export type ColourResponse = DiffuseColourResponse | DiffuseSpecularColourResponse | PBRMetallicColourResponse | PBRSpecularColourResponse;
+	export type AnyColourResponse = DiffuseColourResponse & DiffuseSpecularColourResponse & PBRMetallicColourResponse & PBRSpecularColourResponse;
+
+	export const makeDiffuseResponse = (): DiffuseColourResponse => ({
+		type: "diffuse",
+		baseColour: [1, 1, 1]
+	});
+
+	export const makeDiffuseSpecularResponse = (source?: DiffuseColourResponse): DiffuseSpecularColourResponse => ({
+		...(source || makeDiffuseResponse()),
+		type: "diffusespecular",
+
+		specularFactor: [0, 0, 0],
+		specularExponent: 0,
+	});
+
+	export const makePBRMetallicResponse = (source?: DiffuseColourResponse): PBRMetallicColourResponse => ({
+		...(source || makeDiffuseResponse()),
+		type: "pbrmetallic",
+
+		metallic: 1,
+		roughness: 1,
+	});
+
+	export const makePBRSpecularResponse = (source?: DiffuseColourResponse): PBRSpecularColourResponse => ({
+		...(source || makeDiffuseResponse()),
+		type: "pbrspecular",
+
+		specularFactor: [1, 1, 1],
+		roughness: 1,
+	});
+
+
+	export interface Material {
+		colour: ColourResponse;
+		
+		alphaCoverage: AlphaCoverage;
+		alphaCutoff: number;
+		alphaFactor: number;
+		alphaTexture?: Texture2D;
+
+		normalTexture?: Texture2D;
+		ambientOcclusionTexture?: Texture2D;
+
+		heightRange: number;
+		heightTexture?: Texture2D;
+
+		emissiveFactor: Float3;
+		emissiveTexture?: Texture2D;
+
+		doubleSided: boolean;
+		uvScale: Float2;
+		uvOffset: Float2;
+	}
+
+	export const makeMaterial = (colour?: ColourResponse): Material => ({
+		colour: colour || makeDiffuseResponse(),
+
+		alphaCoverage: AlphaCoverage.Ignore,
+		alphaCutoff: 0,
+		alphaFactor: 1,
+
+		heightRange: 0,
+
+		emissiveFactor: [0, 0, 0],
+
+		doubleSided: false,
+		uvScale: [1, 1],
+		uvOffset: [0, 0]
+	});
+
 
 	export namespace parser {
 
@@ -47,6 +165,43 @@ namespace sd.asset {
 			heightTexture?: TextureAsset;
 			ambientOcclusionTexture?: TextureAsset;
 		}
+
+		export function parseMaterial(asset: Asset<Material, MaterialAssetMetadata>) {
+			const meta = asset.metadata || {};
+			const deps = (asset.dependencies || {}) as any as MaterialDependencies;
+
+			let colour: ColourResponse;
+			const colourType = meta.colour && meta.colour.type;
+			switch (colourType) {
+				case "diffuse": colour = getDiffuseResponseData(meta, deps); break;
+				case "diffuseSpecular": colour = getDiffuseSpecularResponseData(meta, deps); break;
+				case "pbrMetallic": colour = getPBRMetallicResponseData(meta, deps); break;
+				case "pbrSpecular": colour = getPBRSpecularResponseData(meta, deps); break;
+				default:
+					throw new Error("Material parser: missing or invalid colour type.");
+			}
+
+			const mat = makeMaterial(colour);
+			mat.alphaCoverage = getAlphaCoverage(meta, mat.alphaCoverage);
+			mat.alphaCutoff = getAlphaCutoff(meta, mat.alphaCutoff);
+			mat.alphaFactor = getAlphaFactor(meta, mat.alphaFactor);
+			mat.heightRange = getHeightRange(meta, mat.heightRange);
+			mat.emissiveFactor = getEmissiveFactor(meta, mat.emissiveFactor);
+			mat.doubleSided = getDoubleSided(meta, mat.doubleSided);
+			mat.uvScale = getUVScale(meta, mat.uvScale);
+			mat.uvOffset = getUVOffset(meta, mat.uvOffset);
+
+			mat.alphaTexture = validTexAssetOrFallback(deps.alphaTexture, mat.alphaTexture);
+			mat.normalTexture = validTexAssetOrFallback(deps.normalTexture, mat.normalTexture);
+			mat.heightTexture = validTexAssetOrFallback(deps.heightTexture, mat.heightTexture);
+			mat.ambientOcclusionTexture = validTexAssetOrFallback(deps.ambientOcclusionTexture, mat.ambientOcclusionTexture);
+			mat.emissiveTexture = validTexAssetOrFallback(deps.emissiveTexture, mat.emissiveTexture);
+
+			asset.item = mat;
+			return Promise.resolve(asset);
+		}
+
+		registerParser("material", parseMaterial);
 
 		// ----------------
 
@@ -219,14 +374,29 @@ namespace sd.asset {
 
 		// ------------
 
+		const validTexAssetOrFallback = (asset: Asset<Texture2D> | undefined, original: Texture2D | undefined) => {
+			if (asset) {
+				if (asset.kind === "texture") {
+					if (asset.item) {
+						return asset.item;
+					}
+					else {
+						console.warn(`Material parser: texture dependency was not loaded, skipping.`, asset);
+					}
+				}
+				else {
+					console.warn(`Material parser: dependency is not a texture, skipping.`, asset);
+				}
+			}
+			return original;
+		};
+
 		function getDiffuseResponseData(meta: Partial<MaterialAssetMetadata>, deps: MaterialDependencies) {
 			const response = makeDiffuseResponse();
 			const colour = meta.colour!;
 
 			response.baseColour = getBaseColour(colour, response.baseColour);
-			if (deps.colourTexture) {
-				response.colourTexture = deps.colourTexture.item;
-			}
+			response.colourTexture = validTexAssetOrFallback(deps.colourTexture, response.colourTexture);
 
 			return response;
 		}
@@ -237,9 +407,7 @@ namespace sd.asset {
 			
 			response.specularFactor = getSpecularFactor(colour, response.specularFactor);
 			response.specularExponent = getSpecularExponent(colour, response.specularExponent);
-			if (deps.specularTexture) {
-				response.specularTexture = deps.specularTexture.item;
-			}
+			response.specularTexture = validTexAssetOrFallback(deps.specularTexture, response.specularTexture);
 
 			return response;
 		}
@@ -250,12 +418,8 @@ namespace sd.asset {
 
 			response.metallic = getMetallicFactor(colour, response.metallic);
 			response.roughness = getRoughnessFactor(colour, response.roughness);
-			if (deps.metallicTexture) {
-				response.metallicTexture = deps.metallicTexture.item;
-			}
-			if (deps.roughnessTexture) {
-				response.roughnessTexture = deps.roughnessTexture.item;
-			}
+			response.metallicTexture = validTexAssetOrFallback(deps.metallicTexture, response.metallicTexture);
+			response.roughnessTexture = validTexAssetOrFallback(deps.roughnessTexture, response.roughnessTexture);
 
 			return response;
 		}
@@ -266,175 +430,12 @@ namespace sd.asset {
 
 			response.specularFactor = getSpecularFactor(colour, response.specularFactor);
 			response.roughness = getRoughnessFactor(colour, response.roughness);
-			rawTex.add("specular", colour.specularTexture);
-			rawTex.add("roughness", colour.roughnessTexture);
+			response.specularTexture = validTexAssetOrFallback(deps.specularTexture, response.specularTexture);
+			response.roughnessTexture = validTexAssetOrFallback(deps.roughnessTexture, response.roughnessTexture);
 
 			return response;
 		}
 
-		/**
-		 * Create a standard Material.
-		 * @param asset The source data to be parsed
-		 */
-		export function parseMaterial(asset: Asset<Material, MaterialAssetMetadata>) {
-			const meta = asset.metadata || {};
-			const deps = (asset.dependencies || {}) as any as MaterialDependencies;
-
-			let colour: ColourResponse;
-			const colourType = meta.colour && meta.colour.type;
-			switch (colourType) {
-				case "diffuse": colour = getDiffuseResponseData(meta, deps); break;
-				case "diffuseSpecular": colour = getDiffuseSpecularResponseData(meta, deps); break;
-				case "pbrMetallic": colour = getPBRMetallicResponseData(meta, deps); break;
-				case "pbrSpecular": colour = getPBRSpecularResponseData(meta, deps); break;
-				default:
-					throw new Error("Material parser: missing or invalid colour type.");
-			}
-
-			const mat = makeMaterial(asset.name, colour);
-			mat.alphaCoverage = getAlphaCoverage(meta, mat.alphaCoverage);
-			mat.alphaCutoff = getAlphaCutoff(meta, mat.alphaCutoff);
-			mat.alphaFactor = getAlphaFactor(meta, mat.alphaFactor);
-			mat.heightRange = getHeightRange(meta, mat.heightRange);
-			mat.emissiveFactor = getEmissiveFactor(meta, mat.emissiveFactor);
-			mat.doubleSided = getDoubleSided(meta, mat.doubleSided);
-			mat.uvScale = getUVScale(meta, mat.uvScale);
-			mat.uvOffset = getUVOffset(meta, mat.uvOffset);
-
-			rawTex.add("alpha", deps.alphaTexture);
-			rawTex.add("normal", deps.normalTexture);
-			rawTex.add("height", deps.heightTexture);
-			rawTex.add("ao", deps.ambientOcclusionTexture);
-			rawTex.add("emissive", deps.emissiveTexture);
-
-			return mat;
-		}
-
 	} // ns parser
-
-
-	export const enum AlphaCoverage {
-		Ignore,
-		Mask,
-		Transparent
-	}
-
-	export interface DiffuseColourResponse {
-		type: "diffuse";
-		baseColour: Float3;
-		colourTexture?: Texture2D;
-	}
-
-	export interface DiffuseSpecularColourResponse {
-		type: "diffusespecular";
-		baseColour: Float3;
-		colourTexture?: Texture2D;
-
-		specularFactor: Float3;
-		specularExponent: number;
-		specularTexture?: Texture2D;
-	}
-
-	export interface PBRMetallicColourResponse {
-		type: "pbrmetallic";
-		baseColour: Float3;
-		colourTexture?: Texture2D;
-
-		metallic: number; // 0: fully di-electric, 1: fully metallic
-		metallicTexture?: Texture2D;
-
-		roughness: number; // 0: fully smooth, 1: fully rough
-		roughnessTexture?: Texture2D;
-	}
-
-	export interface PBRSpecularColourResponse {
-		type: "pbrspecular";
-		baseColour: Float3;
-		colourTexture?: Texture2D;
-
-		specularFactor: Float3;
-		specularTexture?: Texture2D;
-		
-		roughness: number; // 0: fully smooth (default), 1: fully rough
-		roughnessTexture?: Texture2D;
-	}
-
-	export type ColourResponse = DiffuseColourResponse | DiffuseSpecularColourResponse | PBRMetallicColourResponse | PBRSpecularColourResponse;
-	export type AnyColourResponse = DiffuseColourResponse & DiffuseSpecularColourResponse & PBRMetallicColourResponse & PBRSpecularColourResponse;
-
-	export const makeDiffuseResponse = (): DiffuseColourResponse => ({
-		type: "diffuse",
-		baseColour: [1, 1, 1]
-	});
-
-	export const makeDiffuseSpecularResponse = (source?: DiffuseColourResponse): DiffuseSpecularColourResponse => ({
-		...(source || makeDiffuseResponse()),
-		type: "diffusespecular",
-
-		specularFactor: [0, 0, 0],
-		specularExponent: 0,
-	});
-
-	export const makePBRMetallicResponse = (source?: DiffuseColourResponse): PBRMetallicColourResponse => ({
-		...(source || makeDiffuseResponse()),
-		type: "pbrmetallic",
-
-		metallic: 1,
-		roughness: 1,
-	});
-
-	export const makePBRSpecularResponse = (source?: DiffuseColourResponse): PBRSpecularColourResponse => ({
-		...(source || makeDiffuseResponse()),
-		type: "pbrspecular",
-
-		specularFactor: [1, 1, 1],
-		roughness: 1,
-	});
-
-
-	export interface Material extends Asset {
-		colour: ColourResponse;
-		
-		alphaCoverage: AlphaCoverage;
-		alphaCutoff: number;
-		alphaFactor: number;
-		alphaTexture?: Texture2D;
-
-		normalTexture?: Texture2D;
-		ambientOcclusionTexture?: Texture2D;
-
-		heightRange: number;
-		heightTexture?: Texture2D;
-
-		emissiveFactor: Float3;
-		emissiveTexture?: Texture2D;
-
-		doubleSided: boolean;
-		uvScale: Float2;
-		uvOffset: Float2;
-	}
-
-	export const makeMaterial = (name?: string, colour?: ColourResponse): Material => ({
-		...makeAsset("material", name),
-		colour: colour || makeDiffuseResponse(),
-
-		alphaCoverage: AlphaCoverage.Ignore,
-		alphaCutoff: 0,
-		alphaFactor: 1,
-
-		heightRange: 0,
-
-		emissiveFactor: [0, 0, 0],
-
-		doubleSided: false,
-		uvScale: [1, 1],
-		uvOffset: [0, 0]
-	});
-
-	export interface Library {
-		loadMaterial(ra: parser.RawAsset): Promise<Material>;
-		materialByName(name: string): Material | undefined;
-	}
-	registerAssetLoaderParser("material", parser.parseMaterial);
 
 } // ns sd.asset
