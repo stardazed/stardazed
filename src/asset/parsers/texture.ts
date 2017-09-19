@@ -22,40 +22,46 @@ namespace sd.asset {
 			mipmaps: "source" | "strip" | "regenerate";
 			repeatS: "repeat" | "mirror" | "clamp";
 			repeatT: "repeat" | "mirror" | "clamp";
-			filtering: "nearest" | "linear" | "bilinear" | "trilinear";
+			filtering: "nearest" | "nearestmip" | "linear" | "bilinear" | "trilinear";
+			anisotropy: number;
 		}
 
-		export const parseTexture = (asset: Asset<Texture2D, TextureAssetMetadata>) => {
-			const imageAsset = asset.dependencies && asset.dependencies.image;
-			const metadata = asset.metadata || {};
+		export const parseTexture = (asset: Asset<Texture2D, TextureAssetMetadata>) =>
+			new Promise<Asset>((resolve, reject) => {
+				const imageAsset = asset.dependencies && asset.dependencies.image;
+				const metadata = asset.metadata || {};
 
-			if (! (imageAsset && imageAsset.kind === "image")) {
-				throw new Error(`Texture parser: required image dependency is missing.`);
-			}
+				if (! (imageAsset && imageAsset.kind === "image")) {
+					return reject(`Texture parser: required image dependency is missing.`);
+				}
 
-			const mipmaps = parseMipMapMode(metadata.mipmaps);
-			const repeatS = parseRepeat(metadata.repeatS);
-			const repeatT = parseRepeat(metadata.repeatT);
-			const filtering = parseFiltering(metadata.filtering);
+				const mipmaps = parseMipMapMode(metadata.mipmaps);
+				const repeatS = parseRepeat(metadata.repeatS);
+				const repeatT = parseRepeat(metadata.repeatT);
+				const filtering = parseFiltering(metadata.filtering);
+				const anisotropy = parseAnisotropy(metadata.anisotropy);
 
-			const texture = render.makeTex2DFromProvider(imageAsset.item!, mipmaps);
-			
-			const tex2D: Texture2D = {
-				texture,
-				repeatS,
-				repeatT,
-				sizeFilter: filtering.size,
-				mipFilter: filtering.mip,
-				anisotropy: 1
-			};
-			asset.item = tex2D;
-			return Promise.resolve(asset);
-		};
+				const texture = render.makeTex2DFromProvider(imageAsset.item!, mipmaps);
+				
+				const tex2D: Texture2D = {
+					texture,
+					repeatS,
+					repeatT,
+					sizeFilter: filtering.size,
+					mipFilter: filtering.mip,
+					anisotropy
+				};
+				asset.item = tex2D;
+				resolve(asset);
+			});
 
 		registerParser("texture", parseTexture);
 
 		const parseMipMapMode = (mmm: "source" | "strip" | "regenerate" | undefined) => {
 			if (["source", "strip", "regenerate"].indexOf(mmm || "") === -1) {
+				if (mmm !== void 0) {
+					console.warn(`Texture parser: ignoring invalid mip-map mode`, mmm);
+				}
 				mmm = "source";
 			}
 			return ({
@@ -67,6 +73,9 @@ namespace sd.asset {
 
 		const parseRepeat = (rep: "repeat" | "mirror" | "clamp" | undefined) => {
 			if (["repeat", "mirror", "clamp"].indexOf(rep || "") === -1) {
+				if (rep !== void 0) {
+					console.warn(`Texture parser: ignoring invalid texture repeat mode`, rep);
+				}
 				rep = "repeat";
 			}
 			return ({
@@ -76,16 +85,41 @@ namespace sd.asset {
 			})[rep!];
 		};
 
-		const parseFiltering = (filt: "nearest" | "linear" | "bilinear" | "trilinear" | undefined) => {
-			if (["nearest", "linear", "bilinear", "trilinear"].indexOf(filt || "") === -1) {
+		const parseFiltering = (filt: "nearest" | "nearestmip" | "linear" | "bilinear" | "trilinear" | undefined) => {
+			if (["nearest", "nearestmip", "linear", "bilinear", "trilinear"].indexOf(filt || "") === -1) {
+				if (filt !== void 0) {
+					console.warn(`Texture parser: ignoring invalid texture filtering mode`, filt);
+				}
 				filt = "bilinear";
 			}
 			return ({
 				nearest: { size: render.TextureSizingFilter.Nearest, mip: render.TextureMipFilter.None },
+				nearestmip: { size: render.TextureSizingFilter.Nearest, mip: render.TextureMipFilter.Linear },
 				linear: { size: render.TextureSizingFilter.Linear, mip: render.TextureMipFilter.None },
 				bilinear: { size: render.TextureSizingFilter.Linear, mip: render.TextureMipFilter.Nearest },
 				trilinear: { size: render.TextureSizingFilter.Linear, mip: render.TextureMipFilter.Linear } 
 			})[filt!];
+		};
+
+		const parseAnisotropy = (aniso: number | undefined) => {
+			if (aniso !== void 0) {
+				if (typeof aniso === "number") {
+					if (aniso >= 1) {
+						if (aniso > 16) {
+							console.warn(`Texture parser: clamping anisotropy value of ${aniso} to 16.`);
+							aniso = 16;
+						}
+						return aniso;
+					}
+					else {
+						console.warn(`Texture parser: ignoring invalid anisotropy value, must be between 1 and 16 inclusive.`, aniso);
+					}
+				}
+				else {
+					console.warn(`Texture parser: ignoring non-numerical anisotropy value`, aniso);
+				}
+			}
+			return 1;
 		};
 
 	} // ns parser
