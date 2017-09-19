@@ -51,7 +51,7 @@ namespace sd.asset {
 						}
 					}
 					else if (dep === null) {
-						// normalize any JSON-originating null values to undefined
+						// normalize any JSON-originated null values to undefined
 						deps[key] = undefined;
 					}
 				}
