@@ -8,8 +8,8 @@
 namespace sd.asset.parser {
 
 	export const parseAudio: AssetProcessor = (asset: Asset<AudioBuffer, {}>) =>
-		getArrayBuffer(asset).then(
-			data => new Promise<Asset>((resolve, reject) => {
+		getArrayBuffer(asset).then(data =>
+			new Promise<Asset>((resolve, reject) => {
 				audio.sharedAudioContext().decodeAudioData(
 					data,
 					audioData => {

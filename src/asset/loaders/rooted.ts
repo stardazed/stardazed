@@ -18,16 +18,17 @@ namespace sd.asset.loader {
 		const loader = config.loader && makeLoader(config.loader);
 		assert(loader, "RootedURLLoader: a loader must be provided.");
 
-		return (uri: string, mimeType?: string) => new Promise<Blob>((resolve, reject) => {
-			const firstSlash = uri.indexOf("/");
-			const rootName = uri.substring(0, firstSlash);
-			if (rootName !== prefix) {
-				return reject("Not a url in this root");
-			}
+		return (uri: string, mimeType?: string) =>
+			new Promise<Blob>((resolve, reject) => {
+				const firstSlash = uri.indexOf("/");
+				const rootName = uri.substring(0, firstSlash);
+				if (rootName !== prefix) {
+					return reject("Not a url in this root");
+				}
 
-			const resourcePath = uri.substring(firstSlash + 1);
-			resolve(loader!(resourcePath, mimeType));
-		});
+				const resourcePath = uri.substring(firstSlash + 1);
+				resolve(loader!(resourcePath, mimeType));
+			});
 	};
 
 	registerLoaderClass("rooted", RootedURLLoader);
