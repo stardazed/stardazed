@@ -36,7 +36,7 @@ namespace sd.asset {
 	export const makeDefaultLibrary = (loader: loader.LoaderInfo | loader.Loader) =>
 		makeLibrary([
 			// generatorPlugin,
-			// identifierPlugin,
+			identifierPlugin,
 			loaderPlugin(loader),
 			// importerPlugin,
 			dependenciesPlugin,

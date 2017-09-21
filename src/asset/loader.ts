@@ -23,6 +23,10 @@ namespace sd.asset {
 				return rootLoader(asset.uri, asset.mimeType)
 					.then(blob => {
 						asset.blob = blob;
+						// update asset's identification if empty
+						if (blob.type.length && asset.mimeType === void 0) {
+							setAssetMimeType(asset, blob.type);
+						}
 						return asset;
 					});
 			}
