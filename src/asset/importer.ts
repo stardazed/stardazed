@@ -3,6 +3,8 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
+/// <reference path="./identifier.ts" />
+
 namespace sd.asset {
 
 	/**
@@ -41,11 +43,12 @@ namespace sd.asset {
 		export type AssetImporter = (data: Blob, uri: string) => Promise<AssetDependencies>;
 		const importers = new Map<string, AssetImporter>();
 		
-		export const registerImporter = (importer: AssetImporter, mimeType: string) => {
+		export const registerImporter = (importer: AssetImporter, extension: string, mimeType: string) => {
 			assert(! importers.has(mimeType), `Trying to register more than 1 importer for mime-type: ${mimeType}`);
 			importers.set(mimeType, importer);
 
-			parser.mapMimeTypeToAssetKind(mimeType, "import");
+			registerFileExtension(extension, mimeType);
+			mapMimeTypeToAssetKind(mimeType, "import");
 		};
 		
 		export const importAssets = (data: Blob, uri: string) =>

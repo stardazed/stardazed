@@ -4,6 +4,7 @@
 // https://github.com/stardazed/stardazed
 
 /// <reference path="../core/util.ts" />
+/// <reference path="./identifier.ts" />
 
 namespace sd.asset {
 
