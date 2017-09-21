@@ -1,19 +1,18 @@
-// asset/parser/group-obj - Wavefront OBJ mesh file parser
+// asset/importers/obj - Wavefront OBJ mesh importer
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="./group.ts" />
+/// <reference path="../importer.ts" />
 
-namespace sd.asset.parser {
+namespace sd.asset.importer {
 
-	export const parseOBJGroup = (resource: RawAsset<GroupAssetMetadata>): Promise<AssetGroup | Iterator<AssetGroup>> =>
-		getText(resource).then(text =>
-			parseOBJ(resource.uri || "", text, false)
-		) as any;
+	export const importOBJData = (data: Blob, uri: string) =>
+		io.BlobReader.readAsText(data).then(text =>
+			parseOBJ(text, uri, false)
+		);
 
-	registerFileExtension("obj", "application/wavefront-obj");
-	registerGroupParser(parseOBJGroup, "application/wavefront-obj");
+	registerImporter(importOBJData, "obj", "application/wavefront-obj");
 
 
 	interface OBJPreProcSource {
@@ -30,10 +29,10 @@ namespace sd.asset.parser {
 	}
 
 
-	function* preflightOBJSource(path: string, text: string) {
+	function* preflightOBJSource(text: string, uri: string) {
 		let mtlFilePath = "";
 		const preproc: OBJPreProcSource = {
-			path,
+			uri,
 			group: new AssetGroup(),
 			lines: [],
 			positionCount: 0,
@@ -59,7 +58,7 @@ namespace sd.asset.parser {
 			}
 			else if (directive === "mtllib") {
 				if (tokens[1]) {
-					mtlFilePath = io.resolveRelativePath(tokens[1], path);
+					mtlFilePath = io.resolveRelativePath(tokens[1], uri);
 				}
 				else {
 					console.warn("OBJ parser: ignoring empty mtllib reference.");
@@ -73,8 +72,6 @@ namespace sd.asset.parser {
 		return preproc;
 	}
 
-
-	let objSequenceNumber = 0;
 
 	function parseOBJSource(preproc: OBJPreProcSource, hasColourAttr: boolean) {
 		const group = preproc.group;
@@ -208,18 +205,16 @@ namespace sd.asset.parser {
 		return group;
 	}
 
-	function* parseOBJ(path: string, text: string, hasColourAttr: boolean) {
-		const preproc = yield* preflightOBJSource(path, text);
+	function* parseOBJ(text: string, uri: string, hasColourAttr: boolean) {
+		const preproc = yield* preflightOBJSource(text, uri);
 		const group = parseOBJSource(preproc, hasColourAttr);
 
 		// add the linked object as a Model to the group
-		const model = asset.makeModel(`obj_${objSequenceNumber}_model`);
+		const model = {};
 		model.mesh = group.meshes[0];
 		model.materials = group.materials;
 		model.transform = asset.makeTransform();
 		group.addModel(model);
-
-		objSequenceNumber += 1;
 		return group;
 	}
 
