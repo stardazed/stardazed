@@ -12,7 +12,10 @@ namespace sd.asset {
 		const identifierProcessor: AssetProcessor = (asset: Asset) => {
 			if (typeof asset.uri === "string") {
 				if (typeof asset.mimeType === void 0) {
-					asset.mimeType = mimeTypeForURI(asset.uri);
+					const uriMimeType = mimeTypeForURI(asset.uri);
+					if (uriMimeType) {
+						setAssetMimeType(asset, uriMimeType);
+					}
 				}
 
 				if (typeof asset.mimeType === "string") {
@@ -68,6 +71,27 @@ namespace sd.asset {
 	};
 
 	export const assetKindForMimeType = (mimeType: string) =>
-		mimeTypeAssetKindMap.get(mimeType.toLowerCase());	
+		mimeTypeAssetKindMap.get(mimeType.toLowerCase());
+
+	export const setAssetMimeType = (asset: Asset, mimeType: string) => {
+		const curMimeType = asset.mimeType && asset.mimeType.toLowerCase();
+		const newMimeType = mimeType.toLowerCase();
+		if (newMimeType === curMimeType) {
+			return;
+		}
+
+		const curKind = asset.kind && asset.kind.toLowerCase();
+		const newKind = assetKindForMimeType(mimeType);
+		if (newKind === void 0) {
+			console.warn(`Asset mimeType change from ${curMimeType} to ${newMimeType} would make it have an unknown asset kind, ignoring.`);
+		}
+		else {
+			if (curKind !== void 0 && curKind !== newKind) {
+				console.warn(`Asset mimeType change from ${curMimeType} to ${newMimeType} changed its kind from ${curKind} to ${newKind}`);
+			}
+			asset.mimeType = newMimeType;
+			asset.kind = newKind;
+		}
+	};
 
 } // ns sd.asset
