@@ -1,4 +1,4 @@
-// asset/importer/mtl - Wavefront MTL material file importer
+// asset/importers/mtl - Wavefront MTL material file importer
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
