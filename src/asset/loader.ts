@@ -4,7 +4,7 @@
 // https://github.com/stardazed/stardazed
 
 namespace sd.asset {
-	
+
 	export interface Asset {
 		mimeType?: string;
 		uri?: string;
