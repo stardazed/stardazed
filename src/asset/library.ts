@@ -38,7 +38,7 @@ namespace sd.asset {
 			// generatorPlugin,
 			identifierPlugin,
 			loaderPlugin(loader),
-			// importerPlugin,
+			importerPlugin,
 			dependenciesPlugin,
 			parserPlugin
 		]);
