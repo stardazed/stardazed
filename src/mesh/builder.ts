@@ -14,7 +14,6 @@ namespace sd.meshdata {
 		SingleValue
 	}
 
-
 	export interface VertexAttributeStream {
 		name?: string;
 		attr?: VertexAttribute;
@@ -28,14 +27,12 @@ namespace sd.meshdata {
 		elementCount?: number;
 	}
 
-
 	export interface VertexIndexMapping {
 		add(from: number, to: number): void;
 		mappedValues(forIndex: number): number[];
 
 		readonly indexCount: number;
 	}
-
 
 	/*
 	VertexIndexMapping method A was to test a growing single array technique used
@@ -68,7 +65,6 @@ namespace sd.meshdata {
 		}
 	}
 	*/
-
 
 	class VertexIndexMappingB implements VertexIndexMapping {
 		private data_ = new Map<number, number[]>();
@@ -133,9 +129,8 @@ namespace sd.meshdata {
 			}
 
 			// sort attr streams ensuring ones that are not to be included in the mesh
-			// end up at the end. Try to keep the array as stable as possible by not
-			// moving streams if not needed.
-			this.streams_.sort((sA, sB) => {
+			// end up at the end.
+			container.stableSort(this.streams_, (sA, sB) => {
 				if (sA.includeInMesh === sB.includeInMesh) {
 					return 0;
 				}
@@ -271,7 +266,7 @@ namespace sd.meshdata {
 		}
 
 
-		private addTriangle(polygonVertexIndexes: ArrayOfNumber, vertexIndexes: ArrayOfNumber) {
+		private addTriangle(polygonVertexIndexes: ArrayOfConstNumber, vertexIndexes: ArrayOfConstNumber) {
 			const indexesA = this.streamIndexesForPVI(polygonVertexIndexes[0], vertexIndexes[0], this.sourcePolygonIndex_);
 			const indexesB = this.streamIndexesForPVI(polygonVertexIndexes[1], vertexIndexes[1], this.sourcePolygonIndex_);
 			const indexesC = this.streamIndexesForPVI(polygonVertexIndexes[2], vertexIndexes[2], this.sourcePolygonIndex_);
@@ -289,7 +284,7 @@ namespace sd.meshdata {
 		}
 
 
-		addPolygon(polygonVertexIndexes: ArrayOfNumber, vertexIndexes: ArrayOfNumber) {
+		addPolygon(polygonVertexIndexes: ArrayOfConstNumber, vertexIndexes: ArrayOfConstNumber) {
 			if (polygonVertexIndexes.length === 3) {
 				this.addTriangle(polygonVertexIndexes, vertexIndexes);
 			}
