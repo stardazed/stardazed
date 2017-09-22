@@ -83,24 +83,30 @@ namespace sd.asset.parser {
 		const isIndexed = attrStreams.some(ats => ats.indexes !== null);
 		
 		const { triangleBufferKey, groups } = metadata;
-		if (triangleBufferKey === void 0 && groups === void 0) {
+		let triangleBuffer: ArrayBuffer | undefined;
+
+		if (triangleBufferKey === void 0) {
 			if (isIndexed) {
 				throw new Error(`Mesh parser: indexed mesh streams require explicit triangles`);
 			}
-			const fullMeshGroup: TriangleGroup = {
+		}
+		else {
+			triangleBuffer = getBufferDependency(triangleBufferKey, deps);
+		}
+
+		let resolvedGroups: TriangleGroup[];
+		if (groups === void 0) {
+			resolvedGroups = [{
 				fromElement: 0,
 				elementCount: -1,
 				materialIndex: 0
-			};
-			return buildMesh(attrStreams, [fullMeshGroup], undefined);
-		}
-		else if (triangleBufferKey !== void 0 && groups !== void 0) {
-			const triangleBuffer = getBufferDependency(triangleBufferKey, deps);
-			return buildMesh(attrStreams, parseGroups(groups), triangleBuffer);
+			}];
 		}
 		else {
-			throw new Error(`Mesh parser: only one of triangleBufferKey and groups provided`);			
+			resolvedGroups = parseGroups(groups);
 		}
+
+		return buildMesh(attrStreams, resolvedGroups, triangleBuffer ? new Uint32Array(triangleBuffer) : undefined);
 	};
 
 	const parseVertexStream = (stream: VertexStream, deps: AssetDependencies): meshdata.VertexAttributeStream => {
@@ -108,7 +114,7 @@ namespace sd.asset.parser {
 	};
 
 	const parseGroup = (group: Partial<TriangleGroup>): TriangleGroup => {
-
+		
 	};
 
 	const parseGroups = (groups: Partial<TriangleGroup>[]) =>
@@ -125,7 +131,7 @@ namespace sd.asset.parser {
 		return buffer.item;
 	};
 
-	const buildMesh = (attrStreams: meshdata.VertexAttributeStream[], groups: TriangleGroup[], triangleBuffer: ArrayBuffer | undefined) => {
+	const buildMesh = (attrStreams: meshdata.VertexAttributeStream[], groups: TriangleGroup[], triangleView: Uint32Array | undefined) => {
 		const positionStreamIndex = attrStreams.findIndex(
 			ats => ats.attr!.role === meshdata.VertexAttributeRole.Position
 		);
@@ -137,7 +143,36 @@ namespace sd.asset.parser {
 		const hasGroupingStream = attrStreams.some(ats => ats.controlsGrouping === true);
 		const builder = new meshdata.MeshBuilder(positionStream.values!, positionStream.indexes || null, attrStreams);
 
-		// feed
+		const polygonVertexIndexes = [0, 0, 0];
+		const vertexIndexes = [0, 0, 0];
+
+		for (const group of groups) {
+			if (! hasGroupingStream) {
+				builder.setGroup(group.materialIndex);
+			}
+			const startElement = group.fromElement;
+			const endElement = startElement + group.elementCount;
+
+			if (triangleView) {
+				for (let tri = startElement; tri < endElement; tri += 3) {
+					polygonVertexIndexes[0] = tri;
+					polygonVertexIndexes[1] = tri + 1;
+					polygonVertexIndexes[2] = tri + 2;
+					vertexIndexes[0] = triangleView[tri];
+					vertexIndexes[1] = triangleView[tri + 1];
+					vertexIndexes[2] = triangleView[tri + 2];
+					builder.addPolygon(polygonVertexIndexes, vertexIndexes);
+				}
+			}
+			else {
+				for (let tri = startElement; tri < endElement; tri += 3) {
+					polygonVertexIndexes[0] = tri;
+					polygonVertexIndexes[1] = tri + 1;
+					polygonVertexIndexes[2] = tri + 2;
+					builder.addPolygon(polygonVertexIndexes, polygonVertexIndexes);
+				}
+			}
+		}
 
 		return builder.complete();
 	};
