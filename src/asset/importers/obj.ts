@@ -16,7 +16,7 @@ namespace sd.asset.importer {
 
 
 	interface OBJPreProcSource {
-		path: string;
+		uri: string;
 		lines: string[];
 		group: AssetGroup;
 
@@ -189,7 +189,7 @@ namespace sd.asset.importer {
 				case "usemtl":
 					const newMatIx = matNameIndexMap.get(tokens[1]);
 					if (newMatIx === undefined) {
-						console.warn(`OBJ parser: referencing non-existent material: "${tokens[1]}" in asset "${preproc.path}"`);
+						console.warn(`OBJ parser: referencing non-existent material: "${tokens[1]}" in asset "${preproc.uri}"`);
 					}
 					else {
 						curMatIx = newMatIx;
