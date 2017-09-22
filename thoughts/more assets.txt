@@ -22,10 +22,10 @@ Assets
 
 2. Composite
 
-	* sample = (audio[]]) => Sample
 	* √ texture = (image[]) => Texture2D | TextureCube
+	* √ mesh = (buffer[]) => MeshData
+	* sample = (audio[]]) => Sample
 	* animation = (buffer[]) => Animation
-	* mesh = (buffer[]) => MeshData
 	* skeleton = (buffer[]) => Skeleton
 
 2.1. Higher-level Composite
