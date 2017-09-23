@@ -37,6 +37,45 @@ namespace sd.asset {
 		lib.process = (asset: Asset) => process(asset).then(assetImporter);
 	};
 
+	/**
+	 * Extend an AssetLibrary with the feature to flatten an imported asset's
+	 * dependencies into its containing asset's dependencies.
+	 */
+	export const importFlatteningPlugin: LibraryPlugin = (lib: AssetLibrary) => {
+		const importFlattener: AssetProcessor = (asset: Asset) =>
+			new Promise<Asset>(resolve => {
+				if (asset.dependencies) {
+					let assetsToMerge: AssetDependencies = {};
+					for (const depName in asset.dependencies) {
+						if (asset.dependencies.hasOwnProperty(depName)) {
+							const dependency = asset.dependencies[depName];
+							if (dependency && dependency.kind === "import") {
+								const importedAssets = dependency.dependencies;
+								if (importedAssets) {
+									assetsToMerge = {
+										...assetsToMerge,
+										...importedAssets
+									};
+									delete dependency.dependencies;
+								}
+								delete asset.dependencies[depName];
+							}
+						}
+					}
+					asset.dependencies = {
+						...asset.dependencies,
+						...assetsToMerge
+					};
+				}
+
+				resolve(asset);
+			});
+
+		// place next processor at end of chain
+		const process = lib.process;
+		lib.process = (asset: Asset) => process(asset).then(importFlattener);
+	};
+
 
 	export namespace importer {
 

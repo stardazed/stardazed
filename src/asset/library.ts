@@ -40,6 +40,7 @@ namespace sd.asset {
 			loaderPlugin(loader),
 			importerPlugin,
 			dependenciesPlugin,
+			importFlatteningPlugin,
 			parserPlugin
 		]);
 	
