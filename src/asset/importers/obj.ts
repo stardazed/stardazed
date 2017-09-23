@@ -18,7 +18,7 @@ namespace sd.asset.importer {
 	interface OBJPreProcSource {
 		uri: string;
 		lines: string[];
-		group: AssetGroup;
+		asset: Asset;
 
 		positionCount: number;
 		normalCount: number;
@@ -29,12 +29,12 @@ namespace sd.asset.importer {
 	}
 
 
-	function* preflightOBJSource(text: string, uri: string) {
+	function preflightOBJSource(text: string, uri: string) {
 		let mtlFilePath = "";
 		const preproc: OBJPreProcSource = {
 			uri,
-			group: new AssetGroup(),
 			lines: [],
+			asset: { kind: "model", dependencies: {} },
 			positionCount: 0,
 			normalCount: 0,
 			uvCount: 0,
@@ -67,24 +67,22 @@ namespace sd.asset.importer {
 		}
 
 		if (mtlFilePath.length) {
-			preproc.group = yield { kind: "group", uri: mtlFilePath };
+			preproc.asset.dependencies!["materials"] = { kind: "import", uri: mtlFilePath };
 		}
 		return preproc;
 	}
 
 
-	function parseOBJSource(preproc: OBJPreProcSource, hasColourAttr: boolean) {
-		const group = preproc.group;
+	function parseOBJSource(preproc: OBJPreProcSource) {
+		const asset = preproc.asset;
 
 		const positions: Float32Array = new Float32Array(preproc.positionCount * 3);
 		const positionIndexes = new Uint32Array(preproc.vertexCount);
 		const streams: meshdata.VertexAttributeStream[] = [];
 		let normalValues: Float32Array | undefined;
 		let uvValues: Float32Array | undefined;
-		let colourValues: Float32Array | undefined;
 		let normalIndexes: Uint32Array | undefined;
 		let uvIndexes: Uint32Array | undefined;
-		let colourIndexes: Uint32Array | undefined;
 		let posIx = 0, normIx = 0, uvIx = 0, vertexIx = 0, curMatIx = 0;
 
 		// map each material's name to its index
@@ -119,24 +117,6 @@ namespace sd.asset.importer {
 				indexes: uvIndexes
 			});
 		}
-		if (hasColourAttr && group.materials.length > 0) {
-			colourValues = new Float32Array(group.materials.length * 3);
-			colourIndexes = new Uint32Array(preproc.polyCount);
-
-			// fill the colourValues list with the baseColour of each material
-			for (let matIx = 0; matIx < group.materials.length; ++matIx) {
-				container.setIndexedVec3(colourValues, matIx, group.materials[matIx].colour.baseColour);
-			}
-
-			streams.push({
-				name: "colours",
-				includeInMesh: true,
-				mapping: meshdata.VertexAttributeMapping.Polygon,
-				attr: { field: meshdata.VertexField.Floatx3, role: meshdata.VertexAttributeRole.Colour },
-				values: colourValues,
-				indexes: colourIndexes
-			});
-		}
 
 		const builder = new meshdata.MeshBuilder(positions, positionIndexes, streams);
 
@@ -165,10 +145,6 @@ namespace sd.asset.importer {
 					uvIx += 2;
 					break;
 				case "f": {
-					if (colourIndexes) {
-						colourIndexes[builder.curPolygonIndex] = curMatIx;
-					}
-
 					const vi: number[] = [];
 					for (let fvix = 1; fvix < tokens.length; ++fvix) {
 						const fix = tokens[fvix].split("/").map(fxtoi);
@@ -205,9 +181,9 @@ namespace sd.asset.importer {
 		return group;
 	}
 
-	function* parseOBJ(text: string, uri: string, hasColourAttr: boolean) {
-		const preproc = yield* preflightOBJSource(text, uri);
-		const group = parseOBJSource(preproc, hasColourAttr);
+	function parseOBJ(text: string, uri: string) {
+		const preproc = preflightOBJSource(text, uri);
+		const group = parseOBJSource(preproc);
 
 		// add the linked object as a Model to the group
 		const model = {};
