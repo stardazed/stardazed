@@ -132,33 +132,4 @@ namespace sd.asset {
 		};
 	}
 
-	export class AssetGroup {
-		kind = "group";
-
-		meshes: meshdata.MeshData[] = [];
-		textures: (Texture2D | null)[] = []; // FIXME: handling of optional textures
-		materials: Material[] = [];
-		models: Model[] = [];
-
-		addMesh(mesh: meshdata.MeshData): number {
-			this.meshes.push(mesh);
-			return this.meshes.length - 1;
-		}
-
-		addTexture(tex: Texture2D | null): number { // FIXME: handling of optional textures
-			this.textures.push(tex);
-			return this.textures.length - 1;
-		}
-
-		addMaterial(mat: Material): number {
-			this.materials.push(mat);
-			return this.materials.length - 1;
-		}
-
-		addModel(model: Model): number {
-			this.models.push(model);
-			return this.models.length - 1;
-		}
-	}
-
 } // ns sd.asset
