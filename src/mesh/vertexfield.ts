@@ -18,18 +18,22 @@ namespace sd.meshdata {
 		Undefined,
 
 		// integer
+		UInt8,
 		UInt8x2,
 		UInt8x3,
 		UInt8x4,
 
+		SInt8,
 		SInt8x2,
 		SInt8x3,
 		SInt8x4,
 
+		UInt16,
 		UInt16x2,
 		UInt16x3,
 		UInt16x4,
 
+		SInt16,
 		SInt16x2,
 		SInt16x3,
 		SInt16x4,
@@ -51,18 +55,22 @@ namespace sd.meshdata {
 		Floatx4,
 
 		// normalized
-		Norm_UInt8x2 = 0x81,	// normalized fields have high bit set
+		Norm_UInt8 = 0x81,	// normalized fields have high bit set
+		Norm_UInt8x2,
 		Norm_UInt8x3,
 		Norm_UInt8x4,
 
+		Norm_SInt8,
 		Norm_SInt8x2,
 		Norm_SInt8x3,
 		Norm_SInt8x4,
 
+		Norm_UInt16,
 		Norm_UInt16x2,
 		Norm_UInt16x3,
 		Norm_UInt16x4,
 
+		Norm_SInt16,
 		Norm_SInt16x2,
 		Norm_SInt16x3,
 		Norm_SInt16x4
