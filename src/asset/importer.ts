@@ -102,34 +102,4 @@ namespace sd.asset {
 
 	} // ns importer
 
-
-	// ---- below: WIP, to be moved out
-
-	export function makeTransform(): entity.Transform {
-		return {
-			position: [0, 0, 0],
-			rotation: [0, 0, 0, 1],
-			scale: [1, 1, 1]
-		};
-	}
-
-	export interface Model {
-		transform: entity.Transform;
-		children: Model[];
-		parent?: Model;
-
-		// components
-		materials: Material[];
-		mesh?: meshdata.MeshData;
-		light?: entity.Light;
-	}
-
-	export function makeModel(): Model {
-		return {
-			transform: makeTransform(),
-			children: [],
-			materials: []
-		};
-	}
-
 } // ns sd.asset
