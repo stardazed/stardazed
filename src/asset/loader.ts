@@ -12,10 +12,10 @@ namespace sd.asset {
 	}
 
 	/**
-	 * Extend an AssetLibrary with the capacity to load external resources.
+	 * Extend an AssetPipeline with the capacity to load external resources.
 	 * @param root the loader to use to retrieve asset data
 	 */
-	export const loaderPlugin = (root: loader.Loader | loader.LoaderInfo) => (lib: AssetLibrary) => {
+	export const loaderStage = (root: loader.Loader | loader.LoaderInfo) => (pipeline: AssetPipeline) => {
 		const rootLoader = loader.makeLoader(root);
 
 		const loaderProcessor: AssetProcessor = (asset: Asset) => {
@@ -34,8 +34,8 @@ namespace sd.asset {
 		};
 
 		// place next processor at end of chain
-		const process = lib.process;
-		lib.process = (asset: Asset) => process(asset).then(loaderProcessor);
+		const process = pipeline.process;
+		pipeline.process = (asset: Asset) => process(asset).then(loaderProcessor);
 	};
 
 

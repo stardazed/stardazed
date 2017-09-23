@@ -6,9 +6,9 @@
 namespace sd.asset {
 
 	/**
-	 * Extend an AssetLibrary with the capacity to identify and type assets
+	 * Extend an AssetPipeline with the capacity to identify and type assets
 	 */
-	export const identifierPlugin = (lib: AssetLibrary) => {
+	export const identifierStage: AssetPipelineStage = (pipeline: AssetPipeline) => {
 		const identifierProcessor: AssetProcessor = (asset: Asset) => {
 			if (typeof asset.uri === "string") {
 				if (typeof asset.mimeType === void 0) {
@@ -35,8 +35,8 @@ namespace sd.asset {
 		};
 
 		// place next processor at end of chain
-		const process = lib.process;
-		lib.process = (asset: Asset) => process(asset).then(identifierProcessor);
+		const process = pipeline.process;
+		pipeline.process = (asset: Asset) => process(asset).then(identifierProcessor);
 	};
 
 

@@ -14,9 +14,9 @@ namespace sd.asset {
 	}
 
 	/**
-	 * Extend an AssetLibrary with the capacity to load an asset's named dependencies.
+	 * Extend an AssetPipeline with the capacity to load an asset's named dependencies.
 	 */
-	export const dependenciesPlugin = (lib: AssetLibrary) => {
+	export const dependenciesStage: AssetPipelineStage = (pipeline: AssetPipeline) => {
 		const dependenciesProcessor: AssetProcessor = (asset: Asset) =>
 			new Promise<Asset>(resolve => {
 				const deps = parseDependencies(asset.dependencies);
@@ -25,15 +25,15 @@ namespace sd.asset {
 					// need to kick off loading of the assets and wait for them
 					// to complete. No need to track keyed assets, etc.
 					return resolve(
-						Promise.all(deps.map(dep => lib.process(dep))
+						Promise.all(deps.map(dep => pipeline.process(dep))
 					).then(() => asset));
 				}
 				return resolve(asset);
 			});
 
 		// place next processor at end of chain
-		const process = lib.process;
-		lib.process = (asset: Asset) => process(asset).then(dependenciesProcessor);
+		const process = pipeline.process;
+		pipeline.process = (asset: Asset) => process(asset).then(dependenciesProcessor);
 	};
 
 	const parseDependencies = (deps: any): Asset[] | undefined => {

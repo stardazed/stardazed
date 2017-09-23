@@ -8,9 +8,9 @@
 namespace sd.asset {
 
 	/**
-	 * Extend an AssetLibrary with the capacity to import non-SD asset files.
+	 * Extend an AssetPipeline with the capacity to import external asset (group) files.
 	 */
-	export const importerPlugin: LibraryPlugin = (lib: AssetLibrary) => {
+	export const importerStage: AssetPipelineStage = (pipeline: AssetPipeline) => {
 		const assetImporter: AssetProcessor = (asset: Asset) =>
 			new Promise<Asset>((resolve, reject) => {
 				if (asset.kind === "import") {
@@ -33,15 +33,15 @@ namespace sd.asset {
 			});
 
 		// place next processor at end of chain
-		const process = lib.process;
-		lib.process = (asset: Asset) => process(asset).then(assetImporter);
+		const process = pipeline.process;
+		pipeline.process = (asset: Asset) => process(asset).then(assetImporter);
 	};
 
 	/**
-	 * Extend an AssetLibrary with the feature to flatten an imported asset's
+	 * Extend an AssetPipeline with the feature to flatten an imported asset's
 	 * dependencies into its containing asset's dependencies.
 	 */
-	export const importFlatteningPlugin: LibraryPlugin = (lib: AssetLibrary) => {
+	export const importFlatteningStage: AssetPipelineStage = (pipeline: AssetPipeline) => {
 		const importFlattener: AssetProcessor = (asset: Asset) =>
 			new Promise<Asset>(resolve => {
 				if (asset.dependencies) {
@@ -72,8 +72,8 @@ namespace sd.asset {
 			});
 
 		// place next processor at end of chain
-		const process = lib.process;
-		lib.process = (asset: Asset) => process(asset).then(importFlattener);
+		const process = pipeline.process;
+		pipeline.process = (asset: Asset) => process(asset).then(importFlattener);
 	};
 
 

@@ -9,9 +9,9 @@
 namespace sd.asset {
 
 	/**
-	 * Extend an AssetLibrary with the capacity to parse asset data and metadata.
+	 * Extend an AssetPipeline with the capacity to parse asset data and metadata.
 	 */
-	export const parserPlugin: LibraryPlugin = (lib: AssetLibrary) => {
+	export const parserStage: AssetPipelineStage = (pipeline: AssetPipeline) => {
 		const assetParser: AssetProcessor = (asset: Asset) =>
 			new Promise<Asset>((resolve, reject) => {
 				if (asset.item !== void 0) {
@@ -28,8 +28,8 @@ namespace sd.asset {
 			});
 
 		// place next processor at end of chain
-		const process = lib.process;
-		lib.process = (asset: Asset) => process(asset).then(assetParser);
+		const process = pipeline.process;
+		pipeline.process = (asset: Asset) => process(asset).then(assetParser);
 	};
 
 	export namespace parser {
