@@ -33,7 +33,7 @@ namespace sd.asset {
 		return pipeline;
 	};
 
-	export const makeDefaultPipeline = (loader: loader.LoaderInfo | loader.Loader) =>
+	export const makeDefaultPipeline = (loader: loader.LoaderInfo | loader.Loader, cache: Cache) =>
 		makePipeline([
 			// generatorStage,
 			identifierStage,
@@ -41,7 +41,8 @@ namespace sd.asset {
 			importerStage,
 			dependenciesStage,
 			importFlatteningStage,
-			parserStage
+			parserStage,
+			cacheFeederStage(cache)
 		]);
-	
+
 } // ns sd.asset
