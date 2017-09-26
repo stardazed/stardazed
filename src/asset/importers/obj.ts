@@ -62,6 +62,19 @@ namespace sd.asset.importer {
 
 
 	function parseOBJSource(preproc: OBJPreProcSource) {
+		const modelDependencies: AssetDependencies = {};
+		const modelMeta: parser.ModelAssetMetadata = {
+			materialIndexMap: {}
+		};
+		const modelAsset: Asset<Model, parser.ModelAssetMetadata> = {
+			kind: "model",
+			metadata: modelMeta,
+			dependencies: modelDependencies,
+		};
+
+		const meshAsset: Asset<meshdata.MeshData, any> = {
+			kind: "mesh"
+		};
 
 		const positions: Float32Array = new Float32Array(preproc.positionCount * 3);
 		const positionIndexes = new Uint32Array(preproc.vertexCount);
@@ -104,7 +117,6 @@ namespace sd.asset.importer {
 
 
 		// map each material's name to its index
-		const matNameIndexMap = new Map<string, number>();
 		let nextNamedMatIx = 0;
 		
 		// convert a face index to zero-based int or -1 for empty index	
@@ -149,9 +161,9 @@ namespace sd.asset.importer {
 					break;
 				}
 				case "usemtl": {
-					const newMatIx = matNameIndexMap.get(tokens[1]);
+					const newMatIx = modelMeta.materialIndexMap[tokens[1]];
 					if (newMatIx === undefined) {
-						matNameIndexMap.set(tokens[1], nextNamedMatIx);
+						modelMeta.materialIndexMap[tokens[1]] = nextNamedMatIx;
 						curMatIx = nextNamedMatIx;
 						nextNamedMatIx += 1;
 					}
@@ -165,6 +177,8 @@ namespace sd.asset.importer {
 				default: break;
 			}
 		}
+
+		meshAsset.item = builder.complete();
 
 		modelDependencies["mesh"] = meshAsset;
 		if (preproc.mtlFilePath) {
