@@ -181,6 +181,10 @@ namespace sd.meshdata {
 		readonly layouts: ReadonlyArray<VertexBufferLayout>;
 	}
 
+	export const isVertexLayout = (vl: any): vl is VertexLayout =>
+		(typeof vl === "object") && vl !== null &&
+		Array.isArray(vl.layouts);
+
 	export function findAttributeOfRoleInLayout(vl: VertexLayout, role: VertexAttributeRole) {
 		for (const layout of vl.layouts) {
 			const pa = layout.attrByRole(role);

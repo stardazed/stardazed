@@ -38,6 +38,13 @@ namespace sd.meshdata {
 		subMeshes: SubMesh[];
 	}
 
+	export const isMeshData = (md: any): md is MeshData =>
+		(typeof md === "object") && md !== null &&
+		isVertexLayout(md.layout) &&
+		Array.isArray(md.vertexBuffers) &&
+		(md.indexBuffer === void 0 || md.indexBuffer instanceof IndexBuffer) &&
+		Array.isArray(md.subMeshes);
+
 	export function allocateMeshData(options: MeshDataAllocOptions): MeshData {
 		let totalBytes = 0;
 		for (const layout of options.layout.layouts) {
