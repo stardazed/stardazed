@@ -77,11 +77,6 @@ namespace sd.asset.importer {
 		let uvIndexes: Uint32Array | undefined;
 		let posIx = 0, normIx = 0, uvIx = 0, vertexIx = 0, curMatIx = 0;
 
-		// map each material's name to its index
-		const matNameIndexMap = new Map<string, number>();
-		for (let matIx = 0; matIx < group.materials.length; ++matIx) {
-			matNameIndexMap.set(group.materials[matIx].name!, matIx);
-		}
 
 		if (preproc.normalCount > 0) {
 			normalValues = new Float32Array(preproc.normalCount * 3);
@@ -113,6 +108,10 @@ namespace sd.asset.importer {
 		const builder = new meshdata.MeshBuilder(positions, positionIndexes, streams);
 
 
+		// map each material's name to its index
+		const matNameIndexMap = new Map<string, number>();
+		let nextNamedMatIx = 0;
+		
 		// convert a face index to zero-based int or -1 for empty index	
 		function fxtoi(fx: string) { return (+fx) - 1; }
 
@@ -154,36 +153,35 @@ namespace sd.asset.importer {
 					builder.addPolygon(vi, vi);
 					break;
 				}
-				case "usemtl":
+				case "usemtl": {
 					const newMatIx = matNameIndexMap.get(tokens[1]);
 					if (newMatIx === undefined) {
-						console.warn(`OBJ parser: referencing non-existent material: "${tokens[1]}" in asset "${preproc.uri}"`);
+						matNameIndexMap.set(tokens[1], nextNamedMatIx);
+						curMatIx = nextNamedMatIx;
+						nextNamedMatIx += 1;
 					}
 					else {
 						curMatIx = newMatIx;
 					}
 					builder.setGroup(curMatIx);
 					break;
+				}
 
 				default: break;
 			}
 		}
 
-		group.addMesh(builder.complete());
-		return group;
+		modelDependencies["mesh"] = meshAsset;
+		if (preproc.mtlFilePath) {
+			modelDependencies["materials"] = { kind: "import", uri: preproc.mtlFilePath };
+		}
+		return modelAsset;
 	}
 
 	function parseOBJ(text: string, uri: string) {
 		const preproc = preflightOBJSource(text, uri);
-		const group = parseOBJSource(preproc);
-
-		// add the linked object as a Model to the group
-		const model = {};
-		model.mesh = group.meshes[0];
-		model.materials = group.materials;
-		model.transform = asset.makeTransform();
-		group.addModel(model);
-		return group;
+		const model = parseOBJSource(preproc);
+		return Promise.resolve({ model });
 	}
 
 } // ns sd.asset.parser
