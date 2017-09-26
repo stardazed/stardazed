@@ -23,7 +23,6 @@ namespace sd.asset.importer {
 		normalCount: number;
 		uvCount: number;
 
-		polyCount: number;
 		vertexCount: number;
 	}
 
@@ -34,7 +33,6 @@ namespace sd.asset.importer {
 			positionCount: 0,
 			normalCount: 0,
 			uvCount: 0,
-			polyCount: 0,
 			vertexCount: 0
 		};
 
@@ -48,10 +46,7 @@ namespace sd.asset.importer {
 			if (directive === "v") { preproc.positionCount += 1; }
 			else if (directive === "vn") { preproc.normalCount += 1; }
 			else if (directive === "vt") { preproc.uvCount += 1; }
-			else if (directive === "f") {
-				preproc.polyCount += tokens.length - 3;
-				preproc.vertexCount += tokens.length - 1;
-			}
+			else if (directive === "f") { preproc.vertexCount += tokens.length - 1; }
 			else if (directive === "mtllib") {
 				if (tokens[1]) {
 					preproc.mtlFilePath = io.resolveRelativePath(tokens[1], uri);
