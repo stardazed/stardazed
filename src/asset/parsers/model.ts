@@ -18,10 +18,9 @@ namespace sd.asset {
 		children: Model[];
 		parent?: Model;
 	
-		// components
-		materials: Material[];
+		// renderable
 		mesh?: meshdata.MeshData;
-		light?: entity.Light;
+		materials: Material[];
 	}
 	
 	export const makeModel = (): Model => ({
@@ -32,7 +31,7 @@ namespace sd.asset {
 	
 	export namespace parser {
 
-		interface ModelAssetMetadata {
+		export interface ModelAssetMetadata {
 		}
 
 		export const parseModel: AssetProcessor = (asset: Asset<Model, ModelAssetMetadata>) =>
