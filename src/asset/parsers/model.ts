@@ -28,10 +28,28 @@ namespace sd.asset {
 	export namespace parser {
 
 		export interface ModelAssetMetadata {
+			materialIndexMap: { [id: string]: number; };
 		}
 
 		export const parseModel: AssetProcessor = (asset: Asset<Model, ModelAssetMetadata>) =>
-			Promise.resolve(asset);
+			new Promise<Asset<Model, ModelAssetMetadata>>((resolve, _reject) => {
+				const model = makeModel();
+				if (asset.dependencies) {
+					// try and link mesh to this model
+					const meshAsset = asset.dependencies["mesh"];
+					if (meshAsset) {
+						if (meshAsset.kind === "mesh" && meshdata.isMeshData(meshAsset.item)) {
+							model.mesh = meshAsset.item;
+						}
+						else {
+							console.warn(`Model parser: "mesh" dependency is not a MeshData or was not loaded`, meshAsset);
+						}
+					}
+
+				}
+				asset.item = model;
+				resolve(asset);
+			});
 
 		registerParser("model", parseModel);
 
