@@ -12,23 +12,19 @@ namespace sd.asset {
 		rotation: [0, 0, 0, 1],
 		scale: [1, 1, 1]
 	});
-	
+
 	export interface Model {
 		transform: entity.Transform;
-		children: Model[];
-		parent?: Model;
-	
 		// renderable
 		mesh?: meshdata.MeshData;
 		materials: Material[];
 	}
-	
+
 	export const makeModel = (): Model => ({
 		transform: makeTransform(),
-		children: [],
 		materials: []
 	});
-	
+
 	export namespace parser {
 
 		export interface ModelAssetMetadata {
