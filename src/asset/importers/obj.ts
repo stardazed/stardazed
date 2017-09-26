@@ -9,16 +9,15 @@ namespace sd.asset.importer {
 
 	export const importOBJData = (data: Blob, uri: string) =>
 		io.BlobReader.readAsText(data).then(text =>
-			parseOBJ(text, uri, false)
+			parseOBJ(text, uri)
 		);
 
 	registerImporter(importOBJData, "obj", "application/wavefront-obj");
 
 
 	interface OBJPreProcSource {
-		uri: string;
 		lines: string[];
-		asset: Asset;
+		mtlFilePath?: string;
 
 		positionCount: number;
 		normalCount: number;
@@ -30,11 +29,8 @@ namespace sd.asset.importer {
 
 
 	function preflightOBJSource(text: string, uri: string) {
-		let mtlFilePath = "";
 		const preproc: OBJPreProcSource = {
-			uri,
 			lines: [],
-			asset: { kind: "model", dependencies: {} },
 			positionCount: 0,
 			normalCount: 0,
 			uvCount: 0,
@@ -53,12 +49,12 @@ namespace sd.asset.importer {
 			else if (directive === "vn") { preproc.normalCount += 1; }
 			else if (directive === "vt") { preproc.uvCount += 1; }
 			else if (directive === "f") {
-				preproc.polyCount += 1;
+				preproc.polyCount += tokens.length - 3;
 				preproc.vertexCount += tokens.length - 1;
 			}
 			else if (directive === "mtllib") {
 				if (tokens[1]) {
-					mtlFilePath = io.resolveRelativePath(tokens[1], uri);
+					preproc.mtlFilePath = io.resolveRelativePath(tokens[1], uri);
 				}
 				else {
 					console.warn("OBJ parser: ignoring empty mtllib reference.");
@@ -66,15 +62,11 @@ namespace sd.asset.importer {
 			}
 		}
 
-		if (mtlFilePath.length) {
-			preproc.asset.dependencies!["materials"] = { kind: "import", uri: mtlFilePath };
-		}
 		return preproc;
 	}
 
 
 	function parseOBJSource(preproc: OBJPreProcSource) {
-		const asset = preproc.asset;
 
 		const positions: Float32Array = new Float32Array(preproc.positionCount * 3);
 		const positionIndexes = new Uint32Array(preproc.vertexCount);
