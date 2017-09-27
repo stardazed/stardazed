@@ -60,7 +60,6 @@ namespace sd.asset.importer {
 		return preproc;
 	}
 
-
 	function parseOBJSource(preproc: OBJPreProcSource) {
 		const modelDependencies: AssetDependencies = {};
 		const modelMeta: parser.ModelAssetMetadata = {
@@ -182,7 +181,11 @@ namespace sd.asset.importer {
 
 		modelDependencies["mesh"] = meshAsset;
 		if (preproc.mtlFilePath) {
-			modelDependencies["materials"] = { kind: "import", uri: preproc.mtlFilePath };
+			modelDependencies["materials"] = {
+				kind: "import",
+				uri: preproc.mtlFilePath,
+				mimeType: "application/wavefront-mtl"
+			};
 		}
 		return modelAsset;
 	}
