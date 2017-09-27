@@ -36,7 +36,7 @@ namespace sd.asset.parser {
 	registerFileExtension("png", "image/png");
 
 	mapMimeTypeToAssetKind("image/bmp", "image");
-	mapMimeTypeToAssetKind("image/jpg", "image");
+	mapMimeTypeToAssetKind("image/jpeg", "image");
 	mapMimeTypeToAssetKind("image/png", "image");
 
 	registerImageParser(parseBuiltInImage, "image/bmp");
