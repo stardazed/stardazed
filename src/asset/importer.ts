@@ -23,6 +23,15 @@ namespace sd.asset {
 
 					importer.importAssets(asset.blob, asset.uri)
 						.then(dependencies => {
+							// FIXME: this is just a quick hack, need a formal name/id gen system
+							if (asset.name && propertyCount(dependencies) === 1) {
+								container.mapObject(dependencies, (subAsset) => {
+									if (subAsset) {
+										subAsset.name = asset.name;
+									}
+									return subAsset;
+								});
+							}
 							asset.dependencies = dependencies;
 							resolve(asset);
 						});
