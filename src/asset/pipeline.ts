@@ -35,7 +35,7 @@ namespace sd.asset {
 
 	export const makeDefaultPipeline = (loader: loader.LoaderInfo | loader.Loader, cache: Cache) =>
 		makePipeline([
-			// generatorStage,
+			generatorStage,
 			identifierStage,
 			loaderStage(loader),
 			importerStage,
