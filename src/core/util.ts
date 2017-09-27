@@ -42,6 +42,12 @@ namespace sd {
 	}
 
 	/**
+	 * Returns the count of properties in an object.
+	 * @param obj Any object
+	 */
+	export const propertyCount = (obj: object) => Object.getOwnPropertyNames(obj).length;
+
+	/**
 	 * Create an immutable object that acts as a lookup table with numerical keys, such as (const) enum values.
 	 * @param keyVals Alternating key, value pairs
 	 */
