@@ -29,7 +29,7 @@ namespace sd.asset {
 	};
 
 	export interface CacheAccess {
-		(kind: string, name: string): any; // tslint:disable-line:callable-types
+		(kind: string, name: string): any;
 	}
 
 	export const cacheAccessor = (cache: Cache): CacheAccess => (kind: string, name: string) => {
