@@ -5,6 +5,14 @@
 
 /// <reference path="../parser.ts" />
 
+namespace sd.asset {
+
+	export interface CacheAccess {
+		(kind: "image", name: string): image.PixelDataProvider;
+	}
+
+} // ns sd.asset
+
 namespace sd.asset.parser {
 
 	export interface ImageAssetMetadata {

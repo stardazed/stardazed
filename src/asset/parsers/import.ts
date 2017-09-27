@@ -3,13 +3,21 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.asset.parser {
+namespace sd.asset {
 
-	const parseImport: AssetProcessor = (asset: Asset<null, {}>) => {
-		asset.item = null;
-		return Promise.resolve(asset);
-	};
+	export interface CacheAccess {
+		(kind: "import", name: string): null;
+	}
+	
+	export namespace parser {
 
-	registerParser("import", parseImport);
+		const parseImport: AssetProcessor = (asset: Asset<null, {}>) => {
+			asset.item = null;
+			return Promise.resolve(asset);
+		};
 
-} // ns sd.asset.parser
+		registerParser("import", parseImport);
+
+	} // ns parser
+
+} // ns sd.asset

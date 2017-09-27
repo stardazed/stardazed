@@ -16,6 +16,10 @@ namespace sd.asset {
 		anisotropy: number; // 1..16
 	}
 
+	export interface CacheAccess {
+		(kind: "texture", name: string): Texture2D;
+	}
+
 	export namespace parser {
 
 		export interface TextureAssetMetadata {

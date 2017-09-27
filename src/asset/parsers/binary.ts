@@ -5,18 +5,26 @@
 
 /// <reference path="../parser.ts" />
 
-namespace sd.asset.parser {
+namespace sd.asset {
 
-	export const parseBinary: AssetProcessor = (asset: Asset<ArrayBuffer, {}>) =>
-		getArrayBuffer(asset).then(buffer => {
-			asset.item = buffer;
-			return asset;
-		});
+	export interface CacheAccess {
+		(kind: "binary", name: string): ArrayBuffer;
+	}
+	
+	export namespace parser {
 
-	registerFileExtension("bin", "application/octet-stream");
+		export const parseBinary: AssetProcessor = (asset: Asset<ArrayBuffer, {}>) =>
+			getArrayBuffer(asset).then(buffer => {
+				asset.item = buffer;
+				return asset;
+			});
 
-	mapMimeTypeToAssetKind("application/octet-stream", "binary");
+		registerFileExtension("bin", "application/octet-stream");
 
-	registerParser("binary", parseBinary);
+		mapMimeTypeToAssetKind("application/octet-stream", "binary");
 
-} // ns sd.asset.parser
+		registerParser("binary", parseBinary);
+
+	} // ns parser
+
+} // ns sd.asset

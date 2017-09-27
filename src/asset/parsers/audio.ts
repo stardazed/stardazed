@@ -5,39 +5,47 @@
 
 /// <reference path="../parser.ts" />
 
-namespace sd.asset.parser {
+namespace sd.asset {
 
-	export const parseAudio: AssetProcessor = (asset: Asset<AudioBuffer, {}>) =>
-		getArrayBuffer(asset).then(data =>
-			new Promise<Asset>((resolve, reject) => {
-				audio.sharedAudioContext().decodeAudioData(
-					data,
-					audioData => {
-						asset.item = audioData;
-						resolve(asset);
-					},
-					err => {
-						reject(`Invalid audio data, error: ${err}`);
-					}
-				);
-			})
-		);
+	export interface CacheAccess {
+		(kind: "audio", name: string): AudioBuffer;
+	}
 
-	registerFileExtension("mp3", "audio/mpeg");
-	registerFileExtension("m4a", "audio/mp4");
-	registerFileExtension("mp4", "audio/mp4");
-	registerFileExtension("ogg", "audio/ogg");
-	registerFileExtension("wav", "audio/vnd.wav");
-	registerFileExtension("aif", "audio/x-aiff");
-	registerFileExtension("aifc", "audio/x-aiff");
-	registerFileExtension("aiff", "audio/x-aiff");
+	export namespace parser {
 
-	mapMimeTypeToAssetKind("audio/mpeg", "audio");
-	mapMimeTypeToAssetKind("audio/mp4", "audio");
-	mapMimeTypeToAssetKind("audio/ogg", "audio");
-	mapMimeTypeToAssetKind("audio/vnd.wav", "audio");
-	mapMimeTypeToAssetKind("audio/x-aiff", "audio");
+		export const parseAudio: AssetProcessor = (asset: Asset<AudioBuffer, {}>) =>
+			getArrayBuffer(asset).then(data =>
+				new Promise<Asset>((resolve, reject) => {
+					audio.sharedAudioContext().decodeAudioData(
+						data,
+						audioData => {
+							asset.item = audioData;
+							resolve(asset);
+						},
+						err => {
+							reject(`Invalid audio data, error: ${err}`);
+						}
+					);
+				})
+			);
 
-	registerParser("audio", parseAudio);
+		registerFileExtension("mp3", "audio/mpeg");
+		registerFileExtension("m4a", "audio/mp4");
+		registerFileExtension("mp4", "audio/mp4");
+		registerFileExtension("ogg", "audio/ogg");
+		registerFileExtension("wav", "audio/vnd.wav");
+		registerFileExtension("aif", "audio/x-aiff");
+		registerFileExtension("aifc", "audio/x-aiff");
+		registerFileExtension("aiff", "audio/x-aiff");
+
+		mapMimeTypeToAssetKind("audio/mpeg", "audio");
+		mapMimeTypeToAssetKind("audio/mp4", "audio");
+		mapMimeTypeToAssetKind("audio/ogg", "audio");
+		mapMimeTypeToAssetKind("audio/vnd.wav", "audio");
+		mapMimeTypeToAssetKind("audio/x-aiff", "audio");
+
+		registerParser("audio", parseAudio);
+
+	} // ns parser
 
 } // ns sd.asset.parser

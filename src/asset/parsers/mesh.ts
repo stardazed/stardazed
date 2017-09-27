@@ -5,6 +5,14 @@
 
 /// <reference path="../parser.ts" />
 
+namespace sd.asset {
+
+	export interface CacheAccess {
+		(kind: "mesh", name: string): meshdata.MeshData;
+	}
+
+} // ns sd.asset
+
 namespace sd.asset.parser {
 
 	export type VertexElementType = "uint8" | "sint8" | "uint16" | "sint16" | "uint32" | "sint32" | "float";

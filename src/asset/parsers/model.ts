@@ -25,6 +25,10 @@ namespace sd.asset {
 		materials: []
 	});
 
+	export interface CacheAccess {
+		(kind: "model", name: string): Model;
+	}
+
 	export namespace parser {
 
 		export interface ModelAssetMetadata {

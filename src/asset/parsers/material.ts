@@ -124,6 +124,10 @@ namespace sd.asset {
 		uvOffset: [0, 0]
 	});
 
+	export interface CacheAccess {
+		(kind: "material", name: string): Material;
+	}
+
 
 	export namespace parser {
 
