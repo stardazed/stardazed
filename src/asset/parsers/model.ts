@@ -48,7 +48,8 @@ namespace sd.asset {
 						materials: []
 					};
 					asset.item = model;
-					
+
+					let noMaterialIndexes = false;
 					for (const depName of Object.getOwnPropertyNames(asset.dependencies)) {
 						const dep = asset.dependencies[depName];
 						if (dep !== void 0) {
@@ -69,7 +70,7 @@ namespace sd.asset {
 										}
 									}
 									else {
-										console.warn(`Model parser: no material index map was specified, materials will be in arbitrary order`, asset);
+										noMaterialIndexes = true;
 										model.materials.push(dep.item);
 									}
 								}
@@ -81,6 +82,10 @@ namespace sd.asset {
 								console.warn(`Model parser: ignoring non-mesh, non-material dependency`, dep);
 							}
 						}
+					}
+
+					if (noMaterialIndexes && model.materials.length > 1) {
+						console.warn(`Model parser: no material index map was specified, materials will be in arbitrary order`, asset);
 					}
 				}
 				else {
