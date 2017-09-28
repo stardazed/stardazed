@@ -44,7 +44,7 @@ namespace sd.asset {
 		 * A Loader is a function provided with a URI to load.
 		 * The resulting data must always be provided as a typed Blob.
 		 */
-		export type Loader = (uri: string, mimeType?: string) => Promise<Blob>;		
+		export type Loader = (uri: string, mimeType?: string) => Promise<Blob>;
 
 		/**
 		 * A function that, when called with a set of configuration options,
