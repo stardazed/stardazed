@@ -3,6 +3,8 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
+/// <reference path="../generator.ts" />
+
 namespace sd.asset.generator {
 
 	interface MeshGenConfig {
