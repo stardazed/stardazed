@@ -9,7 +9,6 @@ namespace sd {
 		scene: Scene;
 
 		// HACK: LD39
-		loadAssets(): Promise<render.RenderCommandBuffer>;
 		buildWorld(): Promise<void>;
 
 		// callbacks
@@ -44,6 +43,7 @@ namespace sd {
 	// for now, this represents what would be present in a level file
 	export interface SceneConfig {
 		delegate: SceneDelegate;
+		assets: asset.Asset[];
 		physicsConfig: physics.PhysicsConfig;
 	}
 
@@ -61,17 +61,34 @@ namespace sd {
 		readonly physicsWorld: physics.PhysicsWorld;
 		readonly camera: math.Camera;
 
+		private readonly cache: asset.Cache;
+		private readonly pipeline: asset.AssetPipeline;
+		private readonly localAssets: asset.Asset[];
+		readonly assets: asset.CacheAccess;
+
 		private state_: SceneState;
 		readonly delegate: SceneDelegate;
 
 		constructor(rw: render.RenderWorld, ad: audio.AudioDevice, config: SceneConfig) {
 			this.state_ = SceneState.Uninitialized;
+			this.localAssets = config.assets;
 			this.delegate = config.delegate;
 			this.delegate.scene = this;
 
 			// -- global systems
 			this.rw = rw;
 			this.ad = ad;
+
+			// -- scene assets
+			this.cache = {};
+			this.pipeline = asset.makeDefaultPipeline({
+				type: "chain",
+				loaders: [
+					{ type: "data-url" },
+					{ type: "rooted", prefix: "data", loader: { type: "doc-relative-url", relPath: "data/" } }
+				]
+			}, this.cache);
+			this.assets = asset.cacheAccessor(this.cache);
 
 			// -- entities and components (scene-local)
 			this.entities = new entity.EntityManager();
@@ -99,16 +116,13 @@ namespace sd {
 				this.delegate.willLoadAssets();
 			}
 
-			// HACK: LD39
-			this.delegate.loadAssets().then(rcb => {
-				this.rw.rd.dispatch(rcb);
-				this.rw.rd.processFrame();
-
-				if (this.delegate.finishedLoadingAssets) {
-					this.delegate.finishedLoadingAssets();
-				}
-				this.loadEntities();
-			});
+			Promise.all(this.localAssets.map(asset =>
+				this.pipeline.process(asset))).then(() => {
+					if (this.delegate.finishedLoadingAssets) {
+						this.delegate.finishedLoadingAssets();
+					}
+					this.loadEntities();
+				});
 		}
 
 		private loadEntities() {
