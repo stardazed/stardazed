@@ -81,13 +81,17 @@ namespace sd {
 
 			// -- scene assets
 			this.cache = {};
-			this.pipeline = asset.makeDefaultPipeline({
-				type: "chain",
-				loaders: [
-					{ type: "data-url" },
-					{ type: "rooted", prefix: "data", loader: { type: "doc-relative-url", relPath: "data/" } }
-				]
-			}, this.cache);
+			this.pipeline = asset.makeDefaultPipeline(
+				{
+					type: "chain",
+					loaders: [
+						{ type: "data-url" },
+						{ type: "rooted", prefix: "data", loader: { type: "doc-relative-url", relPath: "data/" } }
+					]
+				},
+				this.cache,
+				rw.rd
+			);
 			this.assets = asset.cacheAccessor(this.cache);
 
 			// -- entities and components (scene-local)
@@ -118,6 +122,8 @@ namespace sd {
 
 			Promise.all(this.localAssets.map(asset =>
 				this.pipeline.process(asset))).then(() => {
+					this.rw.rd.processFrame();
+
 					if (this.delegate.finishedLoadingAssets) {
 						this.delegate.finishedLoadingAssets();
 					}
