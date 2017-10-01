@@ -17,7 +17,7 @@ namespace sd.asset.importer {
 	// ---------------
 
 	type TextureAsset = Asset<Texture2D, parser.TextureAssetMetadata>;
-	type MaterialAsset = Asset<Material, parser.MaterialAssetMetadata>;
+	type MaterialAsset = Asset<StandardMaterial, parser.MaterialAssetMetadata>;
 	interface TextureDependencies { [name: string]: TextureAsset | undefined; }
 
 	interface MTLMaterial {
