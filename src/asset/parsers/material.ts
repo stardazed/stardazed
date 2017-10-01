@@ -85,8 +85,11 @@ namespace sd.asset {
 		roughness: 1,
 	});
 
-
 	export interface Material {
+		materialID: string;
+	}
+
+	export interface StandardMaterial extends Material {
 		colour: ColourResponse;
 		
 		alphaCoverage: AlphaCoverage;
@@ -108,7 +111,9 @@ namespace sd.asset {
 		uvOffset: Float2;
 	}
 
-	export const makeMaterial = (colour?: ColourResponse): Material => ({
+	export const makeStandardMaterial = (colour?: ColourResponse): StandardMaterial => ({
+		materialID: "standard",
+
 		colour: colour || makeDiffuseResponse(),
 
 		alphaCoverage: AlphaCoverage.Ignore,
@@ -170,7 +175,7 @@ namespace sd.asset {
 			ambientOcclusionTexture?: TextureAsset;
 		}
 
-		export function parseMaterial(asset: Asset<Material, MaterialAssetMetadata>) {
+		export function parseMaterial(asset: Asset<StandardMaterial, MaterialAssetMetadata>) {
 			const meta = asset.metadata || {};
 			const deps = (asset.dependencies || {}) as any as MaterialDependencies;
 
@@ -185,7 +190,7 @@ namespace sd.asset {
 					throw new Error("Material parser: missing or invalid colour type.");
 			}
 
-			const mat = makeMaterial(colour);
+			const mat = makeStandardMaterial(colour);
 			mat.alphaCoverage = getAlphaCoverage(meta, mat.alphaCoverage);
 			mat.alphaCutoff = getAlphaCutoff(meta, mat.alphaCutoff);
 			mat.alphaFactor = getAlphaFactor(meta, mat.alphaFactor);
