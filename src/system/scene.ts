@@ -8,9 +8,6 @@ namespace sd {
 	export interface SceneDelegate {
 		scene: Scene;
 
-		// HACK: LD39
-		buildWorld(): Promise<void>;
-
 		// callbacks
 		willLoadAssets?(): void;
 		assetLoadProgress?(ratio: number): void;
@@ -44,6 +41,7 @@ namespace sd {
 	export interface SceneConfig {
 		delegate: SceneDelegate;
 		assets: asset.Asset[];
+		// graphicsConfig: {};
 		physicsConfig: physics.PhysicsConfig;
 	}
 
@@ -143,15 +141,18 @@ namespace sd {
 			if (this.delegate.willLoadEntities) {
 				this.delegate.willLoadEntities();
 			}
-			// TBI: load entity and world data from level file
-			// HACK: LD39
-			this.delegate.buildWorld().then(() => {
-				this.state_ = SceneState.Ready;
-				if (this.delegate.finishedLoadingEntities) {
-					this.delegate.finishedLoadingEntities();
-				}
-				App.messages.send("SceneLoaded", this);
-			});
+
+			// TODO: load entity and world data from level file
+
+			if (this.delegate.finishedLoadingEntities) {
+				this.delegate.finishedLoadingEntities();
+			}
+
+			if (this.delegate.setup) {
+				this.delegate.setup();
+			}
+			this.state_ = SceneState.Ready;
+			App.messages.send("SceneLoaded", this);
 		}
 
 		frame(dt: number) {
