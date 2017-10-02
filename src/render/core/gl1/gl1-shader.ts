@@ -243,11 +243,11 @@ namespace sd.render.gl1 {
 		const gl = rd.gl;
 
 		// first fully resolve and normalize the vertex and fragment functions
-		const resolver = new render.shader.ModuleResolver<render.shader.GL1Module>(render.shader.gl1Modules);
+		const resolver = new effect.ModuleResolver<effect.EffectModule>(effect.modules);
 		const defines = rawShader.defines.filter(def => def.value !== 0);
 
-		const vertexFn = shader.normalizeFunction(shader.flattenFunction(rawShader.vertexFunction, resolver));
-		const fragmentFn = shader.normalizeFunction(shader.flattenFunction(rawShader.fragmentFunction, resolver));
+		const vertexFn = effect.normalizeFunction(effect.flattenFunction(rawShader.vertexFunction, resolver));
+		const fragmentFn = effect.normalizeFunction(effect.flattenFunction(rawShader.fragmentFunction, resolver));
 		
 		// create GL shaders based on normalized functions and defines 
 		const vertexShader = compileFunction(rd, GLConst.VERTEX_SHADER, generateVertexSource(vertexFn, defines));

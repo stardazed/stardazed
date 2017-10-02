@@ -1,9 +1,9 @@
-// render/shader/shadowmap - Shadowmap shaders
+// render/effect/shadowmap - Shadowmap shaders
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.render.shader {
+namespace sd.render.effect {
 
 	import SVT = ShaderValueType;
 	import AttrRole = meshdata.VertexAttributeRole;
@@ -138,4 +138,4 @@ namespace sd.render.shader {
 		}
 	}
 	
-} // ns sd.render.shader
+} // ns sd.render.effect
