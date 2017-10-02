@@ -81,17 +81,23 @@ namespace sd {
 
 			// -- scene assets
 			this.cache = {};
-			this.pipeline = asset.makeDefaultPipeline(
-				{
+			this.pipeline = asset.makePipeline([
+				asset.generatorStage,
+				asset.identifierStage,
+				asset.loaderStage({
 					type: "chain",
 					loaders: [
 						{ type: "data-url" },
 						{ type: "rooted", prefix: "data", loader: { type: "doc-relative-url", relPath: "data/" } }
 					]
-				},
-				this.cache,
-				rw.rd
-			);
+				}),
+				asset.importerStage,
+				asset.dependenciesStage,
+				asset.importFlatteningStage,
+				asset.parserStage,
+				asset.cacheFeederStage(this.cache),
+				asset.allocatorStage(rw.rd),
+			]);
 			this.assets = asset.cacheAccessor(this.cache);
 
 			// -- entities and components (scene-local)
