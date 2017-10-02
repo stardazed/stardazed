@@ -63,6 +63,8 @@ namespace sd {
 		private readonly pipeline: asset.AssetPipeline;
 		private readonly localAssets: asset.Asset[];
 		readonly assets: asset.CacheAccess;
+		private totalAssetCount_ = 0;
+		private loadedAssetCount_ = 0;
 
 		private state_: SceneState;
 		readonly delegate: SceneDelegate;
@@ -80,6 +82,7 @@ namespace sd {
 			// -- scene assets
 			this.cache = {};
 			this.pipeline = asset.makePipeline([
+				asset.totalCounterStage(this),
 				asset.generatorStage,
 				asset.identifierStage,
 				asset.loaderStage({
@@ -95,6 +98,7 @@ namespace sd {
 				asset.parserStage,
 				asset.cacheFeederStage(this.cache),
 				asset.allocatorStage(rw.rd),
+				asset.loadedCounterStage(this),
 			]);
 			this.assets = asset.cacheAccessor(this.cache);
 
@@ -112,6 +116,20 @@ namespace sd {
 
 			// -- assets
 			this.startLoading();
+		}
+
+		assetStarted() {
+			this.totalAssetCount_ += 1;
+			if (this.delegate.assetLoadProgress) {
+				this.delegate.assetLoadProgress(this.loadedAssetCount_ / this.totalAssetCount_);
+			}
+		}
+
+		assetCompleted() {
+			this.loadedAssetCount_ += 1;
+			if (this.delegate.assetLoadProgress) {
+				this.delegate.assetLoadProgress(this.loadedAssetCount_ / this.totalAssetCount_);
+			}
 		}
 
 		private startLoading() {
