@@ -19,7 +19,7 @@ namespace sd.render.effect {
 	export const modules: { [name: string]: EffectModule; } = {};
 
 	export const registerModule = (mod: EffectModule) => {
-		assert(modules[mod.name] !== undefined, `Effect module named "${mod.name}" already registered.`);
+		assert(modules[mod.name] === undefined, `Effect module named "${mod.name}" already registered.`);
 		modules[mod.name] = mod;
 	};
 
