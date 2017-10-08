@@ -241,6 +241,23 @@ namespace sd.render.effect {
 	});
 
 	registerModule({
+		name: "basicNormalMap",
+		provides: [
+			"NormalMap"
+		],
+		samplers: [
+			{ name: "normalMap", type: TextureClass.Plain, index: 1, ifExpr: "NORMAL_MAP" }
+		],
+		code: `
+		#ifdef NORMAL_MAP
+		vec3 getMappedNormal(vec2 uv) {
+			return texture2D(normalMap, uv).xyz * 2.0 - 1.0;
+		}
+		#endif
+		`
+	});
+	
+	registerModule({
 		name: "vsmShadowMapping",
 		requires: ["mathUtils"],
 		code: `
