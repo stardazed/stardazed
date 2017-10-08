@@ -36,8 +36,7 @@ namespace sd.asset {
 	};
 
 	/**
-	 * Extend an AssetPipeline with the feature to flatten an imported asset's
-	 * dependencies into its containing asset's dependencies.
+	 * Flatten an imported asset's dependencies into its containing asset's dependencies.
 	 */
 	export const importFlattener: AssetProcessor = async (asset: Asset) => {
 		if (asset.dependencies) {
