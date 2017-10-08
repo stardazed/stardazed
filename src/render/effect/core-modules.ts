@@ -10,7 +10,7 @@ namespace sd.render.effect {
 	import SVT = ShaderValueType;
 
 	registerModule({
-		name: "lofiSRGB",
+		name: "grading/srgb/lofi",
 		provides: ["ConvertSRGB"],
 		code: `
 		vec3 srgbToLinear(vec3 colour) {
@@ -23,7 +23,7 @@ namespace sd.render.effect {
 	});
 
 	registerModule({
-		name: "basicSRGB",
+		name: "grading/srgb/basic",
 		provides: ["ConvertSRGB"],
 		constValues: [
 			{ name: "GAMMA", type: SVT.Float, expr: "2.2" },
