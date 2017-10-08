@@ -1,4 +1,4 @@
-// render/effect/std-modules - standard material effect modules
+// render/effect/pbr-modules - standard material effect modules
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -10,7 +10,7 @@ namespace sd.render.effect {
 	import SVT = ShaderValueType;
 	
 	registerModule({
-		name: "std/pbrLightingMath",
+		name: "pbr/lightingMath",
 		constValues: [
 			{ name: "PI", type: SVT.Float, expr: "3.1415926536" }
 		],
@@ -87,16 +87,15 @@ namespace sd.render.effect {
 	}
 
 	registerModule({
-		name: "std/pbrMaterialLighting",
+		name: "pbr/lightResponse",
 		requires: [
 			"ConvertSRGB",
-			"SurfaceInfo",
-			"MaterialInfo",
-			"std/pbrMaterialInfo",
-			"std/pbrLightingMath"
+			"pbr/surfaceInfo",
+			"pbr/materialInfo",
+			"pbr/lightingMath"
 		],
 		provides: [
-			"CoreLight",
+			"LightResponse",
 		],
 		extensions: [
 			{ name: "GL_EXT_shader_texture_lod", action: "require" }
@@ -188,7 +187,7 @@ namespace sd.render.effect {
 	});
 
 	registerModule({
-		name: "std/pbrMaterialInfo",
+		name: "pbr/materialInfo",
 		provides: [
 			"MaterialInfo"
 		],
@@ -281,7 +280,7 @@ namespace sd.render.effect {
 	});
 
 	registerModule({
-		name: "std/pbrSurfaceInfo",
+		name: "pbr/surfaceInfo",
 		provides: [
 			"SurfaceInfo"
 		],

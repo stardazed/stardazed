@@ -405,7 +405,7 @@ namespace sd.render.effect {
 		requires: [
 			"SurfaceInfo",
 			"MaterialInfo",
-			"CoreLight",
+			"LightResponse",
 			"lightEntry"
 		],
 		code: `
