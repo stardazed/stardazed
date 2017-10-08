@@ -356,9 +356,10 @@ namespace sd.render.effect {
 		constants: [
 			{ name: "lightViewMatrix", type: SVT.Float4x4 },
 			{ name: "lightProjMatrix", type: SVT.Float4x4 },
-			{ name: "shadowCastingLightIndex", type: SVT.Int }
+			{ name: "shadowCastingLightIndex", type: SVT.Int, ifExpr: "SHADOW_MAP" }
 		],
 		code: `
+		#ifdef SHADOW_MAP
 		float lightVSMShadowFactor(LightEntry lightData) {
 			float shadowStrength = lightData.shadowStrengthBias.x;
 			float shadowBias = lightData.shadowStrengthBias.y;
@@ -369,6 +370,7 @@ namespace sd.render.effect {
 			float lightTest = clamp(length(lightPos) / 12.0, 0.0, 1.0);
 			shadowFactor = VSM(shadowSampler, lightUV, lightTest, shadowStrength, shadowBias);
 		}
+		#endif
 
 		vec3 totalDynamicLightContributionTiledForward(SurfaceInfo si, MaterialInfo mi) {
 			vec3 totalLight = vec3(0.0);
