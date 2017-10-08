@@ -62,10 +62,10 @@ namespace sd.asset.importer {
 
 	function parseOBJSource(preproc: OBJPreProcSource) {
 		const modelDependencies: AssetDependencies = {};
-		const modelMeta: parser.ModelAssetMetadata = {
+		const modelMeta: parse.ModelAssetMetadata = {
 			materialIndexMap: {}
 		};
-		const modelAsset: Asset<Model, parser.ModelAssetMetadata> = {
+		const modelAsset: Asset<Model, parse.ModelAssetMetadata> = {
 			kind: "model",
 			metadata: modelMeta,
 			dependencies: modelDependencies,
@@ -196,4 +196,4 @@ namespace sd.asset.importer {
 		return Promise.resolve({ model });
 	}
 
-} // ns sd.asset.parser
+} // ns sd.asset.parse

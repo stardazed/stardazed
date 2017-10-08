@@ -9,11 +9,10 @@ namespace sd.asset {
 		(kind: "import", name: string): null;
 	}
 	
-	export namespace parser {
+	export namespace parse {
 
-		const parseImport: AssetProcessor = (asset: Asset<null, {}>) => {
+		const parseImport: AssetProcessor = async (asset: Asset<null, {}>) => {
 			asset.item = null;
-			return Promise.resolve(asset);
 		};
 
 		registerParser("import", parseImport);

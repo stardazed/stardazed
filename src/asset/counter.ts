@@ -11,31 +11,12 @@ namespace sd.asset {
 	}
 
 	/**
-	 * Extend an AssetPipeline with the capacity to count total assets
+	 * Count total and completed assets.
 	 */
-	export const totalCounterStage = (counter: AssetCounter) => (pipeline: AssetPipeline) => {
-		const loadingCounterProcessor: AssetProcessor = (asset: Asset) => {
-			counter.assetStarted();
-			return Promise.resolve(asset);
-		};
-
-		// place next processor at end of chain
-		const process = pipeline.process;
-		pipeline.process = (asset: Asset) => process(asset).then(loadingCounterProcessor);
-	};
-
-	/**
-	 * Extend an AssetPipeline with the capacity to count completed assets
-	 */
-	export const loadedCounterStage = (counter: AssetCounter) => (pipeline: AssetPipeline) => {
-		const completedCounterProcessor: AssetProcessor = (asset: Asset) => {
-			counter.assetCompleted();
-			return Promise.resolve(asset);
-		};
-
-		// place next processor at end of chain
-		const process = pipeline.process;
-		pipeline.process = (asset: Asset) => process(asset).then(completedCounterProcessor);
+	export const counter = (counter: AssetCounter): AssetProcessor => async (_asset: Asset, next: AssetNext) => {
+		counter.assetStarted();
+		await next();
+		counter.assetCompleted();
 	};
 
 } // ns sd.asset

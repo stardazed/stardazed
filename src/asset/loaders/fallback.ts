@@ -5,7 +5,7 @@
 
 /// <reference path="../loader.ts" />
 
-namespace sd.asset.loader {
+namespace sd.asset.load {
 
 	export interface FallbackLoaderConfig {
 		loader?: LoaderInfo | Loader;

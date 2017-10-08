@@ -5,7 +5,7 @@
 
 /// <reference path="./image.ts" />
 
-namespace sd.asset.parser {
+namespace sd.asset.parse {
 
 	const parseBuiltInImage = (data: Blob, colourSpace: image.ColourSpace) => {
 		const blobURL = URL.createObjectURL(data);
@@ -70,4 +70,4 @@ namespace sd.asset.parser {
 		}
 	}
 
-} // ns sd.asset.parser
+} // ns sd.asset.parse

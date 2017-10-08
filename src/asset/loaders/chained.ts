@@ -5,7 +5,7 @@
 
 /// <reference path="../loader.ts" />
 
-namespace sd.asset.loader {
+namespace sd.asset.load {
 
 	/**
 	 * The list of loaders to try, in order, to load an asset's data.

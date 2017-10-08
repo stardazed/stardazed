@@ -82,23 +82,22 @@ namespace sd {
 			// -- scene assets
 			this.cache = {};
 			this.pipeline = asset.makePipeline([
-				asset.totalCounterStage(this),
-				asset.generatorStage,
-				asset.identifierStage,
-				asset.loaderStage({
+				asset.counter(this),
+				asset.generator,
+				asset.identifier,
+				asset.loader({
 					type: "chain",
 					loaders: [
 						{ type: "data-url" },
 						{ type: "rooted", prefix: "data", loader: { type: "doc-relative-url", relPath: "data/" } }
 					]
 				}),
-				asset.importerStage,
-				asset.dependenciesStage,
-				asset.importFlatteningStage,
-				asset.parserStage,
-				asset.cacheFeederStage(this.cache),
-				asset.allocatorStage(rw.rd),
-				asset.loadedCounterStage(this),
+				asset.importerx,
+				asset.dependencies(() => this.pipeline),
+				asset.importFlattener,
+				asset.parser,
+				asset.cacheFeeder(this.cache),
+				asset.allocator(rw.rd)
 			]);
 			this.assets = asset.cacheAccessor(this.cache);
 
@@ -143,7 +142,7 @@ namespace sd {
 			}
 
 			Promise.all(this.localAssets.map(asset =>
-				this.pipeline.process(asset))).then(() => {
+				this.pipeline(asset))).then(() => {
 					this.rw.rd.processFrame();
 
 					if (this.delegate.finishedLoadingAssets) {

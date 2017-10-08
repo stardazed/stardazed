@@ -134,7 +134,7 @@ namespace sd.asset {
 	}
 
 
-	export namespace parser {
+	export namespace parse {
 
 		export interface MaterialColourMetadata {
 			type: "diffuse" | "diffuseSpecular" | "pbrMetallic" | "pbrSpecular";
@@ -207,7 +207,7 @@ namespace sd.asset {
 			mat.emissiveTexture = validTexAssetOrFallback(deps.emissiveTexture, mat.emissiveTexture);
 
 			asset.item = mat;
-			return Promise.resolve(asset);
+			return Promise.resolve();
 		}
 
 		registerParser("material", parseMaterial);

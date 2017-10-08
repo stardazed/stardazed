@@ -16,7 +16,7 @@ namespace sd.asset {
 		(kind: "model", name: string): Model;
 	}
 
-	export namespace parser {
+	export namespace parse {
 
 		export interface ModelAssetMetadata {
 			materialIndexMap: { [id: string]: number; };
@@ -36,7 +36,7 @@ namespace sd.asset {
 		};
 
 		export const parseModel: AssetProcessor = (asset: Asset<Model, ModelAssetMetadata>) =>
-			new Promise<Asset<Model, ModelAssetMetadata>>((resolve, reject) => {
+			new Promise<void>((resolve, reject) => {
 				if (asset.dependencies) {
 					const meshAsset = getMeshDependency(asset.dependencies);
 					if (! meshAsset) {
@@ -92,7 +92,7 @@ namespace sd.asset {
 					return reject(`Model parser: a model must have dependencies specified.`);
 				}
 
-				resolve(asset);
+				resolve();
 			});
 
 		registerParser("model", parseModel);

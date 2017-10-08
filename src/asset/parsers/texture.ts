@@ -20,7 +20,7 @@ namespace sd.asset {
 		(kind: "texture", name: string): Texture2D;
 	}
 
-	export namespace parser {
+	export namespace parse {
 
 		export interface TextureAssetMetadata {
 			mipmaps: "source" | "strip" | "regenerate";
@@ -30,34 +30,32 @@ namespace sd.asset {
 			anisotropy: number;
 		}
 
-		export const parseTexture = (asset: Asset<Texture2D, TextureAssetMetadata>) =>
-			new Promise<Asset>((resolve, reject) => {
-				const imageAsset = asset.dependencies && asset.dependencies.image;
-				const metadata = asset.metadata || {};
+		export const parseTexture = async (asset: Asset<Texture2D, TextureAssetMetadata>) => {
+			const imageAsset = asset.dependencies && asset.dependencies.image;
+			const metadata = asset.metadata || {};
 
-				if (! (imageAsset && imageAsset.kind === "image")) {
-					return reject(`Texture parser: required image dependency is missing.`);
-				}
+			if (! (imageAsset && imageAsset.kind === "image")) {
+				throw new Error(`Texture parser: required image dependency is missing.`);
+			}
 
-				const mipmaps = parseMipMapMode(metadata.mipmaps);
-				const repeatS = parseRepeat(metadata.repeatS);
-				const repeatT = parseRepeat(metadata.repeatT);
-				const filtering = parseFiltering(metadata.filtering);
-				const anisotropy = parseAnisotropy(metadata.anisotropy);
+			const mipmaps = parseMipMapMode(metadata.mipmaps);
+			const repeatS = parseRepeat(metadata.repeatS);
+			const repeatT = parseRepeat(metadata.repeatT);
+			const filtering = parseFiltering(metadata.filtering);
+			const anisotropy = parseAnisotropy(metadata.anisotropy);
 
-				const texture = render.makeTex2DFromProvider(imageAsset.item!, mipmaps);
-				
-				const tex2D: Texture2D = {
-					texture,
-					repeatS,
-					repeatT,
-					sizeFilter: filtering.size,
-					mipFilter: filtering.mip,
-					anisotropy
-				};
-				asset.item = tex2D;
-				resolve(asset);
-			});
+			const texture = render.makeTex2DFromProvider(imageAsset.item!, mipmaps);
+			
+			const tex2D: Texture2D = {
+				texture,
+				repeatS,
+				repeatT,
+				sizeFilter: filtering.size,
+				mipFilter: filtering.mip,
+				anisotropy
+			};
+			asset.item = tex2D;
+		};
 
 		registerParser("texture", parseTexture);
 

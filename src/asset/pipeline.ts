@@ -13,24 +13,26 @@ namespace sd.asset {
 		item?: AssetItem;
 	}
 	
-	export type AssetProcessor = (asset: Asset) => Promise<Asset>;
-	export type AssetPipelineStage = (pipeline: AssetPipeline) => void;
+	export type AssetNext = () => Promise<void>;
+	export type AssetProcessor = (asset: Asset, next: AssetNext) => Promise<void>;
+	export type AssetPipeline = (asset: Asset) => Promise<Asset>;
+
+	export const makePipeline = (pa: AssetProcessor[]): AssetPipeline => async (asset: Asset) => {
+		const paCount = pa.length;
+		let index = 0;
 	
-	export interface AssetPipeline {
-		process: AssetProcessor;
-	}
-
-	export const makePipeline = (stages: AssetPipelineStage[]) => {
-		const pipeline: AssetPipeline = {
-			// initial processor simply resolves to the input
-			process: (asset: Asset) => Promise.resolve(asset)
+		const process = async (): Promise<void> => {
+			while (index < paCount) {
+				await pa[index](asset, async () => {
+					index += 1;
+					await process();
+				});
+				index += 1;
+			}
 		};
-
-		// create a processing chain out of the provided stages
-		for (const stage of stages) {
-			stage(pipeline);
-		}
-		return pipeline;
+		await process();
+	
+		return asset;
 	};
-
+	
 } // ns sd.asset

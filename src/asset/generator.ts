@@ -10,43 +10,32 @@ namespace sd.asset {
 	}		
 	
 	/**
-	 * Extend an AssetPipeline with the capacity to generate assets on the fly.
+	 * Generate assets on the fly.
 	 */
-	export const generatorStage: AssetPipelineStage = (pipeline: AssetPipeline) => {
-		const generatorProcessor: AssetProcessor = (asset: Asset) =>
-			new Promise<Asset>((resolve, reject) => {
-				const genType = asset.generator;
-				if (typeof genType === "string" && genType.length > 0) {
-					let config = asset.metadata;
-					if (typeof config === "object" || config === void 0) {
-						config = config || {};
-					}
-					else {
-						return reject(`Asset Generator: metadata must be absent or an object.`);
-					}
+	export const generator: AssetProcessor = async (asset: Asset) => {
+		const genType = asset.generator;
+		if (typeof genType === "string" && genType.length > 0) {
+			let config = asset.metadata;
+			if (typeof config === "object" || config === void 0) {
+				config = config || {};
+			}
+			else {
+				throw new Error(`Asset Generator: metadata must be absent or an object.`);
+			}
 
-					resolve(generator.generateAsset(genType, config).then(
-						replacement => {
-							// remove generator info
-							delete asset.generator;
-							delete asset.metadata;
-							// override any properties the generated asset defines
-							container.override(asset, replacement);
-							return asset;
-						}
-					));
+			return (generate.generateAsset(genType, config).then(
+				replacement => {
+					// remove generator info
+					delete asset.generator;
+					delete asset.metadata;
+					// override any properties the generated asset defines
+					container.override(asset, replacement);
 				}
-				else {
-					resolve(asset);
-				}
-			});
-
-		// place next processor at end of chain
-		const process = pipeline.process;
-		pipeline.process = (asset: Asset) => process(asset).then(generatorProcessor);
+			));
+		}
 	};
 
-	export namespace generator {
+	export namespace generate {
 
 		export type AssetGenerator = <Config extends object = any>(options: Config) => Promise<Asset>;
 

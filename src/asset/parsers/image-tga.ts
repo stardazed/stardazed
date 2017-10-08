@@ -5,7 +5,7 @@
 
 /// <reference path="./image.ts" />
 
-namespace sd.asset.parser {
+namespace sd.asset.parse {
 
 	export const parseTGAImage = (data: Blob, _colourSpace: image.ColourSpace) =>
 		io.BlobReader.readAsArrayBuffer(data).then(buffer =>
@@ -201,4 +201,4 @@ namespace sd.asset.parser {
 		}
 	}
 
-} // ns sd.asset.parser
+} // ns sd.asset.parse

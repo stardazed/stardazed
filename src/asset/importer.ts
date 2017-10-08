@@ -8,81 +8,61 @@
 namespace sd.asset {
 
 	/**
-	 * Extend an AssetPipeline with the capacity to import external asset (group) files.
+	 * Import external asset (group) files.
 	 */
-	export const importerStage: AssetPipelineStage = (pipeline: AssetPipeline) => {
-		const assetImporter: AssetProcessor = (asset: Asset) =>
-			new Promise<Asset>((resolve, reject) => {
-				if (asset.kind === "import") {
-					if (typeof asset.uri !== "string") {
-						return reject("Importer: import asset did not specify a uri");
-					}
-					if (!(asset.blob instanceof Blob)) {
-						return reject("Importer: external asset data was not loaded");
-					}
+	export const importerx: AssetProcessor = async (asset: Asset) => {
+		if (asset.kind === "import") {
+			if (typeof asset.uri !== "string") {
+				throw new Error("Importer: import asset did not specify a uri");
+			}
+			if (!(asset.blob instanceof Blob)) {
+				throw new Error("Importer: external asset data was not loaded");
+			}
 
-					importer.importAssets(asset.blob, asset.uri)
-						.then(dependencies => {
-							// FIXME: this is just a quick hack, need a formal name/id gen system
-							if (asset.name && propertyCount(dependencies) === 1) {
-								container.mapObject(dependencies, (subAsset) => {
-									if (subAsset) {
-										subAsset.name = asset.name;
-									}
-									return subAsset;
-								});
+			return importer.importAssets(asset.blob, asset.uri)
+				.then(dependencies => {
+					// FIXME: this is just a quick hack, need a formal name/id gen system
+					if (asset.name && propertyCount(dependencies) === 1) {
+						container.mapObject(dependencies, (subAsset) => {
+							if (subAsset) {
+								subAsset.name = asset.name;
 							}
-							asset.dependencies = dependencies;
-							resolve(asset);
+							return subAsset;
 						});
-				}
-				else {
-					resolve(asset);
-				}
-			});
-
-		// place next processor at end of chain
-		const process = pipeline.process;
-		pipeline.process = (asset: Asset) => process(asset).then(assetImporter);
+					}
+					asset.dependencies = dependencies;
+				});
+		}
 	};
 
 	/**
 	 * Extend an AssetPipeline with the feature to flatten an imported asset's
 	 * dependencies into its containing asset's dependencies.
 	 */
-	export const importFlatteningStage: AssetPipelineStage = (pipeline: AssetPipeline) => {
-		const importFlattener: AssetProcessor = (asset: Asset) =>
-			new Promise<Asset>(resolve => {
-				if (asset.dependencies) {
-					let assetsToMerge: AssetDependencies = {};
-					for (const depName in asset.dependencies) {
-						if (asset.dependencies.hasOwnProperty(depName)) {
-							const dependency = asset.dependencies[depName];
-							if (dependency && dependency.kind === "import") {
-								const importedAssets = dependency.dependencies;
-								if (importedAssets) {
-									assetsToMerge = {
-										...assetsToMerge,
-										...importedAssets
-									};
-									delete dependency.dependencies;
-								}
-								delete asset.dependencies[depName];
-							}
+	export const importFlattener: AssetProcessor = async (asset: Asset) => {
+		if (asset.dependencies) {
+			let assetsToMerge: AssetDependencies = {};
+			for (const depName in asset.dependencies) {
+				if (asset.dependencies.hasOwnProperty(depName)) {
+					const dependency = asset.dependencies[depName];
+					if (dependency && dependency.kind === "import") {
+						const importedAssets = dependency.dependencies;
+						if (importedAssets) {
+							assetsToMerge = {
+								...assetsToMerge,
+								...importedAssets
+							};
+							delete dependency.dependencies;
 						}
+						delete asset.dependencies[depName];
 					}
-					asset.dependencies = {
-						...asset.dependencies,
-						...assetsToMerge
-					};
 				}
-
-				resolve(asset);
-			});
-
-		// place next processor at end of chain
-		const process = pipeline.process;
-		pipeline.process = (asset: Asset) => process(asset).then(importFlattener);
+			}
+			asset.dependencies = {
+				...asset.dependencies,
+				...assetsToMerge
+			};
+		}
 	};
 
 

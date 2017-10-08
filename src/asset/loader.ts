@@ -12,13 +12,13 @@ namespace sd.asset {
 	}
 
 	/**
-	 * Extend an AssetPipeline with the capacity to load external resources.
+	 * Load external resources from a configurable set of sources.
 	 * @param root the loader to use to retrieve asset data
 	 */
-	export const loaderStage = (root: loader.Loader | loader.LoaderInfo) => (pipeline: AssetPipeline) => {
-		const rootLoader = loader.makeLoader(root);
+	export const loader = (root: load.Loader | load.LoaderInfo): AssetProcessor => {
+		const rootLoader = load.makeLoader(root);
 
-		const loaderProcessor: AssetProcessor = (asset: Asset) => {
+		return async (asset: Asset) => {
 			if (asset.uri !== void 0 && asset.blob === void 0) {
 				return rootLoader(asset.uri, asset.mimeType)
 					.then(blob => {
@@ -27,19 +27,13 @@ namespace sd.asset {
 						if (blob.type.length && asset.mimeType === void 0) {
 							setAssetMimeType(asset, blob.type);
 						}
-						return asset;
 					});
 			}
-			return Promise.resolve(asset);
 		};
-
-		// place next processor at end of chain
-		const process = pipeline.process;
-		pipeline.process = (asset: Asset) => process(asset).then(loaderProcessor);
 	};
 
 
-	export namespace loader {
+	export namespace load {
 		/**
 		 * A Loader is a function provided with a URI to load.
 		 * The resulting data must always be provided as a typed Blob.

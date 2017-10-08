@@ -13,7 +13,7 @@ namespace sd.asset {
 
 } // ns sd.asset
 
-namespace sd.asset.parser {
+namespace sd.asset.parse {
 
 	export type VertexElementType = "uint8" | "sint8" | "uint16" | "sint16" | "uint32" | "sint32" | "float";
 
@@ -55,27 +55,25 @@ namespace sd.asset.parser {
 
 	export type MeshAssetMetadata = VertexStreamMeshData | CompiledMeshData;
 
-	export const parseMesh = (asset: Asset<meshdata.MeshData, MeshAssetMetadata>) =>
-		new Promise<Asset>((resolve, reject) => {
-			const { dependencies, metadata } = asset;
-			if (metadata === void 0) {
-				return reject("Mesh parser: metadata is missing");
-			}
-			if (dependencies === void 0) {
-				return reject("Mesh parser: dependencies are missing");
-			}
+	export const parseMesh = async (asset: Asset<meshdata.MeshData, MeshAssetMetadata>) => {
+		const { dependencies, metadata } = asset;
+		if (metadata === void 0) {
+			throw new Error("Mesh parser: metadata is missing");
+		}
+		if (dependencies === void 0) {
+			throw new Error("Mesh parser: dependencies are missing");
+		}
 
-			if (metadata.type === "streams") {
-				asset.item = parseStreamMesh(metadata, dependencies);
-				resolve(asset);
-			}
-			else if (metadata.type === "compiled") {
-				reject("Mesh parser: compiled mesh assets are not implemented yet");
-			}
-			else {
-				reject(`Mesh parser: invalid or missing mesh type ${metadata.type}`);
-			}
-		});
+		if (metadata.type === "streams") {
+			asset.item = parseStreamMesh(metadata, dependencies);
+		}
+		else if (metadata.type === "compiled") {
+			throw new Error("Mesh parser: compiled mesh assets are not implemented yet");
+		}
+		else {
+			throw new Error(`Mesh parser: invalid or missing mesh type ${metadata.type}`);
+		}
+	};
 
 	registerParser("mesh", parseMesh);
 
@@ -296,4 +294,4 @@ namespace sd.asset.parser {
 		return builder.complete();
 	};
 
-} // ns sd.asset.parser
+} // ns sd.asset.parse

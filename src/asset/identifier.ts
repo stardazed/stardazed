@@ -6,37 +6,29 @@
 namespace sd.asset {
 
 	/**
-	 * Extend an AssetPipeline with the capacity to identify and type assets
+	 * Identify and type assets based on uri and/or mime-type.
 	 */
-	export const identifierStage: AssetPipelineStage = (pipeline: AssetPipeline) => {
-		const identifierProcessor: AssetProcessor = (asset: Asset) => {
-			if (typeof asset.uri === "string") {
-				if (typeof asset.mimeType === void 0) {
-					const uriMimeType = mimeTypeForURI(asset.uri);
-					if (uriMimeType) {
-						setAssetMimeType(asset, uriMimeType);
-					}
-				}
-
-				if (typeof asset.mimeType === "string") {
-					asset.mimeType = asset.mimeType.toLowerCase();
-
-					if (asset.kind === void 0) {
-						asset.kind = assetKindForMimeType(asset.mimeType);
-					}
+	export const identifier: AssetProcessor = async (asset: Asset) => {
+		if (typeof asset.uri === "string") {
+			if (typeof asset.mimeType === void 0) {
+				const uriMimeType = mimeTypeForURI(asset.uri);
+				if (uriMimeType) {
+					setAssetMimeType(asset, uriMimeType);
 				}
 			}
 
-			if (typeof asset.kind === "string") {
-				asset.kind = asset.kind.toLowerCase();
+			if (typeof asset.mimeType === "string") {
+				asset.mimeType = asset.mimeType.toLowerCase();
+
+				if (asset.kind === void 0) {
+					asset.kind = assetKindForMimeType(asset.mimeType);
+				}
 			}
+		}
 
-			return Promise.resolve(asset);
-		};
-
-		// place next processor at end of chain
-		const process = pipeline.process;
-		pipeline.process = (asset: Asset) => process(asset).then(identifierProcessor);
+		if (typeof asset.kind === "string") {
+			asset.kind = asset.kind.toLowerCase();
+		}
 	};
 
 

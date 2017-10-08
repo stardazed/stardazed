@@ -11,16 +11,16 @@ namespace sd.asset {
 		(kind: "audio", name: string): AudioBuffer;
 	}
 
-	export namespace parser {
+	export namespace parse {
 
 		export const parseAudio: AssetProcessor = (asset: Asset<AudioBuffer, {}>) =>
 			getArrayBuffer(asset).then(data =>
-				new Promise<Asset>((resolve, reject) => {
+				new Promise<void>((resolve, reject) => {
 					audio.sharedAudioContext().decodeAudioData(
 						data,
 						audioData => {
 							asset.item = audioData;
-							resolve(asset);
+							resolve();
 						},
 						err => {
 							reject(`Invalid audio data, error: ${err}`);
@@ -48,4 +48,4 @@ namespace sd.asset {
 
 	} // ns parser
 
-} // ns sd.asset.parser
+} // ns sd.asset.parse

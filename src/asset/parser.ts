@@ -1,4 +1,4 @@
-// asset/parsers - parsing final content based on kind, mimeType or data path extension
+// asset/parser - parsing final content based on kind, mimeType or data path extension
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -9,30 +9,27 @@
 namespace sd.asset {
 
 	/**
-	 * Extend an AssetPipeline with the capacity to parse asset data and metadata.
+	 * Parse asset data and metadata.
 	 */
-	export const parserStage: AssetPipelineStage = (pipeline: AssetPipeline) => {
-		const assetParser: AssetProcessor = (asset: Asset) =>
-			new Promise<Asset>((resolve, reject) => {
-				if (asset.item !== void 0) {
-					return resolve(asset);
-				}
-				if (asset.kind !== void 0) {
-					const kp = parser.parserForAssetKind(asset.kind);
-					if (kp !== void 0) {
-						return resolve(kp(asset));
-					}
-					return reject(`No parser registered for asset kind "${asset.kind}"`);
-				}
-				return reject("Empty asset kind, cannot parse.");
-			});
-
-		// place next processor at end of chain
-		const process = pipeline.process;
-		pipeline.process = (asset: Asset) => process(asset).then(assetParser);
+	export const parser: AssetProcessor = async (asset: Asset) => {
+		if (asset.item !== void 0) {
+			return;
+		}
+		if (asset.kind !== void 0) {
+			const kp = parse.parserForAssetKind(asset.kind);
+			if (kp !== void 0) {
+				await kp(asset, async () => {});
+			}
+			else {
+				throw new Error(`No parser registered for asset kind "${asset.kind}"`);
+			}
+		}
+		else {
+			throw new Error("Empty asset kind, cannot parse.");
+		}
 	};
 
-	export namespace parser {
+	export namespace parse {
 
 		const parsersByKind: { [kind: string]: AssetProcessor | undefined; } = {};
 

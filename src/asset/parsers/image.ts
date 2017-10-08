@@ -13,7 +13,7 @@ namespace sd.asset {
 
 } // ns sd.asset
 
-namespace sd.asset.parser {
+namespace sd.asset.parse {
 
 	export interface ImageAssetMetadata {
 		colourSpace: string;
@@ -27,26 +27,23 @@ namespace sd.asset.parser {
 		imageParsers.set(mimeType, imgParser);
 	};
 
-	export const parseImage = (asset: Asset<image.PixelDataProvider, ImageAssetMetadata>) => {
-		return new Promise<Asset>((resolve, reject) => {
-			const blob = asset.blob;
-			const metadata = asset.metadata || {};
+	export const parseImage = async (asset: Asset<image.PixelDataProvider, ImageAssetMetadata>) => {
+		const blob = asset.blob;
+		const metadata = asset.metadata || {};
 
-			if (! blob) {
-				return reject("parseImage: No image data was loaded, cannot parse.");
-			}
-			const mimeType = blob.type;
-			const imgParser = imageParsers.get(mimeType);
-			if (! imgParser) {
-				return reject(`Cannot load images of type: ${mimeType}`);
-			}
+		if (! blob) {
+			throw new Error("parseImage: No image data was loaded, cannot parse.");
+		}
+		const mimeType = blob.type;
+		const imgParser = imageParsers.get(mimeType);
+		if (! imgParser) {
+			throw new Error(`Cannot load images of type: ${mimeType}`);
+		}
 
-			const colourSpace = parseColourSpace(metadata.colourSpace);
+		const colourSpace = parseColourSpace(metadata.colourSpace);
 
-			resolve(imgParser(blob, colourSpace).then(pdp => {
-				asset.item = pdp;
-				return asset;
-			}));
+		await imgParser(blob, colourSpace).then(pdp => {
+			asset.item = pdp;
 		});
 	};
 
@@ -65,4 +62,4 @@ namespace sd.asset.parser {
 		return image.ColourSpace.sRGB;
 	};
 
-} // ns sd.asset.parser
+} // ns sd.asset.parse

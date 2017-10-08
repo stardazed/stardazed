@@ -10,22 +10,15 @@ namespace sd.asset {
 	}
 
 	/**
-	 * Extend an AssetPipeline with the capacity to cache named assets in memory
+	 * Cache named assets in a memory store.
 	 */
-	export const cacheFeederStage = (cache: Cache) => (pipeline: AssetPipeline) => {
-		const feeder: AssetProcessor = (asset: Asset) => {
-			if (asset.kind && asset.kind.length && asset.name && asset.name.length && asset.item) {
-				if (cache[asset.kind] === void 0) {
-					cache[asset.kind] = {};
-				}
-				cache[asset.kind][asset.name] = asset.item;
+	export const cacheFeeder = (cache: Cache): AssetProcessor => async (asset: Asset) => {
+		if (asset.kind && asset.kind.length && asset.name && asset.name.length && asset.item) {
+			if (cache[asset.kind] === void 0) {
+				cache[asset.kind] = {};
 			}
-			return Promise.resolve(asset);
-		};
-
-		// place next processor at end of chain
-		const process = pipeline.process;
-		pipeline.process = (asset: Asset) => process(asset).then(feeder);
+			cache[asset.kind][asset.name] = asset.item;
+		}
 	};
 
 	export interface CacheAccess {

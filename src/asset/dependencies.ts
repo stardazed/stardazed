@@ -14,26 +14,20 @@ namespace sd.asset {
 	}
 
 	/**
-	 * Extend an AssetPipeline with the capacity to load an asset's named dependencies.
+	 * Recursively load an asset's named dependencies.
 	 */
-	export const dependenciesStage: AssetPipelineStage = (pipeline: AssetPipeline) => {
-		const dependenciesProcessor: AssetProcessor = (asset: Asset) =>
-			new Promise<Asset>(resolve => {
-				const deps = parseDependencies(asset.dependencies);
-				if (deps) {
-					// Since the processor chain updates assets in-place, we only
-					// need to kick off loading of the assets and wait for them
-					// to complete. No need to track keyed assets, etc.
-					return resolve(
-						Promise.all(deps.map(dep => pipeline.process(dep))
-					).then(() => asset));
-				}
-				return resolve(asset);
-			});
-
-		// place next processor at end of chain
-		const process = pipeline.process;
-		pipeline.process = (asset: Asset) => process(asset).then(dependenciesProcessor);
+	export const dependencies = (pipelineProvider: () => AssetPipeline): AssetProcessor => async (asset: Asset) => {
+		// just-in-time pipeline access as this refers back to the pipeline that
+		// this processor was used to create.
+		const pipeline = pipelineProvider();
+	
+		const deps = parseDependencies(asset.dependencies);
+		if (deps) {
+			// Since the processor chain updates assets in-place, we only
+			// need to kick off loading of the assets and wait for them
+			// to complete. No need to track keyed assets, etc.
+			await Promise.all(deps.map(dep => pipeline(dep)));
+		}
 	};
 
 	const parseDependencies = (deps: any): Asset[] | undefined => {

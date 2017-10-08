@@ -5,7 +5,7 @@
 
 /// <reference path="../loader.ts" />
 
-namespace sd.asset.loader {
+namespace sd.asset.load {
 	
 	/**
 	 * Loads any base64-encoded data URL, always uses mime-type given in the URL

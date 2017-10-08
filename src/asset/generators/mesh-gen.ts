@@ -5,7 +5,7 @@
 
 /// <reference path="../generator.ts" />
 
-namespace sd.asset.generator {
+namespace sd.asset.generate {
 
 	interface MeshGenConfig {
 		shape: string;
@@ -55,4 +55,4 @@ namespace sd.asset.generator {
 			}
 		});
 
-} // ns sd.asset.generator
+} // ns sd.asset.generate

@@ -16,8 +16,8 @@ namespace sd.asset.importer {
 
 	// ---------------
 
-	type TextureAsset = Asset<Texture2D, parser.TextureAssetMetadata>;
-	type MaterialAsset = Asset<StandardMaterial, parser.MaterialAssetMetadata>;
+	type TextureAsset = Asset<Texture2D, parse.TextureAssetMetadata>;
+	type MaterialAsset = Asset<StandardMaterial, parse.MaterialAssetMetadata>;
 	interface TextureDependencies { [name: string]: TextureAsset | undefined; }
 
 	interface MTLMaterial {
@@ -43,7 +43,7 @@ namespace sd.asset.importer {
 		const mtlIncludesSome = (tests: string[]) =>
 			tests.some(t => allMTLKeys.indexOf(t) > -1);
 
-		const colour: Partial<parser.MaterialColourMetadata> = {};
+		const colour: Partial<parse.MaterialColourMetadata> = {};
 
 		if (mtlIncludesSome(["metallic", "roughness", "map_Pr", "map_Pm"])) {
 			// PBR colour response
@@ -106,7 +106,7 @@ namespace sd.asset.importer {
 
 
 	function resolveMTLMaterial(mtl: MTLMaterial): MaterialAsset {
-		const metadata: Partial<parser.MaterialAssetMetadata> = {};
+		const metadata: Partial<parse.MaterialAssetMetadata> = {};
 		const dependencies: TextureDependencies = {};
 		const material: MaterialAsset = {
 			kind: "material",
