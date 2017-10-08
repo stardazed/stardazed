@@ -87,7 +87,7 @@ namespace sd.render.effect {
 	}
 
 	registerModule({
-		name: "pbr/lightResponse",
+		name: "pbr/colourResponse",
 		requires: [
 			"ConvertSRGB",
 			"pbr/surfaceInfo",
@@ -95,7 +95,7 @@ namespace sd.render.effect {
 			"pbr/lightingMath"
 		],
 		provides: [
-			"LightResponse",
+			"ColourResponse",
 		],
 		extensions: [
 			{ name: "GL_EXT_shader_texture_lod", action: "require" }

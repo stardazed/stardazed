@@ -10,7 +10,7 @@ namespace sd.render.effect {
 	import SVT = ShaderValueType;
 	
 	registerModule({
-		name: "legacy/lightResponse",
+		name: "legacy/colourResponse",
 		requires: [
 			"legacy/surfaceInfo",
 			"legacy/materialInfo",
@@ -19,7 +19,7 @@ namespace sd.render.effect {
 			{ name: "specularSampler", type: TextureClass.Plain, index: 2, ifExpr: "SPECULAR_MAP" }
 		],
 		provides: [
-			"LightResponse"
+			"ColourResponse"
 		],
 		code: `
 		vec3 calcLightShared(vec3 lightColour, float diffuseStrength, vec3 lightDirection_cam, SurfaceInfo si, MaterialInfo mi) {
