@@ -454,4 +454,30 @@ namespace sd.render.effect {
 		`
 	});
 
+	registerModule({
+		name: "fog/depth/linear",
+		provides: ["DepthFog"],
+
+		constants: [
+			{ name: "fogColour", type: SVT.Float4 },
+			{ name: "fogParams", type: SVT.Float4 },
+		],
+
+		constValues: [
+			{ name: "FOGPARAM_START", type: SVT.Int, expr: "0" },
+			{ name: "FOGPARAM_DEPTH", type: SVT.Int, expr: "1" },
+			{ name: "FOGPARAM_DENSITY", type: SVT.Int, expr: "2" },
+		],
+
+		code: `
+		float fogDensity(float testDepth) {
+			return clamp((testDepth - fogParams[FOGPARAM_START]) / fogParams[FOGPARAM_DEPTH], 0.0, fogParams[FOGPARAM_DENSITY]);
+		}
+
+		vec3 applyDepthFog(vec3 colour, float fragZ) {
+			return mix(colour, fogColour.rgb, fogDensity(fragZ));
+		}
+		`
+	});
+
 } // ns sd.render.effect
