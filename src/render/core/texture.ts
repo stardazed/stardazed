@@ -52,7 +52,7 @@ namespace sd.render {
 
 			minFilter: TextureSizingFilter.Linear,
 			magFilter: TextureSizingFilter.Linear,
-			mipFilter: TextureMipFilter.Nearest,
+			mipFilter: TextureMipFilter.Linear,
 
 			lodMinClamp: 0,
 			lodMaxClamp: 1000,
