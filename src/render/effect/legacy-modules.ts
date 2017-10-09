@@ -116,7 +116,9 @@ namespace sd.render.effect {
 				code: `
 				struct MaterialInfo {
 					vec4 albedo;
+				#ifdef SPECULAR
 					vec4 specularFactor;
+				#endif
 				};
 				`
 			}

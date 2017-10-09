@@ -354,8 +354,8 @@ namespace sd.render.effect {
 			{ name: "shadowSampler", type: TextureClass.Plain, index: 7, ifExpr: "SHADOW_MAP" }
 		],
 		constants: [
-			{ name: "lightViewMatrix", type: SVT.Float4x4 },
-			{ name: "lightProjMatrix", type: SVT.Float4x4 },
+			{ name: "lightViewMatrix", type: SVT.Float4x4, ifExpr: "SHADOW_MAP" },
+			{ name: "lightProjMatrix", type: SVT.Float4x4, ifExpr: "SHADOW_MAP" },
 			{ name: "shadowCastingLightIndex", type: SVT.Int, ifExpr: "SHADOW_MAP" }
 		],
 		code: `

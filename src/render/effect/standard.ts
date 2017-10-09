@@ -160,8 +160,8 @@ namespace sd.render.effect {
 				mesh,
 				primGroup,
 				textures: [
-					(evData as StandardEffectData).diffuse,
-					(evData as StandardEffectData).normal,
+					sdata.diffuse,
+					sdata.normal,
 					undefined,
 					undefined,
 					undefined,
