@@ -2,7 +2,6 @@
   "name": "stardazed",
   "description": "3D Game Development Library for the Web",
   "version": "0.3.0",
-  "license": "MIT",
   "homepage": "http://stardazed.club",
   "main": "dist/stardazed.js",
   "typings": "dist/stardazed.d.ts",
@@ -14,6 +13,7 @@
   "bugs": {
     "url": "https://github.com/stardazed/stardazed/issues"
   },
+  "license": "MIT",
   "licenses": [
     {
       "type": "MIT",
