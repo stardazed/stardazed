@@ -27,19 +27,16 @@ namespace sd.render.effect {
 			vec3 diffuseContrib = lightColour * diffuseStrength * NdL;
 		
 		#ifdef SPECULAR
-			vec3 specularContrib = vec3(0.0);
 			vec3 viewVec = normalize(si.V);
 			vec3 reflectVec = reflect(lightDirection_cam, si.N);
 			float specularStrength = dot(viewVec, reflectVec);
 			if (specularStrength > 0.0) {
 			#ifdef SPECULAR_MAP
-				vec3 specularColour = texture2D(specularSampler, si.UV).rgb * mi.specularFactor.rgb;
+				vec3 specularColour = texture2D(specularSampler, si.UV).rgb * mi.specularFactor.rgb * diffuseStrength;
 			#else
-				vec3 specularColour = mi.specularFactor.rgb;
+				vec3 specularColour = mi.specularFactor.rgb * diffuseStrength;
 			#endif
-				specularStrength = pow(specularStrength, mi.specularFactor.a) * diffuseStrength; // FIXME: not too sure about this (* diffuseStrength)
-				specularContrib = specularColour * specularStrength;
-				diffuseContrib += specularContrib;
+				diffuseContrib += specularColour * pow(specularStrength, mi.specularFactor.a);
 			}
 		#endif
 
