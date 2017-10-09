@@ -18,13 +18,16 @@ namespace sd.render {
 			this.canvas_ = holderElement.ownerDocument.createElement("canvas");
 			this.canvas_.width = initialWidth;
 			this.canvas_.height = initialHeight;
-
 			holderElement.appendChild(this.canvas_);
 
-			this.effects_ = new Map();
-			
 			this.rd_ = new gl1.GL1RenderDevice(this.canvas_);
+
 			this.lighting_ = new TiledLight("large");
+
+			// built-in effects
+			this.effects_ = new Map();
+			this.registerEffect(new effect.StandardEffect());
+			this.registerEffect(new effect.VSMShadowMapEffect());
 		}
 
 		get drawableWidth() {
