@@ -58,30 +58,30 @@ namespace sd.render.effect {
 		data: Float32Array;
 	}
 
-	export class VSMShadowMapEffect implements render.Effect {
+	export class VSMShadowMapEffect implements Effect {
 		readonly name = "vsm-shadow";
 		readonly id = 0x00010001;
 	
-		private rd_: render.gl1.GL1RenderDevice;
-		private shader_: render.Shader;
+		private rd_: gl1.GL1RenderDevice;
+		private shader_: Shader;
 	
-		attachToRenderWorld(rw: render.RenderWorld) {
-			this.rd_ = rw.rd as render.gl1.GL1RenderDevice;
+		attachToRenderWorld(rw: RenderWorld) {
+			this.rd_ = rw.rd as gl1.GL1RenderDevice;
 			this.shader_ = vsmShadowShader();
 	
-			const rcmd = new render.RenderCommandBuffer();
+			const rcmd = new RenderCommandBuffer();
 			rcmd.allocate(this.shader_);
 			this.rd_.dispatch(rcmd);
 			this.rd_.processFrame();
 		}
 	
 		addRenderJobs(
-			evData: render.EffectData,
+			evData: EffectData,
 			camera: math.ProjectionSetup,
-			modelMatrix: sd.Float4x4,
+			modelMatrix: Float4x4,
 			mesh: meshdata.MeshData,
 			primGroup: meshdata.PrimitiveGroup,
-			toBuffer: render.RenderCommandBuffer
+			toBuffer: RenderCommandBuffer
 		) {
 			const mv = mat4.multiply(mat4.create(), camera.viewMatrix, modelMatrix);
 			const mvp = mat4.multiply(mat4.create(), camera.viewProjMatrix, modelMatrix);
@@ -98,10 +98,10 @@ namespace sd.render.effect {
 					{ name: "lightRange", value: (evData as VSMShadowData).data }
 				],
 				pipeline: {
-					depthTest: render.DepthTest.Less,
+					depthTest: DepthTest.Less,
 					depthWrite: true,
 					shader: this.shader_,
-					faceCulling: render.FaceCulling.Back
+					faceCulling: FaceCulling.Back
 				}
 			}, 0);
 		}
@@ -113,25 +113,25 @@ namespace sd.render.effect {
 			} as VSMShadowData;
 		}
 	
-		getTexture(_evd: render.EffectData, _name: string): render.Texture | undefined {
+		getTexture(_evd: EffectData, _name: string): Texture | undefined {
 			return undefined;
 		}
-		setTexture(_evd: render.EffectData, _name: string, _tex: render.Texture | undefined) {
+		setTexture(_evd: EffectData, _name: string, _tex: Texture | undefined) {
 		}
 	
-		getVector(_evd: render.EffectData, _name: string, _out: sd.ArrayOfNumber): sd.ArrayOfNumber | undefined {
+		getVector(_evd: EffectData, _name: string, _out: sd.ArrayOfNumber): sd.ArrayOfNumber | undefined {
 			return undefined;
 		}
-		setVector(_evd: render.EffectData, _name: string, _vec: sd.ArrayOfConstNumber) {
+		setVector(_evd: EffectData, _name: string, _vec: sd.ArrayOfConstNumber) {
 		}
 	
-		getValue(evd: render.EffectData, name: string): number | undefined {
+		getValue(evd: EffectData, name: string): number | undefined {
 			if (name === "range") {
 				return (evd as VSMShadowData).data[3];
 			}
 			return undefined;
 		}
-		setValue(evd: render.EffectData, name: string, val: number) {
+		setValue(evd: EffectData, name: string, val: number) {
 			if (name === "range") {
 				(evd as VSMShadowData).data[3] = Math.max(0.01, val);
 			}
