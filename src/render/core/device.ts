@@ -34,6 +34,7 @@ namespace sd.render {
 		readonly drawableHeight: number;
 
 		// capabilities
+		readonly supportsSRGBTextures: boolean;
 		readonly supportsArrayTextures: boolean;
 		readonly supportsDepthTextures: boolean;
 		readonly maxColourAttachments: number;

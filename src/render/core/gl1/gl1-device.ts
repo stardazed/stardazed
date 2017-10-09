@@ -122,6 +122,9 @@ namespace sd.render.gl1 {
 		}
 
 		// -- capabilities
+		get supportsSRGBTextures() {
+			return this.extSRGB !== undefined;
+		}
 		get supportsArrayTextures() { return false; }
 		get supportsDepthTextures() { return false; }
 
