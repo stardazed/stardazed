@@ -41,10 +41,10 @@ namespace sd.entity {
 
 	export class MeshComponent implements Component<MeshComponent> {
 		private instanceData_: container.MultiArrayBuffer;
-		private featuresBase_: ConstEnumArrayView<MeshFeatures>;
-		private shapeBase_: ConstEnumArrayView<MeshShapeType>;
-		private indexElementTypeBase_: ConstEnumArrayView<meshdata.IndexElementType>;
-		private uniformPrimTypeBase_: ConstEnumArrayView<meshdata.PrimitiveType>;
+		private featuresBase_: ConstEnumArray32View<MeshFeatures>;
+		private shapeBase_: ConstEnumArray32View<MeshShapeType>;
+		private indexElementTypeBase_: ConstEnumArray32View<meshdata.IndexElementType>;
+		private uniformPrimTypeBase_: ConstEnumArray32View<meshdata.PrimitiveType>;
 		private totalElementCountBase_: Int32Array;
 		private subMeshOffsetCountBase_: Int32Array;
 
@@ -85,19 +85,19 @@ namespace sd.entity {
 		}
 
 		rebaseInstances() {
-			this.featuresBase_ = this.instanceData_.indexedFieldView(0);
-			this.shapeBase_ = this.instanceData_.indexedFieldView(1);
-			this.indexElementTypeBase_ = this.instanceData_.indexedFieldView(2);
-			this.uniformPrimTypeBase_ = this.instanceData_.indexedFieldView(3);
-			this.totalElementCountBase_ = this.instanceData_.indexedFieldView(4);
-			this.subMeshOffsetCountBase_ = this.instanceData_.indexedFieldView(5);
+			this.featuresBase_ = this.instanceData_.indexedFieldView(0) as Int32Array;
+			this.shapeBase_ = this.instanceData_.indexedFieldView(1) as Int32Array;
+			this.indexElementTypeBase_ = this.instanceData_.indexedFieldView(2) as Int32Array;
+			this.uniformPrimTypeBase_ = this.instanceData_.indexedFieldView(3) as Int32Array;
+			this.totalElementCountBase_ = this.instanceData_.indexedFieldView(4) as Int32Array;
+			this.subMeshOffsetCountBase_ = this.instanceData_.indexedFieldView(5) as Int32Array;
 		}
 
 		rebaseSubMeshes() {
-			this.smPrimTypeBase_ = this.subMeshData_.indexedFieldView(0);
-			this.smFromElementBase_ = this.subMeshData_.indexedFieldView(1);
-			this.smElementCountBase_ = this.subMeshData_.indexedFieldView(2);
-			this.smMaterialBase_ = this.subMeshData_.indexedFieldView(3);
+			this.smPrimTypeBase_ = this.subMeshData_.indexedFieldView(0) as Int32Array;
+			this.smFromElementBase_ = this.subMeshData_.indexedFieldView(1) as Int32Array;
+			this.smElementCountBase_ = this.subMeshData_.indexedFieldView(2) as Int32Array;
+			this.smMaterialBase_ = this.subMeshData_.indexedFieldView(3) as Int32Array;
 		}
 
 

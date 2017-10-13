@@ -37,7 +37,7 @@ namespace sd.entity {
 	export class MeshRendererComponent implements Component<MeshRendererComponent> {
 		private instanceData_: container.MultiArrayBuffer;
 		private entityBase_: EntityArrayView;
-		private flagsBase_: ConstEnumArrayView<MeshRendererFlags>;
+		private flagsBase_: ConstEnumArray8View<MeshRendererFlags>;
 		private materialOffsetCountBase_: Int32Array;
 
 		private materials_: render.EffectData[];

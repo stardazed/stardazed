@@ -93,10 +93,12 @@ namespace sd {
 	export interface TypedArrayConstructor {
 		new (lengthOrSource: number | Iterable<number> | ArrayLike<number>): TypedArray;
 		new (buffer: ArrayBuffer | SharedArrayBuffer, byteOffset?: number, length?: number): TypedArray;
+	// helper types for enums stored in int arrays
+	export interface ConstEnumArray8View<T extends number> extends Uint8Array {
+		[index: number]: T;
 	}
 
-	// helper type for enums stored in Int32Arrays
-	export interface ConstEnumArrayView<T extends number> extends TypedArray {
+	export interface ConstEnumArray32View<T extends number> extends Int32Array {
 		[index: number]: T;
 	}
 

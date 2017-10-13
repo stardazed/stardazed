@@ -21,7 +21,7 @@ namespace sd.entity {
 		private instanceData_: container.MultiArrayBuffer;
 		private entityBase_: EntityArrayView;
 		private transformBase_: TransformArrayView;
-		private shapeTypeBase_: ConstEnumArrayView<physics.PhysicsShapeType>;
+		private shapeTypeBase_: ConstEnumArray32View<physics.PhysicsShapeType>;
 		private shapes_: Ammo.btCollisionShape[];
 		private colliders_: Ammo.btRigidBody[];
 
