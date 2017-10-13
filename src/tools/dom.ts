@@ -82,14 +82,14 @@ namespace sd.dom {
 
 	// -- Events
 
-	export function on(target: ElemSelector | Window, evt: string, handler: (ev: Event) => any) {
+	export function on<E extends Event>(target: ElemSelector | Window, evt: string, handler: (ev: E) => any) {
 		const list: EventTarget[] = (target instanceof Window) ? [target] : $(target);
-		list.forEach(tgt => { tgt.addEventListener(evt, handler); });
+		list.forEach(tgt => { tgt.addEventListener(evt, handler as (e: Event) => any); });
 	}
 
-	export function off(target: ElemSelector | Window, evt: string, handler: (ev: Event) => any) {
+	export function off<E extends Event>(target: ElemSelector | Window, evt: string, handler: (ev: E) => any) {
 		const list: EventTarget[] = (target instanceof Window) ? [target] : $(target);
-		list.forEach(tgt => { tgt.removeEventListener(evt, handler); });
+		list.forEach(tgt => { tgt.removeEventListener(evt, handler as (e: Event) => any); });
 	}
 
 } // ns sd.dom
