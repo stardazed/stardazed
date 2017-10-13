@@ -191,7 +191,7 @@ namespace sd.entity {
 		forEntity(ent: Entity): TransformInstance {
 			const index = entityIndex(ent);
 			if (index > 0 && index <= this.instanceData_.count) {
-				return ent as TransformInstance;
+				return ent as Instance<any> as TransformInstance;
 			}
 
 			assert(false, `No transform for entity ${index}`);
