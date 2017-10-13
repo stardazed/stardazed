@@ -69,8 +69,8 @@ namespace sd.entity {
 		private rebase() {
 			this.entityBase_ = this.instanceData_.indexedFieldView(0);
 			this.transformBase_ = this.instanceData_.indexedFieldView(1);
-			this.enabledBase_ = this.instanceData_.indexedFieldView(2);
-			this.castsShadowsBase_ = this.instanceData_.indexedFieldView(3);
+			this.enabledBase_ = this.instanceData_.indexedFieldView(2) as Uint8Array;
+			this.castsShadowsBase_ = this.instanceData_.indexedFieldView(3) as Uint8Array;
 		}
 
 		create(entity: Entity, desc: Light): LightInstance {

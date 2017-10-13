@@ -155,7 +155,7 @@ namespace sd.meshdata {
 
 			const offsetBytes = this.storage.byteOffset + this.indexElementSizeBytes_ * baseIndexNr;
 			const arrayClass = typedIndexArrayClassForIndexElement(this.indexElementType);
-			return new arrayClass(this.storage.buffer, offsetBytes, indexCount);
+			return new arrayClass(this.storage.buffer, offsetBytes, indexCount) as TypedIndexArray;
 		}
 	}
 

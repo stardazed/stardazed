@@ -57,8 +57,8 @@ namespace sd.entity {
 
 		private rebase() {
 			this.entityBase_ = this.instanceData_.indexedFieldView(0);
-			this.flagsBase_ = this.instanceData_.indexedFieldView(1);
-			this.materialOffsetCountBase_ = this.instanceData_.indexedFieldView(2);
+			this.flagsBase_ = this.instanceData_.indexedFieldView(1) as Uint8Array;
+			this.materialOffsetCountBase_ = this.instanceData_.indexedFieldView(2) as Int32Array;
 		}
 
 		create(entity: Entity, desc: MeshRendererDescriptor): MeshRendererInstance {

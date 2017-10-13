@@ -115,25 +115,25 @@ namespace sd.render.gl1 {
 								switch (constantData.type) {
 									case ShaderValueType.Half:
 									case ShaderValueType.Float:
-										gl.uniform1fv(constantData.uniform, sc.value); break;
+										gl.uniform1fv(constantData.uniform, sc.value as Float32Array); break;
 									case ShaderValueType.Half2:
 									case ShaderValueType.Float2:
-										gl.uniform2fv(constantData.uniform, sc.value); break;
+										gl.uniform2fv(constantData.uniform, sc.value as Float32Array); break;
 									case ShaderValueType.Half3:
 									case ShaderValueType.Float3:
-										gl.uniform3fv(constantData.uniform, sc.value); break;
+										gl.uniform3fv(constantData.uniform, sc.value as Float32Array); break;
 									case ShaderValueType.Half4:
 									case ShaderValueType.Float4:
-										gl.uniform4fv(constantData.uniform, sc.value); break;
+										gl.uniform4fv(constantData.uniform, sc.value as Float32Array); break;
 
-									case ShaderValueType.Float2x2: gl.uniformMatrix2fv(constantData.uniform, false, sc.value); break;
-									case ShaderValueType.Float3x3: gl.uniformMatrix3fv(constantData.uniform, false, sc.value); break;
-									case ShaderValueType.Float4x4: gl.uniformMatrix4fv(constantData.uniform, false, sc.value); break;
+									case ShaderValueType.Float2x2: gl.uniformMatrix2fv(constantData.uniform, false, sc.value as Float32Array); break;
+									case ShaderValueType.Float3x3: gl.uniformMatrix3fv(constantData.uniform, false, sc.value as Float32Array); break;
+									case ShaderValueType.Float4x4: gl.uniformMatrix4fv(constantData.uniform, false, sc.value as Float32Array); break;
 
-									case ShaderValueType.Int: gl.uniform1iv(constantData.uniform, sc.value); break;
-									case ShaderValueType.Int2: gl.uniform2iv(constantData.uniform, sc.value); break;
-									case ShaderValueType.Int3: gl.uniform3iv(constantData.uniform, sc.value); break;
-									case ShaderValueType.Int4: gl.uniform4iv(constantData.uniform, sc.value); break;
+									case ShaderValueType.Int: gl.uniform1iv(constantData.uniform, sc.value as Int32Array); break;
+									case ShaderValueType.Int2: gl.uniform2iv(constantData.uniform, sc.value as Int32Array); break;
+									case ShaderValueType.Int3: gl.uniform3iv(constantData.uniform, sc.value as Int32Array); break;
+									case ShaderValueType.Int4: gl.uniform4iv(constantData.uniform, sc.value as Int32Array); break;
 									default: break;
 								}
 							}

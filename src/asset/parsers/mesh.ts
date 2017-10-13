@@ -258,7 +258,7 @@ namespace sd.asset.parse {
 		const positionStream = attrStreams.splice(positionStreamIndex, 1)[0];
 
 		const hasGroupingStream = attrStreams.some(ats => ats.controlsGrouping === true);
-		const builder = new meshdata.MeshBuilder(positionStream.values!, positionStream.indexes || null, attrStreams);
+		const builder = new meshdata.MeshBuilder(positionStream.values! as (Float32Array | Float64Array), (positionStream.indexes as Uint32Array) || null, attrStreams);
 
 		const polygonVertexIndexes = [0, 0, 0];
 		const vertexIndexes = [0, 0, 0];

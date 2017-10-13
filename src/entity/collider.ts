@@ -44,7 +44,7 @@ namespace sd.entity {
 		private rebase() {
 			this.entityBase_ = this.instanceData_.indexedFieldView(0);
 			this.transformBase_ = this.instanceData_.indexedFieldView(1);
-			this.shapeTypeBase_ = this.instanceData_.indexedFieldView(2);
+			this.shapeTypeBase_ = this.instanceData_.indexedFieldView(2) as Int32Array;
 		}
 
 		create(entity: Entity, collider: Collider): ColliderInstance {

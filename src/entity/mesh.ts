@@ -49,7 +49,7 @@ namespace sd.entity {
 		private subMeshOffsetCountBase_: Int32Array;
 
 		private subMeshData_: container.MultiArrayBuffer;
-		private smPrimTypeBase_: ConstEnumArrayView<meshdata.PrimitiveType>;
+		private smPrimTypeBase_: ConstEnumArray32View<meshdata.PrimitiveType>;
 		private smFromElementBase_: Int32Array;
 		private smElementCountBase_: Int32Array;
 		private smMaterialBase_: Int32Array;

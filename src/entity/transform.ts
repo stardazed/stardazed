@@ -72,12 +72,12 @@ namespace sd.entity {
 			this.prevSiblingBase_ = this.instanceData_.indexedFieldView(3);
 			this.nextSiblingBase_ = this.instanceData_.indexedFieldView(4);
 
-			this.positionBase_ = this.instanceData_.indexedFieldView(5);
-			this.rotationBase_ = this.instanceData_.indexedFieldView(6);
-			this.scaleBase_ = this.instanceData_.indexedFieldView(7);
+			this.positionBase_ = this.instanceData_.indexedFieldView(5) as Float32Array;
+			this.rotationBase_ = this.instanceData_.indexedFieldView(6) as Float32Array;
+			this.scaleBase_ = this.instanceData_.indexedFieldView(7) as Float32Array;
 
-			this.localMatrixBase_ = this.instanceData_.indexedFieldView(8);
-			this.worldMatrixBase_ = this.instanceData_.indexedFieldView(9);
+			this.localMatrixBase_ = this.instanceData_.indexedFieldView(8) as Float32Array;
+			this.worldMatrixBase_ = this.instanceData_.indexedFieldView(9) as Float32Array;
 		}
 
 
