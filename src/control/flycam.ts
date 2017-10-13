@@ -63,7 +63,6 @@ namespace sd.control {
 		private tracking_ = false;
 
 		private lastPos_ = [0, 0];
-		private deviceTilt_ = 0;
 		private deviceTouch_ = false;
 
 		constructor(sensingElem: HTMLElement, initialPos: sd.Float3) {
@@ -94,8 +93,8 @@ namespace sd.control {
 				this.tracking_ = false;
 			});
 
-			dom.on(window, "deviceorientation", (evt: DeviceOrientationEvent) => {
-				this.deviceTilt_ = evt.beta! * Math.sign(evt.gamma || 0);
+			dom.on(window, "deviceorientation", (_evt: DeviceOrientationEvent) => {
+				// this.deviceTilt_ = evt.beta! * Math.sign(evt.gamma || 0);
 			});
 			dom.on(window, "touchstart", (_evt: TouchEvent) => {
 				this.deviceTouch_ = true;

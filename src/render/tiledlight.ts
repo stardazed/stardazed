@@ -63,7 +63,6 @@ namespace sd.render {
 		private lutHeightPixels_: number;
 		private lutLightDataRows_: number;
 		private lutIndexListRows_: number;
-		private lutGridRows_: number;
 		private lutTilesWide_: number;
 		private lutTilesHigh_: number;
 		private lutParam_ = new Float32Array(2);
@@ -82,7 +81,6 @@ namespace sd.render {
 			this.lutHeightPixels_ = lutConfig.lightDataRows + lutConfig.indexListRows + lutConfig.gridRows;
 			this.lutLightDataRows_ = lutConfig.lightDataRows;
 			this.lutIndexListRows_ = lutConfig.indexListRows;
-			this.lutGridRows_ = lutConfig.gridRows;
 
 			this.tileLightIndexes_ = new Float32Array(4 * lutConfig.pixelWidth * lutConfig.indexListRows);
 			this.lightGrid_ = new Float32Array(4 * lutConfig.pixelWidth * lutConfig.gridRows);
