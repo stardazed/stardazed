@@ -142,7 +142,7 @@ namespace sd.render {
 		y: number;
 		width: number;
 		height: number;
-		pixels: ReadonlyTypedArray;
+		pixels: TypedArray;
 	}
 
 	export interface RenderJobCommand {
@@ -240,7 +240,7 @@ namespace sd.render {
 			});
 		}
 
-		textureWrite(texture: Texture, layer: CubeMapFace | number, offset: image.PixelCoordinate, dim: image.PixelDimensions, pixels: ReadonlyTypedArray) {
+		textureWrite(texture: Texture, layer: CubeMapFace | number, offset: image.PixelCoordinate, dim: image.PixelDimensions, pixels: TypedArray) {
 			this.commands.push({
 				type: RenderCommandType.TextureWrite,
 				sortKey: 1,
