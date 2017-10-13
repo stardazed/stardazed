@@ -5,7 +5,7 @@
 
 namespace sd {
 
-	export type ListenerFunc = (this: void, context?: object, ...args: any[]) => void | "remove";
+	export type ListenerFunc = (this: void, context: any, ...args: any[]) => void | "remove";
 
 	interface Listener {
 		func: ListenerFunc;
