@@ -8,7 +8,7 @@
 namespace sd.asset {
 
 	export interface CacheAccess {
-		(kind: "mesh", name: string): meshdata.MeshData;
+		(kind: "mesh", name: string): geometry.MeshData;
 	}
 
 } // ns sd.asset
@@ -55,7 +55,7 @@ namespace sd.asset.parse {
 
 	export type MeshAssetMetadata = VertexStreamMeshData | CompiledMeshData;
 
-	export const parseMesh = async (asset: Asset<meshdata.MeshData, MeshAssetMetadata>) => {
+	export const parseMesh = async (asset: Asset<geometry.MeshData, MeshAssetMetadata>) => {
 		const { dependencies, metadata } = asset;
 		if (metadata === void 0) {
 			throw new Error("Mesh parser: metadata is missing");
@@ -108,7 +108,7 @@ namespace sd.asset.parse {
 		return buildMesh(attrStreams, resolvedGroups, triangleBuffer ? new Uint32Array(triangleBuffer) : undefined);
 	};
 
-	const parseVertexStream = (stream: VertexStream, deps: AssetDependencies): meshdata.VertexAttributeStream => {
+	const parseVertexStream = (stream: VertexStream, deps: AssetDependencies): geometry.VertexAttributeStream => {
 		const field = parseVertexField(stream.elementType, stream.elementCount, stream.elementNormalized);
 		const role = parseVertexRole(stream.role, stream.roleSubscript);
 		const mapping = parseStreamMapping(stream.mapping);
@@ -123,15 +123,15 @@ namespace sd.asset.parse {
 			name: stream.name,
 			attr: { field, role },
 			mapping,
-			includeInMesh: role !== meshdata.VertexAttributeRole.Material,
-			controlsGrouping: role === meshdata.VertexAttributeRole.Material,
+			includeInMesh: role !== geometry.VertexAttributeRole.Material,
+			controlsGrouping: role === geometry.VertexAttributeRole.Material,
 
 			values: new Float32Array(valuesBuffer), // FIXME: create TypedArray based no field type
 			indexes: indexesBuffer && new Uint32Array(indexesBuffer)
 		};
 	};
 
-	const parseVertexField = (element: VertexElementType | undefined, count: number | undefined, normalized: boolean | undefined): meshdata.VertexField => {
+	const parseVertexField = (element: VertexElementType | undefined, count: number | undefined, normalized: boolean | undefined): geometry.VertexField => {
 		if (typeof count !== "number" || count < 1 || count > 4) {
 			throw new Error(`Mesh parser: a stream's elementCount value must be a number between 1 and 4 inclusive, got "${count}"`);
 		}
@@ -142,15 +142,15 @@ namespace sd.asset.parse {
 			normalized = false;
 		}
 
-		let field: meshdata.VertexField;
+		let field: geometry.VertexField;
 		switch (element) {
-			case "uint8": field = meshdata.VertexField.UInt8 + count - 1; if (normalized) { field |= 0x80; } break;
-			case "sint8": field = meshdata.VertexField.SInt8 + count - 1; if (normalized) { field |= 0x80; } break;
-			case "uint16": field = meshdata.VertexField.UInt16 + count - 1; if (normalized) { field |= 0x80; } break;
-			case "sint16": field = meshdata.VertexField.SInt16 + count - 1; if (normalized) { field |= 0x80; } break;
-			case "uint32": field = meshdata.VertexField.UInt32 + count - 1; break;
-			case "sint32": field = meshdata.VertexField.SInt32 + count - 1; break;
-			case "float": field = meshdata.VertexField.Float + count - 1; break;
+			case "uint8": field = geometry.VertexField.UInt8 + count - 1; if (normalized) { field |= 0x80; } break;
+			case "sint8": field = geometry.VertexField.SInt8 + count - 1; if (normalized) { field |= 0x80; } break;
+			case "uint16": field = geometry.VertexField.UInt16 + count - 1; if (normalized) { field |= 0x80; } break;
+			case "sint16": field = geometry.VertexField.SInt16 + count - 1; if (normalized) { field |= 0x80; } break;
+			case "uint32": field = geometry.VertexField.UInt32 + count - 1; break;
+			case "sint32": field = geometry.VertexField.SInt32 + count - 1; break;
+			case "float": field = geometry.VertexField.Float + count - 1; break;
 			default:
 				throw new Error(`Mesh parser: invalid stream elementType "${element}"`);
 		}
@@ -158,17 +158,17 @@ namespace sd.asset.parse {
 		return field;
 	};
 
-	const parseVertexRole = (role: VertexRole | undefined, subscript: number | undefined): meshdata.VertexAttributeRole => {
-		let vertexRole: meshdata.VertexAttributeRole;
+	const parseVertexRole = (role: VertexRole | undefined, subscript: number | undefined): geometry.VertexAttributeRole => {
+		let vertexRole: geometry.VertexAttributeRole;
 		switch (role) {
-			case "position": vertexRole = meshdata.VertexAttributeRole.Position; break;
-			case "normal": vertexRole = meshdata.VertexAttributeRole.Normal; break;
-			case "tangent": vertexRole = meshdata.VertexAttributeRole.Tangent; break;
-			case "colour": vertexRole = meshdata.VertexAttributeRole.Colour; break;
-			case "uv": vertexRole = meshdata.VertexAttributeRole.UV; break;
-			case "weight": vertexRole = meshdata.VertexAttributeRole.WeightedPos0; break;
-			case "jointref": vertexRole = meshdata.VertexAttributeRole.JointIndexes; break;
-			case "material": vertexRole = meshdata.VertexAttributeRole.Material; break;
+			case "position": vertexRole = geometry.VertexAttributeRole.Position; break;
+			case "normal": vertexRole = geometry.VertexAttributeRole.Normal; break;
+			case "tangent": vertexRole = geometry.VertexAttributeRole.Tangent; break;
+			case "colour": vertexRole = geometry.VertexAttributeRole.Colour; break;
+			case "uv": vertexRole = geometry.VertexAttributeRole.UV; break;
+			case "weight": vertexRole = geometry.VertexAttributeRole.WeightedPos0; break;
+			case "jointref": vertexRole = geometry.VertexAttributeRole.JointIndexes; break;
+			case "material": vertexRole = geometry.VertexAttributeRole.Material; break;
 			default:
 				throw new Error(`Mesh parser: invalid or missing stream role "${role}"`);
 		}
@@ -185,18 +185,18 @@ namespace sd.asset.parse {
 				subscript = 0;
 			}
 		}
-		if (subscript > 0 && (vertexRole === meshdata.VertexAttributeRole.UV || vertexRole === meshdata.VertexAttributeRole.WeightedPos0)) {
+		if (subscript > 0 && (vertexRole === geometry.VertexAttributeRole.UV || vertexRole === geometry.VertexAttributeRole.WeightedPos0)) {
 			vertexRole += subscript;
 		}
 		return vertexRole;
 	};
 
-	const parseStreamMapping = (mapping: VertexStreamMapping | undefined): meshdata.VertexAttributeMapping => {
+	const parseStreamMapping = (mapping: VertexStreamMapping | undefined): geometry.VertexAttributeMapping => {
 		switch (mapping) {
-			case "vertex": return meshdata.VertexAttributeMapping.Vertex;
-			case "polygonvertex": return meshdata.VertexAttributeMapping.PolygonVertex;
-			case "polygon": return meshdata.VertexAttributeMapping.Polygon;
-			case "singlevalue": return meshdata.VertexAttributeMapping.SingleValue;
+			case "vertex": return geometry.VertexAttributeMapping.Vertex;
+			case "polygonvertex": return geometry.VertexAttributeMapping.PolygonVertex;
+			case "polygon": return geometry.VertexAttributeMapping.Polygon;
+			case "singlevalue": return geometry.VertexAttributeMapping.SingleValue;
 			default:
 				throw new Error(`Mesh parser: invalid stream mapping "${mapping}"`);
 		}
@@ -248,9 +248,9 @@ namespace sd.asset.parse {
 		return buffer.item;
 	};
 
-	const buildMesh = (attrStreams: meshdata.VertexAttributeStream[], groups: TriangleGroup[], triangleView: Uint32Array | undefined) => {
+	const buildMesh = (attrStreams: geometry.VertexAttributeStream[], groups: TriangleGroup[], triangleView: Uint32Array | undefined) => {
 		const positionStreamIndex = attrStreams.findIndex(
-			ats => ats.attr!.role === meshdata.VertexAttributeRole.Position
+			ats => ats.attr!.role === geometry.VertexAttributeRole.Position
 		);
 		if (positionStreamIndex < 0) {
 			throw new Error(`Mesh parser: position vertex stream is missing`);
@@ -258,7 +258,7 @@ namespace sd.asset.parse {
 		const positionStream = attrStreams.splice(positionStreamIndex, 1)[0];
 
 		const hasGroupingStream = attrStreams.some(ats => ats.controlsGrouping === true);
-		const builder = new meshdata.MeshBuilder(positionStream.values! as (Float32Array | Float64Array), (positionStream.indexes as Uint32Array) || null, attrStreams);
+		const builder = new geometry.MeshBuilder(positionStream.values! as (Float32Array | Float64Array), (positionStream.indexes as Uint32Array) || null, attrStreams);
 
 		const polygonVertexIndexes = [0, 0, 0];
 		const vertexIndexes = [0, 0, 0];

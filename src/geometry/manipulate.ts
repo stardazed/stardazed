@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.meshdata {
+namespace sd.geometry {
 
 	export function scale(mesh: MeshData, scale: Float3) {
 		const posAttr = findAttributeOfRoleInMesh(mesh, VertexAttributeRole.Position);
@@ -59,4 +59,4 @@ namespace sd.meshdata {
 		}
 	}
 
-} // ns sd.meshdata
+} // ns sd.geometry

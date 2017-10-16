@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.meshdata.gen {
+namespace sd.geometry.gen {
 
 	//  __  __        _    ___                       _
 	// |  \/  |___ __| |_ / __|___ _ _  ___ _ _ __ _| |_ ___ _ _
@@ -66,7 +66,7 @@ namespace sd.meshdata.gen {
 		const normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
 		const texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
 
-		const triView = meshdata.makeTriangleViewForMesh(mesh)!;
+		const triView = geometry.makeTriangleViewForMesh(mesh)!;
 
 		// -- data add functions for the generators
 		let posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;
@@ -914,4 +914,4 @@ namespace sd.meshdata.gen {
 		}
 	}
 
-} // ns sd.meshdata.gen
+} // ns sd.geometry.gen

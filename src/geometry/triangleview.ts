@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.meshdata {
+namespace sd.geometry {
 
 	export interface Triangle {
 		readonly [index: number]: number;
@@ -85,7 +85,7 @@ namespace sd.meshdata {
 
 	// ---- TriangleView for non-indexed meshes
 
-	class DirectTriangleProxy implements meshdata.TriangleProxy {
+	class DirectTriangleProxy implements geometry.TriangleProxy {
 		index(index: number) {
 			return this.baseIndex_ + index;
 		}
@@ -211,4 +211,4 @@ namespace sd.meshdata {
 		get mutable() { return true; }
 	}
 
-} // ns sd.meshdata
+} // ns sd.geometry

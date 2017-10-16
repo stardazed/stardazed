@@ -71,13 +71,13 @@ namespace sd.asset.importer {
 			dependencies: modelDependencies,
 		};
 
-		const meshAsset: Asset<meshdata.MeshData, any> = {
+		const meshAsset: Asset<geometry.MeshData, any> = {
 			kind: "mesh"
 		};
 
 		const positions: Float32Array = new Float32Array(preproc.positionCount * 3);
 		const positionIndexes = new Uint32Array(preproc.vertexCount);
-		const streams: meshdata.VertexAttributeStream[] = [];
+		const streams: geometry.VertexAttributeStream[] = [];
 		let normalValues: Float32Array | undefined;
 		let uvValues: Float32Array | undefined;
 		let normalIndexes: Uint32Array | undefined;
@@ -92,8 +92,8 @@ namespace sd.asset.importer {
 			streams.push({
 				name: "normals",
 				includeInMesh: true,
-				mapping: meshdata.VertexAttributeMapping.Vertex,
-				attr: { field: meshdata.VertexField.Floatx3, role: meshdata.VertexAttributeRole.Normal },
+				mapping: geometry.VertexAttributeMapping.Vertex,
+				attr: { field: geometry.VertexField.Floatx3, role: geometry.VertexAttributeRole.Normal },
 				values: normalValues,
 				indexes: normalIndexes
 			});
@@ -105,14 +105,14 @@ namespace sd.asset.importer {
 			streams.push({
 				name: "uvs",
 				includeInMesh: true,
-				mapping: meshdata.VertexAttributeMapping.Vertex,
-				attr: { field: meshdata.VertexField.Floatx2, role: meshdata.VertexAttributeRole.UV },
+				mapping: geometry.VertexAttributeMapping.Vertex,
+				attr: { field: geometry.VertexField.Floatx2, role: geometry.VertexAttributeRole.UV },
 				values: uvValues,
 				indexes: uvIndexes
 			});
 		}
 
-		const builder = new meshdata.MeshBuilder(positions, positionIndexes, streams);
+		const builder = new geometry.MeshBuilder(positions, positionIndexes, streams);
 
 
 		// map each material's name to its index

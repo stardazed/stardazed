@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.meshdata {
+namespace sd.geometry {
 
 	//  __  __        _    ___       _
 	// |  \/  |___ __| |_ |   \ __ _| |_ __ _
@@ -12,7 +12,7 @@ namespace sd.meshdata {
 	//
 
 	export interface PrimitiveGroup {
-		type: meshdata.PrimitiveType;
+		type: geometry.PrimitiveType;
 		fromElement: number;
 		elementCount: number;
 	}
@@ -112,4 +112,4 @@ namespace sd.meshdata {
 		});
 	}
 
-} // ns sd.meshdata
+} // ns sd.geometry

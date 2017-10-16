@@ -5,7 +5,7 @@
 group("meshdata", () => {
 	group("IndexBuffer", () => {
 		test("construct-throws-on-invalid-elementType-or-indexCount", () => {
-			const { IndexElementType, IndexBuffer } = sd.meshdata;
+			const { IndexElementType, IndexBuffer } = sd.geometry;
 			const storage = new Uint8ClampedArray(16);
 			check.throws(Error, () => new IndexBuffer(IndexElementType.None, 4));
 			check.throws(Error, () => new IndexBuffer(IndexElementType.UInt8, 0));
@@ -18,7 +18,7 @@ group("meshdata", () => {
 		});
 
 		test("provided-elementType-and-indexCount-stick", () => {
-			const { IndexElementType, IndexBuffer } = sd.meshdata;
+			const { IndexElementType, IndexBuffer } = sd.geometry;
 			const ib = new IndexBuffer(IndexElementType.UInt8, 300);
 			check.equal(ib.indexElementType, IndexElementType.UInt8);
 			check.equal(ib.indexCount, 300);
@@ -33,14 +33,14 @@ group("meshdata", () => {
 		});
 
 		test("construct-without-storage-creates-one-of-fitting-size", () => {
-			const { IndexElementType, IndexBuffer } = sd.meshdata;
+			const { IndexElementType, IndexBuffer } = sd.geometry;
 			const ib = new IndexBuffer(IndexElementType.UInt32, 48);
 			check.present(ib.storage);
 			check.equal(ib.storage.byteLength, 4 * 48);
 		});
 
 		test("construct-without-storage-creates-zeroed-buffer", () => {
-			const { IndexElementType, IndexBuffer } = sd.meshdata;
+			const { IndexElementType, IndexBuffer } = sd.geometry;
 			const ib = new IndexBuffer(IndexElementType.UInt16, 20);
 			for (let a = 0; a < 2 * 20; ++a) {
 				check.equal(ib.storage[a], 0, `byte at offset ${a}`);
@@ -48,14 +48,14 @@ group("meshdata", () => {
 		});
 
 		test("construct-with-storage-adopts-it", () => {
-			const { IndexElementType, IndexBuffer } = sd.meshdata;
+			const { IndexElementType, IndexBuffer } = sd.geometry;
 			const storage = new Uint8ClampedArray(4 * 128);
 			const ib = new IndexBuffer(IndexElementType.UInt32, 128, storage);
 			check.equal(ib.storage, storage);
 		});
 
 		test("construct-with-storage-throws-if-too-small", () => {
-			const { IndexElementType, IndexBuffer } = sd.meshdata;
+			const { IndexElementType, IndexBuffer } = sd.geometry;
 			const storage = new Uint8ClampedArray(4 * 100);
 			check.throws(Error, () => {
 				// tslint:disable-next-line:no-unused-new
@@ -64,7 +64,7 @@ group("meshdata", () => {
 		});
 
 		test("construct-with-storage-does-not-change-data", () => {
-			const { IndexElementType, IndexBuffer } = sd.meshdata;
+			const { IndexElementType, IndexBuffer } = sd.geometry;
 			const storage = new Uint8ClampedArray(2 * 256);
 			for (let a = 0; a < 2 * 256; ++a) {
 				storage[a] = a & 255;
@@ -76,21 +76,21 @@ group("meshdata", () => {
 		});
 
 		test("has-indexstream-render-resourceType", () => {
-			const { IndexElementType, IndexBuffer } = sd.meshdata;
+			const { IndexElementType, IndexBuffer } = sd.geometry;
 			const ib = new IndexBuffer(IndexElementType.UInt8, 12);
 			check.equal(ib.renderResourceType, sd.render.ResourceType.IndexStream);
 		});
 
 		test("sizeBytes-equals-bufferview-size", () => {
-			const { IndexElementType, IndexBuffer } = sd.meshdata;
+			const { IndexElementType, IndexBuffer } = sd.geometry;
 			const ib = new IndexBuffer(IndexElementType.UInt16, 257);
 			check.equal(ib.storage.byteLength, ib.sizeBytes);
 		});
 
 		group("typedBasePtr", () => {
-			let ib8: sd.meshdata.IndexBuffer;
-			let ib16: sd.meshdata.IndexBuffer;
-			let ib32: sd.meshdata.IndexBuffer;
+			let ib8: sd.geometry.IndexBuffer;
+			let ib16: sd.geometry.IndexBuffer;
+			let ib32: sd.geometry.IndexBuffer;
 
 			const compareRanges = (
 				a: sd.ArrayOfConstNumber, aFrom: number,
@@ -103,7 +103,7 @@ group("meshdata", () => {
 			};
 
 			before(() => {
-				const { IndexElementType, IndexBuffer } = sd.meshdata;
+				const { IndexElementType, IndexBuffer } = sd.geometry;
 				ib8 = new IndexBuffer(IndexElementType.UInt8, 384);
 				ib16 = new IndexBuffer(IndexElementType.UInt16, 384);
 				ib32 = new IndexBuffer(IndexElementType.UInt32, 384);

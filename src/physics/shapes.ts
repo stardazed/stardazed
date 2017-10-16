@@ -76,7 +76,7 @@ namespace sd.physics {
 
 	export interface MeshShapeDescriptor {
 		type: PhysicsShapeType.Mesh;
-		mesh: meshdata.MeshData;
+		mesh: geometry.MeshData;
 		subMeshIndex?: number;
 		convex?: boolean;
 		margin?: number; // convex meshes only
@@ -117,19 +117,19 @@ namespace sd.physics {
 		return new Ammo.btVector3(v3[0 + offset], v3[1 + offset], v3[2 + offset]);
 	}
 
-	function createMeshShape(mesh: meshdata.MeshData, subMeshIndex?: number, convex?: boolean) {
+	function createMeshShape(mesh: geometry.MeshData, subMeshIndex?: number, convex?: boolean) {
 		const triView = (subMeshIndex !== undefined) ?
-			meshdata.makeTriangleViewForSubMesh(mesh, subMeshIndex) :
-			meshdata.makeTriangleViewForMesh(mesh);
+			geometry.makeTriangleViewForSubMesh(mesh, subMeshIndex) :
+			geometry.makeTriangleViewForMesh(mesh);
 		if (! triView) {
 			return undefined;
 		}
-		const posAttr = meshdata.findAttributeOfRoleInMesh(mesh, meshdata.VertexAttributeRole.Position);
+		const posAttr = geometry.findAttributeOfRoleInMesh(mesh, geometry.VertexAttributeRole.Position);
 		if (! posAttr) {
 			console.warn("createMeshShape: the mesh does not have a position attribute", mesh);
 			return undefined;
 		}
-		const posView = new meshdata.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
+		const posView = new geometry.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
 		const baseVertex = posView.baseVertex;
 
 		// use conservative guess if 16-bit indexes will work

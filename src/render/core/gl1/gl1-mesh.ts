@@ -5,62 +5,62 @@
 
 namespace sd.render.gl1 {
 
-	const gl1TypeForVertexField = makeLUT<meshdata.VertexField, number>(
-		meshdata.VertexField.Float, GLConst.FLOAT,
-		meshdata.VertexField.Floatx2, GLConst.FLOAT,
-		meshdata.VertexField.Floatx3, GLConst.FLOAT,
-		meshdata.VertexField.Floatx4, GLConst.FLOAT,
+	const gl1TypeForVertexField = makeLUT<geometry.VertexField, number>(
+		geometry.VertexField.Float, GLConst.FLOAT,
+		geometry.VertexField.Floatx2, GLConst.FLOAT,
+		geometry.VertexField.Floatx3, GLConst.FLOAT,
+		geometry.VertexField.Floatx4, GLConst.FLOAT,
 
-		meshdata.VertexField.UInt32, GLConst.UNSIGNED_INT,
-		meshdata.VertexField.UInt32x2, GLConst.UNSIGNED_INT,
-		meshdata.VertexField.UInt32x3, GLConst.UNSIGNED_INT,
-		meshdata.VertexField.UInt32x4, GLConst.UNSIGNED_INT,
+		geometry.VertexField.UInt32, GLConst.UNSIGNED_INT,
+		geometry.VertexField.UInt32x2, GLConst.UNSIGNED_INT,
+		geometry.VertexField.UInt32x3, GLConst.UNSIGNED_INT,
+		geometry.VertexField.UInt32x4, GLConst.UNSIGNED_INT,
 
-		meshdata.VertexField.SInt32, GLConst.INT,
-		meshdata.VertexField.SInt32x2, GLConst.INT,
-		meshdata.VertexField.SInt32x3, GLConst.INT,
-		meshdata.VertexField.SInt32x4, GLConst.INT,
+		geometry.VertexField.SInt32, GLConst.INT,
+		geometry.VertexField.SInt32x2, GLConst.INT,
+		geometry.VertexField.SInt32x3, GLConst.INT,
+		geometry.VertexField.SInt32x4, GLConst.INT,
 
-		meshdata.VertexField.UInt16x2, GLConst.UNSIGNED_SHORT,
-		meshdata.VertexField.UInt16x3, GLConst.UNSIGNED_SHORT,
-		meshdata.VertexField.UInt16x4, GLConst.UNSIGNED_SHORT,
-		meshdata.VertexField.Norm_UInt16x2, GLConst.UNSIGNED_SHORT,
-		meshdata.VertexField.Norm_UInt16x3, GLConst.UNSIGNED_SHORT,
-		meshdata.VertexField.Norm_UInt16x4, GLConst.UNSIGNED_SHORT,
+		geometry.VertexField.UInt16x2, GLConst.UNSIGNED_SHORT,
+		geometry.VertexField.UInt16x3, GLConst.UNSIGNED_SHORT,
+		geometry.VertexField.UInt16x4, GLConst.UNSIGNED_SHORT,
+		geometry.VertexField.Norm_UInt16x2, GLConst.UNSIGNED_SHORT,
+		geometry.VertexField.Norm_UInt16x3, GLConst.UNSIGNED_SHORT,
+		geometry.VertexField.Norm_UInt16x4, GLConst.UNSIGNED_SHORT,
 
-		meshdata.VertexField.SInt16x2, GLConst.SHORT,
-		meshdata.VertexField.SInt16x3, GLConst.SHORT,
-		meshdata.VertexField.SInt16x4, GLConst.SHORT,
-		meshdata.VertexField.Norm_SInt16x2, GLConst.SHORT,
-		meshdata.VertexField.Norm_SInt16x3, GLConst.SHORT,
-		meshdata.VertexField.Norm_SInt16x4, GLConst.SHORT,
+		geometry.VertexField.SInt16x2, GLConst.SHORT,
+		geometry.VertexField.SInt16x3, GLConst.SHORT,
+		geometry.VertexField.SInt16x4, GLConst.SHORT,
+		geometry.VertexField.Norm_SInt16x2, GLConst.SHORT,
+		geometry.VertexField.Norm_SInt16x3, GLConst.SHORT,
+		geometry.VertexField.Norm_SInt16x4, GLConst.SHORT,
 
-		meshdata.VertexField.UInt8x2, GLConst.UNSIGNED_BYTE,
-		meshdata.VertexField.UInt8x3, GLConst.UNSIGNED_BYTE,
-		meshdata.VertexField.UInt8x4, GLConst.UNSIGNED_BYTE,
-		meshdata.VertexField.Norm_UInt8x2, GLConst.UNSIGNED_BYTE,
-		meshdata.VertexField.Norm_UInt8x3, GLConst.UNSIGNED_BYTE,
-		meshdata.VertexField.Norm_UInt8x4, GLConst.UNSIGNED_BYTE,
+		geometry.VertexField.UInt8x2, GLConst.UNSIGNED_BYTE,
+		geometry.VertexField.UInt8x3, GLConst.UNSIGNED_BYTE,
+		geometry.VertexField.UInt8x4, GLConst.UNSIGNED_BYTE,
+		geometry.VertexField.Norm_UInt8x2, GLConst.UNSIGNED_BYTE,
+		geometry.VertexField.Norm_UInt8x3, GLConst.UNSIGNED_BYTE,
+		geometry.VertexField.Norm_UInt8x4, GLConst.UNSIGNED_BYTE,
 
-		meshdata.VertexField.SInt8x2, GLConst.BYTE,
-		meshdata.VertexField.SInt8x3, GLConst.BYTE,
-		meshdata.VertexField.SInt8x4, GLConst.BYTE,
-		meshdata.VertexField.Norm_SInt8x2, GLConst.BYTE,
-		meshdata.VertexField.Norm_SInt8x3, GLConst.BYTE,
-		meshdata.VertexField.Norm_SInt8x4, GLConst.BYTE,
+		geometry.VertexField.SInt8x2, GLConst.BYTE,
+		geometry.VertexField.SInt8x3, GLConst.BYTE,
+		geometry.VertexField.SInt8x4, GLConst.BYTE,
+		geometry.VertexField.Norm_SInt8x2, GLConst.BYTE,
+		geometry.VertexField.Norm_SInt8x3, GLConst.BYTE,
+		geometry.VertexField.Norm_SInt8x4, GLConst.BYTE,
 	);
 
 
 	export interface GL1MeshData {
-		attributes: meshdata.PositionedAttribute[];
-		indexElement: meshdata.IndexElementType;
+		attributes: geometry.PositionedAttribute[];
+		indexElement: geometry.IndexElementType;
 		buffers: WebGLBuffer[];
 		bufferStrides: number[];
 		vaos: Map<number, WebGLVertexArrayObjectOES>;
 	}
 
 
-	export function createMesh(rd: GL1RenderDevice, mesh: meshdata.MeshData): GL1MeshData {
+	export function createMesh(rd: GL1RenderDevice, mesh: geometry.MeshData): GL1MeshData {
 		const gl = rd.gl;
 		const buffers: WebGLBuffer[] = [];
 
@@ -88,7 +88,7 @@ namespace sd.render.gl1 {
 		// linearize the attributes and store all required data for this mesh to be bound
 		return {
 			attributes: mesh.layout.layouts.map(vbl => vbl.attributes).reduce((aa, next) => aa.concat(next)),
-			indexElement: mesh.indexBuffer ? mesh.indexBuffer.indexElementType : meshdata.IndexElementType.None,
+			indexElement: mesh.indexBuffer ? mesh.indexBuffer.indexElementType : geometry.IndexElementType.None,
 			buffers,
 			bufferStrides: mesh.layout.layouts.map(vbl => vbl.stride),
 			vaos: new Map<number, WebGLVertexArrayObjectOES>()
@@ -116,7 +116,7 @@ namespace sd.render.gl1 {
 		const vao = rd.extVAO.createVertexArrayOES()!; // TODO: handle allocation failure
 		rd.extVAO.bindVertexArrayOES(vao);
 
-		if (mesh.indexElement !== meshdata.IndexElementType.None) {
+		if (mesh.indexElement !== geometry.IndexElementType.None) {
 			gl.bindBuffer(GLConst.ELEMENT_ARRAY_BUFFER, mesh.buffers[mesh.buffers.length - 1]);
 		}
 
@@ -130,9 +130,9 @@ namespace sd.render.gl1 {
 				}
 				gl.enableVertexAttribArray(attr.index);
 
-				const elementCount = meshdata.vertexFieldElementCount(meshAttr.field);
+				const elementCount = geometry.vertexFieldElementCount(meshAttr.field);
 				const glElementType = gl1TypeForVertexField[meshAttr.field];
-				const normalized = meshdata.vertexFieldIsNormalized(meshAttr.field);
+				const normalized = geometry.vertexFieldIsNormalized(meshAttr.field);
 				gl.vertexAttribPointer(attr.index, elementCount, glElementType, normalized, mesh.bufferStrides[boundBufferIndex], meshAttr.offset);
 			}
 			else {

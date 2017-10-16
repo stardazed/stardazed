@@ -39,7 +39,7 @@ namespace sd.render {
 	}
 
 	export interface ShaderVertexAttribute extends ShaderAttribute {
-		role: meshdata.VertexAttributeRole;
+		role: geometry.VertexAttributeRole;
 		index: number;
 	}
 

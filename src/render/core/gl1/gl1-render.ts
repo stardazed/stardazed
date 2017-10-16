@@ -7,18 +7,18 @@ namespace sd.render.gl1 {
 
 	import RCT = RenderCommandType;
 
-	const gl1TypeForPrimitiveType = makeLUT<meshdata.PrimitiveType, number>(
-		meshdata.PrimitiveType.Point, GLConst.POINTS,
-		meshdata.PrimitiveType.Line, GLConst.LINES,
-		meshdata.PrimitiveType.LineStrip, GLConst.LINE_STRIP,
-		meshdata.PrimitiveType.Triangle, GLConst.TRIANGLES,
-		meshdata.PrimitiveType.TriangleStrip, GLConst.TRIANGLE_STRIP
+	const gl1TypeForPrimitiveType = makeLUT<geometry.PrimitiveType, number>(
+		geometry.PrimitiveType.Point, GLConst.POINTS,
+		geometry.PrimitiveType.Line, GLConst.LINES,
+		geometry.PrimitiveType.LineStrip, GLConst.LINE_STRIP,
+		geometry.PrimitiveType.Triangle, GLConst.TRIANGLES,
+		geometry.PrimitiveType.TriangleStrip, GLConst.TRIANGLE_STRIP
 	);
 
-	const gl1TypeForIndexElementType = makeLUT<meshdata.IndexElementType, number>(
-		meshdata.IndexElementType.UInt8, GLConst.UNSIGNED_BYTE,
-		meshdata.IndexElementType.UInt16, GLConst.UNSIGNED_SHORT,
-		meshdata.IndexElementType.UInt32, GLConst.UNSIGNED_INT
+	const gl1TypeForIndexElementType = makeLUT<geometry.IndexElementType, number>(
+		geometry.IndexElementType.UInt8, GLConst.UNSIGNED_BYTE,
+		geometry.IndexElementType.UInt16, GLConst.UNSIGNED_SHORT,
+		geometry.IndexElementType.UInt32, GLConst.UNSIGNED_INT
 	);
 
 	export function processFrame(this: GL1RenderDevice) {
@@ -155,9 +155,9 @@ namespace sd.render.gl1 {
 
 					// issue draw call
 					const primType = gl1TypeForPrimitiveType[cmd.primitiveType];
-					if (mesh.indexElement !== meshdata.IndexElementType.None) {
+					if (mesh.indexElement !== geometry.IndexElementType.None) {
 						const indexType = gl1TypeForIndexElementType[mesh.indexElement];
-						const offsetBytes = cmd.fromElement * meshdata.indexElementTypeSizeBytes[mesh.indexElement];
+						const offsetBytes = cmd.fromElement * geometry.indexElementTypeSizeBytes[mesh.indexElement];
 						gl.drawElements(primType, cmd.elementCount, indexType, offsetBytes);
 					}
 					else {

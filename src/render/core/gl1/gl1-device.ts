@@ -181,7 +181,7 @@ namespace sd.render.gl1 {
 						this.freeShader(resource as Shader);
 						break;
 					case ResourceType.Mesh:
-						this.freeMesh(resource as meshdata.MeshData);
+						this.freeMesh(resource as geometry.MeshData);
 						break;
 					default:
 						break;
@@ -207,7 +207,7 @@ namespace sd.render.gl1 {
 						this.allocShader(resource as Shader);
 						break;
 					case ResourceType.Mesh:
-						this.allocMesh(resource as meshdata.MeshData);
+						this.allocMesh(resource as geometry.MeshData);
 						break;
 					default:
 						break;
@@ -281,14 +281,14 @@ namespace sd.render.gl1 {
 
 		// -- Mesh
 
-		readonly meshes_ = new ReusableResourceArray<meshdata.MeshData, GL1MeshData>(ResourceType.Mesh);
+		readonly meshes_ = new ReusableResourceArray<geometry.MeshData, GL1MeshData>(ResourceType.Mesh);
 
-		private allocMesh(mesh: meshdata.MeshData) {
+		private allocMesh(mesh: geometry.MeshData) {
 			const gpuMesh = createMesh(this, mesh);
 			this.meshes_.insert(mesh, gpuMesh);
 		}
 
-		private freeMesh(mesh: meshdata.MeshData) {
+		private freeMesh(mesh: geometry.MeshData) {
 			const gpuMesh = this.meshes_.find(mesh);
 			if (gpuMesh) {
 				destroyMesh(this, gpuMesh);

@@ -5,16 +5,16 @@
 group("meshdata", () => {
 	group("makeStandardVertexBufferLayout", () => {
 		test("throws-on-empty-args-list", () => {
-			const { makeStandardVertexBufferLayout } = sd.meshdata;
+			const { makeStandardVertexBufferLayout } = sd.geometry;
 			check.throws(Error, () => {
 				makeStandardVertexBufferLayout([]);
 			});
 		});
 
 		test("retains-arg-order", () => {
-			const { VertexField, VertexAttributeRole, makeStandardVertexBufferLayout } = sd.meshdata;
+			const { VertexField, VertexAttributeRole, makeStandardVertexBufferLayout } = sd.geometry;
 
-			const attrs: sd.meshdata.VertexAttribute[] = [
+			const attrs: sd.geometry.VertexAttribute[] = [
 				{
 					field: VertexField.Float,
 					role: VertexAttributeRole.Position
@@ -32,14 +32,14 @@ group("meshdata", () => {
 		});
 
 		test("basics", () => {
-			const { makeStandardVertexBufferLayout, AttrList } = sd.meshdata;
+			const { makeStandardVertexBufferLayout, AttrList } = sd.geometry;
 			const vbl = makeStandardVertexBufferLayout(AttrList.Pos3Norm3());
 			check.equal(vbl.attributes.length, 2);
 			check.greater(vbl.stride, 0);
 		});
 
 		test("clones-attribute-data", () => {
-			const { makeStandardVertexBufferLayout, AttrList, VertexField, VertexAttributeRole } = sd.meshdata;
+			const { makeStandardVertexBufferLayout, AttrList, VertexField, VertexAttributeRole } = sd.geometry;
 			const attrs = AttrList.Pos3Norm3();
 			const vbl = makeStandardVertexBufferLayout(attrs);
 
@@ -51,7 +51,7 @@ group("meshdata", () => {
 		});
 
 		test("expected-aligned-layout", () => {
-			const { makeStandardVertexBufferLayout, VertexAttributeRole, VertexField } = sd.meshdata;
+			const { makeStandardVertexBufferLayout, VertexAttributeRole, VertexField } = sd.geometry;
 
 			const vl = makeStandardVertexBufferLayout([
 				{ field: VertexField.Norm_SInt8x3, role: VertexAttributeRole.Position },
@@ -69,7 +69,7 @@ group("meshdata", () => {
 		});
 
 		test("sets-bufferIndex-on-all-attrs", () => {
-			const { makeStandardVertexBufferLayout, AttrList } = sd.meshdata;
+			const { makeStandardVertexBufferLayout, AttrList } = sd.geometry;
 
 			const vl = makeStandardVertexBufferLayout(AttrList.Pos3Norm3Colour3UV2(), 3);
 			check.equal(vl.attributes.length, 4);
@@ -80,7 +80,7 @@ group("meshdata", () => {
 		});
 
 		test("default-bufferIndex-is-0", () => {
-			const { makeStandardVertexBufferLayout, AttrList } = sd.meshdata;
+			const { makeStandardVertexBufferLayout, AttrList } = sd.geometry;
 
 			const vl = makeStandardVertexBufferLayout(AttrList.Pos3Norm3UV2Tan3());
 			check.equal(vl.attributes.length, 4);
@@ -91,7 +91,7 @@ group("meshdata", () => {
 		});
 
 		test("layout-of-float-aligned-attrs", () => {
-			const { AttrList, makeStandardVertexBufferLayout } = sd.meshdata;
+			const { AttrList, makeStandardVertexBufferLayout } = sd.geometry;
 
 			const vl1 = makeStandardVertexBufferLayout(AttrList.Pos3Norm3Colour3());
 			check.equal(vl1.attributes.length, 3);
@@ -103,7 +103,7 @@ group("meshdata", () => {
 		});
 
 		test("no-implicit-position-or-normal", () => {
-			const { makeStandardVertexBufferLayout, VertexAttributeRole, attrWeightedPos, attrJointIndexes } = sd.meshdata;
+			const { makeStandardVertexBufferLayout, VertexAttributeRole, attrWeightedPos, attrJointIndexes } = sd.geometry;
 			const vl = makeStandardVertexBufferLayout([
 				attrWeightedPos(0),
 				attrWeightedPos(1),
@@ -119,10 +119,10 @@ group("meshdata", () => {
 	});
 
 	group("VertexBufferLayout", () => {
-		let vbl: sd.meshdata.VertexBufferLayout;
+		let vbl: sd.geometry.VertexBufferLayout;
 
 		before(() => {
-			vbl = sd.meshdata.makeStandardVertexBufferLayout(sd.meshdata.AttrList.Pos3Norm3Colour3UV2());
+			vbl = sd.geometry.makeStandardVertexBufferLayout(sd.geometry.AttrList.Pos3Norm3Colour3UV2());
 		});
 
 		test("bytesRequiredForVertexCount", () => {
@@ -136,7 +136,7 @@ group("meshdata", () => {
 		});
 
 		test("attrByRole", () => {
-			const { VertexAttributeRole } = sd.meshdata;
+			const { VertexAttributeRole } = sd.geometry;
 			const ap = vbl.attrByRole(VertexAttributeRole.Position);
 			check.present(ap, "should have position");
 			check.equal(ap!.role, VertexAttributeRole.Position);
@@ -170,7 +170,7 @@ group("meshdata", () => {
 		});
 
 		test("hasAttributeWithRole", () => {
-			const { VertexAttributeRole } = sd.meshdata;
+			const { VertexAttributeRole } = sd.geometry;
 
 			check.equal(vbl.hasAttributeWithRole(VertexAttributeRole.Position), true);
 			check.equal(vbl.hasAttributeWithRole(VertexAttributeRole.Normal), true);
@@ -185,8 +185,8 @@ group("meshdata", () => {
 
 		test("hasAttributeWithRole-implies-attrByRole-non-null", () => {
 			// use different layout for this test
-			const { makeStandardVertexBufferLayout } = sd.meshdata;
-			const { VertexAttributeRole, attrWeightedPos, attrJointIndexes, attrColour3 } = sd.meshdata;
+			const { makeStandardVertexBufferLayout } = sd.geometry;
+			const { VertexAttributeRole, attrWeightedPos, attrJointIndexes, attrColour3 } = sd.geometry;
 			const vl = makeStandardVertexBufferLayout([
 				attrWeightedPos(0),
 				attrWeightedPos(2),
@@ -213,12 +213,12 @@ group("meshdata", () => {
 
 	group("VertexLayout", () => {
 		test("empty-list-allowed", () => {
-			const { VertexLayout } = sd.meshdata;
+			const { VertexLayout } = sd.geometry;
 			const vl = new VertexLayout([]);
 			check.equal(vl.layouts.length, 0);
 		});
 		test("clones-layouts-array", () => {
-			const { VertexLayout, makeStandardVertexBufferLayout, AttrList } = sd.meshdata;
+			const { VertexLayout, makeStandardVertexBufferLayout, AttrList } = sd.geometry;
 			const vbl = makeStandardVertexBufferLayout(AttrList.Pos3Norm3());
 			const layouts = [vbl];
 			const vl = new VertexLayout(layouts);
@@ -227,7 +227,7 @@ group("meshdata", () => {
 			check.equal(vl.layouts.length, 1);
 		});
 		test("has-correct-render-resource-type", () => {
-			const { VertexLayout } = sd.meshdata;
+			const { VertexLayout } = sd.geometry;
 			const vl = new VertexLayout([]);
 			check.equal(vl.renderResourceType, sd.render.ResourceType.VertexLayout);
 		});
@@ -235,14 +235,14 @@ group("meshdata", () => {
 
 	group("makeStandardVertexLayout", () => {
 		test("empty-list-yields-empty-layout", () => {
-			const { makeStandardVertexLayout } = sd.meshdata;
+			const { makeStandardVertexLayout } = sd.geometry;
 
 			const vl = makeStandardVertexLayout([]);
 			check.equal(vl.layouts.length, 0);
 		});
 
 		test("single-array-yields-1-layout", () => {
-			const { makeStandardVertexLayout, AttrList } = sd.meshdata;
+			const { makeStandardVertexLayout, AttrList } = sd.geometry;
 
 			const vl = makeStandardVertexLayout(AttrList.Pos3Norm3());
 			check.equal(vl.layouts.length, 1);
@@ -250,7 +250,7 @@ group("meshdata", () => {
 		});
 
 		test("single-array-is-at-bufferIndex-0", () => {
-			const { makeStandardVertexLayout, AttrList } = sd.meshdata;
+			const { makeStandardVertexLayout, AttrList } = sd.geometry;
 
 			const vl = makeStandardVertexLayout(AttrList.Pos3Norm3Colour3());
 			check.equal(vl.layouts.length, 1);
@@ -261,7 +261,7 @@ group("meshdata", () => {
 		});
 
 		test("multiple-arrays-yield-multi-layout", () => {
-			const { makeStandardVertexLayout, AttrList } = sd.meshdata;
+			const { makeStandardVertexLayout, AttrList } = sd.geometry;
 
 			const vl = makeStandardVertexLayout([AttrList.Pos3Norm3(), AttrList.Pos3Norm3UV2Tan3()]);
 			check.equal(vl.layouts.length, 2, "2 layouts");
@@ -270,7 +270,7 @@ group("meshdata", () => {
 		});
 
 		test("bufferIndexes-line-up-with-layout-array-order", () => {
-			const { makeStandardVertexLayout, AttrList } = sd.meshdata;
+			const { makeStandardVertexLayout, AttrList } = sd.geometry;
 
 			const vl = makeStandardVertexLayout([
 				AttrList.Pos3Norm3(),

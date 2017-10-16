@@ -2,9 +2,9 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-group("meshdata.VertexField", () => {
+group("geometry.VertexField", () => {
 	test("elementCount", () => {
-		const { VertexField, vertexFieldElementCount } = sd.meshdata;
+		const { VertexField, vertexFieldElementCount } = sd.geometry;
 
 		check.equal(vertexFieldElementCount(VertexField.Undefined), 0);
 
@@ -57,7 +57,7 @@ group("meshdata.VertexField", () => {
 	});
 
 	test("numericType", () => {
-		const { VertexField, vertexFieldNumericType } = sd.meshdata;
+		const { VertexField, vertexFieldNumericType } = sd.geometry;
 		const { Float, UInt32, UInt16, UInt8, SInt32, SInt16, SInt8 } = sd;
 
 		check.equal(vertexFieldNumericType(VertexField.Undefined), null);
@@ -111,7 +111,7 @@ group("meshdata.VertexField", () => {
 	});
 
 	test("elementSizeBytes", () => {
-		const { VertexField, vertexFieldElementSizeBytes } = sd.meshdata;
+		const { VertexField, vertexFieldElementSizeBytes } = sd.geometry;
 
 		check.equal(vertexFieldElementSizeBytes(VertexField.Undefined), 0);
 
@@ -164,7 +164,7 @@ group("meshdata.VertexField", () => {
 	});
 
 	test("sizeBytes", () => {
-		const { VertexField, vertexFieldSizeBytes } = sd.meshdata;
+		const { VertexField, vertexFieldSizeBytes } = sd.geometry;
 
 		check.equal(vertexFieldSizeBytes(VertexField.Undefined), 0);
 
@@ -217,7 +217,7 @@ group("meshdata.VertexField", () => {
 	});
 
 	test("isNormalized", () => {
-		const { VertexField, vertexFieldIsNormalized } = sd.meshdata;
+		const { VertexField, vertexFieldIsNormalized } = sd.geometry;
 
 		check.equal(vertexFieldIsNormalized(VertexField.Undefined), false);
 

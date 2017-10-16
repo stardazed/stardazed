@@ -19,8 +19,8 @@ namespace sd.render {
 			evData: EffectData,
 			camera: math.ProjectionSetup,
 			modelMatrix: Float4x4,
-			mesh: meshdata.MeshData,
-			primGroup: meshdata.PrimitiveGroup,
+			mesh: geometry.MeshData,
+			primGroup: geometry.PrimitiveGroup,
 			toBuffer: RenderCommandBuffer
 		): void;
 

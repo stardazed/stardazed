@@ -62,8 +62,8 @@ namespace sd.render {
 	}
 
 	export interface RenderJob {
-		mesh: meshdata.MeshData;
-		primGroup: meshdata.PrimitiveGroup;
+		mesh: geometry.MeshData;
+		primGroup: geometry.PrimitiveGroup;
 
 		pipeline: Pipeline;
 
@@ -150,7 +150,7 @@ namespace sd.render {
 		sortKey: number;
 
 		meshHandle: number;
-		primitiveType: meshdata.PrimitiveType;
+		primitiveType: geometry.PrimitiveType;
 		fromElement: number;
 		elementCount: number;
 

@@ -8,7 +8,7 @@
 namespace sd.asset {
 
 	export interface Model {
-		mesh: meshdata.MeshData;
+		mesh: geometry.MeshData;
 		materials: Material[];
 	}
 
@@ -23,9 +23,9 @@ namespace sd.asset {
 		}
 
 		const getMeshDependency = (deps: AssetDependencies) => {
-			const meshAsset: Asset<meshdata.MeshData, MeshAssetMetadata> | undefined = deps["mesh"];
+			const meshAsset: Asset<geometry.MeshData, MeshAssetMetadata> | undefined = deps["mesh"];
 			if (meshAsset) {
-				if (meshAsset.kind === "mesh" && meshdata.isMeshData(meshAsset.item)) {
+				if (meshAsset.kind === "mesh" && geometry.isMeshData(meshAsset.item)) {
 					return meshAsset;
 				}
 				else {

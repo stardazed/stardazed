@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.meshdata {
+namespace sd.geometry {
 	// FIXME: once we have triview for non-indexed meshes, make param optional and create proper view
 
 	export function calcVertexNormals(layout: VertexBufferLayout, vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer) {

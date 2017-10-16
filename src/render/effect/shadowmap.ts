@@ -6,7 +6,7 @@
 namespace sd.render.effect {
 
 	import SVT = ShaderValueType;
-	import AttrRole = meshdata.VertexAttributeRole;
+	import AttrRole = geometry.VertexAttributeRole;
 
 	const vsmShadowVertexFunction: VertexFunction = {
 		in: [
@@ -79,8 +79,8 @@ namespace sd.render.effect {
 			evData: EffectData,
 			camera: math.ProjectionSetup,
 			modelMatrix: Float4x4,
-			mesh: meshdata.MeshData,
-			primGroup: meshdata.PrimitiveGroup,
+			mesh: geometry.MeshData,
+			primGroup: geometry.PrimitiveGroup,
 			toBuffer: RenderCommandBuffer
 		) {
 			const mv = mat4.multiply(mat4.create(), camera.viewMatrix, modelMatrix);

@@ -5,7 +5,7 @@
 group("meshdata", () => {
 	group("IndexElementType", () => {
 		test("indexElementTypeSizeBytes", () => {
-			const { IndexElementType, indexElementTypeSizeBytes } = sd.meshdata;
+			const { IndexElementType, indexElementTypeSizeBytes } = sd.geometry;
 			check.equal(indexElementTypeSizeBytes(IndexElementType.UInt8), 1);
 			check.equal(indexElementTypeSizeBytes(IndexElementType.UInt16), 2);
 			check.equal(indexElementTypeSizeBytes(IndexElementType.UInt32), 4);
@@ -16,7 +16,7 @@ group("meshdata", () => {
 		});
 
 		test("minimumIndexElementTypeForVertexCount", () => {
-			const { IndexElementType, minimumIndexElementTypeForVertexCount } = sd.meshdata;
+			const { IndexElementType, minimumIndexElementTypeForVertexCount } = sd.geometry;
 			check.equal(minimumIndexElementTypeForVertexCount(0), IndexElementType.UInt8);
 			check.equal(minimumIndexElementTypeForVertexCount(1), IndexElementType.UInt8);
 			check.equal(minimumIndexElementTypeForVertexCount(255), IndexElementType.UInt8);
@@ -27,7 +27,7 @@ group("meshdata", () => {
 		});
 
 		test("bytesRequiredForIndexCount", () => {
-			const { IndexElementType, bytesRequiredForIndexCount } = sd.meshdata;
+			const { IndexElementType, bytesRequiredForIndexCount } = sd.geometry;
 			check.equal(bytesRequiredForIndexCount(IndexElementType.UInt8, 0), 0);
 			check.equal(bytesRequiredForIndexCount(IndexElementType.UInt8, 1), 1);
 			check.equal(bytesRequiredForIndexCount(IndexElementType.UInt8, 255), 255);
@@ -42,7 +42,7 @@ group("meshdata", () => {
 		});
 
 		test("typedIndexArrayClassForIndexElement", () => {
-			const { IndexElementType, typedIndexArrayClassForIndexElement } = sd.meshdata;
+			const { IndexElementType, typedIndexArrayClassForIndexElement } = sd.geometry;
 			check.throws(Error, () => typedIndexArrayClassForIndexElement(IndexElementType.None));
 			check.equal(typedIndexArrayClassForIndexElement(IndexElementType.UInt8), Uint8ClampedArray);
 			check.equal(typedIndexArrayClassForIndexElement(IndexElementType.UInt16), Uint16Array);
@@ -52,7 +52,7 @@ group("meshdata", () => {
 
 	group("PrimitiveType", () => {
 		test("elementOffsetForPrimitiveCount", () => {
-			const { PrimitiveType, elementOffsetForPrimitiveCount } = sd.meshdata;
+			const { PrimitiveType, elementOffsetForPrimitiveCount } = sd.geometry;
 			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.Point, 0), 0, "point 0");
 			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.Point, 1), 1, "point 1");
 			check.equal(elementOffsetForPrimitiveCount(PrimitiveType.Point, 1000), 1000, "point 1000");
@@ -75,7 +75,7 @@ group("meshdata", () => {
 		});
 
 		test("elementCountForPrimitiveCount", () => {
-			const { PrimitiveType, elementCountForPrimitiveCount } = sd.meshdata;
+			const { PrimitiveType, elementCountForPrimitiveCount } = sd.geometry;
 			check.throws(Error, () => elementCountForPrimitiveCount(PrimitiveType.Point, -1), "throws on negative count");
 
 			check.equal(elementCountForPrimitiveCount(PrimitiveType.Point, 0), 0, "point 0");
@@ -100,7 +100,7 @@ group("meshdata", () => {
 		});
 
 		test("primitiveCountForElementCount", () => {
-			const { PrimitiveType, primitiveCountForElementCount } = sd.meshdata;
+			const { PrimitiveType, primitiveCountForElementCount } = sd.geometry;
 			check.throws(Error, () => primitiveCountForElementCount(PrimitiveType.Point, -1), "throws on negative count");
 
 			check.equal(primitiveCountForElementCount(PrimitiveType.Point, 0), 0, "point 0");

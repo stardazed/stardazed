@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.meshdata {
+namespace sd.geometry {
 
 	export const enum VertexAttributeMapping {
 		Undefined,
@@ -367,4 +367,4 @@ namespace sd.meshdata {
 		}
 	}
 
-} // ns sd.meshdata
+} // ns sd.geometry

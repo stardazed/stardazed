@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-namespace sd.meshdata {
+namespace sd.geometry {
 
 	// __   __       _              _  _   _       _ _         _
 	// \ \ / /__ _ _| |_ _____ __  /_\| |_| |_ _ _(_) |__ _  _| |_ ___
@@ -215,4 +215,4 @@ namespace sd.meshdata {
 		};
 	}
 
-} // ns sd.meshdata
+} // ns sd.geometry

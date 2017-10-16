@@ -115,7 +115,7 @@ Pipeline.create({
 		void main() {}
 	`,
 	attributes: {
-		"vertexPos_model": meshdata.VertexAttrRole.Position
+		"vertexPos_model": geometry.VertexAttrRole.Position
 	},
 	colourBuffers: [PixelFormat.RGBA8],
 	depthBuffer: DSAttachmentReq.DontCare,

@@ -43,20 +43,20 @@ namespace sd.entity {
 		private instanceData_: container.MultiArrayBuffer;
 		private featuresBase_: ConstEnumArray32View<MeshFeatures>;
 		private shapeBase_: ConstEnumArray32View<MeshShapeType>;
-		private indexElementTypeBase_: ConstEnumArray32View<meshdata.IndexElementType>;
-		private uniformPrimTypeBase_: ConstEnumArray32View<meshdata.PrimitiveType>;
+		private indexElementTypeBase_: ConstEnumArray32View<geometry.IndexElementType>;
+		private uniformPrimTypeBase_: ConstEnumArray32View<geometry.PrimitiveType>;
 		private totalElementCountBase_: Int32Array;
 		private subMeshOffsetCountBase_: Int32Array;
 
 		private subMeshData_: container.MultiArrayBuffer;
-		private smPrimTypeBase_: ConstEnumArray32View<meshdata.PrimitiveType>;
+		private smPrimTypeBase_: ConstEnumArray32View<geometry.PrimitiveType>;
 		private smFromElementBase_: Int32Array;
 		private smElementCountBase_: Int32Array;
 		private smMaterialBase_: Int32Array;
 
 		private entityMap_: Map<Entity, MeshInstance>;
-		private assetMeshMap_: WeakMap<meshdata.MeshData, MeshInstance>;
-		private meshes_: meshdata.MeshData[];
+		private assetMeshMap_: WeakMap<geometry.MeshData, MeshInstance>;
+		private meshes_: geometry.MeshData[];
 
 		constructor() {
 			const instanceFields: container.MABField[] = [
@@ -80,7 +80,7 @@ namespace sd.entity {
 			this.rebaseSubMeshes();
 
 			this.entityMap_ = new Map<Entity, MeshInstance>();
-			this.assetMeshMap_ = new WeakMap<meshdata.MeshData, MeshInstance>();
+			this.assetMeshMap_ = new WeakMap<geometry.MeshData, MeshInstance>();
 			this.meshes_ = [];
 		}
 
@@ -101,7 +101,7 @@ namespace sd.entity {
 		}
 
 
-		create(mesh: meshdata.MeshData, shape = MeshShapeType.ConcaveMesh): MeshInstance {
+		create(mesh: geometry.MeshData, shape = MeshShapeType.ConcaveMesh): MeshInstance {
 			if (this.assetMeshMap_.has(mesh)) {
 				return this.assetMeshMap_.get(mesh)!;
 			}
@@ -118,12 +118,12 @@ namespace sd.entity {
 			for (const layout of mesh.layout.layouts) {
 				for (const attr of layout.attributes) {
 					switch (attr.role) {
-						case meshdata.VertexAttributeRole.Position: meshFeatures |= MeshFeatures.VertexPositions; break;
-						case meshdata.VertexAttributeRole.Normal: meshFeatures |= MeshFeatures.VertexNormals; break;
-						case meshdata.VertexAttributeRole.Tangent: meshFeatures |= MeshFeatures.VertexTangents; break;
-						case meshdata.VertexAttributeRole.UV0: meshFeatures |= MeshFeatures.VertexUVs; break; // UV1,2,3 can only occur alongside UV0
-						case meshdata.VertexAttributeRole.Colour: meshFeatures |= MeshFeatures.VertexColours; break;
-						case meshdata.VertexAttributeRole.WeightedPos0: meshFeatures |= MeshFeatures.VertexWeights; break;
+						case geometry.VertexAttributeRole.Position: meshFeatures |= MeshFeatures.VertexPositions; break;
+						case geometry.VertexAttributeRole.Normal: meshFeatures |= MeshFeatures.VertexNormals; break;
+						case geometry.VertexAttributeRole.Tangent: meshFeatures |= MeshFeatures.VertexTangents; break;
+						case geometry.VertexAttributeRole.UV0: meshFeatures |= MeshFeatures.VertexUVs; break; // UV1,2,3 can only occur alongside UV0
+						case geometry.VertexAttributeRole.Colour: meshFeatures |= MeshFeatures.VertexColours; break;
+						case geometry.VertexAttributeRole.WeightedPos0: meshFeatures |= MeshFeatures.VertexWeights; break;
 						default: break;
 					}
 				}
@@ -135,7 +135,7 @@ namespace sd.entity {
 				this.indexElementTypeBase_[instance] = mesh.indexBuffer.indexElementType;
 			}
 			else {
-				this.indexElementTypeBase_[instance] = meshdata.IndexElementType.None;
+				this.indexElementTypeBase_[instance] = geometry.IndexElementType.None;
 			}
 
 			// -- cache submesh metadata
@@ -158,7 +158,7 @@ namespace sd.entity {
 
 				totalElementCount += subMesh.elementCount;
 				if (subMesh.type !== sharedPrimType) {
-					sharedPrimType = meshdata.PrimitiveType.None;
+					sharedPrimType = geometry.PrimitiveType.None;
 				}
 				subMeshIndex += 1;
 			}
@@ -223,7 +223,7 @@ namespace sd.entity {
 		}
 
 		subMeshes(inst: MeshInstance) {
-			const subMeshes: meshdata.SubMesh[] = [];
+			const subMeshes: geometry.SubMesh[] = [];
 			const meshIx = inst as number;
 			const offsetCount = container.copyIndexedVec2(this.subMeshOffsetCountBase_, meshIx);
 
@@ -243,7 +243,7 @@ namespace sd.entity {
 		features(inst: MeshInstance): MeshFeatures { return this.featuresBase_[inst as number]; }
 		shape(inst: MeshInstance): MeshShapeType { return this.shapeBase_[inst as number]; }
 
-		indexBufferElementType(inst: MeshInstance): meshdata.IndexElementType { return this.indexElementTypeBase_[inst as number]; }
+		indexBufferElementType(inst: MeshInstance): geometry.IndexElementType { return this.indexElementTypeBase_[inst as number]; }
 		uniformPrimitiveType(inst: MeshInstance) { return this.uniformPrimTypeBase_[inst as number]; }
 		totalElementCount(inst: MeshInstance) { return this.totalElementCountBase_[inst as number]; }
 	}
