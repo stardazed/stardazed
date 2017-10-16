@@ -1,4 +1,4 @@
-// meshdata/meshdata - mesh data
+// geometry/meshdata - mesh data
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed

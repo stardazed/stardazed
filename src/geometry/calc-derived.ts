@@ -1,4 +1,4 @@
-// meshdata/calc-derived - calculate normals and tangents
+// geometry/calc-derived - calculate normals and tangents
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
