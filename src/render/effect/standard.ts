@@ -138,7 +138,8 @@ namespace sd.render.effect {
 			evData: EffectData,
 			camera: math.ProjectionSetup,
 			modelMatrix: Float4x4,
-			mesh: geometry.MeshData, primGroup: geometry.PrimitiveGroup,
+			geom: geometry.Geometry,
+			primGroup: geometry.PrimitiveGroup,
 			toBuffer: RenderCommandBuffer
 		) {
 			const sdata = evData as StandardEffectData;
@@ -157,7 +158,7 @@ namespace sd.render.effect {
 			const lightingSampler = this.lighting_.lutTextureSampler;
 
 			toBuffer.render({
-				mesh,
+				geom,
 				primGroup,
 				textures: [
 					sdata.diffuse,

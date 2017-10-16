@@ -1,15 +1,9 @@
-// geometry/meshdata - mesh data
+// geometry/geometry - geometry data access
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 namespace sd.geometry {
-
-	//  __  __        _    ___       _
-	// |  \/  |___ __| |_ |   \ __ _| |_ __ _
-	// | |\/| / -_|_-< ' \| |) / _` |  _/ _` |
-	// |_|  |_\___/__/_||_|___/\__,_|\__\__,_|
-	//
 
 	export interface PrimitiveGroup {
 		type: geometry.PrimitiveType;
@@ -18,34 +12,34 @@ namespace sd.geometry {
 	}
 
 	export interface SubMesh extends PrimitiveGroup {
-		materialIx: number; // arbitrary material index or reference; representation of Materials is external to MeshData
+		materialIx: number; // arbitrary material index or reference; representation of Materials is external to Geometry
 	}
 
 	const enum BufferAlignment {
 		SubBuffer = 8
 	}
 
-	export interface MeshDataAllocOptions {
+	export interface GeometryAllocOptions {
 		layout: VertexLayout;
 		vertexCount: number;
 		indexCount: number;
 	}
 
-	export interface MeshData extends render.RenderResourceBase {
+	export interface Geometry extends render.RenderResourceBase {
 		layout: VertexLayout;
 		vertexBuffers: VertexBuffer[];
 		indexBuffer?: IndexBuffer;
 		subMeshes: SubMesh[];
 	}
 
-	export const isMeshData = (md: any): md is MeshData =>
-		(typeof md === "object") && md !== null &&
-		isVertexLayout(md.layout) &&
-		Array.isArray(md.vertexBuffers) &&
-		(md.indexBuffer === void 0 || md.indexBuffer instanceof IndexBuffer) &&
-		Array.isArray(md.subMeshes);
+	export const isGeometry = (geom: any): geom is Geometry =>
+		(typeof geom === "object") && geom !== null &&
+		isVertexLayout(geom.layout) &&
+		Array.isArray(geom.vertexBuffers) &&
+		(geom.indexBuffer === void 0 || geom.indexBuffer instanceof IndexBuffer) &&
+		Array.isArray(geom.subMeshes);
 
-	export function allocateMeshData(options: MeshDataAllocOptions): MeshData {
+	export function allocateGeometry(options: GeometryAllocOptions): Geometry {
 		let totalBytes = 0;
 		for (const layout of options.layout.layouts) {
 			totalBytes += layout.bytesRequiredForVertexCount(options.vertexCount);
@@ -59,7 +53,7 @@ namespace sd.geometry {
 
 		assert(totalBytes > 0, "Nothing to allocate!");
 
-		const md: MeshData = {
+		const geom: Geometry = {
 			renderResourceType: render.ResourceType.Mesh,
 			renderResourceHandle: 0,
 			layout: options.layout,
@@ -73,7 +67,7 @@ namespace sd.geometry {
 			const subSize = layout.bytesRequiredForVertexCount(options.vertexCount);
 			const subStorage = new Uint8ClampedArray(storage, byteOffset, subSize);
 			const vb = new VertexBuffer(options.vertexCount, layout.stride, subStorage);
-			md.vertexBuffers.push(vb);
+			geom.vertexBuffers.push(vb);
 
 			byteOffset += subSize;
 			byteOffset = math.alignUp(byteOffset, BufferAlignment.SubBuffer);
@@ -84,18 +78,18 @@ namespace sd.geometry {
 			const subSize = bytesRequiredForIndexCount(elementType, options.indexCount);
 			const subStorage = new Uint8ClampedArray(storage, byteOffset, subSize);
 
-			md.indexBuffer = new IndexBuffer(elementType, options.indexCount, subStorage);
+			geom.indexBuffer = new IndexBuffer(elementType, options.indexCount, subStorage);
 			byteOffset += indexSize;
 			byteOffset = math.alignUp(byteOffset, BufferAlignment.SubBuffer);
 		}
 
 		assert(totalBytes === byteOffset, "Mismatch of precalculated and actual buffer sizes");
-		return md;
+		return geom;
 	}
 
-	export function findAttributeOfRoleInMesh(mesh: MeshData, role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | undefined {
-		const pa = findAttributeOfRoleInLayout(mesh.layout, role);
-		const avb = pa ? mesh.vertexBuffers[pa.bufferIndex] : undefined;
+	export function findAttributeOfRoleInGeometry(geom: Geometry, role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | undefined {
+		const pa = findAttributeOfRoleInLayout(geom.layout, role);
+		const avb = pa ? geom.vertexBuffers[pa.bufferIndex] : undefined;
 
 		if (pa && avb) {
 			return { vertexBuffer: avb, attr: pa };
@@ -104,10 +98,10 @@ namespace sd.geometry {
 	}
 
 	// derived vertex data generation
-	export function genVertexNormals(mesh: MeshData) {
-		mesh.vertexBuffers.forEach((vertexBuffer, ix) => {
-			if (mesh.indexBuffer) {
-				calcVertexNormals(mesh.layout.layouts[ix], vertexBuffer, mesh.indexBuffer);
+	export function genVertexNormals(geom: Geometry) {
+		geom.vertexBuffers.forEach((vertexBuffer, ix) => {
+			if (geom.indexBuffer) {
+				calcVertexNormals(geom.layout.layouts[ix], vertexBuffer, geom.indexBuffer);
 			}
 		});
 	}

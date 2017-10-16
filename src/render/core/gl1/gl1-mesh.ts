@@ -60,7 +60,7 @@ namespace sd.render.gl1 {
 	}
 
 
-	export function createMesh(rd: GL1RenderDevice, mesh: geometry.MeshData): GL1MeshData {
+	export function createMesh(rd: GL1RenderDevice, mesh: geometry.Geometry): GL1MeshData {
 		const gl = rd.gl;
 		const buffers: WebGLBuffer[] = [];
 

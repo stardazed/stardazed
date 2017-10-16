@@ -62,7 +62,7 @@ namespace sd.render {
 	}
 
 	export interface RenderJob {
-		mesh: geometry.MeshData;
+		geom: geometry.Geometry;
 		primGroup: geometry.PrimitiveGroup;
 
 		pipeline: Pipeline;
@@ -259,7 +259,7 @@ namespace sd.render {
 				type: RenderCommandType.RenderJob,
 				sortKey: 1,
 				pipeline: job.pipeline,
-				meshHandle: job.mesh.renderResourceHandle,
+				meshHandle: job.geom.renderResourceHandle,
 				primitiveType: job.primGroup.type,
 				fromElement: job.primGroup.fromElement,
 				elementCount: job.primGroup.elementCount,

@@ -28,7 +28,7 @@ namespace sd.geometry {
 		UV2,
 		UV3,
 
-		// skinned mesh
+		// skinned geometry
 		WeightedPos0, WeightedPos1, WeightedPos2, WeightedPos3,
 		JointIndexes
 	}

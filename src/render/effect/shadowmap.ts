@@ -79,7 +79,7 @@ namespace sd.render.effect {
 			evData: EffectData,
 			camera: math.ProjectionSetup,
 			modelMatrix: Float4x4,
-			mesh: geometry.MeshData,
+			geom: geometry.Geometry,
 			primGroup: geometry.PrimitiveGroup,
 			toBuffer: RenderCommandBuffer
 		) {
@@ -87,7 +87,7 @@ namespace sd.render.effect {
 			const mvp = mat4.multiply(mat4.create(), camera.viewProjMatrix, modelMatrix);
 	
 			toBuffer.render({
-				mesh,
+				geom,
 				primGroup,
 				textures: [],
 				samplers: [],

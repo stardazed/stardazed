@@ -76,7 +76,7 @@ namespace sd.physics {
 
 	export interface MeshShapeDescriptor {
 		type: PhysicsShapeType.Mesh;
-		mesh: geometry.MeshData;
+		geom: geometry.Geometry;
 		subMeshIndex?: number;
 		convex?: boolean;
 		margin?: number; // convex meshes only
@@ -117,16 +117,16 @@ namespace sd.physics {
 		return new Ammo.btVector3(v3[0 + offset], v3[1 + offset], v3[2 + offset]);
 	}
 
-	function createMeshShape(mesh: geometry.MeshData, subMeshIndex?: number, convex?: boolean) {
+	function createMeshShape(geom: geometry.Geometry, subMeshIndex?: number, convex?: boolean) {
 		const triView = (subMeshIndex !== undefined) ?
-			geometry.makeTriangleViewForSubMesh(mesh, subMeshIndex) :
-			geometry.makeTriangleViewForMesh(mesh);
+			geometry.makeTriangleViewForSubMesh(geom, subMeshIndex) :
+			geometry.makeTriangleViewForGeometry(geom);
 		if (! triView) {
 			return undefined;
 		}
-		const posAttr = geometry.findAttributeOfRoleInMesh(mesh, geometry.VertexAttributeRole.Position);
+		const posAttr = geometry.findAttributeOfRoleInGeometry(geom, geometry.VertexAttributeRole.Position);
 		if (! posAttr) {
-			console.warn("createMeshShape: the mesh does not have a position attribute", mesh);
+			console.warn("createMeshShape: the geometry does not have a position attribute", geom);
 			return undefined;
 		}
 		const posView = new geometry.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
@@ -214,7 +214,7 @@ namespace sd.physics {
 				break;
 			}
 			case PhysicsShapeType.Mesh: {
-				shape = createMeshShape(desc.mesh, desc.subMeshIndex, desc.convex);
+				shape = createMeshShape(desc.geom, desc.subMeshIndex, desc.convex);
 				break;
 			}
 			case PhysicsShapeType.HeightField: {

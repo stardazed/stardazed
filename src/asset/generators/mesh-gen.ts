@@ -13,18 +13,18 @@ namespace sd.asset.generate {
 
 	export const meshGenerator: AssetGenerator = (config: Partial<MeshGenConfig>) =>
 		new Promise<Asset>((resolve, reject) => {
-			let md: Promise<geometry.MeshData>;
+			let geom: Promise<geometry.Geometry>;
 			switch (config.shape) {
 				case "box":
-					md = boxMeshGenerator(config);
+					geom = boxMeshGenerator(config);
 					break;
 				default:
 					return reject(`Mesh generator: unknown or missing shape "${config.shape}"`);
 			}
 
-			resolve(md.then(meshData => ({
+			resolve(geom.then(geometry => ({
 				kind: "mesh",
-				item: meshData
+				item: geometry
 			})));
 		});
 
@@ -41,7 +41,7 @@ namespace sd.asset.generate {
 	 * @param config box mesh configuration
 	 */
 	const boxMeshGenerator = (config: Partial<BoxMeshGenConfig>) =>
-		new Promise<geometry.MeshData>((resolve, reject) => {
+		new Promise<geometry.Geometry>((resolve, reject) => {
 			const { extents } = config;
 			if (Array.isArray(extents) && extents.length === 3 && extents.every(v => typeof v === "number")) {
 				resolve(geometry.gen.generate(new geometry.gen.Box({

@@ -89,7 +89,7 @@ namespace sd.render {
 						const mi = meshes.forEntity(ent);
 						if (mi !== 0) {
 							const worldMat = transforms.worldMatrix(transforms.forEntity(ent));
-							const mesh = meshes.mesh(mi);
+							const geom = meshes.geometry(mi);
 							const subMeshes = meshes.subMeshes(mi);
 							const materials = renderers.materials(mri);
 							const subMeshCount = subMeshes.length;
@@ -103,7 +103,7 @@ namespace sd.render {
 								effect.addRenderJobs(
 									material,
 									camera, worldMat,
-									mesh, subMesh,
+									geom, subMesh,
 									cmds
 								);
 							}

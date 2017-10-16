@@ -71,7 +71,7 @@ namespace sd.asset.importer {
 			dependencies: modelDependencies,
 		};
 
-		const meshAsset: Asset<geometry.MeshData, any> = {
+		const meshAsset: Asset<geometry.Geometry, any> = {
 			kind: "mesh"
 		};
 

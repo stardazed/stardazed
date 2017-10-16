@@ -50,7 +50,7 @@ Features
 ### Geometry
 - Generate optimised meshes from arbitrary vertex attribute streams; groups materials, merges vertices, etc.
 - Generation and modification of interleaved vertex buffers and index buffers
-- Standard mesh primitive generation such as cones, cubes, spheres, etc. + mesh manipulation and merging
+- Standard primitive generators for cones, cubes, spheres, etc. + geometry manipulation and merging
 
 ### Scene Graph
 - Component-based scene graph using Data Oriented Design principles

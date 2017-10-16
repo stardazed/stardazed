@@ -1,4 +1,4 @@
-// geometry/builder - construct MeshData from normalized sources such as assets
+// geometry/builder - construct Geometry from normalized sources such as assets
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -128,7 +128,7 @@ namespace sd.geometry {
 				this.streams_.unshift(positionStream);
 			}
 
-			// sort attr streams ensuring ones that are not to be included in the mesh
+			// sort attr streams ensuring ones that are not to be included in the geometry
 			// end up at the end.
 			container.stableSort(this.streams_, (sA, sB) => {
 				if (sA.includeInMesh === sB.includeInMesh) {
@@ -312,27 +312,27 @@ namespace sd.geometry {
 
 
 		complete() {
-			// Create MeshData with a VB with the streams marked for inclusion in the
-			// final mesh data. Because we sorted the non-included streams to the end
+			// Create Geometry with a VB with the streams marked for inclusion in the
+			// final geometry data. Because we sorted the non-included streams to the end
 			// of the list the order of this filtered list will still be the same as
 			// of the vertexData arrays, so no need for mapping etc.
 			const meshAttributeStreams = this.streams_.filter(s => s.includeInMesh);
 			const attrs = meshAttributeStreams.map(s => s.attr!);
 
 			// allocate as single buffer
-			const mesh = allocateMeshData({
+			const geom = allocateGeometry({
 				layout: makeStandardVertexLayout(attrs),
 				vertexCount: this.vertexCount_,
 				indexCount: this.triangleCount_ * 3
 			});
-			const layout = mesh.layout.layouts[0];
+			const layout = geom.layout.layouts[0];
 
 			// copy vertex streams
 			for (let six = 0; six < meshAttributeStreams.length; ++six) {
 				const streamData = this.vertexData_[six];
 				const attribute = layout.attrByIndex(six);
 				if (attribute) {
-					const view = new VertexBufferAttributeView(mesh.vertexBuffers[0], attribute);
+					const view = new VertexBufferAttributeView(geom.vertexBuffers[0], attribute);
 					view.copyValuesFrom(streamData, this.vertexCount_);
 				}
 				// FIXME else unexpected()
@@ -348,7 +348,7 @@ namespace sd.geometry {
 					container.appendArrayInPlace(mergedIndexes, indexes);
 					const groupElementCount = indexes.length;
 
-					mesh.subMeshes.push({
+					geom.subMeshes.push({
 						type: PrimitiveType.Triangle,
 						fromElement: nextElementIndex,
 						elementCount: groupElementCount,
@@ -359,11 +359,11 @@ namespace sd.geometry {
 				}
 			});
 
-			const indexView = mesh.indexBuffer!.typedBasePtr(0, mergedIndexes.length);
+			const indexView = geom.indexBuffer!.typedBasePtr(0, mergedIndexes.length);
 			container.copyElementRange(indexView, 0, mergedIndexes, 0, mergedIndexes.length);
-			// mesh.indexBuffer!.setIndexes(0, mergedIndexes.length, mergedIndexes);
+			// geom.indexBuffer!.setIndexes(0, mergedIndexes.length, mergedIndexes);
 
-			return mesh;
+			return geom;
 		}
 	}
 

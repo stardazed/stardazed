@@ -47,37 +47,37 @@ namespace sd.geometry {
 		return new IndexBufferTriangleView(ib);
 	}
 
-	export function makeTriangleViewForMesh(mesh: MeshData): TriangleView | undefined {
-		const allTrianglePrimitives = mesh.subMeshes.every(sm => sm.type === PrimitiveType.Triangle);
+	export function makeTriangleViewForGeometry(geom: Geometry): TriangleView | undefined {
+		const allTrianglePrimitives = geom.subMeshes.every(sm => sm.type === PrimitiveType.Triangle);
 		if (! allTrianglePrimitives) {
-			console.warn("triangleViewForMesh, cannot create TriangleView as not all submeshes are of Triangle type", mesh);
+			console.warn("triangleViewForMesh, cannot create TriangleView as not all submeshes are of Triangle type", geom);
 			return undefined;
 		}
 
-		if (mesh.indexBuffer) {
-			return new IndexBufferTriangleView(mesh.indexBuffer);
+		if (geom.indexBuffer) {
+			return new IndexBufferTriangleView(geom.indexBuffer);
 		}
 
-		const elementCount = mesh.subMeshes.map(sm => sm.elementCount).reduce((sum, count) => sum + count, 0);
+		const elementCount = geom.subMeshes.map(sm => sm.elementCount).reduce((sum, count) => sum + count, 0);
 		return new DirectTriangleView(elementCount);
 	}
 
 
-	export function makeTriangleViewForSubMesh(mesh: MeshData, subMeshIndex: number): TriangleView | undefined {
-		const subMesh = mesh.subMeshes[subMeshIndex];
+	export function makeTriangleViewForSubMesh(geom: Geometry, subMeshIndex: number): TriangleView | undefined {
+		const subMesh = geom.subMeshes[subMeshIndex];
 		if (! subMesh) {
-			console.warn("triangleViewForSubMesh, invalid submesh index", mesh, subMeshIndex);
+			console.warn("triangleViewForSubMesh, invalid submesh index", geom, subMeshIndex);
 			return undefined;
 		}
 		if (subMesh.type !== PrimitiveType.Triangle) {
-			console.warn("triangleViewForSubMesh, incompatible submesh type", mesh, subMeshIndex);
+			console.warn("triangleViewForSubMesh, incompatible submesh type", geom, subMeshIndex);
 			return undefined;
 		}
 		const fromTriangle = (subMesh.fromElement / 3) | 0;
 		const toTriangle = ((subMesh.elementCount / 3) | 0) + fromTriangle;
 
-		if (mesh.indexBuffer) {
-			return new IndexBufferTriangleView(mesh.indexBuffer, fromTriangle, toTriangle);
+		if (geom.indexBuffer) {
+			return new IndexBufferTriangleView(geom.indexBuffer, fromTriangle, toTriangle);
 		}
 		return new DirectTriangleView(subMesh.elementCount, fromTriangle, toTriangle);
 	}

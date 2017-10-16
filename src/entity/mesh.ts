@@ -11,7 +11,7 @@ namespace sd.entity {
 	// |_|  |_\___/__/_||_|
 	//                     
 
-	export const enum MeshFeatures {
+	export const enum GeometryFeatures {
 		VertexPositions = 1,
 		VertexNormals = 2,
 		VertexTangents = 4,
@@ -41,7 +41,7 @@ namespace sd.entity {
 
 	export class MeshComponent implements Component<MeshComponent> {
 		private instanceData_: container.MultiArrayBuffer;
-		private featuresBase_: ConstEnumArray32View<MeshFeatures>;
+		private featuresBase_: ConstEnumArray32View<GeometryFeatures>;
 		private shapeBase_: ConstEnumArray32View<MeshShapeType>;
 		private indexElementTypeBase_: ConstEnumArray32View<geometry.IndexElementType>;
 		private uniformPrimTypeBase_: ConstEnumArray32View<geometry.PrimitiveType>;
@@ -55,8 +55,8 @@ namespace sd.entity {
 		private smMaterialBase_: Int32Array;
 
 		private entityMap_: Map<Entity, MeshInstance>;
-		private assetMeshMap_: WeakMap<geometry.MeshData, MeshInstance>;
-		private meshes_: geometry.MeshData[];
+		private assetGeometryMap_: WeakMap<geometry.Geometry, MeshInstance>;
+		private geometries_: geometry.Geometry[];
 
 		constructor() {
 			const instanceFields: container.MABField[] = [
@@ -80,8 +80,8 @@ namespace sd.entity {
 			this.rebaseSubMeshes();
 
 			this.entityMap_ = new Map<Entity, MeshInstance>();
-			this.assetMeshMap_ = new WeakMap<geometry.MeshData, MeshInstance>();
-			this.meshes_ = [];
+			this.assetGeometryMap_ = new WeakMap<geometry.Geometry, MeshInstance>();
+			this.geometries_ = [];
 		}
 
 		rebaseInstances() {
@@ -101,9 +101,9 @@ namespace sd.entity {
 		}
 
 
-		create(mesh: geometry.MeshData, shape = MeshShapeType.ConcaveMesh): MeshInstance {
-			if (this.assetMeshMap_.has(mesh)) {
-				return this.assetMeshMap_.get(mesh)!;
+		create(geom: geometry.Geometry, shape = MeshShapeType.ConcaveMesh): MeshInstance {
+			if (this.assetGeometryMap_.has(geom)) {
+				return this.assetGeometryMap_.get(geom)!;
 			}
 
 			// -- ensure space in instance and dependent arrays
@@ -112,35 +112,35 @@ namespace sd.entity {
 			}
 			const instance = this.instanceData_.count;
 
-			let meshFeatures: MeshFeatures = 0;
+			let geometryFeatures: GeometryFeatures = 0;
 
-			// -- set the appropriate mesh feature flags based on available attributes
-			for (const layout of mesh.layout.layouts) {
+			// -- set the appropriate geometry feature flags based on available attributes
+			for (const layout of geom.layout.layouts) {
 				for (const attr of layout.attributes) {
 					switch (attr.role) {
-						case geometry.VertexAttributeRole.Position: meshFeatures |= MeshFeatures.VertexPositions; break;
-						case geometry.VertexAttributeRole.Normal: meshFeatures |= MeshFeatures.VertexNormals; break;
-						case geometry.VertexAttributeRole.Tangent: meshFeatures |= MeshFeatures.VertexTangents; break;
-						case geometry.VertexAttributeRole.UV0: meshFeatures |= MeshFeatures.VertexUVs; break; // UV1,2,3 can only occur alongside UV0
-						case geometry.VertexAttributeRole.Colour: meshFeatures |= MeshFeatures.VertexColours; break;
-						case geometry.VertexAttributeRole.WeightedPos0: meshFeatures |= MeshFeatures.VertexWeights; break;
+						case geometry.VertexAttributeRole.Position: geometryFeatures |= GeometryFeatures.VertexPositions; break;
+						case geometry.VertexAttributeRole.Normal: geometryFeatures |= GeometryFeatures.VertexNormals; break;
+						case geometry.VertexAttributeRole.Tangent: geometryFeatures |= GeometryFeatures.VertexTangents; break;
+						case geometry.VertexAttributeRole.UV0: geometryFeatures |= GeometryFeatures.VertexUVs; break; // UV1,2,3 can only occur alongside UV0
+						case geometry.VertexAttributeRole.Colour: geometryFeatures |= GeometryFeatures.VertexColours; break;
+						case geometry.VertexAttributeRole.WeightedPos0: geometryFeatures |= GeometryFeatures.VertexWeights; break;
 						default: break;
 					}
 				}
 			}
 
 			// -- allocate gpu index buffer if present and cache some index info as it is accessed frequently
-			if (mesh.indexBuffer) {
-				meshFeatures |= MeshFeatures.Indexes;
-				this.indexElementTypeBase_[instance] = mesh.indexBuffer.indexElementType;
+			if (geom.indexBuffer) {
+				geometryFeatures |= GeometryFeatures.Indexes;
+				this.indexElementTypeBase_[instance] = geom.indexBuffer.indexElementType;
 			}
 			else {
 				this.indexElementTypeBase_[instance] = geometry.IndexElementType.None;
 			}
 
 			// -- cache submesh metadata
-			const subMeshCount = mesh.subMeshes.length;
-			assert(subMeshCount > 0, "No submeshes present in meshData");
+			const subMeshCount = geom.subMeshes.length;
+			assert(subMeshCount > 0, "No submeshes present in geometry");
 			let subMeshIndex = this.subMeshData_.count;
 			if (this.subMeshData_.resize(subMeshIndex + subMeshCount) === container.InvalidatePointers.Yes) {
 				this.rebaseSubMeshes();
@@ -148,9 +148,9 @@ namespace sd.entity {
 			container.setIndexedVec2(this.subMeshOffsetCountBase_, instance, [subMeshIndex, subMeshCount]);
 
 			let totalElementCount = 0;
-			let sharedPrimType = mesh.subMeshes[0].type;
+			let sharedPrimType = geom.subMeshes[0].type;
 
-			for (const subMesh of mesh.subMeshes) {
+			for (const subMesh of geom.subMeshes) {
 				this.smPrimTypeBase_[subMeshIndex] = subMesh.type;
 				this.smFromElementBase_[subMeshIndex] = subMesh.fromElement;
 				this.smElementCountBase_[subMeshIndex] = subMesh.elementCount;
@@ -164,14 +164,14 @@ namespace sd.entity {
 			}
 
 			// -- store mesh features accumulated during the creation process
-			this.featuresBase_[instance] = meshFeatures;
+			this.featuresBase_[instance] = geometryFeatures;
 			this.shapeBase_[instance] = shape;
 			this.uniformPrimTypeBase_[instance] = sharedPrimType;
 			this.totalElementCountBase_[instance] = totalElementCount;
 
 			// -- remember that we've already instantiated this asset
-			this.assetMeshMap_.set(mesh, instance);
-			this.meshes_[instance] = mesh;
+			this.assetGeometryMap_.set(geom, instance);
+			this.geometries_[instance] = geom;
 
 			return instance;
 		}
@@ -213,8 +213,8 @@ namespace sd.entity {
 
 		// -- single instance getters
 
-		mesh(inst: MeshInstance) {
-			return this.meshes_[inst as number];
+		geometry(inst: MeshInstance) {
+			return this.geometries_[inst as number];
 		}
 
 		subMeshCount(inst: MeshInstance) {
@@ -240,7 +240,7 @@ namespace sd.entity {
 			return subMeshes;
 		}
 
-		features(inst: MeshInstance): MeshFeatures { return this.featuresBase_[inst as number]; }
+		features(inst: MeshInstance): GeometryFeatures { return this.featuresBase_[inst as number]; }
 		shape(inst: MeshInstance): MeshShapeType { return this.shapeBase_[inst as number]; }
 
 		indexBufferElementType(inst: MeshInstance): geometry.IndexElementType { return this.indexElementTypeBase_[inst as number]; }

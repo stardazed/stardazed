@@ -8,7 +8,7 @@
 namespace sd.asset {
 
 	export interface CacheAccess {
-		(kind: "mesh", name: string): geometry.MeshData;
+		(kind: "mesh", name: string): geometry.Geometry;
 	}
 
 } // ns sd.asset
@@ -42,20 +42,20 @@ namespace sd.asset.parse {
 		materialIndex: number;
 	}
 
-	export interface VertexStreamMeshData {
+	export interface VertexStreamGeometry {
 		type: "streams";
 		streams?: VertexStream[];
 		triangleBufferKey?: string;
 		groups?: Partial<TriangleGroup>[];
 	}
 
-	export interface CompiledMeshData {
+	export interface CompiledGeometry {
 		type: "compiled";
 	}
 
-	export type MeshAssetMetadata = VertexStreamMeshData | CompiledMeshData;
+	export type MeshAssetMetadata = VertexStreamGeometry | CompiledGeometry;
 
-	export const parseMesh = async (asset: Asset<geometry.MeshData, MeshAssetMetadata>) => {
+	export const parseMesh = async (asset: Asset<geometry.Geometry, MeshAssetMetadata>) => {
 		const { dependencies, metadata } = asset;
 		if (metadata === void 0) {
 			throw new Error("Mesh parser: metadata is missing");
@@ -79,7 +79,7 @@ namespace sd.asset.parse {
 
 	// ------------------
 
-	const parseStreamMesh = (metadata: Partial<VertexStreamMeshData>, deps: AssetDependencies) => {
+	const parseStreamMesh = (metadata: Partial<VertexStreamGeometry>, deps: AssetDependencies) => {
 		const { streams } = metadata;
 		if (! (Array.isArray(streams) && streams.length > 0)) {
 			throw new Error(`Mesh parser: no vertex streams provided`);

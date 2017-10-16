@@ -23,7 +23,7 @@ Assets
 2. Composite
 
 	* √ texture = (image[]) => Texture2D | TextureCube
-	* √ mesh = (buffer[]) => MeshData
+	* √ mesh = (buffer[]) => Geometry
 	* sample = (audio[]]) => Sample
 	* animation = (buffer[]) => Animation
 	* skeleton = (buffer[]) => Skeleton

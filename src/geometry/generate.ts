@@ -1,4 +1,4 @@
-// geometry/generate - mesh generators
+// geometry/generate - geometry generators
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -34,7 +34,7 @@ namespace sd.geometry.gen {
 	export type MeshGenSource = MeshGenerator | TransformedMeshGen;
 
 
-	export function generate(gens: MeshGenSource | MeshGenSource[], attrList?: VertexAttribute[]): MeshData {
+	export function generate(gens: MeshGenSource | MeshGenSource[], attrList?: VertexAttribute[]): Geometry {
 		if (! attrList) {
 			attrList = AttrList.Pos3Norm3UV2();
 		}
@@ -49,24 +49,24 @@ namespace sd.geometry.gen {
 			totalFaceCount += generator.faceCount;
 		}
 
-		// -- create vertex and index buffers for combined mesh
-		const mesh = allocateMeshData({
+		// -- create vertex and index buffers for combined geometry
+		const geom = allocateGeometry({
 			layout: makeStandardVertexLayout(attrList),
 			vertexCount: totalVertexCount,
 			indexCount: totalFaceCount * 3
 		});
-		const layout = mesh.layout.layouts[0];
-		const vertexBuffer = mesh.vertexBuffers[0];
+		const layout = geom.layout.layouts[0];
+		const vertexBuffer = geom.vertexBuffers[0];
 
 		// -- views into various attributes and the index buffer
 		const normalAttr = layout.attrByRole(VertexAttributeRole.Normal);
 		const texAttr = layout.attrByRole(VertexAttributeRole.UV);
 
-		const posView = new VertexBufferAttributeView(mesh.vertexBuffers[0], layout.attrByRole(VertexAttributeRole.Position)!);
+		const posView = new VertexBufferAttributeView(geom.vertexBuffers[0], layout.attrByRole(VertexAttributeRole.Position)!);
 		const normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
 		const texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
 
-		const triView = geometry.makeTriangleViewForMesh(mesh)!;
+		const triView = geometry.makeTriangleViewForGeometry(geom)!;
 
 		// -- data add functions for the generators
 		let posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;
@@ -107,7 +107,7 @@ namespace sd.geometry.gen {
 			}
 			: (_u: number, _v: number) => { /* ignored */ };
 
-		// -- generate and optionally transform each mesh part
+		// -- generate and optionally transform each part
 		const posTransMatrix = mat4.create();
 		const normTransMatrix = mat3.create();
 
@@ -120,7 +120,7 @@ namespace sd.geometry.gen {
 			const subPosView = posView.subView(baseVertex, subVtxCount);
 			const subNormalView = normalView ? normalView.subView(baseVertex, subVtxCount) : null;
 
-			// -- if the generator does not supply normals but the mesh has a Normal attribute, we calculate them
+			// -- if the generator does not supply normals but the geometry has a Normal attribute, we calculate them
 			if (subNormalView && ! generator.explicitNormals) {
 				const subFaceView = triView.subView(faceIx - subFaceCount, subFaceCount);
 				calcVertexNormalsViews(subPosView, subNormalView, subFaceView);
@@ -149,15 +149,16 @@ namespace sd.geometry.gen {
 			baseVertex += generator.vertexCount;
 		}
 
-		// -- currently generate single primitive group for full mesh, TODO: make this more configurable
-		mesh.subMeshes.push({
+		// -- currently generate single primitive group for full geometry
+		// TODO: make this more configurable
+		geom.subMeshes.push({
 			type: PrimitiveType.Triangle,
 			fromElement: 0,
 			elementCount: totalFaceCount * 3,
 			materialIx: 0
 		});
 
-		return mesh;
+		return geom;
 	}
 
 
@@ -211,7 +212,7 @@ namespace sd.geometry.gen {
 		}
 	}
 
-	export function genFullscreenQuad(): MeshData {
+	export function genFullscreenQuad(): Geometry {
 		return generate(new Quad(2, 2), [attrPosition2(), attrUV2()]);
 	}
 
@@ -254,7 +255,7 @@ namespace sd.geometry.gen {
 		}
 	}
 
-	export function genFullscreenTriangle(): MeshData {
+	export function genFullscreenTriangle(): Geometry {
 		return generate(new NDCTriangle(), [attrPosition2(), attrUV2()]);
 	}
 
