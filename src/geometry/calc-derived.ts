@@ -184,4 +184,4 @@ namespace sd.geometry {
 			vec3.copy(tanView.refItem(ix), tangent);
 		}
 	}
-} // ns.meshdata
+} // ns sd.geometry

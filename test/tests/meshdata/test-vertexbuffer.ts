@@ -2,7 +2,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-group("meshdata", () => {
+group("geometry", () => {
 	group("VertexBuffer", () => {
 		test("construct-throws-on-invalid-count-or-stride", () => {
 			const { VertexBuffer } = sd.geometry;
