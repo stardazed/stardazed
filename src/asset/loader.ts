@@ -51,10 +51,10 @@ namespace sd.asset {
 		/**
 		 * @internal
 		 */
-		export const registerLoaderClass = (type: string, loca: LoaderClass) => {
+		export function registerLoaderClass(type: string, loca: LoaderClass) {
 			assert(! loaderClasses.has(type), `Tried to register duplicate LoaderClass of type "${type}"`);
 			loaderClasses.set(type, loca);
-		};
+		}
 
 		/**
 		 * A structure identifying a Loader optionally with configuration key-values.
@@ -69,7 +69,7 @@ namespace sd.asset {
 		 * just resolve to a directly passed Loader for convenience.
 		 * @param info A LoaderInfo or a Loader
 		 */
-		export const makeLoader = (info: LoaderInfo | Loader) => {
+		export function makeLoader(info: LoaderInfo | Loader) {
 			if (typeof info === "function") {
 				return info;
 			}
@@ -78,7 +78,8 @@ namespace sd.asset {
 				throw new Error(`There is no asset loader of type "${info.type}"`);
 			}
 			return loader(info);
-		};
+		}
+
 	} // ns loader
 
 } // ns sd.asset

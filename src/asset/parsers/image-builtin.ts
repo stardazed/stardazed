@@ -7,7 +7,7 @@
 
 namespace sd.asset.parse {
 
-	const parseBuiltInImage = (data: Blob, colourSpace: image.ColourSpace) => {
+	function parseBuiltInImage(data: Blob, colourSpace: image.ColourSpace) {
 		const blobURL = URL.createObjectURL(data);
 
 		return new Promise<image.PixelDataProvider>((resolve, reject) => {
@@ -27,7 +27,7 @@ namespace sd.asset.parse {
 			URL.revokeObjectURL(blobURL);				
 			return provider;
 		});
-	};
+	}
 
 	registerFileExtension("bm", "image/bmp");
 	registerFileExtension("bmp", "image/bmp");

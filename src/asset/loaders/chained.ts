@@ -19,7 +19,7 @@ namespace sd.asset.load {
 	 * the last being the innermost. Loads start at the outer loader and go down sequentially.
 	 * @param config An array of loaders that will be called last to first until one succeeds
 	 */
-	export const ChainedLoader = (config: ChainedLoaderConfig) => {
+	export function ChainedLoader(config: ChainedLoaderConfig) {
 		const loaders = (Array.isArray(config.loaders) ? config.loaders : []).reverse();
 		assert(loaders.length > 0, "ChainedLoader: an array of loaders must be provided (min. 1)");
 
@@ -31,7 +31,7 @@ namespace sd.asset.load {
 				return cur;
 			}
 		).pop()!;
-	};
+	}
 
 	registerLoaderClass("chain", ChainedLoader);
 

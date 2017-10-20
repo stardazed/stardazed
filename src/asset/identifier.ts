@@ -42,30 +42,31 @@ namespace sd.asset {
 		extensionMimeTypeMap.set(ext, mime);
 	}
 
-	export function mimeTypeForFileExtension(extension: string): string | undefined {
+	export function mimeTypeForFileExtension(extension: string) {
 		const ext = extension.toLowerCase().trim();
 		return extensionMimeTypeMap.get(ext);
 	}
 
-	export function mimeTypeForURI(uri: URL | string): string | undefined {
+	export function mimeTypeForURI(uri: URL | string) {
 		const extension = io.fileExtensionOfURL(uri);
 		return mimeTypeForFileExtension(extension);
 	}
 
 	const mimeTypeAssetKindMap = new Map<string, string>();
 
-	export const mapMimeTypeToAssetKind = (mimeType: string, assetKind: string) => {
+	export function mapMimeTypeToAssetKind(mimeType: string, assetKind: string) {
 		const mime = mimeType.toLowerCase();
 		const kind = assetKind.toLowerCase();
 		assert(mime.length > 0, "mapMimeTypeToAssetKind: empty mime-type provided");
 		assert(kind.length > 0, "mapMimeTypeToAssetKind: empty asset kind provided");
 		mimeTypeAssetKindMap.set(mime, kind);
-	};
+	}
 
-	export const assetKindForMimeType = (mimeType: string) =>
-		mimeTypeAssetKindMap.get(mimeType.toLowerCase());
+	export function assetKindForMimeType(mimeType: string) {
+		return mimeTypeAssetKindMap.get(mimeType.toLowerCase());
+	}
 
-	export const setAssetMimeType = (asset: Asset, mimeType: string) => {
+	export function setAssetMimeType(asset: Asset, mimeType: string) {
 		const curMimeType = asset.mimeType && asset.mimeType.toLowerCase();
 		const newMimeType = mimeType.toLowerCase();
 		if (newMimeType === curMimeType) {
@@ -84,6 +85,6 @@ namespace sd.asset {
 			asset.mimeType = newMimeType;
 			asset.kind = newKind;
 		}
-	};
+	}
 
 } // ns sd.asset

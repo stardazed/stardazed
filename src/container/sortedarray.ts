@@ -62,9 +62,7 @@ namespace sd.container {
 			const t0 = this.data_[0];
 			let cmp = this.compareFn_;
 			if (cmp === undefined && typeof t0 !== "string") {
-				cmp = (a: T, b: T) => {
-					return (a < b) ? -1 : ((a > b) ? 1 : 0);
-				};
+				cmp = (a: T, b: T) => (a < b) ? -1 : ((a > b) ? 1 : 0);
 			}
 			this.data_.sort(cmp);
 		}

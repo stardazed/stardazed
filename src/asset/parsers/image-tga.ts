@@ -7,9 +7,10 @@
 
 namespace sd.asset.parse {
 
-	export const parseTGAImage = (data: Blob, _colourSpace: image.ColourSpace) =>
-		io.BlobReader.readAsArrayBuffer(data).then(buffer =>
+	export function parseTGAImage(data: Blob, _colourSpace: image.ColourSpace) {
+		return io.BlobReader.readAsArrayBuffer(data).then(buffer =>
 			new TGADataProvider(new Uint8ClampedArray(buffer)));
+	}
 
 	registerFileExtension("tga", "image/tga");
 	mapMimeTypeToAssetKind("image/tga", "image");

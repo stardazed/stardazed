@@ -79,7 +79,7 @@ namespace sd.asset.parse {
 
 	// ------------------
 
-	const parseStreamMesh = (metadata: Partial<VertexStreamGeometry>, deps: AssetDependencies) => {
+	function parseStreamMesh(metadata: Partial<VertexStreamGeometry>, deps: AssetDependencies) {
 		const { streams } = metadata;
 		if (! (Array.isArray(streams) && streams.length > 0)) {
 			throw new Error(`Mesh parser: no vertex streams provided`);
@@ -106,9 +106,9 @@ namespace sd.asset.parse {
 		const resolvedGroups = parseGroups(groups);
 
 		return buildMesh(attrStreams, resolvedGroups, triangleBuffer ? new Uint32Array(triangleBuffer) : undefined);
-	};
+	}
 
-	const parseVertexStream = (stream: VertexStream, deps: AssetDependencies): geometry.VertexAttributeStream => {
+	function parseVertexStream(stream: VertexStream, deps: AssetDependencies): geometry.VertexAttributeStream {
 		const field = parseVertexField(stream.elementType, stream.elementCount, stream.elementNormalized);
 		const role = parseVertexRole(stream.role, stream.roleSubscript);
 		const mapping = parseStreamMapping(stream.mapping);
@@ -129,9 +129,9 @@ namespace sd.asset.parse {
 			values: new Float32Array(valuesBuffer), // FIXME: create TypedArray based no field type
 			indexes: indexesBuffer && new Uint32Array(indexesBuffer)
 		};
-	};
+	}
 
-	const parseVertexField = (element: VertexElementType | undefined, count: number | undefined, normalized: boolean | undefined): geometry.VertexField => {
+	function parseVertexField(element: VertexElementType | undefined, count: number | undefined, normalized: boolean | undefined): geometry.VertexField {
 		if (typeof count !== "number" || count < 1 || count > 4) {
 			throw new Error(`Mesh parser: a stream's elementCount value must be a number between 1 and 4 inclusive, got "${count}"`);
 		}
@@ -156,9 +156,9 @@ namespace sd.asset.parse {
 		}
 
 		return field;
-	};
+	}
 
-	const parseVertexRole = (role: VertexRole | undefined, subscript: number | undefined): geometry.VertexAttributeRole => {
+	function parseVertexRole(role: VertexRole | undefined, subscript: number | undefined): geometry.VertexAttributeRole {
 		let vertexRole: geometry.VertexAttributeRole;
 		switch (role) {
 			case "position": vertexRole = geometry.VertexAttributeRole.Position; break;
@@ -189,9 +189,9 @@ namespace sd.asset.parse {
 			vertexRole += subscript;
 		}
 		return vertexRole;
-	};
+	}
 
-	const parseStreamMapping = (mapping: VertexStreamMapping | undefined): geometry.VertexAttributeMapping => {
+	function parseStreamMapping(mapping: VertexStreamMapping | undefined): geometry.VertexAttributeMapping {
 		switch (mapping) {
 			case "vertex": return geometry.VertexAttributeMapping.Vertex;
 			case "polygonvertex": return geometry.VertexAttributeMapping.PolygonVertex;
@@ -200,9 +200,9 @@ namespace sd.asset.parse {
 			default:
 				throw new Error(`Mesh parser: invalid stream mapping "${mapping}"`);
 		}
-	};
+	}
 
-	const parseGroup = (group: Partial<TriangleGroup>): TriangleGroup => {
+	function parseGroup(group: Partial<TriangleGroup>): TriangleGroup {
 		if (typeof group.fromElement !== "number" || group.fromElement < 0 || ((group.fromElement | 0) !== group.fromElement)) {
 			throw new Error(`Mesh parser: a stream's fromElement must be present, >= 0 and an integer`);
 		}
@@ -229,12 +229,13 @@ namespace sd.asset.parse {
 			elementCount: group.elementCount,
 			materialIndex
 		};
-	};
+	}
 
-	const parseGroups = (groups: Partial<TriangleGroup>[]) =>
-		groups.map(g => parseGroup(g));
+	function parseGroups(groups: Partial<TriangleGroup>[]) {
+		return groups.map(g => parseGroup(g));
+	}
 
-	const getBufferDependency = (bufferKey: string, deps: AssetDependencies, optional = false) => {
+	function getBufferDependency(bufferKey: string, deps: AssetDependencies, optional = false) {
 		const buffer = deps[bufferKey];
 		if (typeof buffer !== "object" || buffer === null) {
 			if (optional && buffer === void 0) {
@@ -246,9 +247,9 @@ namespace sd.asset.parse {
 			throw new Error(`Mesh parser: buffer dependency "${bufferKey}" is invalid or empty"`);
 		}
 		return buffer.item;
-	};
+	}
 
-	const buildMesh = (attrStreams: geometry.VertexAttributeStream[], groups: TriangleGroup[], triangleView: Uint32Array | undefined) => {
+	function buildMesh(attrStreams: geometry.VertexAttributeStream[], groups: TriangleGroup[], triangleView: Uint32Array | undefined) {
 		const positionStreamIndex = attrStreams.findIndex(
 			ats => ats.attr!.role === geometry.VertexAttributeRole.Position
 		);
@@ -292,6 +293,6 @@ namespace sd.asset.parse {
 		}
 
 		return builder.complete();
-	};
+	}
 
 } // ns sd.asset.parse

@@ -30,7 +30,7 @@ namespace sd.render.effect {
 			const providers: BranchMap = {};
 			const revNames = moduleNames.slice(0).reverse();
 
-			const mergeProviders = (into: BranchMap, from: BranchMap) => {
+			function mergeProviders(into: BranchMap, from: BranchMap) {
 				for (const cn in from) {
 					if (from.hasOwnProperty(cn)) {
 						if (cn in into) {
@@ -39,7 +39,7 @@ namespace sd.render.effect {
 						into[cn] = from[cn];
 					}
 				}
-			};
+			}
 	
 			while (revNames.length > 0) {
 				const modName = revNames.pop()!;
@@ -93,7 +93,7 @@ namespace sd.render.effect {
 		}
 	
 		private resolveConcepts(main: Branch, concepts: BranchMap) {
-			const resolveBranch = (b: Branch, path: string[] = []) => {
+			function resolveBranch(b: Branch, path: string[] = []) {
 				const chain: ModuleBase[] = [];
 				for (const mc of b) {
 					if (typeof mc === "string") {
@@ -111,7 +111,7 @@ namespace sd.render.effect {
 					}
 				}
 				return chain;
-			};
+			}
 	
 			return resolveBranch(main);
 		}

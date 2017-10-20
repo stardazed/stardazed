@@ -30,7 +30,7 @@ namespace sd.asset {
 			anisotropy: number;
 		}
 
-		export const parseTexture = async (asset: Asset<Texture2D, TextureAssetMetadata>) => {
+		export async function parseTexture(asset: Asset<Texture2D, TextureAssetMetadata>) {
 			const imageAsset = asset.dependencies && asset.dependencies.image;
 			const metadata = asset.metadata || {};
 
@@ -55,11 +55,11 @@ namespace sd.asset {
 				anisotropy
 			};
 			asset.item = tex2D;
-		};
+		}
 
 		registerParser("texture", parseTexture);
 
-		const parseMipMapMode = (mmm: "source" | "strip" | "regenerate" | undefined) => {
+		function parseMipMapMode(mmm: "source" | "strip" | "regenerate" | undefined) {
 			if (["source", "strip", "regenerate"].indexOf(mmm || "") === -1) {
 				if (mmm !== void 0) {
 					console.warn(`Texture parser: ignoring invalid mip-map mode`, mmm);
@@ -71,9 +71,9 @@ namespace sd.asset {
 				strip: render.MipMapMode.Strip,
 				regenerate: render.MipMapMode.Regenerate,
 			})[mmm!];
-		};
+		}
 
-		const parseRepeat = (rep: "repeat" | "mirror" | "clamp" | undefined) => {
+		function parseRepeat(rep: "repeat" | "mirror" | "clamp" | undefined) {
 			if (["repeat", "mirror", "clamp"].indexOf(rep || "") === -1) {
 				if (rep !== void 0) {
 					console.warn(`Texture parser: ignoring invalid texture repeat mode`, rep);
@@ -85,9 +85,9 @@ namespace sd.asset {
 				mirror: render.TextureRepeatMode.MirroredRepeat,
 				clamp: render.TextureRepeatMode.ClampToEdge
 			})[rep!];
-		};
+		}
 
-		const parseFiltering = (filt: "nearest" | "nearestmip" | "linear" | "bilinear" | "trilinear" | undefined) => {
+		function parseFiltering(filt: "nearest" | "nearestmip" | "linear" | "bilinear" | "trilinear" | undefined) {
 			if (["nearest", "nearestmip", "linear", "bilinear", "trilinear"].indexOf(filt || "") === -1) {
 				if (filt !== void 0) {
 					console.warn(`Texture parser: ignoring invalid texture filtering mode`, filt);
@@ -101,9 +101,9 @@ namespace sd.asset {
 				bilinear: { size: render.TextureSizingFilter.Linear, mip: render.TextureMipFilter.Nearest },
 				trilinear: { size: render.TextureSizingFilter.Linear, mip: render.TextureMipFilter.Linear } 
 			})[filt!];
-		};
+		}
 
-		const parseAnisotropy = (aniso: number | undefined) => {
+		function parseAnisotropy(aniso: number | undefined) {
 			if (aniso !== void 0) {
 				if (typeof aniso === "number") {
 					if (aniso >= 1) {
@@ -122,7 +122,7 @@ namespace sd.asset {
 				}
 			}
 			return 1;
-		};
+		}
 
 	} // ns parser
 

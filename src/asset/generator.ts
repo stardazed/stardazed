@@ -44,19 +44,20 @@ namespace sd.asset {
 		/**
 		 * @internal
 		 */
-		export const registerGenerator = (type: string, gen: AssetGenerator) => {
+		export function registerGenerator(type: string, gen: AssetGenerator) {
 			assert(! generators.has(type), `Tried to register duplicate AssetGenerator of type "${type}"`);
 			generators.set(type, gen);
-		};
+		}
 		
-		export const generateAsset = (type: string, config: object): Promise<Asset> =>
-			new Promise<Asset>((resolve, reject) => {
+		export function generateAsset(type: string, config: object) {
+			return new Promise<Asset>((resolve, reject) => {
 				const assetGen = generators.get(type);
 				if (! assetGen) {
 					return reject(`Asset Generator: no generator registered for type "${type}"`);
 				}
 				resolve(assetGen(config));
 			});
+		}
 
 	} // ns generator
 

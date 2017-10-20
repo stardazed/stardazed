@@ -7,10 +7,11 @@
 
 namespace sd.asset.importer {
 
-	export const importOBJData = (data: Blob, uri: string) =>
-		io.BlobReader.readAsText(data).then(text =>
+	export function importOBJData(data: Blob, uri: string) {
+		return io.BlobReader.readAsText(data).then(text =>
 			parseOBJ(text, uri)
 		);
+	}
 
 	registerImporter(importOBJData, "obj", "application/wavefront-obj");
 

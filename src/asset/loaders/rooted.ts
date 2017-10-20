@@ -12,7 +12,7 @@ namespace sd.asset.load {
 		loader?: LoaderInfo | Loader;
 	}
 
-	export const RootedURLLoader: LoaderClass = (config: RootedURLLoaderConfig) => {
+	export function RootedURLLoader(config: RootedURLLoaderConfig) {
 		const prefix = config.prefix || "";
 		assert(prefix.length > 0, "RootedURLLoader: a path prefix must be provided.");
 		const loader = config.loader && makeLoader(config.loader);
@@ -29,7 +29,7 @@ namespace sd.asset.load {
 				const resourcePath = uri.substring(firstSlash + 1);
 				resolve(loader!(resourcePath, mimeType));
 			});
-	};
+	}
 
 	registerLoaderClass("rooted", RootedURLLoader);
 

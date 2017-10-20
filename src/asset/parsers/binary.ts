@@ -13,10 +13,11 @@ namespace sd.asset {
 	
 	export namespace parse {
 
-		export const parseBinary: AssetProcessor = (asset: Asset<ArrayBuffer, {}>) =>
-			getArrayBuffer(asset).then(buffer => {
+		export function parseBinary(asset: Asset<ArrayBuffer, {}>) {
+			return getArrayBuffer(asset).then(buffer => {
 				asset.item = buffer;
 			});
+		}
 
 		registerFileExtension("bin", "application/octet-stream");
 

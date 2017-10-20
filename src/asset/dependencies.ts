@@ -16,21 +16,23 @@ namespace sd.asset {
 	/**
 	 * Recursively load an asset's named dependencies.
 	 */
-	export const dependencies = (pipelineProvider: () => AssetPipeline): AssetProcessor => async (asset: Asset) => {
-		// just-in-time pipeline access as this refers back to the pipeline that
-		// this processor was used to create.
-		const pipeline = pipelineProvider();
-	
-		const deps = parseDependencies(asset.dependencies);
-		if (deps) {
-			// Since the processor chain updates assets in-place, we only
-			// need to kick off loading of the assets and wait for them
-			// to complete. No need to track keyed assets, etc.
-			await Promise.all(deps.map(dep => pipeline(dep)));
-		}
-	};
+	export function dependencies(pipelineProvider: () => AssetPipeline) {
+		return async (asset: Asset) => {
+			// just-in-time pipeline access as this refers back to the pipeline that
+			// this processor was used to create.
+			const pipeline = pipelineProvider();
+		
+			const deps = parseDependencies(asset.dependencies);
+			if (deps) {
+				// Since the processor chain updates assets in-place, we only
+				// need to kick off loading of the assets and wait for them
+				// to complete. No need to track keyed assets, etc.
+				await Promise.all(deps.map(dep => pipeline(dep)));
+			}
+		};
+	}
 
-	const parseDependencies = (deps: any): Asset[] | undefined => {
+	function parseDependencies(deps: any): Asset[] | undefined {
 		if (typeof deps === "object") {
 			if (deps === null || Array.isArray(deps)) {
 				throw new Error(`A dependencies property must be a valid, non-array object.`);
@@ -62,6 +64,6 @@ namespace sd.asset {
 		}
 
 		return undefined;
-	};
+	}
 
 } // sd.asset

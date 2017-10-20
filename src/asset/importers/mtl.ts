@@ -7,10 +7,11 @@
 
 namespace sd.asset.importer {
 
-	export const importMTLData = (data: Blob, uri: string) =>
-		io.BlobReader.readAsText(data).then(text =>
+	export function importMTLData(data: Blob, uri: string) {
+		return io.BlobReader.readAsText(data).then(text =>
 			parseMTLSource(text, uri)
 		);
+	}
 
 	registerImporter(importMTLData, "mtl", "application/wavefront-mtl");
 

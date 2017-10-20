@@ -18,10 +18,10 @@ namespace sd.render.effect {
 	export type EffectModule = ModuleBase & ShaderModule;
 	export const modules: { [name: string]: EffectModule; } = {};
 
-	export const registerModule = (mod: EffectModule) => {
+	export function registerModule(mod: EffectModule) {
 		assert(modules[mod.name] === undefined, `Effect module named "${mod.name}" already registered.`);
 		modules[mod.name] = mod;
-	};
+	}
 
 
 	/**

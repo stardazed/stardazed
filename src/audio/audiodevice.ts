@@ -15,7 +15,7 @@ namespace sd.audio {
 	/**
 	 * @internal
 	 */
-	export const sharedAudioContext = () => {
+	export function sharedAudioContext() {
 		if (! sharedAudioContext_) {
 			if ("AudioContext" in window) {
 				sharedAudioContext_ = new AudioContext();
@@ -28,7 +28,7 @@ namespace sd.audio {
 			}
 		}
 		return sharedAudioContext_;
-	};
+	}
 
 	export interface AudioDevice {
 		ctx: AudioContext;

@@ -22,12 +22,12 @@ namespace sd.asset.parse {
 	export type ImageDataParser = (data: Blob, colourSpace: image.ColourSpace) => Promise<image.PixelDataProvider>;
 	const imageParsers = new Map<string, ImageDataParser>();
 
-	export const registerImageParser = (imgParser: ImageDataParser, mimeType: string) => {
+	export function registerImageParser(imgParser: ImageDataParser, mimeType: string) {
 		assert(! imageParsers.has(mimeType), `Trying to register more than 1 image parser for mime-type: ${mimeType}`);
 		imageParsers.set(mimeType, imgParser);
-	};
+	}
 
-	export const parseImage = async (asset: Asset<image.PixelDataProvider, ImageAssetMetadata>) => {
+	export async function parseImage(asset: Asset<image.PixelDataProvider, ImageAssetMetadata>) {
 		const blob = asset.blob;
 		const metadata = asset.metadata || {};
 
@@ -45,11 +45,11 @@ namespace sd.asset.parse {
 		await imgParser(blob, colourSpace).then(pdp => {
 			asset.item = pdp;
 		});
-	};
+	}
 
 	registerParser("image", parseImage);
 
-	const parseColourSpace = (cs: string | undefined) => {
+	function parseColourSpace(cs: string | undefined) {
 		if (cs === "linear") {
 			return image.ColourSpace.Linear;
 		}
@@ -60,6 +60,6 @@ namespace sd.asset.parse {
 			console.warn(`Image parser: ignoring invalid colourSpace`, cs);
 		}
 		return image.ColourSpace.sRGB;
-	};
+	}
 
 } // ns sd.asset.parse

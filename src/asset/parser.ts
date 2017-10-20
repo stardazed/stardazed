@@ -33,9 +33,9 @@ namespace sd.asset {
 
 		const parsersByKind: { [kind: string]: AssetProcessor | undefined; } = {};
 
-		export const registerParser = (kind: string, parser: AssetProcessor) => {
+		export function registerParser(kind: string, parser: AssetProcessor) {
 			parsersByKind[kind] = parser;
-		};
+		}
 
 		export const parserForAssetKind = (kind: string) =>
 			parsersByKind[kind];

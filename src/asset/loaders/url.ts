@@ -17,7 +17,7 @@ namespace sd.asset.load {
 	 * root. This loader will generally be the final loader in a chain.
 	 * @param config Configuration for the Loader to create
 	 */
-	export const URLLoader = (config: URLLoaderConfig) => {
+	export function URLLoader(config: URLLoaderConfig) {
 		let rootURL: URL;
 		try {
 			rootURL = new URL(config.rootURL || "");
@@ -43,7 +43,7 @@ namespace sd.asset.load {
 				}
 			);
 		};
-	};
+	}
 
 	registerLoaderClass("url", URLLoader);
 
@@ -59,11 +59,12 @@ namespace sd.asset.load {
 	 * current document's base URL.
 	 * @param config Configuration taking mainly the site-relative path that will be the root URL
 	 */
-	export const DocRelativeURLLoader: LoaderClass = (config: DocRelativeURLLoaderConfig) =>
-		URLLoader({
+	export function DocRelativeURLLoader(config: DocRelativeURLLoaderConfig) {
+		return URLLoader({
 			rootURL: new URL(config.relPath || "", document.baseURI!).href,
 			disableCache: config.disableCache
 		});
+	}
 
 	registerLoaderClass("doc-relative-url", DocRelativeURLLoader);
 

@@ -22,7 +22,7 @@ namespace sd.asset {
 			materialIndexMap: { [id: string]: number; };
 		}
 
-		const getMeshDependency = (deps: AssetDependencies) => {
+		function getMeshDependency(deps: AssetDependencies) {
 			const meshAsset: Asset<geometry.Geometry, MeshAssetMetadata> | undefined = deps["mesh"];
 			if (meshAsset) {
 				if (meshAsset.kind === "mesh" && geometry.isGeometry(meshAsset.item)) {
@@ -33,10 +33,10 @@ namespace sd.asset {
 				}
 			}
 			return undefined;
-		};
+		}
 
-		export const parseModel: AssetProcessor = (asset: Asset<Model, ModelAssetMetadata>) =>
-			new Promise<void>((resolve, reject) => {
+		export function parseModel(asset: Asset<Model, ModelAssetMetadata>) {
+			return new Promise<void>((resolve, reject) => {
 				if (asset.dependencies) {
 					const meshAsset = getMeshDependency(asset.dependencies);
 					if (! meshAsset) {
@@ -94,6 +94,7 @@ namespace sd.asset {
 
 				resolve();
 			});
+		}
 
 		registerParser("model", parseModel);
 

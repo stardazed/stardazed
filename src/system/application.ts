@@ -159,10 +159,10 @@ namespace sd {
 	export const App: Application = new SDApplication();
 
 	dom.on(window, "load", () => {
-		const main = () => {
+		function main() {
 			App.messages.send("AppStart");
 			(App as SDApplication).resume();
-		};
+		}
 
 		if ("Ammo" in window) {
 			(window as any).Ammo().then(main);

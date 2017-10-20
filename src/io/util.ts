@@ -14,11 +14,9 @@ namespace sd.io {
 		return "";
 	}
 
-	export const localURL = (path: string) =>
-		new URL(path, document.baseURI!);
-
-	export const resolveRelativePath = (relPath: string, basePath: string) => 
-		(new URL(relPath, "file:///" + basePath)).pathname.slice(1);
+	export function resolveRelativePath(relPath: string, basePath: string) {
+		return (new URL(relPath, "file:///" + basePath)).pathname.slice(1);
+	}
 
 		
 	export const enum FileLoadType {

@@ -13,8 +13,8 @@ namespace sd.asset {
 
 	export namespace parse {
 
-		export const parseAudio: AssetProcessor = (asset: Asset<AudioBuffer, {}>) =>
-			getArrayBuffer(asset).then(data =>
+		export function parseAudio(asset: Asset<AudioBuffer, {}>) {
+			return getArrayBuffer(asset).then(data =>
 				new Promise<void>((resolve, reject) => {
 					audio.sharedAudioContext().decodeAudioData(
 						data,
@@ -28,6 +28,7 @@ namespace sd.asset {
 					);
 				})
 			);
+		}
 
 		registerFileExtension("mp3", "audio/mpeg");
 		registerFileExtension("m4a", "audio/mp4");

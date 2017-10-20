@@ -70,16 +70,16 @@ namespace sd.asset {
 		export type AssetImporter = (data: Blob, uri: string) => Promise<AssetDependencies>;
 		const importers = new Map<string, AssetImporter>();
 		
-		export const registerImporter = (importer: AssetImporter, extension: string, mimeType: string) => {
+		export function registerImporter(importer: AssetImporter, extension: string, mimeType: string) {
 			assert(! importers.has(mimeType), `Trying to register more than 1 importer for mime-type: ${mimeType}`);
 			importers.set(mimeType, importer);
 
 			registerFileExtension(extension, mimeType);
 			mapMimeTypeToAssetKind(mimeType, "import");
-		};
+		}
 		
-		export const importAssets = (data: Blob, uri: string) =>
-			new Promise<AssetDependencies>((resolve, reject) => {
+		export function importAssets(data: Blob, uri: string) {
+			return new Promise<AssetDependencies>((resolve, reject) => {
 				const mimeType = data.type;
 				const dataImporter = importers.get(mimeType);
 				if (! dataImporter) {
@@ -87,6 +87,7 @@ namespace sd.asset {
 				}
 				resolve(dataImporter(data, uri));
 			});
+		}
 
 	} // ns importer
 

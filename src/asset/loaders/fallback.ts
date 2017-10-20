@@ -18,7 +18,7 @@ namespace sd.asset.load {
 	 * @param config A loader function and its optional fallback loader
 	 * @internal
 	 */
-	export const FallbackLoader = (config: FallbackLoaderConfig) => {
+	export function FallbackLoader(config: FallbackLoaderConfig) {
 		const loader = config.loader && makeLoader(config.loader);
 		assert(loader, "FallbackLoader: a main loader must be provided");
 		const fallback = config.fallback && makeLoader(config.fallback);
@@ -32,7 +32,7 @@ namespace sd.asset.load {
 					throw err;
 				}
 			);
-	};
+	}
 
 	registerLoaderClass("fallback", FallbackLoader);
 

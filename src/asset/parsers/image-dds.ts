@@ -7,9 +7,10 @@
 
 namespace sd.asset.parse {
 
-	export const parseDDSImage = (data: Blob, _colourSpace: image.ColourSpace) =>
-		io.BlobReader.readAsArrayBuffer(data).then(buffer =>
+	export function parseDDSImage(data: Blob, _colourSpace: image.ColourSpace) {
+		return io.BlobReader.readAsArrayBuffer(data).then(buffer =>
 			new DDSDataProvider(new Uint8ClampedArray(buffer)));
+	}
 
 	registerFileExtension("dds", "image/dds");
 	mapMimeTypeToAssetKind("image/dds", "image");

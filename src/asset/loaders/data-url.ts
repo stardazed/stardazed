@@ -11,8 +11,8 @@ namespace sd.asset.load {
 	 * Loads any base64-encoded data URL, always uses mime-type given in the URL
 	 * @param _config ignored, this loader has no configuration options
 	 */
-	export const DataURLLoader: LoaderClass = (_config: {}) =>
-		(uri: string, mimeType?: string) =>
+	export function DataURLLoader(_config: {}) {
+		return (uri: string, mimeType?: string) =>
 			new Promise<Blob>((resolve, reject) => {
 				if (uri.substr(0, 5) !== "data:") {
 					return reject("Not a data url");
@@ -33,6 +33,7 @@ namespace sd.asset.load {
 				const data = new Uint8Array(dataArray);
 				resolve(new Blob([data], { type: mimeType }));
 			});
+	}
 
 	registerLoaderClass("data-url", DataURLLoader);
 
