@@ -95,10 +95,10 @@ namespace sd.asset {
 		}
 
 		/**
-		 * Helper that returns the external data of an asset as an ArrayBuffer.
+		 * Helper that returns the contents of a Blob as an ArrayBuffer.
 		 */
-		export const getArrayBuffer = (asset: Asset) =>
-			asset.blob ? io.BlobReader.readAsArrayBuffer(asset.blob) : Promise.reject("getArrayBuffer: no blob present in Asset");
+		export const getArrayBuffer = (blob: Blob) =>
+			io.BlobReader.readAsArrayBuffer(blob);
 
 	} // ns importer
 

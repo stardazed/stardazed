@@ -1,4 +1,4 @@
-// asset/importers/audio - audio file parser
+// asset/importers/audio - audio file importer
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -14,7 +14,7 @@ namespace sd.asset {
 	export namespace importer {
 
 		export function importAudio(data: Blob, _uri: string) {
-			return io.BlobReader.readAsArrayBuffer(data).then(buffer =>
+			return getArrayBuffer(data).then(buffer =>
 				new Promise<AssetDependencies>((resolve, reject) => {
 					audio.sharedAudioContext().decodeAudioData(
 						buffer,
