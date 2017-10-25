@@ -70,11 +70,16 @@ namespace sd.asset {
 		export type AssetImporter = (data: Blob, uri: string) => Promise<AssetDependencies>;
 		const importers = new Map<string, AssetImporter>();
 		
-		export function registerImporter(importer: AssetImporter, extension: string, mimeType: string) {
+		export function registerImporter(importer: AssetImporter, mimeType: string, extensions: string | string[]) {
 			assert(! importers.has(mimeType), `Trying to register more than 1 importer for mime-type: ${mimeType}`);
 			importers.set(mimeType, importer);
 
-			registerFileExtension(extension, mimeType);
+			if (! Array.isArray(extensions)) {
+				extensions = [extensions];
+			}
+			for (const extension of extensions) {
+				registerFileExtension(extension, mimeType);
+			}
 			mapMimeTypeToAssetKind(mimeType, "import");
 		}
 		
@@ -88,6 +93,12 @@ namespace sd.asset {
 				resolve(dataImporter(data, uri));
 			});
 		}
+
+		/**
+		 * Helper that returns the external data of an asset as an ArrayBuffer.
+		 */
+		export const getArrayBuffer = (asset: Asset) =>
+			asset.blob ? io.BlobReader.readAsArrayBuffer(asset.blob) : Promise.reject("getArrayBuffer: no blob present in Asset");
 
 	} // ns importer
 

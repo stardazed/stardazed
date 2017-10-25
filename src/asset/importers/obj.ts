@@ -13,7 +13,7 @@ namespace sd.asset.importer {
 		);
 	}
 
-	registerImporter(importOBJData, "obj", "application/wavefront-obj");
+	registerImporter(importOBJData, "application/wavefront-obj", "obj");
 
 
 	interface OBJPreProcSource {

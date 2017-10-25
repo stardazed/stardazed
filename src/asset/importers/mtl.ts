@@ -13,7 +13,7 @@ namespace sd.asset.importer {
 		);
 	}
 
-	registerImporter(importMTLData, "mtl", "application/wavefront-mtl");
+	registerImporter(importMTLData, "application/wavefront-mtl", "mtl");
 
 	// ---------------
 
