@@ -28,6 +28,7 @@ namespace sd.asset {
 						});
 					}
 					asset.dependencies = dependencies;
+					asset.item = null;
 				});
 		}
 	};
