@@ -1,21 +1,25 @@
-// asset/parser/image-tga - TGA image data parser
+// asset/importer/image-tga - TGA image importer
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="./image.ts" />
+/// <reference path="../importer.ts" />
 
-namespace sd.asset.parse {
+namespace sd.asset.importer {
 
-	export function parseTGAImage(data: Blob, _colourSpace: image.ColourSpace) {
-		return io.BlobReader.readAsArrayBuffer(data).then(buffer =>
-			new TGADataProvider(new Uint8ClampedArray(buffer)));
+	export function importTGAImage(data: Blob, _uri: string) {
+		return getArrayBuffer(data).then(buffer => {
+			return {
+				image: {
+					kind: "image",
+					item: new TGADataProvider(new Uint8ClampedArray(buffer))
+				}
+			};
+		});
 	}
 
-	registerFileExtension("tga", "image/tga");
-	mapMimeTypeToAssetKind("image/tga", "image");
+	registerImporter(importTGAImage, "image/tga", "tga");
 
-	registerImageParser(parseTGAImage, "image/tga");
 
 	const enum TGAImageType /* uint8 */ {
 		None = 0,
@@ -202,4 +206,4 @@ namespace sd.asset.parse {
 		}
 	}
 
-} // ns sd.asset.parse
+} // ns sd.asset.importer
