@@ -79,10 +79,10 @@ namespace sd.image {
 
 
 	export interface PixelDataProvider {
-		readonly pixelFormat: PixelFormat;
-		readonly colourSpace: ColourSpace;
 		readonly dim: Readonly<PixelDimensions>;
 		readonly mipMapCount: number;
+		readonly pixelFormat: PixelFormat;
+		colourSpace: ColourSpace;
 
 		pixelBufferForLevel(level: number): PixelBuffer | undefined;
 	}
