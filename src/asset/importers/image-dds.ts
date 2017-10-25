@@ -1,21 +1,25 @@
-// asset/parser/image-dds - DDS (DXT 1, 3, 5) image data parser
+// asset/importer/image-dds - DDS (DXT 1, 3, 5) image importer
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="./image.ts" />
+/// <reference path="../importer.ts" />
 
-namespace sd.asset.parse {
+namespace sd.asset.importer {
 
-	export function parseDDSImage(data: Blob, _colourSpace: image.ColourSpace) {
-		return io.BlobReader.readAsArrayBuffer(data).then(buffer =>
-			new DDSDataProvider(new Uint8ClampedArray(buffer)));
+	export function importDDSImage(data: Blob, _uri: string) {
+		return getArrayBuffer(data).then(buffer => {
+			return {
+				image: {
+					kind: "image",
+					item: new DDSDataProvider(new Uint8ClampedArray(buffer))
+				}
+			};
+		});
 	}
 
-	registerFileExtension("dds", "image/dds");
-	mapMimeTypeToAssetKind("image/dds", "image");
+	registerImporter(importDDSImage, "image/dds", "dds");
 
-	registerImageParser(parseDDSImage, "image/dds");
 
 	const enum DDSPixelFormatOffsets {
 		dwSize = 0, // uint32
@@ -85,6 +89,7 @@ namespace sd.asset.parse {
 
 		get pixelFormat() { return this.format_; }
 		get colourSpace() { return image.ColourSpace.Linear; }
+		set colourSpace(_ignored: image.ColourSpace) { /* ignored */ }
 		get mipMapCount() { return this.mipMaps_; }
 		get dim() { return image.makePixelDimensions(this.width_, this.height_); }
 
@@ -125,4 +130,4 @@ namespace sd.asset.parse {
 		}
 	}
 
-} // ns sd.asset.parse
+} // ns sd.asset.importer
