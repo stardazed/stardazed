@@ -1,4 +1,4 @@
-// asset/parser/image - image asset parser front-end
+// asset/parsers/image - image asset metadata handling
 // Part of Stardazed
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
@@ -12,39 +12,23 @@ namespace sd.asset {
 	}
 
 } // ns sd.asset
-
+	
 namespace sd.asset.parse {
 
 	export interface ImageAssetMetadata {
 		colourSpace: string;
 	}
 
-	export type ImageDataParser = (data: Blob, colourSpace: image.ColourSpace) => Promise<image.PixelDataProvider>;
-	const imageParsers = new Map<string, ImageDataParser>();
-
-	export function registerImageParser(imgParser: ImageDataParser, mimeType: string) {
-		assert(! imageParsers.has(mimeType), `Trying to register more than 1 image parser for mime-type: ${mimeType}`);
-		imageParsers.set(mimeType, imgParser);
-	}
-
 	export async function parseImage(asset: Asset<image.PixelDataProvider, ImageAssetMetadata>) {
-		const blob = asset.blob;
+		const item = asset.item;
 		const metadata = asset.metadata || {};
 
-		if (! blob) {
-			throw new Error("parseImage: No image data was loaded, cannot parse.");
-		}
-		const mimeType = blob.type;
-		const imgParser = imageParsers.get(mimeType);
-		if (! imgParser) {
-			throw new Error(`Cannot load images of type: ${mimeType}`);
+		if (! item) {
+			throw new Error("Image parser: no image was loaded.");
 		}
 
 		const colourSpace = parseColourSpace(metadata.colourSpace);
-
-		await imgParser(blob, colourSpace).then(pdp => {
-			asset.item = pdp;
-		});
+		item.colourSpace = colourSpace;
 	}
 
 	registerParser("image", parseImage);
@@ -57,7 +41,7 @@ namespace sd.asset.parse {
 			return image.ColourSpace.sRGB;
 		}
 		if (cs !== void 0) {
-			console.warn(`Image parser: ignoring invalid colourSpace`, cs);
+			console.warn(`Image importer: ignoring invalid colourSpace`, cs);
 		}
 		return image.ColourSpace.sRGB;
 	}
