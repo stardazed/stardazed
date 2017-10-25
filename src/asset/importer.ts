@@ -8,12 +8,12 @@
 namespace sd.asset {
 
 	/**
-	 * Import external asset (group) files.
+	 * Import (external) asset resources.
 	 */
 	export const importerx: AssetProcessor = async (asset: Asset) => {
 		if (asset.kind === "import") {
 			if (!(asset.blob instanceof Blob)) {
-				throw new Error("Importer: external asset data was not loaded");
+				throw new Error("Importer: asset data was not loaded");
 			}
 
 			return importer.importAssets(asset.blob, asset.uri || "")
