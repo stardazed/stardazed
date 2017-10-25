@@ -12,14 +12,11 @@ namespace sd.asset {
 	 */
 	export const importerx: AssetProcessor = async (asset: Asset) => {
 		if (asset.kind === "import") {
-			if (typeof asset.uri !== "string") {
-				throw new Error("Importer: import asset did not specify a uri");
-			}
 			if (!(asset.blob instanceof Blob)) {
 				throw new Error("Importer: external asset data was not loaded");
 			}
 
-			return importer.importAssets(asset.blob, asset.uri)
+			return importer.importAssets(asset.blob, asset.uri || "")
 				.then(dependencies => {
 					// FIXME: this is just a quick hack, need a formal name/id gen system
 					if (asset.name && propertyCount(dependencies) === 1) {
