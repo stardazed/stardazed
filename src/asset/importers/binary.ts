@@ -3,7 +3,7 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../parser.ts" />
+/// <reference path="../importer.ts" />
 
 namespace sd.asset {
 
@@ -26,6 +26,6 @@ namespace sd.asset {
 
 		registerImporter(importBinary, "application/octet-stream", ["bin"]);
 
-	} // ns parser
+	} // ns importer
 
 } // ns sd.asset
