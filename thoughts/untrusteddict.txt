@@ -1,0 +1,72 @@
+class Optional<T> {
+    readonly data: T | undefined;
+
+    constructor(data?: T) {
+        this.data = data;
+    }
+
+    valueOr(def: T) {
+        if (this.data !== undefined) {
+            return this.data;
+        }
+        return def;
+    }
+
+    valueOrThrow(message: string) {
+        if (this.data !== undefined) {
+            return this.data;
+        }
+        throw new Error(message);
+    }
+}
+
+class UntrustedDictionary<D extends object> {
+    data: Partial<D>;
+
+    constructor(data: any) {
+        if (data && typeof data === "object") {
+            this.data = data;
+        }
+        else {
+            this.data = {};
+        }
+    }
+
+    field<K extends keyof D>(key: K, validator: (v: D[K] | undefined) => boolean) {
+        const v = this.data[key];
+        if (validator(v)) {
+            return new Optional(v);
+        }
+        return new Optional<D[K]>();
+    }
+
+    string<K extends keyof D>(key: K) {
+        return this.field(key, v => typeof v === "string");
+    }
+
+    boolean<K extends keyof D>(key: K) {
+        return this.field(key, v => typeof v === "boolean");
+    }
+
+    number<K extends keyof D>(key: K) {
+        return this.field(key, v => typeof v === "number");
+    }
+}
+
+interface ImageOptions {
+    colourSpace: "linear" | "srgb";
+}
+
+function isColourSpace(cs: string | undefined) {
+    return cs === "linear" || cs === "srgb";
+}
+
+const io = {
+    colourSpace: "blorb"
+};
+
+const ud = new UntrustedDictionary<ImageOptions>(io);
+const cso = ud.field("colourSpace", isColourSpace);
+
+console.info(cso.valueOr("linear"));
+console.info(cso.valueOrThrow("BAD, BAD, BAD"));
