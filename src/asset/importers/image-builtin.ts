@@ -7,8 +7,11 @@
 
 namespace sd.asset.importer {
 
-	function importBuiltInImage(data: Blob, _uri: string) {
+	function importBuiltInImage(data: Blob, _uri: string, metadata: any) {
 		const blobURL = URL.createObjectURL(data);
+
+		// let colourSpace = image.ColourSpace.sRGB;
+		// if ()
 
 		return new Promise<image.PixelDataProvider>((resolve, reject) => {
 			const builtin = new Image();
@@ -38,6 +41,18 @@ namespace sd.asset.importer {
 	registerImporter(importBuiltInImage, "image/jpeg", ["jpg", "jpe", "jpeg"]);
 	registerImporter(importBuiltInImage, "image/png", "png");
 
+	function parseColourSpace(cs: string | undefined) {
+		if (cs === "linear") {
+			return image.ColourSpace.Linear;
+		}
+		if (cs === "srgb") {
+			return image.ColourSpace.sRGB;
+		}
+		if (cs !== void 0) {
+			console.warn(`Image importer: ignoring invalid colourSpace`, cs);
+		}
+		return image.ColourSpace.sRGB;
+	}
 
 	export class HTMLImageDataProvider implements image.PixelDataProvider {
 		private colourSpace_: image.ColourSpace;
