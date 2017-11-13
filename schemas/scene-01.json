@@ -1,0 +1,140 @@
+{
+	"id": "https://stardazed.club/schemas/scene-01#",
+	"$schema": "http://json-schema.org/draft-06/schema#",
+	"description": "Stardazed Scene Definition v1",
+	"type": "object",
+	"properties": {
+		"version": {
+			"const": 1
+		},
+		"delegate": {
+			"type": "string",
+			"minLength": 1
+		},
+		"assets": {
+			"type": "array",
+			"items": {
+				"$ref": "#definitions/asset"
+			}
+		},
+		"entities": {
+			"type": "array",
+			"items": {
+				"$ref": "#definitions/entity"
+			}
+		}
+	},
+	"additionalProperties": false,
+	"required": [
+		"version",
+		"delegate"
+	],
+	"definitions": {
+		"asset": {
+			"type": "object",
+			"properties": {
+				"kind": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Type name"
+				},
+				"name": {
+					"type": "string",
+					"minLength": 1,
+					"description": "A non-unique name"
+				},
+				"metadata": {
+					"type": "object"
+				},
+				"uri": {
+					"type": "string",
+					"minLength": 1,
+					"description": "The location to load data from"
+				},
+				"mimeType": {
+					"type": "string",
+					"minLength": 3,
+					"format": "rfc-2045",
+					"description": "MIME type of the data referred to by `uri`"
+				},
+				"generator": {
+					"type": "string",
+					"minLength": 1
+				},
+				"dependencies": {
+					"type": "object",
+					"items": {
+						"$ref": "#definitions/asset"
+					}
+				}
+			},
+			"additionalProperties": false
+		},
+		"entity": {
+			"type": "object",
+			"properties": {
+				"pos": {
+					"type": "array",
+					"items": {
+						"type": "number"
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"model": {
+					"type": "string",
+					"minLength": 1
+				},
+				"collider": {
+					"$ref": "#definitions/collider"
+				}
+			},
+			"additionalProperties": false
+		},
+		"collider": {
+			"type": "object",
+			"properties": {
+				"friction": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 1
+				},
+				"shape": {
+					"type": "object",
+					"oneOf": [
+						{ "$ref": "#definitions/boxShape" },
+						{ "$ref": "#definitions/meshShape" }
+					]
+				}
+			}
+		},
+		"boxShape": {
+			"type": "object",
+			"description": "A Box shape",
+			"properties": {
+				"type": {
+					"const": "box"
+				},
+				"extents": {
+					"type": "array",
+					"items": {
+						"type": "number"
+					},
+					"minItems": 3,
+					"maxItems": 3
+				}
+			},
+			"additionalProperties": false
+		},
+		"meshShape": {
+			"type": "object",
+			"description": "A Mesh shape",
+			"properties": {
+				"type": {
+					"const": "mesh"
+				}
+			},
+			"additionalProperties": false
+		}
+	}
+}
