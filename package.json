@@ -21,7 +21,8 @@
     }
   ],
   "scripts": {
-    "docs": "typedoc --name Stardazed --excludePrivate --includeDeclarations --excludeExternals --mode file --tsconfig src/tsconfig.json --toc ['sd'] --out docs src"
+    "docs": "typedoc --name Stardazed --excludePrivate --includeDeclarations --excludeExternals --mode file --tsconfig src/tsconfig.json --toc ['sd'] --out docs src",
+    "lint": "tslint --project src/tsconfig.json -t verbose"
   },
   "keywords": [
     "game-engine",
