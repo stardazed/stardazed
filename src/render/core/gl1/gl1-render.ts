@@ -83,7 +83,8 @@ namespace sd.render.gl1 {
 						const glPixelType = gl1PixelDataTypeForPixelFormat(this, texData.format);
 						gl.texSubImage2D(texData.target, 0, cmd.x, cmd.y, cmd.width, cmd.height, glFormat, glPixelType, cmd.pixels);
 					}
-					this.state.setTexture(this.state.maxTextureSlot, undefined, undefined);
+					// [AL] TODO: this is causing a lot of unnecessary texture set calls, evaluate
+					// this.state.setTexture(this.state.maxTextureSlot, undefined, undefined);
 					break;
 				}
 
