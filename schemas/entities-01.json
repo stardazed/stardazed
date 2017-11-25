@@ -1,21 +1,11 @@
 {
 	"id": "https://stardazed.club/schemas/scene-01#",
 	"$schema": "http://json-schema.org/draft-06/schema#",
-	"description": "Stardazed Scene Definition v1",
+	"description": "Stardazed Entities Definition v0",
 	"type": "object",
 	"properties": {
-		"version": {
-			"const": 1
-		},
-		"delegate": {
-			"type": "string",
-			"minLength": 1
-		},
-		"assets": {
-			"type": "array",
-			"items": {
-				"$ref": "#definitions/asset"
-			}
+		"schema-version": {
+			"const": 0
 		},
 		"entities": {
 			"type": "array",
@@ -26,50 +16,9 @@
 	},
 	"additionalProperties": false,
 	"required": [
-		"version",
-		"delegate"
+		"schema-version"
 	],
 	"definitions": {
-		"asset": {
-			"type": "object",
-			"properties": {
-				"kind": {
-					"type": "string",
-					"minLength": 1,
-					"description": "Type name"
-				},
-				"name": {
-					"type": "string",
-					"minLength": 1,
-					"description": "A non-unique name"
-				},
-				"metadata": {
-					"type": "object"
-				},
-				"uri": {
-					"type": "string",
-					"minLength": 1,
-					"description": "The location to load data from"
-				},
-				"mimeType": {
-					"type": "string",
-					"minLength": 3,
-					"format": "rfc-2045",
-					"description": "MIME type of the data referred to by `uri`"
-				},
-				"generator": {
-					"type": "string",
-					"minLength": 1
-				},
-				"dependencies": {
-					"type": "object",
-					"items": {
-						"$ref": "#definitions/asset"
-					}
-				}
-			},
-			"additionalProperties": false
-		},
 		"entity": {
 			"type": "object",
 			"properties": {
@@ -102,8 +51,12 @@
 				"shape": {
 					"type": "object",
 					"oneOf": [
-						{ "$ref": "#definitions/boxShape" },
-						{ "$ref": "#definitions/meshShape" }
+						{
+							"$ref": "#definitions/boxShape"
+						},
+						{
+							"$ref": "#definitions/meshShape"
+						}
 					]
 				}
 			}

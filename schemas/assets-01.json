@@ -1,0 +1,74 @@
+{
+	"id": "https://stardazed.club/schemas/scene-01#",
+	"$schema": "http://json-schema.org/draft-06/schema#",
+	"description": "Stardazed Assets Definition v1",
+	"type": "object",
+	"properties": {
+		"schema-version": {
+			"const": 1
+		},
+		"author": {
+			"type": "string"
+		},
+		"project": {
+			"type": "string"
+		},
+		"assets": {
+			"type": "array",
+			"items": {
+				"$ref": "#definitions/asset"
+			}
+		}
+	},
+	"additionalProperties": false,
+	"required": [
+		"schema-version",
+		"assets"
+	],
+	"definitions": {
+		"asset": {
+			"type": "object",
+			"properties": {
+				"kind": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Type name"
+				},
+				"name": {
+					"type": "string",
+					"minLength": 1,
+					"description": "A non-unique name"
+				},
+				"metadata": {
+					"type": "object"
+				},
+				"uri": {
+					"type": "string",
+					"minLength": 1,
+					"description": "The location to load data from"
+				},
+				"mimeType": {
+					"type": "string",
+					"minLength": 3,
+					"format": "rfc-2045",
+					"description": "MIME type of the data referred to by `uri`"
+				},
+				"generator": {
+					"type": "string",
+					"minLength": 1
+				},
+				"dependencies": {
+					"type": "object",
+					"items": {
+						"$ref": "#definitions/asset"
+					}
+				},
+				"lazy": {
+					"type": "boolean",
+					"default": false
+				}
+			},
+			"additionalProperties": false
+		}
+	}
+}
