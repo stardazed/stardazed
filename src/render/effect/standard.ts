@@ -68,7 +68,7 @@ namespace sd.render.effect {
 			vec3 totalLight = totalDynamicLightContributionTiledForward(si, mi);
 			totalLight += vec3(0.015, 0.01, 0.02);
 
-			totalLight = applyDepthFog(totalLight * mi.albedo.rgb, length(vertexPos_cam));
+			// totalLight = applyDepthFog(totalLight * mi.albedo.rgb, length(vertexPos_cam));
 
 			gl_FragColor = vec4(linearToSRGB(totalLight), 1.0);
 			`
