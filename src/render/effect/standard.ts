@@ -69,6 +69,9 @@ namespace sd.render.effect {
 			totalLight += vec3(0.015, 0.01, 0.02);
 
 			totalLight = totalLight * mi.albedo.rgb;
+			#ifdef EMISSIVE
+				totalLight += mi.emissiveFactor.rgb * mi.emissiveFactor.w;
+			#endif
 			// totalLight = applyDepthFog(totalLight, length(vertexPos_cam)
 
 			gl_FragColor = vec4(linearToSRGB(totalLight), 1.0);
@@ -88,6 +91,7 @@ namespace sd.render.effect {
 				{ name: "HAS_BASE_UV", value: 1 },
 				{ name: "ALBEDO_MAP", value: data.diffuse ? 1 : 0 },
 				{ name: "SPECULAR", value: +(data.specularFactor[3] !== 0) },
+				{ name: "EMISSIVE", value: +(data.emissiveFactor[3] !== 0) },
 				{ name: "SPECULAR_MAP", value: 0 },
 				{ name: "NORMAL_MAP", value: data.normal ? 1 : 0 },
 				{ name: "HEIGHT_MAP", value: 0 },
@@ -102,6 +106,7 @@ namespace sd.render.effect {
 		diffuse: Texture | undefined;
 		normal: Texture | undefined;
 		specularFactor: Float32Array;
+		emissiveFactor: Float32Array;
 		tint: Float32Array;
 		texScaleOffset: Float32Array;
 	}
@@ -109,7 +114,8 @@ namespace sd.render.effect {
 	const SEDID = (data: StandardEffectData) => (
 		(data.diffuse ? 1 : 0) << 0 |
 		(data.normal ? 1 : 0) << 1 |
-		(data.specularFactor[3] ? 1 : 0) << 2
+		(data.specularFactor[3] ? 1 : 0) << 2 |
+		(data.emissiveFactor[3] ? 1 : 0) << 3
 	);
 
 	export class StandardEffect implements Effect {
@@ -190,6 +196,7 @@ namespace sd.render.effect {
 					{ name: "lightLUTParam", value: this.lighting_.lutParam },
 					{ name: "baseColour", value: sdata.tint },
 					{ name: "specularFactor", value: sdata.specularFactor },
+					{ name: "emissiveFactor", value: sdata.emissiveFactor },
 					{ name: "texScaleOffset", value: sdata.texScaleOffset }
 				],
 				pipeline: {
@@ -207,6 +214,7 @@ namespace sd.render.effect {
 				diffuse: undefined,
 				normal: undefined,
 				specularFactor: vec4.zero(),
+				emissiveFactor: vec4.zero(),
 				tint: vec4.one(),
 				texScaleOffset: vec4.fromValues(1, 1, 0, 0)
 			};

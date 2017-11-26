@@ -106,6 +106,7 @@ namespace sd.render.effect {
 		constants: [
 			{ name: "baseColour", type: SVT.Float4 },
 			{ name: "specularFactor", type: SVT.Float4, ifExpr: "SPECULAR" },
+			{ name: "emissiveFactor", type: SVT.Float4, ifExpr: "EMISSIVE" },
 		],
 		samplers: [
 			{ name: "albedoMap", type: TextureClass.Plain, index: 0, ifExpr: "ALBEDO_MAP" },
@@ -118,6 +119,9 @@ namespace sd.render.effect {
 					vec4 albedo;
 				#ifdef SPECULAR
 					vec4 specularFactor;
+				#endif
+				#ifdef EMISSIVE
+					vec4 emissiveFactor;
 				#endif
 				};
 				`
@@ -137,8 +141,12 @@ namespace sd.render.effect {
 			mi.albedo = vec4(colour, 1.0);
 
 			#ifdef SPECULAR
-			mi.specularFactor = specularFactor;
+				mi.specularFactor = specularFactor;
 			#endif
+			#ifdef EMISSIVE
+				mi.emissiveFactor = emissiveFactor;
+			#endif
+
 			return mi;
 		}
 		`
