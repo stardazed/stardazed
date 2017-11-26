@@ -7,13 +7,19 @@
 
 namespace sd.asset.importer {
 
-	function importBuiltInImage(data: Blob, _uri: string) {
+	export interface ImageAssetMetadata {
+		colourSpace: string;
+	}
+
+	function importBuiltInImage(data: Blob, _uri: string, metadata: Partial<ImageAssetMetadata>) {
 		const blobURL = URL.createObjectURL(data);
 
 		return new Promise<image.PixelDataProvider>((resolve, reject) => {
 			const builtin = new Image();
 			builtin.onload = () => {
-				resolve(new HTMLImageDataProvider(builtin));
+				const provider = new HTMLImageDataProvider(builtin);
+				provider.colourSpace = parseColourSpace(metadata.colourSpace);
+				resolve(provider);
 			};
 			builtin.onerror = () => {
 				reject(`The image at '${blobURL}' is not supported`);
@@ -37,6 +43,21 @@ namespace sd.asset.importer {
 	registerImporter(importBuiltInImage, "image/bmp", ["bm", "bmp"]);
 	registerImporter(importBuiltInImage, "image/jpeg", ["jpg", "jpe", "jpeg"]);
 	registerImporter(importBuiltInImage, "image/png", "png");
+
+
+	function parseColourSpace(cs: string | undefined) {
+		if (cs === "linear") {
+			return image.ColourSpace.Linear;
+		}
+		if (cs === "srgb") {
+			return image.ColourSpace.sRGB;
+		}
+		if (cs !== void 0) {
+			console.warn(`Image importer: ignoring invalid colourSpace`, cs);
+		}
+		return image.ColourSpace.sRGB;
+	}
+
 
 	export class HTMLImageDataProvider implements image.PixelDataProvider {
 		private colourSpace_: image.ColourSpace;
