@@ -388,10 +388,12 @@ namespace sd.render.gl1 {
 		setTexture(slotIndex: number, texture: GL1TextureData | undefined, sampler: Sampler | undefined) {
 			const gl = this.gl;
 
+			// always update the GL state for active texture
+			this.gl.activeTexture(GLConst.TEXTURE0 + slotIndex);
+
 			if (! texture) {
 				if (this.textureSlots_[slotIndex]) {
 					this.textureSlots_[slotIndex] = null;
-					this.gl.activeTexture(GLConst.TEXTURE0 + slotIndex);
 					this.gl.bindTexture(GLConst.TEXTURE_2D, null);
 				}
 			}
@@ -401,8 +403,6 @@ namespace sd.render.gl1 {
 				const samplerChanged = sampler !== undefined && texture.linkedSamplerHandle !== samplerHandle;
 
 				if (textureChanged || samplerChanged) {
-					this.gl.activeTexture(GLConst.TEXTURE0 + slotIndex);
-
 					if (textureChanged) {
 						this.textureSlots_[slotIndex] = texture.texture;
 						this.gl.bindTexture(texture.target, texture.texture);
