@@ -10,7 +10,7 @@ namespace sd.asset {
 	 */
 	export const identifier: AssetProcessor = async (asset: Asset) => {
 		if (typeof asset.uri === "string") {
-			if (typeof asset.mimeType === void 0) {
+			if (asset.mimeType === void 0) {
 				const uriMimeType = mimeTypeForURI(asset.uri);
 				if (uriMimeType) {
 					setAssetMimeType(asset, uriMimeType);
