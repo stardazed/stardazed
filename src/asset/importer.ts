@@ -16,7 +16,7 @@ namespace sd.asset {
 				throw new Error("Importer: asset data was not loaded");
 			}
 
-			return importer.importAssets(asset.blob, asset.uri || "")
+			return importer.importAssets(asset)
 				.then(dependencies => {
 					// FIXME: this is just a quick hack, need a formal name/id gen system
 					if (asset.name && propertyCount(dependencies) === 1) {
@@ -65,7 +65,7 @@ namespace sd.asset {
 
 	export namespace importer {
 
-		export type AssetImporter = (data: Blob, uri: string) => Promise<AssetDependencies>;
+		export type AssetImporter = <Metadata extends object>(data: Blob, uri: string, metadata: Partial<Metadata>) => Promise<AssetDependencies>;
 		const importers = new Map<string, AssetImporter>();
 		
 		export function registerImporter(importer: AssetImporter, mimeType: string, extensions: string | string[]) {
@@ -81,14 +81,15 @@ namespace sd.asset {
 			mapMimeTypeToAssetKind(mimeType, "import");
 		}
 		
-		export function importAssets(data: Blob, uri: string) {
+		export function importAssets(asset: Asset) {
 			return new Promise<AssetDependencies>((resolve, reject) => {
+				const data = asset.blob!;
 				const mimeType = data.type;
 				const dataImporter = importers.get(mimeType);
 				if (! dataImporter) {
 					return reject(`Importer: cannot load asset files of type: ${mimeType}`);
 				}
-				resolve(dataImporter(data, uri));
+				resolve(dataImporter(data, asset.uri || "", asset.metadata || {}));
 			});
 		}
 
