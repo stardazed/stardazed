@@ -17,7 +17,7 @@ namespace sd.asset {
 	}
 
 	export interface CacheAccess {
-		(kind: "texture", name: string): Texture2D;
+		(kind: "texture" | "texturecube", name: string): Texture2D;
 	}
 
 	export namespace parse {
@@ -31,20 +31,38 @@ namespace sd.asset {
 		}
 
 		export async function parseTexture(asset: Asset<Texture2D, TextureAssetMetadata>) {
-			const imageAsset = asset.dependencies && asset.dependencies.image;
 			const metadata = asset.metadata || {};
-
-			if (! (imageAsset && imageAsset.kind === "image")) {
-				throw new Error(`Texture parser: required image dependency is missing.`);
-			}
-
 			const mipmaps = parseMipMapMode(metadata.mipmaps);
 			const repeatS = parseRepeat(metadata.repeatS);
 			const repeatT = parseRepeat(metadata.repeatT);
 			const filtering = parseFiltering(metadata.filtering);
 			const anisotropy = parseAnisotropy(metadata.anisotropy);
 
-			const texture = render.makeTex2DFromProvider(imageAsset.item!, mipmaps);
+			let texture: render.Texture;
+			if (asset.dependencies) {
+				if (asset.kind === "texture") {
+					// 2d (plain) texture
+					const imageAsset = asset.dependencies.image;
+					if (!(imageAsset && imageAsset.kind === "image")) {
+						throw new Error(`Texture parser: required image dependency is missing.`);
+					}
+					texture = render.makeTex2DFromProvider(imageAsset.item!, mipmaps);
+				}
+				else {
+					// cube texture
+					const { posx, negx, posy, negy, posz, negz } = asset.dependencies;
+					const layers = [posx, negx, posy, negy, posz, negz];
+					if (layers.some(ia => (ia === undefined) || (ia.kind !== "image"))) {
+						console.info("LAYERS", layers, asset.dependencies, asset);
+						throw new Error(`Texture parser: some cube image dependencies are missing or are non-images.`);
+					}
+					const sides = layers.map(ia => ia!.item);
+					texture = render.makeTexCubeFromProviders(sides, mipmaps);
+				}
+			}
+			else {
+				throw new Error(`Texture parser: no dependencies (images) specified`);
+			}
 			
 			const tex2D: Texture2D = {
 				texture,
@@ -58,6 +76,7 @@ namespace sd.asset {
 		}
 
 		registerParser("texture", parseTexture);
+		registerParser("texturecube", parseTexture);
 
 		function parseMipMapMode(mmm: "source" | "strip" | "regenerate" | undefined) {
 			if (["source", "strip", "regenerate"].indexOf(mmm || "") === -1) {
