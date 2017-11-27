@@ -30,12 +30,16 @@ namespace sd.asset.importer {
 		roughness?: number;
 		metallic?: number;
 		anisotropy?: number;
+		uvScale: [number, number];
+		uvOffset: [number, number];
 	}
 
 	const makeMTLMaterial = (name: string): MTLMaterial => ({
 		name,
 		colours: {},
-		textures: {}
+		textures: {},
+		uvScale: [1, 1],
+		uvOffset: [0, 0]
 	});
 
 
@@ -146,12 +150,19 @@ namespace sd.asset.importer {
 
 		// anisotropy
 		// TODO: apply mtl.anisotropy to all textures
+		metadata.uvScale = mtl.uvScale;
+		metadata.uvOffset = mtl.uvOffset;
 
 		return material;
 	}
 
+	interface MTLTexture {
+		texAsset: Asset<Texture2D>;
+		uvScale: Float2 | undefined;
+		uvOffset: Float2 | undefined;
+	}
 
-	function parseMTLTextureSpec(directive: string, basePath: string, line: string[]) {
+	function parseMTLTextureSpec(directive: string, basePath: string, line: string[]): MTLTexture | undefined {
 		if (line.length < 2) {
 			return undefined;
 		}
@@ -161,7 +172,7 @@ namespace sd.asset.importer {
 		// the last token is the relative path of the texture (no spaces allowed)
 		const relPath = tokens.pop()!;
 
-		const spec: TextureAsset = {
+		const texAsset: TextureAsset = {
 			kind: "texture",
 			metadata: {
 				mipmaps: "regenerate",
@@ -175,6 +186,9 @@ namespace sd.asset.importer {
 				}
 			}
 		};
+
+		let uvScale: Float2 | undefined;
+		let uvOffset: Float2 | undefined;
 
 		// what remains are texture options
 		// SD only supports -o and -s for now and only with both u and v values
@@ -195,10 +209,10 @@ namespace sd.asset.importer {
 						else {
 							// TODO: collect scale and offset data and place in material
 							if (opt === "-o") {
-								// spec.metadata.uvOffset = xy;
+								uvOffset = xy;
 							}
 							else { // -s
-								// spec.metadata.uvScale = xy;
+								uvScale = xy;
 							}
 						}
 					}
@@ -214,7 +228,11 @@ namespace sd.asset.importer {
 			tix += 1;
 		}
 
-		return spec;
+		return {
+			texAsset,
+			uvScale,
+			uvOffset
+		};
 	}
 
 
@@ -341,7 +359,13 @@ namespace sd.asset.importer {
 								}
 								else {
 									const texType = directive === "bump" ? "norm" : directive;
-									curMat.textures[texType] = texSpec;
+									curMat.textures[texType] = texSpec.texAsset;
+									if (texSpec.uvOffset) {
+										vec2.copy(curMat.uvOffset, texSpec.uvOffset);
+									}
+									if (texSpec.uvScale) {
+										vec2.copy(curMat.uvScale, texSpec.uvScale);
+									}
 								}
 							}
 							else {
