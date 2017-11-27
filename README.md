@@ -1,9 +1,9 @@
 Stardazed
 =========
 
-A library to enable quick development of custom 3D games in the browser.
+A library to enable quick development of 3D games in the browser.
 
-Built in TypeScript, currently TS 2.5, just run `tsc` somewhere inside the project dir.
+Built in TypeScript, currently TS 2.6, just run `tsc` somewhere inside the project dir.
 
 **Project status**: *In Development (Pre-Alpha)*<br>
 Features and APIs still very much in flux, but functional and usable for actual development
@@ -33,16 +33,15 @@ Features
 --------
 
 ### Assets
-- FBX asset support (meshes, materials, models, scene graph, skeletons, animations)
-- MD5 asset support (meshes, skeletons, animations)
-- OBJ/MTL asset support (meshes, materials, including extended PBR fields, tex scale and offset)
+- FBX asset support (geometry, materials, models, scene graph, skeletons, animations)
+- OBJ/MTL asset support (geometry, materials, including extended PBR fields, tex scale and offset)
 - TMX (Tiled Map Editor) support (basic grid tilemaps only)
 - Of course all browser-supported image and sound file formats plus:
   - DDS image support (DXT 1, 3, 5)
   - TGA image support
 
 ### Renderer
-- Metallic-setup PBR materials with RMA, normal, height and albedo map support
+- Metallic-setup PBR materials with normal and height map support
 - Forward shader with tiled lighting and shadowmap-based VSM shadows
 - Hardware vertex skinning for skinned models
 - Optimized generation of shaders for models with different features

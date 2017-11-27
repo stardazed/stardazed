@@ -37,7 +37,7 @@ namespace sd {
 		Suspended
 	}
 
-	// for now, this represents what would be present in a level file
+	// for now, this represents what would be present in a scene file
 	export interface SceneConfig {
 		delegate: SceneDelegate;
 		assets: asset.Asset[];
