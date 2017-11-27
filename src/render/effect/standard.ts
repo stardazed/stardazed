@@ -66,7 +66,6 @@ namespace sd.render.effect {
 			MaterialInfo mi = getMaterialInfo(si.UV);
 
 			vec3 totalLight = totalDynamicLightContributionTiledForward(si, mi);
-			totalLight += vec3(0.015, 0.01, 0.02);
 
 			totalLight = totalLight * mi.albedo.rgb;
 			#ifdef EMISSIVE
