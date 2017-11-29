@@ -32,7 +32,7 @@ namespace sd.asset.importer {
 		}).then(provider => {
 			URL.revokeObjectURL(blobURL);
 			return {
-				image: {
+				[DEFAULT_EXPORT]: {
 					kind: "image",
 					item: provider
 				}

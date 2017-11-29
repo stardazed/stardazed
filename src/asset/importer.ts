@@ -45,6 +45,14 @@ namespace sd.asset {
 					if (dependency && dependency.kind === "import") {
 						const importedAssets = dependency.dependencies;
 						if (importedAssets) {
+							// re-key default key to parent key
+							// this allows an asset to be keyed as the import asset's key
+							// this is useful for single-item imports such as sounds or images
+							// that can be mapped to the keys that they were imported as.
+							if (importedAssets[importer.DEFAULT_EXPORT]) {
+								
+							}
+
 							assetsToMerge = {
 								...assetsToMerge,
 								...importedAssets
@@ -64,6 +72,8 @@ namespace sd.asset {
 
 
 	export namespace importer {
+
+		export const DEFAULT_EXPORT = Symbol("default_export");
 
 		export type AssetImporter = <Metadata extends object>(data: Blob, uri: string, metadata: Partial<Metadata>) => Promise<AssetDependencies>;
 		const importers = new Map<string, AssetImporter>();

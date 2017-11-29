@@ -10,7 +10,7 @@ namespace sd.asset.importer {
 	export function importTGAImage(data: Blob, _uri: string) {
 		return getArrayBuffer(data).then(buffer => {
 			return {
-				image: {
+				[DEFAULT_EXPORT]: {
 					kind: "image",
 					item: new TGADataProvider(new Uint8ClampedArray(buffer))
 				}
