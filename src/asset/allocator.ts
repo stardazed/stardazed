@@ -9,7 +9,7 @@ namespace sd.asset {
 	 * Automatically allocate render assets for usage in the next frame.
 	 */
 	export const allocator = (rd: render.RenderDevice): AssetProcessor => async (asset: Asset) => {
-		if ((asset.kind === "texture" || asset.kind === "mesh") && asset.item) {
+		if ((asset.kind === "texture" || asset.kind === "texturecube" || asset.kind === "mesh") && asset.item) {
 			const rcb = new render.RenderCommandBuffer();
 
 			if (asset.kind === "mesh") {
