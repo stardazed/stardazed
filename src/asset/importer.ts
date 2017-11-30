@@ -45,12 +45,13 @@ namespace sd.asset {
 					if (dependency && dependency.kind === "import") {
 						const importedAssets = dependency.dependencies;
 						if (importedAssets) {
-							// re-key default key to parent key
-							// this allows an asset to be keyed as the import asset's key
-							// this is useful for single-item imports such as sounds or images
+							// Re-key default exports to parent key.
+							// This allows an asset to be keyed as the import asset's key.
+							// This is useful for single-item imports such as sounds or images
 							// that can be mapped to the keys that they were imported as.
 							if (importedAssets[importer.DEFAULT_EXPORT]) {
-								
+								importedAssets[depName] = importedAssets[importer.DEFAULT_EXPORT];
+								delete importedAssets[importer.DEFAULT_EXPORT];
 							}
 
 							assetsToMerge = {
