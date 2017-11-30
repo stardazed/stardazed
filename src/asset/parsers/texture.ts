@@ -53,7 +53,7 @@ namespace sd.asset {
 					const { posx, negx, posy, negy, posz, negz } = asset.dependencies;
 					const layers = [posx, negx, posy, negy, posz, negz];
 					if (layers.some(ia => (ia === undefined) || (ia.kind !== "image"))) {
-						console.info("LAYERS", layers, asset.dependencies, asset);
+						console.error("Texture parser: invalid images for cube texture", layers, asset);
 						throw new Error(`Texture parser: some cube image dependencies are missing or are non-images.`);
 					}
 					const sides = layers.map(ia => ia!.item);
