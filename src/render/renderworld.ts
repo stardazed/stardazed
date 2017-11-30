@@ -28,6 +28,9 @@ namespace sd.render {
 			this.effects_ = new Map();
 			this.registerEffect(new effect.StandardEffect());
 			this.registerEffect(new effect.VSMShadowMapEffect());
+			this.registerEffect(new effect.SimpleSkyboxEffect());
+
+			this.rd_.processFrame();
 		}
 
 		get drawableWidth() {

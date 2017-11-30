@@ -54,7 +54,7 @@ namespace sd.render.effect {
 		fragmentFunction: vsmShadowFragmentFunction
 	});
 
-	export interface VSMShadowData extends EffectData {
+	export interface VSMShadowMapEffectData extends EffectData {
 		data: Float32Array;
 	}
 
@@ -62,17 +62,14 @@ namespace sd.render.effect {
 		readonly name = "vsm-shadow";
 		readonly id = 0x00010001;
 	
-		private rd_: gl1.GL1RenderDevice;
 		private shader_: Shader;
 	
 		attachToRenderWorld(rw: RenderWorld) {
-			this.rd_ = rw.rd as gl1.GL1RenderDevice;
 			this.shader_ = vsmShadowShader();
 	
 			const rcmd = new RenderCommandBuffer();
 			rcmd.allocate(this.shader_);
-			this.rd_.dispatch(rcmd);
-			this.rd_.processFrame();
+			rw.rd.dispatch(rcmd);
 		}
 	
 		addRenderJobs(
@@ -95,7 +92,7 @@ namespace sd.render.effect {
 					{ name: "modelMatrix", value: modelMatrix as Float32Array },
 					{ name: "lightViewMatrix", value: mv },
 					{ name: "lightViewProjectionMatrix", value: mvp },
-					{ name: "lightRange", value: (evData as VSMShadowData).data }
+					{ name: "lightRange", value: (evData as VSMShadowMapEffectData).data }
 				],
 				pipeline: {
 					depthTest: DepthTest.Less,
@@ -110,7 +107,7 @@ namespace sd.render.effect {
 			return {
 				__effectID: this.id,
 				data: vec4.fromValues(0, 0, 0, 1)
-			} as VSMShadowData;
+			} as VSMShadowMapEffectData;
 		}
 	
 		getTexture(_evd: EffectData, _name: string): Texture | undefined {
@@ -127,13 +124,13 @@ namespace sd.render.effect {
 	
 		getValue(evd: EffectData, name: string): number | undefined {
 			if (name === "range") {
-				return (evd as VSMShadowData).data[3];
+				return (evd as VSMShadowMapEffectData).data[3];
 			}
 			return undefined;
 		}
 		setValue(evd: EffectData, name: string, val: number) {
 			if (name === "range") {
-				(evd as VSMShadowData).data[3] = Math.max(0.01, val);
+				(evd as VSMShadowMapEffectData).data[3] = Math.max(0.01, val);
 			}
 		}
 	}

@@ -137,7 +137,6 @@ namespace sd.render.effect {
 			const rcmd = new RenderCommandBuffer();
 			rcmd.allocate(this.sampler_);
 			this.rd_.dispatch(rcmd);
-			this.rd_.processFrame();
 		}
 
 		addRenderJobs(
