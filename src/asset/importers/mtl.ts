@@ -266,6 +266,10 @@ namespace sd.asset.importer {
 			tokens = line.trim().split(/ +/);
 			const directive = tokens[0];
 
+			if (directive === "#" || directive === "") {
+				continue;
+			}
+
 			if (directive === "newmtl") {
 				if (checkArgCount(directive, 1)) {
 					if (curMat) {
