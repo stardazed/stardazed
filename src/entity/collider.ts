@@ -60,7 +60,11 @@ namespace sd.entity {
 			collider.rigidBody.worldPos = this.transforms_.worldPosition(transform);
 			const rigidBody = this.physicsWorld.createRigidBody(collider.rigidBody);
 
-			// linking
+			// link the Ammo RB back to the collider through the instance index
+			// and provide a direct entity index in the user pointer field
+			rigidBody.setUserIndex(instance);
+			rigidBody.setUserPointer(entity as number);
+
 			this.entityBase_[instance] = entity;
 			this.transformBase_[instance] = transform;
 			this.shapeTypeBase_[instance] = collider.rigidBody.shape.type;
@@ -105,6 +109,14 @@ namespace sd.entity {
 					fn(cx, tx, rb);
 				}
 			}
+		}
+
+		identify(co: Ammo.btCollisionObject) {
+			return co.getUserIndex() as ColliderInstance;
+		}
+
+		identifyEntity(co: Ammo.btCollisionObject) {
+			return co.getUserPointer().a as Entity;
 		}
 
 		// --
