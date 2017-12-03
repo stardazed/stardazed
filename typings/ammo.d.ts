@@ -2,8 +2,9 @@ declare namespace Ammo {
 
 	// ---- Memory
 
-	interface VoidPtr extends Number {
+	interface VoidPtr {
 		readonly __VoidPtr?: void;
+		a: number; // memory address
 	}
 
 	function destroy(ammoObject: object): void;
@@ -245,7 +246,7 @@ declare namespace Ammo {
 		setAnisotropicFriction(anisotropicFriction: btVector3, frictionMode: AnisotropicFrictionFlags): void;
 
 		setUserIndex(index: number): void;
-		setUserPointer(userPointer: VoidPtr): void;
+		setUserPointer(userPointer: number): void;
 
 		setWorldTransform(worldTrans: btTransform): void;
 
