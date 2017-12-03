@@ -47,6 +47,13 @@ namespace sd.physics {
 		collisionFilterMask?: number;
 	}
 
+	export interface CharacterDescriptor {
+		shape: PhysicsShape;
+		stepHeight: number;
+		worldPos?: ConstFloat3;
+		worldRot?: ConstFloat4;
+	}
+
 	export class PhysicsWorld {
 		private world_: Ammo.btDiscreteDynamicsWorld;
 		private defaultLinearDrag_: number;
@@ -152,6 +159,30 @@ namespace sd.physics {
 
 		removeRigidBody(body: Ammo.btRigidBody) {
 			this.world_.removeRigidBody(body);
+		}
+
+		createCharacter(desc: CharacterDescriptor) {
+			const worldPos = desc.worldPos || [0, 0, 0];
+			const worldRot = desc.worldRot || [0, 0, 0, 1];
+
+			const ammoTransform = new Ammo.btTransform(
+				new Ammo.btQuaternion(worldRot[0], worldRot[1], worldRot[2], worldRot[3]),
+				new Ammo.btVector3(worldPos[0], worldPos[1], worldPos[2])
+			);
+
+			const ghost = new Ammo.btPairCachingGhostObject();
+			ghost.setWorldTransform(ammoTransform);
+			ghost.setCollisionShape(desc.shape.shape);
+			ghost.setCollisionFlags(Ammo.CollisionFlags.CF_CHARACTER_OBJECT);
+			// this.world_.broadphase.getOverlappingPairCache() -> setInternalGhostPairCallback(new btGhostPairCallback());
+
+			const controller = new Ammo.btKinematicCharacterController(ghost, desc.shape.shape, desc.stepHeight);
+			// controller.setGravity(-this.world_.getGravity().y());
+
+			this.world_.addCollisionObject(ghost, Ammo.CollisionFilterGroups.DefaultFilter, Ammo.CollisionFilterGroups.AllFilter);
+			this.world_.addAction(controller);
+
+			return controller;
 		}
 
 		rayCastClosest(worldFrom: Float3, worldTo: Float3, filter = Ammo.CollisionFilterGroups.AllFilter) {

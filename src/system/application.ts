@@ -51,7 +51,7 @@ namespace sd {
 
 		private processSceneFrame(scene: Scene, dt: number) {
 			scene.frame(dt);
-			scene.physicsWorld.update(dt, scene.colliders, scene.transforms);			
+			scene.physicsWorld.update(dt, scene.colliders, scene.transforms);
 			scene.rw.drawScene(scene);
 			scene.rw.rd.processFrame();
 		}
