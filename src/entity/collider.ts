@@ -111,11 +111,11 @@ namespace sd.entity {
 			}
 		}
 
-		identify(co: Ammo.btCollisionObject) {
+		identify(co: Ammo.btCollisionObjectConst) {
 			return co.getUserIndex() as ColliderInstance;
 		}
 
-		identifyEntity(co: Ammo.btCollisionObject) {
+		identifyEntity(co: Ammo.btCollisionObjectConst) {
 			return co.getUserPointer().a as Entity;
 		}
 
