@@ -43,6 +43,8 @@ namespace sd.physics {
 		restitution?: number; // bounciness in Unity
 		positionConstraints?: [boolean, boolean, boolean];
 		rotationConstraints?: [boolean, boolean, boolean];
+		collisionFilterGroup?: number;
+		collisionFilterMask?: number;
 	}
 
 	export class PhysicsWorld {
@@ -130,7 +132,20 @@ namespace sd.physics {
 				body.setAngularFactor(new Ammo.btVector3(factors[0], factors[1], factors[2]));
 			}
 
-			this.world_.addRigidBody(body);
+			// collision filtering, by default mimic what Ammo does
+			const isDynamic = !(body.isStaticObject() || body.isKinematicObject());
+			let collisionFilterGroup = isDynamic ? Ammo.CollisionFilterGroups.DefaultFilter : Ammo.CollisionFilterGroups.StaticFilter;
+			let collisionFilterMask = isDynamic ? Ammo.CollisionFilterGroups.AllFilter : Ammo.CollisionFilterGroups.AllFilter ^ Ammo.CollisionFilterGroups.StaticFilter;
+
+			// allow descriptor to override values
+			if (desc.collisionFilterGroup !== undefined) {
+				collisionFilterGroup = desc.collisionFilterGroup & 0xffff;
+			}
+			if (desc.collisionFilterMask !== undefined) {
+				collisionFilterMask = desc.collisionFilterMask & 0xffff;
+			}
+
+			this.world_.addRigidBody(body, collisionFilterGroup, collisionFilterMask);
 
 			return body;
 		}
