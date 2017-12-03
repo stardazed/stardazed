@@ -139,6 +139,44 @@ namespace sd.physics {
 			this.world_.removeRigidBody(body);
 		}
 
+		rayCastClosest(worldFrom: Float3, worldTo: Float3, filter = Ammo.CollisionFilterGroups.AllFilter) {
+			const from = new Ammo.btVector3(worldFrom[0], worldFrom[1], worldFrom[2]);
+			const to = new Ammo.btVector3(worldTo[0], worldTo[1], worldTo[2]);
+			const result = new Ammo.ClosestRayResultCallback(from, to);
+			
+			result.set_m_collisionFilterGroup(Ammo.CollisionFilterGroups.AllFilter);
+			result.set_m_collisionFilterMask(filter);
+			
+			this.world_.rayTest(from, to, result);
+
+			if (result.hasHit()) {
+				return result.get_m_collisionObject();
+			}
+			return undefined;
+		}
+
+		rayCastAll(worldFrom: Float3, worldTo: Float3, filter = Ammo.CollisionFilterGroups.AllFilter) {
+			const from = new Ammo.btVector3(worldFrom[0], worldFrom[1], worldFrom[2]);
+			const to = new Ammo.btVector3(worldTo[0], worldTo[1], worldTo[2]);
+			const result = new Ammo.AllHitsRayResultCallback(from, to);
+
+			result.set_m_collisionFilterGroup(Ammo.CollisionFilterGroups.AllFilter);
+			result.set_m_collisionFilterMask(filter);
+
+			this.world_.rayTest(from, to, result);
+
+			if (result.hasHit()) {
+				const objects = [];
+				const hits = result.get_m_collisionObjects();
+				const hitCount = hits.size();
+				for (let i = 0; i < hitCount; ++i) {
+					objects.push(hits.at(i));
+				}
+				return objects;
+			}
+			return [];
+		}
+
 		update(timeStep: number, colliders: entity.ColliderComponent, transforms: entity.TransformComponent) {
 			this.world_.stepSimulation(timeStep, 2, 1 / 60);
 
