@@ -61,9 +61,7 @@ namespace sd.entity {
 			const rigidBody = this.physicsWorld.createRigidBody(collider.rigidBody);
 
 			// link the Ammo RB back to the collider through the instance index
-			// and provide a direct entity index in the user pointer field
 			rigidBody.setUserIndex(instance);
-			rigidBody.setUserPointer(entity as number);
 
 			this.entityBase_[instance] = entity;
 			this.transformBase_[instance] = transform;
@@ -116,7 +114,7 @@ namespace sd.entity {
 		}
 
 		identifyEntity(co: Ammo.btCollisionObjectConst) {
-			return co.getUserPointer().a as Entity;
+			return this.entity(this.identify(co));
 		}
 
 		// --
