@@ -77,6 +77,7 @@ namespace sd.entity {
 			this.transformBase_[inst as number] = 0;
 			this.shapeTypeBase_[inst as number] = 0;
 			delete this.shapes_[inst as number];
+			this.colliders_[inst as number].setUserIndex(0);
 			delete this.colliders_[inst as number];
 		}
 
