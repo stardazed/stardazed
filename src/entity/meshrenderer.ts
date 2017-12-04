@@ -125,10 +125,10 @@ namespace sd.entity {
 
 		setEnabled(inst: MeshRendererInstance, newEnabled: boolean) {
 			if (newEnabled) {
-				this.flagsBase_[inst as number] &= ~MeshRendererFlags.Enabled;
+				this.flagsBase_[inst as number] |= MeshRendererFlags.Enabled;
 			}
 			else {
-				this.flagsBase_[inst as number] |= MeshRendererFlags.Enabled;
+				this.flagsBase_[inst as number] &= ~MeshRendererFlags.Enabled;
 			}
 		}
 
@@ -138,10 +138,10 @@ namespace sd.entity {
 
 		setCastsShadows(inst: MeshRendererInstance, newCasts: boolean) {
 			if (newCasts) {
-				this.flagsBase_[inst as number] &= ~MeshRendererFlags.CastsShadows;
+				this.flagsBase_[inst as number] |= MeshRendererFlags.CastsShadows;
 			}
 			else {
-				this.flagsBase_[inst as number] |= MeshRendererFlags.CastsShadows;
+				this.flagsBase_[inst as number] &= ~MeshRendererFlags.CastsShadows;
 			}
 		}
 
@@ -151,10 +151,10 @@ namespace sd.entity {
 
 		setAcceptsShadows(inst: MeshRendererInstance, newAccepts: boolean) {
 			if (newAccepts) {
-				this.flagsBase_[inst as number] &= ~MeshRendererFlags.AcceptsShadows;
+				this.flagsBase_[inst as number] |= MeshRendererFlags.AcceptsShadows;
 			}
 			else {
-				this.flagsBase_[inst as number] |= MeshRendererFlags.AcceptsShadows;
+				this.flagsBase_[inst as number] &= ~MeshRendererFlags.AcceptsShadows;
 			}
 		}
 
