@@ -77,7 +77,10 @@ namespace sd.entity {
 			this.transformBase_[inst as number] = 0;
 			this.shapeTypeBase_[inst as number] = 0;
 			delete this.shapes_[inst as number];
-			this.colliders_[inst as number].setUserIndex(0);
+
+			const rb = this.colliders_[inst as number];
+			rb.setUserIndex(0);
+			this.physicsWorld.removeRigidBody(rb);
 			delete this.colliders_[inst as number];
 		}
 
