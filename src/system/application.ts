@@ -78,7 +78,7 @@ namespace sd {
 			}
 			this.state_ = ApplicationState.Running;
 
-			if (this.scene_ && this.scene_.state >= SceneState.Ready) {
+			if (this.scene_) {
 				this.scene_.resume();
 			}
 
@@ -130,11 +130,9 @@ namespace sd {
 			this.scene_ = newScene;
 
 			if (this.scene_) {
-				if (this.scene_.state >= SceneState.Ready) {
-					this.scene_.enter();
-					if (this.state_ === ApplicationState.Running) {
-						this.scene_.resume();
-					}
+				this.scene_.enter();
+				if (this.state_ === ApplicationState.Running) {
+					this.scene_.resume();
 				}
 			}
 		}
