@@ -49,13 +49,6 @@ namespace sd {
 			dom.on(window, "focus", () => {	this.resume(); });
 		}
 
-		private processSceneFrame(scene: Scene, dt: number) {
-			scene.frame(dt);
-			scene.physicsWorld.update(dt, scene.colliders, scene.transforms);
-			scene.rw.drawScene(scene);
-			scene.rw.rd.processFrame();
-		}
-
 		private nextFrame(now: number) {
 			// if we exceed the max frame time then we will start introducing
 			// real lag and slowing the game down to catch up
@@ -66,8 +59,8 @@ namespace sd {
 			this.lastFrameTime_ = now;
 			this.globalTime_ += dt;
 
-			if (this.scene_ && this.scene_.state === SceneState.Running) {
-				this.processSceneFrame(this.scene_, dt);
+			if (this.scene_) {
+				this.scene_.frame(dt);
 			}
 
 			// reset io devices

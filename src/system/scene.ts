@@ -173,9 +173,15 @@ namespace sd {
 		}
 
 		frame(dt: number) {
+			if (this.state_ !== SceneState.Running) {
+				return;
+			}
 			if (this.delegate.update) {
 				this.delegate.update(dt);
 			}
+			this.physicsWorld.update(dt, this.colliders, this.transforms);
+			this.rw.drawScene(this);
+			this.rw.rd.processFrame();
 		}
 
 		suspend() {
