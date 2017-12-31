@@ -285,6 +285,8 @@ declare namespace Ammo {
 		set_m_collisionFilterMask(cfm: CollisionFilterGroups): void;
 		get_m_collisionObject(): btCollisionObjectConst;
 		set_m_collisionObject(co: btCollisionObjectConst): void;
+		get_m_closestHitFraction(): number;
+		set_m_closestHitFraction(chf: number): void;
 	}
 
 	class ClosestRayResultCallback extends RayResultCallback {
