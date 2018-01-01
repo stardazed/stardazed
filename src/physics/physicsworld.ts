@@ -215,7 +215,7 @@ namespace sd.physics {
 			return this.rayCastInternal(Ammo.ClosestRayResultCallback, filter, worldFrom, worldTo).hasHit();
 		}
 
-		rayTest(worldFrom: Float3, worldDir: Float3, maxDistance = 1e7, filter = Ammo.CollisionFilterGroups.AllFilter) {
+		rayTest(worldFrom: Float3, worldDir: Float3, maxDistance: number, filter = Ammo.CollisionFilterGroups.AllFilter) {
 			return this.rayCastInternal(Ammo.ClosestRayResultCallback, filter, worldFrom, worldDir, maxDistance).hasHit();
 		}
 
@@ -238,7 +238,7 @@ namespace sd.physics {
 			return this.closestRaycastHit(result);
 		}
 
-		rayCastClosest(worldFrom: Float3, worldDir: Float3, maxDistance = 1e7, filter = Ammo.CollisionFilterGroups.AllFilter) {
+		rayCastClosest(worldFrom: Float3, worldDir: Float3, maxDistance: number, filter = Ammo.CollisionFilterGroups.AllFilter) {
 			const result = this.rayCastInternal(Ammo.ClosestRayResultCallback, filter, worldFrom, worldDir, maxDistance) as Ammo.ClosestRayResultCallback;
 			return this.closestRaycastHit(result);
 		}
@@ -272,7 +272,7 @@ namespace sd.physics {
 			return this.allRaycastHits(result);
 		}
 
-		rayCastAll(worldFrom: Float3, worldDir: Float3, maxDistance = 1e7, filter = Ammo.CollisionFilterGroups.AllFilter) {
+		rayCastAll(worldFrom: Float3, worldDir: Float3, maxDistance: number, filter = Ammo.CollisionFilterGroups.AllFilter) {
 			const result = this.rayCastInternal(Ammo.AllHitsRayResultCallback, filter, worldFrom, worldDir, maxDistance) as Ammo.AllHitsRayResultCallback;
 			return this.allRaycastHits(result);
 		}
