@@ -158,7 +158,7 @@ namespace sd {
 
 	export const App: Application = new SDApplication();
 
-	dom.on(window, "load", () => {
+	window.addEventListener("load", () => {
 		function main() {
 			App.messages.send("AppStart");
 			(App as SDApplication).resume();
