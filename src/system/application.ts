@@ -45,8 +45,8 @@ namespace sd {
 			this.nextFrameFn_ = this.nextFrame.bind(this);
 			this.messages.listen("SceneLoaded", undefined, (scene: Scene) => this.handleSceneLoaded(scene));
 
-			dom.on(window, "blur", () => { this.suspend(); });
-			dom.on(window, "focus", () => {	this.resume(); });
+			window.addEventListener("blur", () => { this.suspend(); });
+			window.addEventListener("focus", () => {	this.resume(); });
 		}
 
 		private nextFrame(now: number) {

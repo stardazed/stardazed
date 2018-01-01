@@ -3,8 +3,6 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../tools/dom.ts" />
-
 namespace sd.control {
 
 	export enum Key {
@@ -76,7 +74,7 @@ namespace sd.control {
 			this.halfTransBase_ = this.keyData_.indexedFieldView(1);
 			this.lastEventBase_ = this.keyData_.indexedFieldView(2);
 
-			dom.on(window, "keydown", (evt: KeyboardEvent) => {
+			window.addEventListener("keydown", (evt: KeyboardEvent) => {
 				const lastEvent = this.lastEventBase_[evt.keyCode];
 				const wasDown = this.downBase_[evt.keyCode];
 
@@ -93,7 +91,7 @@ namespace sd.control {
 				}
 			});
 
-			dom.on(window, "keyup", (evt: KeyboardEvent) => {
+			window.addEventListener("keyup", (evt: KeyboardEvent) => {
 				this.downBase_[evt.keyCode] = 0;
 				++this.halfTransBase_[evt.keyCode];
 				this.lastEventBase_[evt.keyCode] = evt.timeStamp;
@@ -101,15 +99,6 @@ namespace sd.control {
 				if (! evt.metaKey) {
 					evt.preventDefault();
 				}
-			});
-
-			// -- losing or gaining focus will reset all key state to avoid stuck keys
-			dom.on(window, "blur", _evt => {
-				this.keyData_.clear();
-			});
-
-			dom.on(window, "focus", _evt => {
-				this.keyData_.clear();
 			});
 		}
 
