@@ -53,7 +53,7 @@ namespace sd.control {
 		private keyData_: container.MultiArrayBuffer;
 		private downBase_: TypedArray;
 		private halfTransBase_: TypedArray;
-		private lastEventBase_: TypedArray;
+		private lastEventBase_: Float64Array;
 
 		// The extra check in the key handlers for the timeStamp was added
 		// after I encountered a rare, but frequently enough occuring bug
@@ -67,12 +67,13 @@ namespace sd.control {
 			const fields: container.MABField[] = [
 				{ type: UInt8, count: 1 },  // down
 				{ type: UInt8, count: 1 },  // halfTransitionCount
-				{ type: UInt32, count: 1 }, // lastEvent
+				{ type: Double, count: 1 }, // lastEvent
 			];
 			this.keyData_ = new container.MultiArrayBuffer(128, fields);
 			this.downBase_ = this.keyData_.indexedFieldView(0);
 			this.halfTransBase_ = this.keyData_.indexedFieldView(1);
 			this.lastEventBase_ = this.keyData_.indexedFieldView(2);
+			this.lastEventBase_ = this.keyData_.indexedFieldView(2) as Float64Array;
 
 			window.addEventListener("keydown", (evt: KeyboardEvent) => {
 				const lastEvent = this.lastEventBase_[evt.keyCode];
