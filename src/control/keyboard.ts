@@ -44,6 +44,7 @@ namespace sd.control {
 		keyState(kc: Key): ButtonState;
 		down(kc: Key): boolean;
 		pressed(kc: Key): boolean;
+		released(kc: Key): boolean;
 		halfTransitions(kc: Key): number;
 
 		reset(): void;
@@ -122,6 +123,10 @@ namespace sd.control {
 
 		pressed(kc: Key): boolean {
 			return this.downBase_[kc] ? (this.halfTransBase_[kc] > 0) : false;
+		}
+
+		released(kc: Key): boolean {
+			return !this.downBase_[kc] ? (this.halfTransBase_[kc] > 0) : false;
 		}
 
 		reset() {
