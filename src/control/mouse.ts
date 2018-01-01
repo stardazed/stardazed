@@ -11,8 +11,10 @@ namespace sd.control {
 		buttonState(index: number): ButtonState;
 		down(index: number): boolean;
 		pressed(index: number): boolean;
+		released(index: number): boolean;
 		halfTransitions(index: number): number;
-		resetHalfTransitions(): void;
+		reset(): void;
+		resetPerFrameData(): void;
 
 		readonly position: Float2;
 		readonly positionDelta: Float2;
@@ -20,42 +22,112 @@ namespace sd.control {
 	}
 
 	class MouseImpl implements Mouse {
+		private buttonData_: container.FixedMultiArray;
+		private downBase_: Uint8Array;
+		private halfTransBase_: Uint8Array;
+		private readonly position_: number[];
+		private readonly positionDelta_: number[];
+		private readonly wheelDelta_: number[];
+
 		constructor() {
+			const fields: container.MABField[] = [
+				{ type: UInt8, count: 1 },  // down
+				{ type: UInt8, count: 1 },  // halfTransitionCount
+			];
+			this.buttonData_ = new container.FixedMultiArray(16, fields);
+			this.downBase_ = this.buttonData_.indexedFieldView(0) as Uint8Array;
+			this.halfTransBase_ = this.buttonData_.indexedFieldView(1) as Uint8Array;
+
+			this.position_ = [0, 0];
+			this.positionDelta_ = [0, 0];
+			this.wheelDelta_ = [0, 0];
+
+			window.addEventListener("wheel", evt => {
+				this.wheelDelta_[0] = evt.deltaX;
+				this.wheelDelta_[1] = evt.deltaY;
+				evt.preventDefault();
+				evt.stopPropagation();
+			});
+		
+			window.addEventListener("mousedown", evt => {
+				this.downBase_[evt.button] = 1;
+				++this.halfTransBase_[evt.button];
+				evt.preventDefault();
+			});
+		
+			window.addEventListener("mouseup", evt => {
+				this.downBase_[evt.button] = 0;
+				++this.halfTransBase_[evt.button];
+				evt.preventDefault();
+			});
+		
+			window.addEventListener("contextmenu", evt => {
+				evt.preventDefault();
+				evt.stopPropagation();
+			});
+
+			window.addEventListener("mousemove", evt => {
+				if (document.pointerLockElement) {
+					this.positionDelta_[0] = evt.movementX;
+					this.positionDelta_[1] = evt.movementY;
+				}
+				else {
+					this.positionDelta_[0] = evt.clientX - this.position_[0];
+					this.positionDelta_[1] = evt.clientY - this.position_[1];
+					this.position_[0] = evt.clientX;
+					this.position_[1] = evt.clientY;
+				}
+			});
 		}
 
-		buttonState(_index: number): ButtonState {
+		buttonState(index: number): ButtonState {
 			return {
-				down: false,
-				halfTransitionCount: 0
+				down: !!this.downBase_[index],
+				halfTransitionCount: this.halfTransBase_[index]
 			};
 		}
 
-		down(_index: number) {
-			return false;
+		down(index: number) {
+			return !!this.downBase_[index];
 		}
 
-		pressed(_index: number) {
-			return false;
+		pressed(index: number) {
+			return this.downBase_[index] ? (this.halfTransBase_[index] > 0) : false;
 		}
 
-		halfTransitions(_index: number) {
-			return 0;
+		released(index: number): boolean {
+			return !this.downBase_[index] ? (this.halfTransBase_[index] > 0) : false;
 		}
 
-		resetHalfTransitions() {
+		halfTransitions(index: number) {
+			return this.halfTransBase_[index];
+		}
 
+		reset() {
+			this.buttonData_.clear();
+			vec2.set(this.position_, 0, 0);
+			vec2.set(this.positionDelta_, 0, 0);
+			vec2.set(this.wheelDelta_, 0, 0);
+		}
+
+		resetPerFrameData() {
+			container.fill(this.halfTransBase_, 0, this.halfTransBase_.length);
+			this.positionDelta_[0] = 0;
+			this.positionDelta_[1] = 0;
+			this.wheelDelta_[0] = 0;
+			this.wheelDelta_[1] = 0;
 		}
 
 		get position() {
-			return [0, 0];
+			return this.position_.slice();
 		}
 
 		get positionDelta() {
-			return [0, 0];
+			return this.positionDelta_.slice();
 		}
 
 		get wheelDelta() {
-			return [0, 0];
+			return this.wheelDelta_.slice();
 		}
 	}
 
