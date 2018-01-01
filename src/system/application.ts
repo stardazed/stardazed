@@ -64,7 +64,8 @@ namespace sd {
 			}
 
 			// reset io devices
-			control.keyboard.resetHalfTransitions();
+			control.keyboard.resetPerFrameData();
+			control.mouse.resetPerFrameData();
 
 			if (this.state_ === ApplicationState.Running) {
 				this.rafID_ = requestAnimationFrame(this.nextFrameFn_);
@@ -77,6 +78,10 @@ namespace sd {
 				return;
 			}
 			this.state_ = ApplicationState.Running;
+
+			// reset all control state when losing or gaining focus to avoid stuck buttons / keys
+			control.keyboard.reset();
+			control.mouse.reset();
 
 			if (this.scene_) {
 				this.scene_.resume();
@@ -96,6 +101,10 @@ namespace sd {
 			if (this.scene_) {
 				this.scene_.suspend();
 			}
+
+			// reset all control state when losing or gaining focus to avoid stuck buttons / keys
+			control.keyboard.reset();
+			control.mouse.reset();
 
 			if (this.rafID_) {
 				cancelAnimationFrame(this.rafID_);
