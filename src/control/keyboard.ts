@@ -45,7 +45,9 @@ namespace sd.control {
 		down(kc: Key): boolean;
 		pressed(kc: Key): boolean;
 		halfTransitions(kc: Key): number;
-		resetHalfTransitions(): void;
+
+		reset(): void;
+		resetPerFrameData(): void;
 	}
 
 
@@ -122,7 +124,11 @@ namespace sd.control {
 			return this.downBase_[kc] ? (this.halfTransBase_[kc] > 0) : false;
 		}
 
-		resetHalfTransitions() {
+		reset() {
+			this.keyData_.clear();
+		}
+
+		resetPerFrameData() {
 			container.fill(this.halfTransBase_, 0, this.halfTransBase_.length);
 		}
 	}
