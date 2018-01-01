@@ -53,9 +53,9 @@ namespace sd.control {
 
 
 	class KeyboardImpl implements Keyboard {
-		private keyData_: container.MultiArrayBuffer;
-		private downBase_: TypedArray;
-		private halfTransBase_: TypedArray;
+		private keyData_: container.FixedMultiArray;
+		private downBase_: Uint8Array;
+		private halfTransBase_: Uint8Array;
 		private lastEventBase_: Float64Array;
 
 		// The extra check in the key handlers for the timeStamp was added
@@ -72,10 +72,9 @@ namespace sd.control {
 				{ type: UInt8, count: 1 },  // halfTransitionCount
 				{ type: Double, count: 1 }, // lastEvent
 			];
-			this.keyData_ = new container.MultiArrayBuffer(128, fields);
-			this.downBase_ = this.keyData_.indexedFieldView(0);
-			this.halfTransBase_ = this.keyData_.indexedFieldView(1);
-			this.lastEventBase_ = this.keyData_.indexedFieldView(2);
+			this.keyData_ = new container.FixedMultiArray(128, fields);
+			this.downBase_ = this.keyData_.indexedFieldView(0) as Uint8Array;
+			this.halfTransBase_ = this.keyData_.indexedFieldView(1) as Uint8Array;
 			this.lastEventBase_ = this.keyData_.indexedFieldView(2) as Float64Array;
 
 			window.addEventListener("keydown", (evt: KeyboardEvent) => {
