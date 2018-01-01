@@ -13,9 +13,11 @@ namespace sd.control {
 		LEFT = 37,
 		RIGHT = 39,
 
-		SPACE = 32,
+		BACKSPACE = 8,
+		TAB = 9,
 		RETURN = 13,
 		ESC = 27,
+		SPACE = 32,
 
 		PAGEUP = 33,
 		PAGEDOWN = 34,
