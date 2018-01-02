@@ -58,14 +58,6 @@ namespace sd.control {
 		private halfTransBase_: Uint8Array;
 		private lastEventBase_: Float64Array;
 
-		// The extra check in the key handlers for the timeStamp was added
-		// after I encountered a rare, but frequently enough occuring bug
-		// where, when a key is pressed for a longer time so that repeat
-		// keydown events are fired, _very_ occasionally the last keydown
-		// would be fired with the same timeStamp as the keyup event but
-		// the event handler for that last down event was fired AFTER the
-		// keyup event handler, causing the key to appear to be "stuck".
-
 		constructor() {
 			const fields: container.MABField[] = [
 				{ type: UInt8, count: 1 },  // down
@@ -77,7 +69,14 @@ namespace sd.control {
 			this.halfTransBase_ = this.keyData_.indexedFieldView(1) as Uint8Array;
 			this.lastEventBase_ = this.keyData_.indexedFieldView(2) as Float64Array;
 
-			window.addEventListener("keydown", (evt: KeyboardEvent) => {
+			// The extra check in the key handlers for the timeStamp was added
+			// after I encountered a rare, but frequently enough occuring bug
+			// where, when a key is pressed for a longer time so that repeat
+			// keydown events are fired, _very_ occasionally the last keydown
+			// would be fired with the same timeStamp as the keyup event but
+			// the event handler for that last down event was fired AFTER the
+			// keyup event handler, causing the key to appear to be "stuck".
+			window.addEventListener("keydown", evt => {
 				const lastEvent = this.lastEventBase_[evt.keyCode];
 				const wasDown = this.downBase_[evt.keyCode];
 
@@ -92,17 +91,15 @@ namespace sd.control {
 				if (! evt.metaKey) {
 					evt.preventDefault();
 				}
-			});
+			}, true);
 
-			window.addEventListener("keyup", (evt: KeyboardEvent) => {
+			window.addEventListener("keyup", evt => {
 				this.downBase_[evt.keyCode] = 0;
 				++this.halfTransBase_[evt.keyCode];
 				this.lastEventBase_[evt.keyCode] = evt.timeStamp;
 
-				if (! evt.metaKey) {
-					evt.preventDefault();
-				}
-			});
+				evt.preventDefault();
+			}, true);
 		}
 
 		keyState(kc: Key): ButtonState {
