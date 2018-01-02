@@ -24,6 +24,8 @@ namespace sd {
 		initialize(options: AppInitOptions): Promise<void>;
 		readonly globalTime: number;
 		readonly messages: Messaging;
+
+		makeScene(config: SceneConfig): Scene;
 		scene: Scene | undefined;
 	}
 
@@ -143,6 +145,10 @@ namespace sd {
 
 		get messages() {
 			return this.messages_;
+		}
+
+		makeScene(config: SceneConfig) {
+			return new Scene(this.renderWorld_, this.audioDevice_, config);
 		}
 
 		get scene() {
