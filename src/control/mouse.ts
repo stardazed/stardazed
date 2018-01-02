@@ -3,8 +3,6 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../tools/dom.ts" />
-
 namespace sd.control {
 
 	export interface Mouse {
@@ -13,8 +11,12 @@ namespace sd.control {
 		pressed(index: number): boolean;
 		released(index: number): boolean;
 		halfTransitions(index: number): number;
+
 		reset(): void;
 		resetPerFrameData(): void;
+
+		lock(): void;
+		unlock(): void;
 
 		readonly position: Float2;
 		readonly positionDelta: Float2;
@@ -46,25 +48,25 @@ namespace sd.control {
 				this.wheelDelta_[0] = evt.deltaX;
 				this.wheelDelta_[1] = evt.deltaY;
 				evt.preventDefault();
-				evt.stopPropagation();
-			});
+			}, true);
 		
 			window.addEventListener("mousedown", evt => {
 				this.downBase_[evt.button] = 1;
 				++this.halfTransBase_[evt.button];
 				evt.preventDefault();
-			});
+			}, true);
 		
 			window.addEventListener("mouseup", evt => {
 				this.downBase_[evt.button] = 0;
 				++this.halfTransBase_[evt.button];
 				evt.preventDefault();
-			});
+			}, true);
 		
 			window.addEventListener("contextmenu", evt => {
+				// disable context menu to allow for 2nd-clicks to
+				// be handled by the game.
 				evt.preventDefault();
-				evt.stopPropagation();
-			});
+			}, true);
 
 			window.addEventListener("mousemove", evt => {
 				if (document.pointerLockElement) {
@@ -77,6 +79,14 @@ namespace sd.control {
 					this.position_[0] = evt.clientX;
 					this.position_[1] = evt.clientY;
 				}
+			}, true);
+
+			document.addEventListener("pointerlockchange", _evt => {
+				// integrate into mouse capturing logic
+			});
+
+			document.addEventListener("pointerlockerror", _evt => {
+				// integrate into mouse capturing logic
 			});
 		}
 
@@ -116,6 +126,14 @@ namespace sd.control {
 			this.positionDelta_[1] = 0;
 			this.wheelDelta_[0] = 0;
 			this.wheelDelta_[1] = 0;
+		}
+
+		lock() {
+			document.querySelector("canvas")!.requestPointerLock();
+		}
+
+		unlock() {
+			document.exitPointerLock();
 		}
 
 		get position() {
