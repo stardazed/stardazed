@@ -34,12 +34,6 @@ namespace sd.control {
 	}
 
 
-	export interface ButtonState {
-		down: boolean;
-		halfTransitionCount: number;
-	}
-
-
 	export interface Keyboard {
 		keyState(kc: Key): ButtonState;
 		down(kc: Key): boolean;

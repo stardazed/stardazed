@@ -5,5 +5,10 @@
 
 namespace sd.control {
 
+	export interface ButtonState {
+		down: boolean;
+		halfTransitionCount: number;
+	}
+
 
 } // ns sd.control
