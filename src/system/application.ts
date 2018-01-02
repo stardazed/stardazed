@@ -14,7 +14,14 @@ namespace sd {
 		Suspended
 	}
 
+	export interface AppInitOptions {
+		root: HTMLElement;
+		width: number;
+		height: number;
+	}
+
 	export interface Application {
+		initialize(options: AppInitOptions): Promise<void>;
 		readonly globalTime: number;
 		readonly messages: Messaging;
 		scene: Scene | undefined;
@@ -34,6 +41,8 @@ namespace sd {
 
 		private messages_ = new Messaging();
 
+		private renderWorld_: render.RenderWorld;
+		private audioDevice_: audio.AudioDevice;
 		private scene_: Scene | undefined = undefined;
 
 		constructor() {
@@ -47,6 +56,21 @@ namespace sd {
 
 			window.addEventListener("blur", () => { this.suspend(); });
 			window.addEventListener("focus", () => {	this.resume(); });
+		}
+
+		initialize(options: AppInitOptions) {
+			const main = () => {
+				this.renderWorld_ = new render.RenderWorld(options.root, options.width, options.height);
+				this.audioDevice_ = audio.makeAudioDevice();
+				this.resume();			
+			};
+	
+			if ("Ammo" in window) {
+				return ((window as any).Ammo() as Promise<void>).then(main);
+			}
+			else {
+				return Promise.resolve().then(main);
+			}	
 		}
 
 		private nextFrame(now: number) {
@@ -157,19 +181,5 @@ namespace sd {
 	}
 
 	export const App: Application = new SDApplication();
-
-	window.addEventListener("load", () => {
-		function main() {
-			App.messages.send("AppStart");
-			(App as SDApplication).resume();
-		}
-
-		if ("Ammo" in window) {
-			(window as any).Ammo().then(main);
-		}
-		else {
-			main();
-		}
-	});
 
 } // ns sd
