@@ -6,6 +6,8 @@
 namespace sd.control {
 
 	export enum Key {
+		NONE = 0,
+
 		UP = 38,
 		DOWN = 40,
 		LEFT = 37,
