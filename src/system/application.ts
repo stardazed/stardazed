@@ -37,9 +37,6 @@ namespace sd {
 		private scene_: Scene | undefined = undefined;
 
 		constructor() {
-			if (this.state_ !== ApplicationState.Uninitialized) {
-				return;
-			}
 			this.state_ = ApplicationState.Starting;
 
 			this.nextFrameFn_ = this.nextFrame.bind(this);

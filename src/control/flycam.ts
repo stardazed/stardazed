@@ -9,7 +9,7 @@ namespace sd.control {
 		private pos_ = [0, 0, 0];
 		private angleX_ = 0;
 		private angleY_ = Math.PI;
-		private rot_: sd.Float4;
+		private rot_: sd.Float4 = [0, 0, 0, 1];
 		private dir_ = [0, 0, -1];
 		private up_ = [0, 1, 0];
 		private speed_ = 0;

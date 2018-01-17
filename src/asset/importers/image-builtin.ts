@@ -60,8 +60,7 @@ namespace sd.asset.importer {
 
 
 	export class HTMLImageDataProvider implements image.PixelDataProvider {
-		private colourSpace_: image.ColourSpace;
-		private pixelFormat_: image.PixelFormat;
+		colourSpace: image.ColourSpace;
 		readonly dim: image.PixelDimensions;
 		readonly mipMapCount = 1;
 
@@ -70,21 +69,9 @@ namespace sd.asset.importer {
 			this.dim = image.makePixelDimensions(image_.width, image_.height);
 		}
 
-		get colourSpace() {
-			return this.colourSpace_;
-		}
-
-		set colourSpace(ncs: image.ColourSpace) {
-			if (this.colourSpace_ !== ncs) {
-				this.colourSpace_ = ncs;
-				this.pixelFormat_ = (ncs === image.ColourSpace.sRGB) ? image.PixelFormat.SRGB8_Alpha8 : image.PixelFormat.RGBA8;	
-			}
-		}
-
 		get pixelFormat() {
-			return this.pixelFormat_;
+			return (this.colourSpace === image.ColourSpace.sRGB) ? image.PixelFormat.SRGB8_Alpha8 : image.PixelFormat.RGBA8;
 		}
-
 
 		pixelBufferForLevel(level: number): image.PixelBuffer | undefined {
 			if (level !== 0) {
