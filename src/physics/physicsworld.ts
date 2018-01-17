@@ -16,6 +16,13 @@ namespace sd.physics {
 		defaultRestitution: number;
 	}
 
+	export interface RaycastHit {
+		collisionObject: Ammo.btCollisionObjectConst;
+		hitPointWorld: Float3;
+		hitNormalWorld: Float3;
+		hitFraction: number;
+	}
+
 	export function makeDefaultPhysicsConfig(): PhysicsConfig {
 		return {
 			broadphaseSize: "small",
@@ -52,6 +59,10 @@ namespace sd.physics {
 		stepHeight: number;
 		worldPos?: ConstFloat3;
 		worldRot?: ConstFloat4;
+	}
+
+	interface RayResultStruct {
+		new(from: Ammo.btVector3, to: Ammo.btVector3): Ammo.RayResultCallback;
 	}
 
 	export class PhysicsWorld {
@@ -185,42 +196,85 @@ namespace sd.physics {
 			return controller;
 		}
 
-		rayCastClosest(worldFrom: Float3, worldTo: Float3, filter = Ammo.CollisionFilterGroups.AllFilter) {
+		private rayCastInternal(resultClass: RayResultStruct, filter: Ammo.CollisionFilterGroups, worldFrom: Float3, worldToOrDir: Float3, maxDist?: number) {
+			if (maxDist !== undefined) {
+				vec3.scaleAndAdd(worldToOrDir, worldFrom, worldToOrDir, maxDist);
+			}
 			const from = new Ammo.btVector3(worldFrom[0], worldFrom[1], worldFrom[2]);
-			const to = new Ammo.btVector3(worldTo[0], worldTo[1], worldTo[2]);
-			const result = new Ammo.ClosestRayResultCallback(from, to);
+			const to = new Ammo.btVector3(worldToOrDir[0], worldToOrDir[1], worldToOrDir[2]);
+			const result = new resultClass(from, to);
 			
 			result.set_m_collisionFilterGroup(Ammo.CollisionFilterGroups.AllFilter);
 			result.set_m_collisionFilterMask(filter);
 			
 			this.world_.rayTest(from, to, result);
-
-			if (result.hasHit()) {
-				return result.get_m_collisionObject();
-			}
-			return undefined;
+			return result;
 		}
 
-		rayCastAll(worldFrom: Float3, worldTo: Float3, filter = Ammo.CollisionFilterGroups.AllFilter) {
-			const from = new Ammo.btVector3(worldFrom[0], worldFrom[1], worldFrom[2]);
-			const to = new Ammo.btVector3(worldTo[0], worldTo[1], worldTo[2]);
-			const result = new Ammo.AllHitsRayResultCallback(from, to);
+		rayTestTarget(worldFrom: Float3, worldTo: Float3, filter = Ammo.CollisionFilterGroups.AllFilter) {
+			return this.rayCastInternal(Ammo.ClosestRayResultCallback, filter, worldFrom, worldTo).hasHit();
+		}
 
-			result.set_m_collisionFilterGroup(Ammo.CollisionFilterGroups.AllFilter);
-			result.set_m_collisionFilterMask(filter);
+		rayTest(worldFrom: Float3, worldDir: Float3, maxDistance: number, filter = Ammo.CollisionFilterGroups.AllFilter) {
+			return this.rayCastInternal(Ammo.ClosestRayResultCallback, filter, worldFrom, worldDir, maxDistance).hasHit();
+		}
 
-			this.world_.rayTest(from, to, result);
-
-			if (result.hasHit()) {
-				const objects = [];
-				const hits = result.get_m_collisionObjects();
-				const hitCount = hits.size();
-				for (let i = 0; i < hitCount; ++i) {
-					objects.push(hits.at(i));
-				}
-				return objects;
+		private closestRaycastHit(crr: Ammo.ClosestRayResultCallback): RaycastHit | undefined {
+			if (! crr.hasHit()) {
+				return undefined;
 			}
-			return [];
+			const hitPoint = crr.get_m_hitPointWorld();
+			const hitNormal = crr.get_m_hitNormalWorld();
+			return {
+				collisionObject: crr.get_m_collisionObject(),
+				hitFraction: crr.get_m_closestHitFraction(),
+				hitPointWorld: [hitPoint.x(), hitPoint.y(), hitPoint.z()],
+				hitNormalWorld: [hitNormal.x(), hitNormal.y(), hitNormal.z()],
+			};
+		}
+
+		rayCastClosestTarget(worldFrom: Float3, worldTo: Float3, filter = Ammo.CollisionFilterGroups.AllFilter) {
+			const result = this.rayCastInternal(Ammo.ClosestRayResultCallback, filter, worldFrom, worldTo) as Ammo.ClosestRayResultCallback;
+			return this.closestRaycastHit(result);
+		}
+
+		rayCastClosest(worldFrom: Float3, worldDir: Float3, maxDistance: number, filter = Ammo.CollisionFilterGroups.AllFilter) {
+			const result = this.rayCastInternal(Ammo.ClosestRayResultCallback, filter, worldFrom, worldDir, maxDistance) as Ammo.ClosestRayResultCallback;
+			return this.closestRaycastHit(result);
+		}
+
+		private allRaycastHits(arr: Ammo.AllHitsRayResultCallback): RaycastHit[] {
+			if (! arr.hasHit()) {
+				return [];
+			}
+
+			const hits: RaycastHit[] = [];
+			const cos = arr.get_m_collisionObjects();
+			const fracts = arr.get_m_hitFractions();
+			const points = arr.get_m_hitPointWorld();
+			const normals = arr.get_m_hitNormalWorld();
+			const hitCount = cos.size();
+			for (let i = 0; i < hitCount; ++i) {
+				const point = points.at(i);
+				const normal = normals.at(i);
+				hits.push({
+					collisionObject: cos.at(i),
+					hitFraction: fracts.at(i),
+					hitPointWorld: [point.x(), point.y(), point.z()],
+					hitNormalWorld: [normal.x(), normal.y(), normal.z()],	
+				});
+			}
+			return hits;
+		}
+
+		rayCastAllTarget(worldFrom: Float3, worldTo: Float3, filter = Ammo.CollisionFilterGroups.AllFilter) {
+			const result = this.rayCastInternal(Ammo.AllHitsRayResultCallback, filter, worldFrom, worldTo) as Ammo.AllHitsRayResultCallback;
+			return this.allRaycastHits(result);
+		}
+
+		rayCastAll(worldFrom: Float3, worldDir: Float3, maxDistance: number, filter = Ammo.CollisionFilterGroups.AllFilter) {
+			const result = this.rayCastInternal(Ammo.AllHitsRayResultCallback, filter, worldFrom, worldDir, maxDistance) as Ammo.AllHitsRayResultCallback;
+			return this.allRaycastHits(result);
 		}
 
 		update(timeStep: number, colliders: entity.ColliderComponent, transforms: entity.TransformComponent) {

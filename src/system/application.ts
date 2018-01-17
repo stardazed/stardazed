@@ -14,9 +14,18 @@ namespace sd {
 		Suspended
 	}
 
+	export interface AppInitOptions {
+		root: HTMLElement;
+		width: number;
+		height: number;
+	}
+
 	export interface Application {
+		initialize(options: AppInitOptions): Promise<void>;
 		readonly globalTime: number;
 		readonly messages: Messaging;
+
+		makeScene(config: SceneConfig): Scene;
 		scene: Scene | undefined;
 	}
 
@@ -34,6 +43,8 @@ namespace sd {
 
 		private messages_ = new Messaging();
 
+		private renderWorld_: render.RenderWorld;
+		private audioDevice_: audio.AudioDevice;
 		private scene_: Scene | undefined = undefined;
 
 		constructor() {
@@ -42,15 +53,23 @@ namespace sd {
 			this.nextFrameFn_ = this.nextFrame.bind(this);
 			this.messages.listen("SceneLoaded", undefined, (scene: Scene) => this.handleSceneLoaded(scene));
 
-			dom.on(window, "blur", () => { this.suspend(); });
-			dom.on(window, "focus", () => {	this.resume(); });
+			window.addEventListener("blur", () => { this.suspend(); });
+			window.addEventListener("focus", () => {	this.resume(); });
 		}
 
-		private processSceneFrame(scene: Scene, dt: number) {
-			scene.frame(dt);
-			scene.physicsWorld.update(dt, scene.colliders, scene.transforms);
-			scene.rw.drawScene(scene);
-			scene.rw.rd.processFrame();
+		initialize(options: AppInitOptions) {
+			const main = () => {
+				this.renderWorld_ = new render.RenderWorld(options.root, options.width, options.height);
+				this.audioDevice_ = audio.makeAudioDevice();
+				this.resume();			
+			};
+	
+			if ("Ammo" in window) {
+				return ((window as any).Ammo() as Promise<void>).then(main);
+			}
+			else {
+				return Promise.resolve().then(main);
+			}	
 		}
 
 		private nextFrame(now: number) {
@@ -63,12 +82,13 @@ namespace sd {
 			this.lastFrameTime_ = now;
 			this.globalTime_ += dt;
 
-			if (this.scene_ && this.scene_.state === SceneState.Running) {
-				this.processSceneFrame(this.scene_, dt);
+			if (this.scene_) {
+				this.scene_.frame(dt);
 			}
 
 			// reset io devices
-			control.keyboard.resetHalfTransitions();
+			control.keyboard.resetPerFrameData();
+			control.mouse.resetPerFrameData();
 
 			if (this.state_ === ApplicationState.Running) {
 				this.rafID_ = requestAnimationFrame(this.nextFrameFn_);
@@ -82,7 +102,11 @@ namespace sd {
 			}
 			this.state_ = ApplicationState.Running;
 
-			if (this.scene_ && this.scene_.state >= SceneState.Ready) {
+			// reset all control state when losing or gaining focus to avoid stuck buttons / keys
+			control.keyboard.reset();
+			control.mouse.reset();
+
+			if (this.scene_) {
 				this.scene_.resume();
 			}
 
@@ -101,6 +125,10 @@ namespace sd {
 				this.scene_.suspend();
 			}
 
+			// reset all control state when losing or gaining focus to avoid stuck buttons / keys
+			control.keyboard.reset();
+			control.mouse.reset();
+
 			if (this.rafID_) {
 				cancelAnimationFrame(this.rafID_);
 				this.rafID_ = 0;
@@ -114,6 +142,10 @@ namespace sd {
 
 		get messages() {
 			return this.messages_;
+		}
+
+		makeScene(config: SceneConfig) {
+			return new Scene(this.renderWorld_, this.audioDevice_, config);
 		}
 
 		get scene() {
@@ -134,11 +166,9 @@ namespace sd {
 			this.scene_ = newScene;
 
 			if (this.scene_) {
-				if (this.scene_.state >= SceneState.Ready) {
-					this.scene_.enter();
-					if (this.state_ === ApplicationState.Running) {
-						this.scene_.resume();
-					}
+				this.scene_.enter();
+				if (this.state_ === ApplicationState.Running) {
+					this.scene_.resume();
 				}
 			}
 		}
@@ -154,19 +184,5 @@ namespace sd {
 	}
 
 	export const App: Application = new SDApplication();
-
-	dom.on(window, "load", () => {
-		function main() {
-			App.messages.send("AppStart");
-			(App as SDApplication).resume();
-		}
-
-		if ("Ammo" in window) {
-			(window as any).Ammo().then(main);
-		}
-		else {
-			main();
-		}
-	});
 
 } // ns sd

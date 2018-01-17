@@ -75,7 +75,9 @@ namespace sd.render {
 				scene.camera.viewport
 			);
 
-			const lightingReady = this.lighting_.lutTextureSampler && this.lighting_.lutTextureSampler.tex && this.lighting_.lutTextureSampler.tex.renderResourceHandle;
+			const lightingReady = this.lighting_.lutTextureSampler &&
+				this.lighting_.lutTextureSampler.tex &&
+				this.lighting_.lutTextureSampler.tex.renderResourceHandle;
 
 			if (lightingReady) {
 				cmds.setFrameBuffer(null, render.ClearMask.ColourDepth, { colour: [0.0, 0.0, 0.0, 1.0] });

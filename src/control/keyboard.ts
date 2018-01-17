@@ -3,19 +3,21 @@
 // (c) 2015-2017 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
-/// <reference path="../tools/dom.ts" />
-
 namespace sd.control {
 
 	export enum Key {
+		NONE = 0,
+
 		UP = 38,
 		DOWN = 40,
 		LEFT = 37,
 		RIGHT = 39,
 
-		SPACE = 32,
+		BACKSPACE = 8,
+		TAB = 9,
 		RETURN = 13,
 		ESC = 27,
+		SPACE = 32,
 
 		PAGEUP = 33,
 		PAGEDOWN = 34,
@@ -34,47 +36,43 @@ namespace sd.control {
 	}
 
 
-	export interface ButtonState {
-		down: boolean;
-		halfTransitionCount: number;
-	}
-
-
 	export interface Keyboard {
 		keyState(kc: Key): ButtonState;
 		down(kc: Key): boolean;
 		pressed(kc: Key): boolean;
+		released(kc: Key): boolean;
 		halfTransitions(kc: Key): number;
-		resetHalfTransitions(): void;
+
+		reset(): void;
+		resetPerFrameData(): void;
 	}
 
 
 	class KeyboardImpl implements Keyboard {
-		private keyData_: container.MultiArrayBuffer;
-		private downBase_: TypedArray;
-		private halfTransBase_: TypedArray;
-		private lastEventBase_: TypedArray;
-
-		// The extra check in the key handlers for the timeStamp was added
-		// after I encountered a rare, but frequently enough occuring bug
-		// where, when a key is pressed for a longer time so that repeat
-		// keydown events are fired, _very_ occasionally the last keydown
-		// would be fired with the same timeStamp as the keyup event but
-		// the event handler for that last down event was fired AFTER the
-		// keyup event handler, causing the key to appear to be "stuck".
+		private keyData_: container.FixedMultiArray;
+		private downBase_: Uint8Array;
+		private halfTransBase_: Uint8Array;
+		private lastEventBase_: Float64Array;
 
 		constructor() {
 			const fields: container.MABField[] = [
 				{ type: UInt8, count: 1 },  // down
 				{ type: UInt8, count: 1 },  // halfTransitionCount
-				{ type: UInt32, count: 1 }, // lastEvent
+				{ type: Double, count: 1 }, // lastEvent
 			];
-			this.keyData_ = new container.MultiArrayBuffer(128, fields);
-			this.downBase_ = this.keyData_.indexedFieldView(0);
-			this.halfTransBase_ = this.keyData_.indexedFieldView(1);
-			this.lastEventBase_ = this.keyData_.indexedFieldView(2);
+			this.keyData_ = new container.FixedMultiArray(128, fields);
+			this.downBase_ = this.keyData_.indexedFieldView(0) as Uint8Array;
+			this.halfTransBase_ = this.keyData_.indexedFieldView(1) as Uint8Array;
+			this.lastEventBase_ = this.keyData_.indexedFieldView(2) as Float64Array;
 
-			dom.on(window, "keydown", (evt: KeyboardEvent) => {
+			// The extra check in the key handlers for the timeStamp was added
+			// after I encountered a rare, but frequently enough occuring bug
+			// where, when a key is pressed for a longer time so that repeat
+			// keydown events are fired, _very_ occasionally the last keydown
+			// would be fired with the same timeStamp as the keyup event but
+			// the event handler for that last down event was fired AFTER the
+			// keyup event handler, causing the key to appear to be "stuck".
+			window.addEventListener("keydown", evt => {
 				const lastEvent = this.lastEventBase_[evt.keyCode];
 				const wasDown = this.downBase_[evt.keyCode];
 
@@ -89,26 +87,15 @@ namespace sd.control {
 				if (! evt.metaKey) {
 					evt.preventDefault();
 				}
-			});
+			}, true);
 
-			dom.on(window, "keyup", (evt: KeyboardEvent) => {
+			window.addEventListener("keyup", evt => {
 				this.downBase_[evt.keyCode] = 0;
 				++this.halfTransBase_[evt.keyCode];
 				this.lastEventBase_[evt.keyCode] = evt.timeStamp;
 
-				if (! evt.metaKey) {
-					evt.preventDefault();
-				}
-			});
-
-			// -- losing or gaining focus will reset all key state to avoid stuck keys
-			dom.on(window, "blur", _evt => {
-				this.keyData_.clear();
-			});
-
-			dom.on(window, "focus", _evt => {
-				this.keyData_.clear();
-			});
+				evt.preventDefault();
+			}, true);
 		}
 
 		keyState(kc: Key): ButtonState {
@@ -130,7 +117,15 @@ namespace sd.control {
 			return this.downBase_[kc] ? (this.halfTransBase_[kc] > 0) : false;
 		}
 
-		resetHalfTransitions() {
+		released(kc: Key): boolean {
+			return !this.downBase_[kc] ? (this.halfTransBase_[kc] > 0) : false;
+		}
+
+		reset() {
+			this.keyData_.clear();
+		}
+
+		resetPerFrameData() {
 			container.fill(this.halfTransBase_, 0, this.halfTransBase_.length);
 		}
 	}

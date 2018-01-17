@@ -13,9 +13,6 @@ namespace sd {
 		assetLoadProgress?(ratio: number): void;
 		finishedLoadingAssets?(): void;
 
-		willLoadEntities?(): void;
-		finishedLoadingEntities?(): void;
-
 		setup?(): void;
 		teardown?(): void;
 
@@ -31,7 +28,6 @@ namespace sd {
 	export const enum SceneState {
 		Uninitialized,
 		LoadingAssets,
-		LoadingEntities,
 		Ready,
 		Running,
 		Suspended
@@ -142,29 +138,19 @@ namespace sd {
 			}
 
 			Promise.all(this.localAssets.map(asset =>
-				this.pipeline(asset))).then(() => {
-					this.rw.rd.processFrame();
+				this.pipeline(asset))
+			).then(() => {
+				// FIXME: handle elsewhere, this loads all render assets
+				this.rw.rd.processFrame();
 
-					if (this.delegate.finishedLoadingAssets) {
-						this.delegate.finishedLoadingAssets();
-					}
-					this.loadEntities();
-				});
+				if (this.delegate.finishedLoadingAssets) {
+					this.delegate.finishedLoadingAssets();
+				}
+				this.finishLoading();
+			});
 		}
 
-		private loadEntities() {
-			this.state_ = SceneState.LoadingEntities;
-
-			if (this.delegate.willLoadEntities) {
-				this.delegate.willLoadEntities();
-			}
-
-			// TODO: load entity and world data from level file
-
-			if (this.delegate.finishedLoadingEntities) {
-				this.delegate.finishedLoadingEntities();
-			}
-
+		private finishLoading() {
 			if (this.delegate.setup) {
 				this.delegate.setup();
 			}
@@ -173,9 +159,15 @@ namespace sd {
 		}
 
 		frame(dt: number) {
+			if (this.state_ !== SceneState.Running) {
+				return;
+			}
 			if (this.delegate.update) {
 				this.delegate.update(dt);
 			}
+			this.physicsWorld.update(dt, this.colliders, this.transforms);
+			this.rw.drawScene(this);
+			this.rw.rd.processFrame();
 		}
 
 		suspend() {
