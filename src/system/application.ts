@@ -54,7 +54,7 @@ namespace sd {
 			this.messages.listen("SceneLoaded", undefined, (scene: Scene) => this.handleSceneLoaded(scene));
 
 			window.addEventListener("blur", () => { this.suspend(); });
-			window.addEventListener("focus", () => {	this.resume(); });
+			window.addEventListener("focus", () => { this.resume(); });
 		}
 
 		initialize(options: AppInitOptions) {
