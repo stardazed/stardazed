@@ -24,7 +24,7 @@ namespace sd.render.gl1 {
 		readonly extS3TC: WebGLCompressedTextureS3TC | null;
 		readonly extMinMax: EXTBlendMinMax | null;
 		readonly extTexAnisotropy: EXTTextureFilterAnisotropic | null;
-		readonly extVAO: OESVertexArrayObject | null;
+		readonly extVAO: OESVertexArrayObject; // required extension
 		readonly extInstancedArrays: ANGLEInstancedArrays | null;
 		readonly extDerivatives: OESStandardDerivatives | null;
 		readonly extFragmentLOD: EXTShaderTextureLOD | null;
@@ -96,7 +96,7 @@ namespace sd.render.gl1 {
 						gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
 
 			// enable Vertex Array Objects
-			this.extVAO = gl.getExtension("OES_vertex_array_object");
+			this.extVAO = gl.getExtension("OES_vertex_array_object")!; // Assert presence, SD won't run without
 
 			// enable instanced draw calls
 			this.extInstancedArrays = gl.getExtension("ANGLE_instanced_arrays");
