@@ -39,7 +39,7 @@ namespace sd.container {
 			keys = Object.keys(source) as K[];
 		}
 		for (const k of keys) {
-			dest[k] = source[k];
+			dest[k] = source[k] as T[K];
 		}
 		return dest;
 	}
@@ -55,7 +55,7 @@ namespace sd.container {
 		const result = {} as Record<keyof T, U>;
 		for (const key in obj) {
 			if (obj.hasOwnProperty(key)) {
-				result[key] = mapper(obj[key], key);
+				result[key] = mapper(obj[key] as T[K], key);
 			}
 		}
 		return result;
@@ -75,9 +75,9 @@ namespace sd.container {
 	 * @param group Name of the field in the items that will be used to group the other fields by
 	 * @param ts List of objects that have will be grouped by {{group}}
 	 */
-	export function groupFieldsBy<T extends object, K extends keyof T>(group: K & string, ts: T[]) {
+	export function groupFieldsBy<T extends object, K extends keyof T>(group: K, ts: T[]) {
 		return ts.reduce((res, val) => {
-			const key = val[group];
+			const key = val[group] as any as string; // FIXME: check with TS group why K is not essentially a string
 			let coll: ArrayFields<T>;
 			if (!(key in res)) {
 				coll = {} as ArrayFields<T>;
