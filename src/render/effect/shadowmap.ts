@@ -62,7 +62,7 @@ namespace sd.render.effect {
 		readonly name = "vsm-shadow";
 		readonly id = 0x00010001;
 	
-		private shader_: Shader;
+		private shader_!: Shader;
 	
 		attachToRenderWorld(rw: RenderWorld) {
 			this.shader_ = vsmShadowShader();

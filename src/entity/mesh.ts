@@ -41,18 +41,18 @@ namespace sd.entity {
 
 	export class MeshComponent implements Component<MeshComponent> {
 		private instanceData_: container.MultiArrayBuffer;
-		private featuresBase_: ConstEnumArray32View<GeometryFeatures>;
-		private shapeBase_: ConstEnumArray32View<MeshShapeType>;
-		private indexElementTypeBase_: ConstEnumArray32View<geometry.IndexElementType>;
-		private uniformPrimTypeBase_: ConstEnumArray32View<geometry.PrimitiveType>;
-		private totalElementCountBase_: Int32Array;
-		private subMeshOffsetCountBase_: Int32Array;
+		private featuresBase_!: ConstEnumArray32View<GeometryFeatures>;
+		private shapeBase_!: ConstEnumArray32View<MeshShapeType>;
+		private indexElementTypeBase_!: ConstEnumArray32View<geometry.IndexElementType>;
+		private uniformPrimTypeBase_!: ConstEnumArray32View<geometry.PrimitiveType>;
+		private totalElementCountBase_!: Int32Array;
+		private subMeshOffsetCountBase_!: Int32Array;
 
 		private subMeshData_: container.MultiArrayBuffer;
-		private smPrimTypeBase_: ConstEnumArray32View<geometry.PrimitiveType>;
-		private smFromElementBase_: Int32Array;
-		private smElementCountBase_: Int32Array;
-		private smMaterialBase_: Int32Array;
+		private smPrimTypeBase_!: ConstEnumArray32View<geometry.PrimitiveType>;
+		private smFromElementBase_!: Int32Array;
+		private smElementCountBase_!: Int32Array;
+		private smMaterialBase_!: Int32Array;
 
 		private entityMap_: Map<Entity, MeshInstance>;
 		private assetGeometryMap_: WeakMap<geometry.Geometry, MeshInstance>;

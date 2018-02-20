@@ -37,10 +37,10 @@ namespace sd.entity {
 
 	export class LightComponent implements Component<LightComponent> {
 		private instanceData_: container.MultiArrayBuffer;
-		private entityBase_: EntityArrayView;
-		private transformBase_: TransformArrayView;
-		private enabledBase_: Uint8Array;
-		private castsShadowsBase_: Uint8Array;
+		private entityBase_!: EntityArrayView;
+		private transformBase_!: TransformArrayView;
+		private enabledBase_!: Uint8Array;
+		private castsShadowsBase_!: Uint8Array;
 
 		private count_: number;
 		readonly lightData: Float32Array;

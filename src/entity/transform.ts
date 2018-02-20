@@ -26,18 +26,18 @@ namespace sd.entity {
 	export class TransformComponent implements Component<TransformComponent> {
 		private instanceData_: container.MultiArrayBuffer;
 
-		private entityBase_: EntityArrayView;
+		private entityBase_!: EntityArrayView;
 
-		private parentBase_: TransformArrayView;
-		private firstChildBase_: TransformArrayView;
-		private prevSiblingBase_: TransformArrayView;
-		private nextSiblingBase_: TransformArrayView;
+		private parentBase_!: TransformArrayView;
+		private firstChildBase_!: TransformArrayView;
+		private prevSiblingBase_!: TransformArrayView;
+		private nextSiblingBase_!: TransformArrayView;
 
-		private positionBase_: Float32Array;
-		private rotationBase_: Float32Array;
-		private scaleBase_: Float32Array;
-		private localMatrixBase_: Float32Array;
-		private worldMatrixBase_: Float32Array;
+		private positionBase_!: Float32Array;
+		private rotationBase_!: Float32Array;
+		private scaleBase_!: Float32Array;
+		private localMatrixBase_!: Float32Array;
+		private worldMatrixBase_!: Float32Array;
 
 		private readonly defaultPos_: ConstFloat3 = vec3.zero();
 		private readonly defaultRot_: ConstFloat4 = quat.create();

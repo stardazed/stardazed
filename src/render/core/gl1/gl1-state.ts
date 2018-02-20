@@ -175,12 +175,6 @@ namespace sd.render.gl1 {
 			this.textureSlots_ = container.fill([], null, this.maxTextureSlot_ + 1);
 
 			// initial pull of dynamic state
-			this.pullState();
-		}
-
-		pullState() {
-			const gl = this.gl;
-
 			this.frontFace_ = (gl.getParameter(GLConst.FRONT_FACE) === GLConst.CW) ? FrontFaceWinding.Clockwise : FrontFaceWinding.CounterClockwise;
 
 			const glCullFaceEnabled = gl.isEnabled(GLConst.CULL_FACE);

@@ -19,9 +19,9 @@ namespace sd.entity {
 
 	export class ColliderComponent implements Component<ColliderComponent> {
 		private instanceData_: container.MultiArrayBuffer;
-		private entityBase_: EntityArrayView;
-		private transformBase_: TransformArrayView;
-		private shapeTypeBase_: ConstEnumArray32View<physics.PhysicsShapeType>;
+		private entityBase_!: EntityArrayView;
+		private transformBase_!: TransformArrayView;
+		private shapeTypeBase_!: ConstEnumArray32View<physics.PhysicsShapeType>;
 		private shapes_: Ammo.btCollisionShape[];
 		private colliders_: Ammo.btRigidBody[];
 

@@ -43,8 +43,8 @@ namespace sd {
 
 		private messages_ = new Messaging();
 
-		private renderWorld_: render.RenderWorld;
-		private audioDevice_: audio.AudioDevice;
+		private renderWorld_!: render.RenderWorld;
+		private audioDevice_!: audio.AudioDevice;
 		private scene_: Scene | undefined = undefined;
 
 		constructor() {

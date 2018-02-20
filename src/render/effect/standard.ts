@@ -121,9 +121,9 @@ namespace sd.render.effect {
 		readonly name = "standard";
 		readonly id = 0x057ADA2D;
 
-		private rd_: RenderDevice;
-		private lighting_: TiledLight;
-		private sampler_: Sampler;
+		private rd_!: RenderDevice;
+		private lighting_!: TiledLight;
+		private sampler_!: Sampler;
 		private shaders_ = new Map<number, Shader>();
 
 		fogColour = vec4.fromValues(0, 0, 0, 1);

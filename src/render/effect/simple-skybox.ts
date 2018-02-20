@@ -65,10 +65,10 @@ namespace sd.render.effect {
 		readonly name = "simple-skybox";
 		readonly id = 0x88884444;
 
-		private shader_: Shader;
-		private sampler_: Sampler;
-		private matPos_: Float32Array;
-		private matMVP_: Float32Array;
+		private shader_!: Shader;
+		private sampler_!: Sampler;
+		private matPos_!: Float32Array;
+		private matMVP_!: Float32Array;
 
 		attachToRenderWorld(rw: RenderWorld) {
 			this.shader_ = skyboxShader(rw.rd);
