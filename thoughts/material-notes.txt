@@ -1,0 +1,67 @@
+MaterialVariant {
+	Pipeline
+	Constant[]
+	Texture[]
+}
+
+What is an effect / material?
+=============================
+
+In-world objects
+	- colour response (diffuse + specular, pbr metallic, pbr specular, basic colour, etc.)
+	- lighting (direct lights, gi, skybox, etc.)
+	- shadows
+	- light attenuation, normal map
+	- reflections (probes, skybox)
+	- 
+
+Fullscreen effect
+	- box filters
+	- AA
+	- vignette
+	- blur
+	- etc
+
+2D Text
+	- SDF
+	- bitmap
+
+Particle
+	- texture based
+
+Custom
+	- lightning
+	- lasers
+	- etc
+
+Each effect can have an implementation for WebGL 1, WebGL 2, WebGPU
+but focusing first on just having a WebGL 1 implementation.
+
+These effects can naturally be grouped, as above, since e.g. in-world
+shaders need some permutation of the MVP matrices plus the normal variant.
+
+The mix-in components then add more requirements such as shadow VP
+matrices for light shadows being rendered or the physical properties
+of PBR materials.
+
+Common requirements, such as the object MVP permutations, have to be
+tagged or have fixed names to allow multiple components to refer to
+them as a dependency without causing duplicates properties.
+
+
+Compatibility
+=============
+
+The main downside of WebGL 1 is that it puts serious limitations on
+common language constructs and misses calls like texelFetch etc.
+
+While certain missing functionality can be added with functions,
+simple code re-ordering and macro-like functions, some stuff, like
+integer/bit math simply cannot be added. Add to that missing functionality
+like 3D and Array textures that cannot be simulated generally and
+I feel that a universal shader language that includes WebGL 1 is
+a waste of time, instead focus on functionality and implement it
+efficiently for different engines. That may include having different
+constants and textures for the same functionality for different
+runtimes.
+
