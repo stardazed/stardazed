@@ -3,7 +3,7 @@ Stardazed
 
 A library to enable quick development of 3D games in the browser.
 
-Built in TypeScript, currently TS 2.6, just run `tsc` somewhere inside the project dir.
+Built in TypeScript, currently TS 2.7, just run `tsc` somewhere inside the project dir.
 
 **Project status**: *In Development (Pre-Alpha)*<br>
 Features and APIs still very much in flux, but functional and usable for actual development
