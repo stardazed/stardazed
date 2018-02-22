@@ -155,7 +155,7 @@ namespace sd.render.gl1 {
 		private blendFnDstAlpha_: BlendFactor;
 		private blendConstColour_: Float32Array;
 
-		private readonly extTextureAnisotropy: EXTTextureFilterAnisotropic | null;
+		private readonly extTextureAnisotropy: EXT_texture_filter_anisotropic | null;
 		private readonly maxAnisotropy_: number;
 		private readonly maxTextureSlot_: number;
 		private readonly textureSlots_: (WebGLTexture | null)[];

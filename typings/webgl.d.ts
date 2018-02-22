@@ -13,46 +13,19 @@ interface HTMLCanvasElement {
 }
 
 interface WebGL1Extensions {
-	getExtension(name: "ANGLE_instanced_arrays"): ANGLEInstancedArrays;
+	getExtension(name: "EXT_color_buffer_half_float"): EXT_color_buffer_half_float;
 
-	getExtension(name: "EXT_blend_minmax"): EXTBlendMinMax;
-	getExtension(name: "EXT_color_buffer_half_float"): EXTColorBufferHalfFloat;
-	getExtension(name: "EXT_frag_depth"): EXTFragDepth;
-	getExtension(name: "EXT_sRGB"): EXTsRGB;
-	getExtension(name: "EXT_shader_texture_lod"): EXTShaderTextureLOD;
-	getExtension(name: "EXT_texture_filter_anisotropic"): EXTTextureFilterAnisotropic;
+	getExtension(name: "WEBGL_compressed_texture_atc"): WEBGL_compressed_texture_atc;
+	getExtension(name: "WEBGL_compressed_texture_etc1"): WEBGL_compressed_texture_etc1;
+	getExtension(name: "WEBGL_compressed_texture_pvrtc"): WEBKIT_WEBGL_compressed_texture_pvrtc;
 
-	getExtension(name: "OES_element_index_uint"): OESElementIndexUint;
-	getExtension(name: "OES_standard_derivatives"): OESStandardDerivatives;
-	getExtension(name: "OES_texture_float"): OESTextureFloat;
-	getExtension(name: "OES_texture_float_linear"): OESTextureFloatLinear;
-	getExtension(name: "OES_texture_half_float"): OESTextureHalfFloat;
-	getExtension(name: "OES_texture_half_float_linear"): OESTextureHalfFloatLinear;
-	getExtension(name: "OES_vertex_array_object"): OESVertexArrayObject;
-
-	getExtension(name: "WEBGL_color_buffer_float"): WebGLColorBufferFloat;
-	getExtension(name: "WEBGL_compressed_texture_atc"): WebGLCompressedTextureATC;
-	getExtension(name: "WEBGL_compressed_texture_etc1"): WebGLCompressedTextureETC1;
-	getExtension(name: "WEBGL_compressed_texture_pvrtc"): WebGLCompressedTexturePVRTC;
-	getExtension(name: "WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
-	getExtension(name: "WEBGL_debug_renderer_info"): WebGLDebugRendererInfo;
-	getExtension(name: "WEBGL_debug_shaders"): WebGLDebugShaders;
-	getExtension(name: "WEBGL_depth_texture"): WebGLDepthTexture;
-	getExtension(name: "WEBGL_draw_buffers"): WebGLDrawBuffers;
-	getExtension(name: "WEBGL_lose_context"): WebGLLoseContext;
-
-	// Prefixed versions appearing in the wild as per September 2015
-
-	getExtension(name: "WEBKIT_EXT_texture_filter_anisotropic"): EXTTextureFilterAnisotropic;
-	getExtension(name: "WEBKIT_WEBGL_compressed_texture_atc"): WebGLCompressedTextureATC;
-	getExtension(name: "WEBKIT_WEBGL_compressed_texture_pvrtc"): WebGLCompressedTexturePVRTC;
-	getExtension(name: "WEBKIT_WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
-	getExtension(name: "WEBKIT_WEBGL_depth_texture"): WebGLDepthTexture;
-	getExtension(name: "WEBKIT_WEBGL_lose_context"): WebGLLoseContext;
-
-	getExtension(name: "MOZ_WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
-	getExtension(name: "MOZ_WEBGL_depth_texture"): WebGLDepthTexture;
-	getExtension(name: "MOZ_WEBGL_lose_context"): WebGLLoseContext;
+	// Prefixed versions appearing in the wild as per February 2018
+	getExtension(name: "WEBKIT_EXT_texture_filter_anisotropic"): EXT_texture_filter_anisotropic; // Chrome
+	getExtension(name: "WEBKIT_WEBGL_compressed_texture_atc"): WEBGL_compressed_texture_atc; // Android
+	getExtension(name: "WEBKIT_WEBGL_compressed_texture_pvrtc"): WEBKIT_WEBGL_compressed_texture_pvrtc; // Safari iOS
+	getExtension(name: "WEBKIT_WEBGL_compressed_texture_s3tc"): WEBGL_compressed_texture_s3tc; // Chrome
+	getExtension(name: "WEBKIT_WEBGL_depth_texture"): WEBGL_depth_texture; // Chrome
+	getExtension(name: "WEBKIT_WEBGL_lose_context"): WEBGL_lose_context; // Chrome
 }
 
 
@@ -65,172 +38,48 @@ interface WebGLRenderbuffer { readonly __WebGLRenderbuffer: void; }
 interface WebGLShader { readonly __WebGLShader: void; }
 interface WebGLTexture { readonly __WebGLTexture: void; }
 interface WebGLUniformLocation { readonly __WebGLUniformLocation: void; }
+interface WebGLVertexArrayObjectOES extends WebGLObject { readonly __WebGLVertexArrayObjectOES: void; }
+
+interface EXT_frag_depth { readonly __EXT_frag_depth: void; }
+interface EXT_shader_texture_lod { readonly __EXT_shader_texture_lod: void; }
+
+interface OES_element_index_uint { readonly __OESElementIndexUint: void; }
+interface OES_texture_float { readonly __OES_texture_float: void; }
+interface OES_texture_float_linear { readonly __OES_texture_float_linear: void; }
+interface OES_texture_half_float_linear { readonly __OES_texture_half_float_linear: void; }
+
 
 // WebGL 1 Extensions
-interface ANGLEInstancedArrays {
-	readonly VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE: number;
-
-	drawArraysInstancedANGLE(mode: number, first: number, count: number, instanceCount: number): void;
-	drawElementsInstancedANGLE(mode: number, count: number, type: number, offset: number, instanceCount: number): void;
-	vertexAttribDivisorANGLE(index: number, divisor: number): void;
-}
-
-interface EXTBlendMinMax {
-	readonly MIN_EXT: number;
-	readonly MAX_EXT: number;
-}
-
-interface EXTColorBufferHalfFloat {
+interface EXT_color_buffer_half_float {
 	readonly RGBA16F_EXT: number;
 	readonly RGB16F_EXT: number;
 	readonly FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT: number;
 	readonly UNSIGNED_NORMALIZED_EXT: number;
 }
 
-interface EXTFragDepth {
-	readonly __EXTFragDepth: void;
-}
-
-interface EXTsRGB {
-	readonly SRGB_EXT: number;
-	readonly SRGB_ALPHA_EXT: number;
-	readonly SRGB8_ALPHA8_EXT: number;
-	readonly FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING_EXT: number;
-}
-
-interface EXTShaderTextureLOD {
-	readonly __EXTShaderTextureLOD: void;
-}
-
-interface EXTTextureFilterAnisotropic {
-	readonly TEXTURE_MAX_ANISOTROPY_EXT: number;
-	readonly MAX_TEXTURE_MAX_ANISOTROPY_EXT: number;
-}
-
-interface OESElementIndexUint {
-	readonly __OESElementIndexUint: void;
-}
-
-interface OESStandardDerivatives {
-	readonly FRAGMENT_SHADER_DERIVATIVE_HINT_OES: number;
-}
-
-interface OESTextureFloat {
-	readonly __OESTextureFloat: void;
-}
-
-interface OESTextureFloatLinear {
-	readonly __OESTextureFloatLinear: void;
-}
-
-interface OESTextureHalfFloat {
-	readonly HALF_FLOAT_OES: number;
-}
-
-interface OESTextureHalfFloatLinear {
-	readonly __OESTextureHalfFloatLinear: void;
-}
-
-interface WebGLVertexArrayObjectOES extends WebGLObject {
-	readonly __WebGLVertexArrayObjectOES: void;
-}
-
-interface OESVertexArrayObject {
-	readonly VERTEX_ARRAY_BINDING_OES: number;
-
+interface OES_vertex_array_object {
+	// TS's lib.dom (as of v2.7.2) does not specify the nulls
 	createVertexArrayOES(): WebGLVertexArrayObjectOES | null;
 	deleteVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES | null): void;
 	isVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES | null): boolean;
 	bindVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES | null): void;
 }
 
-interface WebGLColorBufferFloat {
-	readonly RGBA32F_EXT: number;
-	readonly FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT: number;
-	readonly UNSIGNED_NORMALIZED_EXT: number;
-}
-
-interface WebGLCompressedTextureATC {
+interface WEBGL_compressed_texture_atc {
 	readonly COMPRESSED_RGB_ATC_WEBGL: number;
 	readonly COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL: number;
 	readonly COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL: number;
 }
 
-interface WebGLCompressedTextureETC1 {
+interface WEBGL_compressed_texture_etc1 {
 	readonly COMPRESSED_RGB_ETC1_WEBGL: number;
 }
 
-interface WebGLCompressedTexturePVRTC {
+interface WEBKIT_WEBGL_compressed_texture_pvrtc {
 	readonly COMPRESSED_RGB_PVRTC_4BPPV1_IMG: number;
 	readonly COMPRESSED_RGB_PVRTC_2BPPV1_IMG: number;
 	readonly COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: number;
 	readonly COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: number;
-}
-
-interface WebGLCompressedTextureS3TC {
-	readonly COMPRESSED_RGB_S3TC_DXT1_EXT: number;
-	readonly COMPRESSED_RGBA_S3TC_DXT1_EXT: number;
-	readonly COMPRESSED_RGBA_S3TC_DXT3_EXT: number;
-	readonly COMPRESSED_RGBA_S3TC_DXT5_EXT: number;
-}
-
-interface WebGLDebugRendererInfo {
-	readonly UNMASKED_VENDOR_WEBGL: number;
-	readonly UNMASKED_RENDERER_WEBGL: number;
-}
-
-interface WebGLDebugShaders {
-	getTranslatedShaderSource(shader: WebGLShader): string;
-}
-
-interface WebGLDepthTexture {
-	readonly UNSIGNED_INT_24_8_WEBGL: number;
-}
-
-interface WebGLDrawBuffers {
-	readonly COLOR_ATTACHMENT0_WEBGL: number;
-	readonly COLOR_ATTACHMENT1_WEBGL: number;
-	readonly COLOR_ATTACHMENT2_WEBGL: number;
-	readonly COLOR_ATTACHMENT3_WEBGL: number;
-	readonly COLOR_ATTACHMENT4_WEBGL: number;
-	readonly COLOR_ATTACHMENT5_WEBGL: number;
-	readonly COLOR_ATTACHMENT6_WEBGL: number;
-	readonly COLOR_ATTACHMENT7_WEBGL: number;
-	readonly COLOR_ATTACHMENT8_WEBGL: number;
-	readonly COLOR_ATTACHMENT9_WEBGL: number;
-	readonly COLOR_ATTACHMENT10_WEBGL: number;
-	readonly COLOR_ATTACHMENT11_WEBGL: number;
-	readonly COLOR_ATTACHMENT12_WEBGL: number;
-	readonly COLOR_ATTACHMENT13_WEBGL: number;
-	readonly COLOR_ATTACHMENT14_WEBGL: number;
-	readonly COLOR_ATTACHMENT15_WEBGL: number;
-
-	readonly DRAW_BUFFER0_WEBGL: number;
-	readonly DRAW_BUFFER1_WEBGL: number;
-	readonly DRAW_BUFFER2_WEBGL: number;
-	readonly DRAW_BUFFER3_WEBGL: number;
-	readonly DRAW_BUFFER4_WEBGL: number;
-	readonly DRAW_BUFFER5_WEBGL: number;
-	readonly DRAW_BUFFER6_WEBGL: number;
-	readonly DRAW_BUFFER7_WEBGL: number;
-	readonly DRAW_BUFFER8_WEBGL: number;
-	readonly DRAW_BUFFER9_WEBGL: number;
-	readonly DRAW_BUFFER10_WEBGL: number;
-	readonly DRAW_BUFFER11_WEBGL: number;
-	readonly DRAW_BUFFER12_WEBGL: number;
-	readonly DRAW_BUFFER13_WEBGL: number;
-	readonly DRAW_BUFFER14_WEBGL: number;
-	readonly DRAW_BUFFER15_WEBGL: number;
-
-	readonly MAX_COLOR_ATTACHMENTS_WEBGL: number;
-	readonly MAX_DRAW_BUFFERS_WEBGL: number;
-
-	drawBuffersWEBGL(buffers: number[]): void;
-}
-
-interface WebGLLoseContext {
-	loseContext(): void;
-	restoreContext(): void;
 }
 
 
@@ -247,33 +96,33 @@ interface HTMLCanvasElement {
 }
 
 interface WebGL2Extensions {
-	getExtension(name: "EXT_color_buffer_float"): EXTColorBufferFloat;
-	getExtension(name: "EXT_disjoint_timer_query"): EXTDisjointTimerQuery;
-	getExtension(name: "EXT_texture_filter_anisotropic"): EXTTextureFilterAnisotropic;
+	getExtension(name: "EXT_color_buffer_float"): EXT_color_buffer_float;
+	getExtension(name: "EXT_disjoint_timer_query"): EXT_disjoint_timer_query;
+	getExtension(name: "EXT_texture_filter_anisotropic"): EXT_texture_filter_anisotropic;
 
-	getExtension(name: "OES_texture_float_linear"): OESTextureFloatLinear;
+	getExtension(name: "OES_texture_float_linear"): OES_texture_float_linear;
 
-	getExtension(name: "WEBGL_compressed_texture_atc"): WebGLCompressedTextureATC;
-	getExtension(name: "WEBGL_compressed_texture_etc1"): WebGLCompressedTextureETC1;
-	getExtension(name: "WEBGL_compressed_texture_pvrtc"): WebGLCompressedTexturePVRTC;
-	getExtension(name: "WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
-	getExtension(name: "WEBGL_debug_renderer_info"): WebGLDebugRendererInfo;
-	getExtension(name: "WEBGL_debug_shaders"): WebGLDebugShaders;
-	getExtension(name: "WEBGL_lose_context"): WebGLLoseContext;
-
-	getExtension(name: "MOZ_WEBGL_compressed_texture_s3tc"): WebGLCompressedTextureS3TC;
-	getExtension(name: "MOZ_WEBGL_lose_context"): WebGLLoseContext;
+	getExtension(name: "WEBGL_compressed_texture_atc"): WEBGL_compressed_texture_atc;
+	getExtension(name: "WEBGL_compressed_texture_etc1"): WEBGL_compressed_texture_etc1;
+	getExtension(name: "WEBGL_compressed_texture_pvrtc"): WEBKIT_WEBGL_compressed_texture_pvrtc;
+	getExtension(name: "WEBGL_compressed_texture_s3tc"): WEBGL_compressed_texture_s3tc;
+	getExtension(name: "WEBGL_compressed_texture_s3tc_srgb"): WEBGL_compressed_texture_s3tc_srgb;
+	getExtension(name: "WEBGL_debug_shaders"): WEBGL_debug_shaders;
+	getExtension(name: "WEBGL_debug_renderer_info"): WEBGL_debug_renderer_info;
+	getExtension(name: "WEBGL_lose_context"): WEBGL_lose_context;
 }
 
-interface EXTColorBufferFloat extends WebGLObject {
-	readonly __EXTColorBufferFloat: void;
-}
+// WebGL 2 Type Branding
+interface WebGLQuery extends WebGLObject { readonly __WebGLQuery: void; }
+interface WebGLSampler extends WebGLObject { readonly __WebGLSampler: void; }
+interface WebGLSync extends WebGLObject { readonly __WebGLSync: void; }
+interface WebGLTimerQueryEXT extends WebGLObject { readonly __WebGLTimerQueryEXT: void; }
+interface WebGLTransformFeedback extends WebGLObject { readonly __WebGLTransformFeedback: void; }
+interface WebGLVertexArrayObject extends WebGLObject { readonly __WebGLVertexArrayObject: void; }
 
-interface WebGLTimerQueryEXT extends WebGLObject {
-	readonly __WebGLTimerQueryEXT: void;
-}
+interface EXT_color_buffer_float extends WebGLObject { readonly __EXTColorBufferFloat: void; }
 
-interface EXTDisjointTimerQuery {
+interface EXT_disjoint_timer_query {
   readonly QUERY_COUNTER_BITS_EXT: number;
   readonly CURRENT_QUERY_EXT: number;
   readonly QUERY_RESULT_EXT: number;
@@ -291,15 +140,6 @@ interface EXTDisjointTimerQuery {
   getQueryEXT(target: number, pname: number): any;
   getQueryObjectEXT(query: WebGLTimerQueryEXT, pname: number): any;
 }
-
-
-// WebGL 2 Type Branding
-interface WebGLQuery extends WebGLObject { readonly __WebGLQuery: void; }
-interface WebGLSampler extends WebGLObject { readonly __WebGLSampler: void; }
-interface WebGLSync extends WebGLObject { readonly __WebGLSync: void; }
-interface WebGLTransformFeedback extends WebGLObject { readonly __WebGLTransformFeedback: void; }
-interface WebGLVertexArrayObject extends WebGLObject { readonly __WebGLVertexArrayObject: void; }
-
 
 interface WebGL2RenderingContext extends WebGLRenderingContext {
 	/* Buffer objects */

@@ -14,22 +14,22 @@ namespace sd.render.gl1 {
 		readonly gl: WebGLRenderingContext;
 		readonly state: GL1State;
 
-		readonly ext32bitIndexes: OESElementIndexUint | null;
-		readonly extDrawBuffers: WebGLDrawBuffers | null;
-		readonly extDepthTexture: WebGLDepthTexture | null;
-		readonly extTextureFloat: OESTextureFloat | null;
-		readonly extTextureFloatLinear: OESTextureFloatLinear | null;
-		readonly extTextureHalfFloat: OESTextureHalfFloat | null;
-		readonly extTextureHalfFloatLinear: OESTextureHalfFloatLinear | null;
-		readonly extS3TC: WebGLCompressedTextureS3TC | null;
-		readonly extMinMax: EXTBlendMinMax | null;
-		readonly extTexAnisotropy: EXTTextureFilterAnisotropic | null;
-		readonly extVAO: OESVertexArrayObject; // required extension
-		readonly extInstancedArrays: ANGLEInstancedArrays | null;
-		readonly extDerivatives: OESStandardDerivatives | null;
-		readonly extFragmentLOD: EXTShaderTextureLOD | null;
-		readonly extFragDepth: EXTFragDepth | null;
-		readonly extSRGB: EXTsRGB | null;
+		readonly ext32bitIndexes: OES_element_index_uint | null;
+		readonly extDrawBuffers: WEBGL_draw_buffers | null;
+		readonly extDepthTexture: WEBGL_depth_texture | null;
+		readonly extTextureFloat: OES_texture_float | null;
+		readonly extTextureFloatLinear: OES_texture_float_linear | null;
+		readonly extTextureHalfFloat: OES_texture_half_float | null;
+		readonly extTextureHalfFloatLinear: OES_texture_half_float_linear | null;
+		readonly extS3TC: WEBGL_compressed_texture_s3tc | null;
+		readonly extMinMax: EXT_blend_minmax | null;
+		readonly extTexAnisotropy: EXT_texture_filter_anisotropic | null;
+		readonly extVAO: OES_vertex_array_object; // required extension
+		readonly extInstancedArrays: ANGLE_instanced_arrays | null;
+		readonly extDerivatives: OES_standard_derivatives | null;
+		readonly extFragmentLOD: EXT_shader_texture_lod | null;
+		readonly extFragDepth: EXT_frag_depth | null;
+		readonly extSRGB: EXT_sRGB | null;
 
 		private maxColourAttachments_ = 0;
 
