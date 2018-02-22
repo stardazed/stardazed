@@ -83,7 +83,7 @@ namespace sd.render.effect {
 	 * @param items A set of ungrouped conditional, named structures
 	 * @param uniqueFields The names of the fields in each structure that will be checked for uniqueness
 	 */
-	function normalizeUniqueConditionalGroups<T extends Conditional<{name: string}>, K extends keyof T>(kind: string, items: T[], uniqueFields: T[K][]) {
+	function normalizeUniqueConditionalGroups<T extends Conditional<{name: string}>, K extends keyof T>(kind: string, items: T[], uniqueFields: K[]) {
 		const groups = container.groupFieldsBy("name", items);
 		if (! checkAllGroupsUnique(groups, uniqueFields)) {
 			throw new Error(`Ambiguous ${kind} configuration in shader`);
