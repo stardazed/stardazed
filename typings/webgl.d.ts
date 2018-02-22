@@ -1,6 +1,6 @@
 // typings/webgl - WebGL 1 extension definitions, WebGL 2 full definition and extensions
 // Part of Stardazed
-// (c) 2015-2017 by Arthur Langereis - @zenmumbler
+// (c) 2015-2018 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 // WebGL Helper Types

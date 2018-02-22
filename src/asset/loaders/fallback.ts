@@ -1,6 +1,6 @@
 // asset/loaders/fallback - loader with an optional fallback loader
 // Part of Stardazed
-// (c) 2015-2017 by Arthur Langereis - @zenmumbler
+// (c) 2015-2018 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 /// <reference path="../loader.ts" />

@@ -1,6 +1,6 @@
 // render/effect/pbr-modules - standard material effect modules
 // Part of Stardazed
-// (c) 2015-2017 by Arthur Langereis - @zenmumbler
+// (c) 2015-2018 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 /// <reference path="./module.ts" />

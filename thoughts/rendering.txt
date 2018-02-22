@@ -2,7 +2,7 @@ sort key:
 
 31 bits:
 
-Essentially take the key from Stingray (http://bitsquid.blogspot.com/2017/02/stingray-renderer-walkthrough-4-sorting.html)
+Essentially take the key from Stingray (http://bitsquid.blogspot.com/2018/02/stingray-renderer-walkthrough-4-sorting.html)
 and remove the 32 user bits.
 
 MSB [ 00000000 00000000 00000000 00000000 ] LSB

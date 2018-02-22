@@ -1,6 +1,6 @@
 // math/math - general purpose functions, equations, RNG, etc.
 // Part of Stardazed
-// (c) 2015-2017 by Arthur Langereis - @zenmumbler
+// (c) 2015-2018 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 /// <reference path="../../typings/veclib.d.ts" />

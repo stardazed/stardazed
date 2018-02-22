@@ -1,6 +1,6 @@
 // render/core/gl1/framebuffer - WebGL1 implementation of FrameBuffer
 // Part of Stardazed
-// (c) 2015-2017 by Arthur Langereis - @zenmumbler
+// (c) 2015-2018 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 namespace sd.render.gl1 {

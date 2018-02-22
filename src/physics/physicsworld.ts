@@ -1,6 +1,6 @@
 // physics/physicsworld - physics configuration and world container
 // Part of Stardazed
-// (c) 2015-2017 by Arthur Langereis - @zenmumbler
+// (c) 2015-2018 by Arthur Langereis - @zenmumbler
 // https://github.com/stardazed/stardazed
 
 namespace sd.physics {
