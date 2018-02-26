@@ -11,9 +11,14 @@ namespace sd.control {
 	}
 
 	export const enum InputDeviceType {
+		None,
 		Keyboard,
 		Mouse,
 		Controller
+	}
+
+	export interface NoneInput {
+		type: InputDeviceType.None;
 	}
 
 	export interface KeyboardInput {
@@ -52,7 +57,7 @@ namespace sd.control {
 		axis: MouseControl;
 	}
 
-	export type DeviceInput = KeyboardInput | MouseInput;
+	export type DeviceInput = NoneInput | KeyboardInput | MouseInput;
 
 	export interface AxisDescriptor {
 		enabled: boolean;
