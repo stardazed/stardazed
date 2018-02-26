@@ -278,7 +278,7 @@ namespace sd.physics {
 		}
 
 		update(timeStep: number, colliders: entity.ColliderComponent, transforms: entity.TransformComponent) {
-			this.world_.stepSimulation(timeStep, 2, 1 / 60);
+			this.world_.stepSimulation(timeStep, 4, 1 / 60);
 
 			colliders.forEach((_coll, trans, rigidBody) => {
 				if (rigidBody.isActive()) {

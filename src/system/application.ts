@@ -31,7 +31,7 @@ namespace sd {
 
 
 	const TICK_DURATION = math.hertz(60);
-	const MAX_FRAME_DURATION = TICK_DURATION * 2;
+	const MAX_FRAME_DURATION = TICK_DURATION * 4;
 
 	class SDApplication implements Application {
 		private globalTime_ = 0;
