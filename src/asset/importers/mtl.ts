@@ -340,10 +340,7 @@ namespace sd.asset.importer {
 								}
 
 								// don't do special processing for default opacity
-								opacity[0] = math.clamp01(opacity[0]);
-								if (opacity[0] < 1) {
-									curMat.opacity = opacity[0];
-								}
+								curMat.opacity = math.clamp01(opacity[0]);
 							}
 							break;
 						}
