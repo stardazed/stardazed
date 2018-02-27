@@ -163,14 +163,17 @@ namespace sd.asset.importer {
 	}
 
 	function parseMTLTextureSpec(directive: string, basePath: string, line: string[]): MTLTexture | undefined {
-		if (line.length < 2) {
-			return undefined;
-		}
 		// only the arguments, please
 		const tokens = line.slice(1);
 
 		// the last token is the relative path of the texture (no spaces allowed)
-		const relPath = tokens.pop()!;
+		let relPath = tokens.pop();
+		if (! relPath) {
+			return undefined;
+		}
+
+		// adjust Windows-style paths to unix/web style by changing all \ to /
+		relPath = relPath.replace(/\\/g, "/");
 
 		const texAsset: TextureAsset = {
 			kind: "texture",
