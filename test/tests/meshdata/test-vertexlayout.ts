@@ -213,23 +213,9 @@ group("geometry", () => {
 
 	group("VertexLayout", () => {
 		test("empty-list-allowed", () => {
-			const { VertexLayout } = sd.geometry;
-			const vl = new VertexLayout([]);
+			const { makeStandardVertexLayout } = sd.geometry;
+			const vl = makeStandardVertexLayout([]);
 			check.equal(vl.layouts.length, 0);
-		});
-		test("clones-layouts-array", () => {
-			const { VertexLayout, makeStandardVertexBufferLayout, AttrList } = sd.geometry;
-			const vbl = makeStandardVertexBufferLayout(AttrList.Pos3Norm3());
-			const layouts = [vbl];
-			const vl = new VertexLayout(layouts);
-			layouts.push(makeStandardVertexBufferLayout(AttrList.Pos3Norm3Colour3()));
-
-			check.equal(vl.layouts.length, 1);
-		});
-		test("has-correct-render-resource-type", () => {
-			const { VertexLayout } = sd.geometry;
-			const vl = new VertexLayout([]);
-			check.equal(vl.renderResourceType, sd.render.ResourceType.VertexLayout);
 		});
 	});
 

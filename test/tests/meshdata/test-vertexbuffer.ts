@@ -71,12 +71,6 @@ group("geometry", () => {
 			}			
 		});
 
-		test("has-vertexstream-render-resourceType", () => {
-			const { VertexBuffer } = sd.geometry;
-			const vb = new VertexBuffer(4, 12);
-			check.equal(vb.renderResourceType, sd.render.ResourceType.VertexStream);
-		});
-
 		test("sizeBytes-equals-bufferview-size", () => {
 			const { VertexBuffer } = sd.geometry;
 			const vb = new VertexBuffer(128, 12);

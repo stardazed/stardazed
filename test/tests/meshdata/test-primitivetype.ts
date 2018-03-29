@@ -6,12 +6,12 @@ group("geometry", () => {
 	group("IndexElementType", () => {
 		test("indexElementTypeSizeBytes", () => {
 			const { IndexElementType, indexElementTypeSizeBytes } = sd.geometry;
-			check.equal(indexElementTypeSizeBytes(IndexElementType.UInt8), 1);
-			check.equal(indexElementTypeSizeBytes(IndexElementType.UInt16), 2);
-			check.equal(indexElementTypeSizeBytes(IndexElementType.UInt32), 4);
+			check.equal(indexElementTypeSizeBytes[IndexElementType.UInt8], 1);
+			check.equal(indexElementTypeSizeBytes[IndexElementType.UInt16], 2);
+			check.equal(indexElementTypeSizeBytes[IndexElementType.UInt32], 4);
 
 			check.throws(Error, () => {
-				check.equal(indexElementTypeSizeBytes(IndexElementType.None), 0);
+				check.equal(indexElementTypeSizeBytes[IndexElementType.None], 0);
 			});
 		});
 

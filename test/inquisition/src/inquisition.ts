@@ -177,7 +177,7 @@ namespace inquisition {
 				return this.nextStepFn_();
 			}
 			// recurse into each child
-			else if (active.phase == TestRunPhase.SubTest) {
+			else if (active.phase === TestRunPhase.SubTest) {
 				const curChild = active.test.subTests[active.childIndex];
 				if (! curChild) {
 					throw new Error("Internal inconsistency: wrong child index");
@@ -276,7 +276,7 @@ declare function beforeAll(beforeAllFn: inquisition.TestImplFn): void;
 declare function afterAll(afterAllFn: inquisition.TestImplFn): void;
 declare function after(afterFn: inquisition.TestImplFn): void;
 
-(function(glob: any){
+(function(glob: any) {
 	glob.group = inquisition.group;
 	glob.test = inquisition.test;
 	glob.before = inquisition.before;

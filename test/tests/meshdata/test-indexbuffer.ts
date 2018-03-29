@@ -75,12 +75,6 @@ group("geometry", () => {
 			}			
 		});
 
-		test("has-indexstream-render-resourceType", () => {
-			const { IndexElementType, IndexBuffer } = sd.geometry;
-			const ib = new IndexBuffer(IndexElementType.UInt8, 12);
-			check.equal(ib.renderResourceType, sd.render.ResourceType.IndexStream);
-		});
-
 		test("sizeBytes-equals-bufferview-size", () => {
 			const { IndexElementType, IndexBuffer } = sd.geometry;
 			const ib = new IndexBuffer(IndexElementType.UInt16, 257);
