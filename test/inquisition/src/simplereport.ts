@@ -41,7 +41,7 @@ namespace inquisition {
 
 		pass() {
 			this.passes_++;
-			this.out(`PASS ${this.nameTree}`);
+			this.out(`<i>PASS</i> ${this.nameTree}`);
 		}
 
 		skip() {
@@ -51,16 +51,16 @@ namespace inquisition {
 
 		failure(msg: string, innerMsg?: string) {
 			this.failures_++;
-			this.out(`FAIL ${this.nameTree}: ${msg} ${innerMsg || ""}`);
+			this.out(`<b>FAIL</b> ${this.nameTree}: ${msg} ${innerMsg || ""}`);
 		}
 
 		error(err: Error, innerMsg?: string) {
 			this.errors_++;
-			this.out(`ERROR in ${this.nameTree}: ${err} ${innerMsg || ""}`);
+			this.out(`<b>ERROR</b> in ${this.nameTree}: ${err} ${innerMsg || ""}`);
 		}
 
 		get result() {
-			return this.result_.join("\n");
+			return this.result_.join("<br>\n");
 		}
 	}
 

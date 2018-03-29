@@ -90,7 +90,7 @@ namespace inquisition {
 			return undefined;
 		}
 
-		private runPotentiallyDeferredFn(fn: TestImplFn): Promise<void> {
+		private runPotentiallyDeferredFn(fn: TestImplFn) {
 			return new Promise<void>(
 				resolve => {
 					resolve(fn());

@@ -152,7 +152,7 @@ namespace inquisition {
 				}
 				else {
 					if (e !== throwable) {
-						fail(e, throwable, "===", message || "An unexpected exception was thrown");
+						fail(e, throwable, "===", message || "An unexpected value was thrown");
 					}
 				}
 			}
