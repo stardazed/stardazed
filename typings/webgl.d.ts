@@ -5,7 +5,6 @@
 
 // WebGL Helper Types
 type TextureImageSource = ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement;
-type TextureImageData = ArrayBufferView | TextureImageSource;
 
 
 interface HTMLCanvasElement {
@@ -144,14 +143,15 @@ interface EXT_disjoint_timer_query {
 interface WebGL2RenderingContext extends WebGLRenderingContext {
 	/* Buffer objects */
 	// WebGL1:
-    bufferData(target: number, sizeOrSource: number | ArrayBufferView | ArrayBuffer, usage: number): void;
+	bufferData(target: number, size: number, usage: number): void;
+	bufferData(target: number, source: ArrayBufferView | ArrayBuffer | null, usage: number): void;
 	// WebGL2:
-	bufferData(target: number, srcData: ArrayBufferView, usage: number, srcOffset: number, length?: number): void;
+	bufferData(target: number, source: ArrayBufferView | null, usage: number, srcOffset: number, length?: number): void;
 
 	// WebGL1:
-    bufferSubData(target: number, dstByteOffset: number, data: ArrayBufferView | ArrayBuffer): void;
+    bufferSubData(target: number, dstByteOffset: number, data: ArrayBufferView | ArrayBuffer | null): void;
 	// WebGL2:
-	bufferSubData(target: number, dstByteOffset: number, data: ArrayBufferView, srcOffset: number, length?: number): void;
+	bufferSubData(target: number, dstByteOffset: number, data: ArrayBufferView | null, srcOffset: number, length?: number): void;
 
 	copyBufferSubData(readTarget: number, writeTarget: number, readOffset: number, writeOffset: number, size: number): void;
 	// MapBufferRange, in particular its read-only and write-modes: only,
@@ -193,7 +193,7 @@ interface WebGL2RenderingContext extends WebGLRenderingContext {
 
 	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, type: number, pboOffset: number): void;
 	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, type: number, source: TextureImageSource): void; // May throw DOMException
-	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, type: number, srcData: ArrayBufferView, srcOffset: number): void;
+	texSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, type: number, srcData: ArrayBufferView | null, srcOffset: number): void;
 
 	texSubImage3D(target: number, level: number, xoffset: number, yoffset: number, zoffset: number, width: number, height: number, depth: number, format: number, type: number, pboOffset: number): void;
 	texSubImage3D(target: number, level: number, xoffset: number, yoffset: number, zoffset: number, width: number, height: number, depth: number, format: number, type: number, source: TextureImageSource): void; // May throw DOMException
@@ -202,16 +202,16 @@ interface WebGL2RenderingContext extends WebGLRenderingContext {
 	copyTexSubImage3D(target: number, level: number, xoffset: number, yoffset: number, zoffset: number, x: number, y: number, width: number, height: number): void;
 
 	compressedTexImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, offset: number): void;
-	compressedTexImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, srcData: ArrayBufferView, srcOffset?: number, srcLengthOverride?: number): void;
+	compressedTexImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, srcData: ArrayBufferView | null, srcOffset?: number, srcLengthOverride?: number): void;
 
 	compressedTexImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, offset: number): void;
-	compressedTexImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, srcData: ArrayBufferView, srcOffset?: number, srcLengthOverride?: number): void;
+	compressedTexImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, srcData: ArrayBufferView | null, srcOffset?: number, srcLengthOverride?: number): void;
 
 	compressedTexSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, offset: number): void;
-	compressedTexSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, srcData: ArrayBufferView, srcOffset?: number, srcLengthOverride?: number): void;
+	compressedTexSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number, height: number, format: number, srcData: ArrayBufferView | null, srcOffset?: number, srcLengthOverride?: number): void;
 
 	compressedTexSubImage3D(target: number, level: number, xoffset: number, yoffset: number, zoffset: number, width: number, height: number, depth: number, format: number, offset: number): void;
-	compressedTexSubImage3D(target: number, level: number, xoffset: number, yoffset: number, zoffset: number, width: number, height: number, depth: number, format: number, srcData: ArrayBufferView, srcOffset?: number, srcLengthOverride?: number): void;
+	compressedTexSubImage3D(target: number, level: number, xoffset: number, yoffset: number, zoffset: number, width: number, height: number, depth: number, format: number, srcData: ArrayBufferView | null, srcOffset?: number, srcLengthOverride?: number): void;
 
 	/* Programs and shaders */
 	getFragDataLocation(program: WebGLProgram, name: string): number;
