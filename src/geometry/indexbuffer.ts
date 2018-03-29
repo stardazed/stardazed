@@ -131,10 +131,13 @@ namespace sd.geometry {
 
 		constructor(elementType: IndexElementType, indexCount: number, usingStorage?: Uint8ClampedArray) {
 			assert(indexCount > 0, "Invalid indexCount, must be > 0");
+			assert(elementType !== IndexElementType.None);
 
 			this.indexElementType = elementType;
 			this.indexElementSizeBytes_ = indexElementTypeSizeBytes[elementType];
 			this.indexCount = indexCount;
+			
+			assert(this.indexElementSizeBytes_ !== undefined);
 
 			if (usingStorage) {
 				assert(usingStorage.byteLength >= this.sizeBytes, "Not enough space in supplied storage");
