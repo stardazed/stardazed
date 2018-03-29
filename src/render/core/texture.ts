@@ -127,7 +127,8 @@ namespace sd.render {
 
 
 	export type TextureImageSource = ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement;
-	export type TextureImageData = ArrayBufferView | TextureImageSource;
+	export type TextureRawData = Uint8Array | Int8Array | Uint8ClampedArray | Uint16Array | Int16Array | Uint32Array | Int32Array | Float32Array | Float64Array | DataView;
+	export type TextureData = TextureRawData | TextureImageSource;
 
 
 	export interface Texture extends RenderResourceBase {

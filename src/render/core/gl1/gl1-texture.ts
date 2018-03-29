@@ -80,7 +80,7 @@ namespace sd.render.gl1 {
 
 			for (let mip = 0; mip < providerMips; ++mip) {
 				const pixBuf = provider!.pixelBufferForLevel(mip)!;
-				gl.compressedTexImage2D(target, mip, glTexPixelFormat, pixBuf.dim.width, pixBuf.dim.height, 0, pixBuf.data as ArrayBufferView);
+				gl.compressedTexImage2D(target, mip, glTexPixelFormat, pixBuf.dim.width, pixBuf.dim.height, 0, pixBuf.data as TextureRawData);
 			}
 		}
 		else {

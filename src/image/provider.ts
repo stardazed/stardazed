@@ -57,7 +57,7 @@ namespace sd.image {
 		readonly pixelFormat: PixelFormat;
 		readonly colourSpace: ColourSpace;
 		readonly dim: Readonly<PixelDimensions>;
-		readonly data: TextureImageData;
+		readonly data: render.TextureData;
 	}
 
 	export function pixelBufferBytesPerRow(pb: PixelBuffer) {
