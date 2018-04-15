@@ -177,7 +177,7 @@ namespace sd.asset {
 
 		export function parseMaterial(asset: Asset<StandardMaterial, MaterialAssetMetadata>) {
 			const meta = asset.metadata || {};
-			const deps = (asset.dependencies || {}) as any as MaterialDependencies;
+			const deps = (asset.dependencies || {}) as MaterialDependencies;
 
 			let colour: ColourResponse;
 			const colourType = meta.colour && meta.colour.type;
