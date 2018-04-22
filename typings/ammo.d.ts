@@ -599,6 +599,7 @@ declare namespace Ammo {
 		getMotionState(): btMotionState;
 		setMotionState(motionState: btMotionState): void;
 		setDamping(linearDamping: number, angularDamping: number): void;
+		getAabb(aabbMin: btVector3, aabbMax: btVector3): void;
 
 		setMassProps(mass: number, inertia: btVector3Const): void;
 		setSleepingThresholds(linear: number, angular: number): void;
@@ -618,10 +619,20 @@ declare namespace Ammo {
 		set_m_impulseClamp(clamp: number): void;
 	}
 
+	const enum btConstraintParams {
+		BT_CONSTRAINT_ERP = 1,
+		BT_CONSTRAINT_STOP_ERP,
+		BT_CONSTRAINT_CFM,
+		BT_CONSTRAINT_STOP_CFM
+	};
+
 	abstract class btTypedConstraint {
 		enableFeedback(needsFeedback: boolean): void;
 		getBreakingImpulseThreshold(): number;
 		setBreakingImpulseThreshold(threshold: number): void;
+		// these axis parameters are (0..5), sometimes requiring -1 to mean "none"
+		getParam(param: btConstraintParams, axis: number): number;
+		setParam(param: btConstraintParams, value: number, axis: number): void;
 	}
 
 	class btPoint2PointConstraint extends btTypedConstraint {
@@ -696,6 +707,9 @@ declare namespace Ammo {
 		setUpperAngLimit(upperAngLimit: number): void;
 	}
 
+	class btFixedConstraint {
+		constructor(rbA: btRigidBody, rbB: btRigidBody, frameInA: btTransformConst, frameInB: btTransformConst);
+	}
 
 	// ----
 
