@@ -613,7 +613,7 @@ declare namespace Ammo {
 		setSleepingThresholds(linear: number, angular: number): void;
 		updateInertiaTensor(): void;
 
-		upcast(colObj: btCollisionObjectConst): btRigidBody; // static member in C++
+		upcast(colObj: btCollisionObject): btRigidBody; // static member in C++
 	}
 
 	// ---- Constraints
@@ -760,8 +760,8 @@ declare namespace Ammo {
 	}
 
 	abstract class btCollisionWorld {
-		contactPairTest(colObjA: btCollisionObjectConst, colObjB: btCollisionObjectConst, resultCallback: ContactResultCallback): void;
-		contactTest(colObj: btCollisionObjectConst, resultCallback: ContactResultCallback): void;
+		contactPairTest(colObjA: btCollisionObject, colObjB: btCollisionObject, resultCallback: ContactResultCallback): void;
+		contactTest(colObj: btCollisionObject, resultCallback: ContactResultCallback): void;
 		convexSweepTest(castShape: btConvexShape, from: btTransformConst, to: btTransformConst, resultCallback: ConvexResultCallback, allowedCcdPenetration: number): void;
 		rayTest(rayFromWorld: btVector3Const, rayToWorld: btVector3Const, resultCallback: RayResultCallback): void;
 
