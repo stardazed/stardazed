@@ -396,6 +396,7 @@ declare namespace Ammo {
 
 	class btCollisionShape {
 		setLocalScaling(scaling: btVector3Const): void;
+		getLocalScaling(): btVector3;
 		calculateLocalInertia(mass: number, inertia: btVector3): void;
 		getMargin(): number;
 		setMargin(collisionMargin: number): void;
@@ -601,6 +602,10 @@ declare namespace Ammo {
 		setDamping(linearDamping: number, angularDamping: number): void;
 		getAabb(aabbMin: btVector3, aabbMax: btVector3): void;
 
+		applyGravity(): void;
+		getGravity(): btVector3;
+		setGravity(acceleration: btVector3Const): void;
+
 		setMassProps(mass: number, inertia: btVector3Const): void;
 		setSleepingThresholds(linear: number, angular: number): void;
 		updateInertiaTensor(): void;
@@ -756,6 +761,7 @@ declare namespace Ammo {
 		rayTest(rayFromWorld: btVector3Const, rayToWorld: btVector3Const, resultCallback: RayResultCallback): void;
 
 		addCollisionObject(collisionObject: btCollisionObject, collisionFilterGroup?: CollisionFilterGroups, collisionFilterMask?: CollisionFilterGroups): void;
+		updateSingleAabb(colObj: btCollisionObject): void;
 
 		getBroadphase(): btBroadphaseInterface;
 		getDispatchInfo(): btDispatcherInfo;
