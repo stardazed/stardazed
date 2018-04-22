@@ -664,6 +664,8 @@ declare namespace Ammo {
 		setLinearUpperLimit(linearUpper: btVector3Const): void;
 		setAngularLowerLimit(angularLower: btVector3Const): void;
 		setAngularUpperLimit(angularUpper: btVector3Const): void;
+
+		getFrameOffsetA(): btTransform;
 	}
 
 	class btGeneric6DofSpringConstraint extends btGeneric6DofConstraint {
