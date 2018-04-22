@@ -632,7 +632,7 @@ declare namespace Ammo {
 		BT_CONSTRAINT_STOP_ERP,
 		BT_CONSTRAINT_CFM,
 		BT_CONSTRAINT_STOP_CFM
-	};
+	}
 
 	abstract class btTypedConstraint {
 		enableFeedback(needsFeedback: boolean): void;
@@ -1062,6 +1062,32 @@ declare namespace Ammo {
 		at(n: number): Material;
 	}
 
+	interface Anchor {
+		get_m_node(): Node;
+		set_m_node(v: Node): void;
+		get_m_local(): btVector3;
+		set_m_local(v: btVector3): void;
+		get_m_body(): btRigidBody;
+		set_m_body(rb: btRigidBody): void;
+		get_m_influence(): number;
+		set_m_influence(n: number): void;
+		get_m_c0(): btMatrix3x3;
+		set_m_c0(m: btMatrix3x3): void;
+		get_m_c1(): btVector3;
+		set_m_c1(v: btVector3): void;
+		get_m_c2(): number;
+		set_m_c2(n: number): void;
+	}
+
+	interface tAnchorArray {
+		size(): number;
+		at(n: number): Anchor;
+		clear(): void;
+		push_back(val: Anchor): void;
+		pop_back(): void;
+	}
+
+
 	interface Config {
 		get_kVCF(): number;
 		set_kVCF(n: number): void;
@@ -1113,6 +1139,8 @@ declare namespace Ammo {
 		set_citerations(n: number): void;
 		get_collisions(): number;
 		set_collisions(n: number): void;
+		get_m_anchors(): tAnchorArray;
+		set_m_anchors(anchors: tAnchorArray): void;
 	}
 
 	class btSoftBody extends btCollisionObject {
@@ -1145,6 +1173,7 @@ declare namespace Ammo {
 		scale(scl: btVector3Const): void;
 
 		generateClusters(k: number, maxIterations?: number): number;
+		generateBendingConstraints(distance: number, mat: Material): number;
 
 		upcast(colObj: btCollisionObject): btSoftBody;
 	}
