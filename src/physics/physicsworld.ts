@@ -196,6 +196,15 @@ namespace sd.physics {
 			return controller;
 		}
 
+		// FIXME: direct passthrough for now, add proper create/remove
+		addConstraint(constraint: Ammo.btTypedConstraint, disableCollisionsBetweenLinkedBodies?: boolean) {
+			this.world_.addConstraint(constraint, disableCollisionsBetweenLinkedBodies);
+		}
+
+		removeConstraint(constraint: Ammo.btTypedConstraint) {
+			this.world_.removeConstraint(constraint);
+		}
+
 		private rayCastInternal(resultClass: RayResultStruct, filter: Ammo.CollisionFilterGroups, worldFrom: Float3, worldToOrDir: Float3, maxDist?: number) {
 			if (maxDist !== undefined) {
 				vec3.scaleAndAdd(worldToOrDir, worldFrom, worldToOrDir, maxDist);
