@@ -410,6 +410,9 @@ declare namespace Ammo {
 
 	class btCapsuleShape extends btConvexShape {
 		constructor(radius: number, height: number);
+		getUpAxis(): AxisIndex;
+		getRadius(): number;
+		getHalfHeight(): number;
 	}
 
 	class btCapsuleShapeX extends btCapsuleShape {
@@ -761,6 +764,8 @@ declare namespace Ammo {
 		rayTest(rayFromWorld: btVector3Const, rayToWorld: btVector3Const, resultCallback: RayResultCallback): void;
 
 		addCollisionObject(collisionObject: btCollisionObject, collisionFilterGroup?: CollisionFilterGroups, collisionFilterMask?: CollisionFilterGroups): void;
+		removeCollisionObject(collisionObject: btCollisionObject): void;
+
 		updateSingleAabb(colObj: btCollisionObject): void;
 
 		getBroadphase(): btBroadphaseInterface;
@@ -829,6 +834,7 @@ declare namespace Ammo {
 		setFallSpeed(fallSpeed: number): void;
 		setJumpSpeed(jumpSpeed: number): void;
 		setMaxJumpHeight(maxJumpHeight: number): void;
+		setUpInterpolate(upInterpolate: boolean): void;
 		canJump(): boolean;
 		jump(): void;
 		setGravity(gravity: number): void;
