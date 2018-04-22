@@ -693,9 +693,9 @@ declare namespace Ammo {
 
 	class btHingeConstraint extends btTypedConstraint {
 		constructor(rbA: btRigidBody, rbB: btRigidBody, pivotInA: btVector3, pivotInB: btVector3, axisInA: btVector3, axisInB: btVector3, useReferenceFrameA?: boolean);
-		// constructor(rbA: btRigidBody, pivotInA: btVector3, axisInA: btVector3, useReferenceFrameA?: boolean);
-		constructor(rbA: btRigidBody, rbB: btRigidBody, rbAFrame: btTransform, rbBFrame: btTransform, useReferenceFrameA?: boolean);
-		constructor(rbA: btRigidBody, rbAFrame: btTransform, useReferenceFrameA?: boolean);
+		constructor(rbA: btRigidBody, pivotInA: btVector3, axisInA: btVector3, useReferenceFrameA?: boolean);
+		// constructor(rbA: btRigidBody, rbB: btRigidBody, rbAFrame: btTransform, rbBFrame: btTransform, useReferenceFrameA?: boolean);
+		// constructor(rbA: btRigidBody, rbAFrame: btTransform, useReferenceFrameA?: boolean);
 
 		setLimit(low: number, high: number, softness: number, biasFactor: number, relaxationFactor?: number): void;
 		enableAngularMotor(enableMotor: boolean, targetVelocity: number, maxMotorImpulse: number): void;
