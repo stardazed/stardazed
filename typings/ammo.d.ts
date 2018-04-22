@@ -1039,6 +1039,10 @@ declare namespace Ammo {
 		set_m_x(v: btVector3): void;
 		get_m_n(): btVector3;
 		set_m_n(v: btVector3): void;
+		get_m_f(): btVector3;
+		set_m_f(v: btVector3): void;
+		get_m_v(): btVector3;
+		set_m_v(v: btVector3): void;
 	}
 
 	interface tNodeArray {
@@ -1162,6 +1166,10 @@ declare namespace Ammo {
 		appendFace(node0: number, node1: number, node2: number, mat: Material): void;
 		appendTetra(node0: number, node1: number, node2: number, node3: number, mat: Material): void;
 		appendAnchor(node: number, body: btRigidBody, disableCollisionBetweenLinkedBodies: boolean, influence: number): void;
+
+		addForce(force: btVector3Const): void;
+		addForce(force: btVector3Const, node: number): void;
+		addAeroForceToNode(windVelocity: btVector3Const, nodeIndex: number): void;
 
 		getTotalMass(): number;
 		setTotalMass(mass: number, fromfaces: boolean): void;
