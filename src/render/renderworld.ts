@@ -64,7 +64,9 @@ namespace sd.render {
 		}
 
 
-		// --
+		// -- temporary
+
+		readonly mainClearColour = [0.0, 0.0, 0.0, 1.0];
 
 		drawScene(scene: Scene) {
 			const cmds = this.lighting_.prepareLightsForRender(
@@ -80,7 +82,7 @@ namespace sd.render {
 				this.lighting_.lutTextureSampler.tex.renderResourceHandle;
 
 			if (lightingReady) {
-				cmds.setFrameBuffer(null, render.ClearMask.ColourDepth, { colour: [0.0, 0.0, 0.0, 1.0] });
+				cmds.setFrameBuffer(null, render.ClearMask.ColourDepth, { colour: this.mainClearColour });
 				cmds.setViewport(scene.camera.viewport);
 
 				const transforms = scene.transforms;
