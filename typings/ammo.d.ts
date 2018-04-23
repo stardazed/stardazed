@@ -6,6 +6,7 @@ declare namespace Ammo {
 		readonly __VoidPtr?: void;
 		a: number; // memory address
 	}
+	const NULL: VoidPtr;
 
 	function destroy(ammoObject: object): void;
 
@@ -613,7 +614,7 @@ declare namespace Ammo {
 		setSleepingThresholds(linear: number, angular: number): void;
 		updateInertiaTensor(): void;
 
-		upcast(colObj: btCollisionObject): btRigidBody; // static member in C++
+		upcast(colObj: btCollisionObject): btRigidBody | Ammo.VoidPtr; // static member in C++, use protoype.upcast, returns Ammo.NULL on failure
 	}
 
 	// ---- Constraints
@@ -813,6 +814,7 @@ declare namespace Ammo {
 	class btGhostObject extends btCollisionObject {
 		getNumOverlappingObjects(): number;
 		getOverlappingObject(index: number): btCollisionObject;
+		upcast(colObj: btCollisionObject): btGhostObject | Ammo.VoidPtr; // static member in C++, use protoype.upcast, returns Ammo.NULL on failure
 	}
 
 	class btPairCachingGhostObject extends btGhostObject { }
@@ -1185,7 +1187,7 @@ declare namespace Ammo {
 		generateClusters(k: number, maxIterations?: number): number;
 		generateBendingConstraints(distance: number, mat: Material): number;
 
-		upcast(colObj: btCollisionObject): btSoftBody;
+		upcast(colObj: btCollisionObject): btSoftBody | Ammo.VoidPtr; // static member in C++, use protoype.upcast, returns Ammo.NULL on failure
 	}
 
 	class btSoftBodyRigidBodyCollisionConfiguration extends btDefaultCollisionConfiguration {
