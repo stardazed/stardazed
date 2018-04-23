@@ -7,9 +7,22 @@
 
 namespace sd.entity {
 
-	export interface Collider {
+	export const enum ColliderType {
+		RigidBody = 1,
+		GhostObject
+	}
+
+	export interface RigidBodyCollider {
+		type: ColliderType.RigidBody;
 		rigidBody: physics.RigidBodyDescriptor;
 	}
+
+	export interface GhostObjectCollider {
+		type: ColliderType.GhostObject;
+		ghost: physics.GhostDescriptor;
+	}
+
+	export type Collider = RigidBodyCollider | GhostObjectCollider;
 
 	export type ColliderInstance = Instance<ColliderComponent>;
 	export type ColliderRange = InstanceRange<ColliderComponent>;
@@ -23,7 +36,7 @@ namespace sd.entity {
 		private transformBase_!: TransformArrayView;
 		private shapeTypeBase_!: ConstEnumArray32View<physics.PhysicsShapeType>;
 		private shapes_: Ammo.btCollisionShape[];
-		private colliders_: Ammo.btRigidBody[];
+		private colliders_: Ammo.btCollisionObject[];
 
 		private tempMat3_ = mat4.create();
 		private tempQuat_ = quat.create();
@@ -53,21 +66,37 @@ namespace sd.entity {
 			}
 			const instance = this.instanceData_.count;
 
-			// rigid body
+			// collision object
 			const transform = this.transforms_.forEntity(entity);
 			const worldMat = this.transforms_.worldMatrix(transform);
-			collider.rigidBody.worldRot = quat.fromMat3(this.tempQuat_, mat3.fromMat4(this.tempMat3_, worldMat));
-			collider.rigidBody.worldPos = this.transforms_.worldPosition(transform);
-			const rigidBody = this.physicsWorld.createRigidBody(collider.rigidBody);
 
-			// link the Ammo RB back to the collider through the instance index
-			rigidBody.setUserIndex(instance);
+			if (collider.type === ColliderType.RigidBody) {
+				collider.rigidBody.worldRot = quat.fromMat3(this.tempQuat_, mat3.fromMat4(this.tempMat3_, worldMat));
+				collider.rigidBody.worldPos = this.transforms_.worldPosition(transform);
+				const rigidBody = this.physicsWorld.createRigidBody(collider.rigidBody);
+
+				// link the Ammo RB back to the collider through the instance index
+				rigidBody.setUserIndex(instance);
+
+				this.shapeTypeBase_[instance] = collider.rigidBody.shape.type;
+				this.shapes_[instance] = collider.rigidBody.shape.shape;
+				this.colliders_[instance] = rigidBody;
+			}
+			else if (collider.type === ColliderType.GhostObject) {
+				collider.ghost.worldRot = quat.fromMat3(this.tempQuat_, mat3.fromMat4(this.tempMat3_, worldMat));
+				collider.ghost.worldPos = this.transforms_.worldPosition(transform);
+				const ghost = this.physicsWorld.createGhostTrigger(collider.ghost);
+
+				// link the Ammo object back to the collider through the instance index
+				ghost.setUserIndex(instance);
+
+				this.shapeTypeBase_[instance] = collider.ghost.shape.type;
+				this.shapes_[instance] = collider.ghost.shape.shape;
+				this.colliders_[instance] = ghost;
+			}
 
 			this.entityBase_[instance] = entity;
 			this.transformBase_[instance] = transform;
-			this.shapeTypeBase_[instance] = collider.rigidBody.shape.type;
-			this.shapes_[instance] = collider.rigidBody.shape.shape;
-			this.colliders_[instance] = rigidBody;
 
 			return instance;
 		}
@@ -78,9 +107,9 @@ namespace sd.entity {
 			this.shapeTypeBase_[inst as number] = 0;
 			delete this.shapes_[inst as number];
 
-			const rb = this.colliders_[inst as number];
-			rb.setUserIndex(0);
-			this.physicsWorld.removeRigidBody(rb);
+			const co = this.colliders_[inst as number];
+			co.setUserIndex(0);
+			this.physicsWorld.removeCollisionObject(co);
 			delete this.colliders_[inst as number];
 		}
 
@@ -102,13 +131,13 @@ namespace sd.entity {
 		}
 
 		// FIXME: HACK, move to physicsworld
-		forEach(fn: (inst: ColliderInstance, tx: TransformInstance, rb: Ammo.btRigidBody) => void) {
+		forEach(fn: (inst: ColliderInstance, tx: TransformInstance, co: Ammo.btCollisionObject) => void) {
 			const max = this.count;
 			for (let cx = 1; cx <= max; ++cx) {
 				if (this.entityBase_[cx as number] !== 0) {
 					const tx = this.transformBase_[cx as number];
-					const rb = this.colliders_[cx as number];
-					fn(cx, tx, rb);
+					const co = this.colliders_[cx as number];
+					fn(cx, tx, co);
 				}
 			}
 		}
@@ -143,8 +172,16 @@ namespace sd.entity {
 			return this.shapes_[inst as number];
 		}
 
-		rigidBody(inst: ColliderInstance) {
+		collisionObject(inst: ColliderInstance) {
 			return this.colliders_[inst as number];
+		}
+
+		rigidBody(inst: ColliderInstance) {
+			return this.physicsWorld.asRigidBody(this.colliders_[inst as number]);
+		}
+
+		ghostObject(inst: ColliderInstance) {
+			return this.physicsWorld.asGhostObject(this.colliders_[inst as number]);
 		}
 	}
 
