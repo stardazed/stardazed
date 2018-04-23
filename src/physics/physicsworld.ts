@@ -71,6 +71,7 @@ namespace sd.physics {
 		private defaultAngularDrag_: number;
 		private defaultFriction_: number;
 		private defaultRestitution_: number;
+		private lag_: number;
 
 		private readonly tempBtTrans_: Ammo.btTransform;
 		
@@ -103,6 +104,7 @@ namespace sd.physics {
 			this.defaultRestitution_ = config.defaultRestitution;
 
 			this.tempBtTrans_ = new Ammo.btTransform();			
+			this.lag_ = 0;
 		}
 
 		createRigidBody(desc: RigidBodyDescriptor) {
@@ -287,18 +289,24 @@ namespace sd.physics {
 		}
 
 		update(timeStep: number, colliders: entity.ColliderComponent, transforms: entity.TransformComponent) {
-			this.world_.stepSimulation(timeStep, 4, 1 / 60);
+			this.lag_ += timeStep;
+			const stepsPerformed = this.world_.stepSimulation(this.lag_, 8, 1 / 120);
+			this.lag_ -= stepsPerformed / 120;
 
-			colliders.forEach((_coll, trans, rigidBody) => {
-				if (rigidBody.isActive()) {
-					const ms = rigidBody.getMotionState();
-					ms.getWorldTransform(this.tempBtTrans_);
+			colliders.forEach((_coll, trans, collObj) => {
+				const rbOrNull = Ammo.btRigidBody.prototype.upcast(collObj);
+				if ((rbOrNull as any).a !== 0) {
+					const rigidBody = rbOrNull as Ammo.btRigidBody;
+					if (rigidBody.isActive()) {
+						const ms = rigidBody.getMotionState();
+						ms.getWorldTransform(this.tempBtTrans_);
 
-					const pos = this.tempBtTrans_.getOrigin();
-					const rot = this.tempBtTrans_.getRotation();
+						const pos = this.tempBtTrans_.getOrigin();
+						const rot = this.tempBtTrans_.getRotation();
 
-					// FIXME: if item is parented, make position/rotation parent relative
-					transforms.setPositionAndRotation(trans, [pos.x(), pos.y(), pos.z()], [rot.x(), rot.y(), rot.z(), rot.w()]);
+						// FIXME: if item is parented, make position/rotation parent relative
+						transforms.setPositionAndRotation(trans, [pos.x(), pos.y(), pos.z()], [rot.x(), rot.y(), rot.z(), rot.w()]);
+					}
 				}
 			});
 		}
