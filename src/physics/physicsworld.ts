@@ -54,12 +54,20 @@ namespace sd.physics {
 		collisionFilterMask?: number;
 	}
 
+	export interface GhostDescriptor {
+		shape: PhysicsShape;
+		worldPos?: ConstFloat3;
+		worldRot?: ConstFloat4;
+	}
+
+	/*
 	export interface CharacterDescriptor {
 		shape: PhysicsShape;
 		stepHeight: number;
 		worldPos?: ConstFloat3;
 		worldRot?: ConstFloat4;
 	}
+	*/
 
 	interface RayResultStruct {
 		new(from: Ammo.btVector3, to: Ammo.btVector3): Ammo.RayResultCallback;
@@ -72,6 +80,7 @@ namespace sd.physics {
 		private defaultFriction_: number;
 		private defaultRestitution_: number;
 		private lag_: number;
+		private haveGhosts_: boolean;
 
 		private readonly tempBtTrans_: Ammo.btTransform;
 		
@@ -103,8 +112,9 @@ namespace sd.physics {
 			this.defaultFriction_ = config.defaultFriction;
 			this.defaultRestitution_ = config.defaultRestitution;
 
-			this.tempBtTrans_ = new Ammo.btTransform();			
+			this.tempBtTrans_ = new Ammo.btTransform();
 			this.lag_ = 0;
+			this.haveGhosts_ = false;
 		}
 
 		createRigidBody(desc: RigidBodyDescriptor) {
@@ -170,10 +180,57 @@ namespace sd.physics {
 			return body;
 		}
 
-		removeRigidBody(body: Ammo.btRigidBody) {
-			this.world_.removeRigidBody(body);
+		removeCollisionObject(co: Ammo.btCollisionObject) {
+			const body = this.asRigidBody(co);
+			if (body) {
+				this.world_.removeRigidBody(body);
+			}
+			else {
+				this.world_.removeCollisionObject(co);
+			}
 		}
 
+		createGhostTrigger(desc: GhostDescriptor) {
+			const worldPos = desc.worldPos || [0, 0, 0];
+			const worldRot = desc.worldRot || [0, 0, 0, 1];
+
+			const ammoTransform = new Ammo.btTransform(
+				new Ammo.btQuaternion(worldRot[0], worldRot[1], worldRot[2], worldRot[3]),
+				new Ammo.btVector3(worldPos[0], worldPos[1], worldPos[2])
+			);
+
+			const ghost = new Ammo.btGhostObject();
+			ghost.setWorldTransform(ammoTransform);
+			ghost.setCollisionShape(desc.shape.shape);
+			ghost.setCollisionFlags(ghost.getCollisionFlags() | Ammo.CollisionFlags.CF_NO_CONTACT_RESPONSE);
+			
+			this.world_.addCollisionObject(ghost, Ammo.CollisionFilterGroups.SensorTrigger, Ammo.CollisionFilterGroups.DefaultFilter);
+
+			if (! this.haveGhosts_) {
+				this.haveGhosts_ = true;
+				this.world_.getPairCache().setInternalGhostPairCallback(new Ammo.btGhostPairCallback());
+			}
+
+			return ghost;
+		}
+
+		asRigidBody(collObj: Ammo.btCollisionObject): Ammo.btRigidBody | undefined {
+			const rb = Ammo.btRigidBody.prototype.upcast(collObj);
+			if (rb === Ammo.NULL) {
+				return undefined;
+			}
+			return rb as Ammo.btRigidBody;
+		}
+
+		asGhostObject(collObj: Ammo.btCollisionObject): Ammo.btGhostObject | undefined {
+			const rb = Ammo.btGhostObject.prototype.upcast(collObj);
+			if (rb === Ammo.NULL) {
+				return undefined;
+			}
+			return rb as Ammo.btGhostObject;
+		}
+
+		/*
 		createCharacter(desc: CharacterDescriptor) {
 			const worldPos = desc.worldPos || [0, 0, 0];
 			const worldRot = desc.worldRot || [0, 0, 0, 1];
@@ -197,6 +254,7 @@ namespace sd.physics {
 
 			return controller;
 		}
+		*/
 
 		// FIXME: direct passthrough for now, add proper create/remove
 		addConstraint(constraint: Ammo.btTypedConstraint, disableCollisionsBetweenLinkedBodies?: boolean) {
