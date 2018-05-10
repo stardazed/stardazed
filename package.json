@@ -1,33 +1,10 @@
 {
-  "name": "stardazed",
-  "description": "3D Game Development Library for the Web",
-  "version": "0.3.0",
-  "homepage": "http://stardazed.club",
-  "main": "dist/stardazed.js",
-  "typings": "dist/stardazed.d.ts",
-  "author": {
-    "name": "Arthur Langereis",
-    "url": "https://zenmumbler.net/"
-  },
-  "repository": "git@github.com:stardazed/stardazed.git",
-  "bugs": {
-    "url": "https://github.com/stardazed/stardazed/issues"
-  },
-  "license": "MIT",
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/stardazed/stardazed/blob/master/LICENSE"
-    }
+  "private": true,
+  "workspaces": [
+    "packages/*"
   ],
   "scripts": {
     "docs": "typedoc --name Stardazed --excludePrivate --includeDeclarations --excludeExternals --mode file --tsconfig src/tsconfig.json --toc ['sd'] --out docs src",
     "lint": "tslint --project src/tsconfig.json -t verbose"
-  },
-  "keywords": [
-    "game-engine",
-    "webgl",
-    "typescript-library",
-    "3d"
-  ]
+  }
 }
