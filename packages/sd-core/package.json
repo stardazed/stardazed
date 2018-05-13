@@ -1,18 +1,19 @@
 {
 	"name": "sd-core",
+	"description": "Core types and helpers for Stardazed",
 	"version": "0.4.0",
 	"author": {
 		"name": "Arthur Langereis"
 	},
-	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
-	"main": "dist/index.js",
+	"license": "MIT",
+	"main": "dist/index.umd.js",
+	"module": "dist/index.esm.js",
 	"types": "dist/index.d.ts",
 	"devDependencies": {
-		"dts-builder": "^1.1.4",
 		"rollup": "^0.58.2",
 		"rollup-plugin-node-resolve": "^3.3.0",
 		"rollup-plugin-sourcemaps": "^0.4.2",
