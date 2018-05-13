@@ -1,3 +1,9 @@
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.sdInflate = {})));
+}(this, (function (exports) { "use strict";
+
 /** @license
  Copyright (c) 2013 Gildas Lormeau. All rights reserved.
 
@@ -39,9 +45,6 @@
  * - Change export method, now uses `global` parameter
  * - Removed usages of .subarray and .set in the inner loops, increasing performance by ~3x
  */
-
-(function(global) {
-	"use strict";
 
 	// Global
 	var MAX_BITS = 15;
@@ -2147,5 +2150,5 @@
 		};
 	}
 
-	global.Inflater = Inflater;
-})(this);
+	exports.Inflater = Inflater;
+}))); 
