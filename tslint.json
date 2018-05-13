@@ -59,6 +59,7 @@
 		"callable-types": false,
 		"arrow-parens": false,
 		"only-arrow-functions": false,
+		"ordered-imports": false,
 		"comment-format": [true, "check-space"],
 		"interface-name": [true, "never-prefix"],
 		"no-consecutive-blank-lines": [true, 2],
