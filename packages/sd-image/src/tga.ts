@@ -14,6 +14,7 @@ const enum TGAImageType /* uint8 */ {
 	Paletted = 1,
 	RGB = 2,
 	Grayscale = 3,
+	ModeMask = 7,
 
 	RLEBit = 8,
 	CompressedBit = 32
@@ -50,7 +51,8 @@ function loadTGAImageFromBufferView(view: ArrayBufferView): ImageData {
 	const bitDepth = headerView.getUint8(TGAFileHeader.bitDepth);
 	let bytesPerPixel = 0;
 
-	if ((imageType & 7) === TGAImageType.RGB) {
+	const imageMode = imageType & TGAImageType.ModeMask;
+	if (imageMode === TGAImageType.RGB) {
 		if (bitDepth === 24) {
 			bytesPerPixel = 3;
 		}
@@ -61,7 +63,7 @@ function loadTGAImageFromBufferView(view: ArrayBufferView): ImageData {
 			throw new Error("Only 24 or 32 bit RGB TGA images are supported.");
 		}
 	}
-	else if ((imageType & 7) === TGAImageType.Grayscale) {
+	else if (imageMode === TGAImageType.Grayscale) {
 		bytesPerPixel = 1;
 		assert(bitDepth === 8, "Only 8-bit grayscale TGA images are supported.");
 	}
