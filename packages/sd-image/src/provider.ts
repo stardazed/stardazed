@@ -7,7 +7,7 @@
 
 import { TypedArray } from "sd-core";
 import { isPowerOf2 } from "sd-math";
-import { ColourSpace, PixelFormat, pixelFormatBytesPerElement, pixelFormatIsCompressed } from "./pixelformat";
+import { PixelFormat, pixelFormatBytesPerElement, pixelFormatIsCompressed } from "./pixelformat";
 
 export interface PixelCoordinate {
 	x: number;
@@ -57,7 +57,6 @@ export type ImageFrameData = ImageFrameSource | TypedArray | DataView;
 
 export interface ImageFrame {
 	readonly pixelFormat: PixelFormat;
-	readonly colourSpace: ColourSpace;
 	readonly dim: Readonly<PixelDimensions>;
 	readonly data: ImageFrameData;
 }
@@ -80,7 +79,6 @@ export interface PixelDataProvider {
 	readonly dim: Readonly<PixelDimensions>;
 	readonly mipMapCount: number;
 	readonly pixelFormat: PixelFormat;
-	colourSpace: ColourSpace;
 
 	imageFrameAtLevel(level: number): ImageFrame | undefined;
 }
@@ -91,7 +89,6 @@ export interface PixelDataProviderClass {
 
 export function providerForSingleFrame(frame: ImageFrame): PixelDataProvider {
 	return {
-		colourSpace: buffer.colourSpace,
 		pixelFormat: frame.pixelFormat,
 		dim: frame.dim,
 		mipMapCount: 1,

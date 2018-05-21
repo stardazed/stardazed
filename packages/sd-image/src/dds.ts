@@ -6,7 +6,7 @@
  */
 
 import { assert } from "sd-core";
-import { ColourSpace, PixelFormat } from "./pixelformat";
+import { PixelFormat } from "./pixelformat";
 import { PixelDataProvider, ImageFrame, makePixelDimensions, dimensionAtMipLevel, dataSizeBytesForPixelFormatAndDimensions, PixelDimensions } from "./provider";
 
 const enum DDSPixelFormatOffsets {
@@ -76,8 +76,6 @@ export class DDSDataProvider implements PixelDataProvider {
 	}
 
 	get pixelFormat() { return this.format_; }
-	get colourSpace() { return ColourSpace.Linear; }
-	set colourSpace(_ignored: ColourSpace) { /* ignored */ }
 	get mipMapCount() { return this.mipMaps_; }
 	get dim(): PixelDimensions { return makePixelDimensions(this.width_, this.height_); }
 
@@ -111,7 +109,6 @@ export class DDSDataProvider implements PixelDataProvider {
 
 		return {
 			pixelFormat: this.pixelFormat,
-			colourSpace: this.colourSpace,
 			dim: makePixelDimensions(mipWidth, mipHeight),
 			data: new Uint8ClampedArray(this.data_.buffer, this.data_.byteOffset + mipOffset, this.dataSizeForLevel(level))
 		};
