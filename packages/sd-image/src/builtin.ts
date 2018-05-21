@@ -6,7 +6,7 @@
  */
 
 import { ColourSpace, PixelFormat } from "./pixelformat";
-import { PixelDimensions, makePixelDimensions, PixelDataProvider, ImageBuffer } from "./provider";
+import { PixelDimensions, makePixelDimensions, PixelDataProvider, ImageFrame } from "./provider";
 
 export class HTMLImageDataProvider implements PixelDataProvider {
 	colourSpace: ColourSpace;
@@ -22,7 +22,7 @@ export class HTMLImageDataProvider implements PixelDataProvider {
 		return (this.colourSpace === ColourSpace.sRGB) ? PixelFormat.SRGB8_Alpha8 : PixelFormat.RGBA8;
 	}
 
-	pixelBufferForLevel(level: number): ImageBuffer | undefined {
+	imageFrameAtLevel(level: number): ImageFrame | undefined {
 		if (level !== 0) {
 			return undefined;
 		}

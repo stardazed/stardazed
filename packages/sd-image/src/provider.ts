@@ -52,31 +52,27 @@ export function dataSizeBytesForPixelFormatAndDimensions(format: PixelFormat, di
 }
 
 
-export type ImageSource = ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement;
-export type TextureData = ImageSource | TypedArray | DataView;
+export type ImageFrameSource = ImageData | ImageBitmap | HTMLImageElement | HTMLVideoElement | HTMLCanvasElement;
+export type ImageFrameData = ImageFrameSource | TypedArray | DataView;
 
-export interface ImageBuffer {
+export interface ImageFrame {
 	readonly pixelFormat: PixelFormat;
 	readonly colourSpace: ColourSpace;
 	readonly dim: Readonly<PixelDimensions>;
-	readonly data: TextureData;
+	readonly data: ImageFrameData;
 }
 
-export function pixelBufferBytesPerRow(pb: ImageBuffer) {
-	return dataSizeBytesForPixelFormatAndDimensions(pb.pixelFormat, makePixelDimensions(pb.dim.width));
+export function imageFrameBytesPerRow(frame: ImageFrame) {
+	return dataSizeBytesForPixelFormatAndDimensions(frame.pixelFormat, makePixelDimensions(frame.dim.width));
 }
 
-export function pixelBufferRequiredRowAlignment(pb: ImageBuffer) {
-	const rowBytes = pixelBufferBytesPerRow(pb);
+export function imageFrameRequiredRowAlignment(frame: ImageFrame) {
+	const rowBytes = imageFrameBytesPerRow(frame);
 	return Math.min(8, rowBytes & -rowBytes);
 }
 
-export function pixelBufferBytesPerLayer(pb: ImageBuffer) {
-	return dataSizeBytesForPixelFormatAndDimensions(pb.pixelFormat, makePixelDimensions(pb.dim.width, pb.dim.height));
-}
-
-export function pixelBufferSizeBytes(pb: ImageBuffer) {
-	return dataSizeBytesForPixelFormatAndDimensions(pb.pixelFormat, pb.dim);
+export function imageFrameSizeBytes(frame: ImageFrame) {
+	return dataSizeBytesForPixelFormatAndDimensions(frame.pixelFormat, frame.dim);
 }
 
 
@@ -86,19 +82,19 @@ export interface PixelDataProvider {
 	readonly pixelFormat: PixelFormat;
 	colourSpace: ColourSpace;
 
-	pixelBufferForLevel(level: number): ImageBuffer | undefined;
+	imageFrameAtLevel(level: number): ImageFrame | undefined;
 }
 
 export interface PixelDataProviderClass {
 	new (...args: any[]): PixelDataProvider;
 }
 
-export function providerForSingleBuffer(buffer: ImageBuffer): PixelDataProvider {
+export function providerForSingleFrame(frame: ImageFrame): PixelDataProvider {
 	return {
-		pixelFormat: buffer.pixelFormat,
 		colourSpace: buffer.colourSpace,
-		dim: buffer.dim,
+		pixelFormat: frame.pixelFormat,
+		dim: frame.dim,
 		mipMapCount: 1,
-		pixelBufferForLevel: (level) => level === 0 ? buffer : undefined
+		imageFrameAtLevel: (level) => level === 0 ? frame : undefined
 	};
 }

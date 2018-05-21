@@ -7,7 +7,7 @@
 
 import { assert } from "sd-core";
 import { ColourSpace, PixelFormat } from "./pixelformat";
-import { PixelDataProvider, ImageBuffer, makePixelDimensions, dimensionAtMipLevel, dataSizeBytesForPixelFormatAndDimensions, PixelDimensions } from "./provider";
+import { PixelDataProvider, ImageFrame, makePixelDimensions, dimensionAtMipLevel, dataSizeBytesForPixelFormatAndDimensions, PixelDimensions } from "./provider";
 
 const enum DDSPixelFormatOffsets {
 	dwSize = 0, // uint32
@@ -96,7 +96,7 @@ export class DDSDataProvider implements PixelDataProvider {
 		return mipOffset;
 	}
 
-	pixelBufferForLevel(level: number): ImageBuffer | undefined {
+	imageFrameAtLevel(level: number): ImageFrame | undefined {
 		if (level < 0 || level >= this.mipMaps_ || this.format_ === PixelFormat.None) {
 			return undefined;
 		}

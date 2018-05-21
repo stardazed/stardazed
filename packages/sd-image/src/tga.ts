@@ -6,8 +6,8 @@
  */
 
 import { assert } from "sd-core";
-import { ImageBuffer, PixelDataProvider, makePixelDimensions, PixelDimensions } from "./provider";
 import { PixelFormat, ColourSpace } from "./pixelformat";
+import { ImageFrame, PixelDataProvider, makePixelDimensions, PixelDimensions } from "./provider";
 
 const enum TGAImageType /* uint8 */ {
 	None = 0,
@@ -181,7 +181,7 @@ export class TGADataProvider implements PixelDataProvider {
 	get mipMapCount() { return 1; }
 	get dim(): PixelDimensions { return makePixelDimensions(this.data_.width, this.data_.height); }
 
-	pixelBufferForLevel(level: number): ImageBuffer | undefined {
+	imageFrameAtLevel(level: number): ImageFrame | undefined {
 		if (level !== 0) {
 			return undefined;
 		}
