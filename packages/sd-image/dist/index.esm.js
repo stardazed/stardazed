@@ -4,14 +4,13 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-const DEBUG_MODE = true;
 /**
  * asserts a condition to be true or throw an error otherwise
  * @param cond A condition that can be evaluated to true or false
  * @param msg Error message that will be thrown if cond is false
  */
 function assert(cond, msg) {
-    if (DEBUG_MODE && !cond) {
+    if (!cond) {
         console.error(msg || "assertion failed");
         throw new Error(msg || "assertion failed");
     }
@@ -3880,7 +3879,7 @@ class TGADataProvider {
 }
 
 /**
- * sd-image - image (meta)data loading and parsing
+ * sd-image - image (meta)data streaming and parsing
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
