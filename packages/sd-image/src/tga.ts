@@ -1,11 +1,10 @@
 /**
- * image/builtin - browser built-in images
+ * image/builtin - TGA image parser
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
-import { assert } from "sd-core";
 import { ImageFrame, PixelDataProvider, makePixelDimensions, PixelDimensions } from "./provider";
 import { PixelFormat } from "./pixelformat";
 
@@ -20,7 +19,7 @@ const enum TGAImageType /* uint8 */ {
 	CompressedBit = 32
 }
 
-const enum TGAFileHeader {
+const enum TGAFileOffsets {
 	identLengthUnused = 0, // uint8
 	usePalette = 1, // uint8
 	imageType = 2, // TGAImageType
@@ -32,57 +31,89 @@ const enum TGAFileHeader {
 	width = 12, // uint16
 	height = 14, // uint16
 	bitDepth = 16, // uint8
-	flagsUnused = 17, // uint8
+	flagsUnused = 17, // uint8,
+	pixelData = 18,
 }
 
-function loadTGAImageFromBufferView(view: ArrayBufferView): ImageData {
-	const headerView = new DataView(view.buffer, view.byteOffset, 18);
-	const identLengthUnused = headerView.getUint8(TGAFileHeader.identLengthUnused);
-	const usePalette = headerView.getUint8(TGAFileHeader.usePalette);
-	const imageType: TGAImageType = headerView.getUint8(TGAFileHeader.imageType);
+function loadTGAImageFromBufferView(view: ArrayBufferView): Promise<ImageData> {
+	return new Promise((resolve, reject) => {
+		const headerView = new DataView(view.buffer, view.byteOffset, 18);
+		const identLengthUnused = headerView.getUint8(TGAFileOffsets.identLengthUnused);
+		const usePalette = headerView.getUint8(TGAFileOffsets.usePalette);
+		const imageType: TGAImageType = headerView.getUint8(TGAFileOffsets.imageType);
 
-	// -- we only support a subset of TGA image types, namely those used in game pipelines
-	assert(identLengthUnused === 0, "Unsupported TGA format.");
-	assert(usePalette === 0, "Paletted TGA images are not supported.");
-	assert((imageType & TGAImageType.CompressedBit) === 0, "Compressed TGA images are not supported.");
-
-	const width = headerView.getUint16(TGAFileHeader.width, true);
-	const height = headerView.getUint16(TGAFileHeader.height, true);
-	const bitDepth = headerView.getUint8(TGAFileHeader.bitDepth);
-	let bytesPerPixel = 0;
-
-	const imageMode = imageType & TGAImageType.ModeMask;
-	if (imageMode === TGAImageType.RGB) {
-		if (bitDepth === 24) {
-			bytesPerPixel = 3;
+		// we only support a subset of TGA image types
+		if (identLengthUnused !== 0) {
+			return reject("Unknown or inconsistent TGA image type");
 		}
-		else if (bitDepth === 32) {
-			bytesPerPixel = 4;
+		if (usePalette !== 0) {
+			return reject("Paletted TGA images are not supported.");
+		}
+		if ((imageType & TGAImageType.CompressedBit) !== 0) {
+			return reject("Compressed TGA images are not supported.");
+		}
+
+		const width = headerView.getUint16(TGAFileOffsets.width, true);
+		const height = headerView.getUint16(TGAFileOffsets.height, true);
+		const bitDepth = headerView.getUint8(TGAFileOffsets.bitDepth);
+		let bytesPerPixel = 0;
+
+		const imageMode = imageType & TGAImageType.ModeMask;
+		if (imageMode === TGAImageType.RGB) {
+			if (bitDepth === 24) {
+				bytesPerPixel = 3;
+			}
+			else if (bitDepth === 32) {
+				bytesPerPixel = 4;
+			}
+			else {
+				return reject("Only 24 or 32 bit RGB TGA images are supported.");
+			}
+		}
+		else if (imageMode === TGAImageType.Grayscale) {
+			bytesPerPixel = 1;
+			if (bitDepth !== 8) {
+				return reject("Only 8-bit grayscale TGA images are supported.");
+			}
 		}
 		else {
-			throw new Error("Only 24 or 32 bit RGB TGA images are supported.");
+			return reject("Unknown or inconsistent TGA image type");
 		}
-	}
-	else if (imageMode === TGAImageType.Grayscale) {
-		bytesPerPixel = 1;
-		assert(bitDepth === 8, "Only 8-bit grayscale TGA images are supported.");
-	}
-	else {
-		throw new Error("Unknown or inconsistent TGA image type");
-	}
 
-	const imageData = document.createElement("canvas").getContext("2d")!.createImageData(width, height);
-	const sourcePixels = new Uint8ClampedArray(view.buffer, view.byteOffset + 18);
-	const destPixels = imageData.data;
-	let sourceOffset = 0;
-	let destOffset = (height - 1) * width * 4;
-	let pixelsLeft = width * height;
-	let pixelRunLeft = imageType & TGAImageType.RLEBit ? 0 : pixelsLeft;
-	let pixelRunRaw = true;
-	let linePixelsLeft = width;
+		const imageData = document.createElement("canvas").getContext("2d")!.createImageData(width, height);
+		const sourcePixels = new Uint8ClampedArray(view.buffer, view.byteOffset + TGAFileOffsets.pixelData);
+		const destPixels = imageData.data;
+		let sourceOffset = 0;
+		let destOffset = (height - 1) * width * 4;
+		let pixelsLeft = width * height;
+		let pixelRunLeft = imageType & TGAImageType.RLEBit ? 0 : pixelsLeft;
+		let pixelRunRaw = true;
+		let linePixelsLeft = width;
 
-	if (bytesPerPixel === 1) {
-		// 8-bit Grayscale pixels
+		const writePixel: () => void =
+			(bytesPerPixel === 1) ? () => {
+				// 8-bit Grayscale pixels
+				const gray = sourcePixels[sourceOffset];
+				destPixels[destOffset]     = gray;
+				destPixels[destOffset + 1] = gray;
+				destPixels[destOffset + 2] = gray;
+				destPixels[destOffset + 3] = 255;
+			}
+			: (bytesPerPixel === 3) ? () => {
+				// 24-bit BGR pixels
+				destPixels[destOffset] = sourcePixels[sourceOffset + 2];
+				destPixels[destOffset + 1] = sourcePixels[sourceOffset + 1];
+				destPixels[destOffset + 2] = sourcePixels[sourceOffset];
+				destPixels[destOffset + 3] = 255;
+			}
+			: /* bytesPerPixel === 4 */ () => {
+				// 32-bit BGRA pixels
+				destPixels[destOffset] = sourcePixels[sourceOffset + 2];
+				destPixels[destOffset + 1] = sourcePixels[sourceOffset + 1];
+				destPixels[destOffset + 2] = sourcePixels[sourceOffset];
+				destPixels[destOffset + 3] = sourcePixels[sourceOffset + 3];
+			};
+
 		while (pixelsLeft > 0) {
 			if (pixelRunLeft === 0) {
 				const ctrl = sourcePixels[sourceOffset];
@@ -91,16 +122,12 @@ function loadTGAImageFromBufferView(view: ArrayBufferView): ImageData {
 				sourceOffset += 1;
 			}
 
-			const gray = sourcePixels[sourceOffset];
-			destPixels[destOffset]     = gray;
-			destPixels[destOffset + 1] = gray;
-			destPixels[destOffset + 2] = gray;
-			destPixels[destOffset + 3] = 255;
+			writePixel();
 
 			pixelRunLeft -= 1;
 			pixelsLeft -= 1;
 			if (pixelRunRaw || pixelRunLeft === 0) {
-				sourceOffset += 1;
+				sourceOffset += bytesPerPixel;
 			}
 			destOffset += 4;
 			linePixelsLeft -= 1;
@@ -109,65 +136,9 @@ function loadTGAImageFromBufferView(view: ArrayBufferView): ImageData {
 				linePixelsLeft = width;
 			}
 		}
-	}
-	else if (bytesPerPixel === 3) {
-		// 24-bit BGR pixels
-		while (pixelsLeft > 0) {
-			if (pixelRunLeft === 0) {
-				const ctrl = sourcePixels[sourceOffset];
-				pixelRunRaw = (ctrl & 0x80) === 0;
-				pixelRunLeft = 1 + (ctrl & 0x7f);
-				sourceOffset += 1;
-			}
 
-			destPixels[destOffset] = sourcePixels[sourceOffset + 2];
-			destPixels[destOffset + 1] = sourcePixels[sourceOffset + 1];
-			destPixels[destOffset + 2] = sourcePixels[sourceOffset];
-			destPixels[destOffset + 3] = 255;
-
-			pixelRunLeft -= 1;
-			pixelsLeft -= 1;
-			if (pixelRunRaw || pixelRunLeft === 0) {
-				sourceOffset += 3;
-			}
-			destOffset += 4;
-			linePixelsLeft -= 1;
-			if (linePixelsLeft === 0) {
-				destOffset -= 2 * width * 4;
-				linePixelsLeft = width;
-			}
-		}
-	}
-	else if (bytesPerPixel === 4) {
-		// 32-bit BGRA pixels
-		while (pixelsLeft > 0) {
-			if (pixelRunLeft === 0) {
-				const ctrl = sourcePixels[sourceOffset];
-				pixelRunRaw = (ctrl & 0x80) === 0;
-				pixelRunLeft = 1 + (ctrl & 0x7f);
-				sourceOffset += 1;
-			}
-
-			destPixels[destOffset] = sourcePixels[sourceOffset + 2];
-			destPixels[destOffset + 1] = sourcePixels[sourceOffset + 1];
-			destPixels[destOffset + 2] = sourcePixels[sourceOffset];
-			destPixels[destOffset + 3] = sourcePixels[sourceOffset + 3];
-
-			pixelRunLeft -= 1;
-			pixelsLeft -= 1;
-			if (pixelRunRaw || pixelRunLeft === 0) {
-				sourceOffset += 4;
-			}
-			destOffset += 4;
-			linePixelsLeft -= 1;
-			if (linePixelsLeft === 0) {
-				destOffset -= 2 * width * 4;
-				linePixelsLeft = width;
-			}
-		}
-	}
-
-	return imageData;
+		resolve(imageData);
+	});
 }
 
 
