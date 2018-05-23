@@ -1,0 +1,38 @@
+Basic Load Workflow
+===================
+
+* load asset "pic" from "data/texture.dds", fallback: srgb(10, 20, 30), minlod = 3
+
+-> create asset with name "pic"
+-> create empty texture resource
+-> associate dds loader with asset
+-> associate texture resource with asset (user initiated)
+
+-> fetch "texture.dds" from source "data"
+	-> incrementally load bytes
+	-> on receive bytes
+		-> inform asset loader of bytes
+			-> dds loader
+				-> if metadata became available send message to resource (TextureInfo)
+				-> if LOD levels become available send message to resource (ImageFrame / lod level)
+-> resource
+	-> if metadata became available pre-alloc resource space, etc.
+	-> if LOD level became available install into texture (debounced with min freq)
+	-> if LOD minlod became available mark as "ready"
+
+
+Hooks
+=====
+
+Certain stages of the asset intake process should be interceptable to modify behaviour.
+
+Fetch
+-----
+
+The data for an asset is principally loaded from a network location either locally next to
+the application code or on a CDN such as S3, B2, etc.
+A fetch plugin may load/store data in memory or in a browser cache such as an IndexedDB or
+support loading from data urls, etc.
+For high availability sites, fallback domains can be implemented. For slow or unreliable
+connections a retry mechanism can be implemented in case a load fails.
+
