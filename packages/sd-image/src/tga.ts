@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { ImageFrame, PixelDataProvider, makePixelDimensions, PixelDimensions } from "./provider";
+import { ImageFrame, makePixelDimensions } from "./provider";
 import { PixelFormat } from "./pixelformat";
 
 const enum TGAImageType /* uint8 */ {
@@ -35,7 +35,7 @@ const enum TGAFileOffsets {
 	pixelData = 18,
 }
 
-function loadTGAFrameFromBufferView(view: ArrayBufferView): Promise<ImageFrame> {
+export function loadTGAFrameFromBufferView(view: ArrayBufferView): Promise<ImageFrame> {
 	return new Promise((resolve, reject) => {
 		const headerView = new DataView(view.buffer, view.byteOffset, 18);
 		const identLengthUnused = headerView.getUint8(TGAFileOffsets.identLengthUnused);
@@ -145,7 +145,7 @@ function loadTGAFrameFromBufferView(view: ArrayBufferView): Promise<ImageFrame> 
 	});
 }
 
-
+/*
 export class TGADataProvider implements PixelDataProvider {
 	private data_: ImageData;
 
@@ -168,3 +168,4 @@ export class TGADataProvider implements PixelDataProvider {
 		};
 	}
 }
+*/

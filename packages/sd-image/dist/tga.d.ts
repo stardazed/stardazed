@@ -1,10 +1,8 @@
-import { ImageFrame, PixelDataProvider, PixelDimensions } from "./provider";
-import { PixelFormat } from "./pixelformat";
-export declare class TGADataProvider implements PixelDataProvider {
-    private data_;
-    constructor(source: ArrayBufferView);
-    readonly pixelFormat: PixelFormat;
-    readonly mipMapCount: number;
-    readonly dim: PixelDimensions;
-    imageFrameAtLevel(level: number): ImageFrame | undefined;
-}
+/**
+ * image/builtin - TGA image parser
+ * Part of Stardazed
+ * (c) 2015-Present by Arthur Langereis - @zenmumbler
+ * https://github.com/stardazed/stardazed
+ */
+import { ImageFrame } from "./provider";
+export declare function loadTGAFrameFromBufferView(view: ArrayBufferView): Promise<ImageFrame>;
