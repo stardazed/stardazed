@@ -35,7 +35,7 @@ const enum TGAFileOffsets {
 	pixelData = 18,
 }
 
-function loadTGAImageFromBufferView(view: ArrayBufferView): Promise<ImageData> {
+function loadTGAFrameFromBufferView(view: ArrayBufferView): Promise<ImageFrame> {
 	return new Promise((resolve, reject) => {
 		const headerView = new DataView(view.buffer, view.byteOffset, 18);
 		const identLengthUnused = headerView.getUint8(TGAFileOffsets.identLengthUnused);
@@ -137,7 +137,11 @@ function loadTGAImageFromBufferView(view: ArrayBufferView): Promise<ImageData> {
 			}
 		}
 
-		resolve(imageData);
+		resolve({
+			pixelFormat: PixelFormat.RGBA8,
+			dim: makePixelDimensions(width, height),
+			data: imageData
+		});
 	});
 }
 
@@ -146,7 +150,7 @@ export class TGADataProvider implements PixelDataProvider {
 	private data_: ImageData;
 
 	constructor(source: ArrayBufferView) {
-		this.data_ = loadTGAImageFromBufferView(source);
+		this.data_ = loadTGAFrameFromBufferView(source);
 	}
 
 	get pixelFormat() { return PixelFormat.RGBA8; }
