@@ -1,6 +1,6 @@
 {
-	"name": "sd-math",
-	"description": "Math types and helpers for Stardazed",
+	"name": "@stardazed/math",
+	"description": "Stardazed - math types and helpers",
 	"version": "0.4.0",
 	"author": {
 		"name": "Arthur Langereis"
@@ -14,10 +14,10 @@
 	"module": "dist/index.esm.js",
 	"types": "dist/index.d.ts",
 	"dependencies": {
-		"sd-core": "^0.4.0"
+		"@stardazed/core": "^0.4.0"
 	},
 	"devDependencies": {
-		"rollup": "^0.59.1",
+		"rollup": "^0.59.3",
 		"rollup-plugin-node-resolve": "^3.3.0",
 		"rollup-plugin-sourcemaps": "^0.4.2",
 		"rollup-plugin-typescript2": "^0.14.0",
