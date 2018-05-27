@@ -38,7 +38,7 @@
  * and contributors of zlib.
  *
  *
- * Minor modifications by Arthur Langereis (@zenmumbler):
+ * Modifications by Arthur Langereis (@zenmumbler):
  * - Increased output buffer size from 512 bytes to 16384 bytes
  * - Replace ZStream.read_byte calls with direct z.next_in[] accesses
  * - Removed onprogress callback
