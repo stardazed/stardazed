@@ -1,0 +1,12 @@
+{
+	"extends": "../../build/tsconfig-packages.json",
+	"compilerOptions": {
+		"rootDir": "./src",
+		"outDir": "./build",
+		"declaration": true, // needed because RPT2 misses the declaration field in the base config
+		"declarationDir": "./dist",
+	},
+	"include": [
+		"./src/*.ts" // if not specified, TS starts rooting around in ./dist, likely due to RPT2
+	]
+}
