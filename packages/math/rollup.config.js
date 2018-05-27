@@ -1,3 +1,3 @@
-// @ts-check
 import { packageConfig } from "../../build/rollup-base.config";
-export default [packageConfig("sdMath")];
+import packageJSON from "./package.json";
+export default [packageConfig(packageJSON)];

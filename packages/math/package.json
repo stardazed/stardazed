@@ -10,7 +10,7 @@
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
 	"license": "MIT",
-	"main": "dist/index.umd.js",
+	"main": "dist/index.esm.js",
 	"module": "dist/index.esm.js",
 	"types": "dist/index.d.ts",
 	"dependencies": {
