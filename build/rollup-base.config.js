@@ -3,6 +3,7 @@ import resolve from "rollup-plugin-node-resolve";
 import sourcemaps from "rollup-plugin-sourcemaps";
 import typescript from "typescript";
 import tsc from "rollup-plugin-typescript2";
+import { terser } from "rollup-plugin-terser";
 
 export const packageConfig = (packageJSON) => {
 	// default to only building ESM output
@@ -49,6 +50,7 @@ export const packageConfig = (packageJSON) => {
 				cacheRoot: "./build",
 				include: ["src/**/*.ts"],
 			}),
+			terser()
 		]
 	};
 };
