@@ -25,7 +25,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "sd-core";
+import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "@stardazed/core";
 import { clamp as clampf, clamp01 as clamp01f, EPSILON, mix as mixf, VecArrayIterationFunction, VecArrayIterationOptions } from "./common";
 
 export const ELEMENT_COUNT = 2;

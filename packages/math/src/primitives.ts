@@ -7,7 +7,7 @@
  * Portions based on text and sources from Real-Time Collision Detection by Christer Ericson
  */
 
-import { Float3, Float4x4 } from "sd-core";
+import { Float3, Float4x4 } from "@stardazed/core";
 import * as vec3 from "./vec3";
 import * as vec4 from "./vec4";
 

@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { ConstFloat3, ConstFloat3x3, ConstFloat4x4, Float, Float3 } from "sd-core";
+import { ConstFloat3, ConstFloat3x3, ConstFloat4x4, Float, Float3 } from "@stardazed/core";
 import { clamp } from "./common";
 import * as vec3 from "./vec3";
 

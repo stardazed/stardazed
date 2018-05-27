@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert } from "sd-core";
+import { assert } from "@stardazed/core";
 import { PixelFormat } from "./pixelformat";
 import { PixelDataProvider, ImageFrame, makePixelDimensions, dimensionAtMipLevel, dataSizeBytesForPixelFormatAndDimensions, PixelDimensions } from "./provider";
 

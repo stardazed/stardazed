@@ -4314,7 +4314,7 @@ class SortedArray {
 }
 
 /**
- * sd-container - container types and helpers
+ * @stardazed/container - container types and helpers
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed

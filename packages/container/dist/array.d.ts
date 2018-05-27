@@ -4,7 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { Float2, Float3, Float3x3, Float4, Float4x4, MutableArrayLike, TypedArray } from "sd-core";
+import { Float2, Float3, Float3x3, Float4, Float4x4, MutableArrayLike, TypedArray } from "@stardazed/core";
 export declare function copyElementRange<T, A extends MutableArrayLike<T>>(dest: A, destOffset: number, src: ArrayLike<T>, srcOffset: number, srcCount: number): A;
 export declare function fill<T, A extends MutableArrayLike<T>>(dest: A, value: T, count: number, offset?: number): A;
 export declare function appendArrayInPlace<T>(dest: T[], source: T[]): T[];

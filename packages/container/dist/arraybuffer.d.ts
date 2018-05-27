@@ -4,7 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { NumericType, TypedArray } from "sd-core";
+import { NumericType, TypedArray } from "@stardazed/core";
 export interface MABField {
     type: NumericType;
     count: number;

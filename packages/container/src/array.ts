@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { Float2, Float3, Float3x3, Float4, Float4x4, MutableArrayLike, TypedArray } from "sd-core";
+import { Float2, Float3, Float3x3, Float4, Float4x4, MutableArrayLike, TypedArray } from "@stardazed/core";
 
 export function copyElementRange<T, A extends MutableArrayLike<T>>(dest: A, destOffset: number, src: ArrayLike<T>, srcOffset: number, srcCount: number) {
 	for (let ix = 0; ix < srcCount; ++ix) {

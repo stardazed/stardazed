@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert } from "sd-core";
+import { assert } from "@stardazed/core";
 
 export class Deque<T> {
 	private blocks_: T[][];

@@ -4,7 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { TypedArray } from "sd-core";
+import { TypedArray } from "@stardazed/core";
 import { PixelFormat } from "./pixelformat";
 export interface PixelCoordinate {
     x: number;

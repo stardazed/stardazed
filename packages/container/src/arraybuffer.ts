@@ -5,8 +5,8 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert, NumericType, TypedArray } from "sd-core";
-import { alignUp, roundUpPowerOf2 } from "sd-math";
+import { assert, NumericType, TypedArray } from "@stardazed/core";
+import { alignUp, roundUpPowerOf2 } from "@stardazed/math";
 
 export interface MABField {
 	type: NumericType;

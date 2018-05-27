@@ -6,7 +6,7 @@
  *
  * Portions based on text and sources from Real-Time Collision Detection by Christer Ericson
  */
-import { Float3, Float4x4 } from "sd-core";
+import { Float3, Float4x4 } from "@stardazed/core";
 export interface Sphere {
     center: Float3;
     radius: number;

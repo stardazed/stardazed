@@ -3725,7 +3725,7 @@ var aabb = /*#__PURE__*/Object.freeze({
 });
 
 /**
- * sd-math - common mathematical functions and types
+ * @stardazed/math - common mathematical functions and types
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed

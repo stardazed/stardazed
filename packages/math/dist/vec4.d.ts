@@ -4,7 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "sd-core";
+import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "@stardazed/core";
 import { VecArrayIterationFunction, VecArrayIterationOptions } from "./common";
 export declare const ELEMENT_COUNT = 4;
 export declare function create(): Float32Array;

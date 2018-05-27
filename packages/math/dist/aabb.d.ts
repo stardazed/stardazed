@@ -4,7 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { ConstFloat3, ConstFloat3x3, ConstFloat4x4, Float3 } from "sd-core";
+import { ConstFloat3, ConstFloat3x3, ConstFloat4x4, Float3 } from "@stardazed/core";
 export declare function setCenterAndSize(min: ConstFloat3, max: ConstFloat3, center: ConstFloat3, size: ConstFloat3): void;
 export declare function calculateCenterAndSize(center: ConstFloat3, size: ConstFloat3, min: ConstFloat3, max: ConstFloat3): void;
 export declare function encapsulatePoint(min: Float3, max: Float3, pt: ConstFloat3): void;

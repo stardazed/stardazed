@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { ArrayOfConstNumber, ArrayOfNumber } from "sd-core";
+import { ArrayOfConstNumber, ArrayOfNumber } from "@stardazed/core";
 
 // constants
 export const EPSILON = 0.000001;

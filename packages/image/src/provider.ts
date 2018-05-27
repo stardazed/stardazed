@@ -5,8 +5,8 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { TypedArray } from "sd-core";
-import { isPowerOf2 } from "sd-math";
+import { TypedArray } from "@stardazed/core";
+import { isPowerOf2 } from "@stardazed/math";
 import { PixelFormat, pixelFormatBytesPerElement, pixelFormatIsCompressed } from "./pixelformat";
 
 export interface PixelCoordinate {

@@ -18,7 +18,7 @@
  * </pre>
  * The last row is ignored so the array is shorter and operations are faster.
  */
-import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "sd-core";
+import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "@stardazed/core";
 export declare const ELEMENT_COUNT = 6;
 export declare function create(): Float32Array;
 export declare function clone(a: ACN): Float32Array;

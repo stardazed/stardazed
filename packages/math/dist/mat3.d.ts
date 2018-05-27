@@ -4,7 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "sd-core";
+import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "@stardazed/core";
 export declare const ELEMENT_COUNT = 9;
 export declare function create(): Float32Array;
 export declare function clone(a: ACN): Float32Array;

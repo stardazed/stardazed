@@ -4,7 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { ArrayOfConstNumber, ArrayOfNumber } from "sd-core";
+import { ArrayOfConstNumber, ArrayOfNumber } from "@stardazed/core";
 export declare const EPSILON = 0.000001;
 export declare function clamp(n: number, min: number, max: number): number;
 export declare function clamp01(n: number): number;

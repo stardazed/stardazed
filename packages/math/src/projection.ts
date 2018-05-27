@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { ConstFloat3, ConstFloat4x4, Float4x4 } from "sd-core";
+import { ConstFloat3, ConstFloat4x4, Float4x4 } from "@stardazed/core";
 import { deg2rad } from "./common";
 import * as mat4 from "./mat4";
 

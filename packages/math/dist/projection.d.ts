@@ -4,7 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { ConstFloat3, ConstFloat4x4, Float4x4 } from "sd-core";
+import { ConstFloat3, ConstFloat4x4, Float4x4 } from "@stardazed/core";
 export interface Viewport {
     originX: number;
     originY: number;
