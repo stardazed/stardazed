@@ -14,7 +14,8 @@
 	"module": "dist/index.esm.js",
 	"types": "dist/index.d.ts",
 	"dependencies": {
-		"@stardazed/core": "^0.4.0"
+		"@stardazed/core": "^0.4.0",
+		"@stardazed/container": "^0.4.0"
 	},
 	"devDependencies": {
 		"rollup": "^0.59.3",
