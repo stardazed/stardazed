@@ -4,22 +4,42 @@ import sourcemaps from "rollup-plugin-sourcemaps";
 import typescript from "typescript";
 import tsc from "rollup-plugin-typescript2";
 
-export const packageConfig = (name) => {
+export const packageConfig = (packageJSON) => {
+	// default to only building ESM output
+	const output = [
+		{
+			file: packageJSON.module,
+			format: "es",
+			sourcemap: true,
+		}
+	];
+
+	// enable UMD builds only when the package.json field specifies a module name
+	if (packageJSON.umdName) {
+		if (! packageJSON.main) {
+			throw new Error("Packages specifying an umdName must have the `main` field specified.");
+		}
+		if (packageJSON.main === packageJSON.module) {
+			throw new Error("Packages specifying an umdName must have different `module` and `main` paths.");
+		}
+
+		output.push({
+			file: packageJSON.main,
+			format: "umd",
+			name: packageJSON.umdName,
+			sourcemap: true,
+		});
+	}
+	else {
+		// no UMD name specified, don't allow implicit builds
+		if (packageJSON.main !== packageJSON.module) {
+			throw new Error("Packages without an umdName must have equal `module` and `main` paths.");
+		}
+	}
+
 	return {
 		input: "src/index.ts",
-		output: [
-			{
-				file: "dist/index.umd.js",
-				format: "umd",
-				name,
-				sourcemap: true,
-			},
-			{
-				file: "dist/index.esm.js",
-				format: "es",
-				sourcemap: true,
-			},
-		],
+		output,
 		plugins: [
 			resolve({ browser: true }),
 			sourcemaps(),
