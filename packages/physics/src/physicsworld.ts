@@ -5,7 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-import "@stardazed/ammo";
 import { ConstFloat3, ConstFloat4, Float3 } from "@stardazed/core";
 import { vec3 } from "@stardazed/math";
 import { PhysicsShape } from "./shapes";
@@ -84,10 +83,10 @@ export class PhysicsWorld {
 	private defaultAngularDrag_: number;
 	private defaultFriction_: number;
 	private defaultRestitution_: number;
-	private lag_: number;
+	// private lag_: number;
 	private haveGhosts_: boolean;
 
-	private readonly tempBtTrans_: Ammo.btTransform;
+	// private readonly tempBtTrans_: Ammo.btTransform;
 	
 	constructor(config: PhysicsConfig) {
 		const collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
@@ -117,8 +116,8 @@ export class PhysicsWorld {
 		this.defaultFriction_ = config.defaultFriction;
 		this.defaultRestitution_ = config.defaultRestitution;
 
-		this.tempBtTrans_ = new Ammo.btTransform();
-		this.lag_ = 0;
+		// this.tempBtTrans_ = new Ammo.btTransform();
+		// this.lag_ = 0;
 		this.haveGhosts_ = false;
 	}
 

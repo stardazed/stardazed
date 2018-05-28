@@ -5,7 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-import "@stardazed/ammo";
 import { Float3, ConstFloat3, ArrayOfConstNumber } from "@stardazed/core";
 
 export const enum PhysicsShapeType {
