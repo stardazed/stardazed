@@ -45,25 +45,11 @@ import { EPSILON } from "./common";
 export const ELEMENT_COUNT = 6;
 
 export function create() {
-	const out = new Float32Array(ELEMENT_COUNT);
-	out[0] = 1;
-	out[1] = 0;
-	out[2] = 0;
-	out[3] = 1;
-	out[4] = 0;
-	out[5] = 0;
-	return out;
+	return new Float32Array([1, 0, 0, 1, 0, 0]);
 }
 
 export function clone(a: ACN) {
-	const out = new Float32Array(ELEMENT_COUNT);
-	out[0] = a[0];
-	out[1] = a[1];
-	out[2] = a[2];
-	out[3] = a[3];
-	out[4] = a[4];
-	out[5] = a[5];
-	return out;
+	return new Float32Array([a[0], a[1], a[2], a[3], a[4], a[5]]);
 }
 
 export function copy(out: number[], a: ACN): number[];
@@ -91,14 +77,7 @@ export function identity(out: AN) {
 }
 
 export function fromValues(a: number, b: number, c: number, d: number, tx: number, ty: number) {
-	const out = new Float32Array(ELEMENT_COUNT);
-	out[0] = a;
-	out[1] = b;
-	out[2] = c;
-	out[3] = d;
-	out[4] = tx;
-	out[5] = ty;
-	return out;
+	return new Float32Array([a, b, c, d, tx, ty]);
 }
 
 export function set(out: number[], a: number, b: number, c: number, d: number, tx: number, ty: number): number[];

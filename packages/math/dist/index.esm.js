@@ -69,29 +69,17 @@ function alignDown(val, alignmentPow2) {
  */
 const ELEMENT_COUNT = 2;
 function create() {
-    const out = new Float32Array(ELEMENT_COUNT);
-    out[0] = 0;
-    out[1] = 0;
-    return out;
+    return new Float32Array([0, 0]);
 }
 const zero = create;
 function one() {
-    const out = new Float32Array(ELEMENT_COUNT);
-    out[0] = 1;
-    out[1] = 1;
-    return out;
+    return new Float32Array([1, 1]);
 }
 function clone(a) {
-    const out = new Float32Array(ELEMENT_COUNT);
-    out[0] = a[0];
-    out[1] = a[1];
-    return out;
+    return new Float32Array([a[0], a[1]]);
 }
 function fromValues(x, y) {
-    const out = new Float32Array(ELEMENT_COUNT);
-    out[0] = x;
-    out[1] = y;
-    return out;
+    return new Float32Array([x, y]);
 }
 function copy(out, a) {
     out[0] = a[0];
@@ -316,7 +304,7 @@ function equals(a, b) {
         Math.abs(a1 - b1) <= EPSILON * Math.max(1.0, Math.abs(a1), Math.abs(b1)));
 }
 
-var vec2 = /*#__PURE__*/Object.freeze({
+var vec2 = ({
 	ELEMENT_COUNT: ELEMENT_COUNT,
 	create: create,
 	zero: zero,
@@ -376,33 +364,17 @@ var vec2 = /*#__PURE__*/Object.freeze({
  */
 const ELEMENT_COUNT$1 = 3;
 function create$1() {
-    const out = new Float32Array(ELEMENT_COUNT$1);
-    out[0] = 0;
-    out[1] = 0;
-    out[2] = 0;
-    return out;
+    return new Float32Array([0, 0, 0]);
 }
 const zero$1 = create$1;
 function one$1() {
-    const out = new Float32Array(ELEMENT_COUNT$1);
-    out[0] = 1;
-    out[1] = 1;
-    out[2] = 1;
-    return out;
+    return new Float32Array([1, 1, 1]);
 }
 function clone$1(a) {
-    const out = new Float32Array(ELEMENT_COUNT$1);
-    out[0] = a[0];
-    out[1] = a[1];
-    out[2] = a[2];
-    return out;
+    return new Float32Array([a[0], a[1], a[2]]);
 }
 function fromValues$1(x, y, z) {
-    const out = new Float32Array(ELEMENT_COUNT$1);
-    out[0] = x;
-    out[1] = y;
-    out[2] = z;
-    return out;
+    return new Float32Array([x, y, z]);
 }
 function copy$1(out, a) {
     out[0] = a[0];
@@ -784,7 +756,7 @@ function equals$1(a, b) {
         Math.abs(a2 - b2) <= EPSILON * Math.max(1.0, Math.abs(a2), Math.abs(b2)));
 }
 
-var vec3 = /*#__PURE__*/Object.freeze({
+var vec3 = ({
 	ELEMENT_COUNT: ELEMENT_COUNT$1,
 	create: create$1,
 	zero: zero$1,
@@ -851,37 +823,17 @@ var vec3 = /*#__PURE__*/Object.freeze({
  */
 const ELEMENT_COUNT$2 = 4;
 function create$2() {
-    const out = new Float32Array(ELEMENT_COUNT$2);
-    out[0] = 0;
-    out[1] = 0;
-    out[2] = 0;
-    out[3] = 0;
-    return out;
+    return new Float32Array([0, 0, 0, 0]);
 }
 const zero$2 = create$2;
 function one$2() {
-    const out = new Float32Array(ELEMENT_COUNT$2);
-    out[0] = 1;
-    out[1] = 1;
-    out[2] = 1;
-    out[3] = 1;
-    return out;
+    return new Float32Array([1, 1, 1, 1]);
 }
 function clone$2(a) {
-    const out = new Float32Array(ELEMENT_COUNT$2);
-    out[0] = a[0];
-    out[1] = a[1];
-    out[2] = a[2];
-    out[3] = a[3];
-    return out;
+    return new Float32Array([a[0], a[1], a[2], a[3]]);
 }
 function fromValues$2(x, y, z, w) {
-    const out = new Float32Array(ELEMENT_COUNT$2);
-    out[0] = x;
-    out[1] = y;
-    out[2] = z;
-    out[3] = w;
-    return out;
+    return new Float32Array([x, y, z, w]);
 }
 function copy$2(out, a) {
     out[0] = a[0];
@@ -1140,7 +1092,7 @@ function equals$2(a, b) {
         Math.abs(a3 - b3) <= EPSILON * Math.max(1.0, Math.abs(a3), Math.abs(b3)));
 }
 
-var vec4 = /*#__PURE__*/Object.freeze({
+var vec4 = ({
 	ELEMENT_COUNT: ELEMENT_COUNT$2,
 	create: create$2,
 	zero: zero$2,
@@ -1197,30 +1149,18 @@ var vec4 = /*#__PURE__*/Object.freeze({
  */
 const ELEMENT_COUNT$3 = 9;
 function create$3() {
-    const out = new Float32Array(ELEMENT_COUNT$3);
-    out[0] = 1;
-    out[1] = 0;
-    out[2] = 0;
-    out[3] = 0;
-    out[4] = 1;
-    out[5] = 0;
-    out[6] = 0;
-    out[7] = 0;
-    out[8] = 1;
-    return out;
+    return new Float32Array([
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1
+    ]);
 }
 function clone$3(a) {
-    const out = new Float32Array(ELEMENT_COUNT$3);
-    out[0] = a[0];
-    out[1] = a[1];
-    out[2] = a[2];
-    out[3] = a[3];
-    out[4] = a[4];
-    out[5] = a[5];
-    out[6] = a[6];
-    out[7] = a[7];
-    out[8] = a[8];
-    return out;
+    return new Float32Array([
+        a[0], a[1], a[2],
+        a[3], a[4], a[5],
+        a[6], a[7], a[8]
+    ]);
 }
 function copy$3(out, a) {
     out[0] = a[0];
@@ -1247,17 +1187,11 @@ function identity(out) {
     return out;
 }
 function fromValues$3(m00, m01, m02, m10, m11, m12, m20, m21, m22) {
-    const out = new Float32Array(ELEMENT_COUNT$3);
-    out[0] = m00;
-    out[1] = m01;
-    out[2] = m02;
-    out[3] = m10;
-    out[4] = m11;
-    out[5] = m12;
-    out[6] = m20;
-    out[7] = m21;
-    out[8] = m22;
-    return out;
+    return new Float32Array([
+        m00, m01, m02,
+        m10, m11, m12,
+        m20, m21, m22
+    ]);
 }
 function set$3(out, m00, m01, m02, m10, m11, m12, m20, m21, m22) {
     out[0] = m00;
@@ -1555,7 +1489,7 @@ function equals$3(a, b) {
         Math.abs(a8 - b8) <= EPSILON * Math.max(1.0, Math.abs(a8), Math.abs(b8)));
 }
 
-var mat3 = /*#__PURE__*/Object.freeze({
+var mat3 = ({
 	ELEMENT_COUNT: ELEMENT_COUNT$3,
 	create: create$3,
 	clone: clone$3,
@@ -1598,12 +1532,7 @@ var mat3 = /*#__PURE__*/Object.freeze({
  */
 const ELEMENT_COUNT$4 = 4;
 function create$4() {
-    const out = new Float32Array(ELEMENT_COUNT$4);
-    out[0] = 0;
-    out[1] = 0;
-    out[2] = 0;
-    out[3] = 1;
-    return out;
+    return new Float32Array([0, 0, 0, 1]);
 }
 const tmpVec3_ = create$1();
 const xUnitVec3_ = fromValues$1(1, 0, 0);
@@ -1854,7 +1783,7 @@ function str$4(a) {
 const exactEquals$4 = exactEquals$2;
 const equals$4 = equals$2;
 
-var quat = /*#__PURE__*/Object.freeze({
+var quat = ({
 	ELEMENT_COUNT: ELEMENT_COUNT$4,
 	create: create$4,
 	rotationTo: rotationTo,
@@ -1900,20 +1829,10 @@ var quat = /*#__PURE__*/Object.freeze({
  */
 const ELEMENT_COUNT$5 = 4;
 function create$5() {
-    const out = new Float32Array(ELEMENT_COUNT$5);
-    out[0] = 1;
-    out[1] = 0;
-    out[2] = 0;
-    out[3] = 1;
-    return out;
+    return new Float32Array([1, 0, 0, 1]);
 }
 function clone$5(a) {
-    const out = new Float32Array(ELEMENT_COUNT$5);
-    out[0] = a[0];
-    out[1] = a[1];
-    out[2] = a[2];
-    out[3] = a[3];
-    return out;
+    return new Float32Array([a[0], a[1], a[2], a[3]]);
 }
 function copy$5(out, a) {
     out[0] = a[0];
@@ -1930,12 +1849,7 @@ function identity$2(out) {
     return out;
 }
 function fromValues$5(m00, m01, m10, m11) {
-    const out = new Float32Array(ELEMENT_COUNT$5);
-    out[0] = m00;
-    out[1] = m01;
-    out[2] = m10;
-    out[3] = m11;
-    return out;
+    return new Float32Array([m00, m01, m10, m11]);
 }
 function set$5(out, m00, m01, m10, m11) {
     out[0] = m00;
@@ -2084,7 +1998,7 @@ function equals$5(a, b) {
         Math.abs(a3 - b3) <= EPSILON * Math.max(1.0, Math.abs(a3), Math.abs(b3)));
 }
 
-var mat2 = /*#__PURE__*/Object.freeze({
+var mat2 = ({
 	ELEMENT_COUNT: ELEMENT_COUNT$5,
 	create: create$5,
 	clone: clone$5,
@@ -2136,24 +2050,10 @@ var mat2 = /*#__PURE__*/Object.freeze({
  */
 const ELEMENT_COUNT$6 = 6;
 function create$6() {
-    const out = new Float32Array(ELEMENT_COUNT$6);
-    out[0] = 1;
-    out[1] = 0;
-    out[2] = 0;
-    out[3] = 1;
-    out[4] = 0;
-    out[5] = 0;
-    return out;
+    return new Float32Array([1, 0, 0, 1, 0, 0]);
 }
 function clone$6(a) {
-    const out = new Float32Array(ELEMENT_COUNT$6);
-    out[0] = a[0];
-    out[1] = a[1];
-    out[2] = a[2];
-    out[3] = a[3];
-    out[4] = a[4];
-    out[5] = a[5];
-    return out;
+    return new Float32Array([a[0], a[1], a[2], a[3], a[4], a[5]]);
 }
 function copy$6(out, a) {
     out[0] = a[0];
@@ -2174,14 +2074,7 @@ function identity$3(out) {
     return out;
 }
 function fromValues$6(a, b, c, d, tx, ty) {
-    const out = new Float32Array(ELEMENT_COUNT$6);
-    out[0] = a;
-    out[1] = b;
-    out[2] = c;
-    out[3] = d;
-    out[4] = tx;
-    out[5] = ty;
-    return out;
+    return new Float32Array([a, b, c, d, tx, ty]);
 }
 function set$6(out, a, b, c, d, tx, ty) {
     out[0] = a;
@@ -2344,7 +2237,7 @@ function equals$6(a, b) {
         Math.abs(a5 - b5) <= EPSILON * Math.max(1.0, Math.abs(a5), Math.abs(b5)));
 }
 
-var mat2d = /*#__PURE__*/Object.freeze({
+var mat2d = ({
 	ELEMENT_COUNT: ELEMENT_COUNT$6,
 	create: create$6,
 	clone: clone$6,
@@ -2381,44 +2274,20 @@ var mat2d = /*#__PURE__*/Object.freeze({
  */
 const ELEMENT_COUNT$7 = 16;
 function create$7() {
-    const out = new Float32Array(ELEMENT_COUNT$7);
-    out[0] = 1;
-    out[1] = 0;
-    out[2] = 0;
-    out[3] = 0;
-    out[4] = 0;
-    out[5] = 1;
-    out[6] = 0;
-    out[7] = 0;
-    out[8] = 0;
-    out[9] = 0;
-    out[10] = 1;
-    out[11] = 0;
-    out[12] = 0;
-    out[13] = 0;
-    out[14] = 0;
-    out[15] = 1;
-    return out;
+    return new Float32Array([
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    ]);
 }
 function clone$7(a) {
-    const out = new Float32Array(ELEMENT_COUNT$7);
-    out[0] = a[0];
-    out[1] = a[1];
-    out[2] = a[2];
-    out[3] = a[3];
-    out[4] = a[4];
-    out[5] = a[5];
-    out[6] = a[6];
-    out[7] = a[7];
-    out[8] = a[8];
-    out[9] = a[9];
-    out[10] = a[10];
-    out[11] = a[11];
-    out[12] = a[12];
-    out[13] = a[13];
-    out[14] = a[14];
-    out[15] = a[15];
-    return out;
+    return new Float32Array([
+        a[0], a[1], a[2], a[3],
+        a[4], a[5], a[6], a[7],
+        a[8], a[9], a[10], a[11],
+        a[12], a[13], a[14], a[15]
+    ]);
 }
 function copy$7(out, a) {
     out[0] = a[0];
@@ -2459,24 +2328,12 @@ function identity$4(out) {
     return out;
 }
 function fromValues$7(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33) {
-    const out = new Float32Array(ELEMENT_COUNT$7);
-    out[0] = m00;
-    out[1] = m01;
-    out[2] = m02;
-    out[3] = m03;
-    out[4] = m10;
-    out[5] = m11;
-    out[6] = m12;
-    out[7] = m13;
-    out[8] = m20;
-    out[9] = m21;
-    out[10] = m22;
-    out[11] = m23;
-    out[12] = m30;
-    out[13] = m31;
-    out[14] = m32;
-    out[15] = m33;
-    return out;
+    return new Float32Array([
+        m00, m01, m02, m03,
+        m10, m11, m12, m13,
+        m20, m21, m22, m23,
+        m30, m31, m32, m33
+    ]);
 }
 function set$7(out, m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33) {
     out[0] = m00;
@@ -3303,7 +3160,7 @@ function equals$7(a, b) {
         Math.abs(a15 - b15) <= EPSILON * Math.max(1.0, Math.abs(a15), Math.abs(b15)));
 }
 
-var mat4 = /*#__PURE__*/Object.freeze({
+var mat4 = ({
 	ELEMENT_COUNT: ELEMENT_COUNT$7,
 	create: create$7,
 	clone: clone$7,
@@ -3707,7 +3564,7 @@ class AABB {
     }
 }
 
-var aabb = /*#__PURE__*/Object.freeze({
+var aabb = ({
 	setCenterAndSize: setCenterAndSize,
 	calculateCenterAndSize: calculateCenterAndSize,
 	encapsulatePoint: encapsulatePoint,

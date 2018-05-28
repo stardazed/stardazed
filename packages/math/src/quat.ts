@@ -34,12 +34,7 @@ import * as vec4 from "./vec4";
 export const ELEMENT_COUNT = 4;
 
 export function create() {
-	const out = new Float32Array(ELEMENT_COUNT);
-	out[0] = 0;
-	out[1] = 0;
-	out[2] = 0;
-	out[3] = 1;
-	return out;
+	return new Float32Array([0, 0, 0, 1]);
 }
 
 const tmpVec3_ = vec3.create();

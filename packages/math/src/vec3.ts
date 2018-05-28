@@ -31,37 +31,21 @@ import { clamp as clampf, clamp01 as clamp01f, EPSILON, mix as mixf, VecArrayIte
 export const ELEMENT_COUNT = 3;
 
 export function create() {
-	const out = new Float32Array(ELEMENT_COUNT);
-	out[0] = 0;
-	out[1] = 0;
-	out[2] = 0;
-	return out;
+	return new Float32Array([0, 0, 0]);
 }
 
 export const zero = create;
 
 export function one() {
-	const out = new Float32Array(ELEMENT_COUNT);
-	out[0] = 1;
-	out[1] = 1;
-	out[2] = 1;
-	return out;
+	return new Float32Array([1, 1, 1]);
 }
 
 export function clone(a: ACN) {
-	const out = new Float32Array(ELEMENT_COUNT);
-	out[0] = a[0];
-	out[1] = a[1];
-	out[2] = a[2];
-	return out;
+	return new Float32Array([a[0], a[1], a[2]]);
 }
 
 export function fromValues(x: number, y: number, z: number) {
-	const out = new Float32Array(ELEMENT_COUNT);
-	out[0] = x;
-	out[1] = y;
-	out[2] = z;
-	return out;
+	return new Float32Array([x, y, z]);
 }
 
 export function copy(out: number[], a: ACN): number[];

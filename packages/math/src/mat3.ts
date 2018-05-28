@@ -31,31 +31,19 @@ import { EPSILON } from "./common";
 export const ELEMENT_COUNT = 9;
 
 export function create() {
-	const out = new Float32Array(ELEMENT_COUNT);
-	out[0] = 1;
-	out[1] = 0;
-	out[2] = 0;
-	out[3] = 0;
-	out[4] = 1;
-	out[5] = 0;
-	out[6] = 0;
-	out[7] = 0;
-	out[8] = 1;
-	return out;
+	return new Float32Array([
+		1, 0, 0,
+		0, 1, 0,
+		0, 0, 1
+	]);
 }
 
 export function clone(a: ACN) {
-	const out = new Float32Array(ELEMENT_COUNT);
-	out[0] = a[0];
-	out[1] = a[1];
-	out[2] = a[2];
-	out[3] = a[3];
-	out[4] = a[4];
-	out[5] = a[5];
-	out[6] = a[6];
-	out[7] = a[7];
-	out[8] = a[8];
-	return out;
+	return new Float32Array([
+		a[0], a[1], a[2],
+		a[3], a[4], a[5],
+		a[6], a[7], a[8]
+	]);
 }
 
 export function copy(out: number[], a: ACN): number[];
@@ -89,17 +77,11 @@ export function identity(out: AN) {
 }
 
 export function fromValues(m00: number, m01: number, m02: number, m10: number, m11: number, m12: number, m20: number, m21: number, m22: number) {
-	const out = new Float32Array(ELEMENT_COUNT);
-	out[0] = m00;
-	out[1] = m01;
-	out[2] = m02;
-	out[3] = m10;
-	out[4] = m11;
-	out[5] = m12;
-	out[6] = m20;
-	out[7] = m21;
-	out[8] = m22;
-	return out;
+	return new Float32Array([
+		m00, m01, m02,
+		m10, m11, m12,
+		m20, m21, m22
+	]);
 }
 
 export function set(out: number[], m00: number, m01: number, m02: number, m10: number, m11: number, m12: number, m20: number, m21: number, m22: number): number[];
