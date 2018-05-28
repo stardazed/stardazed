@@ -1,4 +1,3 @@
-
 /**
  * entity/array-range - instance range as a sorted array
  * Part of Stardazed
