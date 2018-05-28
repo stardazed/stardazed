@@ -1,0 +1,29 @@
+{
+	"name": "@stardazed/geometry-data",
+	"description": "Stardazed - geometry manipulation",
+	"version": "0.4.0",
+	"author": {
+		"name": "Arthur Langereis"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/stardazed/stardazed.git"
+	},
+	"license": "MIT",
+	"main": "dist/index.esm.js",
+	"module": "dist/index.esm.js",
+	"types": "dist/index.d.ts",
+	"dependencies": {
+		"@stardazed/core": "^0.4.0",
+		"@stardazed/container": "^0.4.0",
+		"@stardazed/geometry": "^0.4.0",
+		"@stardazed/math": "^0.4.0"
+	},
+	"devDependencies": {
+		"rollup": "^0.59.4",
+		"rollup-plugin-node-resolve": "^3.3.0",
+		"rollup-plugin-sourcemaps": "^0.4.2",
+		"rollup-plugin-typescript2": "^0.14.0",
+		"typescript": "^2.8.3"
+	}
+}
