@@ -11,6 +11,7 @@ export const packageConfig = (packageJSON) => {
 			file: packageJSON.module,
 			format: "es",
 			sourcemap: true,
+			freeze: false
 		}
 	];
 
@@ -28,6 +29,7 @@ export const packageConfig = (packageJSON) => {
 			format: "umd",
 			name: packageJSON.umdName,
 			sourcemap: true,
+			freeze: false
 		});
 	}
 	else {
