@@ -1,4 +1,5 @@
-
+import { assert } from "@stardazed/core";
+import { VertexAttribute, VertexField, VertexAttributeRole } from "@stardazed/geometry";
 
 // -- VertexAttribute shortcuts for common types
 

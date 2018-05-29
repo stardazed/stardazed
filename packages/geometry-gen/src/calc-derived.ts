@@ -9,27 +9,26 @@ import { assert } from "@stardazed/core";
 import { vec3 } from "@stardazed/math";
 import { copyIndexedVec3, setIndexedVec3 } from "@stardazed/container";
 import { Geometry, VertexAttributeRole, VertexBufferLayout, VertexBuffer } from "@stardazed/geometry";
-import { VertexBufferAttributeView } from "./vertex-buffer-attribute-view";
-import { TriangleView, TriangleProxy, triangleViewForGeometry } from "./triangle-view";
+import { VertexBufferAttributeView, TriangleView, TriangleProxy, triangleViewForGeometry } from "@stardazed/geometry-data";
 
 export function genVertexNormals(geom: Geometry) {
-	geom.vertexBuffers.forEach((vertexBuffer, ix) => {
-		const triView = triangleViewForGeometry(geom);
-		if (triView) {
-			calcVertexNormals(geom.layout.layouts[ix], vertexBuffer, triView);
+	return triangleViewForGeometry(geom).then(
+		triView => {
+			geom.vertexBuffers.forEach((vertexBuffer, ix) => {
+				calcVertexNormals(geom.layout.layouts[ix], vertexBuffer, triView);
+			});
 		}
-		// TODO: else warn?
-	});
+	);
 }
 
 export function genVertexTangents(geom: Geometry) {
-	geom.vertexBuffers.forEach((vertexBuffer, ix) => {
-		const triView = triangleViewForGeometry(geom);
-		if (triView) {
-			calcVertexTangents(geom.layout.layouts[ix], vertexBuffer, triView);
+	return triangleViewForGeometry(geom).then(
+		triView => {
+			geom.vertexBuffers.forEach((vertexBuffer, ix) => {
+				calcVertexTangents(geom.layout.layouts[ix], vertexBuffer, triView);
+			});
 		}
-		// TODO: else warn?
-	});
+	);
 }
 
 export function calcVertexNormals(layout: VertexBufferLayout, vertexBuffer: VertexBuffer, triView: TriangleView) {
@@ -47,8 +46,8 @@ export function calcVertexNormals(layout: VertexBufferLayout, vertexBuffer: Vert
 
 
 export function calcVertexNormalsViews(posView: VertexBufferAttributeView, normView: VertexBufferAttributeView, triView: TriangleView) {
-	const vertexCount = posView.count;
-	const normalCount = normView.count;
+	const vertexCount = posView.vertexCount;
+	const normalCount = normView.vertexCount;
 	assert(vertexCount <= normalCount);
 	const baseVertex = normView.fromVertex;
 
@@ -61,9 +60,9 @@ export function calcVertexNormalsViews(posView: VertexBufferAttributeView, normV
 	const faceNormal = vec3.create(), temp = vec3.create();
 
 	triView.forEach((face: TriangleProxy) => {
-		const posA = posView.copyItem(face.a() - baseVertex);
-		const posB = posView.copyItem(face.b() - baseVertex);
-		const posC = posView.copyItem(face.c() - baseVertex);
+		const posA = posView.copyItem(face.a - baseVertex);
+		const posB = posView.copyItem(face.b - baseVertex);
+		const posC = posView.copyItem(face.c - baseVertex);
 
 		vec3.subtract(lineA, posB, posA);
 		vec3.subtract(lineB, posC, posB);
@@ -121,19 +120,17 @@ export function calcVertexTangentsViews(
 	// adaptation of http://www.terathon.com/code/tangent.html
 	// by Eric Lengyel
 
-	const vertexCount = posView.count;
-	assert(vertexCount <= normView.count);
-	assert(vertexCount <= uvView.count);
-	assert(vertexCount <= tanView.count);
+	const vertexCount = posView.vertexCount;
+	assert(vertexCount <= normView.vertexCount);
+	assert(vertexCount <= uvView.vertexCount);
+	assert(vertexCount <= tanView.vertexCount);
 
 	const tanBuf = new Float32Array(vertexCount * 3 * 2);
 	const tan1 = tanBuf.subarray(0, vertexCount);
 	const tan2 = tanBuf.subarray(vertexCount);
 
 	triView.forEach(face => {
-		const a = face.a(),
-			b = face.b(),
-			c = face.c();
+		const { a, b, c } = face;
 
 		const v1 = posView.copyItem(a),
 			v2 = posView.copyItem(b),

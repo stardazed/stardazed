@@ -5,6 +5,11 @@
  * https://github.com/stardazed/stardazed
  */
 
+import { assert, TypedArray, Float, Double, ArrayOfNumber, ArrayOfConstNumber } from "@stardazed/core";
+import { Geometry, VertexAttribute, VertexAttributeRole, VertexField, vertexFieldElementCount, vertexFieldNumericType, PrimitiveType, makeStandardVertexLayout, allocateGeometry } from "@stardazed/geometry";
+import { stableSort, appendArrayInPlace, copyElementRange } from "@stardazed/container";
+import { VertexBufferAttributeView } from "@stardazed/geometry-data";
+
 export const enum VertexAttributeMapping {
 	Undefined,
 
@@ -130,7 +135,7 @@ export class MeshBuilder {
 
 		// sort attr streams ensuring ones that are not to be included in the geometry
 		// end up at the end.
-		container.stableSort(this.streams_, (sA, sB) => {
+		stableSort(this.streams_, (sA, sB) => {
 			if (sA.includeInMesh === sB.includeInMesh) {
 				return 0;
 			}
@@ -320,7 +325,7 @@ export class MeshBuilder {
 		const attrs = meshAttributeStreams.map(s => s.attr!);
 
 		// allocate as single buffer
-		const geom = allocateGeometry({
+		const geom: Geometry = allocateGeometry({
 			layout: makeStandardVertexLayout(attrs),
 			vertexCount: this.vertexCount_,
 			indexCount: this.triangleCount_ * 3
@@ -345,7 +350,7 @@ export class MeshBuilder {
 
 		this.groupIndexStreams_.forEach((indexes, group) => {
 			if (indexes.length) {
-				container.appendArrayInPlace(mergedIndexes, indexes);
+				appendArrayInPlace(mergedIndexes, indexes);
 				const groupElementCount = indexes.length;
 
 				geom.subMeshes.push({
@@ -360,7 +365,7 @@ export class MeshBuilder {
 		});
 
 		const indexView = geom.indexBuffer!.typedBasePtr(0, mergedIndexes.length);
-		container.copyElementRange(indexView, 0, mergedIndexes, 0, mergedIndexes.length);
+		copyElementRange(indexView, 0, mergedIndexes, 0, mergedIndexes.length);
 		// geom.indexBuffer!.setIndexes(0, mergedIndexes.length, mergedIndexes);
 
 		return geom;
