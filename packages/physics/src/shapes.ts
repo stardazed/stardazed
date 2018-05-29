@@ -120,8 +120,8 @@ function makeAmmoVec3(v3: ArrayOfConstNumber, offset = 0) {
 /*
 function createMeshShape(geom: geometry.Geometry, subMeshIndex?: number, convex?: boolean) {
 	const triView = (subMeshIndex !== undefined) ?
-		geometry.makeTriangleViewForSubMesh(geom, subMeshIndex) :
-		geometry.makeTriangleViewForGeometry(geom);
+		geometry.triangleViewForSubMesh(geom, subMeshIndex) :
+		geometry.triangleViewForGeometry(geom);
 	if (! triView) {
 		return undefined;
 	}
@@ -131,10 +131,10 @@ function createMeshShape(geom: geometry.Geometry, subMeshIndex?: number, convex?
 		return undefined;
 	}
 	const posView = new geometry.VertexBufferAttributeView(posAttr.vertexBuffer, posAttr.attr);
-	const baseVertex = posView.baseVertex;
+	const baseVertex = posView.fromVertex;
 
 	// use conservative guess if 16-bit indexes will work
-	const use32bitIndexes = triView.count * 3 >= UInt16.max;
+	const use32bitIndexes = elementCountForPrimitiveCount(triView.primitiveCount) >= UInt16.max;
 	const collMesh = new Ammo.btTriangleMesh(use32bitIndexes);
 
 	triView.forEach(face => {
