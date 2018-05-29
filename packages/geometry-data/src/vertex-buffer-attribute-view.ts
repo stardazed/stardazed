@@ -1,5 +1,5 @@
 /**
- * geometry-data/vertex-buffer-attribute-view - vertex attribute data manipulation
+ * geometry-data/vertex-buffer-attribute-view - vertex attribute data access
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
@@ -9,53 +9,80 @@ import { assert, NumericType, TypedArrayConstructor, TypedArray, ArrayOfConstNum
 import { PositionedAttribute, vertexFieldElementCount, vertexFieldNumericType, VertexField, VertexBuffer } from "@stardazed/geometry";
 
 export class VertexBufferAttributeView {
-	private stride_: number;
-	private attrOffset_: number;
-	private attrElementCount_: number;
-	private fieldNumType_: NumericType;
-	private typedViewCtor_: TypedArrayConstructor;
-	private buffer_: ArrayBuffer | SharedArrayBuffer;
-	private dataView_: DataView;
-	private viewItemCount_: number;
+	private readonly vertexBuffer_: VertexBuffer;
+	private readonly attr_: PositionedAttribute;
+	private readonly stride_: number;
+	private readonly fieldNumType_: NumericType;
+	private readonly typedViewCtor_: TypedArrayConstructor;
+	private readonly buffer_: ArrayBuffer;
+	private readonly dataView_: DataView;
+	
+	readonly fromVertex: number;
+	readonly toVertex: number;
+	readonly vertexCount: number;
+	readonly elementCount: number;
 
-	constructor(private vertexBuffer_: VertexBuffer, private attr_: PositionedAttribute, private firstItem_ = 0, itemCount = -1) {
+	constructor(vertexBuffer: VertexBuffer, attr: PositionedAttribute, fromVertex?: number, toVertex?: number) {
+		this.vertexBuffer_ = vertexBuffer;
+		this.attr_ = attr;
 		this.stride_ = this.vertexBuffer_.stride;
-		this.attrOffset_ = attr_.offset;
-		this.attrElementCount_ = vertexFieldElementCount(attr_.field);
+		this.elementCount = vertexFieldElementCount(this.attr_.field);
 
-		// FIXME: error refactoring
-		this.fieldNumType_ = vertexFieldNumericType(attr_.field)!;
-		assert(this.fieldNumType_, "Unknown attribute field type");
+		// validate or use default range
+		const fullVertexCount = this.vertexBuffer_.vertexCount;
+		if (fromVertex !== undefined) {
+			if (fromVertex < 0 || fromVertex > fullVertexCount) {
+				throw new Error("Invalid fromVertex index");
+			}
+			this.fromVertex = fromVertex;
+		}
+		else {
+			this.fromVertex = 0;
+		}
+		if (toVertex !== undefined) {
+			if ((toVertex < this.fromVertex) || (toVertex > fullVertexCount)) {
+				throw new Error("Invalid toVertex index");
+			}
+			this.toVertex = toVertex;
+		}
+		else {
+			this.toVertex = fullVertexCount;
+		}
+
+		this.vertexCount = this.toVertex - this.fromVertex;
+
+		// save some often-used fields
+		const fieldNumType = vertexFieldNumericType(this.attr_.field);
+		if (! fieldNumType) {
+			throw new Error("Invalid attribute field type");
+		}
+		this.fieldNumType_ = fieldNumType;
 		this.typedViewCtor_ = this.fieldNumType_.arrayType;
 
-		this.buffer_ = this.vertexBuffer_.storage.buffer;
-
+		this.buffer_ = this.vertexBuffer_.storage.buffer as ArrayBuffer;
 		this.dataView_ = new DataView(this.buffer_);
-		this.viewItemCount_ = itemCount < 0 ? (this.vertexBuffer_.vertexCount - this.firstItem_) : itemCount;
-
-		assert(this.firstItem_ + this.viewItemCount_ <= this.vertexBuffer_.vertexCount, "view item range is bigger than buffer");
 	}
 
 	forEach(callback: (item: TypedArray) => void) {
-		const max = this.count;
+		const max = this.vertexCount;
 		for (let ix = 0; ix < max; ++ix) {
 			callback(this.refItem(ix));
 		}
 	}
 
 	copyValuesFrom(source: ArrayOfConstNumber, valueCount: number, offset = 0) {
-		assert(this.firstItem_ + offset + valueCount <= this.viewItemCount_, "buffer overflow");
-		assert(source.length >= valueCount * this.attrElementCount_, "not enough elements in source");
+		assert(this.fromVertex + offset + valueCount <= this.vertexCount, "buffer overflow");
+		assert(source.length >= valueCount * this.elementCount, "not enough elements in source");
 
 		const buffer = this.buffer_;
 		const stride = this.stride_;
 		const elementSize = this.fieldNumType_.byteSize;
-		const firstIndex = this.firstItem_ + offset;
-		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * firstIndex) + this.attrOffset_;
+		const firstIndex = this.fromVertex + offset;
+		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * firstIndex) + this.attr_.offset;
 		let sourceIndex = 0;
 		let arrView: TypedArray;
 
-		if (this.attrElementCount_ === 1) {
+		if (this.elementCount === 1) {
 			if (stride % elementSize === 0) {
 				const strideInElements = (stride / elementSize) | 0;
 				const offsetInElements = (offsetBytes / elementSize) | 0;
@@ -76,7 +103,7 @@ export class VertexBufferAttributeView {
 				}
 			}
 		}
-		else if (this.attrElementCount_ === 2) {
+		else if (this.elementCount === 2) {
 			if (stride % elementSize === 0) {
 				const strideInElements = (stride / elementSize) | 0;
 				const offsetInElements = (offsetBytes / elementSize) | 0;
@@ -99,7 +126,7 @@ export class VertexBufferAttributeView {
 				}
 			}
 		}
-		else if (this.attrElementCount_ === 3) {
+		else if (this.elementCount === 3) {
 			if (stride % elementSize === 0) {
 				const strideInElements = (stride / elementSize) | 0;
 				const offsetInElements = (offsetBytes / elementSize) | 0;
@@ -124,7 +151,7 @@ export class VertexBufferAttributeView {
 				}
 			}
 		}
-		else if (this.attrElementCount_ === 4) {
+		else if (this.elementCount === 4) {
 			if (stride % elementSize === 0) {
 				const strideInElements = (stride / elementSize) | 0;
 				const offsetInElements = (offsetBytes / elementSize) | 0;
@@ -154,26 +181,29 @@ export class VertexBufferAttributeView {
 	}
 
 	refItem(index: number): TypedArray {
-		index += this.firstItem_;
-		const offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attrOffset_;
-		return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.attrElementCount_);
+		index += this.fromVertex;
+		const offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attr_.offset;
+		return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.elementCount);
 	}
 
 	copyItem(index: number): number[] {
-		index += this.firstItem_;
-		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attrOffset_;
+		index += this.fromVertex;
+		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attr_.offset;
 		const result: number[] = [];
 
 		switch (this.attr_.field) {
 			case VertexField.Floatx4:
 				result.push(this.dataView_.getFloat32(offsetBytes, true));
 				offsetBytes += 4;
+				// fall-through
 			case VertexField.Floatx3:
 				result.push(this.dataView_.getFloat32(offsetBytes, true));
 				offsetBytes += 4;
+				// fall-through
 			case VertexField.Floatx2:
 				result.push(this.dataView_.getFloat32(offsetBytes, true));
 				offsetBytes += 4;
+				// fall-through
 			case VertexField.Float:
 				result.push(this.dataView_.getFloat32(offsetBytes, true));
 				break;
@@ -186,12 +216,7 @@ export class VertexBufferAttributeView {
 		return result;
 	}
 
-	get count() { return this.viewItemCount_; }
-	get elementCount() { return this.attrElementCount_; }
-	get baseVertex() { return this.firstItem_; }
-	get vertexBuffer() { return this.vertexBuffer_; }
-
-	subView(fromItem: number, subItemCount: number) {
-		return new VertexBufferAttributeView(this.vertexBuffer_, this.attr_, this.firstItem_ + fromItem, subItemCount);
+	subView(fromVertex: number, toVertex: number) {
+		return new VertexBufferAttributeView(this.vertexBuffer_, this.attr_, this.fromVertex + fromVertex, this.fromVertex + toVertex);
 	}
 }
