@@ -10,11 +10,11 @@ import { vec3 } from "@stardazed/math";
 import { copyIndexedVec3, setIndexedVec3 } from "@stardazed/container";
 import { Geometry, VertexAttributeRole, VertexBufferLayout, VertexBuffer } from "@stardazed/geometry";
 import { VertexBufferAttributeView } from "./vertex-buffer-attribute-view";
-import { TriangleView, TriangleProxy, makeTriangleViewForGeometry } from "./triangle-view";
+import { TriangleView, TriangleProxy, triangleViewForGeometry } from "./triangle-view";
 
 export function genVertexNormals(geom: Geometry) {
 	geom.vertexBuffers.forEach((vertexBuffer, ix) => {
-		const triView = makeTriangleViewForGeometry(geom);
+		const triView = triangleViewForGeometry(geom);
 		if (triView) {
 			calcVertexNormals(geom.layout.layouts[ix], vertexBuffer, triView);
 		}
@@ -24,7 +24,7 @@ export function genVertexNormals(geom: Geometry) {
 
 export function genVertexTangents(geom: Geometry) {
 	geom.vertexBuffers.forEach((vertexBuffer, ix) => {
-		const triView = makeTriangleViewForGeometry(geom);
+		const triView = triangleViewForGeometry(geom);
 		if (triView) {
 			calcVertexTangents(geom.layout.layouts[ix], vertexBuffer, triView);
 		}
@@ -50,7 +50,7 @@ export function calcVertexNormalsViews(posView: VertexBufferAttributeView, normV
 	const vertexCount = posView.count;
 	const normalCount = normView.count;
 	assert(vertexCount <= normalCount);
-	const baseVertex = normView.baseVertex;
+	const baseVertex = normView.fromVertex;
 
 	normView.forEach(norm => {
 		vec3.set(norm, 0, 0, 1);

@@ -66,7 +66,7 @@ namespace sd.geometry.gen {
 		const normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
 		const texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
 
-		const triView = geometry.makeTriangleViewForGeometry(geom)!;
+		const triView = geometry.triangleViewForGeometry(geom)!;
 
 		// -- data add functions for the generators
 		let posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;
@@ -117,12 +117,12 @@ namespace sd.geometry.gen {
 
 			const subVtxCount = generator.vertexCount;
 			const subFaceCount = generator.faceCount;
-			const subPosView = posView.subView(baseVertex, subVtxCount);
-			const subNormalView = normalView ? normalView.subView(baseVertex, subVtxCount) : null;
+			const subPosView = posView.subView(baseVertex, subVtxCount); // WARNING FIXME: param 2 has changed to "toTriangle"
+			const subNormalView = normalView ? normalView.subView(baseVertex, subVtxCount) : null; // WARNING FIXME: param 2 has changed to "toTriangle"
 
 			// -- if the generator does not supply normals but the geometry has a Normal attribute, we calculate them
 			if (subNormalView && ! generator.explicitNormals) {
-				const subFaceView = triView.subView(faceIx - subFaceCount, subFaceCount);
+				const subFaceView = triView.subView(faceIx - subFaceCount, subFaceCount); // WARNING FIXME: param 2 has changed to "toTriangle"
 				calcVertexNormalsViews(subPosView, subNormalView, subFaceView);
 
 				normalIx += subVtxCount;
