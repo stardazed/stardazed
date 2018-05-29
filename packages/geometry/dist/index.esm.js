@@ -208,7 +208,7 @@ function vertexFieldNumericType(vf) {
             return SInt8;
         case 0 /* Undefined */:
         default:
-            return null;
+            return undefined;
     }
 }
 function vertexFieldElementSizeBytes(vf) {

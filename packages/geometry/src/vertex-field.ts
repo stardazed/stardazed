@@ -125,7 +125,7 @@ export function vertexFieldElementCount(vf: VertexField) {
 	}
 }
 
-export function vertexFieldNumericType(vf: VertexField): NumericType | null {
+export function vertexFieldNumericType(vf: VertexField): NumericType | undefined {
 	switch (vf) {
 		case VertexField.Float:
 		case VertexField.Floatx2:
@@ -179,7 +179,7 @@ export function vertexFieldNumericType(vf: VertexField): NumericType | null {
 
 		case VertexField.Undefined:
 		default:
-			return null;
+			return undefined;
 	}
 }
 
