@@ -5,8 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { Geometry, IndexBuffer, PrimitiveType, primitiveCountForElementCount, TypedIndexArray } from "@stardazed/geometry";
-
 export interface Triangle {
 	readonly [index: number]: number;
 }
@@ -17,30 +15,31 @@ export interface MutableTriangle {
 
 export interface TriangleProxy {
 	index(index: number): number;
-	a(): number;
-	b(): number;
-	c(): number;
+	readonly a: number;
+	readonly b: number;
+	readonly c: number;
 }
 
 export interface MutableTriangleProxy extends TriangleProxy {
 	setIndex(index: number, newValue: number): void;
-	setA(newValue: number): void;
-	setB(newValue: number): void;
-	setC(newValue: number): void;
+	a: number;
+	b: number;
+	c: number;
 }
 
 export interface TriangleView {
-	readonly count: number;
-	readonly mutable: boolean;
+	readonly primitiveCount: number;
 
 	forEach(callback: (proxy: TriangleProxy) => void): void;
-	forEachMutable?(callback: (proxy: MutableTriangleProxy) => void): void;
-
 	refItem(triangleIndex: number): Triangle;
-	refItemMutable?(triangleIndex: number): MutableTriangle;
 
 	subView(fromTriangle: number, triangleCount: number): TriangleView;
+	mutableView(): MutableTriangleView | undefined;
 }
 
+export interface MutableTriangleView extends TriangleView {
+	forEachMutable(callback: (proxy: MutableTriangleProxy) => void): void;
+	refItemMutable(triangleIndex: number): MutableTriangle;
 
+	subView(fromTriangle: number, triangleCount: number): MutableTriangleView;
 }
