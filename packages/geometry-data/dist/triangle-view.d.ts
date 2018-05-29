@@ -27,7 +27,7 @@ export interface TriangleView {
     forEach(callback: (proxy: TriangleProxy) => void): void;
     refItem(triangleIndex: number): Triangle;
     subView(fromTriangle: number, triangleCount: number): TriangleView;
-    mutableView(): MutableTriangleView | undefined;
+    mutableView(): Promise<MutableTriangleView>;
 }
 export interface MutableTriangleView extends TriangleView {
     forEachMutable(callback: (proxy: MutableTriangleProxy) => void): void;

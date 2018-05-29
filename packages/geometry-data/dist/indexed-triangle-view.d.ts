@@ -17,5 +17,5 @@ export declare class IndexBufferTriangleView implements TriangleView {
     refItem(triangleIndex: number): MutableTriangle;
     refItemMutable: (triangleIndex: number) => MutableTriangle;
     subView(fromTriangle: number, toTriangle: number): IndexBufferTriangleView;
-    mutableView(): this;
+    mutableView(): Promise<this>;
 }

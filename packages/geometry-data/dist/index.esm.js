@@ -320,7 +320,7 @@ class IndexBufferTriangleView {
         return new IndexBufferTriangleView(this.indexBuffer_, this.fromTriangle_ + fromTriangle, this.fromTriangle_ + toTriangle);
     }
     mutableView() {
-        return this;
+        return Promise.resolve(this);
     }
 }
 
@@ -383,8 +383,8 @@ class DirectTriangleView {
         return new DirectTriangleView(elementCount, this.fromTriangle_ + fromTriangle, this.fromTriangle_ + fromTriangle + triangleCount);
     }
     mutableView() {
-        // direct triangle views are immutable
-        return undefined;
+        // direct triangle views are synthesised and thus immutable
+        return Promise.reject("This TriangleView is immutable");
     }
 }
 
@@ -598,6 +598,12 @@ class VertexBufferAttributeView {
     }
 }
 
+/**
+ * @stardazed/geometry-data - vertex and index buffer element access
+ * Part of Stardazed
+ * (c) 2015-Present by Arthur Langereis - @zenmumbler
+ * https://github.com/stardazed/stardazed
+ */
 function triangleViewForIndexBuffer(ib) {
     return new IndexBufferTriangleView(ib);
 }

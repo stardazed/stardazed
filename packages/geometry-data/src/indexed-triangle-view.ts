@@ -84,6 +84,6 @@ export class IndexBufferTriangleView implements TriangleView {
 	}
 
 	mutableView() {
-		return this;
+		return Promise.resolve(this);
 	}
 }

@@ -1,3 +1,9 @@
+/**
+ * @stardazed/geometry-data - vertex and index buffer element access
+ * Part of Stardazed
+ * (c) 2015-Present by Arthur Langereis - @zenmumbler
+ * https://github.com/stardazed/stardazed
+ */
 import { Geometry, IndexBuffer } from "@stardazed/geometry";
 import { TriangleView } from "./triangle-view";
 export * from "./vertex-buffer-attribute-view";

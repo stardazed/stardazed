@@ -73,7 +73,7 @@ export class DirectTriangleView implements TriangleView {
 	}
 
 	mutableView() {
-		// direct triangle views are immutable
-		return undefined;
+		// direct triangle views are synthesised and thus immutable
+		return Promise.reject("This TriangleView is immutable");
 	}
 }

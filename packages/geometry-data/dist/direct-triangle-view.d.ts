@@ -7,5 +7,5 @@ export declare class DirectTriangleView implements TriangleView {
     forEach(callback: (proxy: TriangleProxy) => void): void;
     refItem(triangleIndex: number): Triangle;
     subView(fromTriangle: number, triangleCount: number): DirectTriangleView;
-    mutableView(): undefined;
+    mutableView(): Promise<never>;
 }
