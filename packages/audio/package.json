@@ -13,8 +13,7 @@
 	"main": "dist/index.esm.js",
 	"module": "dist/index.esm.js",
 	"types": "dist/index.d.ts",
-	"dependencies": {
-	},
+	"dependencies": {},
 	"devDependencies": {
 		"rollup": "^0.59.4",
 		"rollup-plugin-node-resolve": "^3.3.0",
