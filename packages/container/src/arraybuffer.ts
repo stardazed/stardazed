@@ -7,6 +7,7 @@
 
 import { assert, NumericType, TypedArray } from "@stardazed/core";
 import { alignUp, roundUpPowerOf2 } from "@stardazed/math";
+import { clearArrayBuffer } from "./array";
 
 export interface MABField {
 	type: NumericType;
@@ -74,29 +75,6 @@ export const enum InvalidatePointers {
 	Yes
 }
 
-function clearBuffer(data: ArrayBuffer) {
-	const numDoubles = (data.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
-	const doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
-	const remainingBytes = data.byteLength - doublesByteSize;
-
-	const doubleView = new Float64Array(data);
-	const remainderView = new Uint8Array(data, doublesByteSize);
-
-	if (doubleView.fill) {
-		doubleView.fill(0);
-	}
-	else {
-		// As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
-		for (let d = 0; d < numDoubles; ++d) {
-			doubleView[d] = 0;
-		}
-	}
-	for (let b = 0; b < remainingBytes; ++b) {
-		remainderView[b] = 0;
-	}
-}
-
-
 export class FixedMultiArray {
 	private readonly data_: ArrayBuffer;
 	private readonly basePointers_: TypedArray[];
@@ -115,7 +93,7 @@ export class FixedMultiArray {
 	get data() { return this.data_; }
 
 	clear() {
-		clearBuffer(this.data_);
+		clearArrayBuffer(this.data_);
 	}
 
 	indexedFieldView(index: number) {
@@ -211,7 +189,7 @@ export class MultiArrayBuffer {
 
 	clear() {
 		this.count_ = 0;
-		clearBuffer(this.data_!);
+		clearArrayBuffer(this.data_!);
 	}
 
 
@@ -289,6 +267,6 @@ export class FixedStructArray {
 	get data() { return this.data_; }
 
 	clear() {
-		clearBuffer(this.data_);
+		clearArrayBuffer(this.data_);
 	}
 }

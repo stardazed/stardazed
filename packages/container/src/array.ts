@@ -7,6 +7,29 @@
 
 import { Float2, Float3, Float3x3, Float4, Float4x4, MutableArrayLike, TypedArray } from "@stardazed/core";
 
+export function clearArrayBuffer(data: ArrayBuffer) {
+	const numDoubles = (data.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
+	const doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
+	const remainingBytes = data.byteLength - doublesByteSize;
+
+	const doubleView = new Float64Array(data);
+	const remainderView = new Uint8Array(data, doublesByteSize);
+
+	if (doubleView.fill) {
+		doubleView.fill(0);
+	}
+	else {
+		// As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
+		for (let d = 0; d < numDoubles; ++d) {
+			doubleView[d] = 0;
+		}
+	}
+	for (let b = 0; b < remainingBytes; ++b) {
+		remainderView[b] = 0;
+	}
+}
+
+
 export function copyElementRange<T, A extends MutableArrayLike<T>>(dest: A, destOffset: number, src: ArrayLike<T>, srcOffset: number, srcCount: number) {
 	for (let ix = 0; ix < srcCount; ++ix) {
 		dest[destOffset++] = src[srcOffset++];
