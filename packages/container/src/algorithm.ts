@@ -45,7 +45,7 @@ export function override<T extends object, K extends keyof T>(dest: T, source: P
 export type MappingFunc<T, U> = (t: T, k: string) => U;
 
 /**
- * Map each keyed propertiy of obj using the provided function returning a new object.
+ * Map each keyed property of obj using the provided function returning a new object.
  * @param obj The source object to convert
  * @param mapper A conversion function that takes each keyed prop of obj and returns a converted value
  */
