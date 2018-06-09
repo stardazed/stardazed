@@ -9,13 +9,13 @@ namespace sd.control {
 		private pos_ = [0, 0, 0];
 		private angleX_ = 0;
 		private angleY_ = Math.PI;
-		private rot_: sd.Float4 = [0, 0, 0, 1];
+		private rot_: Float4 = [0, 0, 0, 1];
 		private dir_ = [0, 0, -1];
 		private up_ = [0, 1, 0];
 		private speed_ = 0;
 		private sideSpeed_ = 0;
 
-		constructor(initialPos: sd.Float3) {
+		constructor(initialPos: Float3) {
 			vec3.copy(this.pos_, initialPos);
 			this.rotate([0, 0]);
 		}
@@ -38,7 +38,7 @@ namespace sd.control {
 			}
 		}
 
-		rotate(localRelXY: sd.Float2) {
+		rotate(localRelXY: Float2) {
 			this.angleX_ -= Math.PI * 1.5 * localRelXY[1];
 			this.angleY_ += Math.PI * 2 * localRelXY[0];
 			this.rot_ = quat.fromEuler(0, this.angleY_, this.angleX_);
@@ -65,7 +65,7 @@ namespace sd.control {
 		private lastPos_ = [0, 0];
 		private deviceTouch_ = false;
 
-		constructor(sensingElem: HTMLElement, initialPos: sd.Float3) {
+		constructor(sensingElem: HTMLElement, initialPos: Float3) {
 			this.cam = new FlyCam(initialPos);
 
 			this.vpWidth_ = sensingElem.offsetWidth;

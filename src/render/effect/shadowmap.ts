@@ -116,10 +116,10 @@ namespace sd.render.effect {
 		setTexture(_evd: EffectData, _name: string, _tex: Texture | undefined) {
 		}
 	
-		getVector(_evd: EffectData, _name: string, _out: sd.MutNumArray): sd.MutNumArray | undefined {
+		getVector(_evd: EffectData, _name: string, _out: MutNumArray): MutNumArray | undefined {
 			return undefined;
 		}
-		setVector(_evd: EffectData, _name: string, _vec: sd.NumArray) {
+		setVector(_evd: EffectData, _name: string, _vec: NumArray) {
 		}
 	
 		getValue(evd: EffectData, name: string): number | undefined {
