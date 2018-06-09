@@ -98,7 +98,18 @@ export function groupFieldsBy<T extends object, K extends Extract<keyof T, strin
 	}, {} as GroupedItems<T>);
 }
 
-export function lowerBound<T>(array: ArrayLike<T>, value: T) {
+/**
+ * A comparator function for binary searchers.
+ * Must return true if a < b (a ordered before b)
+ */
+export type BinaryComparator<T> = (a: T, b: T) => boolean;
+
+/**
+ * Make a lowerBound function for a specific data type.
+ * @see lowerBound
+ * @returns a lowerBound function specialized with the specified comparator
+ */
+export const makeLowerBound = <T>(comp: BinaryComparator<T>) => (array: ArrayLike<T>, value: T) => {
 	let count = array.length;
 	let it: number;
 	let first = 0;
@@ -106,7 +117,7 @@ export function lowerBound<T>(array: ArrayLike<T>, value: T) {
 	while (count > 0) {
 		const step = count >> 1;
 		it = first + step;
-		if (array[it] < value) {
+		if (comp(array[it], value)) {
 			first = ++it;
 			count -= step + 1;
 		}
@@ -115,9 +126,14 @@ export function lowerBound<T>(array: ArrayLike<T>, value: T) {
 		}
 	}
 	return first;
-}
+};
 
-export function upperBound<T>(array: ArrayLike<T>, value: T) {
+/**
+ * Make an upperBound function for a specific data type.
+ * @see upperBound
+ * @returns an upperBound function specialized with the specified comparator
+ */
+export const makeUpperBound = <T>(comp: BinaryComparator<T>) => (array: ArrayLike<T>, value: T) => {
 	let count = array.length;
 	let it: number;
 	let first = 0;
@@ -125,7 +141,7 @@ export function upperBound<T>(array: ArrayLike<T>, value: T) {
 	while (count > 0) {
 		const step = count >> 1;
 		it = first + step;
-		if (array[it] <= value) {
+		if (! comp(value, array[it])) {
 			first = ++it;
 			count -= step + 1;
 		}
@@ -134,7 +150,19 @@ export function upperBound<T>(array: ArrayLike<T>, value: T) {
 		}
 	}
 	return first;
-}
+};
+
+/**
+ * Returns an index pointing to the first element in the array that is not less than
+ * (i.e. greater or equal to) value, or array.length if no such element is found.
+ */
+export const lowerBound = makeLowerBound(<T>(a: T, b: T) => a < b);
+
+/**
+ * Returns an index pointing to the first element in the array that is greater than value,
+ * or array.length if no such element is found.
+ */
+export const upperBound = makeUpperBound(<T>(a: T, b: T) => a < b);
 
 /**
  * Remove all duplicates found in the source array leaving only the first
