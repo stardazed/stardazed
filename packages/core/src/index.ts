@@ -8,4 +8,3 @@
 export * from "./debug";
 export * from "./array";
 export * from "./numeric";
-export * from "./struct";
