@@ -6,12 +6,12 @@
  */
 
 /**
- * Standard string sort comparison function, used when comparing
- * multiple string fields together or when using non-standars sort.
+ * Standard (string) sort comparison function, used when comparing
+ * multiple string fields together or when using non-standard sort.
  * @param a left string to compare
  * @param b right string to compare
  */
-export function stringOrder(a: string, b: string) {
+export function genericOrder<T>(a: T, b: T) {
 	return a < b ? -1 : ((a === b) ? 0 : 1);
 }
 
