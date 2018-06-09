@@ -5,47 +5,8 @@
  * https://github.com/stardazed/stardazed
  */
 
+import { lowerBound } from "./algorithm";
 import { appendArrayInPlace } from "./array";
-
-export function lowerBound<T>(array: ArrayLike<T>, value: T) {
-	let count = array.length;
-	let it: number;
-	let first = 0;
-
-	while (count > 0) {
-		const step = count >> 1;
-		it = first + step;
-		if (array[it] < value) {
-			first = ++it;
-			count -= step + 1;
-		}
-		else {
-			count = step;
-		}
-	}
-	return first;
-}
-
-
-export function upperBound<T>(array: ArrayLike<T>, value: T) {
-	let count = array.length;
-	let it: number;
-	let first = 0;
-
-	while (count > 0) {
-		const step = count >> 1;
-		it = first + step;
-		if (array[it] <= value) {
-			first = ++it;
-			count -= step + 1;
-		}
-		else {
-			count = step;
-		}
-	}
-	return first;
-}
-
 
 export class SortedArray<T> {
 	private data_: T[];

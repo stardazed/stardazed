@@ -98,6 +98,44 @@ export function groupFieldsBy<T extends object, K extends Extract<keyof T, strin
 	}, {} as GroupedItems<T>);
 }
 
+export function lowerBound<T>(array: ArrayLike<T>, value: T) {
+	let count = array.length;
+	let it: number;
+	let first = 0;
+
+	while (count > 0) {
+		const step = count >> 1;
+		it = first + step;
+		if (array[it] < value) {
+			first = ++it;
+			count -= step + 1;
+		}
+		else {
+			count = step;
+		}
+	}
+	return first;
+}
+
+export function upperBound<T>(array: ArrayLike<T>, value: T) {
+	let count = array.length;
+	let it: number;
+	let first = 0;
+
+	while (count > 0) {
+		const step = count >> 1;
+		it = first + step;
+		if (array[it] <= value) {
+			first = ++it;
+			count -= step + 1;
+		}
+		else {
+			count = step;
+		}
+	}
+	return first;
+}
+
 /**
  * Remove all duplicates found in the source array leaving only the first
  * instance of each individual element, leaving the order of the remaining
