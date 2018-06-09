@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert, TypedArray, Float, Double, MutNumArray, NumArray } from "@stardazed/core";
+import { assert, TypedArray, Float, Double, NumArray } from "@stardazed/core";
 import { Geometry, VertexAttribute, VertexAttributeRole, VertexField, vertexFieldElementCount, vertexFieldNumericType, PrimitiveType, makeStandardVertexLayout, allocateGeometry } from "@stardazed/geometry";
 import { stableSort, appendArrayInPlace, copyElementRange } from "@stardazed/container";
 import { VertexBufferAttributeView } from "@stardazed/geometry-data";
@@ -222,7 +222,7 @@ export class MeshBuilder {
 				const elemCount = stream.elementCount!;
 				const array = this.vertexData_[streamIx];
 				const fieldIndex = streamIndexes[streamIx];
-				let values: MutNumArray = stream.values!; // TODO: is this guaranteed to exist in this loop?
+				let values: NumArray = stream.values!; // TODO: is this guaranteed to exist in this loop?
 				let fieldOffset = elemCount * fieldIndex;
 
 				// This is slowest on all browsers (by a mile)

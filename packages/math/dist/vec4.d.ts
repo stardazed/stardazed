@@ -4,7 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "@stardazed/core";
+import { NumArray as ACN, MutNumArray as AN } from "@stardazed/core";
 import { VecArrayIterationFunction, VecArrayIterationOptions } from "./common";
 export declare const ELEMENT_COUNT = 4;
 export declare function create(): Float32Array;
@@ -79,3 +79,4 @@ export declare function forEach<T extends AN>(a: T, opt: VecArrayIterationOption
 export declare function str(a: ACN): string;
 export declare function exactEquals(a: ACN, b: ACN): boolean;
 export declare function equals(a: ACN, b: ACN): boolean;
+//# sourceMappingURL=vec4.d.ts.map

@@ -1,3 +1,9 @@
+/**
+ * container/deque - generic double-ended queue container class
+ * Part of Stardazed
+ * (c) 2015-Present by Arthur Langereis - @zenmumbler
+ * https://github.com/stardazed/stardazed
+ */
 export declare class Deque<T> {
     private blocks_;
     private headBlock_;
@@ -6,7 +12,7 @@ export declare class Deque<T> {
     private tailIndex_;
     private count_;
     private blockCapacity;
-    private newBlock();
+    private newBlock;
     private readonly headBlock;
     private readonly tailBlock;
     constructor();
@@ -20,3 +26,4 @@ export declare class Deque<T> {
     readonly front: T;
     readonly back: T;
 }
+//# sourceMappingURL=deque.d.ts.map

@@ -94,7 +94,7 @@ namespace sd.render {
 	}
 
 	export interface ClearValues {
-		colour: ConstFloat4;
+		colour: Float4;
 		depth: number;
 		stencil: number;
 	}
@@ -169,7 +169,7 @@ namespace sd.render {
 		TextureWriteCommand |
 		RenderJobCommand;
 
-	const defaultClearColour_: ConstFloat4 = [0, 0, 0, 1];
+	const defaultClearColour_: Float4 = [0, 0, 0, 1];
 
 	export class RenderCommandBuffer {
 		readonly commands: RenderCommand[] = [];

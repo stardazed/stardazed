@@ -18,7 +18,7 @@
  * </pre>
  * The last row is ignored so the array is shorter and operations are faster.
  */
-import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "@stardazed/core";
+import { NumArray as ACN, MutNumArray as AN } from "@stardazed/core";
 export declare const ELEMENT_COUNT = 6;
 export declare function create(): Float32Array;
 export declare function clone(a: ACN): Float32Array;
@@ -60,3 +60,4 @@ export declare function multiplyScalarAndAdd(out: number[], a: ACN, b: ACN, scal
 export declare function multiplyScalarAndAdd<T extends AN>(out: T, a: ACN, b: ACN, scale: number): T;
 export declare function exactEquals(a: ACN, b: ACN): boolean;
 export declare function equals(a: ACN, b: ACN): boolean;
+//# sourceMappingURL=mat2d.d.ts.map

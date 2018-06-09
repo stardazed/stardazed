@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { ConstFloat3, ConstFloat4x4, Float4x4 } from "@stardazed/core";
+import { Float3, Float4x4, MutFloat4x4 } from "@stardazed/core";
 import { deg2rad } from "./common";
 import * as mat4 from "./mat4";
 
@@ -30,7 +30,7 @@ export function makeViewport(): Viewport {
 }
 
 // tslint:disable:whitespace
-export function viewportMatrix(x: number, y: number, w: number, h: number, n: number, f: number): Float4x4 {
+export function viewportMatrix(x: number, y: number, w: number, h: number, n: number, f: number): MutFloat4x4 {
 	return [
 		w / 2, 0, 0, 0,
 		0, h / 2, 0, 0,
@@ -41,16 +41,16 @@ export function viewportMatrix(x: number, y: number, w: number, h: number, n: nu
 // tslint:enable:whitespace
 
 export interface ProjectionSetup {
-	projectionMatrix: Float4x4;
-	viewMatrix: Float4x4;
-	viewProjMatrix: Float4x4;
+	projectionMatrix: MutFloat4x4;
+	viewMatrix: MutFloat4x4;
+	viewProjMatrix: MutFloat4x4;
 }
 
 export class Camera implements ProjectionSetup {
 	private viewport_: Viewport;
-	private proj_: Float4x4;
-	private view_: Float4x4;
-	private viewProj_: Float4x4;
+	private proj_: MutFloat4x4;
+	private view_: MutFloat4x4;
+	private viewProj_: MutFloat4x4;
 
 	constructor(viewportWidth: number, viewportHeight: number) {
 		this.viewport_ = makeViewport();
@@ -89,19 +89,19 @@ export class Camera implements ProjectionSetup {
 		this.updateViewProjMatrix();
 	}
 
-	setViewMatrix(v: ConstFloat4x4) {
+	setViewMatrix(v: Float4x4) {
 		mat4.copy(this.view_, v);
 		this.updateViewProjMatrix();
 	}
 
-	lookAt(eye: ConstFloat3, target: ConstFloat3, up: ConstFloat3) {
+	lookAt(eye: Float3, target: Float3, up: Float3) {
 		mat4.lookAt(this.view_, eye, target, up);
 		this.updateViewProjMatrix();
 	}
 
 	get projectionMatrix(): Float4x4 { return this.proj_; }
-	get viewMatrix(): ConstFloat4x4 { return this.view_; }
-	get viewProjMatrix(): ConstFloat4x4 { return this.viewProj_; }
+	get viewMatrix(): Float4x4 { return this.view_; }
+	get viewProjMatrix(): Float4x4 { return this.viewProj_; }
 
 	get viewport(): Readonly<Viewport> { return this.viewport_; }
 }

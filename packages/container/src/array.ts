@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { Float2, Float3, Float3x3, Float4, Float4x4, MutableArrayLike, TypedArray } from "@stardazed/core";
+import { MutableArrayLike, TypedArray, Float2, Float3, Float4, Float3x3, Float4x4 } from "@stardazed/core";
 
 export function transferArrayBuffer(oldBuffer: ArrayBuffer, newByteLength: number) {
 	const oldByteLength = oldBuffer.byteLength;
@@ -100,7 +100,7 @@ export function setIndexedVec2(data: TypedArray, index: number, v2: Float2) {
 	data[offset + 1] = v2[1];
 }
 
-export function copyVec2FromOffset(data: TypedArray, offset: number): Float2 {
+export function copyVec2FromOffset(data: TypedArray, offset: number): number[] {
 	return [data[offset], data[offset + 1]];
 }
 
@@ -128,7 +128,7 @@ export function setIndexedVec3(data: TypedArray, index: number, v3: Float3) {
 	data[offset + 2] = v3[2];
 }
 
-export function copyVec3FromOffset(data: TypedArray, offset: number): Float3 {
+export function copyVec3FromOffset(data: TypedArray, offset: number): number[] {
 	return [data[offset], data[offset + 1], data[offset + 2]];
 }
 
@@ -158,7 +158,7 @@ export function setIndexedVec4(data: TypedArray, index: number, v4: Float4) {
 	data[offset + 3] = v4[3];
 }
 
-export function copyVec4FromOffset(data: TypedArray, offset: number): Float4 {
+export function copyVec4FromOffset(data: TypedArray, offset: number): number[] {
 	return [data[offset], data[offset + 1], data[offset + 2], data[offset + 3]];
 }
 

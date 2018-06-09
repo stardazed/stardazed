@@ -4,7 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "@stardazed/core";
+import { NumArray as ACN, MutNumArray as AN } from "@stardazed/core";
 import * as vec4 from "./vec4";
 export declare const ELEMENT_COUNT = 4;
 export declare function create(): Float32Array;
@@ -55,3 +55,4 @@ export declare function fromEuler(yaw: number, pitch: number, roll: number): Flo
 export declare function str(a: ACN): string;
 export declare const exactEquals: typeof vec4.exactEquals;
 export declare const equals: typeof vec4.equals;
+//# sourceMappingURL=quat.d.ts.map

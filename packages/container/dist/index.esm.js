@@ -40,7 +40,7 @@ function override(dest, source, keys) {
     return dest;
 }
 /**
- * Map each keyed propertiy of obj using the provided function returning a new object.
+ * Map each keyed property of obj using the provided function returning a new object.
  * @param obj The source object to convert
  * @param mapper A conversion function that takes each keyed prop of obj and returns a converted value
  */
@@ -86,121 +86,59 @@ function groupFieldsBy(group, ts) {
     }, {});
 }
 /**
- * Standard string sort comparison function, used when comparing
- * multiple string fields together or when using non-standars sort.
- * @param a left string to compare
- * @param b right string to compare
+ * Make a lowerBound function for a specific data type.
+ * @see lowerBound
+ * @returns a lowerBound function specialized with the specified comparator
  */
-function stringOrder(a, b) {
-    return a < b ? -1 : ((a === b) ? 0 : 1);
-}
-/**
- * In-place stable insertion sort a range of elements inside an array
- * @internal
- * @param a The array to sort
- * @param l Left index (inclusive) inside {a} of the range to operate on
- * @param r Right index (exclusive) inside {a} of the range to operate on
- * @param pred Function that returns the relative order of 2 items
- */
-function insertionSortInternal(a, l, r, pred) {
-    const len = r - l;
-    for (let i = 1; i < len + 1; i++) {
-        const temp = a[i + l];
-        let j = i;
-        while ((j > 0) && (pred(a[j + l - 1], temp) > 0)) {
-            a[j + l] = a[j + l - 1];
-            j -= 1;
+const makeLowerBound = (comp) => (array, value) => {
+    let count = array.length;
+    let it;
+    let first = 0;
+    while (count > 0) {
+        const step = count >> 1;
+        it = first + step;
+        if (comp(array[it], value)) {
+            first = ++it;
+            count -= step + 1;
         }
-        a[j + l] = temp;
-    }
-}
-/**
- * In-place stable insertion sort for homogeneous standard arrays.
- * @param a The array to be sorted (in-place)
- * @param pred Function that returns the relative order of 2 items
- * @returns The sorted array
- */
-function insertionSort(a, pred) {
-    insertionSortInternal(a, 0, a.length - 1, pred);
-    return a;
-}
-/**
- * Standard merge of two sorted half arrays into a single sorted array.
- * @internal
- * @param merged Destination array
- * @param start Index into {merged} to start inserting
- * @param left Left range of items
- * @param startLeft Index into {left} to start from
- * @param sizeLeft Count of items in {left} to process
- * @param right Right range of items
- * @param startRight Index into {right} to start from
- * @param sizeRight Count of items in {right} to process
- * @param pred Function that returns the relative order of 2 items
- */
-function merge(merged, start, left, startLeft, sizeLeft, right, startRight, sizeRight, pred) {
-    const totalSize = sizeLeft + sizeRight;
-    const endMerged = start + totalSize;
-    const endLeft = startLeft + sizeLeft;
-    const endRight = startRight + sizeRight;
-    for (let i = startLeft, j = startRight, k = start; k < endMerged; k++) {
-        // if reached end of first half array, run through the loop 
-        // filling in only from the second half array
-        if (i === endLeft) {
-            merged[k] = right[j++];
-            continue;
+        else {
+            count = step;
         }
-        // if reached end of second half array, run through the loop 
-        // filling in only from the first half array
-        if (j === endRight) {
-            merged[k] = left[i++];
-            continue;
+    }
+    return first;
+};
+/**
+ * Make an upperBound function for a specific data type.
+ * @see upperBound
+ * @returns an upperBound function specialized with the specified comparator
+ */
+const makeUpperBound = (comp) => (array, value) => {
+    let count = array.length;
+    let it;
+    let first = 0;
+    while (count > 0) {
+        const step = count >> 1;
+        it = first + step;
+        if (!comp(value, array[it])) {
+            first = ++it;
+            count -= step + 1;
         }
-        // merged array is filled with the smaller or equal element of the two 
-        // arrays, in order, ensuring a stable sort
-        merged[k] = (pred(left[i], right[j]) <= 0) ?
-            left[i++] : right[j++];
+        else {
+            count = step;
+        }
     }
-}
+    return first;
+};
 /**
- * Merge sort data during merging without the additional copying back to array.
- * All data movement is done during the course of the merges.
- * @internal
- * @param a Source array
- * @param b Duplicate of source array
- * @param l Left index (inclusive) inside {a} of the range to operate on
- * @param r Right index (exclusive) inside {a} of the range to operate on
- * @param pred Function that returns the relative order of 2 items
+ * Returns an index pointing to the first element in the array that is not less than
+ * (i.e. greater or equal to) value, or array.length if no such element is found.
  */
-function mergeSortInternal(a, b, l, r, pred) {
-    if (r <= l) {
-        return;
-    }
-    if (r - l <= 10) {
-        insertionSortInternal(a, l, r, pred);
-        return;
-    }
-    const m = ((l + r) / 2) >>> 0;
-    // switch arrays to msort b thus recursively writing results to b
-    mergeSortInternal(b, a, l, m, pred); // merge sort left
-    mergeSortInternal(b, a, m + 1, r, pred); // merge sort right
-    // merge partitions of b into a
-    merge(a, l, b, l, m - l + 1, b, m + 1, r - m, pred); // merge
-}
+const lowerBound = makeLowerBound((a, b) => a < b);
 /**
- * In-place stable merge sort for homogeneous standard arrays.
- * @param a The array to be sorted (in-place)
- * @param pred Function that returns the relative order of 2 items
- * @returns The sorted array
+ * Returns an index pointing to the first element in the array that is greater than value,
+ * or array.length if no such element is found.
  */
-function mergeSort(a, pred) {
-    const b = a.slice(0);
-    mergeSortInternal(a, b, 0, a.length - 1, pred);
-    return a;
-}
-/**
- * @alias The common stable sort algorithm.
- */
-const stableSort = mergeSort;
+const upperBound = makeUpperBound((a, b) => a < b);
 /**
  * Remove all duplicates found in the source array leaving only the first
  * instance of each individual element, leaving the order of the remaining
@@ -220,6 +158,41 @@ function stableUnique(arr, idGen) {
         return true;
     });
 }
+/**
+ * Deep clone an object. Use only for simple struct types.
+ * @param object The object to clone
+ */
+function cloneStructDeep(object) {
+    const copy = {};
+    Object.getOwnPropertyNames(object).forEach(name => {
+        if (typeof object[name] === "object" && object[name] !== null) {
+            copy[name] = cloneStructDeep(object[name]);
+        }
+        else {
+            copy[name] = object[name];
+        }
+    });
+    return copy;
+}
+/**
+ * Returns the count of properties in an object.
+ * @param obj Any object
+ */
+function propertyCount(obj) {
+    return Object.getOwnPropertyNames(obj).length;
+}
+/**
+ * Create an immutable object that acts as a lookup table with numerical keys, such as (const) enum values.
+ * @param keyVals Alternating key, value pairs
+ */
+function makeLUT(...keyVals) {
+    const lut = {};
+    const count = keyVals.length;
+    for (let i = 0; i < count; i += 2) {
+        lut[keyVals[i]] = keyVals[i + 1];
+    }
+    return Object.freeze(lut);
+}
 
 /**
  * container/array - helpers to manage mostly dynamic typed arrays
@@ -227,6 +200,36 @@ function stableUnique(arr, idGen) {
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
+function transferArrayBuffer(oldBuffer, newByteLength) {
+    const oldByteLength = oldBuffer.byteLength;
+    newByteLength = newByteLength | 0;
+    if (newByteLength < oldByteLength) {
+        return oldBuffer.slice(0, newByteLength);
+    }
+    const oldBufferView = new Uint8Array(oldBuffer);
+    const newBufferView = new Uint8Array(newByteLength); // also creates new ArrayBuffer
+    newBufferView.set(oldBufferView);
+    return newBufferView.buffer;
+}
+function clearArrayBuffer(data) {
+    const numDoubles = (data.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
+    const doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
+    const remainingBytes = data.byteLength - doublesByteSize;
+    const doubleView = new Float64Array(data);
+    const remainderView = new Uint8Array(data, doublesByteSize);
+    if (doubleView.fill) {
+        doubleView.fill(0);
+    }
+    else {
+        // As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
+        for (let d = 0; d < numDoubles; ++d) {
+            doubleView[d] = 0;
+        }
+    }
+    for (let b = 0; b < remainingBytes; ++b) {
+        remainderView[b] = 0;
+    }
+}
 function copyElementRange(dest, destOffset, src, srcOffset, srcCount) {
     for (let ix = 0; ix < srcCount; ++ix) {
         dest[destOffset++] = src[srcOffset++];
@@ -469,25 +472,6 @@ function alignMABFields(fields) {
     });
     return { posFields, totalSizeBytes: totalOffset };
 }
-function clearBuffer(data) {
-    const numDoubles = (data.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
-    const doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
-    const remainingBytes = data.byteLength - doublesByteSize;
-    const doubleView = new Float64Array(data);
-    const remainderView = new Uint8Array(data, doublesByteSize);
-    if (doubleView.fill) {
-        doubleView.fill(0);
-    }
-    else {
-        // As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
-        for (let d = 0; d < numDoubles; ++d) {
-            doubleView[d] = 0;
-        }
-    }
-    for (let b = 0; b < remainingBytes; ++b) {
-        remainderView[b] = 0;
-    }
-}
 class FixedMultiArray {
     constructor(capacity_, fields) {
         this.capacity_ = capacity_;
@@ -501,7 +485,7 @@ class FixedMultiArray {
     get capacity() { return this.capacity_; }
     get data() { return this.data_; }
     clear() {
-        clearBuffer(this.data_);
+        clearArrayBuffer(this.data_);
     }
     indexedFieldView(index) {
         return this.basePointers_[index];
@@ -573,7 +557,7 @@ class MultiArrayBuffer {
     }
     clear() {
         this.count_ = 0;
-        clearBuffer(this.data_);
+        clearArrayBuffer(this.data_);
     }
     resize(newCount) {
         let invalidation = 0 /* No */;
@@ -627,7 +611,7 @@ class FixedStructArray {
     get capacity() { return this.capacity_; }
     get data() { return this.data_; }
     clear() {
-        clearBuffer(this.data_);
+        clearArrayBuffer(this.data_);
     }
 }
 
@@ -735,63 +719,144 @@ class Deque {
 }
 
 /**
+ * container/sort - sorting algorithms
+ * Part of Stardazed
+ * (c) 2015-Present by Arthur Langereis - @zenmumbler
+ * https://github.com/stardazed/stardazed
+ */
+/**
+ * Standard (string) sort comparison function, used when comparing
+ * multiple string fields together or when using non-standard sort.
+ * @param a left string to compare
+ * @param b right string to compare
+ */
+function genericOrder(a, b) {
+    return a < b ? -1 : ((a === b) ? 0 : 1);
+}
+/**
+ * In-place stable insertion sort a range of elements inside an array
+ * @internal
+ * @param a The array to sort
+ * @param l Left index (inclusive) inside {a} of the range to operate on
+ * @param r Right index (exclusive) inside {a} of the range to operate on
+ * @param pred Function that returns the relative order of 2 items
+ */
+function insertionSortInternal(a, l, r, pred) {
+    const len = r - l;
+    for (let i = 1; i < len + 1; i++) {
+        const temp = a[i + l];
+        let j = i;
+        while ((j > 0) && (pred(a[j + l - 1], temp) > 0)) {
+            a[j + l] = a[j + l - 1];
+            j -= 1;
+        }
+        a[j + l] = temp;
+    }
+}
+/**
+ * In-place stable insertion sort for homogeneous standard arrays.
+ * @param a The array to be sorted (in-place)
+ * @param pred Function that returns the relative order of 2 items
+ * @returns The sorted array
+ */
+function insertionSort(a, pred) {
+    insertionSortInternal(a, 0, a.length - 1, pred);
+    return a;
+}
+/**
+ * Standard merge of two sorted half arrays into a single sorted array.
+ * @internal
+ * @param merged Destination array
+ * @param start Index into {merged} to start inserting
+ * @param left Left range of items
+ * @param startLeft Index into {left} to start from
+ * @param sizeLeft Count of items in {left} to process
+ * @param right Right range of items
+ * @param startRight Index into {right} to start from
+ * @param sizeRight Count of items in {right} to process
+ * @param pred Function that returns the relative order of 2 items
+ */
+function merge(merged, start, left, startLeft, sizeLeft, right, startRight, sizeRight, pred) {
+    const totalSize = sizeLeft + sizeRight;
+    const endMerged = start + totalSize;
+    const endLeft = startLeft + sizeLeft;
+    const endRight = startRight + sizeRight;
+    for (let i = startLeft, j = startRight, k = start; k < endMerged; k++) {
+        // if reached end of first half array, run through the loop 
+        // filling in only from the second half array
+        if (i === endLeft) {
+            merged[k] = right[j++];
+            continue;
+        }
+        // if reached end of second half array, run through the loop 
+        // filling in only from the first half array
+        if (j === endRight) {
+            merged[k] = left[i++];
+            continue;
+        }
+        // merged array is filled with the smaller or equal element of the two 
+        // arrays, in order, ensuring a stable sort
+        merged[k] = (pred(left[i], right[j]) <= 0) ?
+            left[i++] : right[j++];
+    }
+}
+/**
+ * Merge sort data during merging without the additional copying back to array.
+ * All data movement is done during the course of the merges.
+ * @internal
+ * @param a Source array
+ * @param b Duplicate of source array
+ * @param l Left index (inclusive) inside {a} of the range to operate on
+ * @param r Right index (exclusive) inside {a} of the range to operate on
+ * @param pred Function that returns the relative order of 2 items
+ */
+function mergeSortInternal(a, b, l, r, pred) {
+    if (r <= l) {
+        return;
+    }
+    if (r - l <= 10) {
+        insertionSortInternal(a, l, r, pred);
+        return;
+    }
+    const m = ((l + r) / 2) >>> 0;
+    // switch arrays to msort b thus recursively writing results to b
+    mergeSortInternal(b, a, l, m, pred); // merge sort left
+    mergeSortInternal(b, a, m + 1, r, pred); // merge sort right
+    // merge partitions of b into a
+    merge(a, l, b, l, m - l + 1, b, m + 1, r - m, pred); // merge
+}
+/**
+ * In-place stable merge sort for homogeneous standard arrays.
+ * @param a The array to be sorted (in-place)
+ * @param pred Function that returns the relative order of 2 items
+ * @returns The sorted array
+ */
+function mergeSort(a, pred) {
+    const b = a.slice(0);
+    mergeSortInternal(a, b, 0, a.length - 1, pred);
+    return a;
+}
+/**
+ * @alias mergeSort The common stable sort algorithm.
+ */
+const stableSort = mergeSort;
+
+/**
  * container/sortedarray - always-sorted array type
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-function lowerBound(array, value) {
-    let count = array.length;
-    let it;
-    let first = 0;
-    while (count > 0) {
-        const step = count >> 1;
-        it = first + step;
-        if (array[it] < value) {
-            first = ++it;
-            count -= step + 1;
-        }
-        else {
-            count = step;
-        }
-    }
-    return first;
-}
-function upperBound(array, value) {
-    let count = array.length;
-    let it;
-    let first = 0;
-    while (count > 0) {
-        const step = count >> 1;
-        it = first + step;
-        if (array[it] <= value) {
-            first = ++it;
-            count -= step + 1;
-        }
-        else {
-            count = step;
-        }
-    }
-    return first;
-}
 class SortedArray {
-    constructor(source, compareFn_) {
-        this.compareFn_ = compareFn_;
+    constructor(source, compareFn) {
+        this.compareFn_ = compareFn || genericOrder;
         this.data_ = source ? source.slice(0) : [];
         if (source) {
             this.sort();
         }
     }
     sort() {
-        if (this.data_.length < 2) {
-            return;
-        }
-        const t0 = this.data_[0];
-        let cmp = this.compareFn_;
-        if (cmp === undefined && typeof t0 !== "string") {
-            cmp = (a, b) => (a < b) ? -1 : ((a > b) ? 1 : 0);
-        }
-        this.data_.sort(cmp);
+        stableSort(this.data_, this.compareFn_);
     }
     insert(value) {
         const successor = lowerBound(this.data_, value);
@@ -824,5 +889,5 @@ class SortedArray {
  * https://github.com/stardazed/stardazed
  */
 
-export { hashString, override, mapObject, groupFieldsBy, stringOrder, insertionSort, mergeSort, stableSort, stableUnique, copyElementRange, fill, appendArrayInPlace, refIndexedVec2, copyIndexedVec2, setIndexedVec2, copyVec2FromOffset, setVec2AtOffset, offsetOfIndexedVec2, refIndexedVec3, copyIndexedVec3, setIndexedVec3, copyVec3FromOffset, setVec3AtOffset, offsetOfIndexedVec3, refIndexedVec4, copyIndexedVec4, setIndexedVec4, copyVec4FromOffset, setVec4AtOffset, offsetOfIndexedVec4, refIndexedMat3, copyIndexedMat3, setIndexedMat3, offsetOfIndexedMat3, refIndexedMat4, copyIndexedMat4, setIndexedMat4, offsetOfIndexedMat4, FixedMultiArray, MultiArrayBuffer, FixedStructArray, Deque, lowerBound, upperBound, SortedArray };
+export { hashString, override, mapObject, groupFieldsBy, makeLowerBound, makeUpperBound, lowerBound, upperBound, stableUnique, cloneStructDeep, propertyCount, makeLUT, transferArrayBuffer, clearArrayBuffer, copyElementRange, fill, appendArrayInPlace, refIndexedVec2, copyIndexedVec2, setIndexedVec2, copyVec2FromOffset, setVec2AtOffset, offsetOfIndexedVec2, refIndexedVec3, copyIndexedVec3, setIndexedVec3, copyVec3FromOffset, setVec3AtOffset, offsetOfIndexedVec3, refIndexedVec4, copyIndexedVec4, setIndexedVec4, copyVec4FromOffset, setVec4AtOffset, offsetOfIndexedVec4, refIndexedMat3, copyIndexedMat3, setIndexedMat3, offsetOfIndexedMat3, refIndexedMat4, copyIndexedMat4, setIndexedMat4, offsetOfIndexedMat4, FixedMultiArray, MultiArrayBuffer, FixedStructArray, Deque, genericOrder, insertionSort, mergeSort, stableSort, SortedArray };
 //# sourceMappingURL=index.esm.js.map

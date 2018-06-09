@@ -32,18 +32,18 @@ export type MutNumArray = MutableArrayLike<number>;
 
 
 // types to use in function signatures to not have (Mut)NumArray everywhere
-export type Float2 = MutNumArray;
-export type Float3 = MutNumArray;
-export type Float4 = MutNumArray;
+export type MutFloat2 = MutNumArray;
+export type MutFloat3 = MutNumArray;
+export type MutFloat4 = MutNumArray;
 
-export type Float2x2 = MutNumArray;
-export type Float3x3 = MutNumArray;
-export type Float4x4 = MutNumArray;
+export type MutFloat2x2 = MutNumArray;
+export type MutFloat3x3 = MutNumArray;
+export type MutFloat4x4 = MutNumArray;
 
-export type ConstFloat2 = NumArray;
-export type ConstFloat3 = NumArray;
-export type ConstFloat4 = NumArray;
+export type Float2 = NumArray;
+export type Float3 = NumArray;
+export type Float4 = NumArray;
 
-export type ConstFloat2x2 = NumArray;
-export type ConstFloat3x3 = NumArray;
-export type ConstFloat4x4 = NumArray;
+export type Float2x2 = NumArray;
+export type Float3x3 = NumArray;
+export type Float4x4 = NumArray;

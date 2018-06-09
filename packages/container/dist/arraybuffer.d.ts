@@ -11,7 +11,7 @@ export interface MABField {
 }
 export declare const enum InvalidatePointers {
     No = 0,
-    Yes = 1,
+    Yes = 1
 }
 export declare class FixedMultiArray {
     private capacity_;
@@ -33,7 +33,7 @@ export declare class MultiArrayBuffer {
     readonly capacity: number;
     readonly count: number;
     readonly backIndex: number;
-    private fieldArrayView(f, buffer, itemCount);
+    private fieldArrayView;
     reserve(newCapacity: number): InvalidatePointers;
     clear(): void;
     resize(newCount: number): InvalidatePointers;
@@ -53,3 +53,4 @@ export declare class FixedStructArray {
     readonly data: ArrayBuffer;
     clear(): void;
 }
+//# sourceMappingURL=arraybuffer.d.ts.map

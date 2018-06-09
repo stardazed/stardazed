@@ -273,7 +273,7 @@ namespace sd.render.gl1 {
 			}
 		}
 
-		setClearColour(rgba: ConstFloat4) {
+		setClearColour(rgba: Float4) {
 			if (! vec4.exactEquals(rgba, this.clearColour_)) {
 				vec4.copy(this.clearColour_, rgba);
 				this.gl.clearColor(rgba[0], rgba[1], rgba[2], rgba[3]);

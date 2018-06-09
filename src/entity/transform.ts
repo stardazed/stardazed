@@ -39,9 +39,9 @@ namespace sd.entity {
 		private localMatrixBase_!: Float32Array;
 		private worldMatrixBase_!: Float32Array;
 
-		private readonly defaultPos_: ConstFloat3 = vec3.zero();
-		private readonly defaultRot_: ConstFloat4 = quat.create();
-		private readonly defaultScale_: ConstFloat3 = vec3.one();
+		private readonly defaultPos_: Float3 = vec3.zero();
+		private readonly defaultRot_: Float4 = quat.create();
+		private readonly defaultScale_: Float3 = vec3.one();
 
 		constructor() {
 			const instanceFields: container.MABField[] = [
@@ -240,7 +240,7 @@ namespace sd.entity {
 		// two overloads: one with new matrix, one with transform components
 		setLocalMatrix(inst: TransformInstance, newLocalMatrix: Float4x4): void;
 		setLocalMatrix(inst: TransformInstance, newRotation: Float4, newPosition: Float3, newScale: Float3): void;
-		setLocalMatrix(inst: TransformInstance, localMatOrRot: MutNumArray, newPosition?: Float3, newScale?: Float3) {
+		setLocalMatrix(inst: TransformInstance, localMatOrRot: NumArray, newPosition?: Float3, newScale?: Float3) {
 			const localMat = container.refIndexedMat4(this.localMatrixBase_, inst as number);
 			if (arguments.length === 4) {
 				mat4.fromRotationTranslationScale(localMat, localMatOrRot, newPosition!, newScale!);

@@ -4,7 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { ArrayOfConstNumber, ArrayOfNumber } from "@stardazed/core";
+import { NumArray, MutNumArray } from "@stardazed/core";
 export declare const EPSILON = 0.000001;
 export declare function clamp(n: number, min: number, max: number): number;
 export declare function clamp01(n: number): number;
@@ -23,4 +23,5 @@ export interface VecArrayIterationOptions {
     offset?: number;
     count?: number;
 }
-export declare type VecArrayIterationFunction = (out: ArrayOfNumber, a: ArrayOfConstNumber, ...args: any[]) => void;
+export declare type VecArrayIterationFunction = (out: MutNumArray, a: NumArray, ...args: any[]) => void;
+//# sourceMappingURL=common.d.ts.map

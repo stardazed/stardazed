@@ -52,3 +52,4 @@ export declare const Float: NumericType;
  * Traits of 64-bit floating point numbers.
  */
 export declare const Double: NumericType;
+//# sourceMappingURL=numeric.d.ts.map

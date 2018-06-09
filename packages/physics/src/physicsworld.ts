@@ -5,15 +5,15 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { ConstFloat3, ConstFloat4, Float3 } from "@stardazed/core";
+import { Float3, Float4 } from "@stardazed/core";
 import { vec3 } from "@stardazed/math";
 import { PhysicsShape } from "./shapes";
 
 export interface PhysicsConfig {
 	broadphaseSize: "small" | "large";
-	worldMin: number | ConstFloat3;
-	worldMax: number | ConstFloat3;
-	gravity: number | ConstFloat3;
+	worldMin: number | Float3;
+	worldMax: number | Float3;
+	gravity: number | Float3;
 	defaultLinearDrag: number;
 	defaultAngularDrag: number;
 	defaultFriction: number;
@@ -22,8 +22,8 @@ export interface PhysicsConfig {
 
 export interface RaycastHit {
 	collisionObject: Ammo.btCollisionObjectConst;
-	hitPointWorld: Float3;
-	hitNormalWorld: Float3;
+	hitPointWorld: number[];
+	hitNormalWorld: number[];
 	hitFraction: number;
 }
 
@@ -46,8 +46,8 @@ export interface RigidBodyDescriptor {
 	isTrigger?: boolean;
 	isKinematic?: boolean;
 	isScripted?: boolean;
-	worldPos?: ConstFloat3;
-	worldRot?: ConstFloat4;
+	worldPos?: Float3;
+	worldRot?: Float4;
 	linearDrag?: number;
 	angularDrag?: number;
 	friction?: number; // Bullet/Ammo does not support separate values for static and dynamic friction
@@ -60,16 +60,16 @@ export interface RigidBodyDescriptor {
 
 export interface GhostDescriptor {
 	shape: PhysicsShape;
-	worldPos?: ConstFloat3;
-	worldRot?: ConstFloat4;
+	worldPos?: Float3;
+	worldRot?: Float4;
 }
 
 /*
 export interface CharacterDescriptor {
 	shape: PhysicsShape;
 	stepHeight: number;
-	worldPos?: ConstFloat3;
-	worldRot?: ConstFloat4;
+	worldPos?: Float3;
+	worldRot?: Float4;
 }
 */
 

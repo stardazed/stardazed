@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { Float3, ConstFloat3, NumArray } from "@stardazed/core";
+import { Float3, NumArray } from "@stardazed/core";
 
 export const enum PhysicsShapeType {
 	None,
@@ -24,14 +24,14 @@ export interface BoxShapeDescriptor {
 	type: PhysicsShapeType.Box;
 	halfExtents: Float3;
 	margin?: number;
-	scale?: ConstFloat3;
+	scale?: Float3;
 }
 
 export interface SphereShapeDescriptor {
 	type: PhysicsShapeType.Sphere;
 	radius: number;
 	margin?: number;
-	scale?: ConstFloat3;
+	scale?: Float3;
 }
 
 export interface CapsuleShapeDescriptor {
@@ -40,15 +40,15 @@ export interface CapsuleShapeDescriptor {
 	height: number;
 	orientation: Ammo.AxisIndex;
 	margin?: number;
-	scale?: ConstFloat3;
+	scale?: Float3;
 }
 
 export interface CylinderShapeDescriptor {
 	type: PhysicsShapeType.Cylinder;
-	halfExtents: ConstFloat3;
+	halfExtents: Float3;
 	orientation: Ammo.AxisIndex;
 	margin?: number;
-	scale?: ConstFloat3;
+	scale?: Float3;
 }
 
 export interface ConeShapeDescriptor {
@@ -56,14 +56,14 @@ export interface ConeShapeDescriptor {
 	radius: number;
 	height: number;
 	orientation: Ammo.AxisIndex;
-	scale?: ConstFloat3;
+	scale?: Float3;
 }
 
 export interface PlaneShapeDescriptor {
 	type: PhysicsShapeType.Plane;
-	planeNormal: ConstFloat3;
+	planeNormal: Float3;
 	planeConstant: number;
-	scale?: ConstFloat3;
+	scale?: Float3;
 }
 
 export interface ConvexHullShapeDescriptor {
@@ -71,7 +71,7 @@ export interface ConvexHullShapeDescriptor {
 	pointCount: number;
 	points: NumArray; // vec3s laid out linearly
 	margin?: number;
-	scale?: ConstFloat3;
+	scale?: Float3;
 }
 
 export interface MeshShapeDescriptor {
@@ -80,7 +80,7 @@ export interface MeshShapeDescriptor {
 	subMeshIndex?: number;
 	convex?: boolean;
 	margin?: number; // convex meshes only
-	scale?: ConstFloat3;
+	scale?: Float3;
 }
 
 export interface HeightFieldShapeDescriptor {
@@ -93,7 +93,7 @@ export interface HeightFieldShapeDescriptor {
 	heightScale?: number;
 	orientation?: Ammo.AxisIndex;
 	margin?: number;
-	scale?: ConstFloat3;
+	scale?: Float3;
 
 	// TODO: finish later
 }
