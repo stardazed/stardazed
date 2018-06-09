@@ -32,8 +32,8 @@ namespace sd.render {
 		getValue(ed: EffectData, name: string): number | undefined;
 		setValue(ed: EffectData, name: string, val: number): void;
 
-		getVector(ed: EffectData, name: string, out: ArrayOfNumber): ArrayOfNumber | undefined;
-		setVector(ed: EffectData, name: string, vec: ArrayOfConstNumber): void;
+		getVector(ed: EffectData, name: string, out: MutNumArray): MutNumArray | undefined;
+		setVector(ed: EffectData, name: string, vec: NumArray): void;
 	}
 
 	export interface EffectRegistry {

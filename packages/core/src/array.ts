@@ -27,23 +27,23 @@ export interface MutableArrayLike<T> {
 	[n: number]: T;
 }
 
-export type ArrayOfConstNumber = ArrayLike<number>;
-export type ArrayOfNumber = MutableArrayLike<number>;
+export type NumArray = ArrayLike<number>;
+export type MutNumArray = MutableArrayLike<number>;
 
 
-// types to use in function signatures to not have ArrayOfNumber everywhere
-export type Float2 = ArrayOfNumber;
-export type Float3 = ArrayOfNumber;
-export type Float4 = ArrayOfNumber;
+// types to use in function signatures to not have (Mut)NumArray everywhere
+export type Float2 = MutNumArray;
+export type Float3 = MutNumArray;
+export type Float4 = MutNumArray;
 
-export type Float2x2 = ArrayOfNumber;
-export type Float3x3 = ArrayOfNumber;
-export type Float4x4 = ArrayOfNumber;
+export type Float2x2 = MutNumArray;
+export type Float3x3 = MutNumArray;
+export type Float4x4 = MutNumArray;
 
-export type ConstFloat2 = ArrayOfConstNumber;
-export type ConstFloat3 = ArrayOfConstNumber;
-export type ConstFloat4 = ArrayOfConstNumber;
+export type ConstFloat2 = NumArray;
+export type ConstFloat3 = NumArray;
+export type ConstFloat4 = NumArray;
 
-export type ConstFloat2x2 = ArrayOfConstNumber;
-export type ConstFloat3x3 = ArrayOfConstNumber;
-export type ConstFloat4x4 = ArrayOfConstNumber;
+export type ConstFloat2x2 = NumArray;
+export type ConstFloat3x3 = NumArray;
+export type ConstFloat4x4 = NumArray;

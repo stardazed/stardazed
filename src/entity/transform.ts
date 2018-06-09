@@ -240,7 +240,7 @@ namespace sd.entity {
 		// two overloads: one with new matrix, one with transform components
 		setLocalMatrix(inst: TransformInstance, newLocalMatrix: Float4x4): void;
 		setLocalMatrix(inst: TransformInstance, newRotation: Float4, newPosition: Float3, newScale: Float3): void;
-		setLocalMatrix(inst: TransformInstance, localMatOrRot: ArrayOfNumber, newPosition?: Float3, newScale?: Float3) {
+		setLocalMatrix(inst: TransformInstance, localMatOrRot: MutNumArray, newPosition?: Float3, newScale?: Float3) {
 			const localMat = container.refIndexedMat4(this.localMatrixBase_, inst as number);
 			if (arguments.length === 4) {
 				mat4.fromRotationTranslationScale(localMat, localMatOrRot, newPosition!, newScale!);

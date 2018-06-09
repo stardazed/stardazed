@@ -236,7 +236,7 @@ namespace sd.render.effect {
 			}
 		}
 
-		getVector(evd: EffectData, name: string, out: sd.ArrayOfNumber): sd.ArrayOfNumber | undefined {
+		getVector(evd: EffectData, name: string, out: sd.MutNumArray): sd.MutNumArray | undefined {
 			if (name === "tint") {
 				vec4.copy(out, (evd as StandardEffectData).tint);
 			}
@@ -248,7 +248,7 @@ namespace sd.render.effect {
 			}
 			return out;
 		}
-		setVector(evd: EffectData, name: string, vec: sd.ArrayOfConstNumber) {
+		setVector(evd: EffectData, name: string, vec: sd.NumArray) {
 			if (name === "tint") {
 				vec4.copy((evd as StandardEffectData).tint, vec);
 			}

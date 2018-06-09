@@ -87,8 +87,8 @@ group("geometry", () => {
 			let ib32: sd.geometry.IndexBuffer;
 
 			const compareRanges = (
-				a: sd.ArrayOfConstNumber, aFrom: number,
-				b: sd.ArrayOfConstNumber, bFrom: number,
+				a: sd.NumArray, aFrom: number,
+				b: sd.NumArray, bFrom: number,
 				count: number, prefix: string
 			) => {
 				for (let ix = 0; ix < count; ++ix) {

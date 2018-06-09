@@ -25,7 +25,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { ArrayOfConstNumber as ACN, ArrayOfNumber as AN } from "@stardazed/core";
+import { NumArray as ACN, MutNumArray as AN } from "@stardazed/core";
 import { EPSILON } from "./common";
 import { create as mat3Create } from "./mat3";
 import * as vec3 from "./vec3";

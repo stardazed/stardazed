@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert, NumericType, TypedArrayConstructor, TypedArray, ArrayOfConstNumber } from "@stardazed/core";
+import { assert, NumericType, TypedArrayConstructor, TypedArray, NumArray } from "@stardazed/core";
 import { PositionedAttribute, vertexFieldElementCount, vertexFieldNumericType, VertexField, VertexBuffer } from "@stardazed/geometry";
 
 export class VertexBufferAttributeView {
@@ -70,7 +70,7 @@ export class VertexBufferAttributeView {
 		}
 	}
 
-	copyValuesFrom(source: ArrayOfConstNumber, valueCount: number, offset = 0) {
+	copyValuesFrom(source: NumArray, valueCount: number, offset = 0) {
 		assert(this.fromVertex + offset + valueCount <= this.vertexCount, "buffer overflow");
 		assert(source.length >= valueCount * this.elementCount, "not enough elements in source");
 

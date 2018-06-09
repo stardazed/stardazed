@@ -138,10 +138,10 @@ namespace sd.render.effect {
 		setTexture(_evd: EffectData, _name: string, _tex: Texture | undefined) {
 		}
 
-		getVector(_evd: EffectData, _name: string, _out: sd.ArrayOfNumber): sd.ArrayOfNumber | undefined {
+		getVector(_evd: EffectData, _name: string, _out: sd.MutNumArray): sd.MutNumArray | undefined {
 			return undefined;
 		}
-		setVector(_evd: EffectData, _name: string, _vec: sd.ArrayOfConstNumber) {
+		setVector(_evd: EffectData, _name: string, _vec: sd.NumArray) {
 		}
 
 		getValue(_evd: EffectData, _name: string): number | undefined {

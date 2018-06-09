@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { ArrayOfConstNumber, ArrayOfNumber } from "@stardazed/core";
+import { NumArray, MutNumArray } from "@stardazed/core";
 
 // constants
 export const EPSILON = 0.000001;
@@ -81,4 +81,4 @@ export interface VecArrayIterationOptions {
 	count?: number;
 }
 
-export type VecArrayIterationFunction = (out: ArrayOfNumber, a: ArrayOfConstNumber, ...args: any[]) => void;
+export type VecArrayIterationFunction = (out: MutNumArray, a: NumArray, ...args: any[]) => void;

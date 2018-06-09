@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { Float3, ConstFloat3, ArrayOfConstNumber } from "@stardazed/core";
+import { Float3, ConstFloat3, NumArray } from "@stardazed/core";
 
 export const enum PhysicsShapeType {
 	None,
@@ -69,7 +69,7 @@ export interface PlaneShapeDescriptor {
 export interface ConvexHullShapeDescriptor {
 	type: PhysicsShapeType.ConvexHull;
 	pointCount: number;
-	points: ArrayOfConstNumber; // vec3s laid out linearly
+	points: NumArray; // vec3s laid out linearly
 	margin?: number;
 	scale?: ConstFloat3;
 }
@@ -113,7 +113,7 @@ export interface PhysicsShape {
 
 // ----
 
-function makeAmmoVec3(v3: ArrayOfConstNumber, offset = 0) {
+function makeAmmoVec3(v3: NumArray, offset = 0) {
 	return new Ammo.btVector3(v3[0 + offset], v3[1 + offset], v3[2 + offset]);
 }
 
