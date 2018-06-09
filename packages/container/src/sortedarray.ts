@@ -7,11 +7,14 @@
 
 import { lowerBound } from "./algorithm";
 import { appendArrayInPlace } from "./array";
+import { stableSort, genericOrder, CompareFn } from "./sort";
 
 export class SortedArray<T> {
 	private data_: T[];
+	private compareFn_: CompareFn<T>;
 
-	constructor(source?: T[], private compareFn_?: (a: T, b: T) => number) {
+	constructor(source?: T[], compareFn?: CompareFn<T>) {
+		this.compareFn_ = compareFn || genericOrder;
 		this.data_ = source ? source.slice(0) : [];
 		if (source) {
 			this.sort();
@@ -19,15 +22,7 @@ export class SortedArray<T> {
 	}
 
 	private sort() {
-		if (this.data_.length < 2) {
-			return;
-		}
-		const t0 = this.data_[0];
-		let cmp = this.compareFn_;
-		if (cmp === undefined && typeof t0 !== "string") {
-			cmp = (a: T, b: T) => (a < b) ? -1 : ((a > b) ? 1 : 0);
-		}
-		this.data_.sort(cmp);
+		stableSort(this.data_, this.compareFn_);
 	}
 
 	insert(value: T) {
