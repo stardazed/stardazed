@@ -9,4 +9,5 @@ export * from "./algorithm";
 export * from "./array";
 export * from "./arraybuffer";
 export * from "./deque";
+export * from "./sort";
 export * from "./sortedarray";
