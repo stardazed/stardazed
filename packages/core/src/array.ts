@@ -5,29 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert } from "./debug";
-
-// TODO: move this out
-export function arrayTransfer(oldBuffer: ArrayBuffer, newByteLength?: number) {
-	// This placeholder implementation cannot detach `oldBuffer`'s storage
-	// but `oldBuffer` is to be treated as a moved-from value in C++ terms
-	// after calling transfer.
-
-	const oldByteLength = oldBuffer.byteLength;
-	newByteLength = newByteLength! | 0;
-	assert(newByteLength > 0);
-
-	if (newByteLength < oldByteLength) {
-		return oldBuffer.slice(0, newByteLength);
-	}
-
-	const oldBufferView = new Uint8Array(oldBuffer);
-	const newBufferView = new Uint8Array(newByteLength); // also creates new ArrayBuffer
-	newBufferView.set(oldBufferView);
-
-	return newBufferView.buffer as ArrayBuffer;
-}
-
 export type TypedArrayConstructor =
 	Uint8ArrayConstructor | Uint8ClampedArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor |
 	Int8ArrayConstructor | Int16ArrayConstructor | Int32ArrayConstructor |

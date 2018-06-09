@@ -7,6 +7,21 @@
 
 import { Float2, Float3, Float3x3, Float4, Float4x4, MutableArrayLike, TypedArray } from "@stardazed/core";
 
+export function transferArrayBuffer(oldBuffer: ArrayBuffer, newByteLength: number) {
+	const oldByteLength = oldBuffer.byteLength;
+	newByteLength = newByteLength | 0;
+
+	if (newByteLength < oldByteLength) {
+		return oldBuffer.slice(0, newByteLength);
+	}
+
+	const oldBufferView = new Uint8Array(oldBuffer);
+	const newBufferView = new Uint8Array(newByteLength); // also creates new ArrayBuffer
+	newBufferView.set(oldBufferView);
+
+	return newBufferView.buffer as ArrayBuffer;
+}
+
 export function clearArrayBuffer(data: ArrayBuffer) {
 	const numDoubles = (data.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
 	const doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
