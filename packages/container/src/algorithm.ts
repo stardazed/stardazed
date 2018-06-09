@@ -49,7 +49,7 @@ export type MappingFunc<T, U> = (t: T, k: string) => U;
  * @param obj The source object to convert
  * @param mapper A conversion function that takes each keyed prop of obj and returns a converted value
  */
-export function mapObject<T, K extends keyof T, U>(obj: T, mapper: MappingFunc<T[K], U>) {
+export function mapObject<T, K extends Extract<keyof T, string>, U>(obj: T, mapper: MappingFunc<T[K], U>) {
 	const result = {} as Record<keyof T, U>;
 	for (const key in obj) {
 		if (obj.hasOwnProperty(key)) {
@@ -73,7 +73,7 @@ export interface GroupedItems<T extends object> {
  * @param group Name of the field in the items that will be used to group the other fields by
  * @param ts List of objects that have will be grouped by {{group}}
  */
-export function groupFieldsBy<T extends object, K extends keyof T>(group: K, ts: T[]) {
+export function groupFieldsBy<T extends object, K extends Extract<keyof T, string>>(group: K, ts: T[]) {
 	return ts.reduce((res, val) => {
 		const key = val[group] as any as string; // FIXME: check with TS group why K is not essentially a string
 		let coll: ArrayFields<T>;
