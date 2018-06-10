@@ -1,3 +1,9 @@
+/**
+ * geometry/vertex-buffer-layout - layout of attributes within a buffer
+ * Part of Stardazed
+ * (c) 2015-Present by Arthur Langereis - @zenmumbler
+ * https://github.com/stardazed/stardazed
+ */
 import { VertexAttribute, VertexAttributeRole } from "./vertex-attribute";
 export interface PositionedAttribute extends VertexAttribute {
     bufferIndex: number;

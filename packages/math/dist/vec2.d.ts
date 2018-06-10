@@ -85,4 +85,3 @@ export declare function forEach<T extends AN>(a: T, opt: VecArrayIterationOption
 export declare function str(a: ACN): string;
 export declare function exactEquals(a: ACN, b: ACN): boolean;
 export declare function equals(a: ACN, b: ACN): boolean;
-//# sourceMappingURL=vec2.d.ts.map

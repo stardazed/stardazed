@@ -53,4 +53,3 @@ export declare class FixedStructArray {
     readonly data: ArrayBuffer;
     clear(): void;
 }
-//# sourceMappingURL=arraybuffer.d.ts.map

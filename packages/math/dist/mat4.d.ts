@@ -92,4 +92,3 @@ export declare function multiplyScalarAndAdd(out: number[], a: ACN, b: ACN, scal
 export declare function multiplyScalarAndAdd<T extends AN>(out: T, a: ACN, b: ACN, scale: number): T;
 export declare function exactEquals(a: ACN, b: ACN): boolean;
 export declare function equals(a: ACN, b: ACN): boolean;
-//# sourceMappingURL=mat4.d.ts.map

@@ -1,3 +1,9 @@
+/**
+ * image/pixelformat - pixel formats and traits
+ * Part of Stardazed
+ * (c) 2015-Present by Arthur Langereis - @zenmumbler
+ * https://github.com/stardazed/stardazed
+ */
 export declare const enum PixelFormat {
     None = 0,
     R8 = 1,
@@ -24,7 +30,7 @@ export declare const enum PixelFormat {
     RGB_DXT1 = 256,
     RGBA_DXT1 = 257,
     RGBA_DXT3 = 258,
-    RGBA_DXT5 = 259,
+    RGBA_DXT5 = 259
 }
 export declare function pixelFormatIsCompressed(format: PixelFormat): boolean;
 export declare function pixelFormatIsDepthFormat(format: PixelFormat): boolean;

@@ -17,12 +17,12 @@ export declare function size(min: Float3, max: Float3): number[];
 export declare function extents(min: Float3, max: Float3): number[];
 export declare function center(min: Float3, max: Float3): number[];
 export declare function transformMat3(destMin: MutFloat3, destMax: MutFloat3, sourceMin: Float3, sourceMax: Float3, mat: Float3x3): void;
-export declare function transformMat4(destMin: MutFloat3, destMax: Float3, sourceMin: Float3, sourceMax: Float3, mat: Float4x4): void;
+export declare function transformMat4(destMin: MutFloat3, destMax: MutFloat3, sourceMin: Float3, sourceMax: Float3, mat: Float4x4): void;
 export declare class AABB {
     min: Float32Array;
     max: Float32Array;
     constructor();
-    constructor(min: MutFloat3, max: MutFloat3);
+    constructor(min: Float3, max: Float3);
     static fromCenterAndSize(center: Float3, size: Float3): AABB;
     setCenterAndSize(center: Float3, size: Float3): void;
     setMinAndMax(min: Float3, max: Float3): void;
@@ -36,4 +36,3 @@ export declare class AABB {
     intersectsAABB(bounds: AABB): boolean;
     closestPoint(pt: Float3): number[];
 }
-//# sourceMappingURL=aabb.d.ts.map

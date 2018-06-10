@@ -95,4 +95,3 @@ export declare function angle(a: ACN, b: ACN): number;
 export declare function str(a: ACN): string;
 export declare function exactEquals(a: ACN, b: ACN): boolean;
 export declare function equals(a: ACN, b: ACN): boolean;
-//# sourceMappingURL=vec3.d.ts.map

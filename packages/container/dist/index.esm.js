@@ -1,3 +1,6 @@
+import { assert } from '@stardazed/core';
+import { alignUp, roundUpPowerOf2 } from '@stardazed/math';
+
 /**
  * container/algorithm - some container-oriented algorithms
  * Part of Stardazed
@@ -383,51 +386,6 @@ function setIndexedMat4(data, index, m4) {
     data[offset + 15] = m4[15];
 }
 function offsetOfIndexedMat4(index) { return (index * 16) | 0; }
-
-/**
- * core/debug - debugging helpers
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
-/**
- * asserts a condition to be true or throw an error otherwise
- * @param cond A condition that can be evaluated to true or false
- * @param msg Error message that will be thrown if cond is false
- */
-function assert(cond, msg) {
-    if (!cond) {
-        console.error(msg || "assertion failed");
-        throw new Error(msg || "assertion failed");
-    }
-}
-
-/**
- * math/common - shared elements
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
-// roundUpPowerOf2
-// return closest powerOf2 number that is >= n
-// e.g.: 15 -> 16; 16 -> 16; 17 -> 32
-function roundUpPowerOf2(n) {
-    if (n <= 0) {
-        return 1;
-    }
-    n = (n | 0) - 1;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-    return n + 1;
-}
-// alignUp
-// round val up to closest alignmentPow2
-function alignUp(val, alignmentPow2) {
-    return (val + alignmentPow2 - 1) & (~(alignmentPow2 - 1));
-}
 
 /**
  * container/arraybuffer - arrays of structs and structs of arrays (numeric data only)

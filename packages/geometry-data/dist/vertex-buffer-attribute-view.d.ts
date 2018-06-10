@@ -4,7 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { TypedArray, ArrayOfConstNumber } from "@stardazed/core";
+import { TypedArray, NumArray } from "@stardazed/core";
 import { PositionedAttribute, VertexBuffer } from "@stardazed/geometry";
 export declare class VertexBufferAttributeView {
     private readonly vertexBuffer_;
@@ -20,7 +20,7 @@ export declare class VertexBufferAttributeView {
     readonly elementCount: number;
     constructor(vertexBuffer: VertexBuffer, attr: PositionedAttribute, fromVertex?: number, toVertex?: number);
     forEach(callback: (item: TypedArray) => void): void;
-    copyValuesFrom(source: ArrayOfConstNumber, valueCount: number, offset?: number): void;
+    copyValuesFrom(source: NumArray, valueCount: number, offset?: number): void;
     refItem(index: number): TypedArray;
     copyItem(index: number): number[];
     subView(fromVertex: number, toVertex: number): VertexBufferAttributeView;

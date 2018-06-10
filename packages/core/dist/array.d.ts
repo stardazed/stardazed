@@ -30,4 +30,3 @@ export declare type Float4 = NumArray;
 export declare type Float2x2 = NumArray;
 export declare type Float3x3 = NumArray;
 export declare type Float4x4 = NumArray;
-//# sourceMappingURL=array.d.ts.map

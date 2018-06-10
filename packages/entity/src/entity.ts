@@ -5,8 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { arrayTransfer } from "@stardazed/core";
-import { Deque } from "@stardazed/container";
+import { transferArrayBuffer, Deque } from "@stardazed/container";
 import { Instance, InstanceArrayView } from "./instance";
 
 export type Entity = Instance<EntityManager>;
@@ -51,7 +50,7 @@ export class EntityManager {
 	private appendGeneration() {
 		if (this.genCount_ === this.generation_.length) {
 			// grow generation array
-			const newBuffer = arrayTransfer(this.generation_.buffer as ArrayBuffer, this.generation_.length * 2);
+			const newBuffer = transferArrayBuffer(this.generation_.buffer as ArrayBuffer, this.generation_.length * 2);
 			this.generation_ = new Uint8Array(newBuffer);
 		}
 

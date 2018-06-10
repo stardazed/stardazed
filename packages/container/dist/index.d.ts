@@ -10,4 +10,3 @@ export * from "./arraybuffer";
 export * from "./deque";
 export * from "./sort";
 export * from "./sortedarray";
-//# sourceMappingURL=index.d.ts.map

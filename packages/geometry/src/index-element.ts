@@ -5,7 +5,8 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { makeLUT, TypedArrayConstructor, UInt8, UInt16 } from "@stardazed/core";
+import { TypedArrayConstructor, UInt8, UInt16 } from "@stardazed/core";
+import { makeLUT } from "@stardazed/container";
 
 export const enum IndexElementType {
 	None,

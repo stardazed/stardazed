@@ -18,4 +18,3 @@ export * from "./projection";
 export * from "./primitives";
 import * as aabb from "./aabb";
 export { aabb };
-//# sourceMappingURL=index.d.ts.map

@@ -1,3 +1,9 @@
+/**
+ * geometry/geometry - geometry compound type
+ * Part of Stardazed
+ * (c) 2015-Present by Arthur Langereis - @zenmumbler
+ * https://github.com/stardazed/stardazed
+ */
 import { PrimitiveType } from "./index-primitive";
 import { IndexBuffer } from "./index-buffer";
 import { VertexAttributeRole, VertexAttribute } from "./vertex-attribute";

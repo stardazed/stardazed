@@ -1,3 +1,9 @@
+/**
+ * geometry/index-buffer - index primitive storage
+ * Part of Stardazed
+ * (c) 2015-Present by Arthur Langereis - @zenmumbler
+ * https://github.com/stardazed/stardazed
+ */
 import { IndexElementType, TypedIndexArray } from "./index-element";
 export declare class IndexBuffer {
     readonly indexElementType: IndexElementType;

@@ -24,4 +24,3 @@ export interface VecArrayIterationOptions {
     count?: number;
 }
 export declare type VecArrayIterationFunction = (out: MutNumArray, a: NumArray, ...args: any[]) => void;
-//# sourceMappingURL=common.d.ts.map

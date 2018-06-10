@@ -53,7 +53,7 @@ export declare const enum VertexField {
     Norm_SInt16 = 141,
     Norm_SInt16x2 = 142,
     Norm_SInt16x3 = 143,
-    Norm_SInt16x4 = 144,
+    Norm_SInt16x4 = 144
 }
 export declare function vertexFieldElementCount(vf: VertexField): 1 | 2 | 3 | 4 | 0;
 export declare function vertexFieldNumericType(vf: VertexField): NumericType | undefined;

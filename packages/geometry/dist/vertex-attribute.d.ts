@@ -25,7 +25,7 @@ export declare const enum VertexAttributeRole {
     WeightedPos1 = 11,
     WeightedPos2 = 12,
     WeightedPos3 = 13,
-    JointIndexes = 14,
+    JointIndexes = 14
 }
 /**
  * A VertexAttribute is a Field with a certain Role inside a VertexBuffer

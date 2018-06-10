@@ -1,3 +1,9 @@
+/**
+ * image/dds - DDS (DXT 1, 3, 5) image importer
+ * Part of Stardazed
+ * (c) 2015-Present by Arthur Langereis - @zenmumbler
+ * https://github.com/stardazed/stardazed
+ */
 import { PixelFormat } from "./pixelformat";
 import { PixelDataProvider, ImageFrame, PixelDimensions } from "./provider";
 export declare class DDSDataProvider implements PixelDataProvider {
@@ -10,7 +16,7 @@ export declare class DDSDataProvider implements PixelDataProvider {
     readonly pixelFormat: PixelFormat;
     readonly mipMapCount: number;
     readonly dim: PixelDimensions;
-    private dataSizeForLevel(level);
-    private dataOffsetForLevel(level);
+    private dataSizeForLevel;
+    private dataOffsetForLevel;
     imageFrameAtLevel(level: number): ImageFrame | undefined;
 }

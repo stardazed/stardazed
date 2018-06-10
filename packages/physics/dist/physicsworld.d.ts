@@ -1,17 +1,17 @@
-/// <reference types="@stardazed/ammo" />
 /**
  * physics/physicsworld - physics configuration and world container
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { ConstFloat3, ConstFloat4, Float3 } from "@stardazed/core";
+/// <reference types="@stardazed/ammo" />
+import { Float3, Float4 } from "@stardazed/core";
 import { PhysicsShape } from "./shapes";
 export interface PhysicsConfig {
     broadphaseSize: "small" | "large";
-    worldMin: number | ConstFloat3;
-    worldMax: number | ConstFloat3;
-    gravity: number | ConstFloat3;
+    worldMin: number | Float3;
+    worldMax: number | Float3;
+    gravity: number | Float3;
     defaultLinearDrag: number;
     defaultAngularDrag: number;
     defaultFriction: number;
@@ -19,8 +19,8 @@ export interface PhysicsConfig {
 }
 export interface RaycastHit {
     collisionObject: Ammo.btCollisionObjectConst;
-    hitPointWorld: Float3;
-    hitNormalWorld: Float3;
+    hitPointWorld: number[];
+    hitNormalWorld: number[];
     hitFraction: number;
 }
 export declare function makeDefaultPhysicsConfig(): PhysicsConfig;
@@ -30,8 +30,8 @@ export interface RigidBodyDescriptor {
     isTrigger?: boolean;
     isKinematic?: boolean;
     isScripted?: boolean;
-    worldPos?: ConstFloat3;
-    worldRot?: ConstFloat4;
+    worldPos?: Float3;
+    worldRot?: Float4;
     linearDrag?: number;
     angularDrag?: number;
     friction?: number;
@@ -43,8 +43,8 @@ export interface RigidBodyDescriptor {
 }
 export interface GhostDescriptor {
     shape: PhysicsShape;
-    worldPos?: ConstFloat3;
-    worldRot?: ConstFloat4;
+    worldPos?: Float3;
+    worldRot?: Float4;
 }
 export declare class PhysicsWorld {
     private world_;
@@ -61,13 +61,13 @@ export declare class PhysicsWorld {
     asGhostObject(collObj: Ammo.btCollisionObject): Ammo.btGhostObject | undefined;
     addConstraint(constraint: Ammo.btTypedConstraint, disableCollisionsBetweenLinkedBodies?: boolean): void;
     removeConstraint(constraint: Ammo.btTypedConstraint): void;
-    private rayCastInternal(resultClass, filter, worldFrom, worldToOrDir, maxDist?);
+    private rayCastInternal;
     rayTestTarget(worldFrom: Float3, worldTo: Float3, filter?: Ammo.CollisionFilterGroups): boolean;
     rayTest(worldFrom: Float3, worldDir: Float3, maxDistance: number, filter?: Ammo.CollisionFilterGroups): boolean;
-    private closestRaycastHit(crr);
+    private closestRaycastHit;
     rayCastClosestTarget(worldFrom: Float3, worldTo: Float3, filter?: Ammo.CollisionFilterGroups): RaycastHit | undefined;
     rayCastClosest(worldFrom: Float3, worldDir: Float3, maxDistance: number, filter?: Ammo.CollisionFilterGroups): RaycastHit | undefined;
-    private allRaycastHits(arr);
+    private allRaycastHits;
     rayCastAllTarget(worldFrom: Float3, worldTo: Float3, filter?: Ammo.CollisionFilterGroups): RaycastHit[];
     rayCastAll(worldFrom: Float3, worldDir: Float3, maxDistance: number, filter?: Ammo.CollisionFilterGroups): RaycastHit[];
 }

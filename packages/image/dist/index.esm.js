@@ -1,20 +1,5 @@
-/**
- * core/debug - debugging helpers
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
-/**
- * asserts a condition to be true or throw an error otherwise
- * @param cond A condition that can be evaluated to true or false
- * @param msg Error message that will be thrown if cond is false
- */
-function assert(cond, msg) {
-    if (!cond) {
-        console.error(msg || "assertion failed");
-        throw new Error(msg || "assertion failed");
-    }
-}
+import { assert } from '@stardazed/core';
+import { isPowerOf2 } from '@stardazed/math';
 
 /**
  * image/pixelformat - pixel formats and traits
@@ -79,16 +64,6 @@ function pixelFormatBytesPerElement(format) {
             assert(false, "unhandled pixel buffer format");
             return 0;
     }
-}
-
-/**
- * math/common - shared elements
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
-function isPowerOf2(n) {
-    return (n & (n - 1)) === 0;
 }
 
 /**

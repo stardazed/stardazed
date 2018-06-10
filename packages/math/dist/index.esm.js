@@ -1,3 +1,5 @@
+import { Float } from '@stardazed/core';
+
 /**
  * math/common - shared elements
  * Part of Stardazed
@@ -3387,23 +3389,6 @@ function screenSpaceBoundsForWorldCube(outBounds, position, halfDim, cameraDir, 
     outBounds.bottom = bottomy;
     outBounds.top = topy;
 }
-
-/**
- * core/debug - debugging helpers
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
-/**
- * Traits of 32-bit floating point numbers.
- */
-const Float = {
-    min: -340282346638528859811704183484516925440.0,
-    max: 340282346638528859811704183484516925440.0,
-    signed: true,
-    byteSize: 4,
-    arrayType: Float32Array
-};
 
 /**
  * math/aabb - Axis-Aligned Bounding Box

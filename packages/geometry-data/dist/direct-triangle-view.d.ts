@@ -1,3 +1,9 @@
+/**
+ * geometry-data/direct-triangle-view - immutable triangle view for non-indexed data
+ * Part of Stardazed
+ * (c) 2015-Present by Arthur Langereis - @zenmumbler
+ * https://github.com/stardazed/stardazed
+ */
 import { TriangleProxy, TriangleView, Triangle } from "./triangle-view";
 export declare class DirectTriangleView implements TriangleView {
     readonly primitiveCount: number;

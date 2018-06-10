@@ -26,4 +26,3 @@ export declare class Deque<T> {
     readonly front: T;
     readonly back: T;
 }
-//# sourceMappingURL=deque.d.ts.map

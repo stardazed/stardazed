@@ -1,11 +1,11 @@
-/// <reference types="@stardazed/ammo" />
 /**
  * physics/shapes - shape definitions and creation
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-import { Float3, ConstFloat3, ArrayOfConstNumber } from "@stardazed/core";
+/// <reference types="@stardazed/ammo" />
+import { Float3, NumArray } from "@stardazed/core";
 export declare const enum PhysicsShapeType {
     None = 0,
     Box = 1,
@@ -16,19 +16,19 @@ export declare const enum PhysicsShapeType {
     Plane = 6,
     ConvexHull = 7,
     Mesh = 8,
-    HeightField = 9,
+    HeightField = 9
 }
 export interface BoxShapeDescriptor {
     type: PhysicsShapeType.Box;
     halfExtents: Float3;
     margin?: number;
-    scale?: ConstFloat3;
+    scale?: Float3;
 }
 export interface SphereShapeDescriptor {
     type: PhysicsShapeType.Sphere;
     radius: number;
     margin?: number;
-    scale?: ConstFloat3;
+    scale?: Float3;
 }
 export interface CapsuleShapeDescriptor {
     type: PhysicsShapeType.Capsule;
@@ -36,41 +36,41 @@ export interface CapsuleShapeDescriptor {
     height: number;
     orientation: Ammo.AxisIndex;
     margin?: number;
-    scale?: ConstFloat3;
+    scale?: Float3;
 }
 export interface CylinderShapeDescriptor {
     type: PhysicsShapeType.Cylinder;
-    halfExtents: ConstFloat3;
+    halfExtents: Float3;
     orientation: Ammo.AxisIndex;
     margin?: number;
-    scale?: ConstFloat3;
+    scale?: Float3;
 }
 export interface ConeShapeDescriptor {
     type: PhysicsShapeType.Cone;
     radius: number;
     height: number;
     orientation: Ammo.AxisIndex;
-    scale?: ConstFloat3;
+    scale?: Float3;
 }
 export interface PlaneShapeDescriptor {
     type: PhysicsShapeType.Plane;
-    planeNormal: ConstFloat3;
+    planeNormal: Float3;
     planeConstant: number;
-    scale?: ConstFloat3;
+    scale?: Float3;
 }
 export interface ConvexHullShapeDescriptor {
     type: PhysicsShapeType.ConvexHull;
     pointCount: number;
-    points: ArrayOfConstNumber;
+    points: NumArray;
     margin?: number;
-    scale?: ConstFloat3;
+    scale?: Float3;
 }
 export interface MeshShapeDescriptor {
     type: PhysicsShapeType.Mesh;
     subMeshIndex?: number;
     convex?: boolean;
     margin?: number;
-    scale?: ConstFloat3;
+    scale?: Float3;
 }
 export interface HeightFieldShapeDescriptor {
     type: PhysicsShapeType.HeightField;
@@ -81,7 +81,7 @@ export interface HeightFieldShapeDescriptor {
     heightScale?: number;
     orientation?: Ammo.AxisIndex;
     margin?: number;
-    scale?: ConstFloat3;
+    scale?: Float3;
 }
 export declare type PhysicsShapeDescriptor = BoxShapeDescriptor | SphereShapeDescriptor | CapsuleShapeDescriptor | CylinderShapeDescriptor | ConeShapeDescriptor | ConvexHullShapeDescriptor | PlaneShapeDescriptor | HeightFieldShapeDescriptor | MeshShapeDescriptor;
 export interface PhysicsShape {

@@ -32,9 +32,8 @@ export declare class Camera implements ProjectionSetup {
     ortho2D(left: number, top: number, right: number, bottom: number): void;
     setViewMatrix(v: Float4x4): void;
     lookAt(eye: Float3, target: Float3, up: Float3): void;
-    readonly projectionMatrix: MutFloat4x4;
+    readonly projectionMatrix: Float4x4;
     readonly viewMatrix: Float4x4;
     readonly viewProjMatrix: Float4x4;
     readonly viewport: Readonly<Viewport>;
 }
-//# sourceMappingURL=projection.d.ts.map

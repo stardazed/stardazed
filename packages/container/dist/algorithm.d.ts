@@ -93,4 +93,3 @@ export declare function propertyCount(obj: object): number;
 export declare function makeLUT<A extends number, B>(...keyVals: (A | B)[]): {
     readonly [k: number]: Readonly<B>;
 };
-//# sourceMappingURL=algorithm.d.ts.map

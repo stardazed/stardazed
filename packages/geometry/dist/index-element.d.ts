@@ -9,7 +9,7 @@ export declare const enum IndexElementType {
     None = 0,
     UInt8 = 1,
     UInt16 = 2,
-    UInt32 = 3,
+    UInt32 = 3
 }
 export declare const indexElementTypeSizeBytes: {
     readonly [k: number]: number;

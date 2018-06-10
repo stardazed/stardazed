@@ -36,4 +36,3 @@ export declare function mergeSort<T>(a: T[], pred: CompareFn<T>): T[];
  * @alias mergeSort The common stable sort algorithm.
  */
 export declare const stableSort: typeof mergeSort;
-//# sourceMappingURL=sort.d.ts.map

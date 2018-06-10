@@ -10,4 +10,3 @@
  * @param msg Error message that will be thrown if cond is false
  */
 export declare function assert(cond: any, msg?: string): void;
-//# sourceMappingURL=debug.d.ts.map

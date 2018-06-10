@@ -55,4 +55,3 @@ export declare function fromEuler(yaw: number, pitch: number, roll: number): Flo
 export declare function str(a: ACN): string;
 export declare const exactEquals: typeof vec4.exactEquals;
 export declare const equals: typeof vec4.equals;
-//# sourceMappingURL=quat.d.ts.map

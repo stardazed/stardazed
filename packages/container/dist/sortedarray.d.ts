@@ -15,4 +15,3 @@ export declare class SortedArray<T> {
     readonly array: ReadonlyArray<T>;
     readonly length: number;
 }
-//# sourceMappingURL=sortedarray.d.ts.map
