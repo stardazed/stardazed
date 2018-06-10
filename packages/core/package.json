@@ -12,5 +12,5 @@
 	"main": "dist/index.esm.js",
 	"module": "dist/index.esm.js",
 	"types": "dist/index.d.ts",
-	"dependencies": {}
+	"peerDependencies": {}
 }
