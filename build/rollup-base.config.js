@@ -1,14 +1,13 @@
-// @ts-check
-import resolve from "rollup-plugin-node-resolve";
-import sourcemaps from "rollup-plugin-sourcemaps";
-import typescript from "typescript";
-import tsc from "rollup-plugin-typescript2";
+const resolve = require("rollup-plugin-node-resolve");
+const sourcemaps = require("rollup-plugin-sourcemaps");
+const typescript = require("typescript");
+const tsc = require("rollup-plugin-typescript2");
 
-export const packageConfig = (packageJSON) => {
+const packageConfig = (name, packageJSON, packageDir) => {
 	// default to only building ESM output
 	const output = [
 		{
-			file: packageJSON.module,
+			file: `${packageDir}/${packageJSON.module}`,
 			format: "es",
 			sourcemap: true,
 			freeze: false
@@ -25,7 +24,7 @@ export const packageConfig = (packageJSON) => {
 		}
 
 		output.push({
-			file: packageJSON.main,
+			file: `${packageDir}/${packageJSON.main}`,
 			format: "umd",
 			name: packageJSON.umdName,
 			sourcemap: true,
@@ -40,17 +39,34 @@ export const packageConfig = (packageJSON) => {
 	}
 
 	return {
-		input: "src/index.ts",
+		input: `${packageDir}/src/index.ts`,
 		output,
 		plugins: [
 			resolve({ browser: true }),
 			sourcemaps(),
 			tsc({
 				typescript,
+				tsconfig: `${__dirname}/tsconfig-packages.json`,
+				tsconfigOverride: {
+					compilerOptions: {
+						rootDir: `${packageDir}/src`,
+						outDir: `${packageDir}/build`,
+						declaration: true,
+						declarationDir: `${packageDir}/dist`,
+					},
+					include: [`${packageDir}/src/**/*.ts`]
+				},
 				useTsconfigDeclarationDir: true,
-				cacheRoot: "./build",
-				include: ["src/**/*.ts"],
+
+				cacheRoot: `./build/temp/${name}`,
+				include: [`${packageDir}/src/**/*.ts`],
 			}),
-		]
+		],
+		external(id) {
+			// do not bundle other stardazed packages in single-package builds
+			return id.startsWith("@stardazed/");
+		}
 	};
 };
+
+module.exports = { packageConfig };
