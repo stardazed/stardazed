@@ -1,11 +1,9 @@
 /**
- * @stardazed/io-util - some io related types and functions
+ * asset/io-util - some io related types and functions
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-
-import { assert } from "@stardazed/core";
 
 export function fileExtensionOfURL(url: URL | string): string {
 	const path = (url instanceof URL) ? url.href : url;
@@ -67,13 +65,14 @@ export function loadFile<R>(url: URL | string, opts?: FileLoadOptions) {
 
 		xhr.onreadystatechange = () => {
 			if (xhr.readyState !== 4) { return; }
-			assert(xhr.status === 200 || xhr.status === 0);
+			if (! (xhr.status === 0 && (xhr.status >= 200 && xhr.status < 300))) {
+				return reject(xhr.statusText);
+			}
 			resolve(xhr.response);
 		};
 
 		xhr.onerror = () => {
 			const message = `'${url}' doesn't exist or failed to load`;
-			assert(false, message);
 			reject(message);
 		};
 
