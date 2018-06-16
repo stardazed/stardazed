@@ -5,6 +5,8 @@
  * https://github.com/stardazed/stardazed
  */
 
+import { assert } from "@stardazed/core";
+
 export function fileExtensionOfURL(url: URL | string): string {
 	const path = (url instanceof URL) ? url.href : url;
 	const lastDot = path.lastIndexOf(".");
