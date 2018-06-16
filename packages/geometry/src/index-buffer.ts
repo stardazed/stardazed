@@ -12,7 +12,7 @@ export class IndexBuffer {
 	readonly indexElementType: IndexElementType;
 	readonly indexCount: number;
 	readonly storage: Uint8ClampedArray;
-	private indexElementSizeBytes_: number;
+	private readonly indexElementSizeBytes_: number;
 
 	constructor(elementType: IndexElementType, indexCount: number, usingStorage?: Uint8ClampedArray) {
 		assert(indexCount > 0, "Invalid indexCount, must be > 0");
