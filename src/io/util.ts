@@ -119,22 +119,4 @@ namespace sd.io {
 		}
 	}
 
-
-	export function convertBytesToString(bytes: Uint8Array) {
-		const maxBlockSize = 65536; // max parameter array size for use in Webkit
-		const strings: string[] = [];
-		let bytesLeft = bytes.length;
-		let offset = 0;
-
-		while (bytesLeft > 0) {
-			const blockSize = Math.min(bytesLeft, maxBlockSize);
-			const str: string = String.fromCharCode.apply(null, bytes.subarray(offset, offset + blockSize));
-			strings.push(str);
-			offset += blockSize;
-			bytesLeft -= blockSize;
-		}
-
-		return strings.length === 1 ? strings[0] : strings.join("");
-	}
-
 } // ns sd.io
