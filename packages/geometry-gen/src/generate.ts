@@ -1,5 +1,5 @@
 /**
- * geometry/generate - geometry generators
+ * geometry-gen/generate - geometry generators
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed

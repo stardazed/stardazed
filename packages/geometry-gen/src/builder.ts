@@ -6,8 +6,8 @@
  */
 
 import { assert, TypedArray, Float, Double, NumArray } from "@stardazed/core";
-import { Geometry, VertexAttribute, VertexAttributeRole, VertexField, vertexFieldElementCount, vertexFieldNumericType, PrimitiveType, makeStandardVertexLayout, allocateGeometry } from "@stardazed/geometry";
 import { stableSort, appendArrayInPlace, copyElementRange } from "@stardazed/container";
+import { Geometry, VertexAttribute, VertexAttributeRole, VertexField, vertexFieldElementCount, vertexFieldNumericType, PrimitiveType, makeStandardVertexLayout, allocateGeometry } from "@stardazed/geometry";
 import { VertexBufferAttributeView } from "@stardazed/geometry-data";
 
 export const enum VertexAttributeMapping {

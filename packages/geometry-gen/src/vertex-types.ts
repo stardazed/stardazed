@@ -1,3 +1,10 @@
+/**
+ * geometry-gen/vertex-types - shortcuts to define vertex attributes
+ * Part of Stardazed
+ * (c) 2015-Present by Arthur Langereis - @zenmumbler
+ * https://github.com/stardazed/stardazed
+ */
+
 import { assert } from "@stardazed/core";
 import { VertexAttribute, VertexField, VertexAttributeRole } from "@stardazed/geometry";
 

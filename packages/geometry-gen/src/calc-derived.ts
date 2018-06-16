@@ -1,5 +1,5 @@
 /**
- * geometry/calc-derived - calculate normals and tangents
+ * geometry-gen/calc-derived - calculate normals and tangents
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
