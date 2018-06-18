@@ -1,14 +1,14 @@
 {
-	// this tsconfig is only here to set the standard for all packages
-	// so VSCode will detect and report errors properly
-
 	"compilerOptions": {
 		"module": "es2015",
 		"target": "es2015",
 		"moduleResolution": "node",
 
+		"declaration": true,
+		"declarationMap": false,
+		"sourceMap": true,
+		"removeComments": false,
 		"noEmitOnError": true,
-		"noEmit": true, // prevent accidental build artifacts
 
 		"strict": true,
 		"noImplicitReturns": true,
@@ -18,9 +18,14 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 
-		"lib": ["dom", "es5", "es2015", "es2016", "es2017", "esnext"]
+		"lib": ["dom", "es5", "es2015", "es2016", "es2017"],
+		"skipLibCheck": true,
+
+		"rootDir": "src",
+		"outDir": "dist",
+		"declarationDir": "dist"
 	},
 	"include": [
-		"packages/**/*.ts"
+		"src/**/*.ts"
 	]
 }
