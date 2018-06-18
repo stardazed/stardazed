@@ -20,7 +20,7 @@ namespace sd.asset {
 				.then(dependencies => {
 					// FIXME: this is just a quick hack, need a formal name/id gen system
 					if (asset.name && propertyCount(dependencies) === 1) {
-						container.mapObject(dependencies, (subAsset) => {
+						mapObject(dependencies, (subAsset) => {
 							if (subAsset) {
 								subAsset.name = asset.name;
 							}

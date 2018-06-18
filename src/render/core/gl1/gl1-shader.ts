@@ -230,7 +230,7 @@ namespace sd.render.gl1 {
 	function calcVertexAttrHash(attrs: ShaderVertexAttribute[]) {
 		const slots = attrs.map(a => ({ i: a.index, t: a.type }));
 		slots.sort((a, b) => a.i - b.i); // sort indexes numerically ascending
-		return container.hashString(slots.map(s => `${s.i}:${s.t}`).join("|"));
+		return hashString(slots.map(s => `${s.i}:${s.t}`).join("|"));
 	}
 
 	/**

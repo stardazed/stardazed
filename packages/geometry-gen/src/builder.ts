@@ -53,7 +53,7 @@ class VertexIndexMappingA implements VertexIndexMapping {
 
 	add(from: number, to: number) {
 		if (from > this.highest_) {
-			container.fill(this.offsets_, this.values_.length, from - this.highest_, this.highest_ + 1);
+			fill(this.offsets_, this.values_.length, from - this.highest_, this.highest_ + 1);
 			this.highest_ = from;
 		}
 		const fromOff = this.offsets_[from];

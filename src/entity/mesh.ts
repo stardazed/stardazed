@@ -40,7 +40,7 @@ namespace sd.entity {
 
 
 	export class MeshComponent implements Component<MeshComponent> {
-		private instanceData_: container.MultiArrayBuffer;
+		private instanceData_: MultiArrayBuffer;
 		private featuresBase_!: ConstEnumArray32View<GeometryFeatures>;
 		private shapeBase_!: ConstEnumArray32View<MeshShapeType>;
 		private indexElementTypeBase_!: ConstEnumArray32View<geometry.IndexElementType>;
@@ -48,7 +48,7 @@ namespace sd.entity {
 		private totalElementCountBase_!: Int32Array;
 		private subMeshOffsetCountBase_!: Int32Array;
 
-		private subMeshData_: container.MultiArrayBuffer;
+		private subMeshData_: MultiArrayBuffer;
 		private smPrimTypeBase_!: ConstEnumArray32View<geometry.PrimitiveType>;
 		private smFromElementBase_!: Int32Array;
 		private smElementCountBase_!: Int32Array;
@@ -59,7 +59,7 @@ namespace sd.entity {
 		private geometries_: geometry.Geometry[];
 
 		constructor() {
-			const instanceFields: container.MABField[] = [
+			const instanceFields: MABField[] = [
 				{ type: SInt32, count: 1 }, // features
 				{ type: SInt32, count: 1 }, // shape
 				{ type: SInt32, count: 1 }, // indexElementType (None if no indexBuffer)
@@ -67,16 +67,16 @@ namespace sd.entity {
 				{ type: SInt32, count: 1 }, // totalElementCount
 				{ type: SInt32, count: 2 }, // subMeshOffsetCount ([0]: offset, [1]: count)
 			];
-			this.instanceData_ = new container.MultiArrayBuffer(1024, instanceFields);
+			this.instanceData_ = new MultiArrayBuffer(1024, instanceFields);
 			this.rebaseInstances();
 
-			const smFields: container.MABField[] = [
+			const smFields: MABField[] = [
 				{ type: SInt32, count: 1 }, // primType
 				{ type: SInt32, count: 1 }, // fromElement
 				{ type: SInt32, count: 1 }, // elementCount
 				{ type: SInt32, count: 1 }, // materialIx - mesh-local zero-based material indexes
 			];
-			this.subMeshData_ = new container.MultiArrayBuffer(4096, smFields);
+			this.subMeshData_ = new MultiArrayBuffer(4096, smFields);
 			this.rebaseSubMeshes();
 
 			this.entityMap_ = new Map<Entity, MeshInstance>();
@@ -107,7 +107,7 @@ namespace sd.entity {
 			}
 
 			// -- ensure space in instance and dependent arrays
-			if (this.instanceData_.extend() === container.InvalidatePointers.Yes) {
+			if (this.instanceData_.extend() === InvalidatePointers.Yes) {
 				this.rebaseInstances();
 			}
 			const instance = this.instanceData_.count;
@@ -142,10 +142,10 @@ namespace sd.entity {
 			const subMeshCount = geom.subMeshes.length;
 			assert(subMeshCount > 0, "No submeshes present in geometry");
 			let subMeshIndex = this.subMeshData_.count;
-			if (this.subMeshData_.resize(subMeshIndex + subMeshCount) === container.InvalidatePointers.Yes) {
+			if (this.subMeshData_.resize(subMeshIndex + subMeshCount) === InvalidatePointers.Yes) {
 				this.rebaseSubMeshes();
 			}
-			container.setIndexedVec2(this.subMeshOffsetCountBase_, instance, [subMeshIndex, subMeshCount]);
+			setIndexedVec2(this.subMeshOffsetCountBase_, instance, [subMeshIndex, subMeshCount]);
 
 			let totalElementCount = 0;
 			let sharedPrimType = geom.subMeshes[0].type;
@@ -218,14 +218,14 @@ namespace sd.entity {
 		}
 
 		subMeshCount(inst: MeshInstance) {
-			const offsetCount = container.copyIndexedVec2(this.subMeshOffsetCountBase_, inst as number);
+			const offsetCount = copyIndexedVec2(this.subMeshOffsetCountBase_, inst as number);
 			return offsetCount[1];
 		}
 
 		subMeshes(inst: MeshInstance) {
 			const subMeshes: geometry.SubMesh[] = [];
 			const meshIx = inst as number;
-			const offsetCount = container.copyIndexedVec2(this.subMeshOffsetCountBase_, meshIx);
+			const offsetCount = copyIndexedVec2(this.subMeshOffsetCountBase_, meshIx);
 
 			for (let smix = 0; smix < offsetCount[1]; ++smix) {
 				const smOffset = smix + offsetCount[0];

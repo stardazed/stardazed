@@ -25,7 +25,7 @@ namespace sd.render.gl1 {
 		const gl = this.gl;
 
 		// use a stable sort algorithm, V8 (Chrome) uses an unstable Array.prototype.sort implementation
-		container.stableSort(this.commandList_, (a, b) => a.sortKey - b.sortKey);
+		stableSort(this.commandList_, (a, b) => a.sortKey - b.sortKey);
 
 		for (const cmd of this.commandList_) {
 			switch (cmd.type) {

@@ -119,7 +119,7 @@ namespace sd.render.effect {
 		resolve(moduleNames: string[]) {
 			const { branch, providers } = this.resolveDependencies(moduleNames);
 			const resolved = this.resolveConcepts(branch, providers);
-			return container.stableUnique(resolved) as Module[];
+			return stableUnique(resolved) as Module[];
 		}
 	}
 

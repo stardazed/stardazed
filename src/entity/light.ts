@@ -36,7 +36,7 @@ namespace sd.entity {
 
 
 	export class LightComponent implements Component<LightComponent> {
-		private instanceData_: container.MultiArrayBuffer;
+		private instanceData_: MultiArrayBuffer;
 		private entityBase_!: EntityArrayView;
 		private transformBase_!: TransformArrayView;
 		private enabledBase_!: Uint8Array;
@@ -49,7 +49,7 @@ namespace sd.entity {
 
 
 		constructor(private transformMgr_: TransformComponent) {
-			const instFields: container.MABField[] = [
+			const instFields: MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: SInt32, count: 1 }, // transformInstance
 				{ type: UInt8,  count: 1 }, // enabled
@@ -57,7 +57,7 @@ namespace sd.entity {
 				{ type: SInt32, count: 1 }, // shadowType
 				{ type: SInt32, count: 1 }, // shadowQuality
 			];
-			this.instanceData_ = new container.MultiArrayBuffer(1280, instFields);
+			this.instanceData_ = new MultiArrayBuffer(1280, instFields);
 			this.rebase();
 
 			this.lightData = new Float32Array(4 * 5 * 1280); // 5 vec4s per light
@@ -96,15 +96,15 @@ namespace sd.entity {
 			const gldV4Index = instance * 5;
 
 			// vec0: colour[3], type
-			container.setIndexedVec4(this.lightData, gldV4Index + 0, [desc.colour[0], desc.colour[1], desc.colour[2], desc.type]);
+			setIndexedVec4(this.lightData, gldV4Index + 0, [desc.colour[0], desc.colour[1], desc.colour[2], desc.type]);
 			// vec1: position_cam[3], intensity
-			container.setIndexedVec4(this.lightData, gldV4Index + 1, [0, 0, 0, Math.max(0, desc.intensity)]);
+			setIndexedVec4(this.lightData, gldV4Index + 1, [0, 0, 0, Math.max(0, desc.intensity)]);
 			// vec2: position_world[3], range
-			container.setIndexedVec4(this.lightData, gldV4Index + 2, [0, 0, 0, desc.range || 0]);
+			setIndexedVec4(this.lightData, gldV4Index + 2, [0, 0, 0, desc.range || 0]);
 			// vec3: direction[3], cutoff
-			container.setIndexedVec4(this.lightData, gldV4Index + 3, [0, 0, 0, Math.cos(desc.cutoff || 0)]);
+			setIndexedVec4(this.lightData, gldV4Index + 3, [0, 0, 0, Math.cos(desc.cutoff || 0)]);
 			// vec4: shadowStrength, shadowBias, 0, 0
-			container.setIndexedVec4(this.lightData, gldV4Index + 4, [desc.shadowStrength || 1.0, desc.shadowBias || 0.002, 0, 0]);
+			setIndexedVec4(this.lightData, gldV4Index + 4, [desc.shadowStrength || 1.0, desc.shadowBias || 0.002, 0, 0]);
 
 			return instance;
 		}
@@ -213,7 +213,7 @@ namespace sd.entity {
 
 		colour(inst: LightInstance): number[] {
 			const v4Index = ((inst as number) * 5) + 0;
-			return container.copyIndexedVec4(this.lightData, v4Index).slice(0, 3);
+			return copyIndexedVec4(this.lightData, v4Index).slice(0, 3);
 		}
 
 		setColour(inst: LightInstance, newColour: Float3) {

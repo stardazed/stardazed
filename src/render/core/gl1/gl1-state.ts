@@ -172,7 +172,7 @@ namespace sd.render.gl1 {
 			this.maxAnisotropy_ = this.extTextureAnisotropy ?
 				this.gl.getParameter(GLConst.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1;
 			this.maxTextureSlot_ = this.gl.getParameter(GLConst.MAX_COMBINED_TEXTURE_IMAGE_UNITS) - 1;
-			this.textureSlots_ = container.fill([], null, this.maxTextureSlot_ + 1);
+			this.textureSlots_ = fill([], null, this.maxTextureSlot_ + 1);
 
 			// initial pull of dynamic state
 			this.frontFace_ = (gl.getParameter(GLConst.FRONT_FACE) === GLConst.CW) ? FrontFaceWinding.Clockwise : FrontFaceWinding.CounterClockwise;

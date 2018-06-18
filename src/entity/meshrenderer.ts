@@ -35,7 +35,7 @@ namespace sd.entity {
 	}
 
 	export class MeshRendererComponent implements Component<MeshRendererComponent> {
-		private instanceData_: container.MultiArrayBuffer;
+		private instanceData_: MultiArrayBuffer;
 		private entityBase_!: EntityArrayView;
 		private flagsBase_!: ConstEnumArray8View<MeshRendererFlags>;
 		private materialOffsetCountBase_!: Int32Array;
@@ -43,12 +43,12 @@ namespace sd.entity {
 		private materials_: render.EffectData[];
 
 		constructor() {
-			const instFields: container.MABField[] = [
+			const instFields: MABField[] = [
 				{ type: SInt32, count: 1 }, // entity
 				{ type: UInt8,  count: 1 }, // flags
 				{ type: SInt32, count: 2 }, // materialOffsetCount ([0]: offset, [1]: count)
 			];
-			this.instanceData_ = new container.MultiArrayBuffer(1024, instFields);
+			this.instanceData_ = new MultiArrayBuffer(1024, instFields);
 
 			this.rebase();
 
@@ -62,7 +62,7 @@ namespace sd.entity {
 		}
 
 		create(entity: Entity, desc: MeshRendererDescriptor): MeshRendererInstance {
-			if (this.instanceData_.extend() === container.InvalidatePointers.Yes) {
+			if (this.instanceData_.extend() === InvalidatePointers.Yes) {
 				this.rebase();
 			}
 			const ix = this.instanceData_.count;
@@ -72,7 +72,7 @@ namespace sd.entity {
 
 			// -- save material indexes
 			assert(desc.materials.length > 0, "Must specify at least 1 material.");
-			container.setIndexedVec2(this.materialOffsetCountBase_, ix, [this.materials_.length, desc.materials.length]);
+			setIndexedVec2(this.materialOffsetCountBase_, ix, [this.materials_.length, desc.materials.length]);
 			for (const mat of desc.materials) {
 				this.materials_.push(mat);
 			}
@@ -84,7 +84,7 @@ namespace sd.entity {
 			const ix = inst as number;
 			this.entityBase_[ix] = 0;
 			this.flagsBase_[ix] = 0;
-			container.setIndexedVec2(this.materialOffsetCountBase_, ix, [0, 0]);
+			setIndexedVec2(this.materialOffsetCountBase_, ix, [0, 0]);
 		}
 
 		destroyRange(range: MeshRendererRange) {

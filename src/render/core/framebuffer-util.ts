@@ -46,7 +46,7 @@ namespace sd.render {
 		const fbad = render.makeFrameBufferAllocationDescriptor(width, height);
 		const pixFmt = pixelFormatForFBPixelComponent(desc.pixelComponent || FBPixelComponent.Integer);
 
-		container.fill(fbad.colours, pixFmt, desc.colourCount);
+		fill(fbad.colours, pixFmt, desc.colourCount);
 		if (desc.useDepth) {
 			fbad.depth = image.PixelFormat.Depth24I;
 		}

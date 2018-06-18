@@ -50,8 +50,8 @@ namespace sd.render.effect {
 	 * @internal
 	 * @param items List of Conditionally applied shader structures
 	 */
-	function normalizeGroupedConditionals<T extends Conditional<object>>(groups: container.GroupedItems<T>) {
-		return container.mapObject(groups, (collated) => ({
+	function normalizeGroupedConditionals<T extends Conditional<object>>(groups: GroupedItems<T>) {
+		return mapObject(groups, (collated) => ({
 			ifExpr: reduceConditionalExpressions(collated.ifExpr)
 		}));
 	}
@@ -62,7 +62,7 @@ namespace sd.render.effect {
 	 * @param groups Grouped objects with arrays of values for each field
 	 * @param uniqueFields The fieldnames to check for uniqueness
 	 */
-	function checkAllGroupsUnique<T extends object, K extends keyof T>(groups: container.GroupedItems<T>, uniqueFields: K[]) {
+	function checkAllGroupsUnique<T extends object, K extends keyof T>(groups: GroupedItems<T>, uniqueFields: K[]) {
 		for (const name in groups) {
 			if (groups.hasOwnProperty(name)) {
 				const collated = groups[name];
@@ -84,23 +84,23 @@ namespace sd.render.effect {
 	 * @param uniqueFields The names of the fields in each structure that will be checked for uniqueness
 	 */
 	function normalizeUniqueConditionalGroups<T extends Conditional<{name: string}>, K extends keyof T>(kind: string, items: T[], uniqueFields: K[]) {
-		const groups = container.groupFieldsBy("name", items);
+		const groups = groupFieldsBy("name", items);
 		if (! checkAllGroupsUnique(groups, uniqueFields)) {
 			throw new Error(`Ambiguous ${kind} configuration in shader`);
 		}
 		const normConditionals = normalizeGroupedConditionals(groups);
-		return container.stableUnique(items, it => it.name)
-			.map(item => container.override(item, normConditionals[item.name] as any, ["ifExpr"]));
+		return stableUnique(items, it => it.name)
+			.map(item => override(item, normConditionals[item.name] as any, ["ifExpr"]));
 	}
 
 	function normalizeExtensions(exts: Conditional<ExtensionUsage>[]) {
-		const groups = container.groupFieldsBy("name", exts);
+		const groups = groupFieldsBy("name", exts);
 
 		// By sorting by the actions in reverse order, they will have any "require" values before "enable".
 		// By then picking the 1st one, we end up with the strictest indicated requirement.
-		const flattened = container.mapObject(groups, (g, name) => ({
+		const flattened = mapObject(groups, (g, name) => ({
 			name,
-			action: g.action.sort((a, b) => container.stringOrder(b, a))[0],
+			action: g.action.sort((a, b) => stringOrder(b, a))[0],
 			ifExpr: reduceConditionalExpressions(g.ifExpr)
 		}));
 

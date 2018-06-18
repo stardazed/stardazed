@@ -29,7 +29,7 @@ namespace sd.asset {
 					delete asset.generator;
 					delete asset.metadata;
 					// override any properties the generated asset defines
-					container.override(asset, replacement);
+					override(asset, replacement);
 				}
 			));
 		}
