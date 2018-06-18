@@ -263,6 +263,20 @@ function appendArrayInPlace(dest, source) {
     }
     return dest;
 }
+function convertBytesToString(bytes) {
+    const maxBlockSize = 65536; // max parameter array size for use in Webkit
+    const strings = [];
+    let bytesLeft = bytes.length;
+    let offset = 0;
+    while (bytesLeft > 0) {
+        const blockSize = Math.min(bytesLeft, maxBlockSize);
+        const str = String.fromCharCode.apply(null, bytes.subarray(offset, offset + blockSize));
+        strings.push(str);
+        offset += blockSize;
+        bytesLeft -= blockSize;
+    }
+    return strings.length === 1 ? strings[0] : strings.join("");
+}
 // -- single element ref, copy and set methods, mostly meant for accessors of components with MABs
 function refIndexedVec2(data, index) {
     return data.subarray(index * 2, (index + 1) * 2);
@@ -847,5 +861,5 @@ class SortedArray {
  * https://github.com/stardazed/stardazed
  */
 
-export { hashString, override, mapObject, groupFieldsBy, makeLowerBound, makeUpperBound, lowerBound, upperBound, stableUnique, cloneStructDeep, propertyCount, makeLUT, transferArrayBuffer, clearArrayBuffer, copyElementRange, fill, appendArrayInPlace, refIndexedVec2, copyIndexedVec2, setIndexedVec2, copyVec2FromOffset, setVec2AtOffset, offsetOfIndexedVec2, refIndexedVec3, copyIndexedVec3, setIndexedVec3, copyVec3FromOffset, setVec3AtOffset, offsetOfIndexedVec3, refIndexedVec4, copyIndexedVec4, setIndexedVec4, copyVec4FromOffset, setVec4AtOffset, offsetOfIndexedVec4, refIndexedMat3, copyIndexedMat3, setIndexedMat3, offsetOfIndexedMat3, refIndexedMat4, copyIndexedMat4, setIndexedMat4, offsetOfIndexedMat4, FixedMultiArray, MultiArrayBuffer, FixedStructArray, Deque, genericOrder, insertionSort, mergeSort, stableSort, SortedArray };
+export { hashString, override, mapObject, groupFieldsBy, makeLowerBound, makeUpperBound, lowerBound, upperBound, stableUnique, cloneStructDeep, propertyCount, makeLUT, transferArrayBuffer, clearArrayBuffer, copyElementRange, fill, appendArrayInPlace, convertBytesToString, refIndexedVec2, copyIndexedVec2, setIndexedVec2, copyVec2FromOffset, setVec2AtOffset, offsetOfIndexedVec2, refIndexedVec3, copyIndexedVec3, setIndexedVec3, copyVec3FromOffset, setVec3AtOffset, offsetOfIndexedVec3, refIndexedVec4, copyIndexedVec4, setIndexedVec4, copyVec4FromOffset, setVec4AtOffset, offsetOfIndexedVec4, refIndexedMat3, copyIndexedMat3, setIndexedMat3, offsetOfIndexedMat3, refIndexedMat4, copyIndexedMat4, setIndexedMat4, offsetOfIndexedMat4, FixedMultiArray, MultiArrayBuffer, FixedStructArray, Deque, genericOrder, insertionSort, mergeSort, stableSort, SortedArray };
 //# sourceMappingURL=index.esm.js.map

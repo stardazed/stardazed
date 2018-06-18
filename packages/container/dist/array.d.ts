@@ -10,6 +10,7 @@ export declare function clearArrayBuffer(data: ArrayBuffer): void;
 export declare function copyElementRange<T, A extends MutableArrayLike<T>>(dest: A, destOffset: number, src: ArrayLike<T>, srcOffset: number, srcCount: number): A;
 export declare function fill<T, A extends MutableArrayLike<T>>(dest: A, value: T, count: number, offset?: number): A;
 export declare function appendArrayInPlace<T>(dest: T[], source: T[]): T[];
+export declare function convertBytesToString(bytes: Uint8Array): string;
 export declare function refIndexedVec2(data: TypedArray, index: number): TypedArray;
 export declare function copyIndexedVec2(data: TypedArray, index: number): number[];
 export declare function setIndexedVec2(data: TypedArray, index: number, v2: Float2): void;
