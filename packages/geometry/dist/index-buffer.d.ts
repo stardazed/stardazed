@@ -9,7 +9,7 @@ export declare class IndexBuffer {
     readonly indexElementType: IndexElementType;
     readonly indexCount: number;
     readonly storage: Uint8ClampedArray;
-    private indexElementSizeBytes_;
+    private readonly indexElementSizeBytes_;
     constructor(elementType: IndexElementType, indexCount: number, usingStorage?: Uint8ClampedArray);
     readonly sizeBytes: number;
     /**
