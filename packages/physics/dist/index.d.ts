@@ -6,3 +6,4 @@
  */
 export * from "./shapes";
 export * from "./physicsworld";
+export * from "./collider-component";

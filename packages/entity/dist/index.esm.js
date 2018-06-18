@@ -166,12 +166,12 @@ class InstanceSet {
  * https://github.com/stardazed/stardazed
  */
 // -- Entity bit-field build up
-const entityIndexBits = 23; // numbers are signed int32 types internally in browsers when not used as int
+const entityIndexBits = 24; // numbers are signed int32 types internally in browsers when used as int, but can be treated unsigned
 const entityGenerationBits = 8;
 const entityIndexMask = (1 << entityIndexBits) - 1;
 const entityGenerationMask = (1 << entityGenerationBits) - 1;
 function entityGeneration(ent) {
-    return (ent >> entityIndexBits) & entityGenerationMask;
+    return (ent >>> entityIndexBits) & entityGenerationMask;
 }
 function entityIndex(ent) {
     return ent & entityIndexMask;
@@ -212,7 +212,7 @@ class EntityManager {
     alive(ent) {
         // explicitly "inlined" calls to entityIndex/Generation as this method will be called a lot
         const index = ent & entityIndexMask;
-        const generation = (ent >> entityIndexBits) & entityGenerationMask;
+        const generation = (ent >>> entityIndexBits) & entityGenerationMask;
         return index <= this.genCount_ && (generation === this.generation_[index]);
     }
     destroy(ent) {

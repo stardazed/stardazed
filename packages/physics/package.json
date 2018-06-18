@@ -17,6 +17,8 @@
 	},
 	"peerDependencies": {
 		"@stardazed/core": "^0.4.0",
-		"@stardazed/math": "^0.4.0"
+		"@stardazed/entity": "^0.4.0",
+		"@stardazed/math": "^0.4.0",
+		"@stardazed/component-transform": "^0.4.0"
 	}
 }
