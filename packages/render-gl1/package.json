@@ -1,0 +1,21 @@
+{
+	"name": "@stardazed/render-gl1",
+	"description": "Stardazed - WebGL 1 render implementation",
+	"version": "0.4.0",
+	"author": {
+		"name": "Arthur Langereis"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/stardazed/stardazed.git"
+	},
+	"main": "dist/index.esm.js",
+	"module": "dist/index.esm.js",
+	"types": "dist/index.d.ts",
+	"peerDependencies": {
+		"@stardazed/core": "^0.4.0",
+		"@stardazed/image": "^0.4.0",
+		"@stardazed/geometry": "^0.4.0",
+		"@stardazed/render": "^0.4.0"
+	}
+}
