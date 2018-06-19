@@ -1,0 +1,20 @@
+{
+	"name": "@stardazed/render",
+	"description": "Stardazed - render system interface",
+	"version": "0.4.0",
+	"author": {
+		"name": "Arthur Langereis"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/stardazed/stardazed.git"
+	},
+	"main": "dist/index.esm.js",
+	"module": "dist/index.esm.js",
+	"types": "dist/index.d.ts",
+	"peerDependencies": {
+		"@stardazed/core": "^0.4.0",
+		"@stardazed/image": "^0.4.0",
+		"@stardazed/geometry": "^0.4.0"
+	}
+}
