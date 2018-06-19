@@ -7,18 +7,18 @@ namespace sd.render.gl1 {
 
 	import RCT = RenderCommandType;
 
-	const gl1TypeForPrimitiveType = makeLUT<geometry.PrimitiveType, number>(
-		geometry.PrimitiveType.Point, GLConst.POINTS,
-		geometry.PrimitiveType.Line, GLConst.LINES,
-		geometry.PrimitiveType.LineStrip, GLConst.LINE_STRIP,
-		geometry.PrimitiveType.Triangle, GLConst.TRIANGLES,
-		geometry.PrimitiveType.TriangleStrip, GLConst.TRIANGLE_STRIP
+	const gl1TypeForPrimitiveType = makeLUT<PrimitiveType, number>(
+		PrimitiveType.Point, GLConst.POINTS,
+		PrimitiveType.Line, GLConst.LINES,
+		PrimitiveType.LineStrip, GLConst.LINE_STRIP,
+		PrimitiveType.Triangle, GLConst.TRIANGLES,
+		PrimitiveType.TriangleStrip, GLConst.TRIANGLE_STRIP
 	);
 
-	const gl1TypeForIndexElementType = makeLUT<geometry.IndexElementType, number>(
-		geometry.IndexElementType.UInt8, GLConst.UNSIGNED_BYTE,
-		geometry.IndexElementType.UInt16, GLConst.UNSIGNED_SHORT,
-		geometry.IndexElementType.UInt32, GLConst.UNSIGNED_INT
+	const gl1TypeForIndexElementType = makeLUT<IndexElementType, number>(
+		IndexElementType.UInt8, GLConst.UNSIGNED_BYTE,
+		IndexElementType.UInt16, GLConst.UNSIGNED_SHORT,
+		IndexElementType.UInt32, GLConst.UNSIGNED_INT
 	);
 
 	export function processFrame(this: GL1RenderDevice) {
@@ -75,12 +75,12 @@ namespace sd.render.gl1 {
 				case RCT.TextureWrite: {
 					const texData = this.textures_.getByHandle(cmd.textureHandle)!;
 					this.state.setTexture(this.state.maxTextureSlot, texData, undefined);
-					const glFormat = gl1ImageFormatForPixelFormat(this, texData.format);
-					if (image.pixelFormatIsCompressed(texData.format)) {
+					const glFormat = gl1ImageFormatForPixelFormat(texData.format);
+					if (pixelFormatIsCompressed(texData.format)) {
 						gl.compressedTexSubImage2D(texData.target, 0, cmd.x, cmd.y, cmd.width, cmd.height, glFormat, cmd.pixels);
 					}
 					else {
-						const glPixelType = gl1PixelDataTypeForPixelFormat(this, texData.format);
+						const glPixelType = gl1PixelDataTypeForPixelFormat(texData.format);
 						gl.texSubImage2D(texData.target, 0, cmd.x, cmd.y, cmd.width, cmd.height, glFormat, glPixelType, cmd.pixels);
 					}
 					// [AL] TODO: this is causing a lot of unnecessary texture set calls, evaluate
@@ -156,9 +156,9 @@ namespace sd.render.gl1 {
 
 					// issue draw call
 					const primType = gl1TypeForPrimitiveType[cmd.primitiveType];
-					if (mesh.indexElement !== geometry.IndexElementType.None) {
+					if (mesh.indexElement !== IndexElementType.None) {
 						const indexType = gl1TypeForIndexElementType[mesh.indexElement];
-						const offsetBytes = cmd.fromElement * geometry.indexElementTypeSizeBytes[mesh.indexElement];
+						const offsetBytes = cmd.fromElement * indexElementTypeSizeBytes[mesh.indexElement];
 						gl.drawElements(primType, cmd.elementCount, indexType, offsetBytes);
 					}
 					else {
