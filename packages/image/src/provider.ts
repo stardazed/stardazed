@@ -7,7 +7,7 @@
 
 import { TypedArray } from "@stardazed/core";
 import { isPowerOf2 } from "@stardazed/math";
-import { PixelFormat, pixelFormatBytesPerElement, pixelFormatIsCompressed } from "@stardazed/pixel-format";
+import { PixelFormat, pixelFormatBytesForDimension } from "@stardazed/pixel-format";
 
 export interface PixelCoordinate {
 	x: number;
@@ -37,21 +37,6 @@ export function isNonPowerOfTwo(dim: PixelDimensions) {
 }
 
 
-export function dataSizeBytesForPixelFormatAndDimensions(format: PixelFormat, dim: PixelDimensions) {
-	const elementSize = pixelFormatBytesPerElement(format);
-	let columns = dim.width;
-	let rows = dim.height;
-
-	if (pixelFormatIsCompressed(format)) {
-		// DXT 1, 3, 5
-		columns = ((dim.width + 3) >> 2);
-		rows    = ((dim.height + 3) >> 2);
-	}
-
-	return dim.depth * rows * columns * elementSize;
-}
-
-
 export type ImageFrameSource = ImageData | ImageBitmap | HTMLImageElement | HTMLVideoElement | HTMLCanvasElement;
 export type ImageFrameData = ImageFrameSource | TypedArray | DataView;
 
@@ -61,17 +46,8 @@ export interface ImageFrame {
 	readonly data: ImageFrameData;
 }
 
-export function imageFrameBytesPerRow(frame: ImageFrame) {
-	return dataSizeBytesForPixelFormatAndDimensions(frame.pixelFormat, makePixelDimensions(frame.dim.width));
-}
-
-export function imageFrameRequiredRowAlignment(frame: ImageFrame) {
-	const rowBytes = imageFrameBytesPerRow(frame);
-	return Math.min(8, rowBytes & -rowBytes);
-}
-
 export function imageFrameSizeBytes(frame: ImageFrame) {
-	return dataSizeBytesForPixelFormatAndDimensions(frame.pixelFormat, frame.dim);
+	return pixelFormatBytesForDimension(frame.pixelFormat, frame.dim.width, frame.dim.height) * frame.dim.depth;
 }
 
 

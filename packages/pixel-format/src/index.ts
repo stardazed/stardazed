@@ -71,10 +71,10 @@ export function pixelFormatIsDepthStencilFormat(format: PixelFormat) {
 }
 
 
+/**
+ * Element means a pixel for non-compressed formats and a block for compressed formats
+ */
 export function pixelFormatBytesPerElement(format: PixelFormat) {
-	// Element means a pixel for non-compressed formats
-	// and a block for compressed formats
-
 	switch (format) {
 		case PixelFormat.R8:
 		case PixelFormat.Stencil8:
@@ -125,4 +125,17 @@ export function pixelFormatBytesPerElement(format: PixelFormat) {
 		default:
 			return 0;
 	}
+}
+
+export function pixelFormatBytesForDimension(format: PixelFormat, width: number, height: number) {
+	const elementSize = pixelFormatBytesPerElement(format);
+	let columns = width;
+	let rows = height;
+
+	if (format >= PixelFormat.RGB_DXT1 && format <= PixelFormat.RGBA_DXT5) {
+		columns = ((width + 3) >> 2);
+		rows = ((height + 3) >> 2);
+	}
+
+	return rows * columns * elementSize;
 }
