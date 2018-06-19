@@ -15,6 +15,7 @@
 	"peerDependencies": {
 		"@stardazed/core": "^0.4.0",
 		"@stardazed/image": "^0.4.0",
-		"@stardazed/geometry": "^0.4.0"
+		"@stardazed/geometry": "^0.4.0",
+		"@stardazed/pixel-format": "^0.4.0"
 	}
 }

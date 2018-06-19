@@ -5,7 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-export * from "./pixelformat";
 export * from "./provider";
 export * from "./builtin";
 export * from "./dds";

@@ -6,7 +6,7 @@
  */
 
 import { ImageFrame, makePixelDimensions } from "./provider";
-import { PixelFormat } from "./pixelformat";
+import { PixelFormat } from "@stardazed/pixel-format";
 
 const enum TGAImageType /* uint8 */ {
 	None = 0,

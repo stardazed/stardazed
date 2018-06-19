@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { PixelFormat } from "./pixelformat";
+import { PixelFormat } from "@stardazed/pixel-format";
 import { PixelDimensions, makePixelDimensions, PixelDataProvider, ImageFrame } from "./provider";
 
 export class HTMLImageDataProvider implements PixelDataProvider {

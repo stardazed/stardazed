@@ -7,7 +7,7 @@
 
 import { TypedArray } from "@stardazed/core";
 import { isPowerOf2 } from "@stardazed/math";
-import { PixelFormat, pixelFormatBytesPerElement, pixelFormatIsCompressed } from "./pixelformat";
+import { PixelFormat, pixelFormatBytesPerElement, pixelFormatIsCompressed } from "@stardazed/pixel-format";
 
 export interface PixelCoordinate {
 	x: number;

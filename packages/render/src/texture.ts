@@ -6,7 +6,8 @@
  */
 
 import { assert } from "@stardazed/core";
-import { PixelDimensions, PixelFormat, makePixelDimensions, PixelDataProvider } from "@stardazed/image";
+import { PixelFormat } from "@stardazed/pixel-format";
+import { PixelDimensions, makePixelDimensions, PixelDataProvider } from "@stardazed/image";
 import { RenderResourceBase, ResourceType } from "./resource";
 
 export const enum TextureClass {

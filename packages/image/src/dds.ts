@@ -6,7 +6,7 @@
  */
 
 import { assert } from "@stardazed/core";
-import { PixelFormat } from "./pixelformat";
+import { PixelFormat } from "@stardazed/pixel-format";
 import { PixelDataProvider, ImageFrame, makePixelDimensions, dimensionAtMipLevel, dataSizeBytesForPixelFormatAndDimensions, PixelDimensions } from "./provider";
 
 const enum DDSPixelFormatOffsets {

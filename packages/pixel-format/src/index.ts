@@ -1,11 +1,9 @@
 /**
- * image/pixelformat - pixel formats and traits
+ * @stardazed/pixel-format - pixel formats and traits
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-
-import { assert } from "@stardazed/core";
 
 export const enum PixelFormat {
 	None,
@@ -125,7 +123,6 @@ export function pixelFormatBytesPerElement(format: PixelFormat) {
 			return 16;
 
 		default:
-			assert(false, "unhandled pixel buffer format");
 			return 0;
 	}
 }
