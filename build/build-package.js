@@ -57,7 +57,7 @@ function createTSConfigForPackage(packageName) {
 		...result.config.compilerOptions || {},
 		...{
 			// this is not handled by readConfigFile for some reason
-			target: typescript.ScriptTarget.ES2015,
+			target: typescript.ScriptTarget.ES2017,
 			module: typescript.ModuleKind.ES2015,
 			moduleResolution: typescript.ModuleResolutionKind.NodeJs,
 
