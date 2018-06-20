@@ -26,7 +26,8 @@
     "packages/*"
   ],
   "scripts": {
-    "buildone": "node --no-warnings ./build/build-package.js"
+    "buildone": "node --no-warnings ./build/build-package.js",
+    "clean": "rm -rf packages/**/dist"
   },
   "devDependencies": {
     "rollup": "^0.60.7",
