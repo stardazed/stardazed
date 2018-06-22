@@ -7,5 +7,4 @@
 
 export * from "./provider";
 export * from "./builtin";
-export * from "./dds";
 export * from "./tga";

@@ -1,5 +1,5 @@
 /**
- * image/dds - DDS (DXT 1, 3, 5) image importer
+ * @stardazed/image-dds - DDS (DXT 1, 3, 5) image loader
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
@@ -7,7 +7,17 @@
 
 import { assert } from "@stardazed/core";
 import { PixelFormat } from "@stardazed/pixel-format";
-import { PixelDataProvider, ImageFrame, makePixelDimensions, dimensionAtMipLevel, dataSizeBytesForPixelFormatAndDimensions, PixelDimensions } from "./provider";
+import { ImageFrame, makePixelDimensions, dimensionAtMipLevel, dataSizeBytesForPixelFormatAndDimensions, PixelDimensions } from "@stardazed/image";
+
+interface TypedReadableStream<T> extends ReadableStream {
+	getReader(): TypedReadableStreamReader<T>;
+}
+
+interface TypedReadableStreamReader<T> extends ReadableStreamReader {
+	read(): Promise<T>;
+}
+
+type ImageReadableStream = TypedReadableStream<string | number>;
 
 const enum DDSPixelFormatOffsets {
 	dwSize = 0, // uint32
@@ -36,6 +46,18 @@ const enum DDSOffsets {
 	dwCaps3 = 116, // uint32
 	dwCaps4 = 120, // uint32
 	dwReserved2 = 124, // uint32
+}
+
+
+interface StreamingImage {
+	// input
+	bytesLoaded(data: Uint8Array): void;
+	noMoreData(): void;
+
+	// output
+	mipLevelMin: number; // minimum lod level available (i.e. largest size)
+	mipLevelMax: number; // maximum lod level available (i.e. smallest size)
+	mips: (ImageFrame | undefined)[];
 }
 
 
