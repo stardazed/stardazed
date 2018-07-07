@@ -19,7 +19,6 @@
   "keywords": [
     "game-engine",
     "webgl",
-    "typescript-library",
     "3d"
   ],
   "workspaces": [
