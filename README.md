@@ -20,8 +20,8 @@ There is still quite a ways to go for this to become a reality, but I've already
 succesfully for small projects. For the foreseeable future the library will require medium to high
 technical expertise to use.
 
-Stardazed is educational project for myself and the design and feature set currently directly corresponds
-to my interests. Stardazed is focused on desktop WebGL 1 & 2, mobile support is currently not a priority.
+Stardazed is an educational project for myself and the design and feature set currently directly corresponds
+to my interests. For example, I'm focusing on desktop WebGL 1 & 2, mobile support is currently not a priority.
 
 ### Sub goals
 - Learn about all aspects of game (engine) programming by implementing them.
