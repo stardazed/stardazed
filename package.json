@@ -7,14 +7,11 @@
   "homepage": "https://github.com/stardazed/stardazed",
   "author": {
     "name": "Arthur Langereis",
-    "url": "https://zenmumbler.net/"
+    "url": "https://twitter.com/zenmumbler"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/stardazed/stardazed.git"
-  },
-  "bugs": {
-    "url": "https://github.com/stardazed/stardazed/issues"
   },
   "keywords": [
     "game-engine",
@@ -29,13 +26,13 @@
     "clean": "rm -rf packages/**/dist"
   },
   "devDependencies": {
-    "rollup": "^0.60.7",
+    "rollup": "0.60.7",
     "rollup-plugin-node-resolve": "^3.3.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
     "typescript": "^2.9.2"
   },
   "engines": {
     "node": ">=10",
-    "yarn": ">=1.7"
+    "pnpm": ">=2.10.4"
   }
 }
