@@ -6,7 +6,7 @@
  */
 
 import { UInt8, Float2 } from "@stardazed/core";
-import { FixedMultiArray, MABField, fill } from "@stardazed/container";
+import { FixedMultiArray, MABField } from "@stardazed/container";
 import { vec2 } from "@stardazed/math";
 import { ButtonState } from "./common";
 
@@ -153,7 +153,7 @@ class MouseImpl implements Mouse {
 	}
 
 	resetPerFrameData() {
-		fill(this.halfTransBase_, 0, this.halfTransBase_.length);
+		this.halfTransBase_.fill(0);
 		this.positionDelta_[0] = 0;
 		this.positionDelta_[1] = 0;
 		this.wheelDelta_[0] = 0;

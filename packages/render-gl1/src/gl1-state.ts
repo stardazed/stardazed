@@ -6,7 +6,7 @@
  */
 
 import { Float4 } from "@stardazed/core";
-import { fill, makeLUT } from "@stardazed/container";
+import { makeLUT } from "@stardazed/container";
 import { clamp, vec2, vec4 } from "@stardazed/math";
 import { BlendOperation, BlendFactor, DepthTest, FrontFaceWinding, FaceCulling,
 	ScissorRect, Viewport, ColourBlending, ColourWriteMask,
@@ -181,7 +181,7 @@ export class GL1State {
 		this.maxAnisotropy_ = this.extTextureAnisotropy ?
 			this.gl.getParameter(GLConst.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1;
 		this.maxTextureSlot_ = this.gl.getParameter(GLConst.MAX_COMBINED_TEXTURE_IMAGE_UNITS) - 1;
-		this.textureSlots_ = fill([], null, this.maxTextureSlot_ + 1);
+		this.textureSlots_ = Array.from({ length: this.maxTextureSlot_ + 1 }, _ => null);
 
 		// initial pull of dynamic state
 		this.frontFace_ = (gl.getParameter(GLConst.FRONT_FACE) === GLConst.CW) ? FrontFaceWinding.Clockwise : FrontFaceWinding.CounterClockwise;

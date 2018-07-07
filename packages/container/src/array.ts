@@ -53,14 +53,6 @@ export function copyElementRange<T, A extends MutableArrayLike<T>>(dest: A, dest
 }
 
 
-export function fill<T, A extends MutableArrayLike<T>>(dest: A, value: T, count: number, offset = 0) {
-	for (let ix = 0; ix < count; ++ix) {
-		dest[ix + offset] = value;
-	}
-	return dest;
-}
-
-
 export function appendArrayInPlace<T>(dest: T[], source: T[]) {
 	const MAX_BLOCK_SIZE = 65535;
 

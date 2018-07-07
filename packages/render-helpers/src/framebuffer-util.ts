@@ -6,7 +6,6 @@
  */
 
 import { assert } from "@stardazed/core";
-import { fill } from "@stardazed/container";
 import { PixelFormat } from "@stardazed/image";
 import { RenderDevice } from "@stardazed/render";
 
@@ -53,7 +52,8 @@ export function makeDefaultFrameBuffer(width: number, height: number, desc: Defa
 	const fbt = makeFrameBufferTraits(width, height);
 	const pixFmt = pixelFormatForFBPixelComponent(desc.pixelComponent || FBPixelComponent.Integer);
 
-	fill(fbt.colours, pixFmt, desc.colourCount);
+	fbt.colours = Array.from({ length: desc.colourCount }, _ => pixFmt);
+
 	if (desc.useDepth) {
 		fbt.depth = PixelFormat.Depth24I;
 	}

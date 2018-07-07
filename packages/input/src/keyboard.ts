@@ -6,7 +6,7 @@
  */
 
 import { UInt8, Double } from "@stardazed/core";
-import { FixedMultiArray, MABField, fill } from "@stardazed/container";
+import { FixedMultiArray, MABField } from "@stardazed/container";
 import { ButtonState } from "./common";
 
 export enum Key {
@@ -130,7 +130,7 @@ class KeyboardImpl implements Keyboard {
 	}
 
 	resetPerFrameData() {
-		fill(this.halfTransBase_, 0, this.halfTransBase_.length);
+		this.halfTransBase_.fill(0);
 	}
 }
 
