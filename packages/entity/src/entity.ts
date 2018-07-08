@@ -34,13 +34,13 @@ function makeEntity(index: number, generation: number): Entity {
 export class EntityManager {
 	private generation_: Uint8Array;
 	private genCount_: number;
-	private freedIndices_: Deque<number>;
+	private freedIndices_: Deque;
 
 	private minFreedBuildup = 1024;
 
 	constructor() {
 		this.generation_ = new Uint8Array(8192);
-		this.freedIndices_ = new Deque<number>();
+		this.freedIndices_ = new Deque(Uint32Array);
 		this.genCount_ = -1;
 
 		// reserve entity id 0
