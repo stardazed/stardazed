@@ -12,8 +12,18 @@ export type TypedArrayConstructor =
 
 export type TypedArray = Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array | Int8Array | Int16Array | Int32Array | Float32Array | Float64Array;
 
+// special purpose or generic array interfaces used very frequently
+export interface MutableArrayLike<T> {
+	readonly length: number;
+	[n: number]: T;
+}
+
 // helper types for enums stored in int arrays
 export interface ConstEnumArray8View<T extends number> extends Uint8Array {
+	[index: number]: T;
+}
+
+export interface ConstEnumArray16View<T extends number> extends Uint16Array {
 	[index: number]: T;
 }
 
@@ -21,11 +31,7 @@ export interface ConstEnumArray32View<T extends number> extends Int32Array {
 	[index: number]: T;
 }
 
-// special purpose or generic array interfaces used very frequently
-export interface MutableArrayLike<T> {
-	readonly length: number;
-	[n: number]: T;
-}
+// --------
 
 export type NumArray = ArrayLike<number>;
 export type MutNumArray = MutableArrayLike<number>;
