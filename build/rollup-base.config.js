@@ -1,5 +1,4 @@
 const resolve = require("rollup-plugin-node-resolve");
-const sourcemaps = require("rollup-plugin-sourcemaps");
 
 const packageConfig = (packageJSON, sourceDir, outputDir) => {
 	// default to only building ESM output
@@ -7,7 +6,7 @@ const packageConfig = (packageJSON, sourceDir, outputDir) => {
 		{
 			file: `${outputDir}/${packageJSON.module}`,
 			format: "es",
-			sourcemap: true,
+			sourcemap: false,
 			freeze: false
 		}
 	];
@@ -25,7 +24,7 @@ const packageConfig = (packageJSON, sourceDir, outputDir) => {
 			file: `${outputDir}/${packageJSON.main}`,
 			format: "umd",
 			name: packageJSON.umdName,
-			sourcemap: true,
+			sourcemap: false,
 			freeze: false
 		});
 	}
@@ -41,7 +40,6 @@ const packageConfig = (packageJSON, sourceDir, outputDir) => {
 		output,
 		plugins: [
 			resolve({ browser: true }),
-			sourcemaps(),
 		],
 		external(id) {
 			// do not bundle other stardazed packages in single-package builds
