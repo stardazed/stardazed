@@ -1,4 +1,3 @@
-const fs = require("fs").promises;
 const readFileSync = require("fs").readFileSync;
 const { resolve } = require("url");
 const { rollup } = require("rollup");
@@ -20,27 +19,6 @@ function packageBuildTempPath(name) {
 
 function packageJSONPath(name) {
 	return resolve(packagesRoot, `${name}/package.json`);
-}
-
-async function getLocalPackageNames() {
-	// enum local packages
-	const items = await fs.readdir(packagesRoot);
-
-	const packages = [];
-	for (const name of items) {
-		const stat = await fs.stat(packagePath(name));
-		if (stat.isDirectory()) {
-			try {
-				const jsonStat = await fs.stat(packageJSONPath(name));
-				if (jsonStat.isFile()) {
-					packages.push(name);
-				}
-			}
-			catch { /* ignore */ }
-		}
-	}
-
-	return packages;
 }
 
 function createTSConfigForPackage(packageName) {
@@ -115,24 +93,15 @@ async function roll(packageName) {
 }
 
 async function run() {
-	const requestedPackages = process.argv.slice(2);
-	if (! requestedPackages.length) {
-		console.info("Usage: yarn buildone <package-name> [<package-name-n> ...]");
+	const packageList = process.argv.slice(2);
+	if (packageList.length !== 1) {
+		console.info("Usage: build-package <package-name>");
 		return;
 	}
-	const packageNames = await getLocalPackageNames();
+	const packageToBuild = packageList[0];
 
-	for (const name of requestedPackages) {
-		if (packageNames.indexOf(name) < 0) {
-			console.warn(`Package not found: ${name}`);
-		}
-		else {
-			// compile and roll the package
-			console.info(`Building ${name}...`);
-			if (compile(name)) {
-				await roll(name);
-			}
-		}
+	if (compile(packageToBuild)) {
+		await roll(packageToBuild);
 	}
 }
 
@@ -140,5 +109,6 @@ run().catch(
 	err => {
 		console.error("Error: " + err.message);
 		console.info(err);
+		process.exit(1);
 	}
 );
