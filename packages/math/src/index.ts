@@ -17,9 +17,3 @@ import * as mat3 from "./mat3";
 import * as mat4 from "./mat4";
 
 export { vec2, vec3, vec4, quat, mat2, mat2d, mat3, mat4 };
-
-export * from "./projection";
-export * from "./primitives";
-
-import * as aabb from "./aabb";
-export { aabb };
