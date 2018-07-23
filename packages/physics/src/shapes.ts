@@ -4,6 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
+/// <reference types="@stardazed/ammo" />
 
 import { Float3, NumArray } from "@stardazed/core";
 

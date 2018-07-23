@@ -4,6 +4,7 @@
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
+/// <reference types="@stardazed/ammo" />
 
 import { SInt32, ConstEnumArray32View } from "@stardazed/core";
 import { MABField, MultiArrayBuffer, InvalidatePointers } from "@stardazed/container";
