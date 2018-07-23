@@ -18,21 +18,18 @@
     "webgl",
     "3d"
   ],
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
     "buildone": "node --no-warnings ./build/build-package.js",
-    "clean": "rm -rf packages/**/dist"
+    "build": "pnpm multi run build",
+    "clean": "pnpm multi exec -- rm -rf dist"
   },
   "devDependencies": {
-    "rollup": "0.60.7",
+    "rollup": "^0.63.4",
     "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-sourcemaps": "^0.4.2",
     "typescript": "^2.9.2"
   },
   "engines": {
     "node": ">=10",
-    "pnpm": ">=2.10.4"
+    "pnpm": ">=2.12.2"
   }
 }
