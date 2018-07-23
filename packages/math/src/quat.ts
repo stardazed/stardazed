@@ -277,7 +277,7 @@ export function invert(out: number[], a: ACN): number[];
 export function invert<T extends AN>(out: T, a: ACN): T;
 export function invert(out: AN, a: ACN) {
 	const a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3],
-		dot = a0 * a0 + a1 * a1 + a2 * a2 + a3 * a3, // tslint:disable-line:no-shadowed-variable
+		dot = a0 * a0 + a1 * a1 + a2 * a2 + a3 * a3,
 		invDot = dot ? 1.0 / dot : 0;
 
 	// TODO: Would be faster to return [0,0,0,0] immediately if dot == 0
