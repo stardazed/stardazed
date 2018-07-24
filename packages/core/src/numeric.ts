@@ -34,18 +34,6 @@ export const UInt8: NumericType = {
 };
 
 /**
- * Traits of unsigned 8-bit clamped integer numbers.
- */
-export const UInt8Clamped: NumericType = {
-	min: 0,
-	max: 255,
-	signed: false,
-	integer: true,
-	byteSize: 1,
-	arrayType: Uint8ClampedArray
-};
-
-/**
  * Traits of signed 8-bit integer numbers.
  */
 export const SInt8: NumericType = {
