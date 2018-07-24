@@ -19,7 +19,6 @@
     "3d"
   ],
   "scripts": {
-    "buildone": "node --no-warnings ./build/build-package.js",
     "build": "pnpm multi run build",
     "clean": "pnpm multi exec -- rm -rf dist"
   },

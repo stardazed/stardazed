@@ -1,6 +1,5 @@
 .DS_Store
 .vscode
-yarn-error.log*
 
 /build/temp
 /node_modules
