@@ -67,10 +67,10 @@ function compile(packageName) {
         if (diagnostic.file) {
             const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
 			const message = typescript.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
-            console.info(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
+            console.error(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
         }
         else {
-            console.info(typescript.flattenDiagnosticMessageText(diagnostic.messageText, "\n"));
+            console.error(typescript.flattenDiagnosticMessageText(diagnostic.messageText, "\n"));
         }
     }
 
@@ -102,6 +102,9 @@ async function run() {
 
 	if (compile(packageToBuild)) {
 		await roll(packageToBuild);
+	}
+	else {
+		throw new Error("compilation failed");
 	}
 }
 
