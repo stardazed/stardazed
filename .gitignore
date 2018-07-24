@@ -1,5 +1,6 @@
 .DS_Store
 .vscode
+**/pnpm-debug.log
 
 /scripts/temp
 /node_modules

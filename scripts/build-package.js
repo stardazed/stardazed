@@ -7,7 +7,7 @@ const { packageConfig } = require("./rollup-base.config");
 
 // globals
 const packagesRoot = resolve(__dirname, "packages/");
-const buildRoot = resolve(__dirname, "build/");
+const buildRoot = resolve(__dirname, "scripts/");
 
 function packagePath(name) {
 	return resolve(packagesRoot, name);
