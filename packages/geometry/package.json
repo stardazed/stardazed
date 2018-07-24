@@ -13,7 +13,7 @@
 	"module": "dist/index.esm.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
-		"build": "node --no-warnings ../../build/build-package geometry"
+		"build": "node --no-warnings ../../scripts/build-package geometry"
 	},
 	"dependencies": {
 		"@stardazed/container": "^0.4.0",

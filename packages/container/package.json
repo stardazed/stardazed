@@ -13,7 +13,7 @@
 	"module": "dist/index.esm.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
-		"build": "node --no-warnings ../../build/build-package container"
+		"build": "node --no-warnings ../../scripts/build-package container"
 	},
 	"dependencies": {
 		"@stardazed/core": "^0.4.0",

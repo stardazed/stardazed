@@ -13,7 +13,7 @@
 	"module": "dist/index.esm.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
-		"build": "node --no-warnings ../../build/build-package core"
+		"build": "node --no-warnings ../../scripts/build-package core"
 	},
 	"dependencies": {}
 }
