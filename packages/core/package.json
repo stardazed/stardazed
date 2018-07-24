@@ -15,5 +15,5 @@
 	"scripts": {
 		"build": "node --no-warnings ../../build/build-package core"
 	},
-	"peerDependencies": {}
+	"dependencies": {}
 }

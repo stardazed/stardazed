@@ -12,7 +12,10 @@
 	"main": "dist/index.esm.js",
 	"module": "dist/index.esm.js",
 	"types": "dist/index.d.ts",
-	"peerDependencies": {
+	"scripts": {
+		"build": "node --no-warnings ../../build/build-package geometry-gen"
+	},
+	"dependencies": {
 		"@stardazed/container": "^0.4.0",
 		"@stardazed/core": "^0.4.0",
 		"@stardazed/geometry": "^0.4.0",
