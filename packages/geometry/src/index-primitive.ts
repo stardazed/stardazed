@@ -5,8 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert } from "@stardazed/core";
-
 export const enum PrimitiveType {
 	None,
 
@@ -17,7 +15,18 @@ export const enum PrimitiveType {
 	TriangleStrip
 }
 
+export function isPrimitiveType(val: any): val is PrimitiveType {
+	if (typeof val !== "number") {
+		return false;
+	}
+	return val >= PrimitiveType.None && val <= PrimitiveType.TriangleStrip;
+}
 
+/**
+ * Calculate the element offset of the Nth typed primitive in an element array.
+ * @expects isPrimitiveType(primitiveType)
+ * @expects isPositiveInteger(primitiveCount)
+ */
 export function elementOffsetForPrimitiveCount(primitiveType: PrimitiveType, primitiveCount: number) {
 	switch (primitiveType) {
 		case PrimitiveType.Point:
@@ -30,17 +39,17 @@ export function elementOffsetForPrimitiveCount(primitiveType: PrimitiveType, pri
 			return primitiveCount * 3;
 		case PrimitiveType.TriangleStrip:
 			return primitiveCount;
-
 		default:
-			assert(false, "Unknown primitive type");
-			return 0;
+			return NaN;
 	}
 }
 
-
+/**
+ * Calculate the number of elements required for N typed primitives.
+ * @expects isPrimitiveType(primitiveType)
+ * @expects isPositiveInteger(primitiveCount)
+ */
 export function elementCountForPrimitiveCount(primitiveType: PrimitiveType, primitiveCount: number) {
-	assert(primitiveCount >= 0);
-
 	switch (primitiveType) {
 		case PrimitiveType.Point:
 			return primitiveCount;
@@ -52,17 +61,17 @@ export function elementCountForPrimitiveCount(primitiveType: PrimitiveType, prim
 			return primitiveCount * 3;
 		case PrimitiveType.TriangleStrip:
 			return primitiveCount > 0 ? primitiveCount + 2 : 0;
-
 		default:
-			assert(false, "Unknown primitive type");
-			return 0;
+			return NaN;
 	}
 }
 
-
+/**
+ * Calculate the number of typed primitives that can be stored using N elements.
+ * @expects isPrimitiveType(primitiveType)
+ * @expects isPositiveInteger(elementCount)
+ */
 export function primitiveCountForElementCount(primitiveType: PrimitiveType, elementCount: number) {
-	assert(elementCount >= 0);
-
 	switch (primitiveType) {
 		case PrimitiveType.Point:
 			return elementCount;
@@ -74,9 +83,7 @@ export function primitiveCountForElementCount(primitiveType: PrimitiveType, elem
 			return (elementCount / 3) | 0;
 		case PrimitiveType.TriangleStrip:
 			return elementCount > 0 ? elementCount - 2 : 0;
-
 		default:
-			assert(false, "Unknown primitive type");
-			return 0;
+			return NaN;
 	}
 }

@@ -5,7 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert } from "@stardazed/core";
 import { roundUpPowerOf2 } from "@stardazed/math";
 import { VertexAttribute, VertexAttributeRole } from "./vertex-attribute";
 import { VertexField, vertexFieldElementSizeBytes, vertexFieldSizeBytes } from "./vertex-field";
@@ -30,10 +29,11 @@ class VertexBufferLayoutImpl implements VertexBufferLayout {
 	readonly attributes: Readonly<PositionedAttribute>[];
 	readonly stride: number;
 
+	/**
+	 * @expects attributes.length > 0
+	 * @expects isPositiveNonZeroInteger(stride)
+	 */
 	constructor(attributes: PositionedAttribute[], stride: number) {
-		assert(attributes.length > 0, "Cannot create an empty VertexBufferLayout");
-		assert(stride > 0, "stride must be positive");
-
 		this.attributes = [...attributes];
 		this.stride = stride;
 	}

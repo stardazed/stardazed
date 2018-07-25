@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert, TypedArrayConstructor, TypedArray } from "@stardazed/core";
+import { TypedArrayConstructor, TypedArray } from "@stardazed/core";
 
 export class Deque {
 	private readonly blockCtor_: TypedArrayConstructor;
@@ -70,9 +70,10 @@ export class Deque {
 		++this.count_;
 	}
 
+	/**
+	 * @expects this.count_ > 0
+	 */
 	popFront() {
-		assert(this.count_ > 0);
-
 		const value = this.headBlock[this.headIndex_];
 
 		++this.headIndex_;
@@ -96,9 +97,10 @@ export class Deque {
 		return value;
 	}
 
+	/**
+	 * @expects this.count_ > 0
+	 */
 	popBack() {
-		assert(this.count_ > 0);
-
 		if (this.tailIndex_ === 0) {
 			// Strategy: keep max. 1 block after tail if it was previously created.
 			// Once we get to 2 empty blocks after tail, then remove the back block.
@@ -129,13 +131,17 @@ export class Deque {
 	get count() { return this.count_; }
 	get empty() { return this.count_ === 0; }
 
+	/**
+	 * @expects this.count_ > 0
+	 */
 	get front() {
-		assert(this.count_ > 0);
 		return this.headBlock[this.headIndex_];
 	}
 
+	/**
+	 * @expects this.count_ > 0
+	 */
 	get back() {
-		assert(this.count_ > 0);
 		return (this.tailIndex_ > 0) ? this.tailBlock[this.tailIndex_ - 1] : this.blocks_[this.tailBlock_ - 1][this.blockCapacity_ - 1];
 	}
 }

@@ -5,7 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert } from "@stardazed/core";
 import { IndexElementType, indexElementTypeSizeBytes, TypedIndexArray, typedIndexArrayClassForIndexElement } from "./index-element";
 
 export class IndexBuffer {
@@ -14,18 +13,17 @@ export class IndexBuffer {
 	readonly storage: Uint8ClampedArray;
 	private readonly indexElementSizeBytes_: number;
 
+	/**
+	 * @expects elementType > IndexElementType.None && elementType <= IndexElementType.Uint32
+	 * @expects isPositiveNonZeroInteger(indexCount)
+	 * @expects usingStorage === undefined || usingStorage.byteLength >= indexElementTypeSizeBytes[elementType] * indexCount
+	 */
 	constructor(elementType: IndexElementType, indexCount: number, usingStorage?: Uint8ClampedArray) {
-		assert(indexCount > 0, "Invalid indexCount, must be > 0");
-		assert(elementType !== IndexElementType.None);
-
 		this.indexElementType = elementType;
 		this.indexElementSizeBytes_ = indexElementTypeSizeBytes[elementType];
 		this.indexCount = indexCount;
-		
-		assert(this.indexElementSizeBytes_ !== undefined);
 
 		if (usingStorage) {
-			assert(usingStorage.byteLength >= this.sizeBytes, "Not enough space in supplied storage");
 			this.storage = usingStorage;
 		}
 		else {
@@ -36,12 +34,11 @@ export class IndexBuffer {
 	get sizeBytes() { return this.indexCount * this.indexElementSizeBytes_; }
 
 	/**
-	 *  Direct (sub-)array access
+	 * Direct (sub-)array access
+	 * @expects baseIndexNr < this.indexCount
+	 * @expects baseIndexNr + indexCount <= this.indexCount
 	 */
 	typedBasePtr(baseIndexNr: number, indexCount: number): TypedIndexArray {
-		assert(baseIndexNr < this.indexCount);
-		assert(baseIndexNr + indexCount <= this.indexCount);
-
 		const offsetBytes = this.storage.byteOffset + this.indexElementSizeBytes_ * baseIndexNr;
 		const arrayClass = typedIndexArrayClassForIndexElement(this.indexElementType);
 		return new arrayClass(this.storage.buffer, offsetBytes, indexCount) as TypedIndexArray;

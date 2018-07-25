@@ -5,7 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert } from "@stardazed/core";
 import { vec3 } from "@stardazed/math";
 import { copyIndexedVec3, setIndexedVec3 } from "@stardazed/container";
 import { Geometry, VertexAttributeRole, VertexBufferLayout, VertexBuffer } from "@stardazed/geometry";
@@ -44,13 +43,15 @@ export function calcVertexNormals(layout: VertexBufferLayout, vertexBuffer: Vert
 	// TODO: else warn?
 }
 
-
+/**
+ * @expects posView.vertexCount <= normView.vertexCount
+ */
 export function calcVertexNormalsViews(posView: VertexBufferAttributeView, normView: VertexBufferAttributeView, triView: TriangleView) {
 	const vertexCount = posView.vertexCount;
 	const normalCount = normView.vertexCount;
-	assert(vertexCount <= normalCount);
 	const baseVertex = normView.fromVertex;
 
+	// FIXME(perf): avoid creating thousands of vec refs
 	normView.forEach(norm => {
 		vec3.set(norm, 0, 0, 1);
 	});
@@ -109,7 +110,11 @@ export function calcVertexTangents(layout: VertexBufferLayout, vertexBuffer: Ver
 	// TODO: else warn?
 }
 
-
+/**
+ * @expects posView.vertexCount <= normView.vertexCount
+ * @expects posView.vertexCount <= uvView.vertexCount
+ * @expects posView.vertexCount <= tanView.vertexCount
+ */
 export function calcVertexTangentsViews(
 	posView: VertexBufferAttributeView,
 	normView: VertexBufferAttributeView,
@@ -121,10 +126,6 @@ export function calcVertexTangentsViews(
 	// by Eric Lengyel
 
 	const vertexCount = posView.vertexCount;
-	assert(vertexCount <= normView.vertexCount);
-	assert(vertexCount <= uvView.vertexCount);
-	assert(vertexCount <= tanView.vertexCount);
-
 	const tanBuf = new Float32Array(vertexCount * 3 * 2);
 	const tan1 = tanBuf.subarray(0, vertexCount);
 	const tan2 = tanBuf.subarray(vertexCount);
@@ -199,9 +200,9 @@ export function calcVertexTangentsViews(
 			vec3.scale(tangent, tangent, -1);
 		}
 
-		if (isNaN(tangent[0]) || isNaN(tangent[1]) || isNaN(tangent[2])) {
-			assert(false, "Failure during tangent calculation");
-		}
+		// if (isNaN(tangent[0]) || isNaN(tangent[1]) || isNaN(tangent[2])) {
+		// 	throw new Error("Failure during tangent calculation");
+		// }
 		vec3.copy(tanView.refItem(ix), tangent);
 	}
 }

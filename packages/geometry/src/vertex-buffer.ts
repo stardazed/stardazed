@@ -5,8 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert } from "@stardazed/core";
-
 export class VertexBuffer {
 	readonly storage: Uint8ClampedArray;
 	readonly vertexCount: number;
@@ -16,16 +14,16 @@ export class VertexBuffer {
 		return this.vertexCount * this.stride;
 	}
 
+	/**
+	 * @expects isPositiveNonZeroInteger(vertexCount)
+	 * @expects isPositiveNonZeroInteger(stride)
+	 * @expects usingStorage === undefined || usingStorage.byteLength >= vertexCount * stride
+	 */
 	constructor(vertexCount: number, stride: number, usingStorage?: Uint8ClampedArray) {
-		vertexCount = vertexCount | 0;
-		stride = stride | 0;
-		assert(vertexCount > 0);
-		assert(stride > 0);
 		this.vertexCount = vertexCount;
 		this.stride = stride;
 
 		if (usingStorage) {
-			assert(usingStorage.byteLength >= this.sizeBytes, "Not enough space in supplied storage");
 			this.storage = usingStorage;
 		}
 		else {

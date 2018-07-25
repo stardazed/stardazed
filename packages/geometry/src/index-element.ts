@@ -16,6 +16,13 @@ export const enum IndexElementType {
 	UInt32
 }
 
+export function isIndexElementType(val: any): val is IndexElementType {
+	if (typeof val !== "number") {
+		return false;
+	}
+	return val >= IndexElementType.None && val <= IndexElementType.UInt32;
+}
+
 export const indexElementTypeSizeBytes = makeLUT<IndexElementType, number>(
 	IndexElementType.UInt8, Uint8Array.BYTES_PER_ELEMENT,
 	IndexElementType.UInt16, Uint16Array.BYTES_PER_ELEMENT,

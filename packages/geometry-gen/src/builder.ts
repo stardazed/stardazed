@@ -198,10 +198,10 @@ export class MeshBuilder {
 		return res;
 	}
 
-
+	/**
+	 * @expects isPositiveInteger(newGroupIndex)
+	 */
 	setGroup(newGroupIndex: number) {
-		assert(newGroupIndex >= 0, "group index must be >= 0");
-
 		this.groupIndex_ = newGroupIndex;
 		if (! this.groupIndexStreams_.has(newGroupIndex)) {
 			this.groupIndexStreams_.set(newGroupIndex, []);
@@ -312,7 +312,6 @@ export class MeshBuilder {
 	}
 
 	get curPolygonIndex() { return this.sourcePolygonIndex_; }
-
 	get indexMap() { return this.indexMap_; }
 
 

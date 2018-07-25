@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert, NumericType, TypedArrayConstructor, TypedArray, NumArray } from "@stardazed/core";
+import { NumericType, TypedArrayConstructor, TypedArray, NumArray } from "@stardazed/core";
 import { PositionedAttribute, vertexFieldElementCount, vertexFieldNumericType, VertexField, VertexBuffer } from "@stardazed/geometry";
 
 export class VertexBufferAttributeView {
@@ -70,10 +70,11 @@ export class VertexBufferAttributeView {
 		}
 	}
 
+	/**
+	 * @expects this.fromVertex + offset + valueCount <= this.vertexCount
+	 * @expects source.length >= valueCount * this.elementCount
+	 */
 	copyValuesFrom(source: NumArray, valueCount: number, offset = 0) {
-		assert(this.fromVertex + offset + valueCount <= this.vertexCount, "buffer overflow");
-		assert(source.length >= valueCount * this.elementCount, "not enough elements in source");
-
 		const buffer = this.buffer_;
 		const stride = this.stride_;
 		const elementSize = this.fieldNumType_.byteSize;
@@ -186,6 +187,9 @@ export class VertexBufferAttributeView {
 		return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.elementCount);
 	}
 
+	/**
+	 * @expects this.attr_.field >= VertexField.Float && this.attr_.field <= VertexField.Floatx4
+	 */
 	copyItem(index: number): number[] {
 		index += this.fromVertex;
 		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attr_.offset;
@@ -209,7 +213,6 @@ export class VertexBufferAttributeView {
 				break;
 
 			default:
-				assert(false, "copyItem not implemented for this fieldtype");
 				break;
 		}
 

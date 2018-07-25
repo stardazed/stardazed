@@ -5,7 +5,8 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert, NumericType, TypedArray } from "@stardazed/core";
+import { assert } from "@stardazed/debug";
+import { NumericType, TypedArray } from "@stardazed/core";
 import { alignUp, roundUpPowerOf2 } from "@stardazed/math";
 import { clearArrayBuffer } from "./array";
 
@@ -109,6 +110,9 @@ export class MultiArrayBuffer {
 	private elementSumSize_ = 0;
 	private data_: ArrayBuffer | null = null;
 
+	/**
+	 * @expects isPositiveNonZeroInteger(initialCapacity)
+	 */
 	constructor(initialCapacity: number, fields: MABField[]) {
 		let totalOffset = 0;
 		this.fields_ = fields.map(field => {
@@ -132,21 +136,25 @@ export class MultiArrayBuffer {
 
 	get capacity() { return this.capacity_; }
 	get count() { return this.count_; }
+	/**
+	 * @expects this.count_ > 0
+	 */
 	get backIndex() {
-		assert(this.count_ > 0);
 		return this.count_ - 1;
 	}
 
-
+	/**
+	 * @expects itemCount > 0
+	 */
 	private fieldArrayView(f: PositionedMABField, buffer: ArrayBuffer, itemCount: number) {
 		const byteOffset = f.byteOffset * itemCount;
 		return new (f.type.arrayType)(buffer, byteOffset, itemCount * f.count);
 	}
 
-
+	/**
+	 * @expects newCapacity > 0 
+	 */
 	reserve(newCapacity: number): InvalidatePointers {
-		assert(newCapacity > 0);
-
 		// By forcing an allocated multiple of 32 elements, we never have
 		// to worry about padding between consecutive arrays. 32 is chosen
 		// as it is the AVX layout requirement, so e.g. a char field followed
@@ -192,7 +200,9 @@ export class MultiArrayBuffer {
 		clearArrayBuffer(this.data_!);
 	}
 
-
+	/**
+	 * @expects isPositiveNonZeroInteger(newCount)
+	 */
 	resize(newCount: number): InvalidatePointers {
 		let invalidation = InvalidatePointers.No;
 
@@ -229,7 +239,9 @@ export class MultiArrayBuffer {
 		return invalidation;
 	}
 
-
+	/**
+	 * @expects index >= 0 && index < this.fields_.length
+	 */
 	indexedFieldView(index: number) {
 		return this.fieldArrayView(this.fields_[index], this.data_!, this.capacity_);
 	}

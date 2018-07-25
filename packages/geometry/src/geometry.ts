@@ -5,7 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert } from "@stardazed/core";
 import { alignUp } from "@stardazed/math";
 import { PrimitiveType } from "./index-primitive";
 import { minimumIndexElementTypeForVertexCount, bytesRequiredForIndexCount } from "./index-element";

@@ -5,7 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert } from "@stardazed/core";
 import { VertexAttribute, VertexField, VertexAttributeRole } from "@stardazed/geometry";
 
 // -- VertexAttribute shortcuts for common types
@@ -18,8 +17,11 @@ export function attrUV2(): VertexAttribute { return { field: VertexField.Floatx2
 export function attrTangent3(): VertexAttribute { return { field: VertexField.Floatx3, role: VertexAttributeRole.Tangent }; }
 
 export function attrJointIndexes(): VertexAttribute { return { field: VertexField.SInt32x4, role: VertexAttributeRole.JointIndexes }; }
+
+/**
+ * @expects index >= 0 && index < 4
+ */
 export function attrWeightedPos(index: number) {
-	assert(index >= 0 && index < 4);
 	return { field: VertexField.Floatx4, role: VertexAttributeRole.WeightedPos0 + index };
 }
 
