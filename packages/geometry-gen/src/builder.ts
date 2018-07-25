@@ -1,13 +1,13 @@
 /**
- * geometry/builder - construct Geometry from normalized sources such as assets
+ * geometry/builder - construct Geometry from normalized sources
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
-import { assert, TypedArray, Float, Double, NumArray } from "@stardazed/core";
+import { TypedArray, NumArray } from "@stardazed/core";
 import { stableSort, appendArrayInPlace, copyElementRange } from "@stardazed/container";
-import { Geometry, VertexAttribute, VertexAttributeRole, VertexField, vertexFieldElementCount, vertexFieldNumericType, PrimitiveType, makeStandardVertexLayout, allocateGeometry } from "@stardazed/geometry";
+import { VertexAttribute, VertexAttributeRole, VertexField, vertexFieldElementCount, vertexFieldNumericType, PrimitiveType, makeStandardVertexLayout, allocateGeometry } from "@stardazed/geometry";
 import { VertexBufferAttributeView } from "@stardazed/geometry-data";
 
 export const enum VertexAttributeMapping {
@@ -94,8 +94,7 @@ class VertexIndexMappingB implements VertexIndexMapping {
 	}
 }
 
-
-export class MeshBuilder {
+export class GeometryBuilder {
 	private vertexData_: number[][];
 
 	private sourcePolygonIndex_ = 0;
@@ -111,8 +110,16 @@ export class MeshBuilder {
 
 	private streams_: VertexAttributeStream[];
 
+	/**
+	 * Try to create a GeometryBuilder, will reject if the streams config is invalid.
+	 */
+	static create(positions: Float32Array | Float64Array, positionIndexes: Uint32Array | null, streams: VertexAttributeStream[]) {
+		return new Promise<GeometryBuilder>(resolve => {
+			resolve(new this(positions, positionIndexes, streams));
+		});
+	}
 
-	constructor(positions: Float32Array | Float64Array, positionIndexes: Uint32Array | null, streams: VertexAttributeStream[]) {
+	private constructor(positions: Float32Array | Float64Array, positionIndexes: Uint32Array | null, streams: VertexAttributeStream[]) {
 		// create a local copy of the streams array so we can modify it
 		this.streams_ = streams.slice(0);
 
@@ -149,13 +156,19 @@ export class MeshBuilder {
 		for (const s of this.streams_) {
 			s.elementCount = vertexFieldElementCount(s.attr!.field);
 			if (s.controlsGrouping === true) {
-				assert(s.elementCount === 1, "A grouping stream must use a single element field");
+				if (s.elementCount !== 1) {
+					throw new Error("A grouping stream must use a single element field");
+				}
 				const groupNumType = vertexFieldNumericType(s.attr!.field);
-				assert(groupNumType !== Float && groupNumType !== Double, "A grouping stream must use an integer element");
+				if (! groupNumType.integer) {
+					throw new Error("A grouping stream must use an integer element");
+				}
 				groupers++;
 			}
 		}
-		assert(groupers < 2, "More than 1 attr stream indicates it's the grouping stream");
+		if (groupers > 1) {
+			throw new Error("More than 1 attr stream indicates it's the grouping stream");
+		}
 
 		// start at group 0 in case there is no explicit initial group set
 		this.groupIndexStreams_ = new Map<number, number[]>();
@@ -314,8 +327,7 @@ export class MeshBuilder {
 	get curPolygonIndex() { return this.sourcePolygonIndex_; }
 	get indexMap() { return this.indexMap_; }
 
-
-	complete() {
+	async complete() {
 		// Create Geometry with a VB with the streams marked for inclusion in the
 		// final geometry data. Because we sorted the non-included streams to the end
 		// of the list the order of this filtered list will still be the same as
@@ -324,7 +336,7 @@ export class MeshBuilder {
 		const attrs = meshAttributeStreams.map(s => s.attr!);
 
 		// allocate as single buffer
-		const geom: Geometry = allocateGeometry({
+		const geom = await allocateGeometry({
 			layout: makeStandardVertexLayout(attrs),
 			vertexCount: this.vertexCount_,
 			indexCount: this.triangleCount_ * 3
