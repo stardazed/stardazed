@@ -1,0 +1,13 @@
+dependencies:
+  '@stardazed/container': 'link:../container'
+  '@stardazed/core': 'link:../core'
+  '@stardazed/debug': 'link:../debug'
+  '@stardazed/math': 'link:../math'
+registry: 'http://localhost:4873/'
+shrinkwrapMinorVersion: 8
+shrinkwrapVersion: 3
+specifiers:
+  '@stardazed/container': ^0.4.0
+  '@stardazed/core': ^0.4.0
+  '@stardazed/debug': ^0.4.0
+  '@stardazed/math': ^0.4.0
