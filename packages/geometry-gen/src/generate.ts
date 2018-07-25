@@ -51,7 +51,7 @@ export async function generate(gens: MeshGenSource | MeshGenSource[], attrList?:
 	}
 
 	// -- create vertex and index buffers for combined geometry
-	const geom = allocateGeometry({
+	const geom = await allocateGeometry({
 		layout: makeStandardVertexLayout(attrList),
 		vertexCount: totalVertexCount,
 		indexCount: totalFaceCount * 3

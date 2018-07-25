@@ -87,7 +87,7 @@ export const isGeometry = (geom: any): geom is Geometry =>
 	(geom.indexBuffer === void 0 || geom.indexBuffer instanceof IndexBuffer) &&
 	Array.isArray(geom.subMeshes);
 
-export function allocateGeometry(options: GeometryAllocOptions): Geometry {
+export async function allocateGeometry(options: GeometryAllocOptions): Promise<Geometry> {
 	let totalBytes = 0;
 	for (const layout of options.layout.layouts) {
 		totalBytes += layout.bytesRequiredForVertexCount(options.vertexCount);
@@ -99,7 +99,9 @@ export function allocateGeometry(options: GeometryAllocOptions): Geometry {
 		totalBytes = alignUp(totalBytes, BufferAlignment.SubBuffer);
 	}
 
-	assert(totalBytes > 0, "Nothing to allocate!");
+	if (totalBytes === 0) {
+		throw new Error("Nothing to allocate!");
+	}
 
 	const geom: Geometry = {
 		layout: options.layout,
@@ -129,7 +131,9 @@ export function allocateGeometry(options: GeometryAllocOptions): Geometry {
 		byteOffset = alignUp(byteOffset, BufferAlignment.SubBuffer);
 	}
 
-	assert(totalBytes === byteOffset, "Mismatch of precalculated and actual buffer sizes");
+	if (totalBytes !== byteOffset) {
+		throw new Error("Mismatch of precalculated and actual buffer sizes");
+	}
 	return geom;
 }
 
