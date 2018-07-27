@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { TypedArrayConstructor, TypedArray } from "@stardazed/core";
+import { TypedArrayConstructor, TypedArray } from "@stardazed/array";
 
 export class Deque {
 	private readonly blockCtor_: TypedArrayConstructor;
