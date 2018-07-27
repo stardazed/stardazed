@@ -1,11 +1,11 @@
 /**
- * core/numeric - numeric types, traits and array helpers
+ * @stardazed/numeric - numeric types and traits
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
-import { TypedArrayConstructor } from "./array";
+import { TypedArrayConstructor } from "@stardazed/array";
 
 /**
  * Interface describing a binary representation of a number including its
