@@ -1,6 +1,11 @@
 const resolve = require("rollup-plugin-node-resolve");
 
 const packageConfig = (packageJSON, sourceDir, outputDir) => {
+	const packName = packageJSON.name.split("/")[1];
+	if (typeof packName !== "string" || packName.length === 0) {
+		throw new Error("Unexpected format of package name, expected @stardazed/<package>");
+	}
+
 	// default to only building ESM output
 	const output = [
 		{
@@ -36,7 +41,7 @@ const packageConfig = (packageJSON, sourceDir, outputDir) => {
 	}
 
 	return {
-		input: `${sourceDir}/index.js`,
+		input: `${sourceDir}/${packName}.js`,
 		output,
 		plugins: [
 			resolve({ browser: true }),

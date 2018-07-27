@@ -6,11 +6,11 @@ const typescript = require("typescript");
 const { packageConfig } = require("./rollup-base.config");
 
 // globals
-const packagesRoot = resolve(__dirname, "packages/");
+const packagesRoot = resolve(__dirname, ".");
 const buildRoot = resolve(__dirname, "scripts/");
 
 function packagePath(name) {
-	return resolve(packagesRoot, name);
+	return resolve(packagesRoot, name + "/");
 }
 
 function packageBuildTempPath(name) {
@@ -44,14 +44,15 @@ function createTSConfigForPackage(packageName) {
 			declarationDir: `${packageDir}/dist`,
 
 			// why do _I_ need to do this?
-			lib: result.config.compilerOptions.lib.map(lf => `lib.${lf}.d.ts`)
+			lib: (result.config.compilerOptions.lib || []).map(lf => `lib.${lf}.d.ts`)
 		}
 	};
 }
 
 function compile(packageName) {
 	const packageDir = packagePath(packageName);
-	const indexFileName = resolve(packageDir + "/", "src/index.ts");
+	const realPackageName = packageName.split("/")[1];
+	const indexFileName = resolve(packageDir + "/", `src/${realPackageName}.ts`);
 
 	const compilerOptions = createTSConfigForPackage(packageName);
 	if (! compilerOptions) {
@@ -95,7 +96,7 @@ async function roll(packageName) {
 async function run() {
 	const packageList = process.argv.slice(2);
 	if (packageList.length !== 1) {
-		console.info("Usage: build-package <package-name>");
+		console.info("Usage: build-package <group-name>/<package-name>");
 		return;
 	}
 	const packageToBuild = packageList[0];

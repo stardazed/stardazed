@@ -1,13 +1,7 @@
 .DS_Store
 .vscode
-**/pnpm-debug.log
+pnpm-debug.log
 
-/scripts/temp
-/node_modules
-/packages/*/node_modules/
-/packages/*/dist/
-
-/test/build/
-/test/inquisition/build/
-
-/docs
+temp
+node_modules/
+dist/
