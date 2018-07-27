@@ -1,7 +1,0 @@
-dependencies:
-  '@stardazed/core': 'link:../core'
-registry: 'http://localhost:4873/'
-shrinkwrapMinorVersion: 8
-shrinkwrapVersion: 3
-specifiers:
-  '@stardazed/core': ^0.4.0
