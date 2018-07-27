@@ -1,5 +1,5 @@
 /**
- * core/array - types and helpers for array-likes
+ * array/types - types and helpers for array-likes
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
@@ -12,30 +12,16 @@ export type TypedArrayConstructor =
 
 export type TypedArray = Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array | Int8Array | Int16Array | Int32Array | Float32Array | Float64Array;
 
+// --------
 // special purpose or generic array interfaces used very frequently
+
 export interface MutableArrayLike<T> {
 	readonly length: number;
 	[n: number]: T;
 }
 
-// helper types for enums stored in int arrays
-export interface ConstEnumArray8View<T extends number> extends Uint8Array {
-	[index: number]: T;
-}
-
-export interface ConstEnumArray16View<T extends number> extends Uint16Array {
-	[index: number]: T;
-}
-
-export interface ConstEnumArray32View<T extends number> extends Int32Array {
-	[index: number]: T;
-}
-
-// --------
-
 export type NumArray = ArrayLike<number>;
 export type MutNumArray = MutableArrayLike<number>;
-
 
 // types to use in function signatures to not have (Mut)NumArray everywhere
 export type MutFloat2 = MutNumArray;
@@ -53,3 +39,18 @@ export type Float4 = NumArray;
 export type Float2x2 = NumArray;
 export type Float3x3 = NumArray;
 export type Float4x4 = NumArray;
+
+// --------
+// helper types for enums stored in int arrays
+
+export interface ConstEnumArray8View<E extends number> extends Uint8Array {
+	[index: number]: E;
+}
+
+export interface ConstEnumArray16View<E extends number> extends Uint16Array {
+	[index: number]: E;
+}
+
+export interface ConstEnumArray32View<E extends number> extends Int32Array {
+	[index: number]: E;
+}
