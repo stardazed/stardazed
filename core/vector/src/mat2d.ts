@@ -1,5 +1,5 @@
 /**
- * math/mat2d - 3x2 matrix type 
+ * vector/mat2d - 3x2 matrix type 
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
@@ -39,7 +39,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { NumArray as ACN, MutNumArray as AN } from "@stardazed/core";
+import { NumArray as ACN, MutNumArray as AN } from "@stardazed/array";
 import { EPSILON } from "./common";
 
 export const ELEMENT_COUNT = 6;

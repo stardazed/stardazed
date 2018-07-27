@@ -1,5 +1,5 @@
 /**
- * math/vec3 - 3-element vector type
+ * vector/vec3 - 3-element vector type
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
@@ -25,8 +25,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { NumArray as ACN, MutNumArray as AN } from "@stardazed/core";
-import { clamp as clampf, clamp01 as clamp01f, EPSILON, mix as mixf, VecArrayIterationFunction, VecArrayIterationOptions } from "./common";
+import { NumArray as ACN, MutNumArray as AN } from "@stardazed/array";
+import { clamp as clampf, clamp01 as clamp01f, mix as mixf } from "@stardazed/math";
+import { EPSILON, VecArrayIterationFunction, VecArrayIterationOptions } from "./common";
 
 export const ELEMENT_COUNT = 3;
 

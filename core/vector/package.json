@@ -1,0 +1,22 @@
+{
+	"name": "@stardazed/vector",
+	"description": "Vector and matrix array types and algorithms",
+	"version": "0.4.0",
+	"author": {
+		"name": "Arthur Langereis"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/stardazed/stardazed.git"
+	},
+	"main": "dist/vector.esm.js",
+	"module": "dist/vector.esm.js",
+	"types": "dist/vector.d.ts",
+	"scripts": {
+		"build": "node --no-warnings ../../scripts/build-package core/vector"
+	},
+	"dependencies": {
+		"@stardazed/array": "^0.4.0",
+		"@stardazed/math": "^0.4.0"
+	}
+}

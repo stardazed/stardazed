@@ -1,0 +1,9 @@
+dependencies:
+  '@stardazed/array': 'link:../array'
+  '@stardazed/math': 'link:../math'
+registry: 'http://localhost:4873/'
+shrinkwrapMinorVersion: 8
+shrinkwrapVersion: 3
+specifiers:
+  '@stardazed/array': ^0.4.0
+  '@stardazed/math': ^0.4.0
