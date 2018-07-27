@@ -9,7 +9,7 @@
 		"linebreak-style": [true, "LF"],
 		"max-file-line-count": [false],
 		"max-line-length": [false],
-		"max-classes-per-file": [false],
+		"max-classes-per-file": false,
 		"no-trailing-whitespace": false,
 		"object-literal-sort-keys": false,
 		"trailing-comma": [false],
