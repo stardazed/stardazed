@@ -1,0 +1,19 @@
+{
+	"name": "@stardazed/object",
+	"description": "Core object types and algorithms",
+	"version": "0.4.0",
+	"author": {
+		"name": "Arthur Langereis"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/stardazed/stardazed.git"
+	},
+	"main": "dist/object.esm.js",
+	"module": "dist/object.esm.js",
+	"types": "dist/object.d.ts",
+	"scripts": {
+		"build": "node --no-warnings ../../scripts/build-package core/object"
+	},
+	"dependencies": {}
+}
