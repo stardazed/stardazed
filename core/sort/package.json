@@ -1,0 +1,19 @@
+{
+	"name": "@stardazed/sort",
+	"description": "Sorting algorithms",
+	"version": "0.4.0",
+	"author": {
+		"name": "Arthur Langereis"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/stardazed/stardazed.git"
+	},
+	"main": "dist/sort.esm.js",
+	"module": "dist/sort.esm.js",
+	"types": "dist/sort.d.ts",
+	"scripts": {
+		"build": "node --no-warnings ../../scripts/build-package core/sort"
+	},
+	"dependencies": {}
+}

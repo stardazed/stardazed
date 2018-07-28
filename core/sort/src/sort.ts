@@ -1,5 +1,5 @@
 /**
- * container/sort - sorting algorithms
+ * @stardazed/sort - sorting algorithms
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
@@ -8,8 +8,8 @@
 /**
  * Standard (string) sort comparison function, used when comparing
  * multiple string fields together or when using non-standard sort.
- * @param a left string to compare
- * @param b right string to compare
+ * @param a left value to compare
+ * @param b right value to compare
  */
 export function genericOrder<T>(a: T, b: T) {
 	return a < b ? -1 : ((a === b) ? 0 : 1);
@@ -70,7 +70,7 @@ export function insertionSort<T>(a: T[], pred: CompareFn<T>) {
  */
 function merge<T>(
 	merged: T[], start: number,
-	left: T[], startLeft: number, sizeLeft: number, 
+	left: T[], startLeft: number, sizeLeft: number,
 	right: T[], startRight: number, sizeRight: number,
 	pred: CompareFn<T>
 ) {
@@ -94,7 +94,7 @@ function merge<T>(
 		// merged array is filled with the smaller or equal element of the two 
 		// arrays, in order, ensuring a stable sort
 		merged[k] = (pred(left[i], right[j]) <= 0) ?
-					left[i++] : right[j++];
+			left[i++] : right[j++];
 	}
 }
 
@@ -117,7 +117,7 @@ function mergeSortInternal<T>(a: T[], b: T[], l: number, r: number, pred: Compar
 		return;
 	}
 	const m = ((l + r) / 2) >>> 0;
-	// switch arrays to msort b thus recursively writing results to b
+	// switch arrays to sort b thus recursively writing results to b
 	mergeSortInternal(b, a, l, m, pred); // merge sort left
 	mergeSortInternal(b, a, m + 1, r, pred); // merge sort right
 	// merge partitions of b into a
