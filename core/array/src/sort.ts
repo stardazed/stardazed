@@ -1,27 +1,11 @@
 /**
- * @stardazed/sort - sorting algorithms
+ * array/sort - sorting algorithms
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
-/**
- * Standard (string) sort comparison function, used when comparing
- * multiple string fields together or when using non-standard sort.
- * @param a left value to compare
- * @param b right value to compare
- */
-export function genericOrder<T>(a: T, b: T) {
-	return a < b ? -1 : ((a === b) ? 0 : 1);
-}
-
-/**
- * A function that returns the relative order of 2 items.
- * If a < b, it returns a number < 0
- * If a = b, it returns 0
- * If a > b, it returns a number > 0
- */
-export type CompareFn<T> = (a: Readonly<T>, b: Readonly<T>) => number;
+import { FullOrderCompareFn } from "./ordering";
 
 /**
  * In-place stable insertion sort a range of elements inside an array
@@ -31,7 +15,7 @@ export type CompareFn<T> = (a: Readonly<T>, b: Readonly<T>) => number;
  * @param r Right index (exclusive) inside {a} of the range to operate on
  * @param pred Function that returns the relative order of 2 items
  */
-function insertionSortInternal<T>(a: T[], l: number, r: number, pred: CompareFn<T>) {
+function insertionSortInternal<T>(a: T[], l: number, r: number, pred: FullOrderCompareFn<T>) {
 	const len = r - l;
 	for (let i = 1; i < len + 1; i++) {
 		const temp = a[i + l];
@@ -46,13 +30,13 @@ function insertionSortInternal<T>(a: T[], l: number, r: number, pred: CompareFn<
 
 /**
  * In-place stable insertion sort for homogeneous standard arrays.
- * @param a The array to be sorted (in-place)
+ * @param arr The array to be sorted (in-place)
  * @param pred Function that returns the relative order of 2 items
  * @returns The sorted array
  */
-export function insertionSort<T>(a: T[], pred: CompareFn<T>) {
-	insertionSortInternal(a, 0, a.length - 1, pred);
-	return a;
+export function insertionSort<T>(arr: T[], pred: FullOrderCompareFn<T>) {
+	insertionSortInternal(arr, 0, arr.length - 1, pred);
+	return arr;
 }
 
 /**
@@ -72,7 +56,7 @@ function merge<T>(
 	merged: T[], start: number,
 	left: T[], startLeft: number, sizeLeft: number,
 	right: T[], startRight: number, sizeRight: number,
-	pred: CompareFn<T>
+	pred: FullOrderCompareFn<T>
 ) {
 	const totalSize = sizeLeft + sizeRight;
 	const endMerged = start + totalSize;
@@ -93,8 +77,7 @@ function merge<T>(
 		}
 		// merged array is filled with the smaller or equal element of the two 
 		// arrays, in order, ensuring a stable sort
-		merged[k] = (pred(left[i], right[j]) <= 0) ?
-			left[i++] : right[j++];
+		merged[k] = (pred(left[i], right[j]) <= 0) ? left[i++] : right[j++];
 	}
 }
 
@@ -106,34 +89,34 @@ function merge<T>(
  * @param b Duplicate of source array
  * @param l Left index (inclusive) inside {a} of the range to operate on
  * @param r Right index (exclusive) inside {a} of the range to operate on
- * @param pred Function that returns the relative order of 2 items
+ * @param orderFn Function that returns the relative order of two items
  */
-function mergeSortInternal<T>(a: T[], b: T[], l: number, r: number, pred: CompareFn<T>) {
+function mergeSortInternal<T>(a: T[], b: T[], l: number, r: number, orderFn: FullOrderCompareFn<T>) {
 	if (r <= l) {
 		return;
 	}
 	if (r - l <= 10) {
-		insertionSortInternal(a, l, r, pred);
+		insertionSortInternal(a, l, r, orderFn);
 		return;
 	}
 	const m = ((l + r) / 2) >>> 0;
 	// switch arrays to sort b thus recursively writing results to b
-	mergeSortInternal(b, a, l, m, pred); // merge sort left
-	mergeSortInternal(b, a, m + 1, r, pred); // merge sort right
+	mergeSortInternal(b, a, l, m, orderFn); // merge sort left
+	mergeSortInternal(b, a, m + 1, r, orderFn); // merge sort right
 	// merge partitions of b into a
-	merge(a, l, b, l, m - l + 1, b, m + 1, r - m, pred); // merge
+	merge(a, l, b, l, m - l + 1, b, m + 1, r - m, orderFn); // merge
 }
 
 /**
  * In-place stable merge sort for homogeneous standard arrays.
- * @param a The array to be sorted (in-place)
- * @param pred Function that returns the relative order of 2 items
+ * @param arr The array to be sorted (in-place)
+ * @param orderFn Function that returns the relative order of 2 items
  * @returns The sorted array
  */
-export function mergeSort<T>(a: T[], pred: CompareFn<T>) {
-	const b = a.slice(0);
-	mergeSortInternal(a, b, 0, a.length - 1, pred);
-	return a;
+export function mergeSort<T>(arr: T[], orderFn: FullOrderCompareFn<T>) {
+	const b = arr.slice(0);
+	mergeSortInternal(arr, b, 0, arr.length - 1, orderFn);
+	return arr;
 }
 
 /**

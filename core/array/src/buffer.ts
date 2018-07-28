@@ -1,5 +1,5 @@
 /**
- * array/helpers - utility functions for arrays
+ * array/buffer - working with large arrays and arraybuffers
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
@@ -53,9 +53,9 @@ export function copyElementRange<T, A extends MutableArrayLike<T>>(dest: A, dest
 }
 
 
-export function appendArrayInPlace<T>(dest: T[], source: T[]) {
-	const MAX_BLOCK_SIZE = 65535;
+const MAX_BLOCK_SIZE = 65535; // max parameter array size for use in Webkit
 
+export function appendArrayInPlace<T>(dest: T[], source: T[]) {
 	let offset = 0;
 	let itemsLeft = source.length;
 
@@ -74,15 +74,13 @@ export function appendArrayInPlace<T>(dest: T[], source: T[]) {
 	return dest;
 }
 
-
 export function convertBytesToString(bytes: Uint8Array) {
-	const maxBlockSize = 65536; // max parameter array size for use in Webkit
 	const strings: string[] = [];
 	let bytesLeft = bytes.length;
 	let offset = 0;
 
 	while (bytesLeft > 0) {
-		const blockSize = Math.min(bytesLeft, maxBlockSize);
+		const blockSize = Math.min(bytesLeft, MAX_BLOCK_SIZE);
 		const str: string = String.fromCharCode.apply(null, bytes.subarray(offset, offset + blockSize));
 		strings.push(str);
 		offset += blockSize;
