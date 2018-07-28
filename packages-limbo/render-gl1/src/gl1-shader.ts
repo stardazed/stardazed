@@ -222,6 +222,26 @@ namespace sd.render.gl1 {
 	}
 
 	/**
+	 * Generate a hash value (a number containing a 32-bit signed int) for a string.
+	 * Based on Java's string hashing algorithm adapted for how JS stores strings.
+	 * @param s The string to hash
+	 */
+	export function hashString(s: string) {
+		if (s.length === 0) {
+			return 0;
+		}
+		let hash = 0;
+		for (let i = 0; i < s.length; ++i) {
+			const chr = s.charCodeAt(i);
+			// JS charcodes are 16-bit, hash higher-order byte first (often 0)
+			hash = (((hash << 5) - hash) + ((chr >> 8) & 0xFF)) | 0;
+			// hash lower-order byte
+			hash = (((hash << 5) - hash) + (chr & 0xFF)) | 0;
+		}
+		return hash;
+	}
+
+	/**
 	 * Calculate a numerical hash of a shader's input signature.
 	 * This is used inside the render loop to quickly associate a shader
 	 * with a potential VAO of a mesh.

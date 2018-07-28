@@ -5,7 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-export * from "./algorithm";
 export * from "./arraybuffer";
 export * from "./deque";
 export * from "./sortedarray";
