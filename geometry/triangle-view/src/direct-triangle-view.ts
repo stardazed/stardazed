@@ -5,8 +5,8 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { primitiveCountForElementCount, PrimitiveType, elementCountForPrimitiveCount } from "@stardazed/geometry";
-import { TriangleProxy, TriangleView, Triangle } from "./triangle-view";
+import { primitiveCountForElementCount, PrimitiveType, elementCountForPrimitiveCount } from "@stardazed/index-buffer";
+import { TriangleProxy, TriangleView, Triangle } from "./types";
 
 class DirectTriangleProxy implements TriangleProxy {
 	index(index: number) {
@@ -25,13 +25,14 @@ export class DirectTriangleView implements TriangleView {
 	private readonly fromTriangle_: number;
 	private readonly toTriangle_: number;
 
+	/**
+	 * @expects fromTriangle === undefined || (fromTriangle >= 0 && fromTriangle < primitiveCount)
+	 * @expects toTriangle === undefined || (toTriangle >= fromTriangle && toTriangle < primitiveCount)
+	 */
 	constructor(elementCount: number, fromTriangle?: number, toTriangle?: number) {
 		const primitiveCount = primitiveCountForElementCount(PrimitiveType.Triangle, elementCount);
 
 		if (fromTriangle !== undefined) {
-			if (fromTriangle < 0 || fromTriangle >= primitiveCount) {
-				throw new Error("Invalid fromTriangle index");
-			}
 			this.fromTriangle_ = fromTriangle;
 		}
 		else {
@@ -39,9 +40,6 @@ export class DirectTriangleView implements TriangleView {
 		}
 
 		if (toTriangle !== undefined) {
-			if ((toTriangle < this.fromTriangle_) || (toTriangle > primitiveCount)) {
-				throw new Error("Invalid toTriangle index");
-			}
 			this.toTriangle_ = toTriangle;
 		}
 		else {
@@ -62,11 +60,20 @@ export class DirectTriangleView implements TriangleView {
 		}
 	}
 
+	/**
+	 * @expects isPositiveInteger(triangleIndex)
+	 * @expects triangleIndex >= 0 && triangleIndex < this.primitiveCount
+	 */
 	refItem(triangleIndex: number): Triangle {
-		const baseIndex = triangleIndex * 3;
+		const baseIndex = (triangleIndex + this.fromTriangle_) * 3;
 		return [baseIndex, baseIndex + 1, baseIndex + 2];
 	}
 
+	/**
+	 * @expects isPositiveInteger(fromTriangle) && isPositiveInteger(triangleCount)
+	 * @expects fromTriangle >= 0 && fromTriangle < this.primitiveCount
+	 * @expects fromTriangle + triangleCount < primitiveCount
+	 */
 	subView(fromTriangle: number, triangleCount: number) {
 		const elementCount = elementCountForPrimitiveCount(PrimitiveType.Triangle, this.primitiveCount);
 		return new DirectTriangleView(elementCount, this.fromTriangle_ + fromTriangle, this.fromTriangle_ + fromTriangle + triangleCount);

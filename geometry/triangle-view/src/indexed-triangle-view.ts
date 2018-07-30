@@ -5,13 +5,14 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { TypedIndexArray, IndexBuffer, primitiveCountForElementCount, PrimitiveType } from "@stardazed/geometry";
-import { MutableTriangleProxy, MutableTriangle, TriangleView } from "./triangle-view";
+import { TypedArray } from "@stardazed/array";
+import { IndexBuffer, primitiveCountForElementCount, PrimitiveType, indexBufferRangeView } from "@stardazed/index-buffer";
+import { MutableTriangleProxy, MutableTriangle, TriangleView } from "./types";
 
 class IndexedTriangleProxy implements MutableTriangleProxy {
-	private data_!: TypedIndexArray;
+	private data_!: TypedArray;
 
-	setTriangleIndex(data: TypedIndexArray, triangleIndex: number) {
+	setTriangleIndex(data: TypedArray, triangleIndex: number) {
 		this.data_ = data.subarray(triangleIndex * 3, (triangleIndex + 1) * 3);
 	}
 
@@ -33,13 +34,14 @@ export class IndexBufferTriangleView implements TriangleView {
 	private readonly fromTriangle_: number;
 	private readonly toTriangle_: number;
 
+	/**
+	 * @expects fromTriangle === undefined || (fromTriangle >= 0 && fromTriangle < primitiveCount)
+	 * @expects toTriangle === undefined || (toTriangle >= fromTriangle && toTriangle < primitiveCount)
+	 */
 	constructor(private indexBuffer_: IndexBuffer, fromTriangle?: number, toTriangle?: number) {
 		const primitiveCount = primitiveCountForElementCount(PrimitiveType.Triangle, this.indexBuffer_.indexCount);
 
 		if (fromTriangle !== undefined) {
-			if (fromTriangle < 0 || fromTriangle >= primitiveCount) {
-				throw new Error("Invalid fromTriangle index");
-			}
 			this.fromTriangle_ = fromTriangle;
 		}
 		else {
@@ -47,9 +49,6 @@ export class IndexBufferTriangleView implements TriangleView {
 		}
 
 		if (toTriangle !== undefined) {
-			if ((toTriangle < this.fromTriangle_) || (toTriangle > primitiveCount)) {
-				throw new Error("Invalid toTriangle index");
-			}
 			this.toTriangle_ = toTriangle;
 		}
 		else {
@@ -62,23 +61,32 @@ export class IndexBufferTriangleView implements TriangleView {
 
 	forEach(callback: (proxy: MutableTriangleProxy) => void) {
 		const primCount = this.toTriangle_ - this.fromTriangle_;
-		const basePtr = this.indexBuffer_.typedBasePtr(this.fromTriangle_ * 3, primCount * 3);
+		const rangeView = indexBufferRangeView(this.indexBuffer_, this.fromTriangle_ * 3, primCount * 3);
 		const itp = new IndexedTriangleProxy();
 
 		for (let tix = 0; tix < primCount; ++tix) {
-			itp.setTriangleIndex(basePtr, tix);
+			itp.setTriangleIndex(rangeView, tix);
 			callback(itp);
 		}
 	}
 
 	forEachMutable = this.forEach;
 
+	/**
+	 * @expects isPositiveInteger(triangleIndex)
+	 * @expects triangleIndex >= 0 && triangleIndex < this.primitiveCount
+	 */
 	refItem(triangleIndex: number): MutableTriangle {
-		return this.indexBuffer_.typedBasePtr((triangleIndex + this.fromTriangle_) * 3, 3);
+		return indexBufferRangeView(this.indexBuffer_, (triangleIndex + this.fromTriangle_) * 3, 3);
 	}
 
 	refItemMutable = this.refItem;
 
+	/**
+	 * @expects isPositiveInteger(fromTriangle) && isPositiveInteger(triangleCount)
+	 * @expects fromTriangle >= 0 && fromTriangle < this.primitiveCount
+	 * @expects fromTriangle + triangleCount < primitiveCount
+	 */
 	subView(fromTriangle: number, toTriangle: number) {
 		return new IndexBufferTriangleView(this.indexBuffer_, this.fromTriangle_ + fromTriangle, this.fromTriangle_ + toTriangle);
 	}

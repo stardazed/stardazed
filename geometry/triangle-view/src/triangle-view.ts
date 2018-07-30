@@ -1,17 +1,17 @@
 /**
- * @stardazed/geometry-data - vertex and index buffer element access
+ * @stardazed/geometry-data - geometry triangle (mutable) views
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
-import { Geometry, PrimitiveType, IndexBuffer, primitiveCountForElementCount } from "@stardazed/geometry";
-import { TriangleView } from "./triangle-view";
+import { IndexBuffer, PrimitiveType, primitiveCountForElementCount } from "@stardazed/index-buffer";
+import { Geometry } from "@stardazed/geometry";
+import { TriangleView } from "./types";
 import { IndexBufferTriangleView } from "./indexed-triangle-view";
 import { DirectTriangleView } from "./direct-triangle-view";
 
-export * from "./vertex-buffer-attribute-view";
-export * from "./triangle-view";
+export * from "./types";
 
 export function triangleViewForIndexBuffer(ib: IndexBuffer): TriangleView {
 	return new IndexBufferTriangleView(ib);
