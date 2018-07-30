@@ -1,16 +1,15 @@
 /**
- * geometry/vertex-buffer-layout - layout of attributes within a buffer
+ * vertex-buffer/buffer-layout - layout of attributes within a buffer
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
 import { roundUpPowerOf2 } from "@stardazed/math";
-import { VertexAttribute, VertexAttributeRole } from "./vertex-attribute";
-import { VertexField, vertexFieldElementSizeBytes, vertexFieldSizeBytes } from "./vertex-field";
+import { VertexAttribute, VertexAttributeRole } from "./attribute";
+import { VertexField, vertexFieldElementSizeBytes, vertexFieldSizeBytes } from "./field";
 
 export interface PositionedAttribute extends VertexAttribute {
-	bufferIndex: number;
 	offset: number;
 }
 
@@ -38,6 +37,9 @@ class VertexBufferLayoutImpl implements VertexBufferLayout {
 		this.stride = stride;
 	}
 
+	/**
+	 * @expects isPositiveInteger(vertexCount)
+	 */
 	bytesRequiredForVertexCount(vertexCount: number) {
 		return vertexCount * this.stride;
 	}
@@ -55,7 +57,6 @@ class VertexBufferLayoutImpl implements VertexBufferLayout {
 	}
 }
 
-
 // ---- default buffer layout calc func
 
 function alignFieldOnSize(size: number, offset: number) {
@@ -67,7 +68,7 @@ function alignVertexField(field: VertexField, offset: number) {
 	return alignFieldOnSize(vertexFieldElementSizeBytes(field), offset);
 }
 
-export function makeStandardVertexBufferLayout(attrList: VertexAttribute[], bufferIndex = 0): VertexBufferLayout {
+export function makeStandardVertexBufferLayout(attrList: VertexAttribute[]): VertexBufferLayout {
 	let offset = 0, maxElemSize = 0;
 
 	// calculate positioning of successive attributes in linear item
@@ -80,7 +81,6 @@ export function makeStandardVertexBufferLayout(attrList: VertexAttribute[], buff
 		return {
 			field: attr.field,
 			role: attr.role,
-			bufferIndex,
 			offset: alignedOffset
 		};
 	});

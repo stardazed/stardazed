@@ -1,0 +1,9 @@
+dependencies:
+  '@stardazed/math': 'link:../../core/math'
+  '@stardazed/numeric': 'link:../../core/numeric'
+registry: 'https://registry.npmjs.com/'
+shrinkwrapMinorVersion: 8
+shrinkwrapVersion: 3
+specifiers:
+  '@stardazed/math': ^0.4.0
+  '@stardazed/numeric': ^0.4.0

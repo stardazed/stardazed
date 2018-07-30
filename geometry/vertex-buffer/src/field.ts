@@ -1,15 +1,16 @@
 /**
- * geometry/vertexfield - vertex field types and properties
+ * vertex-buffer/field - vertex field types and properties
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
- * 
- * A single field in a vertex buffer
- * 3 properties: element type, count and normalization
  */
 
-import { NumericType, SInt8, UInt8, SInt16, UInt16, SInt32, UInt32, Float } from "@stardazed/core";
+import { NumericType, SInt8, UInt8, SInt16, UInt16, SInt32, UInt32, Float } from "@stardazed/numeric";
 
+/**
+ * A single field in a vertex buffer with three properties:
+ * element type, count and normalization
+ */
 export const enum VertexField {
 	Undefined,
 
@@ -72,7 +73,16 @@ export const enum VertexField {
 	Norm_SInt16x4
 }
 
+export function isValidVertexField(vf: any): vf is VertexField {
+	return (typeof vf === "number") && (
+		(vf >= VertexField.UInt8 && vf <= VertexField.Floatx4) ||
+		(vf >= VertexField.Norm_UInt8 && vf <= VertexField.Norm_SInt16x4)
+	);
+}
 
+/**
+ * @expects isValidVertexField(vf)
+ */
 export function vertexFieldElementCount(vf: VertexField) {
 	switch (vf) {
 		case VertexField.UInt32:

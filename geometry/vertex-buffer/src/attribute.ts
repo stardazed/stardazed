@@ -1,11 +1,11 @@
 /**
- * geometry/vertex-attribute - vertex buffer attributes
+ * vertex-buffer/attribute - vertex attribute roles and fields
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
-import { VertexField } from "./vertex-field";
+import { VertexField } from "./field";
 
 /**
  * The role of a vertex attribute indicates usage purpose
@@ -41,6 +41,7 @@ export interface VertexAttribute {
 	role: VertexAttributeRole;
 }
 
-export function isVertexAttribute(va: object): va is VertexAttribute {
-	return typeof (va as any).field === "number" && typeof (va as any).role === "number";
+export function isVertexAttribute(va: any): va is VertexAttribute {
+	return typeof va === "object" && va !== null &&
+		typeof va.field === "number" && typeof va.role === "number";
 }
