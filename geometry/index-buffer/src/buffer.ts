@@ -8,6 +8,10 @@
 import { TypedArray } from "@stardazed/array";
 import { IndexElementType, arrayTypeForIndexElement, bytesRequiredForIndexCount } from "./element";
 
+/**
+ * An IndexBuffer is a simple structure that holds storage and metatdata
+ * for a specified count of index elements.
+ */
 export interface IndexBuffer {
 	readonly indexElementType: IndexElementType;
 	readonly indexCount: number;
@@ -39,12 +43,13 @@ export function createIndexBufferWithStorage(elementType: IndexElementType, inde
 	};
 }
 
-export function indexBufferSizeBytes(ib: IndexBuffer) {
-	return ib.storage.byteLength;
+export function indexBufferSizeBytes(ib: IndexBuffer): number {
+	return bytesRequiredForIndexCount(ib.indexElementType, ib.indexCount);
 }
 
 /**
  * Direct (sub-)array access
+ * 
  * @expects isPositiveInteger(baseIndexNr)
  * @expects isPositiveInteger(indexCount)
  * @expects baseIndexNr < this.indexCount
