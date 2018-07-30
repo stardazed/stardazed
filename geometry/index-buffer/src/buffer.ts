@@ -6,7 +6,7 @@
  */
 
 import { TypedArray } from "@stardazed/array";
-import { IndexElementType, arrayTypeForIndexElement, bytesRequiredForIndexCount } from "./element";
+import { IndexElementType, arrayTypeForIndexElement, bytesRequiredForIndexCount, isValidIndexElementType } from "./element";
 
 /**
  * An IndexBuffer is a simple structure that holds storage and metatdata
@@ -16,6 +16,16 @@ export interface IndexBuffer {
 	readonly indexElementType: IndexElementType;
 	readonly indexCount: number;
 	readonly storage: Uint8Array;
+}
+
+/**
+ * Determine if an object is an IndexBuffer
+ */
+export function isIndexBuffer(ib: any): ib is IndexBuffer {
+	return typeof ib === "object" && ib !== null
+		&& isValidIndexElementType(ib.indexElementType)
+		&& typeof ib.indexCount === "number"
+		&& ArrayBuffer.isView(ib.storage);
 }
 
 /**
