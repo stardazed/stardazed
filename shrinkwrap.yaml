@@ -1,18 +1,16 @@
 devDependencies:
   rollup: 0.63.4
   rollup-plugin-node-resolve: 3.3.0
-  typescript: 2.9.2
+  typescript: 3.0.1
 packages:
   /@types/estree/0.0.39:
     dev: true
     resolution:
       integrity: sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==
-      tarball: /@types%2festree/-/estree-0.0.39.tgz
-  /@types/node/10.5.3:
+  /@types/node/10.5.4:
     dev: true
     resolution:
-      integrity: sha512-jQ1p+SyF/z8ygPxfSPKZKMWazlCgTBSyIaC1UCUvkLHDdxdmPQtQFk02X4WFM31Z1BKMAS3MSAK0cRP2c92n6Q==
-      tarball: /@types%2fnode/-/node-10.5.3.tgz
+      integrity: sha512-8TqvB0ReZWwtcd3LXq3YSrBoLyXFgBX/sBZfGye9+YS8zH7/g+i6QRIuiDmwBoTzcQ/pk89nZYTYU4c5akKkzw==
   /builtin-modules/2.0.0:
     dev: true
     engines:
@@ -44,22 +42,22 @@ packages:
   /rollup/0.63.4:
     dependencies:
       '@types/estree': 0.0.39
-      '@types/node': 10.5.3
+      '@types/node': 10.5.4
     dev: true
     hasBin: true
     resolution:
       integrity: sha512-IGTH7u0P6bmu7cXL0g11UDYTR9WKku70cYlqVyOYdqLoQopBGmCbGC3SMeheqHymnehHe/5yf6BJ6BEoxQBVTQ==
-  /typescript/2.9.2:
+  /typescript/3.0.1:
     dev: true
     engines:
       node: '>=4.2.0'
     hasBin: true
     resolution:
-      integrity: sha512-Gr4p6nFNaoufRIY4NMdpQRNmgxVIGMs4Fcu/ujdYk3nAZqk7supzBE9idmvfZIlH/Cuj//dvi+019qEue9lV0w==
-registry: 'http://localhost:4873/'
+      integrity: sha512-zQIMOmC+372pC/CCVLqnQ0zSBiY7HHodU7mpQdjiZddek4GMj31I3dUJ7gAs9o65X7mnRma6OokOkc6f9jjfBg==
+registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 8
 shrinkwrapVersion: 3
 specifiers:
   rollup: ^0.63.4
   rollup-plugin-node-resolve: ^3.3.0
-  typescript: ^2.9.2
+  typescript: ^3.0.1
