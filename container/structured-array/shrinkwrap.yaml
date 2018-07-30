@@ -3,7 +3,7 @@ dependencies:
   '@stardazed/debug': 'link:../../core/debug'
   '@stardazed/math': 'link:../../core/math'
   '@stardazed/numeric': 'link:../../core/numeric'
-registry: 'http://localhost:4873/'
+registry: 'https://registry.npmjs.com/'
 shrinkwrapMinorVersion: 8
 shrinkwrapVersion: 3
 specifiers:
