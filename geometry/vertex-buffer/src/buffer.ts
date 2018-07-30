@@ -16,6 +16,16 @@ export interface VertexBuffer {
 }
 
 /**
+ * Determine if an object is a VertexBuffer
+ */
+export function isVertexBuffer(vb: any): vb is VertexBuffer {
+	return typeof vb === "object" && vb !== null
+		&& typeof vb.vertexCount === "number"
+		&& typeof vb.stride === "number"
+		&& ArrayBuffer.isView(vb.storage);
+}
+
+/**
  * @expects isPositiveNonZeroInteger(vertexCount)
  * @expects isPositiveNonZeroInteger(stride)
  */
