@@ -13,7 +13,7 @@
 	"module": "dist/structured-array.esm.js",
 	"types": "dist/structured-array.d.ts",
 	"scripts": {
-		"build": "node --no-warnings ../../scripts/build-package core/structured-array"
+		"build": "node --no-warnings ../../scripts/build-package container/structured-array"
 	},
 	"dependencies": {
 		"@stardazed/array": "^0.4.0",
