@@ -124,3 +124,14 @@ export function zipKeyVals<T>(keys: string[], values: T[]): { [k: string]: T; } 
 	}
 	return result;
 }
+
+/**
+ * Create an array-based lookup table for numeric keys mapped to arbitrary values.
+ */
+export function makeLookupTable<K extends number, V>(...pairs: [K, V][]): ReadonlyArray<V> {
+	const result: V[] = [];
+	for (const pair of pairs) {
+		result[pair[0]] = pair[1];
+	}
+	return Object.freeze(result);
+}
