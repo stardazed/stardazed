@@ -1,0 +1,11 @@
+dependencies:
+  '@stardazed/index-buffer': 'link:../index-buffer'
+  '@stardazed/math': 'link:../../core/math'
+  '@stardazed/vertex-buffer': 'link:../vertex-buffer'
+registry: 'https://registry.npmjs.com/'
+shrinkwrapMinorVersion: 8
+shrinkwrapVersion: 3
+specifiers:
+  '@stardazed/index-buffer': ^0.4.0
+  '@stardazed/math': ^0.4.0
+  '@stardazed/vertex-buffer': ^0.4.0
