@@ -1,8 +1,13 @@
 devDependencies:
+  assemblyscript: github.com/AssemblyScript/assemblyscript/671121bf702273c930d39999f02643d4f52b2e3d
   rollup: 0.63.4
   rollup-plugin-node-resolve: 3.3.0
   typescript: 3.0.1
 packages:
+  /@protobufjs/utf8/1.1.0:
+    dev: true
+    resolution:
+      integrity: sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
   /@types/estree/0.0.39:
     dev: true
     resolution:
@@ -11,6 +16,11 @@ packages:
     dev: true
     resolution:
       integrity: sha512-8TqvB0ReZWwtcd3LXq3YSrBoLyXFgBX/sBZfGye9+YS8zH7/g+i6QRIuiDmwBoTzcQ/pk89nZYTYU4c5akKkzw==
+  /binaryen/49.0.0-nightly.20180718:
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha512-r7gYKbwYYF5DBTN2fSomv1BNUNYSPros20eTng5MV/Bsv7V6DfJtrvietJ35p+jqI797P83vnJ0PEB1vTZ9qoQ==
   /builtin-modules/2.0.0:
     dev: true
     engines:
@@ -21,6 +31,10 @@ packages:
     dev: true
     resolution:
       integrity: sha1-Mlj7afeMFNW4FdZkM2tM/7ZEFZE=
+  /long/4.0.0:
+    dev: true
+    resolution:
+      integrity: sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==
   /path-parse/1.0.5:
     dev: true
     resolution:
@@ -54,10 +68,24 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-zQIMOmC+372pC/CCVLqnQ0zSBiY7HHodU7mpQdjiZddek4GMj31I3dUJ7gAs9o65X7mnRma6OokOkc6f9jjfBg==
+  github.com/AssemblyScript/assemblyscript/671121bf702273c930d39999f02643d4f52b2e3d:
+    dependencies:
+      '@protobufjs/utf8': 1.1.0
+      binaryen: 49.0.0-nightly.20180718
+      long: 4.0.0
+    dev: true
+    engines:
+      node: '>=8'
+    hasBin: true
+    name: assemblyscript
+    resolution:
+      tarball: 'https://codeload.github.com/AssemblyScript/assemblyscript/tar.gz/671121bf702273c930d39999f02643d4f52b2e3d'
+    version: 0.5.0
 registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 8
 shrinkwrapVersion: 3
 specifiers:
+  assemblyscript: 'github:AssemblyScript/assemblyscript'
   rollup: ^0.63.4
   rollup-plugin-node-resolve: ^3.3.0
   typescript: ^3.0.1
