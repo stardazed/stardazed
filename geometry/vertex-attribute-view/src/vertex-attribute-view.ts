@@ -74,8 +74,8 @@ export class VertexAttributeView {
 		const elementSize = vertexFieldElementSizeBytes(this.attr_.field);
 		const elementArrayCtor = this.elementArrayCtor_;
 		
-		const firstIndex = this.fromVertex + offset;
-		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (stride * firstIndex) + this.attr_.offset;
+		const firstVertex = this.fromVertex + offset;
+		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (stride * firstVertex) + this.attr_.offset;
 		let sourceIndex = 0;
 		const sourceIncrement = source.length === this.elementCount ? 0 : this.elementCount;
 		let arrView: TypedArray;
@@ -179,13 +179,24 @@ export class VertexAttributeView {
 	}
 
 	/**
-	 * Copy a fixed value into every position of the viewed attribute.
+	 * Copy a value into the indicated position of the viewed attribute.
+	 * @expects value.length === this.elementCount
+	 */
+	setValue(index: number, value: NumArray) {
+		this.copyValuesFrom(value, 1, index);
+	}
+
+	/**
+	 * Copy a single value into every position of the viewed attribute.
 	 * @expects value.length === this.elementCount
 	 */
 	splat(value: NumArray) {
 		this.copyValuesFrom(value, this.vertexCount, 0);
 	}
 
+	/**
+	 * Return a mutable array referencing the value of vertex `index`
+	 */
 	refItem(index: number): TypedArray {
 		index += this.fromVertex;
 		const offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attr_.offset;
