@@ -1,6 +1,6 @@
 {
 	"name": "@stardazed/triangle-view",
-	"description": "Geometry triangle (mutable) views",
+	"description": "Geometry triangle array views",
 	"version": "0.4.0",
 	"author": {
 		"name": "Arthur Langereis"
