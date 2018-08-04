@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { VertexAttribute, VertexField, VertexAttributeRole } from "@stardazed/geometry";
+import { VertexAttribute, VertexField, VertexAttributeRole } from "@stardazed/vertex-buffer";
 
 // -- VertexAttribute shortcuts for common types
 

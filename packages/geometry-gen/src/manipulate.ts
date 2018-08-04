@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { Float3, Float4 } from "@stardazed/core";
+import { Float3, Float4 } from "@stardazed/array";
 import { Geometry, findAttributeOfRoleInGeometry, VertexAttributeRole } from "@stardazed/geometry";
 import { VertexBufferAttributeView } from "@stardazed/geometry-data";
 import { vec3, mat3, mat4, quat } from "@stardazed/math";

@@ -48,7 +48,6 @@ export function calcVertexNormals(layout: VertexBufferLayout, vertexBuffer: Vert
  */
 export function calcVertexNormalsViews(posView: VertexBufferAttributeView, normView: VertexBufferAttributeView, triView: TriangleView) {
 	const vertexCount = posView.vertexCount;
-	const normalCount = normView.vertexCount;
 	const baseVertex = normView.fromVertex;
 
 	// FIXME(perf): avoid creating thousands of vec refs
