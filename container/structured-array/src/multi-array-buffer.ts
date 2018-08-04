@@ -15,8 +15,8 @@ export const enum InvalidatePointers {
 	Yes
 }
 
-export class MultiArrayBuffer {
-	private fields_: PositionedStructField[];
+export class MultiArrayBuffer<UD = unknown> {
+	private fields_: PositionedStructField<UD>[];
 	private capacity_ = 0;
 	private count_ = 0;
 	private elementSumSize_ = 0;
@@ -26,7 +26,7 @@ export class MultiArrayBuffer {
 	 * @expects isPositiveNonZeroInteger(initialCapacity)
 	 * @expects fields.length > 0
 	 */
-	constructor(initialCapacity: number, fields: StructField[]) {
+	constructor(initialCapacity: number, fields: StructField<UD>[]) {
 		const { posFields, totalSizeBytes } = packStructFields(fields);
 		this.fields_ = posFields;
 		this.elementSumSize_ = totalSizeBytes;
@@ -34,10 +34,18 @@ export class MultiArrayBuffer {
 		this.reserve(initialCapacity);
 	}
 
+	get fieldCount() { return this.fields_.length; }
+
+	/**
+	 * @expects index >= 0 && index < this.fieldCount
+	 */
+	field(index: number): Readonly<PositionedStructField<UD>> {
+		return this.fields_[index];
+	}
 
 	get capacity() { return this.capacity_; }
-	get fieldCount() { return this.fields_.length; }
 	get count() { return this.count_; }
+
 	/**
 	 * @expects this.count_ > 0
 	 */
@@ -48,7 +56,7 @@ export class MultiArrayBuffer {
 	/**
 	 * @expects itemCount > 0
 	 */
-	private fieldArrayView(f: PositionedStructField, buffer: ArrayBuffer, itemCount: number) {
+	private fieldArrayView(f: PositionedStructField<UD>, buffer: ArrayBuffer, itemCount: number) {
 		const byteOffset = f.byteOffset * itemCount;
 		return new (f.type.arrayType)(buffer, byteOffset, itemCount * f.count);
 	}

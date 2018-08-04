@@ -1,5 +1,5 @@
 /**
- * structured-array/fixed-struct-array - fixed-size array of structs
+ * structured-array/fixed-struct-array - fixed-size array of numeric structs
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
@@ -8,9 +8,9 @@
 import { clearArrayBuffer } from "@stardazed/array";
 import { PositionedStructField, StructField, alignStructFields } from "./struct-field";
 
-export class FixedStructArray {
+export class FixedStructArray<UD = unknown> {
 	private readonly data_: ArrayBuffer;
-	private readonly fields_: PositionedStructField[];
+	private readonly fields_: PositionedStructField<UD>[];
 	private readonly structSize_: number;
 	private readonly capacity_: number;
 
@@ -18,13 +18,20 @@ export class FixedStructArray {
 	 * @expects isPositiveNonZeroInteger(capacity)
 	 * @expects fields.length > 0
 	 */
-	constructor(capacity: number, fields: StructField[]) {
+	constructor(capacity: number, fields: StructField<UD>[]) {
 		const result = alignStructFields(fields);
 		this.fields_ = result.posFields;
 		this.structSize_ = result.totalSizeBytes;
 		this.capacity_ = capacity;
 
 		this.data_ = new ArrayBuffer(this.structSize_ * this.capacity_);
+	}
+
+	/**
+	 * @expects structIndex >= 0 && structIndex < this.capacity
+	 */
+	indexedStructByteOffset(structIndex: number) {
+		return structIndex * this.structSize_;
 	}
 
 	/**
@@ -45,9 +52,17 @@ export class FixedStructArray {
 		return new (f.type.arrayType)(this.data_, byteOffset, f.count);
 	}
 
+	get fieldCount() { return this.fields_.length; }
+
+	/**
+	 * @expects index >= 0 && index < this.fieldCount
+	 */
+	field(index: number): Readonly<PositionedStructField<UD>> {
+		return this.fields_[index];
+	}
+
 	get structSizeBytes() { return this.structSize_; }
 	get capacity() { return this.capacity_; }
-	get fieldCount() { return this.fields_.length; }
 	get data() { return this.data_; }
 
 	clear() {

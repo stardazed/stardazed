@@ -8,18 +8,19 @@
 import { NumericType } from "@stardazed/numeric";
 import { roundUpPowerOf2 } from "@stardazed/math";
 
-export interface StructField {
+export interface StructField<UD = unknown> {
 	type: NumericType;
 	count: number;
+	userData: UD;
 }
 
-export interface PositionedStructField extends StructField {
+export interface PositionedStructField<UD> extends StructField<UD> {
 	byteOffset: number;
 	sizeBytes: number;
 }
 
-export interface PositioningResult {
-	posFields: PositionedStructField[];
+export interface PositioningResult<UD> {
+	posFields: PositionedStructField<UD>[];
 	totalSizeBytes: number;
 }
 
@@ -27,7 +28,7 @@ export function structFieldSizeBytes(field: StructField) {
 	return field.type.byteSize * field.count;
 }
 
-export function packStructFields(fields: StructField[]): PositioningResult {
+export function packStructFields<UD>(fields: StructField<UD>[]): PositioningResult<UD> {
 	let totalOffset = 0;
 	const posFields = fields.map(field => {
 		const curOffset = totalOffset;
@@ -37,6 +38,7 @@ export function packStructFields(fields: StructField[]): PositioningResult {
 		return {
 			type: field.type,
 			count: field.count,
+			userData: field.userData,
 			byteOffset: curOffset,
 			sizeBytes
 		};
@@ -51,7 +53,7 @@ function alignStructField(field: StructField, offset: number) {
 	return (offset + mask) & ~mask;
 }
 
-export function alignStructFields(fields: StructField[]): PositioningResult {
+export function alignStructFields<UD>(fields: StructField<UD>[]): PositioningResult<UD> {
 	let totalOffset = 0;
 	const posFields = fields.map(field => {
 		const curOffset = totalOffset;
@@ -60,6 +62,7 @@ export function alignStructFields(fields: StructField[]): PositioningResult {
 		return {
 			type: field.type,
 			count: field.count,
+			userData: field.userData,
 			byteOffset: curOffset,
 			sizeBytes: structFieldSizeBytes(field)
 		};
