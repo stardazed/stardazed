@@ -1,66 +1,59 @@
 /**
- * geometry-data/vertex-buffer-attribute-view - vertex attribute data access
+ * @stardazed/vertex-attribute-view - geometry vertex attribute array views
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
-import { NumericType, TypedArrayConstructor, TypedArray, NumArray } from "@stardazed/core";
-import { PositionedAttribute, vertexFieldElementCount, vertexFieldNumericType, VertexField, VertexBuffer } from "@stardazed/geometry";
+import { TypedArrayConstructor, TypedArray, NumArray } from "@stardazed/array";
+import {
+	PositionedAttribute, VertexField, VertexBuffer,
+	vertexFieldElementCount, vertexFieldNumericType, vertexFieldElementSizeBytes
+} from "@stardazed/vertex-buffer";
 
-export class VertexBufferAttributeView {
-	private readonly vertexBuffer_: VertexBuffer;
-	private readonly attr_: PositionedAttribute;
-	private readonly stride_: number;
-	private readonly fieldNumType_: NumericType;
-	private readonly typedViewCtor_: TypedArrayConstructor;
-	private readonly buffer_: ArrayBuffer;
-	private readonly dataView_: DataView;
-	
+export class VertexAttributeView {
 	readonly fromVertex: number;
 	readonly toVertex: number;
 	readonly vertexCount: number;
 	readonly elementCount: number;
 
+	private readonly vertexBuffer_: VertexBuffer;
+	private readonly attr_: PositionedAttribute;
+	private readonly stride_: number;
+	private readonly elementArrayCtor_: TypedArrayConstructor;
+	private readonly buffer_: ArrayBufferLike;
+	private readonly dataView_: DataView;
+	
+	/**
+	 * @expects fromVertex === undefined || (fromVertex >= 0 && fromVertex < vertexBuffer.vertexCount)
+	 * @expects toVertex === undefined || (toVertex >= fromVertex && toVertex <= vertexBuffer.vertexCount)
+	 */
 	constructor(vertexBuffer: VertexBuffer, attr: PositionedAttribute, fromVertex?: number, toVertex?: number) {
 		this.vertexBuffer_ = vertexBuffer;
 		this.attr_ = attr;
-		this.stride_ = this.vertexBuffer_.stride;
 		this.elementCount = vertexFieldElementCount(this.attr_.field);
 
 		// validate or use default range
 		const fullVertexCount = this.vertexBuffer_.vertexCount;
 		if (fromVertex !== undefined) {
-			if (fromVertex < 0 || fromVertex > fullVertexCount) {
-				throw new Error("Invalid fromVertex index");
-			}
 			this.fromVertex = fromVertex;
 		}
 		else {
 			this.fromVertex = 0;
 		}
 		if (toVertex !== undefined) {
-			if ((toVertex < this.fromVertex) || (toVertex > fullVertexCount)) {
-				throw new Error("Invalid toVertex index");
-			}
 			this.toVertex = toVertex;
 		}
 		else {
 			this.toVertex = fullVertexCount;
 		}
-
 		this.vertexCount = this.toVertex - this.fromVertex;
 
-		// save some often-used fields
-		const fieldNumType = vertexFieldNumericType(this.attr_.field);
-		if (! fieldNumType) {
-			throw new Error("Invalid attribute field type");
-		}
-		this.fieldNumType_ = fieldNumType;
-		this.typedViewCtor_ = this.fieldNumType_.arrayType;
-
-		this.buffer_ = this.vertexBuffer_.storage.buffer as ArrayBuffer;
+		// store some often used fields
+		this.stride_ = vertexBuffer.stride;
+		this.buffer_ = vertexBuffer.storage.buffer;
 		this.dataView_ = new DataView(this.buffer_);
+		this.elementArrayCtor_ = vertexFieldNumericType(attr.field)!.arrayType;
 	}
 
 	forEach(callback: (item: TypedArray) => void) {
@@ -72,34 +65,38 @@ export class VertexBufferAttributeView {
 
 	/**
 	 * @expects this.fromVertex + offset + valueCount <= this.vertexCount
-	 * @expects source.length >= valueCount * this.elementCount
+	 * @expects source.length === this.elementCount || source.length >= valueCount * this.elementCount
 	 */
 	copyValuesFrom(source: NumArray, valueCount: number, offset = 0) {
 		const buffer = this.buffer_;
-		const stride = this.stride_;
-		const elementSize = this.fieldNumType_.byteSize;
+		const stride = this.vertexBuffer_.stride;
+
+		const elementSize = vertexFieldElementSizeBytes(this.attr_.field);
+		const elementArrayCtor = this.elementArrayCtor_;
+		
 		const firstIndex = this.fromVertex + offset;
-		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * firstIndex) + this.attr_.offset;
+		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (stride * firstIndex) + this.attr_.offset;
 		let sourceIndex = 0;
+		const sourceIncrement = source.length === this.elementCount ? 0 : this.elementCount;
 		let arrView: TypedArray;
 
 		if (this.elementCount === 1) {
 			if (stride % elementSize === 0) {
 				const strideInElements = (stride / elementSize) | 0;
 				const offsetInElements = (offsetBytes / elementSize) | 0;
-				arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
+				arrView = new elementArrayCtor(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
 				let vertexOffset = 0;
 				for (let n = 0; n < valueCount; ++n) {
 					arrView[vertexOffset] = source[sourceIndex];
-					sourceIndex += 1;
+					sourceIndex += sourceIncrement;
 					vertexOffset += strideInElements;
 				}
 			}
 			else {
 				for (let n = 0; n < valueCount; ++n) {
-					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 1);
+					arrView = new elementArrayCtor(buffer, offsetBytes, 1);
 					arrView[0] = source[sourceIndex];
-					sourceIndex += 1;
+					sourceIndex += sourceIncrement;
 					offsetBytes += stride;
 				}
 			}
@@ -108,21 +105,21 @@ export class VertexBufferAttributeView {
 			if (stride % elementSize === 0) {
 				const strideInElements = (stride / elementSize) | 0;
 				const offsetInElements = (offsetBytes / elementSize) | 0;
-				arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
+				arrView = new elementArrayCtor(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
 				let vertexOffset = 0;
 				for (let n = 0; n < valueCount; ++n) {
 					arrView[0 + vertexOffset] = source[sourceIndex];
 					arrView[1 + vertexOffset] = source[sourceIndex + 1];
-					sourceIndex += 2;
+					sourceIndex += sourceIncrement;
 					vertexOffset += strideInElements;
 				}
 			}
 			else {
 				for (let n = 0; n < valueCount; ++n) {
-					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 2);
+					arrView = new elementArrayCtor(buffer, offsetBytes, 2);
 					arrView[0] = source[sourceIndex];
 					arrView[1] = source[sourceIndex + 1];
-					sourceIndex += 2;
+					sourceIndex += sourceIncrement;
 					offsetBytes += stride;
 				}
 			}
@@ -131,23 +128,23 @@ export class VertexBufferAttributeView {
 			if (stride % elementSize === 0) {
 				const strideInElements = (stride / elementSize) | 0;
 				const offsetInElements = (offsetBytes / elementSize) | 0;
-				arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
+				arrView = new elementArrayCtor(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
 				let vertexOffset = 0;
 				for (let n = 0; n < valueCount; ++n) {
 					arrView[0 + vertexOffset] = source[sourceIndex];
 					arrView[1 + vertexOffset] = source[sourceIndex + 1];
 					arrView[2 + vertexOffset] = source[sourceIndex + 2];
-					sourceIndex += 3;
+					sourceIndex += sourceIncrement;
 					vertexOffset += strideInElements;
 				}
 			}
 			else {
 				for (let n = 0; n < valueCount; ++n) {
-					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 3);
+					arrView = new elementArrayCtor(buffer, offsetBytes, 3);
 					arrView[0] = source[sourceIndex];
 					arrView[1] = source[sourceIndex + 1];
 					arrView[2] = source[sourceIndex + 2];
-					sourceIndex += 3;
+					sourceIndex += sourceIncrement;
 					offsetBytes += stride;
 				}
 			}
@@ -156,38 +153,47 @@ export class VertexBufferAttributeView {
 			if (stride % elementSize === 0) {
 				const strideInElements = (stride / elementSize) | 0;
 				const offsetInElements = (offsetBytes / elementSize) | 0;
-				arrView = new (this.typedViewCtor_)(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
+				arrView = new elementArrayCtor(buffer, offsetBytes, (valueCount * strideInElements) - offsetInElements);
 				let vertexOffset = 0;
 				for (let n = 0; n < valueCount; ++n) {
 					arrView[0 + vertexOffset] = source[sourceIndex];
 					arrView[1 + vertexOffset] = source[sourceIndex + 1];
 					arrView[2 + vertexOffset] = source[sourceIndex + 2];
 					arrView[3 + vertexOffset] = source[sourceIndex + 3];
-					sourceIndex += 4;
+					sourceIndex += sourceIncrement;
 					vertexOffset += strideInElements;
 				}
 			}
 			else {
 				for (let n = 0; n < valueCount; ++n) {
-					arrView = new (this.typedViewCtor_)(buffer, offsetBytes, 4);
+					arrView = new elementArrayCtor(buffer, offsetBytes, 4);
 					arrView[0] = source[sourceIndex];
 					arrView[1] = source[sourceIndex + 1];
 					arrView[2] = source[sourceIndex + 2];
 					arrView[3] = source[sourceIndex + 3];
-					sourceIndex += 4;
+					sourceIndex += sourceIncrement;
 					offsetBytes += stride;
 				}
 			}
 		}
 	}
 
+	/**
+	 * Copy a fixed value into every position of the viewed attribute.
+	 * @expects value.length === this.elementCount
+	 */
+	splat(value: NumArray) {
+		this.copyValuesFrom(value, this.vertexCount, 0);
+	}
+
 	refItem(index: number): TypedArray {
 		index += this.fromVertex;
 		const offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attr_.offset;
-		return new (this.typedViewCtor_)(this.buffer_, offsetBytes, this.elementCount);
+		return new this.elementArrayCtor_(this.buffer_, offsetBytes, this.elementCount);
 	}
 
 	/**
+	 * @expects index >= 0 && index < this.vertexCount
 	 * @expects this.attr_.field >= VertexField.Float && this.attr_.field <= VertexField.Floatx4
 	 */
 	copyItem(index: number): number[] {
@@ -220,6 +226,6 @@ export class VertexBufferAttributeView {
 	}
 
 	subView(fromVertex: number, toVertex: number) {
-		return new VertexBufferAttributeView(this.vertexBuffer_, this.attr_, this.fromVertex + fromVertex, this.fromVertex + toVertex);
+		return new VertexAttributeView(this.vertexBuffer_, this.attr_, this.fromVertex + fromVertex, this.fromVertex + toVertex);
 	}
 }
