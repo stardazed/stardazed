@@ -1,9 +1,12 @@
 dependencies:
+  '@stardazed/array': 'link:../../core/array'
   '@stardazed/math': 'link:../../core/math'
   '@stardazed/numeric': 'link:../../core/numeric'
+  '@stardazed/structured-array': 'link:../../container/structured-array'
 registry: 'https://registry.npmjs.com/'
 shrinkwrapMinorVersion: 8
 shrinkwrapVersion: 3
 specifiers:
   '@stardazed/math': ^0.4.0
   '@stardazed/numeric': ^0.4.0
+  '@stardazed/structured-array': ^0.4.0

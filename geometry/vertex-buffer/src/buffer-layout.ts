@@ -5,13 +5,12 @@
  * https://github.com/stardazed/stardazed
  */
 
+import { PositionedStructField, StructField } from "@stardazed/structured-array";
 import { roundUpPowerOf2 } from "@stardazed/math";
 import { VertexAttribute, VertexAttributeRole } from "./attribute";
-import { VertexField, vertexFieldElementSizeBytes, vertexFieldSizeBytes } from "./field";
+import { VertexField, vertexFieldElementSizeBytes, vertexFieldSizeBytes, vertexFieldNumericType, vertexFieldElementCount } from "./field";
 
-export interface PositionedAttribute extends VertexAttribute {
-	offset: number;
-}
+export type PositionedAttribute = PositionedStructField<VertexAttribute>;
 
 export interface VertexBufferLayout {
 	// TODO: add instancing parameters
@@ -45,7 +44,7 @@ class VertexBufferLayoutImpl implements VertexBufferLayout {
 	}
 
 	attrByRole(role: VertexAttributeRole) {
-		return this.attributes.find(pa => pa.role === role);
+		return this.attributes.find(pa => pa.userData.role === role);
 	}
 
 	attrByIndex(index: number) {
@@ -66,6 +65,17 @@ function alignFieldOnSize(size: number, offset: number) {
 
 function alignVertexField(field: VertexField, offset: number) {
 	return alignFieldOnSize(vertexFieldElementSizeBytes(field), offset);
+}
+
+export function makeLayoutStructFields(attrList: VertexAttribute[]) {
+	return attrList.map(attr => {
+		const sf: StructField<VertexAttribute> = {
+			type: vertexFieldNumericType(attr.field)!,
+			count: vertexFieldElementCount(attr.field),
+			userData: { ...attr }
+		};
+		return sf;
+	});
 }
 
 export function makeStandardVertexBufferLayout(attrList: VertexAttribute[]): VertexBufferLayout {
