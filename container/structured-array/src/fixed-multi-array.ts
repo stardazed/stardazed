@@ -6,7 +6,7 @@
  */
 
 import { TypedArray, clearArrayBuffer } from "@stardazed/array";
-import { PositionedStructField, StructField, packStructFields } from "./struct-field";
+import { PositionedStructField, StructField, StructAlignmentFn, packStructFields } from "./struct-field";
 
 export class FixedMultiArray<UD = unknown> {
 	private readonly data_: ArrayBuffer;
@@ -18,8 +18,8 @@ export class FixedMultiArray<UD = unknown> {
 	 * @expects isPositiveNonZeroInteger(capacity)
 	 * @expects fields.length > 0
 	 */
-	constructor(capacity: number, fields: StructField<UD>[]) {
-		const { posFields, totalSizeBytes } = packStructFields(fields);
+	constructor(capacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = packStructFields) {
+		const { posFields, totalSizeBytes } = alignmentFn(fields);
 		this.fields_ = posFields;
 		this.capacity_ = capacity | 0;
 		this.data_ = new ArrayBuffer(totalSizeBytes * this.capacity_);

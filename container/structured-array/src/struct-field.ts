@@ -24,6 +24,8 @@ export interface PositioningResult<UD> {
 	totalSizeBytes: number;
 }
 
+export type StructAlignmentFn = <UD>(fields: StructField<UD>[]) => PositioningResult<UD>;
+
 export function structFieldSizeBytes(field: StructField) {
 	return field.type.byteSize * field.count;
 }

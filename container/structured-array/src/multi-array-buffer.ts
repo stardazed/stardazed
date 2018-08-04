@@ -8,7 +8,7 @@
 import { assert } from "@stardazed/debug";
 import { clearArrayBuffer } from "@stardazed/array";
 import { alignUp, roundUpPowerOf2 } from "@stardazed/math";
-import { PositionedStructField, StructField, packStructFields } from "./struct-field";
+import { PositionedStructField, StructField, StructAlignmentFn, packStructFields } from "./struct-field";
 
 export const enum InvalidatePointers {
 	No,
@@ -26,8 +26,8 @@ export class MultiArrayBuffer<UD = unknown> {
 	 * @expects isPositiveNonZeroInteger(initialCapacity)
 	 * @expects fields.length > 0
 	 */
-	constructor(initialCapacity: number, fields: StructField<UD>[]) {
-		const { posFields, totalSizeBytes } = packStructFields(fields);
+	constructor(initialCapacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = packStructFields) {
+		const { posFields, totalSizeBytes } = alignmentFn(fields);
 		this.fields_ = posFields;
 		this.elementSumSize_ = totalSizeBytes;
 
