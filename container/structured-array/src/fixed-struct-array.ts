@@ -6,25 +6,21 @@
  */
 
 import { clearArrayBuffer } from "@stardazed/array";
-import { PositionedStructField, StructField, StructAlignmentFn, alignStructFields } from "./struct-field";
+import { StructField, StructAlignmentFn, alignStructFields } from "./layout";
+import { StructuredArray, StructTopology, createStructuredArray } from "./structured-array";
 
 export class FixedStructArray<UD = unknown> {
-	private readonly data_: ArrayBuffer;
-	private readonly fields_: PositionedStructField<UD>[];
+	private readonly backing_: StructuredArray<UD>;
 	private readonly structSize_: number;
-	private readonly capacity_: number;
 
 	/**
 	 * @expects isPositiveNonZeroInteger(capacity)
 	 * @expects fields.length > 0
 	 */
 	constructor(capacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = alignStructFields) {
-		const result = alignmentFn(fields);
-		this.fields_ = result.posFields;
-		this.structSize_ = result.totalSizeBytes;
-		this.capacity_ = capacity;
-
-		this.data_ = new ArrayBuffer(this.structSize_ * this.capacity_);
+		const layout = alignmentFn(fields);
+		this.backing_ = createStructuredArray(layout, StructTopology.ArrayOfStructs, capacity);
+		this.structSize_ = layout.totalSizeBytes;
 	}
 
 	/**
@@ -39,7 +35,7 @@ export class FixedStructArray<UD = unknown> {
 	 */
 	indexedStructView(structIndex: number) {
 		const byteOffset = structIndex * this.structSize_;
-		return new DataView(this.data_, byteOffset, this.structSize_);
+		return new DataView(this.backing_.storage.data.buffer, byteOffset, this.structSize_);
 	}
 
 	/**
@@ -47,25 +43,24 @@ export class FixedStructArray<UD = unknown> {
 	 * @expects fieldIndex >= 0 && fieldIndex < this.fieldCount
 	 */
 	indexedStructFieldView(structIndex: number, fieldIndex: number) {
-		const f = this.fields_[fieldIndex];
+		const f = this.backing_.layout.posFields[fieldIndex];
 		const byteOffset = (structIndex * this.structSize_) + f.byteOffset;
-		return new (f.type.arrayType)(this.data_, byteOffset, f.count);
+		return new (f.type.arrayType)(this.backing_.storage.data.buffer, byteOffset, f.count);
 	}
 
-	get fieldCount() { return this.fields_.length; }
+	get fieldCount() { return this.backing_.layout.posFields.length; }
 
 	/**
 	 * @expects index >= 0 && index < this.fieldCount
 	 */
-	field(index: number): Readonly<PositionedStructField<UD>> {
-		return this.fields_[index];
+	field(index: number) {
+		return this.backing_.layout.posFields[index];
 	}
 
 	get structSizeBytes() { return this.structSize_; }
-	get capacity() { return this.capacity_; }
-	get data() { return this.data_; }
+	get capacity() { return this.backing_.storage.capacity; }
 
 	clear() {
-		clearArrayBuffer(this.data_);
+		clearArrayBuffer(this.backing_.storage.data.buffer);
 	}
 }

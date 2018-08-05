@@ -6,12 +6,11 @@
  */
 
 import { TypedArray, clearArrayBuffer } from "@stardazed/array";
-import { PositionedStructField, StructField, StructAlignmentFn, packStructFields } from "./struct-field";
+import { StructField, StructAlignmentFn, packStructFields } from "./layout";
+import { StructuredArray, StructTopology, createStructuredArray } from "./structured-array";
 
 export class FixedMultiArray<UD = unknown> {
-	private readonly data_: ArrayBuffer;
-	private readonly capacity_: number;
-	private readonly fields_: PositionedStructField<UD>[];
+	private readonly backing_: StructuredArray<UD>;
 	private readonly basePointers_: TypedArray[];
 
 	/**
@@ -19,14 +18,12 @@ export class FixedMultiArray<UD = unknown> {
 	 * @expects fields.length > 0
 	 */
 	constructor(capacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = packStructFields) {
-		const { posFields, totalSizeBytes } = alignmentFn(fields);
-		this.fields_ = posFields;
-		this.capacity_ = capacity | 0;
-		this.data_ = new ArrayBuffer(totalSizeBytes * this.capacity_);
+		const layout = alignmentFn(fields);
+		this.backing_ = createStructuredArray(layout, StructTopology.StructOfArrays, capacity);
 
-		this.basePointers_ = posFields.map(posField => {
-			const byteOffset = this.capacity_ * posField.byteOffset;
-			return new (posField.type.arrayType)(this.data_, byteOffset, this.capacity_ * posField.count);
+		this.basePointers_ = layout.posFields.map(posField => {
+			const byteOffset = this.backing_.storage.capacity * posField.byteOffset;
+			return new (posField.type.arrayType)(this.backing_.storage.data.buffer, byteOffset, this.backing_.storage.capacity * posField.count);
 		});
 	}
 
@@ -35,15 +32,14 @@ export class FixedMultiArray<UD = unknown> {
 	/**
 	 * @expects index >= 0 && index < this.fieldCount
 	 */
-	field(index: number): Readonly<PositionedStructField<UD>> {
-		return this.fields_[index];
+	field(index: number) {
+		return this.backing_.layout.posFields[index];
 	}
 
-	get capacity() { return this.capacity_; }
-	get data() { return this.data_; }
+	get capacity() { return this.backing_.storage.capacity; }
 
 	clear() {
-		clearArrayBuffer(this.data_);
+		clearArrayBuffer(this.backing_.storage.data.buffer);
 	}
 
 	/**

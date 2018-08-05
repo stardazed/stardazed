@@ -5,10 +5,10 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { assert } from "@stardazed/debug";
 import { clearArrayBuffer } from "@stardazed/array";
-import { alignUp, roundUpPowerOf2 } from "@stardazed/math";
-import { PositionedStructField, StructField, StructAlignmentFn, packStructFields } from "./struct-field";
+import { roundUpPowerOf2 } from "@stardazed/math";
+import { PositionedStructField, StructField, StructAlignmentFn, packStructFields } from "./layout";
+import { StructuredArray, StructTopology, createStructuredArray, resizeStructuredArray } from "./structured-array";
 
 export const enum InvalidatePointers {
 	No,
@@ -16,47 +16,34 @@ export const enum InvalidatePointers {
 }
 
 export class MultiArrayBuffer<UD = unknown> {
-	private fields_: PositionedStructField<UD>[];
-	private capacity_ = 0;
+	private readonly backing_: StructuredArray<UD>;
 	private count_ = 0;
-	private elementSumSize_ = 0;
-	private data_: ArrayBuffer | null = null;
 
 	/**
 	 * @expects isPositiveNonZeroInteger(initialCapacity)
 	 * @expects fields.length > 0
 	 */
 	constructor(initialCapacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = packStructFields) {
-		const { posFields, totalSizeBytes } = alignmentFn(fields);
-		this.fields_ = posFields;
-		this.elementSumSize_ = totalSizeBytes;
-
-		this.reserve(initialCapacity);
+		const layout = alignmentFn(fields);
+		this.backing_ = createStructuredArray(layout, StructTopology.StructOfArrays, initialCapacity);
 	}
 
-	get fieldCount() { return this.fields_.length; }
+	get fieldCount() { return this.backing_.layout.posFields.length; }
 
 	/**
 	 * @expects index >= 0 && index < this.fieldCount
 	 */
-	field(index: number): Readonly<PositionedStructField<UD>> {
-		return this.fields_[index];
+	field(index: number) {
+		return this.backing_.layout.posFields[index];
 	}
 
-	get capacity() { return this.capacity_; }
+	get capacity() { return this.backing_.storage.capacity; }
 	get count() { return this.count_; }
-
-	/**
-	 * @expects this.count_ > 0
-	 */
-	get backIndex() {
-		return this.count_ - 1;
-	}
 
 	/**
 	 * @expects itemCount > 0
 	 */
-	private fieldArrayView(f: PositionedStructField<UD>, buffer: ArrayBuffer, itemCount: number) {
+	private fieldArrayView(f: PositionedStructField<UD>, buffer: ArrayBufferLike, itemCount: number) {
 		const byteOffset = f.byteOffset * itemCount;
 		return new (f.type.arrayType)(buffer, byteOffset, itemCount * f.count);
 	}
@@ -65,49 +52,16 @@ export class MultiArrayBuffer<UD = unknown> {
 	 * @expects newCapacity > 0 
 	 */
 	reserve(newCapacity: number): InvalidatePointers {
-		// By forcing an allocated multiple of 32 elements, we never have
-		// to worry about padding between consecutive arrays. 32 is chosen
-		// as it is the AVX layout requirement, so e.g. a char field followed
-		// by an m256 field will be aligned regardless of array length.
-		// We could align to 16 or even 8 and likely be fine, but this container
-		// isn't meant for tiny arrays so 32 it is.
+		const oldCapacity = this.backing_.storage.capacity;
+		resizeStructuredArray(this.backing_, newCapacity);
 
-		newCapacity = alignUp(newCapacity, 32);
-		if (newCapacity <= this.capacity_) {
-			// TODO: add way to cut capacity?
-			return InvalidatePointers.No;
-		}
-
-		const newData = new ArrayBuffer(newCapacity * this.elementSumSize_);
-		assert(newData);
-
-		let invalidation = InvalidatePointers.No;
-		if (this.data_) {
-			// Since a capacity change will change the length of each array individually
-			// we need to re-layout the data in the new buffer.
-			// We iterate over the basePointers and copy count_ elements from the old
-			// data to each new array. With large arrays >100k elements this can take
-			// millisecond-order time, so avoid resizes when possible.
-
-			this.fields_.forEach(field => {
-				const oldView = this.fieldArrayView(field, this.data_!, this.count_);
-				const newView = this.fieldArrayView(field, newData, newCapacity);
-				newView.set(oldView);
-			});
-
-			invalidation = InvalidatePointers.Yes;
-		}
-
-		this.data_ = newData;
-		this.capacity_ = newCapacity;
-
+		const invalidation = oldCapacity === this.capacity ? InvalidatePointers.No : InvalidatePointers.Yes;
 		return invalidation;
 	}
 
-
 	clear() {
 		this.count_ = 0;
-		clearArrayBuffer(this.data_!);
+		clearArrayBuffer(this.backing_.storage.data.buffer);
 	}
 
 	/**
@@ -116,18 +70,18 @@ export class MultiArrayBuffer<UD = unknown> {
 	resize(newCount: number): InvalidatePointers {
 		let invalidation = InvalidatePointers.No;
 
-		if (newCount > this.capacity_) {
+		if (newCount > this.capacity) {
 			// automatically expand up to next highest power of 2 size
+			// FIXME: why is this again?
 			invalidation = this.reserve(roundUpPowerOf2(newCount));
 		}
 		else if (newCount < this.count_) {
 			// Reducing the count will clear the now freed up elements so that when
 			// a new allocation is made the element data is guaranteed to be zeroed.
-
 			const elementsToClear = this.count_ - newCount;
 
-			this.fields_.forEach(field => {
-				const array = this.fieldArrayView(field, this.data_!, this.count_);
+			this.backing_.layout.posFields.forEach(field => {
+				const array = this.fieldArrayView(field, this.backing_.storage.data.buffer, this.count_);
 				const zeroes = new (field.type.arrayType)(elementsToClear * field.count);
 				array.set(zeroes, newCount * field.count);
 			});
@@ -140,8 +94,8 @@ export class MultiArrayBuffer<UD = unknown> {
 	extend(): InvalidatePointers {
 		let invalidation = InvalidatePointers.No;
 
-		if (this.count_ === this.capacity_) {
-			invalidation = this.reserve(this.capacity_ * 2);
+		if (this.count_ === this.capacity) {
+			invalidation = this.reserve(Math.ceil(this.capacity * 1.5));
 		}
 
 		++this.count_;
@@ -152,6 +106,6 @@ export class MultiArrayBuffer<UD = unknown> {
 	 * @expects index >= 0 && index < this.fields_.length
 	 */
 	indexedFieldView(index: number) {
-		return this.fieldArrayView(this.fields_[index], this.data_!, this.capacity_);
+		return this.fieldArrayView(this.backing_.layout.posFields[index], this.backing_.storage.data.buffer, this.capacity);
 	}
 }
