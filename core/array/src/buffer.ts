@@ -28,23 +28,44 @@ export function transferArrayBuffer(oldBuffer: ArrayBufferLike, newByteLength: n
 	return newBufferView.buffer;
 }
 
-export function clearArrayBuffer(data: ArrayBuffer) {
-	const numDoubles = (data.byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
-	const doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
-	const remainingBytes = data.byteLength - doublesByteSize;
+/**
+ * Clear (a range of bytes within) an ArrayBuffer to zero.
+ * 
+ * @expects isPositiveInteger(fromOffset)
+ * @expects isPositiveInteger(toOffset)
+ * @expects toOffset >= fromOffset
+ */
+export function clearArrayBuffer(data: ArrayBufferLike, fromOffset = 0, toOffset = data.byteLength) {
+	let byteLength = toOffset - fromOffset;
 
-	const doubleView = new Float64Array(data);
-	const remainderView = new Uint8Array(data, doublesByteSize);
+	const prefixBytes = Math.min(byteLength, 7 - ((fromOffset & 7) - 1));
+	if (prefixBytes > 0) {
+		const prefixView = new Uint8Array(data, fromOffset, prefixBytes);
+		for (let p = 0; p < prefixBytes; ++p) {
+			prefixView[p] = 0;
+		}
 
-	if (doubleView.fill) {
-		doubleView.fill(0);
+		fromOffset += prefixBytes;
+		byteLength -= prefixBytes;
 	}
-	else {
-		// As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
-		for (let d = 0; d < numDoubles; ++d) {
-			doubleView[d] = 0;
+
+	const numDoubles = (byteLength / Float64Array.BYTES_PER_ELEMENT) | 0;
+	const doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
+	if (numDoubles > 0) {
+		const doubleView = new Float64Array(data, fromOffset, numDoubles);
+		if (doubleView.fill) {
+			doubleView.fill(0);
+		}
+		else {
+			// As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
+			for (let d = 0; d < numDoubles; ++d) {
+				doubleView[d] = 0;
+			}
 		}
 	}
+
+	const remainingBytes = byteLength - doublesByteSize;
+	const remainderView = new Uint8Array(data, fromOffset + doublesByteSize);
 	for (let b = 0; b < remainingBytes; ++b) {
 		remainderView[b] = 0;
 	}
