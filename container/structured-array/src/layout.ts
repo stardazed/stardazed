@@ -1,10 +1,11 @@
 /**
- * structured-array/struct-field - structure field layout
+ * structured-array/layout - structure field layout
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
+import { DeepReadonly } from "@stardazed/deep-readonly";
 import { NumericType } from "@stardazed/numeric";
 import { roundUpPowerOf2 } from "@stardazed/math";
 
@@ -14,23 +15,29 @@ export interface StructField<UD = unknown> {
 	userData: UD;
 }
 
-export interface PositionedStructField<UD> extends StructField<UD> {
-	byteOffset: number;
-	sizeBytes: number;
+export interface PositionedStructField<UD> extends DeepReadonly<StructField<UD>> {
+	readonly byteOffset: number;
+	readonly sizeBytes: number;
 }
 
-export interface PositioningResult<UD> {
-	posFields: PositionedStructField<UD>[];
-	totalSizeBytes: number;
+export type PositionedStructFieldArray<UD> = ReadonlyArray<PositionedStructField<UD>>;
+
+export interface StructLayout<UD> {
+	readonly posFields: PositionedStructFieldArray<UD>;
+	readonly totalSizeBytes: number;
 }
 
-export type StructAlignmentFn = <UD>(fields: StructField<UD>[]) => PositioningResult<UD>;
+export type StructAlignmentFn = <UD>(fields: StructField<UD>[]) => StructLayout<UD>;
 
 export function structFieldSizeBytes(field: StructField) {
 	return field.type.byteSize * field.count;
 }
 
-export function packStructFields<UD>(fields: StructField<UD>[]): PositioningResult<UD> {
+export function structLayoutSizeBytesForCount(layout: StructLayout<any>, structCount: number) {
+	return layout.totalSizeBytes * structCount;
+}
+
+export function packStructFields<UD>(fields: StructField<UD>[]): StructLayout<UD> {
 	let totalOffset = 0;
 	const posFields = fields.map(field => {
 		const curOffset = totalOffset;
@@ -40,7 +47,7 @@ export function packStructFields<UD>(fields: StructField<UD>[]): PositioningResu
 		return {
 			type: field.type,
 			count: field.count,
-			userData: field.userData,
+			userData: field.userData as DeepReadonly<UD>,
 			byteOffset: curOffset,
 			sizeBytes
 		};
@@ -55,7 +62,7 @@ function alignStructField(field: StructField, offset: number) {
 	return (offset + mask) & ~mask;
 }
 
-export function alignStructFields<UD>(fields: StructField<UD>[]): PositioningResult<UD> {
+export function alignStructFields<UD>(fields: StructField<UD>[]): StructLayout<UD> {
 	let totalOffset = 0;
 	const posFields = fields.map(field => {
 		const curOffset = totalOffset;
@@ -64,7 +71,7 @@ export function alignStructFields<UD>(fields: StructField<UD>[]): PositioningRes
 		return {
 			type: field.type,
 			count: field.count,
-			userData: field.userData,
+			userData: field.userData as DeepReadonly<UD>,
 			byteOffset: curOffset,
 			sizeBytes: structFieldSizeBytes(field)
 		};

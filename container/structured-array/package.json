@@ -18,6 +18,7 @@
 	"dependencies": {
 		"@stardazed/array": "^0.4.0",
 		"@stardazed/debug": "^0.4.0",
+		"@stardazed/deep-readonly": "^0.4.0",
 		"@stardazed/math": "^0.4.0",
 		"@stardazed/numeric": "^0.4.0"
 	}
