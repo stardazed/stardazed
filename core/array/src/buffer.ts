@@ -7,7 +7,13 @@
 
 import { MutableArrayLike } from "./types";
 
-export function transferArrayBuffer(oldBuffer: ArrayBuffer, newByteLength: number) {
+/**
+ * Resize the backing store of an ArrayBuffer, retaining the data.
+ * Will avoid copying where possible.
+ * 
+ * @expects isPositiveNonZeroInteger(newByteLength)
+ */
+export function transferArrayBuffer(oldBuffer: ArrayBufferLike, newByteLength: number) {
 	const oldByteLength = oldBuffer.byteLength;
 	newByteLength = newByteLength | 0;
 
@@ -19,7 +25,7 @@ export function transferArrayBuffer(oldBuffer: ArrayBuffer, newByteLength: numbe
 	const newBufferView = new Uint8Array(newByteLength); // also creates new ArrayBuffer
 	newBufferView.set(oldBufferView);
 
-	return newBufferView.buffer as ArrayBuffer;
+	return newBufferView.buffer;
 }
 
 export function clearArrayBuffer(data: ArrayBuffer) {
