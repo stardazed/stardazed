@@ -1,5 +1,5 @@
 /**
- * structured-array/multi-array-buffer - dynamically sized struct of arrays
+ * structured-storage/multi-array-buffer - dynamically sized struct of arrays
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed

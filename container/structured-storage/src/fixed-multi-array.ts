@@ -1,5 +1,5 @@
 /**
- * structured-array/fixed-multi-array - fixed-size struct of arrays
+ * structured-storage/fixed-multi-array - fixed-size struct of arrays
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed

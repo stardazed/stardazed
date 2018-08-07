@@ -1,5 +1,5 @@
 /**
- * structured-array/layout - structure field layout
+ * structured-storage/layout - structure field layout
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed

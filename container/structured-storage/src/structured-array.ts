@@ -1,5 +1,5 @@
 /**
- * structured-array/structured-array - underlying multi-topology storage type
+ * structured-storage/structured-storage - underlying multi-topology storage type
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed

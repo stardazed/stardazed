@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { PositionedStructField, StructField } from "@stardazed/structured-array";
+import { PositionedStructField, StructField } from "@stardazed/structured-storage";
 import { roundUpPowerOf2 } from "@stardazed/math";
 import { VertexAttribute, VertexAttributeRole } from "./attribute";
 import { VertexField, vertexFieldElementSizeBytes, vertexFieldSizeBytes, vertexFieldNumericType, vertexFieldElementCount } from "./field";
