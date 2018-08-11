@@ -1,7 +1,7 @@
 dependencies:
   '@stardazed/array': 'link:../array'
   '@stardazed/math': 'link:../math'
-registry: 'https://registry.npmjs.com/'
+registry: 'http://verdaccio-pm.local:4873/'
 shrinkwrapMinorVersion: 8
 shrinkwrapVersion: 3
 specifiers:

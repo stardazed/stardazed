@@ -1,6 +1,6 @@
 dependencies:
   '@stardazed/array': 'link:../array'
-registry: 'https://registry.npmjs.com/'
+registry: 'http://verdaccio-pm.local:4873/'
 shrinkwrapMinorVersion: 8
 shrinkwrapVersion: 3
 specifiers:

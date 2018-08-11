@@ -1,10 +1,8 @@
 dependencies:
-  '@stardazed/array': 'link:../../core/array'
   '@stardazed/math': 'link:../../core/math'
   '@stardazed/numeric': 'link:../../core/numeric'
-  '@stardazed/structured-array': 'link:../../container/structured-array'
   '@stardazed/structured-storage': 'link:../../container/structured-storage'
-registry: 'https://registry.npmjs.com/'
+registry: 'http://verdaccio-pm.local:4873/'
 shrinkwrapMinorVersion: 8
 shrinkwrapVersion: 3
 specifiers:
