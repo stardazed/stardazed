@@ -5,3 +5,4 @@ pnpm-debug.log
 temp
 node_modules/
 dist/
+*.tgz
