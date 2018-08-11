@@ -83,15 +83,19 @@ export function makeStandardVertexBufferLayout(attrList: VertexAttribute[]): Ver
 
 	// calculate positioning of successive attributes in linear item
 	const attributes = attrList.map((attr: VertexAttribute): PositionedAttribute => {
-		const size = vertexFieldSizeBytes(attr.field);
+		const sizeBytes = vertexFieldSizeBytes(attr.field);
 		maxElemSize = Math.max(maxElemSize, vertexFieldElementSizeBytes(attr.field));
 
 		const alignedOffset = alignVertexField(attr.field, offset);
-		offset = alignedOffset + size;
+		offset = alignedOffset + sizeBytes;
 		return {
-			field: attr.field,
-			role: attr.role,
-			offset: alignedOffset
+			type: vertexFieldNumericType(attr.field)!,
+			count: vertexFieldElementCount(attr.field),
+			userData: {
+				...attr
+			},
+			byteOffset: alignedOffset,
+			sizeBytes
 		};
 	});
 
