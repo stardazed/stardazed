@@ -1,35 +1,35 @@
 {
-  "name": "@stardazed/stardazed",
-  "version": "0.4.0",
-  "description": "Solid 3D Web Game Engine",
-  "license": "MIT",
-  "private": true,
-  "homepage": "https://github.com/stardazed/stardazed",
-  "author": {
-    "name": "Arthur Langereis",
-    "url": "https://twitter.com/zenmumbler"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/stardazed/stardazed.git"
-  },
-  "keywords": [
-    "game-engine",
-    "webgl",
-    "3d"
-  ],
-  "scripts": {
-    "build": "pnpm multi run build",
-    "clean": "pnpm multi exec -- rm -rf dist"
-  },
-  "devDependencies": {
-    "assemblyscript": "github:AssemblyScript/assemblyscript",
-    "rollup": "^0.63.4",
-    "rollup-plugin-node-resolve": "^3.3.0",
-    "typescript": "^3.0.1"
-  },
-  "engines": {
-    "node": ">=10",
-    "pnpm": ">=2.12.2"
-  }
+	"name": "@stardazed/stardazed",
+	"version": "0.4.0",
+	"description": "Solid 3D Web Game Engine",
+	"license": "MIT",
+	"private": true,
+	"homepage": "https://github.com/stardazed/stardazed",
+	"author": {
+		"name": "Arthur Langereis",
+		"url": "https://twitter.com/zenmumbler"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/stardazed/stardazed.git"
+	},
+	"keywords": [
+		"game-engine",
+		"webgl",
+		"3d"
+	],
+	"scripts": {
+		"build": "pnpm multi run build",
+		"clean": "pnpm multi exec -- rm -rf dist"
+	},
+	"devDependencies": {
+		"assemblyscript": "github:AssemblyScript/assemblyscript",
+		"rollup": "^0.63.4",
+		"rollup-plugin-node-resolve": "^3.3.0",
+		"typescript": "^3.0.1"
+	},
+	"engines": {
+		"node": ">=10",
+		"pnpm": ">=2.13.1"
+	}
 }
