@@ -9,12 +9,16 @@
 		"type": "git",
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
+	"license": "MIT",
 	"main": "dist/sorted-array.esm.js",
 	"module": "dist/sorted-array.esm.js",
 	"types": "dist/sorted-array.d.ts",
 	"scripts": {
 		"build": "node --no-warnings ../../scripts/build-package container/sorted-array"
 	},
+	"files": [
+		"dist/**"
+	],
 	"dependencies": {
 		"@stardazed/array": "^0.4.0"
 	}

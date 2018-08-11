@@ -9,11 +9,15 @@
 		"type": "git",
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
+	"license": "MIT",
 	"main": "dist/array.esm.js",
 	"module": "dist/array.esm.js",
 	"types": "dist/array.d.ts",
 	"scripts": {
 		"build": "node --no-warnings ../../scripts/build-package core/array"
 	},
+	"files": [
+		"dist/**"
+	],
 	"dependencies": {}
 }

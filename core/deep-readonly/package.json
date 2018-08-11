@@ -17,8 +17,8 @@
 	"scripts": {
 		"build": "node --no-warnings ../../scripts/build-package core/deep-readonly"
 	},
-	"dependencies": {},
 	"files": [
 		"dist/**"
-	]
+	],
+	"dependencies": {}
 }

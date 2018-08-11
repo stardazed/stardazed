@@ -9,12 +9,16 @@
 		"type": "git",
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
+	"license": "MIT",
 	"main": "dist/vertex-attribute-view.esm.js",
 	"module": "dist/vertex-attribute-view.esm.js",
 	"types": "dist/vertex-attribute-view.d.ts",
 	"scripts": {
 		"build": "node --no-warnings ../../scripts/build-package geometry/vertex-attribute-view"
 	},
+	"files": [
+		"dist/**"
+	],
 	"dependencies": {
 		"@stardazed/array": "^0.4.0",
 		"@stardazed/vertex-buffer": "^0.4.0"

@@ -82,7 +82,7 @@ runtime protection against changes, you must still use `makeDeepReadonly`.
 
 Copyright
 ---------
-© 2018 by Arthur Langereis (@zenmumbler)
+© 2018-Present by Arthur Langereis (@zenmumbler)
 
 License
 -------

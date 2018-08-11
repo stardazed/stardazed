@@ -9,11 +9,15 @@
 		"type": "git",
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
+	"license": "MIT",
 	"main": "dist/math.esm.js",
 	"module": "dist/math.esm.js",
 	"types": "dist/math.d.ts",
 	"scripts": {
 		"build": "node --no-warnings ../../scripts/build-package core/math"
 	},
+	"files": [
+		"dist/**"
+	],
 	"dependencies": {}
 }
