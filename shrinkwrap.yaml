@@ -1,6 +1,6 @@
 devDependencies:
-  assemblyscript: github.com/AssemblyScript/assemblyscript/671121bf702273c930d39999f02643d4f52b2e3d
-  rollup: 0.63.4
+  assemblyscript: github.com/AssemblyScript/assemblyscript/c769f65bacd5392e5c9efab112b33244fc0a0c8f
+  rollup: 0.64.1
   rollup-plugin-node-resolve: 3.3.0
   typescript: 3.0.1
 packages:
@@ -8,25 +8,69 @@ packages:
     dev: true
     resolution:
       integrity: sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
+      tarball: /@protobufjs%2futf8/-/utf8-1.1.0.tgz
   /@types/estree/0.0.39:
     dev: true
     resolution:
       integrity: sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==
-  /@types/node/10.5.4:
+      tarball: /@types%2festree/-/estree-0.0.39.tgz
+  /@types/node/10.5.8:
     dev: true
     resolution:
-      integrity: sha512-8TqvB0ReZWwtcd3LXq3YSrBoLyXFgBX/sBZfGye9+YS8zH7/g+i6QRIuiDmwBoTzcQ/pk89nZYTYU4c5akKkzw==
-  /binaryen/49.0.0-nightly.20180718:
+      integrity: sha512-sWSjw+bYW/2W+1V3m8tVsm9PKJcxk3NHN7oRqNUfEdofKg0Imbdu1dQbFvLKjZQXEDXRN6IfSMACjJ7Wv4NGCQ==
+      tarball: /@types%2fnode/-/node-10.5.8.tgz
+  /balanced-match/1.0.0:
+    dev: true
+    resolution:
+      integrity: sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
+  /binaryen/49.0.0-nightly.20180731:
     dev: true
     hasBin: true
     resolution:
-      integrity: sha512-r7gYKbwYYF5DBTN2fSomv1BNUNYSPros20eTng5MV/Bsv7V6DfJtrvietJ35p+jqI797P83vnJ0PEB1vTZ9qoQ==
+      integrity: sha512-uZ7bizGTMbEOzIwZmGbXIcGFy8IkZjDoNOy+nPnIv7Dy1MiURItE0PRMnpXO2GPOOq6ZALW8pb5xb9MShD0zQQ==
+  /brace-expansion/1.1.11:
+    dependencies:
+      balanced-match: 1.0.0
+      concat-map: 0.0.1
+    dev: true
+    resolution:
+      integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==
   /builtin-modules/2.0.0:
     dev: true
     engines:
       node: '>=4'
     resolution:
       integrity: sha512-3U5kUA5VPsRUA3nofm/BXX7GVHKfxz0hOBAPxXrIvHzlDRkQVqEn6yi8QJegxl4LzOHLdvb7XF5dVawa/VVYBg==
+  /concat-map/0.0.1:
+    dev: true
+    resolution:
+      integrity: sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=
+  /fs.realpath/1.0.0:
+    dev: true
+    resolution:
+      integrity: sha1-FQStJSMVjKpA20onh8sBQRmU6k8=
+  /glob/7.1.2:
+    dependencies:
+      fs.realpath: 1.0.0
+      inflight: 1.0.6
+      inherits: 2.0.3
+      minimatch: 3.0.4
+      once: 1.4.0
+      path-is-absolute: 1.0.1
+    dev: true
+    resolution:
+      integrity: sha512-MJTUg1kjuLeQCJ+ccE4Vpa6kKVXkPYJ2mOCQyUuKLcLQsdrMCpBPUi8qVE6+YuaJkozeA9NusTAw3hLr8Xe5EQ==
+  /inflight/1.0.6:
+    dependencies:
+      once: 1.4.0
+      wrappy: 1.0.2
+    dev: true
+    resolution:
+      integrity: sha1-Sb1jMdfQLQwJvJEKEHW6gWW1bfk=
+  /inherits/2.0.3:
+    dev: true
+    resolution:
+      integrity: sha1-Yzwsg+PaQqUC9SRmAiSA9CCCYd4=
   /is-module/1.0.0:
     dev: true
     resolution:
@@ -35,13 +79,31 @@ packages:
     dev: true
     resolution:
       integrity: sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==
-  /path-parse/1.0.5:
+  /minimatch/3.0.4:
+    dependencies:
+      brace-expansion: 1.1.11
     dev: true
     resolution:
-      integrity: sha1-PBrfhx6pzWyUMbbqK9dKD/BVxME=
+      integrity: sha512-yJHVQEhyqPLUTgt9B83PXu6W3rx4MvvHvSUvToogpwoGDOUQ+yDrR0HRot+yOCdCO7u4hX3pWft6kWBBcqh0UA==
+  /once/1.4.0:
+    dependencies:
+      wrappy: 1.0.2
+    dev: true
+    resolution:
+      integrity: sha1-WDsap3WWHUsROsF9nFC6753Xa9E=
+  /path-is-absolute/1.0.1:
+    dev: true
+    engines:
+      node: '>=0.10.0'
+    resolution:
+      integrity: sha1-F0uSaHNVNP+8es5r9TpanhtcX18=
+  /path-parse/1.0.6:
+    dev: true
+    resolution:
+      integrity: sha512-GSmOT2EbHrINBf9SR7CDELwlJ8AENk3Qn7OikK4nFYAu3Ote2+JYNVvkpAEQm3/TLNEJFD/xZJjzyxg3KBWOzw==
   /resolve/1.8.1:
     dependencies:
-      path-parse: 1.0.5
+      path-parse: 1.0.6
     dev: true
     resolution:
       integrity: sha512-AicPrAC7Qu1JxPCZ9ZgCZlY35QgFnNqc+0LtbRNxnVw4TXvjQ72wnuL9JQcEBgXkI9JM8MsT9kaQoHcpCRJOYA==
@@ -53,14 +115,14 @@ packages:
     dev: true
     resolution:
       integrity: sha512-9zHGr3oUJq6G+X0oRMYlzid9fXicBdiydhwGChdyeNRGPcN/majtegApRKHLR5drboUvEWU+QeUmGTyEZQs3WA==
-  /rollup/0.63.4:
+  /rollup/0.64.1:
     dependencies:
       '@types/estree': 0.0.39
-      '@types/node': 10.5.4
+      '@types/node': 10.5.8
     dev: true
     hasBin: true
     resolution:
-      integrity: sha512-IGTH7u0P6bmu7cXL0g11UDYTR9WKku70cYlqVyOYdqLoQopBGmCbGC3SMeheqHymnehHe/5yf6BJ6BEoxQBVTQ==
+      integrity: sha512-+ThdVXrvonJdOTzyybMBipP0uz605Z8AnzWVY3rf+cSGnLO7uNkJBlN+9jXqWOomkvumXfm/esmBpA5d53qm7g==
   /typescript/3.0.1:
     dev: true
     engines:
@@ -68,10 +130,15 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-zQIMOmC+372pC/CCVLqnQ0zSBiY7HHodU7mpQdjiZddek4GMj31I3dUJ7gAs9o65X7mnRma6OokOkc6f9jjfBg==
-  github.com/AssemblyScript/assemblyscript/671121bf702273c930d39999f02643d4f52b2e3d:
+  /wrappy/1.0.2:
+    dev: true
+    resolution:
+      integrity: sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
+  github.com/AssemblyScript/assemblyscript/c769f65bacd5392e5c9efab112b33244fc0a0c8f:
     dependencies:
       '@protobufjs/utf8': 1.1.0
-      binaryen: 49.0.0-nightly.20180718
+      binaryen: 49.0.0-nightly.20180731
+      glob: 7.1.2
       long: 4.0.0
     dev: true
     engines:
@@ -79,13 +146,13 @@ packages:
     hasBin: true
     name: assemblyscript
     resolution:
-      tarball: 'https://codeload.github.com/AssemblyScript/assemblyscript/tar.gz/671121bf702273c930d39999f02643d4f52b2e3d'
+      tarball: 'https://codeload.github.com/AssemblyScript/assemblyscript/tar.gz/c769f65bacd5392e5c9efab112b33244fc0a0c8f'
     version: 0.5.0
-registry: 'https://registry.npmjs.org/'
+registry: 'http://verdaccio-pm.local:4873/'
 shrinkwrapMinorVersion: 8
 shrinkwrapVersion: 3
 specifiers:
   assemblyscript: 'github:AssemblyScript/assemblyscript'
-  rollup: ^0.63.4
+  rollup: ^0.64.1
   rollup-plugin-node-resolve: ^3.3.0
   typescript: ^3.0.1
