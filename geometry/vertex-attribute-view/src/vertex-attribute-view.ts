@@ -31,7 +31,7 @@ export class VertexAttributeView {
 	constructor(vertexBuffer: VertexBuffer, attr: PositionedAttribute, fromVertex?: number, toVertex?: number) {
 		this.vertexBuffer_ = vertexBuffer;
 		this.attr_ = attr;
-		this.elementCount = vertexFieldElementCount(this.attr_.field);
+		this.elementCount = vertexFieldElementCount(this.attr_.userData.field);
 
 		// validate or use default range
 		const fullVertexCount = this.vertexBuffer_.vertexCount;
@@ -53,7 +53,7 @@ export class VertexAttributeView {
 		this.stride_ = vertexBuffer.stride;
 		this.buffer_ = vertexBuffer.storage.buffer;
 		this.dataView_ = new DataView(this.buffer_);
-		this.elementArrayCtor_ = vertexFieldNumericType(attr.field)!.arrayType;
+		this.elementArrayCtor_ = vertexFieldNumericType(attr.userData.field)!.arrayType;
 	}
 
 	forEach(callback: (item: TypedArray) => void) {
@@ -71,11 +71,11 @@ export class VertexAttributeView {
 		const buffer = this.buffer_;
 		const stride = this.vertexBuffer_.stride;
 
-		const elementSize = vertexFieldElementSizeBytes(this.attr_.field);
+		const elementSize = vertexFieldElementSizeBytes(this.attr_.userData.field);
 		const elementArrayCtor = this.elementArrayCtor_;
 		
 		const firstVertex = this.fromVertex + offset;
-		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (stride * firstVertex) + this.attr_.offset;
+		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (stride * firstVertex) + this.attr_.byteOffset;
 		let sourceIndex = 0;
 		const sourceIncrement = source.length === this.elementCount ? 0 : this.elementCount;
 		let arrView: TypedArray;
@@ -199,7 +199,7 @@ export class VertexAttributeView {
 	 */
 	refItem(index: number): TypedArray {
 		index += this.fromVertex;
-		const offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attr_.offset;
+		const offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attr_.byteOffset;
 		return new this.elementArrayCtor_(this.buffer_, offsetBytes, this.elementCount);
 	}
 
@@ -209,10 +209,10 @@ export class VertexAttributeView {
 	 */
 	copyItem(index: number): number[] {
 		index += this.fromVertex;
-		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attr_.offset;
+		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attr_.byteOffset;
 		const result: number[] = [];
 
-		switch (this.attr_.field) {
+		switch (this.attr_.userData.field) {
 			case VertexField.Floatx4:
 				result.push(this.dataView_.getFloat32(offsetBytes, true));
 				offsetBytes += 4;
