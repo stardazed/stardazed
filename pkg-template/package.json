@@ -1,6 +1,6 @@
 {
-	"name": "@stardazed/package",
-	"description": "Description",
+	"name": "@stardazed/{{package}}",
+	"description": "{{Description}}",
 	"version": "0.4.0",
 	"author": {
 		"name": "Arthur Langereis"
@@ -9,11 +9,15 @@
 		"type": "git",
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
-	"main": "dist/package.esm.js",
-	"module": "dist/package.esm.js",
-	"types": "dist/package.d.ts",
+	"license": "MIT",
+	"main": "dist/{{package}}.esm.js",
+	"module": "dist/{{package}}.esm.js",
+	"types": "dist/{{package}}.d.ts",
 	"scripts": {
-		"build": "node --no-warnings ../../scripts/build-package group/package"
+		"build": "node --no-warnings ../../scripts/build-package {{group}}/{{package}}"
 	},
+	"files": [
+		"dist/**"
+	],
 	"dependencies": {}
 }
