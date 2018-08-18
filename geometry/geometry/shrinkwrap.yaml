@@ -3,7 +3,7 @@ dependencies:
   '@stardazed/math': 'link:../../core/math'
   '@stardazed/vertex-buffer': 'link:../vertex-buffer'
 registry: 'http://verdaccio-pm.local:4873/'
-shrinkwrapMinorVersion: 8
+shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
   '@stardazed/index-buffer': ^0.4.0

@@ -3,7 +3,7 @@ dependencies:
   '@stardazed/numeric': 'link:../../core/numeric'
   '@stardazed/structured-storage': 'link:../../container/structured-storage'
 registry: 'http://verdaccio-pm.local:4873/'
-shrinkwrapMinorVersion: 8
+shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
   '@stardazed/math': ^0.4.0
