@@ -6,7 +6,7 @@
 		"moduleResolution": "node",
 
 		"declaration": true,
-		"declarationMap": false,
+		"declarationMap": true,
 		"sourceMap": false,
 		"removeComments": false,
 		"noEmitOnError": true,
