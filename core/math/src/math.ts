@@ -33,6 +33,15 @@ export function mix(a: number, b: number, ratio: number): number {
 }
 
 /**
+ * Performs smooth Hermite interpolation between 0 and 1 when edge0 < n < edge1.
+ * @expects edge1 > edge0
+ */
+export function smoothStep(edge0: number, edge1: number, n: number) {
+	const t = clamp01((n - edge0) / (edge1 - edge0));
+	return t * t * (3.0 - 2.0 * t);
+}
+
+/**
  * Generate a pseudo-random integer value between 0 and maximum inclusive.
  * @param maximum The highest integer to include in the range, inclusive
  * @expects maximum >= 0
