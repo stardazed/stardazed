@@ -17,7 +17,8 @@
 		"build": "node --no-warnings ../../scripts/build-package {{group}}/{{package}}"
 	},
 	"files": [
-		"dist/**"
+		"dist/*.d.ts",
+		"dist/*.js"
 	],
 	"dependencies": {}
 }

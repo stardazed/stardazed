@@ -17,7 +17,8 @@
 		"build": "node --no-warnings ../../scripts/build-package geometry/geometry"
 	},
 	"files": [
-		"dist/**"
+		"dist/*.d.ts",
+		"dist/*.js"
 	],
 	"dependencies": {
 		"@stardazed/index-buffer": "^0.4.0",

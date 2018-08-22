@@ -17,7 +17,8 @@
 		"build": "node --no-warnings ../../scripts/build-package geometry/triangle-view"
 	},
 	"files": [
-		"dist/**"
+		"dist/*.d.ts",
+		"dist/*.js"
 	],
 	"dependencies": {
 		"@stardazed/array": "^0.4.0",

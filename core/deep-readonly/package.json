@@ -18,7 +18,8 @@
 		"build": "node --no-warnings ../../scripts/build-package core/deep-readonly"
 	},
 	"files": [
-		"dist/**"
+		"dist/*.d.ts",
+		"dist/*.js"
 	],
 	"dependencies": {}
 }
