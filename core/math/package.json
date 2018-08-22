@@ -10,7 +10,8 @@
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
 	"license": "MIT",
-	"main": "dist/math.esm.js",
+	"umdName": "sdMath",
+	"main": "dist/math.umd.js",
 	"module": "dist/math.esm.js",
 	"types": "dist/math.d.ts",
 	"scripts": {
