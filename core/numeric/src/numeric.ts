@@ -14,6 +14,8 @@ import { TypedArrayConstructor } from "@stardazed/array";
 export interface NumericType {
 	readonly min: number;
 	readonly max: number;
+	readonly minSafeInt: number;
+	readonly maxSafeInt: number;
 	readonly signed: boolean;
 	readonly integer: boolean;
 
@@ -27,6 +29,8 @@ export interface NumericType {
 export const UInt8: NumericType = {
 	min: 0,
 	max: 255,
+	minSafeInt: 0,
+	maxSafeInt: 255,
 	signed: false,
 	integer: true,
 	byteSize: 1,
@@ -39,6 +43,8 @@ export const UInt8: NumericType = {
 export const SInt8: NumericType = {
 	min: -128,
 	max: 127,
+	minSafeInt: -128,
+	maxSafeInt: 127,
 	signed: true,
 	integer: true,
 	byteSize: 1,
@@ -51,6 +57,8 @@ export const SInt8: NumericType = {
 export const UInt16: NumericType = {
 	min: 0,
 	max: 65535,
+	minSafeInt: 0,
+	maxSafeInt: 65535,
 	signed: false,
 	integer: true,
 	byteSize: 2,
@@ -63,6 +71,8 @@ export const UInt16: NumericType = {
 export const SInt16: NumericType = {
 	min: -32768,
 	max: 32767,
+	minSafeInt: -32768,
+	maxSafeInt: 32767,
 	signed: true,
 	integer: true,
 	byteSize: 2,
@@ -75,6 +85,8 @@ export const SInt16: NumericType = {
 export const UInt32: NumericType = {
 	min: 0,
 	max: 4294967295,
+	minSafeInt: 0,
+	maxSafeInt: 4294967295,
 	signed: false,
 	integer: true,
 	byteSize: 4,
@@ -87,6 +99,8 @@ export const UInt32: NumericType = {
 export const SInt32: NumericType = {
 	min: -2147483648,
 	max: 2147483647,
+	minSafeInt: -2147483648,
+	maxSafeInt: 2147483647,
 	signed: true,
 	integer: true,
 	byteSize: 4,
@@ -99,6 +113,8 @@ export const SInt32: NumericType = {
 export const Float: NumericType = {
 	min: -340282346638528859811704183484516925440.0,
 	max: 340282346638528859811704183484516925440.0,
+	minSafeInt: -16777216, // -2^24
+	maxSafeInt: 16777216, // 2^24
 	signed: true,
 	integer: false,
 	byteSize: 4,
@@ -111,6 +127,8 @@ export const Float: NumericType = {
 export const Double: NumericType = {
 	min: -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
 	max: 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0,
+	minSafeInt: -9007199254740993, // -2^53
+	maxSafeInt: 9007199254740993, // 2^53
 	signed: true,
 	integer: false,
 	byteSize: 8,
