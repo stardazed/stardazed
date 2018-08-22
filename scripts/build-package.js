@@ -84,11 +84,24 @@ async function roll(packageName) {
 	const packageJSON = require(packageJSONPath(packageName));
 	const rollupConfig = packageConfig(packageJSON, buildDir, packageDir);
 
+	const globals = {};
+	for (const depName in packageJSON.dependencies) {
+		if (depName.startsWith("@stardazed/")) {
+			const pascal = depName.replace("@stardazed/", "").split("-").map(
+				s => s[0].toUpperCase() + s.substr(1)
+			).join("");
+			globals[depName] = `sd${pascal}`;
+		}
+	}
+
 	const { output } = rollupConfig;
 	delete rollupConfig.output;
 
 	const bundle = await rollup(rollupConfig);
 	for (const out of output) {
+		if (out.format === "umd") {
+			out.globals = globals;
+		}
 		await bundle.write(out);
 	}
 }
