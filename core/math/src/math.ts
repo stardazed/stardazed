@@ -29,7 +29,7 @@ export function clamp01(n: number): number {
  * @example mix(10, 20, -1) = 0
  */
 export function mix(a: number, b: number, ratio: number): number {
-	return a * (1 - ratio) + b * ratio;
+	return (b - a) * ratio + a;
 }
 
 /**
