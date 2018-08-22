@@ -10,7 +10,8 @@
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
 	"license": "MIT",
-	"main": "dist/object.esm.js",
+	"umdName": "sdObject",
+	"main": "dist/object.umd.js",
 	"module": "dist/object.esm.js",
 	"types": "dist/object.d.ts",
 	"scripts": {
