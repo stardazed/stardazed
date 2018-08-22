@@ -58,7 +58,7 @@ export function indexBufferSizeBytes(ib: IndexBuffer): number {
 }
 
 /**
- * Direct (sub-)array access
+ * Access (a section of) the underlying array data of an IndexBuffer.
  * 
  * @expects isPositiveInteger(baseIndexNr)
  * @expects isPositiveInteger(indexCount)
