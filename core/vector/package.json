@@ -10,7 +10,8 @@
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
 	"license": "MIT",
-	"main": "dist/vector.esm.js",
+	"umdName": "sdVector",
+	"main": "dist/vector.umd.js",
 	"module": "dist/vector.esm.js",
 	"types": "dist/vector.d.ts",
 	"scripts": {
