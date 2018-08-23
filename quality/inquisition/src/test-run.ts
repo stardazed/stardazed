@@ -194,8 +194,8 @@ class TestRun {
 		}
 	}
 
-	run(test: Test) {
-		this.enterTest(test);
+	run() {
+		this.enterTest(this.rootTest);
 
 		this.report.startReport();
 		return this.nextStepFn_()
@@ -214,5 +214,5 @@ class TestRun {
 
 export function run(root: Test, report: TestReport) {
 	const res = new TestRun(root, report);
-	return res.run(root);
+	return res.run();
 }
