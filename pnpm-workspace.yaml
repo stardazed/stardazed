@@ -2,3 +2,4 @@ packages:
   - 'core/*'
   - 'container/*'
   - 'geometry/*'
+  - 'quality/*'
