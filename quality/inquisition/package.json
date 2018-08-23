@@ -11,7 +11,7 @@
 	},
 	"license": "MIT",
 	"umdName": "sdInquisition",
-	"main": "dist/inquisition.esm.js",
+	"main": "dist/inquisition.umd.js",
 	"module": "dist/inquisition.esm.js",
 	"types": "dist/inquisition.d.ts",
 	"scripts": {
