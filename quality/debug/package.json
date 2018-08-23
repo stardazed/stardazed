@@ -14,7 +14,7 @@
 	"module": "dist/debug.esm.js",
 	"types": "dist/debug.d.ts",
 	"scripts": {
-		"build": "node --no-warnings ../../scripts/build-package core/debug"
+		"build": "node --no-warnings ../../scripts/build-package quality/debug"
 	},
 	"files": [
 		"dist/*.d.ts",
