@@ -1,5 +1,5 @@
 dependencies:
-  '@stardazed/math': 'link:../../core/math'
+  '@stardazed/math': 'link:../../math/math'
   '@stardazed/numeric': 'link:../../core/numeric'
   '@stardazed/structured-storage': 'link:../../container/structured-storage'
 registry: 'http://verdaccio-pm.local:4873/'

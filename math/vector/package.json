@@ -15,7 +15,7 @@
 	"module": "dist/vector.esm.js",
 	"types": "dist/vector.d.ts",
 	"scripts": {
-		"build": "node --no-warnings ../../scripts/build-package core/vector"
+		"build": "node --no-warnings ../../scripts/build-package math/vector"
 	},
 	"files": [
 		"dist/*.d.ts",

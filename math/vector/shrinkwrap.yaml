@@ -1,5 +1,5 @@
 dependencies:
-  '@stardazed/array': 'link:../array'
+  '@stardazed/array': 'link:../../core/array'
   '@stardazed/math': 'link:../math'
 registry: 'http://verdaccio-pm.local:4873/'
 shrinkwrapMinorVersion: 9

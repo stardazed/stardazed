@@ -15,7 +15,7 @@
 	"module": "dist/math.esm.js",
 	"types": "dist/math.d.ts",
 	"scripts": {
-		"build": "node --no-warnings ../../scripts/build-package core/math"
+		"build": "node --no-warnings ../../scripts/build-package math/math"
 	},
 	"files": [
 		"dist/*.d.ts",
