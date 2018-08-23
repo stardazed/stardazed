@@ -6,7 +6,8 @@
  */
 
 import { StructLayout, structLayoutSizeBytesForCount } from "./layout";
-import { StructStorage, allocStorage, alignCapacityUp, alignSizeBytesUpToWASMPage, createStorageInBuffer } from "./storage";
+import { SizingAlignmentFlags, calcStorageSizeWithAlignmentFlags } from "./storage-alignment";
+import { StructStorage, allocStorage, createStorageInBuffer } from "./storage";
 import { transferArrayBuffer, clearArrayBuffer } from "@stardazed/array";
 
 /**
@@ -33,8 +34,8 @@ export interface StructuredArray<UD> {
  * 
  * @expects isPositiveNonZeroInteger(minCapacity)
  */
-export function createStructuredArray<UD>(layout: StructLayout<UD>, topology: StructTopology, minCapacity: number): StructuredArray<UD> {
-	const storage = allocStorage(layout.totalSizeBytes, minCapacity);
+export function createStructuredArray<UD>(layout: StructLayout<UD>, topology: StructTopology, minCapacity: number, storageAlignment: SizingAlignmentFlags): StructuredArray<UD> {
+	const storage = allocStorage(layout.totalSizeBytes, minCapacity, storageAlignment);
 	return {
 		layout,
 		topology,
@@ -47,8 +48,8 @@ export function createStructuredArray<UD>(layout: StructLayout<UD>, topology: St
  * 
  * @expects isPositiveNonZeroInteger(minCapacity)
  */
-export function createStructuredArrayInBuffer<UD>(layout: StructLayout<UD>, topology: StructTopology, minCapacity: number, buffer: Uint8Array): StructuredArray<UD> {
-	const storage = createStorageInBuffer(layout.totalSizeBytes, minCapacity, buffer);
+export function createStructuredArrayInBuffer<UD>(layout: StructLayout<UD>, topology: StructTopology, minCapacity: number, storageAlignment: SizingAlignmentFlags, buffer: Uint8Array): StructuredArray<UD> {
+	const storage = createStorageInBuffer(layout.totalSizeBytes, minCapacity, storageAlignment, buffer);
 	return {
 		layout,
 		topology,
@@ -64,10 +65,8 @@ export function createStructuredArrayInBuffer<UD>(layout: StructLayout<UD>, topo
  * @expects isPositiveNonZeroInteger(newMinCapacity)
  */
 export function resizeStructuredArray<UD>(sarr: StructuredArray<UD>, newMinCapacity: number) {
-	const capacity = alignCapacityUp(newMinCapacity);
-	const dataSizeBytes = sarr.layout.totalSizeBytes * capacity;
-	const newSizeBytes = alignSizeBytesUpToWASMPage(dataSizeBytes);
 	const currentSizeBytes = sarr.storage.data.byteLength;
+	const { capacity, sizeBytes: newSizeBytes } = calcStorageSizeWithAlignmentFlags(sarr.layout.totalSizeBytes, newMinCapacity, sarr.storage.storageAlignment);
 
 	if (newSizeBytes === currentSizeBytes) {
 		return;
@@ -79,8 +78,9 @@ export function resizeStructuredArray<UD>(sarr: StructuredArray<UD>, newMinCapac
 		// for an array of structs, we simply reduce or enlarge the buffer
 		newBuffer = transferArrayBuffer(sarr.storage.data.buffer, newSizeBytes);
 		if (newSizeBytes < currentSizeBytes) {
-			// If the buffer was reduced in size, clear out the array between the final struct
-			// and end-of-buffer as that may contain initialized data.
+			// If the buffer was reduced in size, clear out the array between the final
+			// requested struct and end-of-buffer as that may contain initialized data.
+			const { sizeBytes: dataSizeBytes } = calcStorageSizeWithAlignmentFlags(sarr.layout.totalSizeBytes, newMinCapacity, SizingAlignmentFlags.None);
 			clearArrayBuffer(newBuffer, dataSizeBytes, newSizeBytes);
 		}
 	}

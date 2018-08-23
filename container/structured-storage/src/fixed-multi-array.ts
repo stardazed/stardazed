@@ -8,6 +8,7 @@
 import { TypedArray, clearArrayBuffer } from "@stardazed/array";
 import { StructField, StructAlignmentFn, packStructFields } from "./layout";
 import { StructuredArray, StructTopology, createStructuredArray } from "./structured-array";
+import { SizingAlignmentFlags } from "./storage-alignment";
 
 export class FixedMultiArray<UD = unknown> {
 	private readonly backing_: StructuredArray<UD>;
@@ -19,7 +20,7 @@ export class FixedMultiArray<UD = unknown> {
 	 */
 	constructor(capacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = packStructFields) {
 		const layout = alignmentFn(fields);
-		this.backing_ = createStructuredArray(layout, StructTopology.StructOfArrays, capacity);
+		this.backing_ = createStructuredArray(layout, StructTopology.StructOfArrays, capacity, SizingAlignmentFlags.ItemMultipleOf32);
 
 		this.basePointers_ = layout.posFields.map(posField => {
 			const byteOffset = this.backing_.storage.capacity * posField.byteOffset;

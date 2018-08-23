@@ -9,6 +9,7 @@ import { clearArrayBuffer } from "@stardazed/array";
 import { roundUpPowerOf2 } from "@stardazed/math";
 import { PositionedStructField, StructField, StructAlignmentFn, packStructFields } from "./layout";
 import { StructuredArray, StructTopology, createStructuredArray, resizeStructuredArray } from "./structured-array";
+import { SizingAlignmentFlags } from "./storage-alignment";
 
 export const enum InvalidatePointers {
 	No,
@@ -25,7 +26,7 @@ export class MultiArrayBuffer<UD = unknown> {
 	 */
 	constructor(initialCapacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = packStructFields) {
 		const layout = alignmentFn(fields);
-		this.backing_ = createStructuredArray(layout, StructTopology.StructOfArrays, initialCapacity);
+		this.backing_ = createStructuredArray(layout, StructTopology.StructOfArrays, initialCapacity, SizingAlignmentFlags.ItemMultipleOf32);
 	}
 
 	get fieldCount() { return this.backing_.layout.posFields.length; }

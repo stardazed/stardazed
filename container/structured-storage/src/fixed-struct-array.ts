@@ -8,6 +8,7 @@
 import { clearArrayBuffer } from "@stardazed/array";
 import { StructField, StructAlignmentFn, alignStructFields } from "./layout";
 import { StructuredArray, StructTopology, createStructuredArray } from "./structured-array";
+import { SizingAlignmentFlags } from "./storage-alignment";
 
 export class FixedStructArray<UD = unknown> {
 	private readonly backing_: StructuredArray<UD>;
@@ -19,7 +20,7 @@ export class FixedStructArray<UD = unknown> {
 	 */
 	constructor(capacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = alignStructFields) {
 		const layout = alignmentFn(fields);
-		this.backing_ = createStructuredArray(layout, StructTopology.ArrayOfStructs, capacity);
+		this.backing_ = createStructuredArray(layout, StructTopology.ArrayOfStructs, capacity, SizingAlignmentFlags.ItemMultipleOf32);
 		this.structSize_ = layout.totalSizeBytes;
 	}
 
