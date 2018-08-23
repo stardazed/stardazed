@@ -10,7 +10,8 @@
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
 	"license": "MIT",
-	"main": "dist/sorted-array.esm.js",
+	"umdName": "sdSortedArray",
+	"main": "dist/sorted-array.umd.js",
 	"module": "dist/sorted-array.esm.js",
 	"types": "dist/sorted-array.d.ts",
 	"scripts": {
