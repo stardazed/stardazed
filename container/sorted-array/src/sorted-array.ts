@@ -55,10 +55,14 @@ export class SortedArray<T> {
 		return this.data_.length;
 	}
 
-	// indexOf(value: T) {
-	// 	const successor = lowerBound(this.data_, value);
-	// 	if (successor < 0) {
-	// 		return -1;
-	// 	}
-	// }
+	indexOf(value: T) {
+		const index = lowerBound(this.data_, value);
+		if (index === this.data_.length) {
+			return -1;
+		}
+		if (this.data_[index] === value) {
+			return index;
+		}
+		return -1;
+	}
 }
