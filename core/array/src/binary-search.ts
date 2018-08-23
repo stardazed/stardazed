@@ -35,9 +35,9 @@ export function lowerBound<T>(array: ArrayLike<T>, value: T, comp?: OrderBeforeC
 }
 
 /**
- * Make an upperBound function for a specific data type.
- * @see upperBound
- * @returns an upperBound function specialized with the specified comparator
+ * Perform a binary search in a sorted array
+ * @returns An index pointing to the first element in the array that is greater than
+ * value, or array.length if no such element is found.
  */
 export function upperBound<T>(array: ArrayLike<T>, value: T, comp?: OrderBeforeCompareFn<T>) {
 	let count = array.length;
