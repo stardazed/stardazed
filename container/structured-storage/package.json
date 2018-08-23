@@ -10,7 +10,8 @@
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
 	"license": "MIT",
-	"main": "dist/structured-storage.esm.js",
+	"umdName": "sdStructuredStorage",
+	"main": "dist/structured-storage.umd.js",
 	"module": "dist/structured-storage.esm.js",
 	"types": "dist/structured-storage.d.ts",
 	"scripts": {
