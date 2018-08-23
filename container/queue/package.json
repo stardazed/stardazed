@@ -10,7 +10,8 @@
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
 	"license": "MIT",
-	"main": "dist/queue.esm.js",
+	"umdName": "queue",
+	"main": "dist/queue.umd.js",
 	"module": "dist/queue.esm.js",
 	"types": "dist/queue.d.ts",
 	"scripts": {
