@@ -2,7 +2,7 @@ dependencies:
   '@stardazed/array': 'link:../../core/array'
   '@stardazed/geometry': 'link:../geometry'
   '@stardazed/index-buffer': 'link:../index-buffer'
-registry: 'http://verdaccio-pm.local:4873/'
+registry: 'https://registry.npmjs.com/'
 shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
