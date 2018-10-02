@@ -67,11 +67,6 @@ const enum CharCodes {
 	SPACE = 32
 }
 
-function isWhiteSpace(cc: number) {
-	return cc === CharCodes.TAB || cc === CharCodes.LINE_FEED ||
-		cc === CharCodes.CARRIAGE_RETURN || cc === CharCodes.SPACE;
-}
-
 export interface JSONStreamTokenizerDelegate {
 	nullValue(): void;
 	falseValue(): void;
@@ -94,10 +89,13 @@ export interface JSONStreamTokenizerDelegate {
 export class JSONStreamTokenizer {
 	private delegate_: JSONStreamTokenizerDelegate;
 	private token_: string;
-	private int_: string;
-	private frac_: string;
-	private exp_: string;
-	private negative_: boolean;
+	private int_: number;
+	private frac_: number;
+	private fracDigits_: number;
+	private exp_: number;
+	private sign_: number;
+	private signExp_: number;
+	private zeroInt_: boolean;
 	private mode_: TokenizerMode;
 	private storedError_: string | undefined;
 
@@ -105,13 +103,20 @@ export class JSONStreamTokenizer {
 		this.delegate_ = delegate;
 		this.mode_ = TokenizerMode.VALUE;
 		this.token_ = "";
-		this.int_ = this.frac_ = this.exp_ = "";
-		this.negative_ = false;
+		this.int_ = this.frac_ = this.fracDigits_ = this.exp_ = 0;
+		this.sign_ = 1;
+		this.signExp_ = 1;
+		this.zeroInt_ = false;
 	}
 
 	private error(message: string) {
 		this.storedError_ = message;
 		this.delegate_.error(message);
+	}
+
+	private emitNumber() {
+		const finalNumber = this.sign_ * Math.pow(10, this.exp_ * this.signExp_) * (this.int_ + (this.frac_ * Math.pow(10, -this.fracDigits_)));
+		this.delegate_.numberValue(finalNumber);
 	}
 
 	append(chars: string) {
@@ -132,10 +137,12 @@ export class JSONStreamTokenizer {
 					}
 					if ((cc >= CharCodes.ZERO && cc <= CharCodes.NINE) || cc === CharCodes.MINUS) {
 						this.mode_ = TokenizerMode.INTEGER;
-						this.int_ = chars[offset];
-						this.frac_ = "";
-						this.exp_ = "";
-						this.negative_ = cc === CharCodes.MINUS;
+
+						this.frac_ = this.fracDigits_ = this.exp_ = 0;
+						this.sign_ = cc === CharCodes.MINUS ? -1 : 1;
+						this.signExp_ = 1;
+						this.zeroInt_ = cc === CharCodes.ZERO;
+						this.int_ = cc === CharCodes.MINUS ? 0 : cc - CharCodes.ZERO;
 						break;
 					}
 					if (cc === CharCodes.T) {
@@ -181,14 +188,44 @@ export class JSONStreamTokenizer {
 						this.delegate_.elementValue();
 					}
 					else {
-						this.error(`Unexpected character "${chars[offset]}"`);
-						offset -= 1; // keep offset at current char after break
+						return this.error(`Unexpected character "${chars[offset]}"`);
 					}
+					this.mode_ = TokenizerMode.VALUE;
 					offset += 1;
 					break;
 
 				case TokenizerMode.INTEGER:
-					break;
+					if (cc >= CharCodes.ZERO && cc <= CharCodes.NINE) {
+						if (this.zeroInt_) {
+							return this.error(`Leading zeroes are not allowed in numbers`);
+						}
+						do {
+							this.int_ *= 10;
+							this.int_ += cc - CharCodes.ZERO;
+							offset += 1;
+							if (offset === charsLen) {
+								break;
+							}
+							cc = chars.charCodeAt(offset);
+						} while (cc >= CharCodes.ZERO && cc <= CharCodes.NINE);
+					}
+					else if (cc === CharCodes.PERIOD) {
+						this.mode_ = TokenizerMode.FRACTION;
+					}
+					else if (cc === CharCodes.E || cc === CharCodes.UPPER_E) {
+						this.mode_ = TokenizerMode.EXPONENT;
+					}
+					else {
+						this.emitNumber();
+						this.mode_ = TokenizerMode.DELIMITER;
+						offset -= 1;
+					}
+					offset += 1;
+					if (this.mode_ !== TokenizerMode.FRACTION || offset === charsLen) {
+						break;
+					}
+					cc = chars.charCodeAt(offset);
+					// [[fallthrough]]
 				case TokenizerMode.FRACTION:
 					break;
 				case TokenizerMode.EXPONENT:
@@ -299,6 +336,7 @@ export class JSONStreamTokenizer {
 					}
 					this.delegate_.nullValue();
 					this.mode_ = TokenizerMode.DELIMITER;
+					offset += 1;
 					break;
 			}
 		}
