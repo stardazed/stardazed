@@ -5,5 +5,4 @@
  * https://github.com/stardazed/stardazed
  */
 
-export class JSONStreamParser {
-}
+export { JSONStreamTokenizer, JSONStreamTokenizerDelegate } from "./tokenizer";

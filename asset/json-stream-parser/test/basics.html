@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>JSON Streams Tokenizer Test</title>
+	<style>body { background: #333; color: #ccc;  }</style>
+</head>
+<body>
+<h1>JSON Streams Tokenizer Test</h1>
+<script type="module">
+import { JSONStreamTokenizer } from "../dist/json-stream-parser.esm.js";
+
+const delegate = {
+	nullValue() {
+		console.info("null");
+	},
+	falseValue() {
+		console.info("false");
+	},
+	trueValue() {
+		console.info("true");
+	},
+	numberValue(num) {
+		console.info(num);
+	},
+	stringValue(str) {
+		console.info(str);
+	},
+
+	arrayOpen() {
+		console.info("[");
+	},
+	arrayClose() {
+		console.info("]");
+	},
+
+	objectOpen() {
+		console.info("{");
+	},
+	objectClose() {
+		console.info("}");
+	},
+
+	nextElement() {
+		console.info(",");
+	},
+	elementValue() {
+		console.info(":");
+	},
+
+	error(message) {
+		console.warn(message);
+	}
+}
+
+async function passTest(index) {
+	const tokenizer = new JSONStreamTokenizer(delegate);
+	const text = await fetch(`./jsonchecker/pass${index}.json`).then(r => r.text());
+	tokenizer.append(text);
+}
+
+passTest(1);
+
+</script>
+</body>
+</html>
