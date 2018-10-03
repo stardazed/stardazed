@@ -10,6 +10,7 @@ const enum TokenizerMode {
 	DELIMITER,
 	INTEGER,
 	FRACTION,
+	EXPONENT_SIGN,
 	EXPONENT,
 	STRING,
 	TRUE1,
@@ -88,13 +89,14 @@ export interface JSONStreamTokenizerDelegate {
 
 export class JSONStreamTokenizer {
 	private delegate_: JSONStreamTokenizerDelegate;
-	private token_: string;
+	private string_: string;
 	private int_: number;
 	private frac_: number;
 	private fracDigits_: number;
 	private exp_: number;
 	private sign_: number;
-	private signExp_: number;
+	private expSign_: number;
+	private expDigits_: number;
 	private zeroInt_: boolean;
 	private mode_: TokenizerMode;
 	private storedError_: string | undefined;
@@ -102,10 +104,9 @@ export class JSONStreamTokenizer {
 	constructor(delegate: JSONStreamTokenizerDelegate) {
 		this.delegate_ = delegate;
 		this.mode_ = TokenizerMode.VALUE;
-		this.token_ = "";
-		this.int_ = this.frac_ = this.fracDigits_ = this.exp_ = 0;
-		this.sign_ = 1;
-		this.signExp_ = 1;
+		this.string_ = "";
+		this.int_ = this.frac_ = this.fracDigits_ = this.exp_ = this.expDigits_ = 0;
+		this.sign_ = this.expSign_ = 1;
 		this.zeroInt_ = false;
 	}
 
@@ -115,7 +116,7 @@ export class JSONStreamTokenizer {
 	}
 
 	private emitNumber() {
-		const finalNumber = this.sign_ * Math.pow(10, this.exp_ * this.signExp_) * (this.int_ + (this.frac_ * Math.pow(10, -this.fracDigits_)));
+		const finalNumber = this.sign_ * Math.pow(10, this.exp_ * this.expSign_) * (this.int_ + (this.frac_ * Math.pow(10, -this.fracDigits_)));
 		this.delegate_.numberValue(finalNumber);
 	}
 
@@ -132,29 +133,34 @@ export class JSONStreamTokenizer {
 				case TokenizerMode.VALUE:
 					if (cc === CharCodes.QUOTE) {
 						this.mode_ = TokenizerMode.STRING;
-						this.token_ = "";
+						this.string_ = "";
+						offset += 1;
 						break;
 					}
 					if ((cc >= CharCodes.ZERO && cc <= CharCodes.NINE) || cc === CharCodes.MINUS) {
 						this.mode_ = TokenizerMode.INTEGER;
 
-						this.frac_ = this.fracDigits_ = this.exp_ = 0;
+						this.frac_ = this.fracDigits_ = this.exp_ = this.expDigits_ = 0;
 						this.sign_ = cc === CharCodes.MINUS ? -1 : 1;
-						this.signExp_ = 1;
+						this.expSign_ = 1;
 						this.zeroInt_ = cc === CharCodes.ZERO;
 						this.int_ = cc === CharCodes.MINUS ? 0 : cc - CharCodes.ZERO;
+						offset += 1;
 						break;
 					}
 					if (cc === CharCodes.T) {
 						this.mode_ = TokenizerMode.TRUE1;
+						offset += 1;
 						break;
 					}
 					if (cc === CharCodes.F) {
 						this.mode_ = TokenizerMode.FALSE1;
+						offset += 1;
 						break;
 					}
 					if (cc === CharCodes.N) {
 						this.mode_ = TokenizerMode.NULL1;
+						offset += 1;
 						break;
 					}
 					// [[fallthrough]]
@@ -211,27 +217,95 @@ export class JSONStreamTokenizer {
 					}
 					else if (cc === CharCodes.PERIOD) {
 						this.mode_ = TokenizerMode.FRACTION;
+						offset += 1;
 					}
 					else if (cc === CharCodes.E || cc === CharCodes.UPPER_E) {
-						this.mode_ = TokenizerMode.EXPONENT;
+						this.mode_ = TokenizerMode.EXPONENT_SIGN;
+						offset += 1;
 					}
 					else {
 						this.emitNumber();
 						this.mode_ = TokenizerMode.DELIMITER;
-						offset -= 1;
+						break;
 					}
-					offset += 1;
 					if (this.mode_ !== TokenizerMode.FRACTION || offset === charsLen) {
 						break;
 					}
 					cc = chars.charCodeAt(offset);
 					// [[fallthrough]]
 				case TokenizerMode.FRACTION:
-					break;
+					if (cc >= CharCodes.ZERO && cc <= CharCodes.NINE) {
+						do {
+							this.frac_ *= 10;
+							this.frac_ += cc - CharCodes.ZERO;
+							this.fracDigits_ += 1;
+							offset += 1;
+							if (offset === charsLen) {
+								break;
+							}
+							cc = chars.charCodeAt(offset);
+						} while (cc >= CharCodes.ZERO && cc <= CharCodes.NINE);
+					}
+					if (cc === CharCodes.E || cc === CharCodes.UPPER_E) {
+						this.mode_ = TokenizerMode.EXPONENT;
+						offset += 1;
+						if (offset === charsLen) {
+							break;
+						}
+						cc = chars.charCodeAt(offset);
+					}
+					else {
+						this.emitNumber();
+						this.mode_ = TokenizerMode.DELIMITER;
+						break;
+					}
+					// [[fallthrough]]
+				case TokenizerMode.EXPONENT_SIGN:
+					this.mode_ = TokenizerMode.EXPONENT;
+					if (cc === CharCodes.PLUS || cc === CharCodes.MINUS) {
+						this.expSign_ = cc === CharCodes.PLUS ? 1 : -1;
+						offset += 1;
+						if (offset === charsLen) {
+							break;
+						}
+						cc = chars.charCodeAt(offset);
+					}
+					// [[fallthrough]]
 				case TokenizerMode.EXPONENT:
+					if (cc >= CharCodes.ZERO && cc <= CharCodes.NINE) {
+						do {
+							this.exp_ *= 10;
+							this.exp_ += cc - CharCodes.ZERO;
+							this.expDigits_ += 1;
+							offset += 1;
+							if (offset === charsLen) {
+								break;
+							}
+							cc = chars.charCodeAt(offset);
+						} while (cc >= CharCodes.ZERO && cc <= CharCodes.NINE);
+					}
+
+					if (this.expDigits_ === 0) {
+						return this.error("Non-number found after exponent indicator");
+					}
+					this.emitNumber();
+					this.mode_ = TokenizerMode.DELIMITER;
 					break;
 
 				case TokenizerMode.STRING:
+					if (cc !== CharCodes.QUOTE) {
+						do {
+							this.string_ += chars[offset];
+							offset += 1;
+							if (offset === charsLen) {
+								break;
+							}
+							cc = chars.charCodeAt(offset);
+						} while (cc !== CharCodes.QUOTE);
+					}
+					offset += 1;
+					this.delegate_.stringValue(this.string_);
+					this.mode_ = TokenizerMode.DELIMITER;
 					break;
 
 				case TokenizerMode.TRUE1:
