@@ -309,6 +309,9 @@ export class JSONStreamTokenizer {
 							}
 							cc = chars.charCodeAt(offset);
 						} while (cc !== CharCodes.QUOTE && cc !== CharCodes.BACKSLASH);
+						if (offset === charsLen) {
+							break;
+						}
 					}
 					// move past the backslash or closing quote
 					offset += 1;
