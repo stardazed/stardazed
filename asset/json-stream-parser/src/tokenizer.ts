@@ -299,6 +299,9 @@ export class JSONStreamTokenizer {
 				case TokenizerMode.STRING:
 					if (cc !== CharCodes.QUOTE && cc !== CharCodes.BACKSLASH) {
 						do {
+							if (cc < 0x20) {
+								return this.error("Control codes in strings must be escaped");
+							}
 							this.string_ += chars[offset];
 							offset += 1;
 							if (offset === charsLen) {
