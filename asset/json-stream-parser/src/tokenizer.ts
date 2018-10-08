@@ -124,7 +124,7 @@ export class JSONStreamTokenizer {
 		return { type: JSONTokenType.NUMBER, data: finalNumber };
 	}
 
-	append = function*(this: JSONStreamTokenizer, chars: string): IterableIterator<JSONToken> {
+	append: (chars: string) => IterableIterator<JSONToken> = function*(this: JSONStreamTokenizer, chars: string): IterableIterator<JSONToken> {
 		if (this.storedError_ !== undefined) {
 			return this.error(this.storedError_);
 		}
