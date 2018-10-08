@@ -13,6 +13,11 @@ const enum TokenizerMode {
 	EXPONENT_SIGN,
 	EXPONENT,
 	STRING,
+	ESCAPE,
+	HEX0,
+	HEX1,
+	HEX2,
+	HEX3,
 	TRUE1,
 	TRUE2,
 	TRUE3,
@@ -69,11 +74,11 @@ const enum CharCodes {
 }
 
 export interface JSONStreamTokenizerDelegate {
-	nullValue(): void;
-	falseValue(): void;
-	trueValue(): void;
-	numberValue(num: number): void;
-	stringValue(str: string): void;
+	nullToken(): void;
+	falseToken(): void;
+	trueToken(): void;
+	numberToken(num: number): void;
+	stringToken(str: string): void;
 
 	arrayOpen(): void;
 	arrayClose(): void;
@@ -81,8 +86,8 @@ export interface JSONStreamTokenizerDelegate {
 	objectOpen(): void;
 	objectClose(): void;
 
-	nextElement(): void;
-	elementValue(): void;
+	commaToken(): void;
+	colonToken(): void;
 
 	error(message: string): void;
 }
@@ -117,7 +122,7 @@ export class JSONStreamTokenizer {
 
 	private emitNumber() {
 		const finalNumber = this.sign_ * Math.pow(10, this.exp_ * this.expSign_) * (this.int_ + (this.frac_ * Math.pow(10, -this.fracDigits_)));
-		this.delegate_.numberValue(finalNumber);
+		this.delegate_.numberToken(finalNumber);
 	}
 
 	append(chars: string) {
@@ -188,10 +193,10 @@ export class JSONStreamTokenizer {
 						this.delegate_.arrayClose();
 					}
 					else if (cc === CharCodes.COMMA) {
-						this.delegate_.nextElement();
+						this.delegate_.commaToken();
 					}
 					else if (cc === CharCodes.COLON) {
-						this.delegate_.elementValue();
+						this.delegate_.colonToken();
 					}
 					else {
 						return this.error(`Unexpected character "${chars[offset]}"`);
@@ -293,7 +298,7 @@ export class JSONStreamTokenizer {
 					break;
 
 				case TokenizerMode.STRING:
-					if (cc !== CharCodes.QUOTE) {
+					if (cc !== CharCodes.QUOTE && cc !== CharCodes.BACKSLASH) {
 						do {
 							this.string_ += chars[offset];
 							offset += 1;
@@ -301,11 +306,148 @@ export class JSONStreamTokenizer {
 								break;
 							}
 							cc = chars.charCodeAt(offset);
-						} while (cc !== CharCodes.QUOTE);
+						} while (cc !== CharCodes.QUOTE && cc !== CharCodes.BACKSLASH);
+					}
+					// move past the backslash or closing quote
+					offset += 1;
+					if (cc === CharCodes.QUOTE) {
+						this.delegate_.stringToken(this.string_);
+						this.mode_ = TokenizerMode.DELIMITER;
+						break;
+					}
+					this.mode_ = TokenizerMode.ESCAPE;
+					if (offset === charsLen) {
+						break;
+					}
+					cc = chars.charCodeAt(offset);
+					// [[fallthrough]]
+				case TokenizerMode.ESCAPE:
+					if (cc === CharCodes.QUOTE) {
+						this.string_ += '"';
+					}
+					else if (cc === CharCodes.BACKSLASH) {
+						this.string_ += "\\";
+					}
+					else if (cc === CharCodes.N) {
+						this.string_ += "\n";
+					}
+					else if (cc === CharCodes.R) {
+						this.string_ += "\r";
+					}
+					else if (cc === CharCodes.T) {
+						this.string_ += "\t";
+					}
+					else if (cc === CharCodes.B) {
+						this.string_ += "\b";
+					}
+					else if (cc === CharCodes.F) {
+						this.string_ += "\f";
+					}
+					else if (cc === CharCodes.SLASH) {
+						this.string_ += "/";
+					}
+					else if (cc === CharCodes.U) {
+						this.mode_ = TokenizerMode.HEX0;
+					}
+					else {
+						return this.error(`Invalid escape code "${chars[offset]}"`);
+					}
+					
+					offset += 1;
+					if (this.mode_ !== TokenizerMode.HEX0) {
+						this.mode_ = TokenizerMode.STRING;
+						break;
+					}
+					if (offset === charsLen) {
+						break;
+					}
+					cc = chars.charCodeAt(offset);
+					// [[fallthrough]]
+				case TokenizerMode.HEX0:
+					if (cc >= CharCodes.ZERO && cc <= CharCodes.NINE) {
+						this.int_ = cc - CharCodes.ZERO;
+					}
+					else if (cc >= CharCodes.A && cc <= CharCodes.F) {
+						this.int_ = 10 + (cc - CharCodes.A);
+					}
+					else if (cc >= CharCodes.UPPER_A && cc <= CharCodes.UPPER_F) {
+						this.int_ = 10 + (cc - CharCodes.UPPER_A);
+					}
+					else {
+						return this.error(`Invalid hexadecimal digit "${chars[offset]}"`);
 					}
 					offset += 1;
-					this.delegate_.stringValue(this.string_);
-					this.mode_ = TokenizerMode.DELIMITER;
+					this.mode_ += 1;
+					if (offset === charsLen) {
+						break;
+					}
+					cc = chars.charCodeAt(offset);
+					// [[fallthrough]]
+				case TokenizerMode.HEX1:
+					if (cc >= CharCodes.ZERO && cc <= CharCodes.NINE) {
+						this.int_ <<= 4;
+						this.int_ += cc - CharCodes.ZERO;
+					}
+					else if (cc >= CharCodes.A && cc <= CharCodes.F) {
+						this.int_ <<= 4;
+						this.int_ += 10 + (cc - CharCodes.A);
+					}
+					else if (cc >= CharCodes.UPPER_A && cc <= CharCodes.UPPER_F) {
+						this.int_ <<= 4;
+						this.int_ += 10 + (cc - CharCodes.UPPER_A);
+					}
+					else {
+						return this.error(`Invalid hexadecimal digit "${chars[offset]}"`);
+					}
+					offset += 1;
+					this.mode_ += 1;
+					if (offset === charsLen) {
+						break;
+					}
+					cc = chars.charCodeAt(offset);
+					// [[fallthrough]]
+				case TokenizerMode.HEX2:
+					if (cc >= CharCodes.ZERO && cc <= CharCodes.NINE) {
+						this.int_ <<= 4;
+						this.int_ += cc - CharCodes.ZERO;
+					}
+					else if (cc >= CharCodes.A && cc <= CharCodes.F) {
+						this.int_ <<= 4;
+						this.int_ += 10 + (cc - CharCodes.A);
+					}
+					else if (cc >= CharCodes.UPPER_A && cc <= CharCodes.UPPER_F) {
+						this.int_ <<= 4;
+						this.int_ += 10 + (cc - CharCodes.UPPER_A);
+					}
+					else {
+						return this.error(`Invalid hexadecimal digit "${chars[offset]}"`);
+					}
+					offset += 1;
+					this.mode_ += 1;
+					if (offset === charsLen) {
+						break;
+					}
+					cc = chars.charCodeAt(offset);
+					// [[fallthrough]]
+				case TokenizerMode.HEX3:
+					if (cc >= CharCodes.ZERO && cc <= CharCodes.NINE) {
+						this.int_ <<= 4;
+						this.int_ += cc - CharCodes.ZERO;
+					}
+					else if (cc >= CharCodes.A && cc <= CharCodes.F) {
+						this.int_ <<= 4;
+						this.int_ += 10 + (cc - CharCodes.A);
+					}
+					else if (cc >= CharCodes.UPPER_A && cc <= CharCodes.UPPER_F) {
+						this.int_ <<= 4;
+						this.int_ += 10 + (cc - CharCodes.UPPER_A);
+					}
+					else {
+						return this.error(`Invalid hexadecimal digit "${chars[offset]}"`);
+					}
+					offset += 1;
+					this.string_ += String.fromCharCode(this.int_);
+					this.mode_ = TokenizerMode.STRING;
 					break;
 
 				case TokenizerMode.TRUE1:
@@ -334,7 +476,7 @@ export class JSONStreamTokenizer {
 					if (cc !== CharCodes.E) {
 						return this.error(`Unexpected character "${chars[offset]}"`);
 					}
-					this.delegate_.trueValue();
+					this.delegate_.trueToken();
 					this.mode_ = TokenizerMode.DELIMITER;
 					offset += 1;
 					break;
@@ -376,7 +518,7 @@ export class JSONStreamTokenizer {
 					if (cc !== CharCodes.E) {
 						return this.error(`Unexpected character "${chars[offset]}"`);
 					}
-					this.delegate_.falseValue();
+					this.delegate_.falseToken();
 					this.mode_ = TokenizerMode.DELIMITER;
 					offset += 1;
 					break;
@@ -408,7 +550,7 @@ export class JSONStreamTokenizer {
 					if (cc !== CharCodes.L) {
 						return this.error(`Unexpected character "${chars[offset]}"`);
 					}
-					this.delegate_.nullValue();
+					this.delegate_.nullToken();
 					this.mode_ = TokenizerMode.DELIMITER;
 					offset += 1;
 					break;
