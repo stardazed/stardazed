@@ -58,6 +58,9 @@ export class JSONStreamParser {
 	}
 
 	private process(mode: ParserMode, token: JSONToken) {
+		if (token.type === JSONTokenType.ERROR) {
+			return this.error(token.data as string);
+		}
 		switch (mode) {
 			case ParserMode.DOCUMENT:
 			case ParserMode.ARRAY_ELEMENT:
