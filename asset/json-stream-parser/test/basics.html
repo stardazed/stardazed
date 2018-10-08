@@ -51,13 +51,17 @@ const delegate = {
 	},
 };
 
-async function passTest(index) {
+async function runTest(collection, index, expectedError) {
 	const parser = new JSONStreamParser(delegate);
-	const text = await fetch(`./jsonchecker/pass${index}.json`).then(r => r.text());
+	const text = await fetch(`./jsonchecker/${collection}${index}.json`).then(r => r.text());
 	parser.append(text);
+	console.info(index, "complete", parser.completed);
+	console.info("--------");
 }
 
-passTest(1);
+for (let x = 1; x < 34; ++x) {
+	runTest("fail", x);
+}
 
 </script>
 </body>
