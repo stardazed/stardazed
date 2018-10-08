@@ -54,7 +54,10 @@ const delegate = {
 async function runTest(collection, index, expectedError) {
 	const parser = new JSONStreamParser(delegate);
 	const text = await fetch(`./jsonchecker/${collection}${index}.json`).then(r => r.text());
-	parser.append(text);
+	const chars = text.split("");
+	for (const c of chars) {
+		parser.append(c);
+	}
 	console.info(index, "complete", parser.completed);
 	console.info("--------");
 }
