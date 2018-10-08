@@ -73,27 +73,27 @@ const enum CharCodes {
 	SPACE = 32
 }
 
-export interface JSONStreamTokenizerDelegate {
-	nullToken(): void;
-	falseToken(): void;
-	trueToken(): void;
-	numberToken(num: number): void;
-	stringToken(str: string): void;
+export const enum JSONTokenType {
+	NULL,
+	FALSE,
+	TRUE,
+	NUMBER,
+	STRING,
+	ARRAY_OPEN,
+	ARRAY_CLOSE,
+	OBJECT_OPEN,
+	OBJECT_CLOSE,
+	COMMA,
+	COLON,
+	ERROR
+}
 
-	arrayOpen(): void;
-	arrayClose(): void;
-
-	objectOpen(): void;
-	objectClose(): void;
-
-	commaToken(): void;
-	colonToken(): void;
-
-	error(message: string): void;
+export interface JSONToken {
+	type: JSONTokenType;
+	data?: string | number;
 }
 
 export class JSONStreamTokenizer {
-	private delegate_: JSONStreamTokenizerDelegate;
 	private string_: string;
 	private int_: number;
 	private frac_: number;
@@ -106,8 +106,7 @@ export class JSONStreamTokenizer {
 	private mode_: TokenizerMode;
 	private storedError_: string | undefined;
 
-	constructor(delegate: JSONStreamTokenizerDelegate) {
-		this.delegate_ = delegate;
+	constructor() {
 		this.mode_ = TokenizerMode.VALUE;
 		this.string_ = "";
 		this.int_ = this.frac_ = this.fracDigits_ = this.exp_ = this.expDigits_ = 0;
@@ -115,17 +114,17 @@ export class JSONStreamTokenizer {
 		this.zeroInt_ = false;
 	}
 
-	private error(message: string) {
+	private error(message: string): JSONToken {
 		this.storedError_ = message;
-		this.delegate_.error(message);
+		return { type: JSONTokenType.ERROR, data: message };
 	}
 
-	private emitNumber() {
+	private emitNumber(): JSONToken {
 		const finalNumber = this.sign_ * Math.pow(10, this.exp_ * this.expSign_) * (this.int_ + (this.frac_ * Math.pow(10, -this.fracDigits_)));
-		this.delegate_.numberToken(finalNumber);
+		return { type: JSONTokenType.NUMBER, data: finalNumber };
 	}
 
-	append(chars: string) {
+	append = function*(this: JSONStreamTokenizer, chars: string): IterableIterator<JSONToken> {
 		if (this.storedError_ !== undefined) {
 			return this.error(this.storedError_);
 		}
@@ -181,22 +180,22 @@ export class JSONStreamTokenizer {
 						break;
 					}
 					if (cc === CharCodes.BRACE_OPEN) {
-						this.delegate_.objectOpen();
+						yield { type: JSONTokenType.OBJECT_OPEN };
 					}
 					else if (cc === CharCodes.BRACE_CLOSE) {
-						this.delegate_.objectClose();
+						yield { type: JSONTokenType.OBJECT_CLOSE };
 					}
 					else if (cc === CharCodes.BRACKET_OPEN) {
-						this.delegate_.arrayOpen();
+						yield { type: JSONTokenType.ARRAY_OPEN };
 					}
 					else if (cc === CharCodes.BRACKET_CLOSE) {
-						this.delegate_.arrayClose();
+						yield { type: JSONTokenType.ARRAY_CLOSE };
 					}
 					else if (cc === CharCodes.COMMA) {
-						this.delegate_.commaToken();
+						yield { type: JSONTokenType.COMMA };
 					}
 					else if (cc === CharCodes.COLON) {
-						this.delegate_.colonToken();
+						yield { type: JSONTokenType.COLON };
 					}
 					else {
 						return this.error(`Unexpected character "${chars[offset]}"`);
@@ -229,7 +228,7 @@ export class JSONStreamTokenizer {
 						offset += 1;
 					}
 					else {
-						this.emitNumber();
+						yield this.emitNumber();
 						this.mode_ = TokenizerMode.DELIMITER;
 						break;
 					}
@@ -260,7 +259,7 @@ export class JSONStreamTokenizer {
 						cc = chars.charCodeAt(offset);
 					}
 					else {
-						this.emitNumber();
+						yield this.emitNumber();
 						this.mode_ = TokenizerMode.DELIMITER;
 						break;
 					}
@@ -293,7 +292,7 @@ export class JSONStreamTokenizer {
 					if (this.expDigits_ === 0) {
 						return this.error("Non-number found after exponent indicator");
 					}
-					this.emitNumber();
+					yield this.emitNumber();
 					this.mode_ = TokenizerMode.DELIMITER;
 					break;
 
@@ -311,7 +310,7 @@ export class JSONStreamTokenizer {
 					// move past the backslash or closing quote
 					offset += 1;
 					if (cc === CharCodes.QUOTE) {
-						this.delegate_.stringToken(this.string_);
+						yield { type: JSONTokenType.STRING, data: this.string_ };
 						this.mode_ = TokenizerMode.DELIMITER;
 						break;
 					}
@@ -476,7 +475,7 @@ export class JSONStreamTokenizer {
 					if (cc !== CharCodes.E) {
 						return this.error(`Unexpected character "${chars[offset]}"`);
 					}
-					this.delegate_.trueToken();
+					yield { type: JSONTokenType.TRUE };
 					this.mode_ = TokenizerMode.DELIMITER;
 					offset += 1;
 					break;
@@ -518,7 +517,7 @@ export class JSONStreamTokenizer {
 					if (cc !== CharCodes.E) {
 						return this.error(`Unexpected character "${chars[offset]}"`);
 					}
-					this.delegate_.falseToken();
+					yield { type: JSONTokenType.FALSE };
 					this.mode_ = TokenizerMode.DELIMITER;
 					offset += 1;
 					break;
@@ -550,11 +549,11 @@ export class JSONStreamTokenizer {
 					if (cc !== CharCodes.L) {
 						return this.error(`Unexpected character "${chars[offset]}"`);
 					}
-					this.delegate_.nullToken();
+					yield { type: JSONTokenType.NULL };
 					this.mode_ = TokenizerMode.DELIMITER;
 					offset += 1;
 					break;
 			}
 		}
-	}
+	}.bind(this);
 }

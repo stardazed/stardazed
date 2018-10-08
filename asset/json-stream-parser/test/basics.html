@@ -10,53 +10,16 @@
 <script type="module">
 import { JSONStreamTokenizer } from "../dist/json-stream-parser.esm.js";
 
-const delegate = {
-	nullToken() {
-		console.info("null");
-	},
-	falseToken() {
-		console.info("false");
-	},
-	trueToken() {
-		console.info("true");
-	},
-	numberToken(num) {
-		console.info(num);
-	},
-	stringToken(str) {
-		console.info(str);
-	},
-
-	arrayOpen() {
-		console.info("[");
-	},
-	arrayClose() {
-		console.info("]");
-	},
-
-	objectOpen() {
-		console.info("{");
-	},
-	objectClose() {
-		console.info("}");
-	},
-
-	commaToken() {
-		console.info(",");
-	},
-	colonToken() {
-		console.info(":");
-	},
-
-	error(message) {
-		console.warn(message);
-	}
-}
-
 async function passTest(index) {
-	const tokenizer = new JSONStreamTokenizer(delegate);
+	const tokenizer = new JSONStreamTokenizer();
 	const text = await fetch(`./jsonchecker/pass${index}.json`).then(r => r.text());
-	tokenizer.append(text);
+	
+	const chunk = tokenizer.append(text);
+	let it;
+	do {
+		it = chunk.next();
+		console.info(it.value);
+	} while (it.done === false);
 }
 
 passTest(1);
