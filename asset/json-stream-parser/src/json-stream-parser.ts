@@ -149,7 +149,7 @@ export class JSONStreamParser {
 					break;
 				}
 				if (mode === ParserMode.END_OF_DOCUMENT) {
-					this.delegate_.error(`Unexpected data after end of document.`);
+					mode = this.error(`Unexpected data after end of document.`);
 					break;
 				}
 				mode = this.process(mode, token);
