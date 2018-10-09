@@ -250,8 +250,11 @@ export class JSONStreamTokenizer {
 							cc = chars.charCodeAt(offset);
 						} while (cc >= CharCodes.ZERO && cc <= CharCodes.NINE);
 					}
+					if (offset === charsLen) {
+						break;
+					}
 					if (cc === CharCodes.E || cc === CharCodes.UPPER_E) {
-						this.mode_ = TokenizerMode.EXPONENT;
+						this.mode_ = TokenizerMode.EXPONENT_SIGN;
 						offset += 1;
 						if (offset === charsLen) {
 							break;
@@ -288,7 +291,9 @@ export class JSONStreamTokenizer {
 							cc = chars.charCodeAt(offset);
 						} while (cc >= CharCodes.ZERO && cc <= CharCodes.NINE);
 					}
-
+					if (offset === charsLen) {
+						break;
+					}
 					if (this.expDigits_ === 0) {
 						return this.error("Non-number found after exponent indicator");
 					}
