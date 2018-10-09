@@ -164,4 +164,8 @@ export class JSONStreamParser {
 	get completed() {
 		return this.modeStack_.length === 1 && this.modeStack_[0] === ParserMode.END_OF_DOCUMENT;
 	}
+
+	get ok() {
+		return this.modeStack_.length > 0 && this.modeStack_[this.modeStack_.length - 1] !== ParserMode.ERROR;
+	}
 }

@@ -11,59 +11,105 @@
 import { JSONStreamParser } from "../dist/json-stream-parser.esm.js";
 
 const delegate = {
+	errorMsg: "",
+	value: undefined,
+	valueStack: [],
+	nextKey: "",
+
+	reset() {
+		this.errorMsg = "";
+		this.value = undefined;
+		this.valueStack = [];
+		this.nextKey = undefined;
+	},
+
 	key(label) {
-		console.info("key", label);
+		this.nextKey = label;
+	},
+
+	addValue(val) {
+		if (this.value === undefined) {
+			this.value = val;
+		}
+		else if (Array.isArray(this.value)) {
+			this.value.push(val);
+		}
+		else if (this.nextKey) {
+			this.value[this.nextKey] = val;
+		}
+		this.nextKey = undefined;
 	},
 
 	null() {
-		console.info("null");
+		this.addValue(null);
 	},
 	true() {
-		console.info("true");
+		this.addValue(true);
 	},
 	false() {
-		console.info("false");
+		this.addValue(false);
 	},
 
 	number(value) {
-		console.info(value);
+		this.addValue(value);
 	},
 	string(value) {
-		console.info(value);
+		this.addValue(value);
 	},
 
 	objectStart() {
-		console.info("{");
+		const o = {};
+		if (this.nextKey) {
+			this.value[this.nextKey] = o;
+		}
+		if (this.value) {
+			this.valueStack.push(this.value);
+		}
+		this.value = o;
+		this.nextKey = undefined;
 	},
 	objectEnd() {
-		console.info("}");
+		this.value = this.valueStack.pop();
 	},
 
 	arrayStart() {
-		console.info("[");
+		const a = [];
+		if (this.nextKey) {
+			this.value[this.nextKey] = a;
+		}
+		if (this.value) {
+			this.valueStack.push(this.value);
+		}
+		this.value = a;
+		this.nextKey = undefined;
 	},
 	arrayEnd() {
-		console.info("]");
+		this.value = this.valueStack.pop();
 	},
 
 	error(message) {
-		console.warn(message);
+		this.errorMsg = message;
 	},
 };
 
-async function runTest(collection, index, expectedError) {
+async function runTest(collection, index, { expectedError, expectedComplete }) {
 	const parser = new JSONStreamParser(delegate);
 	const text = await fetch(`./jsonchecker/${collection}${index}.json`).then(r => r.text());
 	const chars = text.split("");
 	for (const c of chars) {
-		parser.append(c);
+		if (parser.ok) {
+			parser.append(c);
+			parser.append("");
+		}
 	}
-	console.info(index, "complete", parser.completed);
-	console.info("--------");
+	console.info(`${collection} ${index}`, delegate.value);
+	// if (expectedError && expectedError !== parser.errorMsg) {
+	// 	console.error();
+	// }
 }
 
 for (let x = 1; x < 34; ++x) {
-	runTest("fail", x);
+	runTest("fail", x, {});
 }
 
 </script>
