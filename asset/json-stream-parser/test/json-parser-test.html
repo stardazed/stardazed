@@ -212,7 +212,7 @@ const testsSpec = [
 	{ file: "pass3", completed: true, ok: true, document: {"JSON Test Pattern pass3":{"The outermost value": "must be an object or array.","In this test": "It is an object."}} },
 	{ file: "pass4", completed: true, ok: true, document: ["lots 👉🌈 of wei🇪🇺rd c♹har␦acters⏰"] },
 
-	{ file: "fail1", completed: true, ok: true, document: "A JSON payload should be an object or array, not a string." },
+	{ file: "fail1", completed: true, ok: true, document: "A JSON payload should be an object or array, not a string." }, // allow any value type as root
 	{ file: "fail2", completed: false, ok: true }, // unfinished array
 	{ file: "fail3", completed: false, ok: false },
 	{ file: "fail4", completed: true, ok: true, document: ["extra comma",] }, // trailing comma in array
