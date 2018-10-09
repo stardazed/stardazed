@@ -36,8 +36,8 @@ const delegate = {
 		}
 		else if (this.nextKey) {
 			this.value[this.nextKey] = val;
+			this.nextKey = undefined;
 		}
-		this.nextKey = undefined;
 	},
 
 	null() {
@@ -59,14 +59,11 @@ const delegate = {
 
 	objectStart() {
 		const o = {};
-		if (this.nextKey) {
-			this.value[this.nextKey] = o;
-		}
+		this.addValue(o);
 		if (this.value) {
 			this.valueStack.push(this.value);
 		}
 		this.value = o;
-		this.nextKey = undefined;
 	},
 	objectEnd() {
 		this.value = this.valueStack.pop();
@@ -74,43 +71,53 @@ const delegate = {
 
 	arrayStart() {
 		const a = [];
-		if (this.nextKey) {
-			this.value[this.nextKey] = a;
-		}
+		this.addValue(a);
 		if (this.value) {
 			this.valueStack.push(this.value);
 		}
 		this.value = a;
-		this.nextKey = undefined;
 	},
 	arrayEnd() {
 		this.value = this.valueStack.pop();
 	},
 
 	error(message) {
+		console.warn(message);
 		this.errorMsg = message;
 	},
 };
 
 async function runTest(collection, index, { expectedError, expectedComplete }) {
+	delegate.reset();
 	const parser = new JSONStreamParser(delegate);
 	const text = await fetch(`./jsonchecker/${collection}${index}.json`).then(r => r.text());
+	// parser.append(text);
 	const chars = text.split("");
 	for (const c of chars) {
 		if (parser.ok) {
 			parser.append(c);
+		}
+		if (parser.ok) {
 			parser.append("");
 		}
 	}
-	console.info(`${collection} ${index}`, delegate.value);
+	console.info(`${collection} ${index}`, parser.ok && parser.completed, delegate.value);
 	// if (expectedError && expectedError !== parser.errorMsg) {
 	// 	console.error();
 	// }
 }
 
-for (let x = 1; x < 34; ++x) {
-	runTest("fail", x, {});
+async function runAll() {
+	for (let x = 1; x <= 33; ++x) {
+		await runTest("fail", x, {});
+	}
+
+	for (let y = 1; y <= 3; ++y) {
+		await runTest("pass", y, {});
+	}
 }
+
+runAll();
 
 </script>
 </body>
