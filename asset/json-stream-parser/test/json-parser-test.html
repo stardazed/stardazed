@@ -213,7 +213,7 @@ const testsSpec = [
 	{ file: "pass4", completed: true, ok: true, document: ["lots 👉🌈 of wei🇪🇺rd c♹har␦acters⏰"] },
 
 	{ file: "fail1", completed: true, ok: true, document: "A JSON payload should be an object or array, not a string." }, // allow any value type as root
-	{ file: "fail2", completed: false, ok: true }, // unfinished array
+	{ file: "fail2", completed: false, ok: true, document: ["Unclosed array"] }, // unfinished array
 	{ file: "fail3", completed: false, ok: false },
 	{ file: "fail4", completed: true, ok: true, document: ["extra comma",] }, // trailing comma in array
 	{ file: "fail5", completed: false, ok: false },
@@ -243,7 +243,7 @@ const testsSpec = [
 	{ file: "fail29", completed: false, ok: false },
 	{ file: "fail30", completed: false, ok: false },
 	{ file: "fail31", completed: false, ok: false },
-	{ file: "fail32", completed: false, ok: true }, // unfinished object
+	{ file: "fail32", completed: false, ok: true, document: {"Comma instead of closing brace": true,} }, // unfinished object
 	{ file: "fail33", completed: false, ok: false },
 ];
 
