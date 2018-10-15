@@ -1,6 +1,6 @@
 {
-	"name": "@stardazed/json-stream-parser",
-	"description": "A TransformStream that transforms JSON text to JavaScript values.",
+	"name": "@stardazed/json-parser-stream",
+	"description": "A TransformStream that transforms JSON text to its structural parts.",
 	"version": "0.4.0",
 	"author": {
 		"name": "Arthur Langereis"
@@ -10,11 +10,11 @@
 		"url": "https://github.com/stardazed/stardazed.git"
 	},
 	"license": "MIT",
-	"main": "dist/json-stream-parser.esm.js",
-	"module": "dist/json-stream-parser.esm.js",
-	"types": "dist/json-stream-parser.d.ts",
+	"main": "dist/json-parser-stream.esm.js",
+	"module": "dist/json-parser-stream.esm.js",
+	"types": "dist/json-parser-stream.d.ts",
 	"scripts": {
-		"build": "node --no-warnings ../../scripts/build-package asset/json-stream-parser"
+		"build": "node --no-warnings ../../scripts/build-package asset/json-parser-stream"
 	},
 	"files": [
 		"dist/*.d.ts",
