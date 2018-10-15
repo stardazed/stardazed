@@ -20,5 +20,7 @@
 		"dist/*.d.ts",
 		"dist/*.js"
 	],
-	"dependencies": {}
+	"dependencies": {
+		"@stardazed/streams": "^2.0.0"
+	}
 }

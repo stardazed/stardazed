@@ -1,0 +1,16 @@
+dependencies:
+  '@stardazed/streams': registry.npmjs.org/@stardazed/streams/2.0.0
+packages:
+  registry.npmjs.org/@stardazed/streams/2.0.0:
+    dev: false
+    name: '@stardazed/streams'
+    resolution:
+      integrity: sha512-g/qgFYImbfnt8iE7nOdND9CMiM9O5fUFEu4gbx2HMQeai2aHM41jHVDPxs4HMruPacRGf0holCL7gKDbTiPqig==
+      registry: 'https://registry.npmjs.com/'
+      tarball: 'https://registry.npmjs.org/@stardazed/streams/-/streams-2.0.0.tgz'
+    version: 2.0.0
+registry: 'https://registry.npmjs.com/'
+shrinkwrapMinorVersion: 9
+shrinkwrapVersion: 3
+specifiers:
+  '@stardazed/streams': ^2.0.0
