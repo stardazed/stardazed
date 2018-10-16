@@ -1,5 +1,5 @@
 /**
- * json-stream-parser/tokenizer - tokenize json text
+ * json-parser-stream/tokenizer - tokenize json text
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
