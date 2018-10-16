@@ -73,7 +73,7 @@ const enum CharCodes {
 	SPACE = 32
 }
 
-export const enum JSONTokenType {
+export const enum TokenType {
 	NULL,
 	FALSE,
 	TRUE,
@@ -88,8 +88,8 @@ export const enum JSONTokenType {
 	ERROR
 }
 
-export interface JSONToken {
-	type: JSONTokenType;
+export interface Token {
+	type: TokenType;
 	data?: string | number;
 }
 
@@ -114,17 +114,17 @@ export class JSONStreamTokenizer {
 		this.zeroInt_ = false;
 	}
 
-	private error(message: string): JSONToken {
+	private error(message: string): Token {
 		this.storedError_ = message;
-		return { type: JSONTokenType.ERROR, data: message };
+		return { type: TokenType.ERROR, data: message };
 	}
 
-	private emitNumber(): JSONToken {
+	private emitNumber(): Token {
 		const finalNumber = this.sign_ * Math.pow(10, this.exp_ * this.expSign_) * (this.int_ + (this.frac_ * Math.pow(10, -this.fracDigits_)));
-		return { type: JSONTokenType.NUMBER, data: finalNumber };
+		return { type: TokenType.NUMBER, data: finalNumber };
 	}
 
-	append: (chars: string) => IterableIterator<JSONToken> = function*(this: JSONStreamTokenizer, chars: string): IterableIterator<JSONToken> {
+	append: (chars: string) => IterableIterator<Token> = function*(this: JSONStreamTokenizer, chars: string): IterableIterator<Token> {
 		if (this.storedError_ !== undefined) {
 			return this.error(this.storedError_);
 		}
@@ -180,22 +180,22 @@ export class JSONStreamTokenizer {
 						break;
 					}
 					if (cc === CharCodes.BRACE_OPEN) {
-						yield { type: JSONTokenType.OBJECT_OPEN };
+						yield { type: TokenType.OBJECT_OPEN };
 					}
 					else if (cc === CharCodes.BRACE_CLOSE) {
-						yield { type: JSONTokenType.OBJECT_CLOSE };
+						yield { type: TokenType.OBJECT_CLOSE };
 					}
 					else if (cc === CharCodes.BRACKET_OPEN) {
-						yield { type: JSONTokenType.ARRAY_OPEN };
+						yield { type: TokenType.ARRAY_OPEN };
 					}
 					else if (cc === CharCodes.BRACKET_CLOSE) {
-						yield { type: JSONTokenType.ARRAY_CLOSE };
+						yield { type: TokenType.ARRAY_CLOSE };
 					}
 					else if (cc === CharCodes.COMMA) {
-						yield { type: JSONTokenType.COMMA };
+						yield { type: TokenType.COMMA };
 					}
 					else if (cc === CharCodes.COLON) {
-						yield { type: JSONTokenType.COLON };
+						yield { type: TokenType.COLON };
 					}
 					else {
 						return this.error(`Unexpected character "${chars[offset]}"`);
@@ -321,7 +321,7 @@ export class JSONStreamTokenizer {
 					// move past the backslash or closing quote
 					offset += 1;
 					if (cc === CharCodes.QUOTE) {
-						yield { type: JSONTokenType.STRING, data: this.string_ };
+						yield { type: TokenType.STRING, data: this.string_ };
 						this.mode_ = TokenizerMode.DELIMITER;
 						break;
 					}
@@ -486,7 +486,7 @@ export class JSONStreamTokenizer {
 					if (cc !== CharCodes.E) {
 						return this.error(`Unexpected character "${chars[offset]}"`);
 					}
-					yield { type: JSONTokenType.TRUE };
+					yield { type: TokenType.TRUE };
 					this.mode_ = TokenizerMode.DELIMITER;
 					offset += 1;
 					break;
@@ -528,7 +528,7 @@ export class JSONStreamTokenizer {
 					if (cc !== CharCodes.E) {
 						return this.error(`Unexpected character "${chars[offset]}"`);
 					}
-					yield { type: JSONTokenType.FALSE };
+					yield { type: TokenType.FALSE };
 					this.mode_ = TokenizerMode.DELIMITER;
 					offset += 1;
 					break;
@@ -560,7 +560,7 @@ export class JSONStreamTokenizer {
 					if (cc !== CharCodes.L) {
 						return this.error(`Unexpected character "${chars[offset]}"`);
 					}
-					yield { type: JSONTokenType.NULL };
+					yield { type: TokenType.NULL };
 					this.mode_ = TokenizerMode.DELIMITER;
 					offset += 1;
 					break;

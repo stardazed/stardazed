@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { JSONStreamTokenizer, JSONToken, JSONTokenType } from "./tokenizer";
+import { JSONStreamTokenizer, Token, TokenType } from "./tokenizer";
 
 const enum ParserMode {
 	DOCUMENT,
@@ -57,8 +57,8 @@ export class JSONStreamParser {
 		return ParserMode.ERROR;
 	}
 
-	private process(mode: ParserMode, token: JSONToken) {
-		if (token.type === JSONTokenType.ERROR) {
+	private process(mode: ParserMode, token: Token) {
+		if (token.type === TokenType.ERROR) {
 			return this.error(token.data as string);
 		}
 		switch (mode) {
@@ -66,30 +66,30 @@ export class JSONStreamParser {
 			case ParserMode.ARRAY_ELEMENT:
 			case ParserMode.OBJECT_ELEMENT:
 				switch (token.type) {
-					case JSONTokenType.NULL:
+					case TokenType.NULL:
 						this.delegate_.null();
 						break;
-					case JSONTokenType.FALSE:
+					case TokenType.FALSE:
 						this.delegate_.false();
 						break;
-					case JSONTokenType.TRUE:
+					case TokenType.TRUE:
 						this.delegate_.true();
 						break;
-					case JSONTokenType.NUMBER:
+					case TokenType.NUMBER:
 						this.delegate_.number(token.data as number);
 						break;
-					case JSONTokenType.STRING:
+					case TokenType.STRING:
 						this.delegate_.string(token.data as string);
 						break;
-					case JSONTokenType.ARRAY_OPEN:
+					case TokenType.ARRAY_OPEN:
 						this.delegate_.arrayStart();
 						this.modeStack_.push(mode + 1);
 						return ParserMode.ARRAY_ELEMENT;
-					case JSONTokenType.OBJECT_OPEN:
+					case TokenType.OBJECT_OPEN:
 						this.delegate_.objectStart();
 						this.modeStack_.push(mode + 1);
 						return ParserMode.OBJECT_KEY;
-					case JSONTokenType.ARRAY_CLOSE:
+					case TokenType.ARRAY_CLOSE:
 						if (mode === ParserMode.ARRAY_ELEMENT) {
 							this.delegate_.arrayEnd();
 							return this.modeStack_.pop()!;
@@ -100,34 +100,34 @@ export class JSONStreamParser {
 				}
 				return mode + 1;
 			case ParserMode.OBJECT_KEY:
-				if (token.type === JSONTokenType.STRING) {
+				if (token.type === TokenType.STRING) {
 					this.delegate_.key(token.data as string);
 					return ParserMode.OBJECT_COLON;
 				}
-				if (token.type === JSONTokenType.OBJECT_CLOSE) {
+				if (token.type === TokenType.OBJECT_CLOSE) {
 					this.delegate_.objectEnd();
 					return this.modeStack_.pop()!;
 				}
 				return this.error(`Expected a value key`);
 			case ParserMode.OBJECT_COLON:
-				if (token.type === JSONTokenType.COLON) {
+				if (token.type === TokenType.COLON) {
 					return ParserMode.OBJECT_ELEMENT;
 				}
 				return this.error(`Expected ':'`);
 			case ParserMode.ARRAY_NEXT_OR_END:
-				if (token.type === JSONTokenType.COMMA) {
+				if (token.type === TokenType.COMMA) {
 					return ParserMode.ARRAY_ELEMENT;
 				}
-				if (token.type === JSONTokenType.ARRAY_CLOSE) {
+				if (token.type === TokenType.ARRAY_CLOSE) {
 					this.delegate_.arrayEnd();
 					return this.modeStack_.pop()!;
 				}
 				return this.error(`Expected ',' or ']'`);
 			case ParserMode.OBJECT_NEXT_OR_END:
-				if (token.type === JSONTokenType.COMMA) {
+				if (token.type === TokenType.COMMA) {
 					return ParserMode.OBJECT_KEY;
 				}
-				if (token.type === JSONTokenType.OBJECT_CLOSE) {
+				if (token.type === TokenType.OBJECT_CLOSE) {
 					this.delegate_.objectEnd();
 					return this.modeStack_.pop()!;
 				}
