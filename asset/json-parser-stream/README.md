@@ -1,6 +1,6 @@
 @stardazed/json-parser-stream
 =============================
-A TransformStream that transforms JSON text to its structural parts.
+A TransformStream that transforms JSON text to actionable tokens.
 Use for SAX-like streaming processing of JSON data, e.g. very large documents
 or documents coming in incrementally from the network.
 

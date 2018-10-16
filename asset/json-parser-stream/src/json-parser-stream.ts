@@ -1,5 +1,5 @@
 /**
- * @stardazed/json-parser-stream - a TransformStream that transforms JSON text to its structural parts.
+ * @stardazed/json-parser-stream - a TransformStream that transforms JSON text to actionable tokens.
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
@@ -8,7 +8,7 @@
 import { JSONStreamParser, JSONStreamParserDelegate } from "./parser";
 import { Transformer, TransformStream, StreamTransform, TransformStreamDefaultController } from "@stardazed/streams";
 
-export const enum JSONChunkType {
+export const enum JSONTokenType {
 	KEY,
 	NULL,
 	TRUE,
@@ -21,79 +21,79 @@ export const enum JSONChunkType {
 	ARRAY_END
 }
 
-interface JSONNumberChunk {
-	type: JSONChunkType.NUMBER;
+interface JSONNumberToken {
+	type: JSONTokenType.NUMBER;
 	value: number;
 }
 
-interface JSONStringChunk {
-	type: JSONChunkType.KEY | JSONChunkType.STRING;
+interface JSONStringToken {
+	type: JSONTokenType.KEY | JSONTokenType.STRING;
 	value: string;
 }
 
-interface JSONDatalessChunk {
-	type: JSONChunkType.NULL | JSONChunkType.TRUE | JSONChunkType.FALSE | JSONChunkType.OBJECT_START | JSONChunkType.OBJECT_END | JSONChunkType.ARRAY_START | JSONChunkType.ARRAY_END;
+interface JSONDatalessToken {
+	type: JSONTokenType.NULL | JSONTokenType.TRUE | JSONTokenType.FALSE | JSONTokenType.OBJECT_START | JSONTokenType.OBJECT_END | JSONTokenType.ARRAY_START | JSONTokenType.ARRAY_END;
 }
 
-export type JSONChunk = JSONDatalessChunk | JSONStringChunk | JSONNumberChunk;
+export type JSONToken = JSONDatalessToken | JSONStringToken | JSONNumberToken;
 
 
-class JSONTransformer implements Transformer<string, JSONChunk>, JSONStreamParserDelegate {
+class JSONTransformer implements Transformer<string, JSONToken>, JSONStreamParserDelegate {
 	private parser: JSONStreamParser;
-	private controller!: TransformStreamDefaultController<JSONChunk>;
+	private controller!: TransformStreamDefaultController<JSONToken>;
 
 	constructor() {
 		this.parser = new JSONStreamParser(this);
 	}
 
-	transform(chunk: string, controller: TransformStreamDefaultController<JSONChunk>) {
+	transform(chunk: string, controller: TransformStreamDefaultController<JSONToken>) {
 		this.controller = controller;
 		this.parser.append(chunk);
 	}
 
-	flush(controller: TransformStreamDefaultController<JSONChunk>) {
+	flush(controller: TransformStreamDefaultController<JSONToken>) {
 		if (! (this.parser.completed && this.parser.ok)) {
 			controller.error("Unexpected end of JSON stream.");
 		}
 	}
 
 	key(value: string) {
-		this.controller.enqueue({ type: JSONChunkType.KEY, value });
+		this.controller.enqueue({ type: JSONTokenType.KEY, value });
 	}
 	null() {
-		this.controller.enqueue({ type: JSONChunkType.NULL });
+		this.controller.enqueue({ type: JSONTokenType.NULL });
 	}
 	true() {
-		this.controller.enqueue({ type: JSONChunkType.TRUE });
+		this.controller.enqueue({ type: JSONTokenType.TRUE });
 	}
 	false() {
-		this.controller.enqueue({ type: JSONChunkType.FALSE });
+		this.controller.enqueue({ type: JSONTokenType.FALSE });
 	}
 	number(value: number) {
-		this.controller.enqueue({ type: JSONChunkType.NUMBER, value });
+		this.controller.enqueue({ type: JSONTokenType.NUMBER, value });
 	}
 	string(value: string) {
-		this.controller.enqueue({ type: JSONChunkType.STRING, value });
+		this.controller.enqueue({ type: JSONTokenType.STRING, value });
 	}
 	objectStart() {
-		this.controller.enqueue({ type: JSONChunkType.OBJECT_START });
+		this.controller.enqueue({ type: JSONTokenType.OBJECT_START });
 	}
 	objectEnd() {
-		this.controller.enqueue({ type: JSONChunkType.OBJECT_END });
+		this.controller.enqueue({ type: JSONTokenType.OBJECT_END });
 	}
 	arrayStart() {
-		this.controller.enqueue({ type: JSONChunkType.ARRAY_START });
+		this.controller.enqueue({ type: JSONTokenType.ARRAY_START });
 	}
 	arrayEnd() {
-		this.controller.enqueue({ type: JSONChunkType.ARRAY_END });
+		this.controller.enqueue({ type: JSONTokenType.ARRAY_END });
 	}
 	error(message: string) {
 		this.controller.error(message);
 	}
 }
 
-export class JSONTransformStream implements StreamTransform<string, JSONChunk> {
-	private transformer: TransformStream<string, JSONChunk>;
+export class JSONTransformStream implements StreamTransform<string, JSONToken> {
+	private transformer: TransformStream<string, JSONToken>;
 
 	constructor() {
 		this.transformer = new TransformStream(new JSONTransformer());
