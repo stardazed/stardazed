@@ -8,6 +8,8 @@
 import { JSONStreamParser, JSONStreamParserDelegate } from "./parser";
 import { Transformer, TransformStream, StreamTransform, TransformStreamDefaultController } from "@stardazed/streams";
 
+export { JSONStreamParser, JSONStreamParserDelegate };
+
 export const enum JSONTokenType {
 	KEY,
 	NULL,

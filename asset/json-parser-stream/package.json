@@ -22,5 +22,8 @@
 	],
 	"dependencies": {
 		"@stardazed/streams": "^2.0.0"
+	},
+	"devDependencies": {
+		"@stardazed/streams-polyfill": "^1.0.7"
 	}
 }

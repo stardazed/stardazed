@@ -1,6 +1,16 @@
 dependencies:
   '@stardazed/streams': registry.npmjs.org/@stardazed/streams/2.0.0
+devDependencies:
+  '@stardazed/streams-polyfill': registry.npmjs.org/@stardazed/streams-polyfill/1.0.7
 packages:
+  registry.npmjs.org/@stardazed/streams-polyfill/1.0.7:
+    dev: true
+    name: '@stardazed/streams-polyfill'
+    resolution:
+      integrity: sha512-rIBHLuwqQGwo2//BViHjcv6eyeS6IPpD+PD1FI/aReGeW5QVtE5Evh0Sn1s24XcvdehJDkbNPdnPfUcp/Pbj8A==
+      registry: 'https://registry.npmjs.com/'
+      tarball: 'https://registry.npmjs.org/@stardazed/streams-polyfill/-/streams-polyfill-1.0.7.tgz'
+    version: 1.0.7
   registry.npmjs.org/@stardazed/streams/2.0.0:
     dev: false
     name: '@stardazed/streams'
@@ -14,3 +24,4 @@ shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
   '@stardazed/streams': ^2.0.0
+  '@stardazed/streams-polyfill': ^1.0.7

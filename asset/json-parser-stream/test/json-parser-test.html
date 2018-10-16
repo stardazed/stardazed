@@ -14,9 +14,10 @@
 <ul>
 
 </ul>
+<script src="../node_modules/@stardazed/streams-polyfill/dist/sd-streams-polyfill.min.js"></script>
 <script type="module">
 // @ts-check
-import { JSONStreamParser } from "../dist/json-stream-parser.esm.js";
+import { JSONStreamParser } from "../dist/json-parser-stream.esm.js";
 
 function logPass(message) {
 	const list = document.querySelector("ul");
@@ -177,9 +178,12 @@ function deepCompare(expected, actual) {
 				}
 			}
 			break;
+
 		case "symbol":
 		case "function":
 		case "undefined":
+		default: // <-- bigint likely
+			// these types do not exist in JSON
 			return [expected, actual];
 	}
 
