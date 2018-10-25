@@ -55,7 +55,7 @@ interface EXT_color_buffer_half_float {
 }
 
 interface OES_vertex_array_object {
-	// TS's lib.dom (as of v2.7.2) does not specify the nulls
+	// TS's lib.dom (as of v3.1.3) does not specify the nulls
 	createVertexArrayOES(): WebGLVertexArrayObjectOES | null;
 	deleteVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES | null): void;
 	isVertexArrayOES(arrayObject: WebGLVertexArrayObjectOES | null): boolean;
