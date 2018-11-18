@@ -1,9 +1,0 @@
-dependencies:
-  '@stardazed/array': 'link:../../core/array'
-  '@stardazed/math': 'link:../math'
-registry: 'https://registry.npmjs.com/'
-shrinkwrapMinorVersion: 9
-shrinkwrapVersion: 3
-specifiers:
-  '@stardazed/array': ^0.4.0
-  '@stardazed/math': ^0.4.0

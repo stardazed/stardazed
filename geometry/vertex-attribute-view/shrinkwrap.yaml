@@ -1,9 +1,0 @@
-dependencies:
-  '@stardazed/array': 'link:../../core/array'
-  '@stardazed/vertex-buffer': 'link:../vertex-buffer'
-registry: 'https://registry.npmjs.com/'
-shrinkwrapMinorVersion: 9
-shrinkwrapVersion: 3
-specifiers:
-  '@stardazed/array': ^0.4.0
-  '@stardazed/vertex-buffer': ^0.4.0

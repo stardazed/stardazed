@@ -23,7 +23,6 @@
 		"clean": "pnpm multi exec -- rm -rf dist"
 	},
 	"devDependencies": {
-		"assemblyscript": "github:AssemblyScript/assemblyscript",
 		"rollup": "^0.67.0",
 		"rollup-plugin-node-resolve": "^3.3.0",
 		"typescript": "^3.2.0-rc"
