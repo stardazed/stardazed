@@ -1,13 +1,117 @@
-devDependencies:
-  assemblyscript: github.com/AssemblyScript/assemblyscript/9c770d801eaff438c2d940b22cee651234597fd0
-  rollup: registry.npmjs.org/rollup/0.66.0
-  rollup-plugin-node-resolve: registry.npmjs.org/rollup-plugin-node-resolve/3.4.0
-  typescript: registry.npmjs.org/typescript/3.0.3
+importers:
+  .:
+    devDependencies:
+      assemblyscript: github.com/AssemblyScript/assemblyscript/a79db87af9d2bff5b3a90fe1d3d3541863cebecf
+      rollup: registry.npmjs.org/rollup/0.67.3
+      rollup-plugin-node-resolve: registry.npmjs.org/rollup-plugin-node-resolve/3.4.0
+      typescript: registry.npmjs.org/typescript/3.2.0-rc
+    specifiers:
+      assemblyscript: 'github:AssemblyScript/assemblyscript'
+      rollup: ^0.67.0
+      rollup-plugin-node-resolve: ^3.3.0
+      typescript: ^3.2.0-rc
+  container/queue:
+    dependencies:
+      '@stardazed/array': 'link:../../core/array'
+    specifiers:
+      '@stardazed/array': ^0.4.0
+  container/sorted-array:
+    dependencies:
+      '@stardazed/array': 'link:../../core/array'
+    specifiers:
+      '@stardazed/array': ^0.4.0
+  container/structured-storage:
+    dependencies:
+      '@stardazed/array': 'link:../../core/array'
+      '@stardazed/deep-readonly': 'link:../../core/deep-readonly'
+      '@stardazed/math': 'link:../../math/math'
+      '@stardazed/numeric': 'link:../../core/numeric'
+    specifiers:
+      '@stardazed/array': ^0.4.0
+      '@stardazed/deep-readonly': ^0.4.0
+      '@stardazed/math': ^0.4.0
+      '@stardazed/numeric': ^0.4.0
+  core/array:
+    specifiers: {}
+  core/deep-readonly:
+    specifiers: {}
+  core/numeric:
+    dependencies:
+      '@stardazed/array': 'link:../array'
+    specifiers:
+      '@stardazed/array': ^0.4.0
+  core/object:
+    specifiers: {}
+  geometry/geometry:
+    dependencies:
+      '@stardazed/index-buffer': 'link:../index-buffer'
+      '@stardazed/math': 'link:../../math/math'
+      '@stardazed/vertex-buffer': 'link:../vertex-buffer'
+    specifiers:
+      '@stardazed/index-buffer': ^0.4.0
+      '@stardazed/math': ^0.4.0
+      '@stardazed/vertex-buffer': ^0.4.0
+  geometry/index-buffer:
+    dependencies:
+      '@stardazed/array': 'link:../../core/array'
+      '@stardazed/numeric': 'link:../../core/numeric'
+    specifiers:
+      '@stardazed/array': ^0.4.0
+      '@stardazed/numeric': ^0.4.0
+  geometry/triangle-view:
+    dependencies:
+      '@stardazed/array': 'link:../../core/array'
+      '@stardazed/geometry': 'link:../geometry'
+      '@stardazed/index-buffer': 'link:../index-buffer'
+    specifiers:
+      '@stardazed/array': ^0.4.0
+      '@stardazed/geometry': ^0.4.0
+      '@stardazed/index-buffer': ^0.4.0
+  geometry/vertex-attribute-view:
+    dependencies:
+      '@stardazed/array': 'link:../../core/array'
+      '@stardazed/vertex-buffer': 'link:../vertex-buffer'
+    specifiers:
+      '@stardazed/array': ^0.4.0
+      '@stardazed/vertex-buffer': ^0.4.0
+  geometry/vertex-buffer:
+    dependencies:
+      '@stardazed/math': 'link:../../math/math'
+      '@stardazed/numeric': 'link:../../core/numeric'
+      '@stardazed/structured-storage': 'link:../../container/structured-storage'
+    specifiers:
+      '@stardazed/math': ^0.4.0
+      '@stardazed/numeric': ^0.4.0
+      '@stardazed/structured-storage': ^0.4.0
+  math/aabb:
+    dependencies:
+      '@stardazed/array': 'link:../../core/array'
+      '@stardazed/math': 'link:../math'
+      '@stardazed/numeric': 'link:../../core/numeric'
+      '@stardazed/vector': 'link:../vector'
+    specifiers:
+      '@stardazed/array': ^0.4.0
+      '@stardazed/math': ^0.4.0
+      '@stardazed/numeric': ^0.4.0
+      '@stardazed/vector': ^0.4.0
+  math/math:
+    specifiers: {}
+  math/vector:
+    dependencies:
+      '@stardazed/array': 'link:../../core/array'
+      '@stardazed/math': 'link:../math'
+    specifiers:
+      '@stardazed/array': ^0.4.0
+      '@stardazed/math': ^0.4.0
+  quality/debug:
+    specifiers: {}
+  quality/inquisition:
+    specifiers: {}
 packages:
-  github.com/AssemblyScript/assemblyscript/9c770d801eaff438c2d940b22cee651234597fd0:
+  github.com/AssemblyScript/assemblyscript/a79db87af9d2bff5b3a90fe1d3d3541863cebecf:
     dependencies:
       '@protobufjs/utf8': registry.npmjs.org/@protobufjs/utf8/1.1.0
-      binaryen: registry.npmjs.org/binaryen/51.0.0
+      binaryen: registry.npmjs.org/binaryen/52.0.0-nightly.20181108
       glob: registry.npmjs.org/glob/7.1.3
       long: registry.npmjs.org/long/4.0.0
     dev: true
@@ -16,7 +120,8 @@ packages:
     hasBin: true
     name: assemblyscript
     resolution:
-      tarball: 'https://codeload.github.com/AssemblyScript/assemblyscript/tar.gz/9c770d801eaff438c2d940b22cee651234597fd0'
+      registry: 'https://registry.npmjs.com/'
+      tarball: 'https://codeload.github.com/AssemblyScript/assemblyscript/tar.gz/a79db87af9d2bff5b3a90fe1d3d3541863cebecf'
     version: 0.5.0
   registry.npmjs.org/@protobufjs/utf8/1.1.0:
     dev: true
@@ -34,14 +139,14 @@ packages:
       registry: 'https://registry.npmjs.com/'
       tarball: 'https://registry.npmjs.org/@types/estree/-/estree-0.0.39.tgz'
     version: 0.0.39
-  registry.npmjs.org/@types/node/10.10.1:
+  registry.npmjs.org/@types/node/10.12.9:
     dev: true
     name: '@types/node'
     resolution:
-      integrity: sha512-nzsx28VwfaIykfzMAG9TB3jxF5Nn+1/WMKnmVZc8TsB+LMIVvwUscVn7PAq+LFaY5ng5u4jp5mRROSswo76PPA==
+      integrity: sha512-eajkMXG812/w3w4a1OcBlaTwsFPO5F7fJ/amy+tieQxEMWBlbV1JGSjkFM+zkHNf81Cad+dfIRA+IBkvmvdAeA==
       registry: 'https://registry.npmjs.com/'
-      tarball: 'https://registry.npmjs.org/@types/node/-/node-10.10.1.tgz'
-    version: 10.10.1
+      tarball: 'https://registry.npmjs.org/@types/node/-/node-10.12.9.tgz'
+    version: 10.12.9
   registry.npmjs.org/balanced-match/1.0.0:
     dev: true
     name: balanced-match
@@ -50,15 +155,15 @@ packages:
       registry: 'https://registry.npmjs.com/'
       tarball: 'https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.0.tgz'
     version: 1.0.0
-  registry.npmjs.org/binaryen/51.0.0:
+  registry.npmjs.org/binaryen/52.0.0-nightly.20181108:
     dev: true
     hasBin: true
     name: binaryen
     resolution:
-      integrity: sha512-Iop30WDVekq1MV2ygWHvL0mzSUQLH7m8VB3DHpU3MTdQoPj8LoRWK4U5b5nAlHLYYU1v/tIkdmiPrGgx8ANSfw==
+      integrity: sha512-EPCTNikr5NWz63au0pIrt8snmt+Fv/YERiDD/BQIT9I0jLYB11m/oMuUA5k5kMCLsfTc2w7Sma4jKVu7VR/owA==
       registry: 'https://registry.npmjs.com/'
-      tarball: 'https://registry.npmjs.org/binaryen/-/binaryen-51.0.0.tgz'
-    version: 51.0.0
+      tarball: 'https://registry.npmjs.org/binaryen/-/binaryen-52.0.0-nightly.20181108.tgz'
+    version: 52.0.0-nightly.20181108
   registry.npmjs.org/brace-expansion/1.1.11:
     dependencies:
       balanced-match: registry.npmjs.org/balanced-match/1.0.0
@@ -174,7 +279,7 @@ packages:
     resolution:
       integrity: sha1-F0uSaHNVNP+8es5r9TpanhtcX18=
       registry: 'https://registry.npmjs.com/'
-      tarball: 'https://registry.npmjs.org/path-is-absolute/-/path-is-absolute-1.0.1.tgz'
+      tarball: 'http://registry.npmjs.org/path-is-absolute/-/path-is-absolute-1.0.1.tgz'
     version: 1.0.1
   registry.npmjs.org/path-parse/1.0.6:
     dev: true
@@ -206,29 +311,29 @@ packages:
       registry: 'https://registry.npmjs.com/'
       tarball: 'https://registry.npmjs.org/rollup-plugin-node-resolve/-/rollup-plugin-node-resolve-3.4.0.tgz'
     version: 3.4.0
-  registry.npmjs.org/rollup/0.66.0:
+  registry.npmjs.org/rollup/0.67.3:
     dependencies:
       '@types/estree': registry.npmjs.org/@types/estree/0.0.39
-      '@types/node': registry.npmjs.org/@types/node/10.10.1
+      '@types/node': registry.npmjs.org/@types/node/10.12.9
     dev: true
     hasBin: true
     name: rollup
     resolution:
-      integrity: sha512-WOkVBSdod3phCSAri5Q579JufeAzJTi43L4oAHzFtjRWJTv2LIszYCU3K9TLMEsVksMY93EwgWCb+hpKRhQwGg==
+      integrity: sha512-TyNQCz97rKuVVbsKUTXfwIjV7UljWyTVd7cTMuE+aqlQ7WJslkYF5QaYGjMLR2BlQtUOO5CAxSVnpQ55iYp5jg==
       registry: 'https://registry.npmjs.com/'
-      tarball: 'https://registry.npmjs.org/rollup/-/rollup-0.66.0.tgz'
-    version: 0.66.0
-  registry.npmjs.org/typescript/3.0.3:
+      tarball: 'https://registry.npmjs.org/rollup/-/rollup-0.67.3.tgz'
+    version: 0.67.3
+  registry.npmjs.org/typescript/3.2.0-rc:
     dev: true
     engines:
       node: '>=4.2.0'
     hasBin: true
     name: typescript
     resolution:
-      integrity: sha512-kk80vLW9iGtjMnIv11qyxLqZm20UklzuR2tL0QAnDIygIUIemcZMxlMWudl9OOt76H3ntVzcTiddQ1/pAAJMYg==
+      integrity: sha512-RgKDOpEdbU9dAkB4TzxWy46wiyNUKQo0NM0bB7WfvEFw50yu046ldQXpOUYMUTLIAHnToOCtHsu39MYE8o6NCw==
       registry: 'https://registry.npmjs.com/'
-      tarball: 'https://registry.npmjs.org/typescript/-/typescript-3.0.3.tgz'
-    version: 3.0.3
+      tarball: 'https://registry.npmjs.org/typescript/-/typescript-3.2.0-rc.tgz'
+    version: 3.2.0-rc
   registry.npmjs.org/wrappy/1.0.2:
     dev: true
     name: wrappy
@@ -237,11 +342,4 @@ packages:
       registry: 'https://registry.npmjs.com/'
       tarball: 'https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz'
     version: 1.0.2
-registry: 'https://registry.npmjs.com/'
-shrinkwrapMinorVersion: 9
-shrinkwrapVersion: 3
-specifiers:
-  assemblyscript: 'github:AssemblyScript/assemblyscript'
-  rollup: ^0.66.0
-  rollup-plugin-node-resolve: ^3.3.0
-  typescript: ^3.0.1
+shrinkwrapVersion: 4
