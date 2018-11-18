@@ -92,7 +92,7 @@ class JSONTransformer implements Transformer<string, JSONToken>, JSONStreamParse
 	}
 }
 
-export class JSONTransformStream implements StreamTransform<string, JSONToken> {
+export class JSONTransformStream implements TransformStream<string, JSONToken> {
 	private transformer: TransformStream<string, JSONToken>;
 
 	constructor() {
