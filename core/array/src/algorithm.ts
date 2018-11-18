@@ -131,7 +131,7 @@ export function zipKeyVals<T>(keys: string[], values: T[]): { [k: string]: T; } 
 export function makeLookupTable<K extends number, V>(...pairs: [K, V][]): ReadonlyArray<V> {
 	const result: V[] = [];
 	for (const pair of pairs) {
-		result[pair[0]] = pair[1];
+		result[pair[0] as number] = pair[1];
 	}
 	return Object.freeze(result);
 }
