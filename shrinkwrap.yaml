@@ -8,6 +8,11 @@ importers:
       rollup: ^0.67.0
       rollup-plugin-node-resolve: ^3.3.0
       typescript: ^3.2.0-rc
+  asset/gltf2-parser-stream:
+    dependencies:
+      '@stardazed/json-parser-stream': 'link:../json-parser-stream'
+    specifiers:
+      '@stardazed/json-parser-stream': ^0.4.0
   asset/json-parser-stream:
     specifiers: {}
   container/queue:

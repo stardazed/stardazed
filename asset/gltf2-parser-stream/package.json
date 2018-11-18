@@ -1,0 +1,26 @@
+{
+	"name": "@stardazed/gltf2-parser-stream",
+	"description": "A set of TransformStreams to transform GLTF2 files into assets.",
+	"version": "0.4.0",
+	"author": {
+		"name": "Arthur Langereis"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/stardazed/stardazed.git"
+	},
+	"license": "MIT",
+	"main": "dist/gltf2-parser-stream.esm.js",
+	"module": "dist/gltf2-parser-stream.esm.js",
+	"types": "dist/gltf2-parser-stream.d.ts",
+	"scripts": {
+		"build": "node --no-warnings ../../scripts/build-package asset/gltf2-parser-stream"
+	},
+	"files": [
+		"dist/*.d.ts",
+		"dist/*.js"
+	],
+	"dependencies": {
+		"@stardazed/json-parser-stream": "^0.4.0"
+	}
+}
