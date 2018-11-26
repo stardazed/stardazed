@@ -36,3 +36,14 @@ support loading from data urls, etc.
 For high availability sites, fallback domains can be implemented. For slow or unreliable
 connections a retry mechanism can be implemented in case a load fails.
 
+
+Raw -> Cooked
+=============
+
+Geometry -> VAO
+ArrayBuffer -> AudioBuffer
+Image/ArrayBuffer -> Texture
+Node -> …
+Camera -> …
+Material -> …
+Skin -> …
