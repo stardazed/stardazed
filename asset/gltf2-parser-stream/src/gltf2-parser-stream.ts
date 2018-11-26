@@ -97,7 +97,15 @@ class GLTF2Transformer implements Transformer<JSONToken, Asset> {
 			case ParserMode.ASSET_BLOCK:
 			case ParserMode.ARRAY_ITEM:
 				this.itemTransformer!.transform!(chunk, controller);
-
+				if (this.itemTransformer!.ready) {
+					this.itemTransformer = undefined;
+					if (this.mode === ParserMode.ASSET_BLOCK) {
+						this.mode = ParserMode.BLOCK_KEY;
+					}
+					else {
+						
+					}
+				}
 				break;
 			case ParserMode.SCENE_DEFAULT_INDEX:
 				if (chunk.type !== JSONTokenType.NUMBER) {
