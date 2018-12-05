@@ -1,6 +1,6 @@
 @stardazed/geometry
 ===================
-Geometry compound type.
+Geometry data primitives and access.
 
 Part of [Stardazed](https://github.com/stardazed/stardazed).
 
