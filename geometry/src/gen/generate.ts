@@ -506,7 +506,7 @@ export class Cone implements MeshGenerator {
 	/**
 	 * @expects desc.radiusA >= 0
 	 * @expects desc.radiusB >= 0
-	 * @expects ! ((desc.radiusA === 0) && (desc.radiusB === 0))
+	 * @expects (desc.radiusA > 0) || (desc.radiusB > 0)
 	 * @expects desc.rows >= 1
 	 * @expects desc.segs >= 3
 	 */
