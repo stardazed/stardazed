@@ -1,6 +1,6 @@
 {
 	"name": "@stardazed/stardazed",
-	"version": "0.4.0",
+	"version": "1.0.0",
 	"description": "Solid 3D Web Game Engine",
 	"license": "MIT",
 	"private": true,
@@ -18,17 +18,4 @@
 		"webgl",
 		"3d"
 	],
-	"scripts": {
-		"build": "pnpm multi run build",
-		"clean": "pnpm multi exec -- rm -rf dist"
-	},
-	"devDependencies": {
-		"rollup": "^0.67.0",
-		"rollup-plugin-node-resolve": "^3.3.0",
-		"typescript": "^3.2.0-rc"
-	},
-	"engines": {
-		"node": ">=10",
-		"pnpm": ">=2.13.1"
-	}
 }

@@ -1,8 +1,0 @@
-{
-	"extends": "../scripts/tsconfig-packages.json",
-	"compilerOptions": {
-		"rootDir": "./src",
-		"outDir": "./build",
-		"declarationDir": "./dist"
-	}
-}

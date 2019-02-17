@@ -9,8 +9,7 @@ Project status
 Features and APIs still very much in flux, but functional and usable for actual development
 (I'm using it for prototypes and Game Jams).
 
-⚠️ **Important**: Currently the project is being reworked into a mono-repo structure and is not
-in a directly usable state. This stage should be completed by late August 2018.
+⚠️ **Important**: Currently the project is being reworked internally and is not in a usable state.
 
 Project Goal
 ------------

@@ -1,0 +1,13 @@
+{
+	"extends": "../tsconfig-base.json",
+	"compilerOptions": {
+		"outFile": "../../build/asset.js"
+	},
+	"files": [
+		"json-parser-stream/tokenizer.ts",
+		"json-parser-stream/parser.ts",
+		"json-parser-stream/json-parser-stream.ts",
+	],
+	"references": [
+	]
+}

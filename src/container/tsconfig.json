@@ -1,0 +1,24 @@
+{
+	"extends": "../tsconfig-base.json",
+	"compilerOptions": {
+		"outFile": "../../build/container.js"
+	},
+	"files": [
+		"queue/chunked-queue.ts",
+		"queue/numeric-queue.ts",
+		"queue/numeric-deque.ts",
+
+		"structured-storage/storage-alignment.ts",
+		"structured-storage/layout.ts",
+		"structured-storage/storage.ts",
+		"structured-storage/structured-array.ts",
+		"structured-storage/fixed-struct-array.ts",
+		"structured-storage/fixed-multi-array.ts",
+		"structured-storage/multi-array-buffer.ts",
+
+		"sorted-array.ts"
+	],
+	"references": [
+		{ "path": "../core" }
+	]
+}

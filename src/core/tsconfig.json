@@ -1,0 +1,18 @@
+{
+	"extends": "../tsconfig-base.json",
+	"compilerOptions": {
+		"outFile": "../../build/core.js"
+	},
+	"files": [
+		"array/buffer.ts",
+		"array/ordering.ts",
+		"array/algorithm.ts",
+		"array/binary-search.ts",
+		"array/sort.ts",
+
+		"deep-readonly.ts",
+		"object.ts",
+		"numeric.ts",
+		"math.ts"
+	]
+}

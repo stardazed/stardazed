@@ -1,0 +1,31 @@
+{
+	"extends": "../tsconfig-base.json",
+	"compilerOptions": {
+		"outFile": "../../build/geometry.js"
+	},
+	"files": [
+		"index-buffer/element.ts",
+		"index-buffer/primitive.ts",
+		"index-buffer/buffer.ts",
+
+		"vertex-buffer/field.ts",
+		"vertex-buffer/attribute.ts",
+		"vertex-buffer/buffer-layout.ts",
+		"vertex-buffer/buffer.ts",
+
+		"types.ts",
+		"layout.ts",
+		"allocate.ts",
+
+		"vertex-attribute-view.ts",
+
+		"triangle-view/types.ts",
+		"triangle-view/direct-triangle-view.ts",
+		"triangle-view/indexed-triangle-view.ts",
+		"triangle-view/triangle-view.ts"
+	],
+	"references": [
+		{ "path": "../core" },
+		{ "path": "../container" }
+	]
+}

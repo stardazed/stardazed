@@ -2,7 +2,6 @@
 .vscode
 pnpm-debug.log
 
-temp
+build
+dist
 node_modules/
-dist/
-*.tgz
