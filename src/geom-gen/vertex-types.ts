@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { VertexAttribute, VertexField, VertexAttributeRole } from "@stardazed/vertex-buffer";
+namespace sd.asset {
 
 // -- VertexAttribute shortcuts for common types
 
@@ -45,3 +45,5 @@ export namespace AttrList {
 		return [attrPosition3(), attrNormal3(), attrUV2(), attrTangent3()];
 	}
 }
+
+} // ns sd.asset

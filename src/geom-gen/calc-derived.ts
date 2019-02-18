@@ -5,10 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { vec3 } from "@stardazed/math";
-import { copyIndexedVec3, setIndexedVec3 } from "@stardazed/container";
-import { Geometry, VertexAttributeRole, VertexBufferLayout, VertexBuffer } from "@stardazed/geometry";
-import { VertexBufferAttributeView, TriangleView, TriangleProxy, triangleViewForGeometry } from "@stardazed/geometry-data";
+namespace sd.asset {
 
 export function genVertexNormals(geom: Geometry) {
 	return triangleViewForGeometry(geom).then(
@@ -205,3 +202,5 @@ export function calcVertexTangentsViews(
 		vec3.copy(tanView.refItem(ix), tangent);
 	}
 }
+
+} // ns sd.asset

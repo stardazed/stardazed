@@ -5,12 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { Float2, Float3, Float4 } from "@stardazed/core";
-import { vec3, mat3, mat4, quat, clamp01 } from "@stardazed/math";
-import { VertexAttribute, Geometry, VertexAttributeRole, allocateGeometry, makeStandardVertexLayout, PrimitiveType } from "@stardazed/geometry";
-import { VertexBufferAttributeView, triangleViewForGeometry } from "@stardazed/geometry-data";
-import { AttrList, attrPosition2, attrUV2 } from "./vertex-types";
-import { calcVertexNormalsViews } from "./calc-derived";
+namespace sd.asset {
 
 export type Vec2AddFn = (u: number, v: number) => void;
 export type Vec3AddFn = (x: number, y: number, z: number) => void;
@@ -795,3 +790,5 @@ export class Torus implements MeshGenerator {
 		}
 	}
 }
+
+} // ns sd.asset

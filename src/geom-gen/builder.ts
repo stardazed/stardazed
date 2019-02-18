@@ -5,10 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { TypedArray, NumArray } from "@stardazed/core";
-import { stableSort, appendArrayInPlace, copyElementRange } from "@stardazed/container";
-import { VertexAttribute, VertexAttributeRole, VertexField, vertexFieldElementCount, vertexFieldNumericType, PrimitiveType, makeStandardVertexLayout, allocateGeometry } from "@stardazed/geometry";
-import { VertexBufferAttributeView } from "@stardazed/geometry-data";
+namespace sd.asset {
 
 export const enum VertexAttributeMapping {
 	Undefined,
@@ -382,3 +379,5 @@ export class GeometryBuilder {
 		return geom;
 	}
 }
+
+} // ns sd.asset

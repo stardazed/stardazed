@@ -5,10 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-import { Float3, Float4 } from "@stardazed/array";
-import { Geometry, findAttributeOfRoleInGeometry, VertexAttributeRole } from "@stardazed/geometry";
-import { VertexBufferAttributeView } from "@stardazed/geometry-data";
-import { vec3, mat3, mat4, quat } from "@stardazed/math";
+namespace sd.asset {
 
 export function scale(geom: Geometry, scale: Float3) {
 	const posAttr = findAttributeOfRoleInGeometry(geom, VertexAttributeRole.Position);
@@ -63,3 +60,5 @@ export function transform(geom: Geometry, actions: { rotate?: Float4, translate?
 		normView.forEach(norm => { vec3.transformMat3(norm, norm, normalMatrix); });
 	}
 }
+
+} // ns sd.asset
