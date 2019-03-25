@@ -1,0 +1,197 @@
+Namespace usage in SD
+=====================
+
+Stardazed uses namespaces instead of modules to both organise code and to make it
+available to the game client code. There are several developer experience and
+technical reasons for the use of namespaces.
+
+TLDR: modules solve problems that are features in a fully integrated environment
+like a game engine + game. Stardazed allows it to be used as if it was an
+engine custom written for the game itself (to a degree.) And the JS build ecosystem
+has separation-of-concernsed itself to a slow morass of clunkiness.
+
+1. Tooling
+
+	The pros of multi-package repo are that you can deliver code into packages that
+	can be piecewise imported by arbitrary 3rd parties.
+	
+	Building multi-package monorepos laborious and slow. In order to not make it slow
+	you have to create tons of custom scripts for building, pushing to NPM, etc.
+
+	This approach was tried for a good while and was working, but it was a bunch of
+	code combined with package manager features to create a build experience that
+	was slow and cumbersome.
+
+2. Packages
+
+	While working on the monorepo version I had the pleasure of dealing with
+	the myriad solutions to handle the local vs NPM package repo problem that
+	all complicated setup and maintenance and added significant mental load to
+	what should be basic operations.
+
+	Then there is the fact that NPM's package archive is immutable (for valid
+	reasons) and that made my brain, which does not like leaving behind unused
+	code antsy as I had to consider if this was really the way to go forward
+	for any particular component.
+
+	All of this has been replaced with a TypeScript composite project which
+	achieves a very similar modularisation of code and combines it with instant
+	compile times during development and fast full rebuilds with no custom
+	scripts, tools, bundlers or whatnot. While some of these will make a
+	re-appearance sooner or later, development of SD should be fluent and
+	crud free and TypeScript's composite projects and build mode provide exactly
+	that.
+
+	In essence, instead of a monorepo where the focus is on small deliverables
+	with the bigger picture is created using many scripts SD create a single
+	deliverable with zero effort and can still be made to create custom smaller
+	packages using custom build / deploy scripts later on, but that is not my
+	focus.
+
+3. Developer Experience
+
+	During the 2 attempts to modularise SD, I observed that many source files
+	were required to do an inordinate amount of imports from many files or packages.
+	Even seemingly simple files quickly used a lot of functionality resulting
+	in source file headers with tons of imports from many locations. This usually
+	got worse in game client code that did anything remotely meaningful.
+
+	While this is working as designed, and ES style imports help bundlers in
+	making nice dependency graphs to do tree-shaking etc, I simply did not care
+	much for it in the context of creating a game.
+
+	For general (web) applications, it is unreasonable to state up front what
+	the reasonable set of basic functionality has to be (beyond the DOM) but for
+	a 3D game there is very much an expectation of functionality and to have to
+	manually request for every tiny function, type and constant in every source
+	file is overkill.
+
+	Stardazed is a large framework with a singular purpose: Make interactive 3D
+	simulations happen. A game using SD is that, a game. Stardazed, unlike
+	more generic solutions such as Three and perhaps Babylon, is intended for
+	a single application running in a single window/frame, likely fullscreen.
+
+	To the person implementing a game with Stardazed, it should feel like they
+	are writing code in an integrated environment. By placing the code either
+	directly in the `sd` namespace or in a sub-namespace like `sd.game` will 
+	make all elements of SD available directly right next to the built-in
+	browser APIs, though they can choose to refer to SD elements via the
+	top-level namespace as well e.g. in the case of an app built using modules.
+
+4. Extending built-in code
+
+	By using namespaces any consumer of SD code can extend it by reopening a
+	namespace and adding elements to it. I used this before to extend loaders
+	for file formats and even to extend interfaces across multiple files.
+
+	With modules each file is an island. When this is desired, it is very much
+	appreciated, but in SD framework and game code, being able to root around
+	and extend any element of the system in non-Java ways (e.g. using stuff like
+	polymorphic classes, factories, etc.) allows for rapid development and
+	extension of the framework itself. This includes prototyping new functionality
+	of SD inside game code before it is merged back in, which I've done on
+	several occasions.
+
+Definition
+----------
+
+An element is a type, constant, function, class or enum, anything that can be
+exported from a namespace.
+
+Global Namespace
+----------------
+
+Everything is wrapped inside the main `sd` namespace.
+All elements that are likely to be used very frequently are in the top-level namespace,
+this includes utility functions, common math functions, standard-library type of stuff, etc.
+
+Design options for more specialized elements
+--------------------------------------------
+
+1. one level of groupings
+
+	Currently considered are:
+
+	* Geom
+	* Asset
+	* Render
+	* Img? (can't use Image)
+	* Sound? (can't use Audio)
+
+2. flat namespace
+
+	Like the DOM itself and like many other libraries, put everything together.
+	Downside of this is that you have one massive pile of elements all exported
+	together which may make discovery of things harder with auto-completion, etc.
+
+In both cases, unexported (or private) sub-namespaces would be fine to hide away
+implementation details from higher scopes, including the end-user scope.
+
+
+Issues with Namespaces
+----------------------
+
+A namespace is conceptually just a compile-time grouping of elements under a
+common name that supports sub-groupings as well.
+
+In reality in the TSJS world, a namespace is physical, it's a function that
+takes up a name slot in the scope and all sub-scopes from where it is defined.
+In SD's case this means that a namespace defined directly under the `sd`
+namespace will reserve that name throughout the entire codebase. Any variable
+names that clash with namespace names will shadow the name making the namespace
+inaccessible unless it was aliased earlier in the file.
+
+In earlier versions of SD I used nested namespaces with all lowercase names
+that would often clash directly with code, causing many minor annoyances,
+for example:
+
+```ts
+namespace asset {
+	export function createThing() {}
+}
+
+const asset = asset.createThing(); // nope
+```
+
+The problem with namespace names is that, when logically chosen, they often
+share the name with the "obvious" name for variables that hold the contents
+of what is processed in the namespace.
+
+This is especially felt inside the namespace context itself as there the general
+name of data is usually exactly the name of the namespace, causing many
+workarounds and awkward names.
+
+
+Solutions
+---------
+
+In the case where a single level of sub-namespaces is used (option 1 above),
+use TitleCased names for those namespaces. This eliminates the main cause of
+annoyance with name clashes as variables and all non-enum/class elements use
+camelCased names. The previous example then becomes:
+
+```ts
+namespace Asset {
+	export function createThing() {}
+}
+
+const asset = Asset.createThing(); // OK
+```
+
+However, as can be seen in the list under option 1 above, sometimes the
+logical or preferred name is not even possible as the browser has already
+defined a class with that name, in this case `Image`. Defining a namespace
+with that name would shadow the global browser name everywhere, which is
+unacceptable.
+
+To avoid current and future name clashes, the namespace names should be
+a single word that is unlikely to be used in normal browser contexts.
+DOM API designers have been using longer, multi-part names for all types
+for a while now for likely exactly this reason.
+
+Another option is to use a name wart on namespace names. A prefix such as
+an `N`. This would reintroduce a practice that namespaces are meant to
+obsolete.
+
+Of course, with option 2, no (exported) namespaces, there are no name clashes
+for namespaces.
