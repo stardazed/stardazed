@@ -4,6 +4,8 @@
 		"outFile": "../../build/core.js"
 	},
 	"files": [
+		"global-types.ts",
+
 		"array/buffer.ts",
 		"array/ordering.ts",
 		"array/algorithm.ts",

@@ -23,7 +23,6 @@
 
 		"lib": ["dom", "esnext"],
 		"skipLibCheck": true,
-		"typeRoots": ["../types", "../node_modules"],
 		"newLine": "LF"
 	}
 }
