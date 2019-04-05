@@ -80,11 +80,11 @@ export class MultiArrayBuffer<UD = unknown> {
 			// a new allocation is made the element data is guaranteed to be zeroed.
 			const elementsToClear = this.count_ - newCount;
 
-			this.backing_.layout.posFields.forEach(field => {
+			for (const field of this.backing_.layout.posFields) {
 				const array = this.fieldArrayView(field, this.backing_.storage.data.buffer, this.count_);
 				const zeroes = new (field.type.arrayType)(elementsToClear * field.count);
 				array.set(zeroes, newCount * field.count);
-			});
+			}
 		}
 
 		this.count_ = newCount;

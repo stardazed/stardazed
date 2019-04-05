@@ -356,7 +356,7 @@ export class GeometryBuilder {
 		const mergedIndexes: number[] = [];
 		let nextElementIndex = 0;
 
-		this.groupIndexStreams_.forEach((indexes, group) => {
+		for (const [group, indexes] of this.groupIndexStreams_) {
 			if (indexes.length) {
 				appendArrayInPlace(mergedIndexes, indexes);
 				const groupElementCount = indexes.length;
@@ -370,7 +370,7 @@ export class GeometryBuilder {
 
 				nextElementIndex += groupElementCount;
 			}
-		});
+		}
 
 		const indexView = geom.indexBuffer!.typedBasePtr(0, mergedIndexes.length);
 		copyElementRange(indexView, 0, mergedIndexes, 0, mergedIndexes.length);
