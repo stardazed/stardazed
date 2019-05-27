@@ -1,0 +1,13 @@
+{
+	"extends": "../tsconfig-base.json",
+	"compilerOptions": {
+		"outFile": "../../build/geom-gen.js"
+	},
+	"files": [
+	],
+	"references": [
+		{ "path": "../core" },
+		{ "path": "../geom" },
+		{ "path": "../vector" },
+	]
+}
