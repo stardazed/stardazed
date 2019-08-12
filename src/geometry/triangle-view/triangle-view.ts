@@ -11,42 +11,31 @@ export function triangleViewForIndexBuffer(ib: IndexBuffer): TriangleView {
 	return new IndexBufferTriangleView(ib);
 }
 
+/**
+ * @expects geom.subMeshes.every(sm => sm.type === PrimitiveType.Triangle)
+ */
 export function triangleViewForGeometry(geom: Geometry) {
-	return new Promise<TriangleView>((resolve, reject) => {
-		const allTrianglePrimitives = geom.subMeshes.every(sm => sm.type === PrimitiveType.Triangle);
-		if (! allTrianglePrimitives) {
-			return reject("Cannot create TriangleView as not all submeshes are of Triangle type");
-		}
+	if (geom.indexBuffer) {
+		return new IndexBufferTriangleView(geom.indexBuffer);
+	}
 
-		if (geom.indexBuffer) {
-			resolve(new IndexBufferTriangleView(geom.indexBuffer));
-		}
-		else {
-			const elementCount = geom.subMeshes.map(sm => sm.elementCount).reduce((sum, count) => sum + count, 0);
-			resolve(new DirectTriangleView(elementCount));
-		}
-	});
+	const elementCount = geom.subMeshes.map(sm => sm.elementCount).reduce((sum, count) => sum + count, 0);
+	return new DirectTriangleView(elementCount);
 }
 
+/**
+ * @expects geom.subMeshes[subMeshIndex] !== undefined
+ * @expects geom.subMeshes[subMeshIndex].type === PrimitiveType.Triangle
+ */
 export function triangleViewForSubMesh(geom: Geometry, subMeshIndex: number) {
-	return new Promise<TriangleView>((resolve, reject) => {
-		const subMesh = geom.subMeshes[subMeshIndex];
-		if (! subMesh) {
-			return reject(`SubMesh index ${subMeshIndex} is out of range`);
-		}
-		if (subMesh.type !== PrimitiveType.Triangle) {
-			return reject(`SubMesh at index ${subMeshIndex} does not use Triangle primitives`);
-		}
-		const fromTriangle = primitiveCountForElementCount(PrimitiveType.Triangle, subMesh.fromElement);
-		const toTriangle = fromTriangle + primitiveCountForElementCount(PrimitiveType.Triangle, subMesh.elementCount);
+	const subMesh = geom.subMeshes[subMeshIndex];
+	const fromTriangle = primitiveCountForElementCount(PrimitiveType.Triangle, subMesh.fromElement);
+	const toTriangle = fromTriangle + primitiveCountForElementCount(PrimitiveType.Triangle, subMesh.elementCount);
 
-		if (geom.indexBuffer) {
-			resolve(new IndexBufferTriangleView(geom.indexBuffer, fromTriangle, toTriangle));
-		}
-		else {
-			resolve(new DirectTriangleView(subMesh.elementCount, fromTriangle, toTriangle));
-		}
-	});
+	if (geom.indexBuffer) {
+		return new IndexBufferTriangleView(geom.indexBuffer, fromTriangle, toTriangle);
+	}
+	return new DirectTriangleView(subMesh.elementCount, fromTriangle, toTriangle);
 }
 
 } // ns sd
