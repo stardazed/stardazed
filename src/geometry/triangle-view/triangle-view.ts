@@ -11,8 +11,12 @@ export function triangleViewForIndexBuffer(ib: IndexBuffer): TriangleView {
 	return new IndexBufferTriangleView(ib);
 }
 
+export function triangleViewSupportedOnGeometry(geom: Geometry) {
+	return geom.subMeshes.every(sm => sm.type === PrimitiveType.Triangle);
+}
+
 /**
- * @expects geom.subMeshes.every(sm => sm.type === PrimitiveType.Triangle)
+ * @expects triangleViewSupportedOnGeometry(geom)
  */
 export function triangleViewForGeometry(geom: Geometry) {
 	if (geom.indexBuffer) {
@@ -23,9 +27,13 @@ export function triangleViewForGeometry(geom: Geometry) {
 	return new DirectTriangleView(elementCount);
 }
 
+export function triangleViewSupportedOnSubMesh(geom: Geometry, subMeshIndex: number) {
+	return geom.subMeshes[subMeshIndex] !== undefined &&
+		geom.subMeshes[subMeshIndex].type === PrimitiveType.Triangle;
+}
+
 /**
- * @expects geom.subMeshes[subMeshIndex] !== undefined
- * @expects geom.subMeshes[subMeshIndex].type === PrimitiveType.Triangle
+ * @expects triangleViewSupportedOnSubMesh(geom, subMeshIndex)
  */
 export function triangleViewForSubMesh(geom: Geometry, subMeshIndex: number) {
 	const subMesh = geom.subMeshes[subMeshIndex];
