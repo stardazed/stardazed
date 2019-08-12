@@ -9,7 +9,7 @@ namespace sd {
 
 export interface StructStorage {
 	readonly itemSizeBytes: number;
-	readonly storageAlignment: SizingAlignmentFlags;
+	readonly storageAlignment: StorageAlignment;
 	capacity: number;
 	owned: boolean;
 	data: Uint8Array;
@@ -22,8 +22,8 @@ export interface StructStorage {
  * @expects isPositiveNonZeroInteger(itemSizeBytes)
  * @expects isPositiveNonZeroInteger(minCapacity)
  */
-export function allocStorage(itemSizeBytes: number, minCapacity: number, storageAlignment: SizingAlignmentFlags): StructStorage {
-	const { capacity, sizeBytes } = calcStorageSizeWithAlignmentFlags(itemSizeBytes, minCapacity, storageAlignment);
+export function allocStorage(itemSizeBytes: number, minCapacity: number, storageAlignment: StorageAlignment): StructStorage {
+	const { capacity, sizeBytes } = calcAlignedStorageSize(itemSizeBytes, minCapacity, storageAlignment);
 
 	return {
 		itemSizeBytes,
@@ -41,8 +41,8 @@ export function allocStorage(itemSizeBytes: number, minCapacity: number, storage
  * @expects isPositiveNonZeroInteger(itemSizeBytes)
  * @expects isPositiveNonZeroInteger(minCapacity)
  */
-export function createStorageInBuffer(itemSizeBytes: number, minCapacity: number, storageAlignment: SizingAlignmentFlags, buffer: Uint8Array): StructStorage {
-	const { capacity, sizeBytes } = calcStorageSizeWithAlignmentFlags(itemSizeBytes, minCapacity, storageAlignment);
+export function createStorageInBuffer(itemSizeBytes: number, minCapacity: number, storageAlignment: StorageAlignment, buffer: Uint8Array): StructStorage {
+	const { capacity, sizeBytes } = calcAlignedStorageSize(itemSizeBytes, minCapacity, storageAlignment);
 
 	if (sizeBytes > buffer.byteLength) {
 		throw new RangeError("Provided storage is too small");

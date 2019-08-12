@@ -19,7 +19,7 @@ export class FixedMultiArray<UD = unknown> {
 	 */
 	constructor(capacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = packStructFields) {
 		const layout = alignmentFn(fields);
-		this.backing_ = createStructuredArray(layout, StructTopology.StructOfArrays, capacity, SizingAlignmentFlags.ItemMultipleOf32);
+		this.backing_ = createStructuredArray(layout, StructTopology.StructOfArrays, capacity, StorageAlignment.ItemMultipleOf32);
 
 		this.basePointers_ = layout.posFields.map(posField => {
 			const byteOffset = this.backing_.storage.capacity * posField.byteOffset;

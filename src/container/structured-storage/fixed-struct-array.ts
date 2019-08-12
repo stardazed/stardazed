@@ -19,7 +19,7 @@ export class FixedStructArray<UD = unknown> {
 	 */
 	constructor(capacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = alignStructFields) {
 		const layout = alignmentFn(fields);
-		this.backing_ = createStructuredArray(layout, StructTopology.ArrayOfStructs, capacity, SizingAlignmentFlags.ItemMultipleOf32);
+		this.backing_ = createStructuredArray(layout, StructTopology.ArrayOfStructs, capacity, StorageAlignment.ItemMultipleOf32);
 		this.structSize_ = layout.totalSizeBytes;
 	}
 

@@ -24,7 +24,7 @@ export class MultiArrayBuffer<UD = unknown> {
 	 */
 	constructor(initialCapacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = packStructFields) {
 		const layout = alignmentFn(fields);
-		this.backing_ = createStructuredArray(layout, StructTopology.StructOfArrays, initialCapacity, SizingAlignmentFlags.ItemMultipleOf32);
+		this.backing_ = createStructuredArray(layout, StructTopology.StructOfArrays, initialCapacity, StorageAlignment.ItemMultipleOf32);
 	}
 
 	get fieldCount() { return this.backing_.layout.posFields.length; }

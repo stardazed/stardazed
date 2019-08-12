@@ -31,7 +31,7 @@ export interface StructuredArray<UD> {
  * 
  * @expects isPositiveNonZeroInteger(minCapacity)
  */
-export function createStructuredArray<UD>(layout: StructLayout<UD>, topology: StructTopology, minCapacity: number, storageAlignment: SizingAlignmentFlags): StructuredArray<UD> {
+export function createStructuredArray<UD>(layout: StructLayout<UD>, topology: StructTopology, minCapacity: number, storageAlignment: StorageAlignment): StructuredArray<UD> {
 	const storage = allocStorage(layout.totalSizeBytes, minCapacity, storageAlignment);
 	return {
 		layout,
@@ -45,7 +45,7 @@ export function createStructuredArray<UD>(layout: StructLayout<UD>, topology: St
  * 
  * @expects isPositiveNonZeroInteger(minCapacity)
  */
-export function createStructuredArrayInBuffer<UD>(layout: StructLayout<UD>, topology: StructTopology, minCapacity: number, storageAlignment: SizingAlignmentFlags, buffer: Uint8Array): StructuredArray<UD> {
+export function createStructuredArrayInBuffer<UD>(layout: StructLayout<UD>, topology: StructTopology, minCapacity: number, storageAlignment: StorageAlignment, buffer: Uint8Array): StructuredArray<UD> {
 	const storage = createStorageInBuffer(layout.totalSizeBytes, minCapacity, storageAlignment, buffer);
 	return {
 		layout,
@@ -63,7 +63,7 @@ export function createStructuredArrayInBuffer<UD>(layout: StructLayout<UD>, topo
  */
 export function resizeStructuredArray<UD>(sarr: StructuredArray<UD>, newMinCapacity: number) {
 	const currentSizeBytes = sarr.storage.data.byteLength;
-	const { capacity, sizeBytes: newSizeBytes } = calcStorageSizeWithAlignmentFlags(sarr.layout.totalSizeBytes, newMinCapacity, sarr.storage.storageAlignment);
+	const { capacity, sizeBytes: newSizeBytes } = calcAlignedStorageSize(sarr.layout.totalSizeBytes, newMinCapacity, sarr.storage.storageAlignment);
 
 	if (newSizeBytes === currentSizeBytes) {
 		return;
@@ -77,7 +77,7 @@ export function resizeStructuredArray<UD>(sarr: StructuredArray<UD>, newMinCapac
 		if (newSizeBytes < currentSizeBytes) {
 			// If the buffer was reduced in size, clear out the array between the final
 			// requested struct and end-of-buffer as that may contain initialized data.
-			const { sizeBytes: dataSizeBytes } = calcStorageSizeWithAlignmentFlags(sarr.layout.totalSizeBytes, newMinCapacity, SizingAlignmentFlags.None);
+			const { sizeBytes: dataSizeBytes } = calcAlignedStorageSize(sarr.layout.totalSizeBytes, newMinCapacity, StorageAlignment.None);
 			clearArrayBuffer(newBuffer, dataSizeBytes, newSizeBytes);
 		}
 	}
