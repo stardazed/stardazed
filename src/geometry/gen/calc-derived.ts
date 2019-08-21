@@ -1,30 +1,24 @@
 /**
- * geometry-gen/calc-derived - calculate normals and tangents
+ * geometry/calc-derived - calculate normals and tangents
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd.asset {
+namespace sd {
 
 export function genVertexNormals(geom: Geometry) {
-	return triangleViewForGeometry(geom).then(
-		triView => {
-			geom.vertexBuffers.forEach((vertexBuffer, ix) => {
-				calcVertexNormals(geom.layout.layouts[ix], vertexBuffer, triView);
-			});
-		}
-	);
+	const triView = triangleViewForGeometry(geom);
+	geom.vertexBuffers.forEach((vertexBuffer, ix) => {
+		calcVertexNormals(geom.layout.layouts[ix], vertexBuffer, triView);
+	});
 }
 
 export function genVertexTangents(geom: Geometry) {
-	return triangleViewForGeometry(geom).then(
-		triView => {
-			geom.vertexBuffers.forEach((vertexBuffer, ix) => {
-				calcVertexTangents(geom.layout.layouts[ix], vertexBuffer, triView);
-			});
-		}
-	);
+	const triView = triangleViewForGeometry(geom);
+	geom.vertexBuffers.forEach((vertexBuffer, ix) => {
+		calcVertexTangents(geom.layout.layouts[ix], vertexBuffer, triView);
+	});
 }
 
 export function calcVertexNormals(layout: VertexBufferLayout, vertexBuffer: VertexBuffer, triView: TriangleView) {
@@ -32,8 +26,8 @@ export function calcVertexNormals(layout: VertexBufferLayout, vertexBuffer: Vert
 	const normAttr = layout.attrByRole(VertexAttributeRole.Normal);
 
 	if (posAttr && normAttr) {
-		const posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
-		const normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
+		const posView = new VertexAttributeView(vertexBuffer, posAttr);
+		const normView = new VertexAttributeView(vertexBuffer, normAttr);
 
 		calcVertexNormalsViews(posView, normView, triView);
 	}
@@ -43,7 +37,7 @@ export function calcVertexNormals(layout: VertexBufferLayout, vertexBuffer: Vert
 /**
  * @expects posView.vertexCount <= normView.vertexCount
  */
-export function calcVertexNormalsViews(posView: VertexBufferAttributeView, normView: VertexBufferAttributeView, triView: TriangleView) {
+export function calcVertexNormalsViews(posView: VertexAttributeView, normView: VertexAttributeView, triView: TriangleView) {
 	const vertexCount = posView.vertexCount;
 	const baseVertex = normView.fromVertex;
 
@@ -96,10 +90,10 @@ export function calcVertexTangents(layout: VertexBufferLayout, vertexBuffer: Ver
 	const tanAttr = layout.attrByRole(VertexAttributeRole.Tangent);
 
 	if (posAttr && normAttr && uvAttr && tanAttr) {
-		const posView = new VertexBufferAttributeView(vertexBuffer, posAttr);
-		const normView = new VertexBufferAttributeView(vertexBuffer, normAttr);
-		const uvView = new VertexBufferAttributeView(vertexBuffer, uvAttr);
-		const tanView = new VertexBufferAttributeView(vertexBuffer, tanAttr);
+		const posView = new VertexAttributeView(vertexBuffer, posAttr);
+		const normView = new VertexAttributeView(vertexBuffer, normAttr);
+		const uvView = new VertexAttributeView(vertexBuffer, uvAttr);
+		const tanView = new VertexAttributeView(vertexBuffer, tanAttr);
 
 		calcVertexTangentsViews(posView, normView, uvView, tanView, triView);
 	}
@@ -112,10 +106,10 @@ export function calcVertexTangents(layout: VertexBufferLayout, vertexBuffer: Ver
  * @expects posView.vertexCount <= tanView.vertexCount
  */
 export function calcVertexTangentsViews(
-	posView: VertexBufferAttributeView,
-	normView: VertexBufferAttributeView,
-	uvView: VertexBufferAttributeView,
-	tanView: VertexBufferAttributeView,
+	posView: VertexAttributeView,
+	normView: VertexAttributeView,
+	uvView: VertexAttributeView,
+	tanView: VertexAttributeView,
 	triView: TriangleView
 ) {
 	// adaptation of http://www.terathon.com/code/tangent.html
@@ -203,4 +197,4 @@ export function calcVertexTangentsViews(
 	}
 }
 
-} // ns sd.asset
+} // ns sd
