@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd.asset {
+namespace sd {
 
 // -- VertexAttribute shortcuts for common types
 
@@ -46,4 +46,4 @@ export namespace AttrList {
 	}
 }
 
-} // ns sd.asset
+} // ns sd
