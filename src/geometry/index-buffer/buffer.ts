@@ -57,8 +57,8 @@ export function indexBufferSizeBytes(ib: IndexBuffer): number {
 }
 
 /**
- * Access (a section of) the underlying array data of an IndexBuffer.
- * 
+ * Access a section of the underlying array data of an IndexBuffer.
+ *
  * @expects isPositiveInteger(baseIndexNr)
  * @expects isPositiveInteger(indexCount)
  * @expects baseIndexNr < ib.indexCount
@@ -68,6 +68,13 @@ export function indexBufferRangeView(ib: IndexBuffer, baseIndexNr: number, index
 	const offsetBytes = ib.storage.byteOffset + bytesRequiredForIndexCount(ib.indexElementType, baseIndexNr);
 	const arrayClass = arrayTypeForIndexElement(ib.indexElementType);
 	return new arrayClass(ib.storage.buffer, offsetBytes, indexCount);
+}
+
+/**
+ * Access the full underlying array data of an IndexBuffer
+ */
+export function indexBufferView(ib: IndexBuffer) {
+	return indexBufferRangeView(ib, 0, ib.indexCount);
 }
 
 } // ns sd
