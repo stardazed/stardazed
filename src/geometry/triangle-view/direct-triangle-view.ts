@@ -80,9 +80,12 @@ export class DirectTriangleView implements TriangleView {
 		return new DirectTriangleView(elementCount, this.fromTriangle_ + fromTriangle, this.fromTriangle_ + fromTriangle + triangleCount);
 	}
 
-	mutableView() {
-		// direct triangle views are synthesised and thus immutable
-		return Promise.reject("This TriangleView is immutable");
+	/**
+	 * Direct triangle views are synthesised and thus immutable
+	 * Calling this method on a direct triangle view is meaningless.
+	 */
+	mutableView(): MutableTriangleView {
+		throw new Error("This TriangleView is immutable");
 	}
 }
 

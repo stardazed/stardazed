@@ -36,7 +36,7 @@ export interface TriangleView {
 	refItem(triangleIndex: number): Triangle;
 
 	subView(fromTriangle: number, triangleCount: number): TriangleView;
-	mutableView(): Promise<MutableTriangleView>;
+	mutableView(): MutableTriangleView;
 }
 
 export interface MutableTriangleView extends TriangleView {
