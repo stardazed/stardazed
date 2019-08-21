@@ -24,10 +24,13 @@
 		"triangle-view/indexed-triangle-view.ts",
 		"triangle-view/triangle-view.ts",
 
-		"gen/builder.ts"
+		"gen/calc-derived.ts",
+		"gen/builder.ts",
+		"gen/generate.ts"
 	],
 	"references": [
 		{ "path": "../core" },
-		{ "path": "../container" }
+		{ "path": "../container" },
+		{ "path": "../vector" }
 	]
 }

@@ -1,11 +1,11 @@
 /**
- * geometry-gen/generate - geometry generators
+ * geometry/generate - geometry generators
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd.asset {
+namespace sd {
 
 export type Vec2AddFn = (u: number, v: number) => void;
 export type Vec3AddFn = (x: number, y: number, z: number) => void;
@@ -27,10 +27,16 @@ export interface TransformedMeshGen {
 	scale?: Float3; // vec3
 }
 
+function isTransformedMeshGen(tmg: any): tmg is TransformedMeshGen {
+	return typeof tmg === "object" && tmg !== null
+		&& typeof tmg.generator === "object" && tmg.generator !== null;
+}
+
+
 export type MeshGenSource = MeshGenerator | TransformedMeshGen;
 
 
-export async function generate(gens: MeshGenSource | MeshGenSource[], attrList?: VertexAttribute[]): Promise<Geometry> {
+export function generateGeometry(gens: MeshGenSource | MeshGenSource[], attrList?: VertexAttribute[]): Geometry {
 	if (! attrList) {
 		attrList = AttrList.Pos3Norm3UV2();
 	}
@@ -40,14 +46,14 @@ export async function generate(gens: MeshGenSource | MeshGenSource[], attrList?:
 	let totalFaceCount = 0;
 
 	for (const genSource of genList) {
-		const generator: MeshGenerator = ("generator" in genSource) ? (genSource as TransformedMeshGen).generator : genSource as MeshGenerator;
+		const generator = isTransformedMeshGen(genSource) ? genSource.generator : genSource;
 		totalVertexCount += generator.vertexCount;
 		totalFaceCount += generator.faceCount;
 	}
 
 	// -- create vertex and index buffers for combined geometry
-	const geom = await allocateGeometry({
-		layout: makeStandardVertexLayout(attrList),
+	const geom = allocateGeometry({
+		layout: makeStandardGeometryLayout(attrList),
 		vertexCount: totalVertexCount,
 		indexCount: totalFaceCount * 3
 	});
@@ -58,11 +64,11 @@ export async function generate(gens: MeshGenSource | MeshGenSource[], attrList?:
 	const normalAttr = layout.attrByRole(VertexAttributeRole.Normal);
 	const texAttr = layout.attrByRole(VertexAttributeRole.UV);
 
-	const posView = new VertexBufferAttributeView(geom.vertexBuffers[0], layout.attrByRole(VertexAttributeRole.Position)!);
-	const normalView = normalAttr ? new VertexBufferAttributeView(vertexBuffer, normalAttr) : null;
-	const texView = texAttr ? new VertexBufferAttributeView(vertexBuffer, texAttr) : null;
+	const posView = new VertexAttributeView(geom.vertexBuffers[0], layout.attrByRole(VertexAttributeRole.Position)!);
+	const normalView = normalAttr ? new VertexAttributeView(vertexBuffer, normalAttr) : null;
+	const texView = texAttr ? new VertexAttributeView(vertexBuffer, texAttr) : null;
 
-	const triView = await (await triangleViewForGeometry(geom)).mutableView();
+	const triView = triangleViewForGeometry(geom).mutableView();
 
 	// -- data add functions for the generators
 	let posIx = 0, faceIx = 0, normalIx = 0, uvIx = 0, baseVertex = 0;
@@ -124,12 +130,10 @@ export async function generate(gens: MeshGenSource | MeshGenSource[], attrList?:
 			normalIx += subVtxCount;
 		}
 
-		// is this a TransformedMeshGen?
-		if ("generator" in genSource) {
-			const xformGen = genSource as TransformedMeshGen;
-			const rotation = xformGen.rotation || quat.create();
-			const translation = xformGen.translation || vec3.create();
-			const scale = xformGen.scale || vec3.fromValues(1, 1, 1);
+		if (isTransformedMeshGen(genSource)) {
+			const rotation = genSource.rotation || quat.create();
+			const translation = genSource.translation || vec3.create();
+			const scale = genSource.scale || vec3.fromValues(1, 1, 1);
 
 			// -- transform positions
 			mat4.fromRotationTranslationScale(posTransMatrix, rotation, translation, scale);
@@ -211,15 +215,15 @@ export class Quad implements MeshGenerator {
 }
 
 export async function genFullscreenQuad() {
-	return await generate(new Quad(2, 2), [attrPosition2(), attrUV2()]);
+	return await generateGeometry(new Quad(2, 2), [makeAttrPos2(), makeAttrUV2()]);
 }
 
 
-//  _  _ ___   ___ _____    _                _     
-// | \| |   \ / __|_   _| _(_)__ _ _ _  __ _| |___ 
+//  _  _ ___   ___ _____    _                _
+// | \| |   \ / __|_   _| _(_)__ _ _ _  __ _| |___
 // | .` | |) | (__  | || '_| / _` | ' \/ _` | / -_)
 // |_|\_|___/ \___| |_||_| |_\__,_|_||_\__, |_\___|
-//                                     |___/       
+//                                     |___/
 
 export class NDCTriangle implements MeshGenerator {
 	get vertexCount(): number {
@@ -254,7 +258,7 @@ export class NDCTriangle implements MeshGenerator {
 }
 
 export async function genFullscreenTriangle() {
-	return await generate(new NDCTriangle(), [attrPosition2(), attrUV2()]);
+	return await generateGeometry(new NDCTriangle(), [makeAttrPos2(), makeAttrUV2()]);
 }
 
 
@@ -610,8 +614,8 @@ export class Sphere implements MeshGenerator {
 		this.radius_ = desc.radius;
 		this.rows_ = desc.rows | 0;
 		this.segs_ = desc.segs | 0;
-		this.sliceFrom_ = clamp01(desc.sliceFrom || 0.0);
-		this.sliceTo_ = clamp01(desc.sliceTo || 1.0);
+		this.sliceFrom_ = clamp01f(desc.sliceFrom || 0.0);
+		this.sliceTo_ = clamp01f(desc.sliceTo || 1.0);
 	}
 
 	get vertexCount(): number {
@@ -724,8 +728,8 @@ export class Torus implements MeshGenerator {
 		this.majorRadius_ = desc.majorRadius;
 		this.rows_ = desc.rows | 0;
 		this.segs_ = desc.segs | 0;
-		this.sliceFrom_ = clamp01(desc.sliceFrom || 0.0);
-		this.sliceTo_ = clamp01(desc.sliceTo || 1.0);
+		this.sliceFrom_ = clamp01f(desc.sliceFrom || 0.0);
+		this.sliceTo_ = clamp01f(desc.sliceTo || 1.0);
 	}
 
 	get vertexCount(): number {

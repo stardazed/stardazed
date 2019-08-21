@@ -1,5 +1,5 @@
 /**
- * geometry/gen/builder - construct Geometry from normalized sources
+ * geometry/builder - construct Geometry from normalized sources
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
