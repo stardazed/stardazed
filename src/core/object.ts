@@ -50,7 +50,7 @@ export type ObjectFieldMappingFn<T, U> = (val: T, key: string) => U;
  * @param obj The source object to convert
  * @param mapper A conversion function that takes each keyed prop of obj and returns a converted value
  */
-export function mapObject<T, K extends Extract<keyof T, string>, U>(obj: T, mapper: ObjectFieldMappingFn<T[K], U>) {
+export function mapObject<T extends object, K extends Extract<keyof T, string>, U>(obj: T, mapper: ObjectFieldMappingFn<T[K], U>) {
 	const result = {} as Record<keyof T, U>;
 	for (const key in obj) {
 		if (obj.hasOwnProperty(key)) {
