@@ -1,11 +1,11 @@
 /**
- * geometry/builder - construct Geometry from normalized sources
+ * geometry/gen/builder - construct Geometry from normalized sources
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd.asset {
+namespace sd {
 
 export const enum VertexAttributeMapping {
 	Undefined,
@@ -157,7 +157,7 @@ export class GeometryBuilder {
 					throw new Error("A grouping stream must use a single element field");
 				}
 				const groupNumType = vertexFieldNumericType(s.attr!.field);
-				if (! groupNumType.integer) {
+				if (! (groupNumType && groupNumType.integer)) {
 					throw new Error("A grouping stream must use an integer element");
 				}
 				groupers++;
@@ -334,7 +334,7 @@ export class GeometryBuilder {
 
 		// allocate as single buffer
 		const geom = await allocateGeometry({
-			layout: makeStandardVertexLayout(attrs),
+			layout: makeStandardGeometryLayout(attrs),
 			vertexCount: this.vertexCount_,
 			indexCount: this.triangleCount_ * 3
 		});
@@ -345,7 +345,7 @@ export class GeometryBuilder {
 			const streamData = this.vertexData_[six];
 			const attribute = layout.attrByIndex(six);
 			if (attribute) {
-				const view = new VertexBufferAttributeView(geom.vertexBuffers[0], attribute);
+				const view = new VertexAttributeView(geom.vertexBuffers[0], attribute);
 				view.copyValuesFrom(streamData, this.vertexCount_);
 			}
 			// FIXME else unexpected()
@@ -372,7 +372,7 @@ export class GeometryBuilder {
 			}
 		}
 
-		const indexView = geom.indexBuffer!.typedBasePtr(0, mergedIndexes.length);
+		const indexView = indexBufferRangeView(geom.indexBuffer!, 0, mergedIndexes.length);
 		copyElementRange(indexView, 0, mergedIndexes, 0, mergedIndexes.length);
 		// geom.indexBuffer!.setIndexes(0, mergedIndexes.length, mergedIndexes);
 
@@ -380,4 +380,4 @@ export class GeometryBuilder {
 	}
 }
 
-} // ns sd.asset
+} // ns sd

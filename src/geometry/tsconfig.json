@@ -22,7 +22,9 @@
 		"triangle-view/types.ts",
 		"triangle-view/direct-triangle-view.ts",
 		"triangle-view/indexed-triangle-view.ts",
-		"triangle-view/triangle-view.ts"
+		"triangle-view/triangle-view.ts",
+
+		"gen/builder.ts"
 	],
 	"references": [
 		{ "path": "../core" },
