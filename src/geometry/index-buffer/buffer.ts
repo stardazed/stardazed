@@ -61,8 +61,8 @@ export function indexBufferSizeBytes(ib: IndexBuffer): number {
  * 
  * @expects isPositiveInteger(baseIndexNr)
  * @expects isPositiveInteger(indexCount)
- * @expects baseIndexNr < this.indexCount
- * @expects baseIndexNr + indexCount <= this.indexCount
+ * @expects baseIndexNr < ib.indexCount
+ * @expects baseIndexNr + indexCount <= ib.indexCount
  */
 export function indexBufferRangeView(ib: IndexBuffer, baseIndexNr: number, indexCount: number): TypedArray {
 	const offsetBytes = ib.storage.byteOffset + bytesRequiredForIndexCount(ib.indexElementType, baseIndexNr);
