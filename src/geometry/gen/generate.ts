@@ -214,8 +214,8 @@ export class Quad implements MeshGenerator {
 	}
 }
 
-export async function genFullscreenQuad() {
-	return await generateGeometry(new Quad(2, 2), [makeAttrPos2(), makeAttrUV2()]);
+export function genFullscreenQuad() {
+	return generateGeometry(new Quad(2, 2), [makeAttrPos2(), makeAttrUV2()]);
 }
 
 
@@ -257,8 +257,8 @@ export class NDCTriangle implements MeshGenerator {
 	}
 }
 
-export async function genFullscreenTriangle() {
-	return await generateGeometry(new NDCTriangle(), [makeAttrPos2(), makeAttrUV2()]);
+export function genFullscreenTriangle() {
+	return generateGeometry(new NDCTriangle(), [makeAttrPos2(), makeAttrUV2()]);
 }
 
 

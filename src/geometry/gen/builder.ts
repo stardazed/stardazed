@@ -324,7 +324,7 @@ export class GeometryBuilder {
 	get curPolygonIndex() { return this.sourcePolygonIndex_; }
 	get indexMap() { return this.indexMap_; }
 
-	async complete() {
+	complete() {
 		// Create Geometry with a VB with the streams marked for inclusion in the
 		// final geometry data. Because we sorted the non-included streams to the end
 		// of the list the order of this filtered list will still be the same as
@@ -333,7 +333,7 @@ export class GeometryBuilder {
 		const attrs = meshAttributeStreams.map(s => s.attr!);
 
 		// allocate as single buffer
-		const geom = await allocateGeometry({
+		const geom = allocateGeometry({
 			layout: makeStandardGeometryLayout(attrs),
 			vertexCount: this.vertexCount_,
 			indexCount: this.triangleCount_ * 3
