@@ -5,12 +5,10 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
-
 /**
  * Resize the backing store of an ArrayBuffer, retaining the data.
  * Will avoid copying where possible.
- * 
+ *
  * @expects isPositiveNonZeroInteger(newByteLength)
  */
 export function transferArrayBuffer(oldBuffer: ArrayBufferLike, newByteLength: number) {
@@ -30,7 +28,7 @@ export function transferArrayBuffer(oldBuffer: ArrayBufferLike, newByteLength: n
 
 /**
  * Clear (a range of bytes within) an ArrayBuffer to zero.
- * 
+ *
  * @expects isPositiveInteger(fromOffset)
  * @expects isPositiveInteger(toOffset)
  * @expects toOffset >= fromOffset
@@ -116,5 +114,3 @@ export function convertBytesToString(bytes: Uint8Array) {
 
 	return strings.length === 1 ? strings[0] : strings.join("");
 }
-
-} // ns sd

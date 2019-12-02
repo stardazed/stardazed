@@ -5,8 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
-
 /**
  * Copy all or a specified set of values from source to dest, including undefined values.
  * Thus, this may unset values in the destination object as well as set or change them.
@@ -106,5 +104,3 @@ export function groupFieldsBy<T extends object, K extends Extract<keyof T, strin
 export function propertyCount(obj: object) {
 	return Object.getOwnPropertyNames(obj).length;
 }
-
-} // ns sd

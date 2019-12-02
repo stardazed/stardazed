@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
+import { OrderBeforeCompareFn, genericOrderBefore } from "./ordering";
 
 /**
  * Perform a binary search in a sorted array
@@ -60,5 +60,3 @@ export function upperBound<T>(array: ArrayLike<T>, value: T, comp?: OrderBeforeC
 	}
 	return first;
 }
-
-} // ns sd

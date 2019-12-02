@@ -5,8 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
-
 /**
  * A function that returns the relative order of two values.
  * If a < b, it returns a number < 0
@@ -58,5 +56,3 @@ export function makeOrderBeforeFromFullOrderFn<T>(compare: FullOrderCompareFn<T>
 		return compare(a, b) < 0;
 	};
 }
-
-} // ns sd

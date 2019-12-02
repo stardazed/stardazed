@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
+import { FullOrderCompareFn } from "./ordering";
 
 /**
  * In-place stable insertion sort a range of elements inside an array
@@ -63,19 +63,19 @@ function merge<T>(
 	const endLeft = startLeft + sizeLeft;
 	const endRight = startRight + sizeRight;
 	for (let i = startLeft, j = startRight, k = start; k < endMerged; k++) {
-		// if reached end of first half array, run through the loop 
+		// if reached end of first half array, run through the loop
 		// filling in only from the second half array
 		if (i === endLeft) {
 			merged[k] = right[j++];
 			continue;
 		}
-		// if reached end of second half array, run through the loop 
+		// if reached end of second half array, run through the loop
 		// filling in only from the first half array
 		if (j === endRight) {
 			merged[k] = left[i++];
 			continue;
 		}
-		// merged array is filled with the smaller or equal element of the two 
+		// merged array is filled with the smaller or equal element of the two
 		// arrays, in order, ensuring a stable sort
 		merged[k] = (pred(left[i], right[j]) <= 0) ? left[i++] : right[j++];
 	}
@@ -123,5 +123,3 @@ export function mergeSort<T>(arr: T[], orderFn: FullOrderCompareFn<T>) {
  * @alias mergeSort The common stable sort algorithm.
  */
 export const stableSort = mergeSort;
-
-} // ns sd

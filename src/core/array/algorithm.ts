@@ -5,7 +5,7 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
+import { OrderBeforeCompareFn, genericOrderBefore } from "./ordering";
 
 /**
  * Remove all duplicates found in the source array leaving only the first
@@ -135,5 +135,3 @@ export function makeLookupTable<K extends number, V>(...pairs: [K, V][]): Readon
 	}
 	return Object.freeze(result);
 }
-
-} // ns sd

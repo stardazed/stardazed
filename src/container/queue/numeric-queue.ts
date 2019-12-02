@@ -5,11 +5,9 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
-
 /**
  * Numeric queue with array-like methods.
- * 
+ *
  * Use {@link ChunkedQueue} for large non-numeric queues.
  */
 export class NumericQueue {
@@ -101,5 +99,3 @@ export class NumericQueue {
 		return this.headChunk_[this.headIndex_];
 	}
 }
-
-} // ns sd

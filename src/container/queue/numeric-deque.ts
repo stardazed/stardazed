@@ -5,15 +5,13 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
-
 /**
  * Numeric queue with array-like methods. Use for numeric queues that
  * will have numbers added to and removed from it on both ends. The queue
  * is chunked and limits (de)allocations by retaining 1 extra chunk on each
  * end. You can specify the capacity of each chunk based on expected
  * usage of the queue.
- * 
+ *
  * If you only need a FIFO numeric queue then use {@link NumericQueue}
  */
 export class NumericDeque {
@@ -168,5 +166,3 @@ export class NumericDeque {
 		return (this.tailIndex_ > 0) ? this.tailChunk[this.tailIndex_ - 1] : this.chunks_[this.tailChunkIndex_ - 1][this.chunkCapacity_ - 1];
 	}
 }
-
-} // ns sd

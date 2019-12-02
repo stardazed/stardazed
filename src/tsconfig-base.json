@@ -1,7 +1,7 @@
 {
 	"$schema": "http://json.schemastore.org/tsconfig",
 	"compilerOptions": {
-		"module": "amd",
+		"module": "es2015",
 		"target": "es2018",
 		"moduleResolution": "node",
 
@@ -12,6 +12,7 @@
 		"removeComments": false,
 		"stripInternal": true,
 		"noEmitOnError": true,
+		"noErrorTruncation": true,
 
 		"strict": true,
 		"noImplicitReturns": true,

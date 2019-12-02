@@ -5,6 +5,23 @@
  * https://github.com/stardazed/stardazed
  */
 
+/**
+* A type that indicates that all fields inside a type, including arrays, are readonly.
+*/
+type DeepReadonly<T> =
+	T extends any[] ? DeepReadonlyArray<T[number]> :
+	T extends Function ? T : // tslint:disable-line:ban-types
+	T extends object ? DeepReadonlyObject<T> :
+	T;
+
+interface DeepReadonlyArray<T> extends ReadonlyArray<DeepReadonly<T>> { }
+
+type DeepReadonlyObject<T> = {
+	readonly [P in keyof T]: DeepReadonly<T[P]>;
+};
+
+// --------
+
 type TypedArrayConstructor =
 	Uint8ArrayConstructor | Uint8ClampedArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor |
 	Int8ArrayConstructor | Int16ArrayConstructor | Int32ArrayConstructor |

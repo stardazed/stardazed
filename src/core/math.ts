@@ -5,8 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
-
 /**
  * Clamp a number to the range min..max inclusive.
  */
@@ -24,7 +22,7 @@ export function clamp01f(n: number): number {
 /**
  * Linearly interpolate between a and b given a ratio.
  * If ratio < 0 or ratio > 1 then the value will be extrapolated.
- * 
+ *
  * @example mixf(2, 4, 0) = 2
  * @example mixf(2, 4, 1) = 4
  * @example mixf(10, 20, 0.5) = 15
@@ -132,5 +130,3 @@ export function alignUp(val: number, alignmentPow2: number) {
 export function alignDown(val: number, alignmentPow2: number) {
 	return val & (~(alignmentPow2 - 1));
 }
-
-} // ns sd

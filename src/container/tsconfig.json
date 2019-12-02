@@ -1,9 +1,11 @@
 {
 	"extends": "../tsconfig-base.json",
 	"compilerOptions": {
-		"outFile": "../../build/container.js"
+		"outDir": "../../build/container"
 	},
 	"files": [
+		"../global-types.d.ts",
+
 		"queue/chunked-queue.ts",
 		"queue/numeric-queue.ts",
 		"queue/numeric-deque.ts",

@@ -3,8 +3,5 @@
 	"include": [],
 	"references": [
 		{ "path": "container" },
-		{ "path": "vector" },
-		{ "path": "geometry" },
-		{ "path": "browserlib" }
 	]
 }

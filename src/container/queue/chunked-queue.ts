@@ -5,16 +5,14 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
-
 const CHUNK_SIZE = 32768;
 
 /**
  * Generic queue with array-like methods. Uses a chunked array backing store
  * which avoids a perf bug in Chrome shift()ing values from large queues.
- * 
+ *
  * Avoid using this for small (< 32K elements) queues, just use an array.
- * 
+ *
  * Use {@link NumericQueue} for typed numeric queues (of any size).
  */
 export class ChunkedQueue<T> {
@@ -67,5 +65,3 @@ export class ChunkedQueue<T> {
 		return this.length_;
 	}
 }
-
-} // ns sd
