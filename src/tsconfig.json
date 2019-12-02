@@ -5,7 +5,6 @@
 		{ "path": "container" },
 		{ "path": "vector" },
 		{ "path": "geometry" },
-		{ "path": "asset" },
 		{ "path": "browserlib" }
 	]
 }
