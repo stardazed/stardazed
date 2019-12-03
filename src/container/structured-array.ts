@@ -7,39 +7,39 @@
 
 import { NumericType, alignUp, clearArrayBuffer, roundUpPowerOf2, transferArrayBuffer } from "../core";
 
-export interface StructField<UD = unknown> {
+export interface Field<UD = unknown> {
 	type: NumericType;
 	count: number;
 	userData: UD;
 }
 
-export interface PositionedStructField<UD> extends DeepReadonly<StructField<UD>> {
+export interface PositionedField<UD> extends DeepReadonly<Field<UD>> {
 	readonly byteOffset: number;
 	readonly sizeBytes: number;
 }
 
-export type PositionedStructFieldArray<UD> = ReadonlyArray<PositionedStructField<UD>>;
+export type PositionedFieldArray<UD> = ReadonlyArray<PositionedField<UD>>;
 
-export interface StructLayout<UD> {
-	readonly posFields: PositionedStructFieldArray<UD>;
+export interface Layout<UD> {
+	readonly posFields: PositionedFieldArray<UD>;
 	readonly totalSizeBytes: number;
 }
 
-export type StructAlignmentFn = <UD>(fields: StructField<UD>[]) => StructLayout<UD>;
+export type AlignmentFn = <UD>(fields: Field<UD>[]) => Layout<UD>;
 
-export function structFieldSizeBytes(field: StructField) {
+export function fieldSizeBytes(field: Field) {
 	return field.type.byteSize * field.count;
 }
 
-export function structLayoutSizeBytesForCount(layout: StructLayout<any>, structCount: number) {
+export function layoutSizeBytesForCount(layout: Layout<any>, structCount: number) {
 	return layout.totalSizeBytes * structCount;
 }
 
-export function packStructFields<UD>(fields: StructField<UD>[]): StructLayout<UD> {
+export function packFields<UD>(fields: Field<UD>[]): Layout<UD> {
 	let totalOffset = 0;
 	const posFields = fields.map(field => {
 		const curOffset = totalOffset;
-		const sizeBytes = structFieldSizeBytes(field);
+		const sizeBytes = fieldSizeBytes(field);
 		totalOffset += sizeBytes;
 
 		return {
@@ -54,24 +54,24 @@ export function packStructFields<UD>(fields: StructField<UD>[]): StructLayout<UD
 	return { posFields, totalSizeBytes: totalOffset };
 }
 
-function alignStructField(field: StructField, offset: number) {
-	const sizeBytes = structFieldSizeBytes(field);
+function alignField(field: Field, offset: number) {
+	const sizeBytes = fieldSizeBytes(field);
 	const mask = roundUpPowerOf2(sizeBytes) - 1;
 	return (offset + mask) & ~mask;
 }
 
-export function alignStructFields<UD>(fields: StructField<UD>[]): StructLayout<UD> {
+export function alignFields<UD>(fields: Field<UD>[]): Layout<UD> {
 	let totalOffset = 0;
 	const posFields = fields.map(field => {
 		const curOffset = totalOffset;
-		totalOffset = alignStructField(field, totalOffset);
+		totalOffset = alignField(field, totalOffset);
 
 		return {
 			type: field.type,
 			count: field.count,
 			userData: field.userData as DeepReadonly<UD>,
 			byteOffset: curOffset,
-			sizeBytes: structFieldSizeBytes(field)
+			sizeBytes: fieldSizeBytes(field)
 		};
 	});
 
@@ -111,7 +111,7 @@ function calcAlignedStorageSize(itemSizeBytes: number, minCapacity: number, flag
 	};
 }
 
-export interface StructStorage {
+export interface Storage {
 	readonly itemSizeBytes: number;
 	readonly storageAlignment: StorageAlignment;
 	capacity: number;
@@ -126,7 +126,7 @@ export interface StructStorage {
  * @expects isPositiveNonZeroInteger(itemSizeBytes)
  * @expects isPositiveNonZeroInteger(minCapacity)
  */
-function allocStorage(itemSizeBytes: number, minCapacity: number, storageAlignment: StorageAlignment): StructStorage {
+function allocStorage(itemSizeBytes: number, minCapacity: number, storageAlignment: StorageAlignment): Storage {
 	const { capacity, sizeBytes } = calcAlignedStorageSize(itemSizeBytes, minCapacity, storageAlignment);
 
 	return {
@@ -141,11 +141,11 @@ function allocStorage(itemSizeBytes: number, minCapacity: number, storageAlignme
 /**
  * @param itemSizeBytes Size in bytes of each individual element in the storge
  * @param minCapacity The number of elements that _at least_ need to fit in the storage.
- * @param buffer The buffer to use for the 
+ * @param buffer The buffer to use for the
  * @expects isPositiveNonZeroInteger(itemSizeBytes)
  * @expects isPositiveNonZeroInteger(minCapacity)
  */
-function createStorageInBuffer(itemSizeBytes: number, minCapacity: number, storageAlignment: StorageAlignment, buffer: Uint8Array): StructStorage {
+function createStorageInBuffer(itemSizeBytes: number, minCapacity: number, storageAlignment: StorageAlignment, buffer: Uint8Array): Storage {
 	const { capacity, sizeBytes } = calcAlignedStorageSize(itemSizeBytes, minCapacity, storageAlignment);
 
 	if (sizeBytes > buffer.byteLength) {
@@ -166,7 +166,7 @@ function createStorageInBuffer(itemSizeBytes: number, minCapacity: number, stora
  * Can be arrays of structs with interleaved fields or
  * structs of arrays with fields laid out contiguously.
  */
-export const enum StructTopology {
+export const enum Topology {
 	StructOfArrays,
 	ArrayOfStructs
 }
@@ -175,17 +175,17 @@ export const enum StructTopology {
  * Low-level fixed-size storage of structured arrays.
  */
 export interface StructuredArray<UD> {
-	readonly layout: StructLayout<UD>;
-	readonly topology: StructTopology;
-	readonly storage: StructStorage;
+	readonly layout: Layout<UD>;
+	readonly topology: Topology;
+	readonly storage: Storage;
 }
 
 /**
  * Allocate and create a structured array of the requested capacity and topology.
- * 
+ *
  * @expects isPositiveNonZeroInteger(minCapacity)
  */
-export function createStructuredArray<UD>(layout: StructLayout<UD>, topology: StructTopology, minCapacity: number, storageAlignment: StorageAlignment): StructuredArray<UD> {
+export function createStructuredArray<UD>(layout: Layout<UD>, topology: Topology, minCapacity: number, storageAlignment: StorageAlignment): StructuredArray<UD> {
 	const storage = allocStorage(layout.totalSizeBytes, minCapacity, storageAlignment);
 	return {
 		layout,
@@ -196,10 +196,10 @@ export function createStructuredArray<UD>(layout: StructLayout<UD>, topology: St
 
 /**
  * Create a structured array of the requested capacity and topology inside a provided buffer.
- * 
+ *
  * @expects isPositiveNonZeroInteger(minCapacity)
  */
-export function createStructuredArrayInBuffer<UD>(layout: StructLayout<UD>, topology: StructTopology, minCapacity: number, storageAlignment: StorageAlignment, buffer: Uint8Array): StructuredArray<UD> {
+export function createStructuredArrayInBuffer<UD>(layout: Layout<UD>, topology: Topology, minCapacity: number, storageAlignment: StorageAlignment, buffer: Uint8Array): StructuredArray<UD> {
 	const storage = createStorageInBuffer(layout.totalSizeBytes, minCapacity, storageAlignment, buffer);
 	return {
 		layout,
@@ -211,7 +211,7 @@ export function createStructuredArrayInBuffer<UD>(layout: StructLayout<UD>, topo
 /**
  * Resize a structured array to accomodate a new minumum capacity.
  * Handles any data layout changes necessary for the active topology.
- * 
+ *
  * @expects sarr.storage.owned === true
  * @expects isPositiveNonZeroInteger(newMinCapacity)
  */
@@ -225,7 +225,7 @@ export function resizeStructuredArray<UD>(sarr: StructuredArray<UD>, newMinCapac
 
 	let newBuffer: ArrayBufferLike;
 
-	if (sarr.topology === StructTopology.ArrayOfStructs) {
+	if (sarr.topology === Topology.ArrayOfStructs) {
 		// for an array of structs, we simply reduce or enlarge the buffer
 		newBuffer = transferArrayBuffer(sarr.storage.data.buffer, newSizeBytes);
 		if (newSizeBytes < currentSizeBytes) {
@@ -246,7 +246,7 @@ export function resizeStructuredArray<UD>(sarr: StructuredArray<UD>, newMinCapac
 		// because all arrays are a multiple of 32 elements long, we can use double views
 		// to copy over data reasonable quickly.
 		const oldCapacity = sarr.storage.capacity;
-		const doublesPerArray = (structLayoutSizeBytesForCount(sarr.layout, oldCapacity) / Float64Array.BYTES_PER_ELEMENT) | 0;
+		const doublesPerArray = (layoutSizeBytesForCount(sarr.layout, oldCapacity) / Float64Array.BYTES_PER_ELEMENT) | 0;
 
 		for (const field of sarr.layout.posFields) {
 			const oldView = new Float64Array(sarr.storage.data.buffer, field.byteOffset * oldCapacity, doublesPerArray);
