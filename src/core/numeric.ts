@@ -5,8 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
-
 /**
  * Interface describing a binary representation of a number including its
  * limits, storage requirements and associated TypedArray constructor.
@@ -142,5 +140,3 @@ export const Double: NumericType = Object.freeze({
 	byteSize: 8,
 	arrayType: Float64Array
 });
-
-} // ns sd
