@@ -25,7 +25,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-namespace sd.mat3 {
+import { VEC_EPSILON } from "./common";
 
 type ACN = NumArray;
 type AN = MutNumArray;
@@ -528,5 +528,3 @@ export function equals(a: ACN, b: ACN) {
 			Math.abs(a7 - b7) <= VEC_EPSILON * Math.max(1.0, Math.abs(a7), Math.abs(b7)) &&
 			Math.abs(a8 - b8) <= VEC_EPSILON * Math.max(1.0, Math.abs(a8), Math.abs(b8)));
 }
-
-} // ns sd.mat3

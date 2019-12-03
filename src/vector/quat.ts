@@ -25,7 +25,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-namespace sd.quat {
+import { VEC_EPSILON } from "./common";
+import * as mat3 from "./mat3";
+import * as vec3 from "./vec3";
+import * as vec4 from "./vec4";
 
 type ACN = NumArray;
 type AN = MutNumArray;
@@ -245,7 +248,7 @@ export function slerp(out: AN, a: ACN, b: ACN, t: number) {
 		scale1 = Math.sin(t * omega) / sinom;
 	}
 	else {
-		// "from" and "to" quaternions are very close 
+		// "from" and "to" quaternions are very close
 		//  ... so we can do a linear interpolation
 		scale0 = 1.0 - t;
 		scale1 = t;
@@ -374,4 +377,3 @@ export const exactEquals = vec4.exactEquals;
 
 export const equals = vec4.equals;
 
-} // ns sd.quat

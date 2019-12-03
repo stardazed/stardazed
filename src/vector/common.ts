@@ -5,8 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
-
 /** @internal */
 export const VEC_EPSILON = 0.000001;
 
@@ -18,5 +16,3 @@ export interface VecArrayIterationOptions {
 }
 
 export type VecArrayIterationFunction = (out: MutNumArray, a: NumArray, ...args: any[]) => void;
-
-} // ns sd

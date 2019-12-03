@@ -25,7 +25,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-namespace sd.vec4 {
+import { clamp01f, clampf, mixf } from "../core";
+import { VEC_EPSILON, VecArrayIterationOptions, VecArrayIterationFunction } from "./common";
 
 type ACN = NumArray;
 type AN = MutNumArray;
@@ -424,5 +425,3 @@ export function equals(a: ACN, b: ACN) {
 			Math.abs(a2 - b2) <= VEC_EPSILON * Math.max(1.0, Math.abs(a2), Math.abs(b2)) &&
 			Math.abs(a3 - b3) <= VEC_EPSILON * Math.max(1.0, Math.abs(a3), Math.abs(b3)));
 }
-
-} // ns sd.vec4

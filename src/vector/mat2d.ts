@@ -1,9 +1,9 @@
 /**
- * vector/mat2d - 3x2 matrix type 
+ * vector/mat2d - 3x2 matrix type
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
- * 
+ *
  * @description
  * A mat2d contains six elements defined as:
  * <pre>
@@ -39,7 +39,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-namespace sd.mat2d {
+import { VEC_EPSILON } from "./common";
 
 type ACN = NumArray;
 type AN = MutNumArray;
@@ -289,5 +289,3 @@ export function equals(a: ACN, b: ACN) {
 			Math.abs(a4 - b4) <= VEC_EPSILON * Math.max(1.0, Math.abs(a4), Math.abs(b4)) &&
 			Math.abs(a5 - b5) <= VEC_EPSILON * Math.max(1.0, Math.abs(a5), Math.abs(b5)));
 }
-
-} // ns sd.mat2d

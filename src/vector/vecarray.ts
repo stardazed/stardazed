@@ -5,8 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
-
 export function refIndexedVec2(data: TypedArray, index: number): TypedArray {
 	return data.subarray(index * 2, (index + 1) * 2);
 }
@@ -140,5 +138,3 @@ export function setIndexedMat4(data: TypedArray, index: number, m4: Float4x4) {
 }
 
 export function offsetOfIndexedMat4(index: number) { return (index * 16) | 0; }
-
-} // ns sd

@@ -1,9 +1,11 @@
 {
 	"extends": "../tsconfig-base.json",
 	"compilerOptions": {
-		"outFile": "../../build/vector.js"
+		"outDir": "../../build/vector"
 	},
 	"files": [
+		"../global-types.d.ts",
+
 		"common.ts",
 
 		"vec2.ts",
@@ -15,7 +17,9 @@
 		"mat4.ts",
 		"quat.ts",
 
-		"vecarray.ts"
+		"vecarray.ts",
+
+		"index.ts"
 	],
 	"references": [
 		{ "path": "../core" }
