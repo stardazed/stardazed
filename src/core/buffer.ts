@@ -1,9 +1,9 @@
-/**
- * core/array/buffer - working with large arrays and arraybuffers
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+core/buffer - working with large arrays and arraybuffers
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 /**
  * Resize the backing store of an ArrayBuffer, retaining the data.

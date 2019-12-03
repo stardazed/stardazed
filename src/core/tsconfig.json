@@ -6,16 +6,11 @@
 	"files": [
 		"../global-types.d.ts",
 
-		"array/index.ts",
-		"array/ordering.ts",
-		"array/algorithm.ts",
-		"array/binary-search.ts",
-		"array/buffer.ts",
-		"array/sort.ts",
-
-		"object.ts",
-		"numeric.ts",
+		"algorithm.ts",
+		"buffer.ts",
 		"math.ts",
+		"numeric.ts",
+		"sort.ts",
 
 		"index.ts"
 	]

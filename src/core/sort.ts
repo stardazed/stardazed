@@ -1,11 +1,11 @@
-/**
- * core/array/sort - sorting algorithms
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+core/sort - sorting algorithms
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
-import { FullOrderCompareFn } from "./ordering";
+import { FullOrderCompareFn } from "./algorithm";
 
 /**
  * In-place stable insertion sort a range of elements inside an array

@@ -1,9 +1,9 @@
-/**
- * core/numeric - numeric types and traits
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+core/numeric - numeric types and traits
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 /**
  * Interface describing a binary representation of a number including its

@@ -1,9 +1,9 @@
-/**
- * core/math - mathematical helper functions
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+core/math - mathematical helper functions
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 /**
  * Clamp a number to the range min..max inclusive.
