@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import * as core from "../core";
+import * as core from "stardazed/core";
 
 export class SortedArray<T> {
 	/** @internal */

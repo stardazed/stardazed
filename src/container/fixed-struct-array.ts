@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { clearArrayBuffer } from "../core";
+import { clearArrayBuffer } from "stardazed/core";
 import * as sa from "./structured-array";
 
 export class FixedStructArray<UD = unknown> {

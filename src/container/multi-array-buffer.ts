@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { clearArrayBuffer, roundUpPowerOf2 } from "../core";
+import { clearArrayBuffer, roundUpPowerOf2 } from "stardazed/core";
 import * as struct from "./structured-array";
 
 export const enum InvalidatePointers {

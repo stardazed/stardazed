@@ -25,7 +25,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-import { clamp01f, clampf, mixf } from "../core";
+import { clamp01f, clampf, mixf } from "stardazed/core";
 import { VEC_EPSILON, VecArrayIterationOptions, VecArrayIterationFunction } from "./common";
 
 type ACN = NumArray;

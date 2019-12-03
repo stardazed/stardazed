@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { NumericType, alignUp, clearArrayBuffer, roundUpPowerOf2, transferArrayBuffer } from "../core";
+import { NumericType, alignUp, clearArrayBuffer, roundUpPowerOf2, transferArrayBuffer } from "stardazed/core";
 
 export interface Field<UD = unknown> {
 	type: NumericType;

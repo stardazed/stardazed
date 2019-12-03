@@ -1,7 +1,11 @@
 {
 	"extends": "../tsconfig-base.json",
 	"compilerOptions": {
-		"outDir": "../../build/container"
+		"outDir": "../../build/container",
+		"baseUrl": ".",
+		"paths": {
+			"stardazed/*": ["../*"]
+		}
 	},
 	"files": [
 		"../global-types.d.ts",
