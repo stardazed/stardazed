@@ -1,9 +1,9 @@
-/**
- * container/structured-array - multi-topology array container
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+container/structured-array - multi-topology structured array
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 import { NumericType, alignUp, clearArrayBuffer, roundUpPowerOf2, transferArrayBuffer } from "../core";
 

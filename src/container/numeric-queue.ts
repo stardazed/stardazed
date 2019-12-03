@@ -1,9 +1,9 @@
-/**
- * container/numeric-queue - numeric chunked queue
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+container/numeric-queue - numeric chunked queue
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 /**
  * Numeric queue with array-like methods.

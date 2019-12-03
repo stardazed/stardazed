@@ -1,9 +1,9 @@
-/**
- * container/sorted-array - always-sorted array type
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+container/sorted-array - always-sorted array type
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 import * as core from "../core";
 

@@ -1,9 +1,9 @@
-/**
- * container/numeric-deque - double-ended numeric chunked queue
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+container/numeric-deque - double-ended numeric chunked queue
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 /**
  * Numeric queue with array-like methods. Use for numeric queues that

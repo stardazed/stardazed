@@ -1,9 +1,9 @@
-/**
- * container/chunked-queue - generic chunked large queue
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+container/chunked-queue - generic chunked large queue
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 const CHUNK_SIZE = 32768;
 

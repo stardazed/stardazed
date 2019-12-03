@@ -1,12 +1,12 @@
-/**
- * container/multi-array-buffer - dynamically sized struct of arrays
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+container/multi-array-buffer - dynamically sized struct of arrays
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 import { clearArrayBuffer, roundUpPowerOf2 } from "../core";
-import * as sa from "./structured-array";
+import * as struct from "./structured-array";
 
 export const enum InvalidatePointers {
 	No,
@@ -15,7 +15,7 @@ export const enum InvalidatePointers {
 
 export class MultiArrayBuffer<UD = unknown> {
 	/** @internal */
-	private readonly backing_: sa.StructuredArray<UD>;
+	private readonly backing_: struct.StructuredArray<UD>;
 	/** @internal */
 	private count_ = 0;
 
@@ -23,9 +23,9 @@ export class MultiArrayBuffer<UD = unknown> {
 	 * @expects isPositiveNonZeroInteger(initialCapacity)
 	 * @expects fields.length > 0
 	 */
-	constructor(initialCapacity: number, fields: sa.StructField<UD>[], alignmentFn: sa.StructAlignmentFn = sa.packStructFields) {
+	constructor(initialCapacity: number, fields: struct.Field<UD>[], alignmentFn: struct.AlignmentFn = struct.packFields) {
 		const layout = alignmentFn(fields);
-		this.backing_ = sa.createStructuredArray(layout, sa.StructTopology.StructOfArrays, initialCapacity, sa.StorageAlignment.ItemMultipleOf32);
+		this.backing_ = struct.createStructuredArray(layout, struct.Topology.StructOfArrays, initialCapacity, struct.StorageAlignment.ItemMultipleOf32);
 	}
 
 	get fieldCount() { return this.backing_.layout.posFields.length; }
@@ -44,17 +44,17 @@ export class MultiArrayBuffer<UD = unknown> {
 	 * @expects itemCount > 0
 	 * @internal
 	 */
-	private fieldArrayView(f: sa.PositionedStructField<UD>, buffer: ArrayBufferLike, itemCount: number) {
+	private fieldArrayView(f: struct.PositionedField<UD>, buffer: ArrayBufferLike, itemCount: number) {
 		const byteOffset = f.byteOffset * itemCount;
 		return new (f.type.arrayType)(buffer, byteOffset, itemCount * f.count);
 	}
 
 	/**
-	 * @expects newCapacity > 0 
+	 * @expects newCapacity > 0
 	 */
 	reserve(newCapacity: number): InvalidatePointers {
 		const oldCapacity = this.backing_.storage.capacity;
-		sa.resizeStructuredArray(this.backing_, newCapacity);
+		struct.resizeStructuredArray(this.backing_, newCapacity);
 
 		const invalidation = oldCapacity === this.capacity ? InvalidatePointers.No : InvalidatePointers.Yes;
 		return invalidation;

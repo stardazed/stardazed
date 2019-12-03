@@ -15,7 +15,9 @@
 		"fixed-multi-array.ts",
 		"multi-array-buffer.ts",
 
-		"sorted-array.ts"
+		"sorted-array.ts",
+
+		"index.ts"
 	],
 	"references": [
 		{ "path": "../core" }
