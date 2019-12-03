@@ -1,15 +1,16 @@
 /**
- * structured-storage/fixed-multi-array - fixed-size struct of arrays
+ * container/fixed-multi-array - fixed-size struct of arrays
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
+import { clearArrayBuffer } from "../core";
+import * as sa from "./structured-array";
 
 export class FixedMultiArray<UD = unknown> {
 	/** @internal */
-	private readonly backing_: StructuredArray<UD>;
+	private readonly backing_: sa.StructuredArray<UD>;
 	/** @internal */
 	private readonly basePointers_: TypedArray[];
 
@@ -17,9 +18,9 @@ export class FixedMultiArray<UD = unknown> {
 	 * @expects isPositiveNonZeroInteger(capacity)
 	 * @expects fields.length > 0
 	 */
-	constructor(capacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = packStructFields) {
+	constructor(capacity: number, fields: sa.StructField<UD>[], alignmentFn: sa.StructAlignmentFn = sa.packStructFields) {
 		const layout = alignmentFn(fields);
-		this.backing_ = createStructuredArray(layout, StructTopology.StructOfArrays, capacity, StorageAlignment.ItemMultipleOf32);
+		this.backing_ = sa.createStructuredArray(layout, sa.StructTopology.StructOfArrays, capacity, sa.StorageAlignment.ItemMultipleOf32);
 
 		this.basePointers_ = layout.posFields.map(posField => {
 			const byteOffset = this.backing_.storage.capacity * posField.byteOffset;
@@ -49,5 +50,3 @@ export class FixedMultiArray<UD = unknown> {
 		return this.basePointers_[index];
 	}
 }
-
-} // ns sd

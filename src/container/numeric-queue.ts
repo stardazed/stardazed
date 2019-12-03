@@ -1,5 +1,5 @@
 /**
- * queue/numeric-queue - numeric chunked queue
+ * container/numeric-queue - numeric chunked queue
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed

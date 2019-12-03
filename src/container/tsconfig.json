@@ -6,17 +6,14 @@
 	"files": [
 		"../global-types.d.ts",
 
-		"queue/chunked-queue.ts",
-		"queue/numeric-queue.ts",
-		"queue/numeric-deque.ts",
+		"chunked-queue.ts",
+		"numeric-queue.ts",
+		"numeric-deque.ts",
 
-		"structured-storage/storage-alignment.ts",
-		"structured-storage/layout.ts",
-		"structured-storage/storage.ts",
-		"structured-storage/structured-array.ts",
-		"structured-storage/fixed-struct-array.ts",
-		"structured-storage/fixed-multi-array.ts",
-		"structured-storage/multi-array-buffer.ts",
+		"structured-array.ts",
+		"fixed-struct-array.ts",
+		"fixed-multi-array.ts",
+		"multi-array-buffer.ts",
 
 		"sorted-array.ts"
 	],

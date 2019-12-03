@@ -1,15 +1,16 @@
 /**
- * structured-storage/fixed-struct-array - fixed-size array of numeric structs
+ * container/fixed-struct-array - fixed-size array of numeric structs
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
+import { clearArrayBuffer } from "../core";
+import * as sa from "./structured-array";
 
 export class FixedStructArray<UD = unknown> {
 	/** @internal */
-	private readonly backing_: StructuredArray<UD>;
+	private readonly backing_: sa.StructuredArray<UD>;
 	/** @internal */
 	private readonly structSize_: number;
 
@@ -17,9 +18,9 @@ export class FixedStructArray<UD = unknown> {
 	 * @expects isPositiveNonZeroInteger(capacity)
 	 * @expects fields.length > 0
 	 */
-	constructor(capacity: number, fields: StructField<UD>[], alignmentFn: StructAlignmentFn = alignStructFields) {
+	constructor(capacity: number, fields: sa.StructField<UD>[], alignmentFn: sa.StructAlignmentFn = sa.alignStructFields) {
 		const layout = alignmentFn(fields);
-		this.backing_ = createStructuredArray(layout, StructTopology.ArrayOfStructs, capacity, StorageAlignment.ItemMultipleOf32);
+		this.backing_ = sa.createStructuredArray(layout, sa.StructTopology.ArrayOfStructs, capacity, sa.StorageAlignment.ItemMultipleOf32);
 		this.structSize_ = layout.totalSizeBytes;
 	}
 
@@ -64,5 +65,3 @@ export class FixedStructArray<UD = unknown> {
 		clearArrayBuffer(this.backing_.storage.data.buffer);
 	}
 }
-
-} // ns sd
