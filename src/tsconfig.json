@@ -4,5 +4,6 @@
 	"references": [
 		{ "path": "container" },
 		{ "path": "vector" },
+		{ "path": "index-buffer" }
 	]
 }
