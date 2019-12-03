@@ -5,8 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
-
 export function triangleViewForIndexBuffer(ib: IndexBuffer): TriangleView {
 	return new IndexBufferTriangleView(ib);
 }
@@ -45,5 +43,3 @@ export function triangleViewForSubMesh(geom: Geometry, subMeshIndex: number) {
 	}
 	return new DirectTriangleView(subMesh.elementCount, fromTriangle, toTriangle);
 }
-
-} // ns sd

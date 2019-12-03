@@ -1,11 +1,9 @@
-/**
- * geometry/allocate - efficiently allocate geometry data
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
-
-namespace sd {
+/*
+geometry/allocate - efficiently allocate geometry data
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 function bytesNeededForGeometry(options: GeometryAllocOptions) {
 	let totalBytes = 0;
@@ -58,5 +56,3 @@ export function allocateGeometry(options: GeometryAllocOptions): Geometry {
 
 	return geom;
 }
-
-} // ns sd

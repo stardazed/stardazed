@@ -1,11 +1,11 @@
-/**
- * geometry/direct-triangle-view - immutable triangle view for non-indexed data
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+index-buffer/direct-triangle-view - immutable triangle view for non-indexed data
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
-namespace sd {
+import { TriangleProxy, TriangleView, Triangle, MutableTriangleView } from "./triangle-view";
 
 /** @internal */
 class DirectTriangleProxy implements TriangleProxy {
@@ -88,5 +88,3 @@ export class DirectTriangleView implements TriangleView {
 		throw new Error("This TriangleView is immutable");
 	}
 }
-
-} // ns sd

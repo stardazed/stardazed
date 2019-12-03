@@ -5,8 +5,6 @@
  * https://github.com/stardazed/stardazed
  */
 
-namespace sd {
-
 export interface GeometryLayout {
 	readonly layouts: ReadonlyArray<VertexBufferLayout>;
 }
@@ -33,7 +31,7 @@ export function findAttributeOfRoleInLayout(gl: GeometryLayout, role: VertexAttr
 
 export function makeStandardGeometryLayout(attrLists: VertexAttribute[] | VertexAttribute[][]): GeometryLayout {
 	const layouts: VertexBufferLayout[] = [];
-	
+
 	if (attrLists.length > 0) {
 		if (isVertexAttribute(attrLists[0])) {
 			layouts.push(makeStandardVertexBufferLayout(attrLists as VertexAttribute[]));
@@ -49,5 +47,3 @@ export function makeStandardGeometryLayout(attrLists: VertexAttribute[] | Vertex
 		layouts
 	};
 }
-
-} // ns sd

@@ -1,5 +1,5 @@
 /**
- * geometry/indexed-triangle-view - mutable triangle view for indexed data
+ * index-buffer/indexed-triangle-view - mutable triangle view for indexed data
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed

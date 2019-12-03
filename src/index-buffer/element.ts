@@ -1,11 +1,11 @@
-/**
- * index-buffer/element - vertex index element
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+index-buffer/element - vertex index element
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
-namespace sd {
+import { UInt8, UInt16, UInt32, makeLookupTable } from "stardazed/core";
 
 export const enum IndexElementType {
 	None,
@@ -22,7 +22,7 @@ export function isValidIndexElementType(val: any): val is IndexElementType {
 	return val >= IndexElementType.UInt8 && val <= IndexElementType.UInt32;
 }
 
-export const indexElementTypeSizeBytes = makeLookupTable(
+const indexElementTypeSizeBytes = makeLookupTable(
 	[IndexElementType.None, NaN],
 	[IndexElementType.UInt8, UInt8.byteSize],
 	[IndexElementType.UInt16, UInt16.byteSize],
@@ -63,5 +63,3 @@ export function arrayTypeForIndexElement(elementType: IndexElementType): TypedAr
 			throw new Error("Invalid IndexElementType");
 	}
 }
-
-} // ns sd

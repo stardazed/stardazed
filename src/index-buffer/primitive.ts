@@ -1,11 +1,9 @@
-/**
- * index-buffer/primitive - index primitive traits
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
-
-namespace sd {
+/*
+index-buffer/primitive - index primitive traits
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 export const enum PrimitiveType {
 	None,
@@ -89,5 +87,3 @@ export function primitiveCountForElementCount(primitiveType: PrimitiveType, elem
 			return NaN;
 	}
 }
-
-} // ns sd

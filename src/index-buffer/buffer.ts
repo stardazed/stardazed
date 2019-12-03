@@ -1,11 +1,11 @@
-/**
- * index-buffer/buffer - index primitive storage
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+index-buffer/buffer - index primitive storage
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
-namespace sd {
+import { IndexElementType, isValidIndexElementType, bytesRequiredForIndexCount, arrayTypeForIndexElement } from "./element";
 
 /**
  * An IndexBuffer is a simple structure that holds storage and metatdata
@@ -76,5 +76,3 @@ export function indexBufferRangeView(ib: IndexBuffer, baseIndexNr: number, index
 export function indexBufferView(ib: IndexBuffer) {
 	return indexBufferRangeView(ib, 0, ib.indexCount);
 }
-
-} // ns sd

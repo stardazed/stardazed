@@ -1,11 +1,9 @@
-/**
- * geometry/types - building blocks of geometry objects
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
-
-namespace sd {
+/*
+geometry/types - building blocks of geometry objects
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 export interface PrimitiveGroup {
 	type: PrimitiveType;
@@ -14,7 +12,8 @@ export interface PrimitiveGroup {
 }
 
 export interface SubMesh extends PrimitiveGroup {
-	materialIx: number; // arbitrary material index or reference; representation of Materials is external to Geometry
+	/** arbitrary material index or reference; representation of Materials is external to Geometry */
+	materialIx: number;
 }
 
 export const enum BufferAlignment {
@@ -50,5 +49,3 @@ export function findAttributeOfRoleInGeometry(geom: Geometry, role: VertexAttrib
 	}
 	return undefined;
 }
-
-} // ns sd

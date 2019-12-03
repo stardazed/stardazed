@@ -1,11 +1,9 @@
 /**
- * geometry-gen/manipulate - geometry manipulators
+ * geometry/manipulate - transforming geometry
  * Part of Stardazed
  * (c) 2015-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/stardazed
  */
-
-namespace sd.asset {
 
 export function scale(geom: Geometry, scale: Float3) {
 	const posAttr = findAttributeOfRoleInGeometry(geom, VertexAttributeRole.Position);
@@ -60,5 +58,3 @@ export function transform(geom: Geometry, actions: { rotate?: Float4, translate?
 		normView.forEach(norm => { vec3.transformMat3(norm, norm, normalMatrix); });
 	}
 }
-
-} // ns sd.asset

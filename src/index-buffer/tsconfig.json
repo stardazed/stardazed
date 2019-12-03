@@ -1,0 +1,22 @@
+{
+	"extends": "../tsconfig-base.json",
+	"compilerOptions": {
+		"outDir": "../../build/index-buffer",
+		"baseUrl": ".",
+		"paths": {
+			"stardazed/*": ["../*"]
+		}
+	},
+	"files": [
+		"../global-types.d.ts",
+
+		"primitive.ts",
+		"element.ts",
+		"buffer.ts",
+
+		"index.ts"
+	],
+	"references": [
+		{ "path": "../core" }
+	]
+}
