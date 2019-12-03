@@ -17,5 +17,14 @@
 		"game-engine",
 		"webgl",
 		"3d"
-	]
+	],
+	"scripts": {
+		"roll": "rollup -c"
+	},
+	"devDependencies": {
+		"rollup": "^1.27.8",
+		"rollup-plugin-dts": "^1.1.12",
+		"tslib": "^1.10.0",
+		"typescript": "^3.7.2"
+	}
 }
