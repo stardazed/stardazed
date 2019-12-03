@@ -19,7 +19,10 @@
 		"3d"
 	],
 	"scripts": {
-		"roll": "rollup -c"
+		"compile": "tsc -b src/tsconfig.json",
+		"compile:watch": "tsc -b -w src/tsconfig.json",
+		"bundle": "rollup -c",
+		"bundle:watch": "rollup -c -w"
 	},
 	"devDependencies": {
 		"rollup": "^1.27.8",

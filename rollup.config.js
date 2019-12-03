@@ -24,7 +24,9 @@ function indexes(module) {
 				paths,
 				banner: `/// <reference path="../global-types.d.ts" />`
 			}],
-			plugins: [dts()],
+			plugins: [
+				dts()
+			],
 			external
 		}
 	];
