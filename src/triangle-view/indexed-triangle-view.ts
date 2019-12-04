@@ -1,11 +1,12 @@
-/**
- * index-buffer/indexed-triangle-view - mutable triangle view for indexed data
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+index-buffer/indexed-triangle-view - mutable triangle view for indexed data
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
-namespace sd {
+import { IndexBuffer, PrimitiveType, primitiveCountForElementCount, indexBufferRangeView } from "stardazed/index-buffer";
+import { MutableTriangle, MutableTriangleProxy, TriangleView } from "./types";
 
 /** @internal */
 class IndexedTriangleProxy implements MutableTriangleProxy {
@@ -95,5 +96,3 @@ export class IndexBufferTriangleView implements TriangleView {
 		return this;
 	}
 }
-
-} // ns sd

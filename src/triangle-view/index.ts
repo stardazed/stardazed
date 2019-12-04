@@ -1,9 +1,17 @@
-/**
- * geometry/triangle-view - geometry triangle array views
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+triangle-view - geometry triangle primitive array views
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
+
+import { IndexBuffer, PrimitiveType, primitiveCountForElementCount } from "stardazed/index-buffer";
+import { Geometry } from "stardazed/geometry";
+import { TriangleView } from "./types";
+import { IndexBufferTriangleView } from "./indexed-triangle-view";
+import { DirectTriangleView } from "./direct-triangle-view";
+
+export * from "./types";
 
 export function triangleViewForIndexBuffer(ib: IndexBuffer): TriangleView {
 	return new IndexBufferTriangleView(ib);
@@ -16,7 +24,7 @@ export function triangleViewSupportedOnGeometry(geom: Geometry) {
 /**
  * @expects triangleViewSupportedOnGeometry(geom)
  */
-export function triangleViewForGeometry(geom: Geometry) {
+export function triangleViewForGeometry(geom: Geometry): TriangleView {
 	if (geom.indexBuffer) {
 		return new IndexBufferTriangleView(geom.indexBuffer);
 	}
@@ -33,7 +41,7 @@ export function triangleViewSupportedOnSubMesh(geom: Geometry, subMeshIndex: num
 /**
  * @expects triangleViewSupportedOnSubMesh(geom, subMeshIndex)
  */
-export function triangleViewForSubMesh(geom: Geometry, subMeshIndex: number) {
+export function triangleViewForSubMesh(geom: Geometry, subMeshIndex: number): TriangleView {
 	const subMesh = geom.subMeshes[subMeshIndex];
 	const fromTriangle = primitiveCountForElementCount(PrimitiveType.Triangle, subMesh.fromElement);
 	const toTriangle = fromTriangle + primitiveCountForElementCount(PrimitiveType.Triangle, subMesh.elementCount);

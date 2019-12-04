@@ -1,0 +1,24 @@
+{
+	"extends": "../tsconfig-base.json",
+	"compilerOptions": {
+		"outDir": "../../build/triangle-view",
+		"baseUrl": ".",
+		"paths": {
+			"stardazed/*": ["../*"]
+		}
+	},
+	"files": [
+		"../global-types.d.ts",
+
+		"types.ts",
+		"direct-triangle-view.ts",
+		"indexed-triangle-view.ts",
+
+		"index.ts"
+	],
+	"references": [
+		{ "path": "../core" },
+		{ "path": "../index-buffer" },
+		{ "path": "../geometry" }
+	]
+}

@@ -1,11 +1,12 @@
 /*
-index-buffer/direct-triangle-view - immutable triangle view for non-indexed data
+triangle-view/direct-triangle-view - immutable triangle view for non-indexed data
 Part of Stardazed
 (c) 2015-Present by Arthur Langereis - @zenmumbler
 https://github.com/stardazed/stardazed
 */
 
-import { TriangleProxy, TriangleView, Triangle, MutableTriangleView } from "./triangle-view";
+import { PrimitiveType, elementCountForPrimitiveCount, primitiveCountForElementCount } from "stardazed/index-buffer";
+import { TriangleProxy, TriangleView, Triangle, MutableTriangleView } from "./types";
 
 /** @internal */
 class DirectTriangleProxy implements TriangleProxy {
