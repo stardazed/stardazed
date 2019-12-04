@@ -6,5 +6,7 @@
 		{ "path": "vector" },
 		{ "path": "index-buffer" },
 		{ "path": "vertex-buffer" },
+		{ "path": "geometry" },
+		{ "path": "triangle-view" },
 	]
 }
