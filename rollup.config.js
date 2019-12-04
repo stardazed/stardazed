@@ -4,12 +4,12 @@ import dts from "rollup-plugin-dts";
 const external = id => id.startsWith("stardazed/");
 const paths = id => id.startsWith("stardazed/") && `${id.replace("stardazed", "..")}`;
 
-function indexes(module) {
+function module(name) {
 	return [
 		{
-			input: `build/${module}/index.js`,
+			input: `build/${name}/index.js`,
 			output: [{
-				file: `dist/${module}/index.js`,
+				file: `dist/${name}/index.js`,
 				format: "esm",
 				paths
 			}],
@@ -17,9 +17,9 @@ function indexes(module) {
 			external
 		},
 		{
-			input: `build/${module}/index.d.ts`,
+			input: `build/${name}/index.d.ts`,
 			output: [{
-				file: `dist/${module}/index.d.ts`,
+				file: `dist/${name}/index.d.ts`,
 				format: "esm",
 				paths,
 				banner: `/// <reference path="../global-types.d.ts" />`
@@ -34,4 +34,4 @@ function indexes(module) {
 
 fs.copyFileSync("src/global-types.d.ts", "dist/global-types.d.ts");
 
-export default ["core", "container", "vector"].map(indexes).flat();
+export default ["core", "container", "vector", "index-buffer"].flatMap(module);
