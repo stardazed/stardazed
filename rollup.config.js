@@ -34,4 +34,10 @@ function module(name) {
 
 fs.copyFileSync("src/global-types.d.ts", "dist/global-types.d.ts");
 
-export default ["core", "container", "vector", "index-buffer"].flatMap(module);
+export default [
+	"core",
+	"container",
+	"vector",
+	"index-buffer",
+	"vertex-buffer"
+].flatMap(module);

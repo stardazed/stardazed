@@ -1,13 +1,16 @@
-/**
- * vertex-buffer/buffer-layout - layout of attributes within a buffer
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+vertex-buffer/buffer-layout - layout of attributes within a buffer
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
-namespace sd {
+import { roundUpPowerOf2 } from "stardazed/core";
+import { struct } from "stardazed/container";
+import { VertexField, vertexFieldElementSizeBytes, vertexFieldNumericType, vertexFieldElementCount, vertexFieldSizeBytes } from "./field";
+import { VertexAttribute, VertexAttributeRole } from "./attribute";
 
-export type PositionedAttribute = PositionedStructField<VertexAttribute>;
+export type PositionedAttribute = struct.PositionedField<VertexAttribute>;
 
 export interface VertexBufferLayout {
 	// TODO: add instancing parameters
@@ -66,7 +69,7 @@ function alignVertexField(field: VertexField, offset: number) {
 
 export function makeLayoutStructFields(attrList: VertexAttribute[]) {
 	return attrList.map(attr => {
-		const sf: StructField<VertexAttribute> = {
+		const sf: struct.Field<VertexAttribute> = {
 			type: vertexFieldNumericType(attr.field)!,
 			count: vertexFieldElementCount(attr.field),
 			userData: { ...attr }
@@ -102,5 +105,3 @@ export function makeStandardVertexBufferLayout(attrList: VertexAttribute[]): Ver
 
 	return new VertexBufferLayoutImpl(attributes, stride);
 }
-
-} // ns sd

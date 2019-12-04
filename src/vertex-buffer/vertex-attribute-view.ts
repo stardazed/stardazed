@@ -1,11 +1,13 @@
-/**
- * geometry/vertex-attribute-view - geometry vertex attribute array views
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+vertex-buffer/vertex-attribute-view - geometry vertex attribute array views
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
-namespace sd {
+import { vertexFieldElementCount, vertexFieldNumericType, vertexFieldElementSizeBytes, VertexField } from "./field";
+import { PositionedAttribute } from "./buffer-layout";
+import { VertexBuffer } from "./buffer";
 
 export class VertexAttributeView {
 	readonly fromVertex: number;
@@ -19,7 +21,7 @@ export class VertexAttributeView {
 	private readonly elementArrayCtor_: TypedArrayConstructor;
 	private readonly buffer_: ArrayBufferLike;
 	private readonly dataView_: DataView;
-	
+
 	/**
 	 * @expects fromVertex === undefined || (fromVertex >= 0 && fromVertex < vertexBuffer.vertexCount)
 	 * @expects toVertex === undefined || (toVertex >= fromVertex && toVertex <= vertexBuffer.vertexCount)
@@ -69,7 +71,7 @@ export class VertexAttributeView {
 
 		const elementSize = vertexFieldElementSizeBytes(this.attr_.userData.field);
 		const elementArrayCtor = this.elementArrayCtor_;
-		
+
 		const firstVertex = this.fromVertex + offset;
 		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (stride * firstVertex) + this.attr_.byteOffset;
 		let sourceIndex = 0;
@@ -236,5 +238,3 @@ export class VertexAttributeView {
 		return new VertexAttributeView(this.vertexBuffer_, this.attr_, this.fromVertex + fromVertex, this.fromVertex + toVertex);
 	}
 }
-
-} // ns sd

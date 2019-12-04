@@ -1,11 +1,11 @@
-/**
- * vertex-buffer/field - vertex field types and properties
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+vertex-buffer/field - vertex field types and properties
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
-namespace sd {
+import { NumericType, Float, UInt32, SInt32, UInt16, SInt16, UInt8, SInt8 } from "stardazed/core";
 
 /**
  * A single field in a vertex buffer with three properties:
@@ -205,5 +205,3 @@ export function vertexFieldSizeBytes(vf: VertexField) {
 export function vertexFieldIsNormalized(vf: VertexField) {
 	return (vf & 0x80) !== 0;
 }
-
-} // ns sd

@@ -1,0 +1,26 @@
+{
+	"extends": "../tsconfig-base.json",
+	"compilerOptions": {
+		"outDir": "../../build/vertex-buffer",
+		"baseUrl": ".",
+		"paths": {
+			"stardazed/*": ["../*"]
+		}
+	},
+	"files": [
+		"../global-types.d.ts",
+
+		"attribute.ts",
+		"buffer-layout.ts",
+		"buffer.ts",
+		"field.ts",
+
+		"vertex-attribute-view.ts",
+
+		"index.ts"
+	],
+	"references": [
+		{ "path": "../core" },
+		{ "path": "../container" }
+	]
+}

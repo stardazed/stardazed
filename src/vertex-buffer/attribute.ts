@@ -1,11 +1,11 @@
-/**
- * vertex-buffer/attribute - vertex attribute roles, fields and utils
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+vertex-buffer/attribute - vertex attribute roles, fields and utils
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
-namespace sd {
+import { VertexField } from "./field";
 
 /**
  * The role of a vertex attribute indicates usage purpose
@@ -83,5 +83,3 @@ export namespace AttrList {
 		return [makeAttrPos3(), makeAttrNormal3(), makeAttrUV2(), makeAttrTangent3()];
 	}
 }
-
-} // ns sd

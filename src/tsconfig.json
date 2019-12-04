@@ -4,6 +4,7 @@
 	"references": [
 		{ "path": "container" },
 		{ "path": "vector" },
-		{ "path": "index-buffer" }
+		{ "path": "index-buffer" },
+		{ "path": "vertex-buffer" },
 	]
 }

@@ -1,15 +1,13 @@
-/**
- * geometry/vertex-buffer - vertex data storage
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
-
-namespace sd {
+/*
+vertex-buffer/vertex-buffer - vertex data storage
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 /**
  * A VertexBuffer is a simple structure that holds storage and metatdata
- * for a specified count of vertexes with a stride. 
+ * for a specified count of vertexes with a stride.
  */
 export interface VertexBuffer {
 	readonly vertexCount: number;
@@ -55,5 +53,3 @@ export function createVertexBufferWithStorage(vertexCount: number, stride: numbe
 export function vertexBufferSizeBytes(vb: VertexBuffer) {
 	return vb.vertexCount * vb.stride;
 }
-
-} // ns sd
