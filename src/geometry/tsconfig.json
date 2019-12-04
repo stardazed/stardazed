@@ -1,17 +1,24 @@
 {
 	"extends": "../tsconfig-base.json",
 	"compilerOptions": {
-		"outDir": "../../build/geometry"
+		"outDir": "../../build/geometry",
+		"baseUrl": ".",
+		"paths": {
+			"stardazed/*": ["../*"]
+		}
 	},
 	"files": [
+		"../global-types.d.ts",
+
 		"types.ts",
-		"layout.ts",
 		"allocate.ts",
-		"manipulate.ts"
+
+		"index.ts"
 	],
 	"references": [
 		{ "path": "../core" },
-		{ "path": "../container" },
-		{ "path": "../vector" }
+		{ "path": "../vector" },
+		{ "path": "../index-buffer" },
+		{ "path": "../vertex-buffer" },
 	]
 }

@@ -1,9 +1,20 @@
 /*
-geometry/types - building blocks of geometry objects
+geometry/types - type definitions and testers
 Part of Stardazed
 (c) 2015-Present by Arthur Langereis - @zenmumbler
 https://github.com/stardazed/stardazed
 */
+
+import { PrimitiveType, IndexBuffer, isIndexBuffer } from "stardazed/index-buffer";
+import { VertexBuffer, VertexBufferLayout } from "stardazed/vertex-buffer";
+
+export interface GeometryLayout {
+	readonly layouts: ReadonlyArray<VertexBufferLayout>;
+}
+
+export const isGeometryLayout = (vl: any): vl is GeometryLayout =>
+	(typeof vl === "object") && vl !== null &&
+	Array.isArray(vl.layouts);
 
 export interface PrimitiveGroup {
 	type: PrimitiveType;
@@ -14,16 +25,6 @@ export interface PrimitiveGroup {
 export interface SubMesh extends PrimitiveGroup {
 	/** arbitrary material index or reference; representation of Materials is external to Geometry */
 	materialIx: number;
-}
-
-export const enum BufferAlignment {
-	SubBuffer = 8
-}
-
-export interface GeometryAllocOptions {
-	layout: GeometryLayout;
-	vertexCount: number;
-	indexCount: number;
 }
 
 export interface Geometry {
@@ -37,15 +38,5 @@ export const isGeometry = (geom: any): geom is Geometry =>
 	(typeof geom === "object") && geom !== null &&
 	isGeometryLayout(geom.layout) &&
 	Array.isArray(geom.vertexBuffers) &&
-	isIndexBuffer(geom.indexBuffer) &&
+	(geom.indexBuffer === undefined || isIndexBuffer(geom.indexBuffer)) &&
 	Array.isArray(geom.subMeshes);
-
-export function findAttributeOfRoleInGeometry(geom: Geometry, role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | undefined {
-	const pa = findAttributeOfRoleInLayout(geom.layout, role);
-	const avb = pa ? geom.vertexBuffers[pa.bufferIndex] : undefined;
-
-	if (pa && avb) {
-		return { vertexBuffer: avb, attr: pa.attr };
-	}
-	return undefined;
-}

@@ -1,11 +1,45 @@
 /*
-geometry/allocate - efficiently allocate geometry data
+geometry/allocate - efficient, contiguous storage for geometry
 Part of Stardazed
 (c) 2015-Present by Arthur Langereis - @zenmumbler
 https://github.com/stardazed/stardazed
 */
 
-function bytesNeededForGeometry(options: GeometryAllocOptions) {
+import { alignUp } from "stardazed/core";
+import { minimumIndexElementTypeForVertexCount, bytesRequiredForIndexCount, createIndexBufferWithStorage } from "stardazed/index-buffer";
+import { VertexBufferLayout, VertexAttribute, isVertexAttribute, createVertexBufferWithStorage, makeStandardVertexBufferLayout } from "stardazed/vertex-buffer";
+import { Geometry, GeometryLayout } from "./types";
+
+export function makeStandardGeometryLayout(attrLists: VertexAttribute[] | VertexAttribute[][]): GeometryLayout {
+	const layouts: VertexBufferLayout[] = [];
+
+	if (attrLists.length > 0) {
+		if (isVertexAttribute(attrLists[0])) {
+			layouts.push(makeStandardVertexBufferLayout(attrLists as VertexAttribute[]));
+		}
+		else {
+			for (const list of attrLists) {
+				layouts.push(makeStandardVertexBufferLayout(list as VertexAttribute[]));
+			}
+		}
+	}
+
+	return {
+		layouts
+	};
+}
+
+export const enum BufferAlignment {
+	SubBuffer = 8
+}
+
+export interface GeometryAllocOptions {
+	layout: GeometryLayout;
+	vertexCount: number;
+	indexCount: number;
+}
+
+export function bytesNeededForGeometry(options: GeometryAllocOptions) {
 	let totalBytes = 0;
 	for (const layout of options.layout.layouts) {
 		totalBytes += layout.bytesRequiredForVertexCount(options.vertexCount);
