@@ -1,11 +1,9 @@
-/**
- * geometry/builder - construct Geometry from normalized sources
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
-
-namespace sd {
+/*
+geometry/builder - construct Geometry from normalized sources
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 export const enum VertexAttributeMapping {
 	Undefined,
@@ -18,7 +16,7 @@ export const enum VertexAttributeMapping {
 
 export interface VertexAttributeStream {
 	name?: string;
-	attr?: VertexAttribute;
+	attr: VertexAttribute;
 	mapping: VertexAttributeMapping;
 	includeInMesh: boolean;
 	controlsGrouping?: boolean;
@@ -130,7 +128,7 @@ export class GeometryBuilder {
 		};
 
 		// add positions stream at the beginning for simple models and at end for rigged models
-		if (this.streams_.find(s => s.attr!.role === VertexAttributeRole.JointIndexes)) {
+		if (this.streams_.find(s => s.attr.role === VertexAttributeRole.JointIndexes)) {
 			this.streams_.push(positionStream);
 		}
 		else {
@@ -151,12 +149,12 @@ export class GeometryBuilder {
 		// also check for ambigious or incorrect grouping
 		let groupers = 0;
 		for (const s of this.streams_) {
-			s.elementCount = vertexFieldElementCount(s.attr!.field);
+			s.elementCount = vertexFieldElementCount(s.attr.field);
 			if (s.controlsGrouping === true) {
 				if (s.elementCount !== 1) {
 					throw new Error("A grouping stream must use a single element field");
 				}
-				const groupNumType = vertexFieldNumericType(s.attr!.field);
+				const groupNumType = vertexFieldNumericType(s.attr.field);
 				if (! (groupNumType && groupNumType.integer)) {
 					throw new Error("A grouping stream must use an integer element");
 				}
@@ -330,7 +328,7 @@ export class GeometryBuilder {
 		// of the list the order of this filtered list will still be the same as
 		// of the vertexData arrays, so no need for mapping etc.
 		const meshAttributeStreams = this.streams_.filter(s => s.includeInMesh);
-		const attrs = meshAttributeStreams.map(s => s.attr!);
+		const attrs = meshAttributeStreams.map(s => s.attr);
 
 		// allocate as single buffer
 		const geom = allocateGeometry({
@@ -379,5 +377,3 @@ export class GeometryBuilder {
 		return geom;
 	}
 }
-
-} // ns sd

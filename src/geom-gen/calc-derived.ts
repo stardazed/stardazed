@@ -1,11 +1,9 @@
-/**
- * geometry/calc-derived - calculate normals and tangents
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
-
-namespace sd {
+/*
+geometry/calc-derived - calculate normals and tangents
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 export function genVertexNormals(geom: Geometry) {
 	const triView = triangleViewForGeometry(geom);
@@ -196,5 +194,3 @@ export function calcVertexTangentsViews(
 		vec3.copy(tanView.refItem(ix), tangent);
 	}
 }
-
-} // ns sd

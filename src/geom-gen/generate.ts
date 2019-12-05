@@ -1,11 +1,9 @@
-/**
- * geometry/generate - geometry generators
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
-
-namespace sd {
+/*
+geometry/generate - geometry generators
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 export type Vec2AddFn = (u: number, v: number) => void;
 export type Vec3AddFn = (x: number, y: number, z: number) => void;
@@ -794,5 +792,3 @@ export class Torus implements MeshGenerator {
 		}
 	}
 }
-
-} // ns sd.asset

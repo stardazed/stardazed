@@ -1,9 +1,9 @@
-/**
- * geometry/manipulate - transforming geometry
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+geometry/manipulate - transforming geometry
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
 import { VertexBuffer, VertexAttributeRole, PositionedAttribute, VertexAttributeView } from "stardazed/vertex-buffer";
 import { mat3, mat4, quat, vec3 } from "stardazed/vector";
