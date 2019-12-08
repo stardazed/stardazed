@@ -38,7 +38,6 @@ export default [
 	"core",
 	"container",
 	"vector",
-	"index-buffer",
 	"vertex-buffer",
 	"geometry",
 	"triangle-view"

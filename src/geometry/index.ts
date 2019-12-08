@@ -7,3 +7,4 @@ https://github.com/stardazed/stardazed
 
 export * from "./types";
 export * from "./allocate";
+export * from "./index-buffer";

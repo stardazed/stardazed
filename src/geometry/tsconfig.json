@@ -12,13 +12,13 @@
 
 		"types.ts",
 		"allocate.ts",
+		"index-buffer.ts",
 
 		"index.ts"
 	],
 	"references": [
 		{ "path": "../core" },
 		{ "path": "../vector" },
-		{ "path": "../index-buffer" },
 		{ "path": "../vertex-buffer" },
 	]
 }
