@@ -38,7 +38,6 @@ export default [
 	"core",
 	"container",
 	"vector",
-	"vertex-buffer",
 	"geometry",
 	"triangle-view"
 ].flatMap(module);

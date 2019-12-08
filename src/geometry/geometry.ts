@@ -5,10 +5,9 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-
 import { alignUp } from "stardazed/core";
-import { PrimitiveType, IndexBuffer, isIndexBuffer, minimumIndexElementTypeForVertexCount, bytesRequiredForIndexCount, createIndexBufferWithStorage } from "./index-buffer";
-import { VertexBuffer, VertexBufferLayout, VertexAttribute, isVertexAttribute, createVertexBufferWithStorage, makeStandardVertexBufferLayout } from "stardazed/vertex-buffer";
+import { bytesRequiredForIndexCount, createIndexBufferWithStorage, IndexBuffer, isIndexBuffer, minimumIndexElementTypeForVertexCount, PrimitiveType } from "./index-buffer";
+import { createVertexBufferWithStorage, isVertexAttribute, makeStandardVertexBufferLayout, VertexAttribute, VertexBuffer, VertexBufferLayout } from "./vertex-buffer";
 
 export interface GeometryLayout {
 	readonly layouts: ReadonlyArray<VertexBufferLayout>;

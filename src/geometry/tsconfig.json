@@ -11,6 +11,7 @@
 		"../global-types.d.ts",
 
 		"index-buffer.ts",
+		"vertex-buffer.ts",
 		"geometry.ts",
 
 		"index.ts"
@@ -18,6 +19,6 @@
 	"references": [
 		{ "path": "../core" },
 		{ "path": "../vector" },
-		{ "path": "../vertex-buffer" },
+		{ "path": "../container" },
 	]
 }

@@ -4,7 +4,6 @@
 	"references": [
 		{ "path": "container" },
 		{ "path": "vector" },
-		{ "path": "vertex-buffer" },
 		{ "path": "geometry" },
 		{ "path": "triangle-view" },
 	]
