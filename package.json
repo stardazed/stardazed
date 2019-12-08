@@ -19,8 +19,11 @@
 		"3d"
 	],
 	"scripts": {
+		"clean": "rm -rf ./build; rm -rf ./dist",
+
 		"compile": "tsc -b src/tsconfig.json",
 		"compile:watch": "tsc -b -w src/tsconfig.json",
+
 		"bundle": "rollup -c",
 		"bundle:watch": "rollup -c -w"
 	},
