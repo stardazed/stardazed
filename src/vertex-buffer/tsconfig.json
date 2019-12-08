@@ -15,8 +15,6 @@
 		"buffer.ts",
 		"field.ts",
 
-		"vertex-attribute-view.ts",
-
 		"index.ts"
 	],
 	"references": [

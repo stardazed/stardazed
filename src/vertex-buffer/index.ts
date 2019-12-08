@@ -9,5 +9,3 @@ export * from "./field";
 export * from "./attribute";
 export * from "./buffer-layout";
 export * from "./buffer";
-
-export * from "./vertex-attribute-view";
