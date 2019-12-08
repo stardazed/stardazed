@@ -10,9 +10,8 @@
 	"files": [
 		"../global-types.d.ts",
 
-		"types.ts",
-		"allocate.ts",
 		"index-buffer.ts",
+		"geometry.ts",
 
 		"index.ts"
 	],
