@@ -20,17 +20,15 @@
 	],
 	"scripts": {
 		"clean": "rm -rf ./build; rm -rf ./dist",
-
 		"compile": "tsc -b src/tsconfig.json",
 		"compile:watch": "tsc -b -w src/tsconfig.json",
-
 		"bundle": "rollup -c",
 		"bundle:watch": "rollup -c -w"
 	},
 	"devDependencies": {
-		"rollup": "^1.27.8",
-		"rollup-plugin-dts": "^1.1.12",
+		"rollup": "^1.27.9",
+		"rollup-plugin-dts": "^1.1.13",
 		"tslib": "^1.10.0",
-		"typescript": "^3.7.2"
+		"typescript": "^3.7.3"
 	}
 }

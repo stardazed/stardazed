@@ -1,8 +1,8 @@
 devDependencies:
-  rollup: 1.27.8
-  rollup-plugin-dts: 1.1.12_rollup@1.27.8+typescript@3.7.2
+  rollup: 1.27.9
+  rollup-plugin-dts: 1.1.13_rollup@1.27.9+typescript@3.7.3
   tslib: 1.10.0
-  typescript: 3.7.2
+  typescript: 3.7.3
 lockfileVersion: 5.1
 packages:
   /@babel/code-frame/7.5.5:
@@ -94,19 +94,19 @@ packages:
     optional: true
     resolution:
       integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
-  /rollup-plugin-dts/1.1.12_rollup@1.27.8+typescript@3.7.2:
+  /rollup-plugin-dts/1.1.13_rollup@1.27.9+typescript@3.7.3:
     dependencies:
-      rollup: 1.27.8
-      typescript: 3.7.2
+      rollup: 1.27.9
+      typescript: 3.7.3
     dev: true
     optionalDependencies:
       '@babel/code-frame': 7.5.5
     peerDependencies:
-      rollup: ^1.26.3
-      typescript: ^3.7.2
+      rollup: ^1.27.8
+      typescript: ^3.7.3
     resolution:
-      integrity: sha512-f+maIUbEZpqZp5BWJcyYxzpOjLGEJp9XziBiOaRapbanbucYhJimXaviXwSInf+8oAFwZk4FGH2zgZO+TqVG0g==
-  /rollup/1.27.8:
+      integrity: sha512-vpCSjTFodt8saLkFAi/Xn7JFgs2ZnbFYRbYyirlZjQtxS81JhU7oXuuyC9UrkftIot+/JbuavPOtI9OQoVQIcQ==
+  /rollup/1.27.9:
     dependencies:
       '@types/estree': 0.0.40
       '@types/node': 12.12.14
@@ -114,7 +114,7 @@ packages:
     dev: true
     hasBin: true
     resolution:
-      integrity: sha512-EVoEV5rAWl+5clnGznt1KY8PeVkzVQh/R0d2s3gHEkN7gfoyC4JmvIVuCtPbYE8NM5Ep/g+nAmvKXBjzaqTsHA==
+      integrity: sha512-8AfW4cJTPZfG6EXWwT/ujL4owUsDI1Xl8J1t+hvK4wDX81F5I4IbwP9gvGbHzxnV19fnU4rRABZQwZSX9J402Q==
   /supports-color/5.5.0:
     dependencies:
       has-flag: 3.0.0
@@ -128,15 +128,15 @@ packages:
     dev: true
     resolution:
       integrity: sha512-qOebF53frne81cf0S9B41ByenJ3/IuH8yJKngAX35CmiZySA0khhkovshKK+jGCaMnVomla7gVlIcc3EvKPbTQ==
-  /typescript/3.7.2:
+  /typescript/3.7.3:
     dev: true
     engines:
       node: '>=4.2.0'
     hasBin: true
     resolution:
-      integrity: sha512-ml7V7JfiN2Xwvcer+XAf2csGO1bPBdRbFCkYBczNZggrBZ9c7G3riSUeJmqEU5uOtXNPMhE3n+R4FA/3YOAWOQ==
+      integrity: sha512-Mcr/Qk7hXqFBXMN7p7Lusj1ktCBydylfQM/FZCk5glCNQJrCUKPkMHdo9R0MTFWsC/4kPFvDS0fDPvukfCkFsw==
 specifiers:
-  rollup: ^1.27.8
-  rollup-plugin-dts: ^1.1.12
+  rollup: ^1.27.9
+  rollup-plugin-dts: ^1.1.13
   tslib: ^1.10.0
-  typescript: ^3.7.2
+  typescript: ^3.7.3
