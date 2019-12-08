@@ -22,9 +22,6 @@ export interface PrimitiveGroup {
 	type: PrimitiveType;
 	fromElement: number;
 	elementCount: number;
-}
-
-export interface SubMesh extends PrimitiveGroup {
 	/** arbitrary material index or reference; representation of Materials is external to Geometry */
 	materialIx: number;
 }
@@ -33,7 +30,7 @@ export interface Geometry {
 	layout: GeometryLayout;
 	vertexBuffers: VertexBuffer[];
 	indexBuffer?: IndexBuffer;
-	subMeshes: SubMesh[];
+	subMeshes: PrimitiveGroup[];
 }
 
 export const isGeometry = (geom: any): geom is Geometry =>
