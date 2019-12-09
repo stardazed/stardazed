@@ -563,7 +563,8 @@ export function angle(a: ACN, b: ACN) {
 	}
 	else if (cosine < -1.0) {
 		return Math.PI;
-	} else {
+	}
+	else {
 		return Math.acos(cosine);
 	}
 }

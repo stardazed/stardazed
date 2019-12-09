@@ -83,7 +83,8 @@ export function transpose(out: AN, a: ACN) {
 		const a1 = a[1];
 		out[1] = a[2];
 		out[2] = a1;
-	} else {
+	}
+	else {
 		out[0] = a[0];
 		out[1] = a[2];
 		out[2] = a[1];

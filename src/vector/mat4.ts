@@ -516,7 +516,8 @@ export function translate(out: AN, a: ACN, v3: ACN) {
 		out[13] = a[1] * x + a[5] * y + a[9] * z + a[13];
 		out[14] = a[2] * x + a[6] * y + a[10] * z + a[14];
 		out[15] = a[3] * x + a[7] * y + a[11] * z + a[15];
-	} else {
+	}
+	else {
 		const a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3];
 		const a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
 		const a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11];
@@ -1078,7 +1079,8 @@ export function lookAt(out: AN, eye: ACN, center: ACN, up: ACN) {
 		x0 = 0;
 		x1 = 0;
 		x2 = 0;
-	} else {
+	}
+	else {
 		len = 1 / len;
 		x0 *= len;
 		x1 *= len;
@@ -1094,7 +1096,8 @@ export function lookAt(out: AN, eye: ACN, center: ACN, up: ACN) {
 		y0 = 0;
 		y1 = 0;
 		y2 = 0;
-	} else {
+	}
+	else {
 		len = 1 / len;
 		y0 *= len;
 		y1 *= len;

@@ -113,7 +113,8 @@ export function transpose(out: AN, a: ACN) {
 		out[5] = a[7];
 		out[6] = a02;
 		out[7] = a12;
-	} else {
+	}
+	else {
 		out[0] = a[0];
 		out[1] = a[3];
 		out[2] = a[6];

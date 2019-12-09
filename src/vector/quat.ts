@@ -55,13 +55,15 @@ export function rotationTo(out: AN, a: ACN, b: ACN) {
 		vec3.normalize(tmpVec3_, tmpVec3_);
 		setAxisAngle(out, tmpVec3_, Math.PI);
 		return out;
-	} else if (dot > (1 - VEC_EPSILON)) {
+	}
+	else if (dot > (1 - VEC_EPSILON)) {
 		out[0] = 0;
 		out[1] = 0;
 		out[2] = 0;
 		out[3] = 1;
 		return out;
-	} else {
+	}
+	else {
 		vec3.cross(tmpVec3_, a, b);
 		out[0] = tmpVec3_[0];
 		out[1] = tmpVec3_[1];
