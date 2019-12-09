@@ -32,6 +32,7 @@ function module(name) {
 	];
 }
 
+fs.mkdirSync("dist", { recursive: true });
 fs.copyFileSync("src/global-types.d.ts", "dist/global-types.d.ts");
 
 export default [
