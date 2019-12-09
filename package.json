@@ -1,6 +1,6 @@
 {
 	"name": "@stardazed/stardazed",
-	"version": "1.0.0",
+	"version": "0.5.0",
 	"description": "Solid 3D Web Game Engine",
 	"license": "MIT",
 	"private": true,
