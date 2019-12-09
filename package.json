@@ -23,9 +23,14 @@
 		"compile": "tsc -b src/tsconfig.json",
 		"compile:watch": "tsc -b -w src/tsconfig.json",
 		"bundle": "rollup -c",
-		"bundle:watch": "rollup -c -w"
+		"bundle:watch": "rollup -c -w",
+		"lint": "eslint --ext ts src"
 	},
 	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "^2.10.0",
+		"@typescript-eslint/parser": "^2.10.0",
+		"eslint": "^6.7.2",
+		"eslint-plugin-import": "^2.19.1",
 		"rollup": "^1.27.9",
 		"rollup-plugin-dts": "^1.1.13",
 		"tslib": "^1.10.0",
