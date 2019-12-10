@@ -106,7 +106,7 @@ export function convertBytesToString(bytes: Uint8Array) {
 
 	while (bytesLeft > 0) {
 		const blockSize = Math.min(bytesLeft, MAX_BLOCK_SIZE);
-		const str: string = String.fromCharCode.apply(null, bytes.subarray(offset, offset + blockSize) as unknown as number[]);
+		const str: string = String.fromCharCode.apply(undefined, bytes.subarray(offset, offset + blockSize) as unknown as number[]);
 		strings.push(str);
 		offset += blockSize;
 		bytesLeft -= blockSize;
