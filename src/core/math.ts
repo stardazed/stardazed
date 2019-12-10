@@ -130,3 +130,14 @@ export function alignUp(val: number, alignmentPow2: number) {
 export function alignDown(val: number, alignmentPow2: number) {
 	return val & (~(alignmentPow2 - 1));
 }
+
+/**
+ * Round val up to the power-of-2 adjusted value of minAlign.
+ * Use when you have a minimum value to align to which may not be a power of 2.
+ * @param val number to align up
+ * @param minAlign minimum alignment border that will be rounded up towards the next power of 2 before being used as alignment for val
+ */
+export function alignUpMinumumAlignment(val: number, minAlign: number) {
+	const mask = roundUpPowerOf2(minAlign) - 1;
+	return (val + mask) & ~mask;
+}
