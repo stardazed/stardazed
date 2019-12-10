@@ -129,8 +129,8 @@ export function transpose(out: AN, a: ACN) {
 	return out;
 }
 
-export function invert(out: number[], a: ACN): number[];
-export function invert<T extends AN>(out: T, a: ACN): T;
+export function invert(out: number[], a: ACN): number[] | undefined;
+export function invert<T extends AN>(out: T, a: ACN): T | undefined;
 export function invert(out: AN, a: ACN) {
 	const a00 = a[0], a01 = a[1], a02 = a[2],
 		a10 = a[3], a11 = a[4], a12 = a[5],
@@ -144,7 +144,7 @@ export function invert(out: AN, a: ACN) {
 	let det = a00 * b01 + a01 * b11 + a02 * b21;
 
 	if (! det) {
-		return null;
+		return undefined;
 	}
 	det = 1.0 / det;
 
@@ -395,8 +395,8 @@ export function fromQuat(out: AN, q: ACN) {
 	return out;
 }
 
-export function normalFromMat4(out: number[], m4: ACN): number[];
-export function normalFromMat4<T extends AN>(out: T, m4: ACN): T;
+export function normalFromMat4(out: number[], m4: ACN): number[] | undefined;
+export function normalFromMat4<T extends AN>(out: T, m4: ACN): T | undefined;
 export function normalFromMat4(out: AN, m4: ACN) {
 	const a00 = m4[0], a01 = m4[1], a02 = m4[2], a03 = m4[3],
 		a10 = m4[4], a11 = m4[5], a12 = m4[6], a13 = m4[7],
@@ -420,7 +420,7 @@ export function normalFromMat4(out: AN, m4: ACN) {
 	let det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
 
 	if (! det) {
-		return null;
+		return undefined;
 	}
 	det = 1.0 / det;
 

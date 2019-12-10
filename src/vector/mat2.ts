@@ -93,15 +93,15 @@ export function transpose(out: AN, a: ACN) {
 	return out;
 }
 
-export function invert(out: number[], a: ACN): number[];
-export function invert<T extends AN>(out: T, a: ACN): T;
+export function invert(out: number[], a: ACN): number[] | undefined;
+export function invert<T extends AN>(out: T, a: ACN): T | undefined;
 export function invert(out: AN, a: ACN) {
 	const a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
 	// Calculate the determinant
 	let det = a0 * a3 - a2 * a1;
 
 	if (! det) {
-		return null;
+		return undefined;
 	}
 	det = 1.0 / det;
 

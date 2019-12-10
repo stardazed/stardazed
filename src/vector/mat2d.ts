@@ -94,15 +94,15 @@ export function set(out: AN, a: number, b: number, c: number, d: number, tx: num
 	return out;
 }
 
-export function invert(out: number[], a: ACN): number[];
-export function invert<T extends AN>(out: T, a: ACN): T;
+export function invert(out: number[], a: ACN): number[] | undefined;
+export function invert<T extends AN>(out: T, a: ACN): T | undefined;
 export function invert(out: AN, a: ACN) {
 	const aa = a[0], ab = a[1], ac = a[2], ad = a[3];
 	const atx = a[4], aty = a[5];
 
 	let det = aa * ad - ab * ac;
 	if (! det) {
-		return null;
+		return undefined;
 	}
 	det = 1.0 / det;
 

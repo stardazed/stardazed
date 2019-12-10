@@ -284,7 +284,7 @@ class VertexBufferLayoutImpl implements VertexBufferLayout {
 	}
 
 	attrByIndex(index: number) {
-		return this.attributes[index] || null;
+		return this.attributes[index] || undefined;
 	}
 
 	hasAttributeWithRole(role: VertexAttributeRole) {

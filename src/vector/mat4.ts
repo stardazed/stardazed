@@ -184,8 +184,8 @@ export function transpose(out: AN, a: ACN) {
 	return out;
 }
 
-export function invert(out: number[], a: ACN): number[];
-export function invert<T extends AN>(out: T, a: ACN): T;
+export function invert(out: number[], a: ACN): number[] | undefined;
+export function invert<T extends AN>(out: T, a: ACN): T | undefined;
 export function invert(out: AN, a: ACN) {
 	const a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
 		a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
@@ -209,7 +209,7 @@ export function invert(out: AN, a: ACN) {
 	let det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
 
 	if (! det) {
-		return null;
+		return undefined;
 	}
 	det = 1.0 / det;
 
@@ -320,14 +320,14 @@ export function multiply(out: AN, a: ACN, b: ACN) {
 
 export const mul = multiply;
 
-export function rotate(out: number[], a: ACN, rad: number, axis: ACN): number[];
-export function rotate<T extends AN>(out: T, a: ACN, rad: number, axis: ACN): T;
+export function rotate(out: number[], a: ACN, rad: number, axis: ACN): number[] | undefined;
+export function rotate<T extends AN>(out: T, a: ACN, rad: number, axis: ACN): T | undefined;
 export function rotate(out: AN, a: ACN, rad: number, axis: ACN) {
 	let x = axis[0], y = axis[1], z = axis[2];
 
 	let len = Math.sqrt(x * x + y * y + z * z);
 	if (Math.abs(len) < VEC_EPSILON) {
-		return null;
+		return undefined;
 	}
 
 	len = 1 / len;
@@ -535,14 +535,14 @@ export function translate(out: AN, a: ACN, v3: ACN) {
 	return out;
 }
 
-export function fromRotation(out: number[], rad: number, axis: ACN): number[];
-export function fromRotation<T extends AN>(out: T, rad: number, axis: ACN): T;
+export function fromRotation(out: number[], rad: number, axis: ACN): number[] | undefined;
+export function fromRotation<T extends AN>(out: T, rad: number, axis: ACN): T | undefined;
 export function fromRotation(out: AN, rad: number, axis: ACN) {
 	let x = axis[0], y = axis[1], z = axis[2];
 
 	let len = Math.sqrt(x * x + y * y + z * z);
 	if (Math.abs(len) < VEC_EPSILON) {
-		return null;
+		return undefined;
 	}
 
 	len = 1 / len;

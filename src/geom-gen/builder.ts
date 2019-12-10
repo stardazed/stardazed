@@ -108,13 +108,13 @@ export class GeometryBuilder {
 	/**
 	 * Try to create a GeometryBuilder, will reject if the streams config is invalid.
 	 */
-	static create(positions: Float32Array | Float64Array, positionIndexes: Uint32Array | null, streams: VertexAttributeStream[]) {
+	static create(positions: Float32Array | Float64Array, positionIndexes: Uint32Array | undefined, streams: VertexAttributeStream[]) {
 		return new Promise<GeometryBuilder>(resolve => {
 			resolve(new this(positions, positionIndexes, streams));
 		});
 	}
 
-	private constructor(positions: Float32Array | Float64Array, positionIndexes: Uint32Array | null, streams: VertexAttributeStream[]) {
+	private constructor(positions: Float32Array | Float64Array, positionIndexes: Uint32Array | undefined, streams: VertexAttributeStream[]) {
 		// create a local copy of the streams array so we can modify it
 		this.streams_ = streams.slice(0);
 
@@ -124,7 +124,7 @@ export class GeometryBuilder {
 			mapping: VertexAttributeMapping.Vertex,
 			includeInMesh: true,
 			values: positions,
-			indexes: positionIndexes === null ? undefined : positionIndexes
+			indexes: positionIndexes
 		};
 
 		// add positions stream at the beginning for simple models and at end for rigged models

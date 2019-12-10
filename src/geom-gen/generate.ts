@@ -63,8 +63,8 @@ export function generateGeometry(gens: MeshGenSource | MeshGenSource[], attrList
 	const texAttr = layout.attrByRole(VertexAttributeRole.UV);
 
 	const posView = new VertexAttributeView(geom.vertexBuffers[0], layout.attrByRole(VertexAttributeRole.Position)!);
-	const normalView = normalAttr ? new VertexAttributeView(vertexBuffer, normalAttr) : null;
-	const texView = texAttr ? new VertexAttributeView(vertexBuffer, texAttr) : null;
+	const normalView = normalAttr ? new VertexAttributeView(vertexBuffer, normalAttr) : undefined;
+	const texView = texAttr ? new VertexAttributeView(vertexBuffer, texAttr) : undefined;
 
 	const triView = triangleViewForGeometry(geom).mutableView();
 
@@ -118,7 +118,7 @@ export function generateGeometry(gens: MeshGenSource | MeshGenSource[], attrList
 		const subVtxCount = generator.vertexCount;
 		const subFaceCount = generator.faceCount;
 		const subPosView = posView.subView(baseVertex, subVtxCount); // WARNING FIXME: param 2 has changed to "toTriangle"
-		const subNormalView = normalView ? normalView.subView(baseVertex, subVtxCount) : null; // WARNING FIXME: param 2 has changed to "toTriangle"
+		const subNormalView = normalView ? normalView.subView(baseVertex, subVtxCount) : undefined; // WARNING FIXME: param 2 has changed to "toTriangle"
 
 		// -- if the generator does not supply normals but the geometry has a Normal attribute, we calculate them
 		if (subNormalView && ! generator.explicitNormals) {
