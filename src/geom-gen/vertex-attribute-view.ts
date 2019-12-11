@@ -29,7 +29,7 @@ export class VertexAttributeView {
 	constructor(vertexBuffer: VertexBuffer, attr: PositionedAttribute, fromVertex?: number, toVertex?: number) {
 		this.vertexBuffer_ = vertexBuffer;
 		this.attr_ = attr;
-		this.elementCount = vertexFieldElementCount(this.attr_.userData.field);
+		this.elementCount = vertexFieldElementCount(this.attr_.data.field);
 
 		// validate or use default range
 		const fullVertexCount = this.vertexBuffer_.vertexCount;
@@ -51,7 +51,7 @@ export class VertexAttributeView {
 		this.stride_ = vertexBuffer.stride;
 		this.buffer_ = vertexBuffer.storage.buffer;
 		this.dataView_ = new DataView(this.buffer_);
-		this.elementArrayCtor_ = vertexFieldNumericType(attr.userData.field)!.arrayType;
+		this.elementArrayCtor_ = vertexFieldNumericType(attr.data.field)!.arrayType;
 	}
 
 	forEach(callback: (item: TypedArray) => void) {
@@ -69,7 +69,7 @@ export class VertexAttributeView {
 		const buffer = this.buffer_;
 		const stride = this.vertexBuffer_.stride;
 
-		const elementSize = vertexFieldElementSizeBytes(this.attr_.userData.field);
+		const elementSize = vertexFieldElementSizeBytes(this.attr_.data.field);
 		const elementArrayCtor = this.elementArrayCtor_;
 
 		const firstVertex = this.fromVertex + offset;
@@ -210,7 +210,7 @@ export class VertexAttributeView {
 		let offsetBytes = this.vertexBuffer_.storage.byteOffset + (this.stride_ * index) + this.attr_.byteOffset;
 		const result: number[] = [];
 
-		switch (this.attr_.userData.field) {
+		switch (this.attr_.data.field) {
 			case VertexField.Floatx4:
 				result.push(this.dataView_.getFloat32(offsetBytes, true));
 				offsetBytes += 4;
