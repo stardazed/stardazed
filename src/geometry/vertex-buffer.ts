@@ -6,7 +6,7 @@ https://github.com/stardazed/stardazed
 */
 
 import { struct } from "stardazed/container";
-import { Float, NumericType, roundUpPowerOf2, SInt16, SInt32, SInt8, UInt16, UInt32, UInt8 } from "stardazed/core";
+import { Float, NumericType, SInt16, SInt32, SInt8, UInt16, UInt32, UInt8, alignUpMinumumAlignment } from "stardazed/core";
 
 /**
  * A single field in a vertex buffer with three properties:
@@ -294,13 +294,8 @@ class VertexBufferLayoutImpl implements VertexBufferLayout {
 
 // ---- default buffer layout calc func
 
-function alignFieldOnSize(size: number, offset: number) {
-	const mask = roundUpPowerOf2(size) - 1;
-	return (offset + mask) & ~mask;
-}
-
 function alignVertexField(field: VertexField, offset: number) {
-	return alignFieldOnSize(vertexFieldElementSizeBytes(field), offset);
+	return alignUpMinumumAlignment(offset, vertexFieldElementSizeBytes(field));
 }
 
 export function makeLayoutStructFields(attrList: VertexAttribute[]) {
@@ -337,7 +332,7 @@ export function makeStandardVertexBufferLayout(attrList: VertexAttribute[]): Ver
 
 	// align full item size on boundary of biggest element in attribute list, with min of float boundary
 	maxElemSize = Math.max(Float32Array.BYTES_PER_ELEMENT, maxElemSize);
-	const stride = alignFieldOnSize(maxElemSize, offset);
+	const stride = alignUpMinumumAlignment(offset, maxElemSize);
 
 	return new VertexBufferLayoutImpl(attributes, stride);
 }
