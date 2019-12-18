@@ -7,9 +7,9 @@ const paths = id => id.startsWith("stardazed/") && `${id.replace("stardazed", ".
 function module(name) {
 	return [
 		{
-			input: `build/${name}/index.js`,
+			input: `__build/${name}/index.js`,
 			output: [{
-				file: `dist/${name}/index.js`,
+				file: `${name}/index.js`,
 				format: "esm",
 				paths
 			}],
@@ -17,9 +17,9 @@ function module(name) {
 			external
 		},
 		{
-			input: `build/${name}/index.d.ts`,
+			input: `__build/${name}/index.d.ts`,
 			output: [{
-				file: `dist/${name}/index.d.ts`,
+				file: `${name}/index.d.ts`,
 				format: "esm",
 				paths,
 				banner: `/// <reference path="../global-types.d.ts" />`
@@ -32,8 +32,7 @@ function module(name) {
 	];
 }
 
-fs.mkdirSync("dist", { recursive: true });
-fs.copyFileSync("src/global-types.d.ts", "dist/global-types.d.ts");
+fs.copyFileSync("src/global-types.d.ts", "./global-types.d.ts");
 
 export default [
 	"core",

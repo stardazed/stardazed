@@ -1,7 +1,7 @@
 {
 	"extends": "../tsconfig-base.json",
 	"compilerOptions": {
-		"outDir": "../../build/core"
+		"outDir": "../../__build/core"
 	},
 	"files": [
 		"../global-types.d.ts",

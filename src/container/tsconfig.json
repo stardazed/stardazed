@@ -1,7 +1,7 @@
 {
 	"extends": "../tsconfig-base.json",
 	"compilerOptions": {
-		"outDir": "../../build/container",
+		"outDir": "../../__build/container",
 		"baseUrl": ".",
 		"paths": {
 			"stardazed/*": ["../*"]

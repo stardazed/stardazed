@@ -9,6 +9,17 @@
 		"name": "Arthur Langereis",
 		"url": "https://twitter.com/zenmumbler"
 	},
+	"main": "index.js",
+	"module": "index.js",
+	"types": "index.d.ts",
+	"files": [
+		"container",
+		"core",
+		"geometry",
+		"vector",
+		"global-types.d.ts",
+		"index.*"
+	],
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/stardazed/stardazed.git"
@@ -19,7 +30,7 @@
 		"3d"
 	],
 	"scripts": {
-		"clean": "rm -rf ./build; rm -rf ./dist",
+		"clean": "rm -rf ./__build; rm -rf ./container; rm -rf ./core; rm -rf ./geometry; rm -rf ./vector; rm ./global-types.d.ts",
 		"compile": "tsc -b src/tsconfig.json",
 		"compile:watch": "tsc -b -w src/tsconfig.json",
 		"bundle": "rollup -c",

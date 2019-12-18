@@ -2,6 +2,12 @@
 .vscode
 pnpm-debug.log
 
-build
-dist
+__build
 node_modules/
+
+# package output dirs
+/container
+/core
+/geometry
+/vector
+/global-types.d.ts

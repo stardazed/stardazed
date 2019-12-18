@@ -1,7 +1,7 @@
 {
 	"extends": "../tsconfig-base.json",
 	"compilerOptions": {
-		"outDir": "../../build/vector",
+		"outDir": "../../__build/vector",
 		"baseUrl": ".",
 		"paths": {
 			"stardazed/*": ["../*"]

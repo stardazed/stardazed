@@ -1,7 +1,7 @@
 {
 	"extends": "../tsconfig-base.json",
 	"compilerOptions": {
-		"outDir": "../../build/geometry",
+		"outDir": "../../__build/geometry",
 		"baseUrl": ".",
 		"paths": {
 			"stardazed/*": ["../*"]
