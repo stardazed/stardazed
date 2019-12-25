@@ -9,20 +9,21 @@ import { NumericType, alignUp, clearArrayBuffer, transferArrayBuffer, alignUpMin
 
 // ----- Fields and Layout
 
-export interface StructField<C = unknown> {
+export type StructField<C = unknown> = {
 	type: NumericType;
 	count: number;
-	custom: C;
-}
+} & C;
 
 function fieldSizeBytes(field: StructField) {
 	return field.type.byteSize * field.count;
 }
 
-export interface PositionedStructField<C> extends DeepReadonly<StructField<C>> {
+export type PositionedStructField<C> = {
 	readonly byteOffset: number;
 	readonly sizeBytes: number;
-}
+} & {
+	readonly [P in keyof StructField<C>]: StructField<C>[P];
+};
 
 export const enum FieldAlignment {
 	Aligned,
@@ -51,9 +52,7 @@ class Layout<C> {
 			}
 
 			return {
-				type: field.type,
-				count: field.count,
-				custom: field.custom as DeepReadonly<C>,
+				...field,
 				byteOffset: curOffset,
 				sizeBytes
 			};

@@ -280,7 +280,7 @@ class VertexBufferLayoutImpl implements VertexBufferLayout {
 	}
 
 	attrByRole(role: VertexAttributeRole) {
-		return this.attributes.find(pa => pa.custom.role === role);
+		return this.attributes.find(pa => pa.role === role);
 	}
 
 	attrByIndex(index: number) {
@@ -303,7 +303,7 @@ export function makeLayoutStructFields(attrList: VertexAttribute[]) {
 		const sf: StructField<VertexAttribute> = {
 			type: vertexFieldNumericType(attr.field)!,
 			count: vertexFieldElementCount(attr.field),
-			custom: { ...attr }
+			...attr
 		};
 		return sf;
 	});
@@ -322,11 +322,9 @@ export function makeStandardVertexBufferLayout(attrList: VertexAttribute[]): Ver
 		return {
 			type: vertexFieldNumericType(attr.field)!,
 			count: vertexFieldElementCount(attr.field),
-			custom: {
-				...attr
-			},
 			byteOffset: alignedOffset,
-			sizeBytes
+			sizeBytes,
+			...attr
 		};
 	});
 
