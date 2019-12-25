@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { PositionedStructField, StructField } from "stardazed/container";
+import { PositionedStructField, StructField, StructuredArray, StructLayout, StorageTopology, StorageAlignment, FieldAlignment } from "stardazed/container";
 import { Float, NumericType, SInt16, SInt32, SInt8, UInt16, UInt32, UInt8, alignUpMinumumAlignment } from "stardazed/core";
 
 /**
@@ -248,58 +248,11 @@ export function isVertexAttribute(va: any): va is VertexAttribute {
 
 export type PositionedAttribute = PositionedStructField<VertexAttribute>;
 
-export interface VertexBufferLayout {
-	// TODO: add instancing parameters
-	readonly attributes: Readonly<PositionedAttribute>[];
-	readonly stride: number;
 
-	bytesRequiredForVertexCount(vertexCount: number): number;
-	attrByRole(role: VertexAttributeRole): PositionedAttribute | undefined;
-	attrByIndex(index: number): PositionedAttribute | undefined;
-	hasAttributeWithRole(role: VertexAttributeRole): boolean;
-}
+// ---- vertex layout builder
 
-class VertexBufferLayoutImpl implements VertexBufferLayout {
-	readonly attributes: Readonly<PositionedAttribute>[];
-	readonly stride: number;
-
-	/**
-	 * @expects attributes.length > 0
-	 * @expects isPositiveNonZeroInteger(stride)
-	 */
-	constructor(attributes: PositionedAttribute[], stride: number) {
-		this.attributes = [...attributes];
-		this.stride = stride;
-	}
-
-	/**
-	 * @expects isPositiveInteger(vertexCount)
-	 */
-	bytesRequiredForVertexCount(vertexCount: number) {
-		return vertexCount * this.stride;
-	}
-
-	attrByRole(role: VertexAttributeRole) {
-		return this.attributes.find(pa => pa.role === role);
-	}
-
-	attrByIndex(index: number) {
-		return this.attributes[index] || undefined;
-	}
-
-	hasAttributeWithRole(role: VertexAttributeRole) {
-		return this.attrByRole(role) !== undefined;
-	}
-}
-
-// ---- default buffer layout calc func
-
-function alignVertexField(field: VertexField, offset: number) {
-	return alignUpMinumumAlignment(offset, vertexFieldElementSizeBytes(field));
-}
-
-export function makeLayoutStructFields(attrList: VertexAttribute[]) {
-	return attrList.map(attr => {
+export function makeVertexBufferLayout(attrList: VertexAttribute[]): StructLayout<VertexAttribute> {
+	const fields = attrList.map(attr => {
 		const sf: StructField<VertexAttribute> = {
 			type: vertexFieldNumericType(attr.field)!,
 			count: vertexFieldElementCount(attr.field),
@@ -307,79 +260,39 @@ export function makeLayoutStructFields(attrList: VertexAttribute[]) {
 		};
 		return sf;
 	});
-}
-
-export function makeStandardVertexBufferLayout(attrList: VertexAttribute[]): VertexBufferLayout {
-	let offset = 0, maxElemSize = 0;
-
-	// calculate positioning of successive attributes in linear item
-	const attributes = attrList.map((attr: VertexAttribute): PositionedAttribute => {
-		const sizeBytes = vertexFieldSizeBytes(attr.field);
-		maxElemSize = Math.max(maxElemSize, vertexFieldElementSizeBytes(attr.field));
-
-		const alignedOffset = alignVertexField(attr.field, offset);
-		offset = alignedOffset + sizeBytes;
-		return {
-			type: vertexFieldNumericType(attr.field)!,
-			count: vertexFieldElementCount(attr.field),
-			byteOffset: alignedOffset,
-			sizeBytes,
-			...attr
-		};
-	});
-
-	// align full item size on boundary of biggest element in attribute list, with min of float boundary
-	maxElemSize = Math.max(Float32Array.BYTES_PER_ELEMENT, maxElemSize);
-	const stride = alignUpMinumumAlignment(offset, maxElemSize);
-
-	return new VertexBufferLayoutImpl(attributes, stride);
+	return new StructLayout(fields, FieldAlignment.Aligned);
 }
 
 /**
  * A VertexBuffer is a simple structure that holds storage and metatdata
  * for a specified count of vertexes with a stride.
  */
-export interface VertexBuffer {
-	readonly vertexCount: number;
-	readonly stride: number;
-	readonly storage: Uint8Array;
-}
+export class VertexBuffer {
+	private readonly backing_: StructuredArray<VertexAttribute>;
 
-/**
- * Determine if an object is a VertexBuffer
- */
-export function isVertexBuffer(vb: any): vb is VertexBuffer {
-	return typeof vb === "object" && vb !== null
-		&& typeof vb.vertexCount === "number"
-		&& typeof vb.stride === "number"
-		&& ArrayBuffer.isView(vb.storage);
-}
+	/**
+	 * @expects isPositiveNonZeroInteger(vertexCount)
+	 */
+	constructor(layout: StructLayout<VertexAttribute>, vertexCount: number, storage?: Uint8Array) {
+		this.backing_ = new StructuredArray<VertexAttribute>({
+			layout,
+			minCapacity: vertexCount,
+			topology: StorageTopology.ArrayOfStructs,
+			storageAlignment: StorageAlignment.None,
+			bufferView: storage
+		});
+	}
 
-/**
- * @expects isPositiveNonZeroInteger(vertexCount)
- * @expects isPositiveNonZeroInteger(stride)
- */
-export function createVertexBuffer(vertexCount: number, stride: number): VertexBuffer {
-	return {
-		vertexCount,
-		stride,
-		storage: new Uint8Array(vertexCount * stride)
-	};
-}
-
-/**
- * @expects isPositiveNonZeroInteger(vertexCount)
- * @expects isPositiveNonZeroInteger(stride)
- * @expects usingStorage.byteLength >= vertexCount * stride
- */
-export function createVertexBufferWithStorage(vertexCount: number, stride: number, storage: Uint8Array): VertexBuffer {
-	return {
-		vertexCount,
-		stride,
-		storage
-	};
-}
-
-export function vertexBufferSizeBytes(vb: VertexBuffer) {
-	return vb.vertexCount * vb.stride;
+	get vertexCount() {
+		return this.backing_.storage.capacity;
+	}
+	get stride() {
+		return this.backing_.layout.totalSizeBytes;
+	}
+	get storage() {
+		return this.backing_.storage.data;
+	}
+	get sizeBytes() {
+		return this.vertexCount * this.stride;
+	}
 }
