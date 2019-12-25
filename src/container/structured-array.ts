@@ -41,6 +41,7 @@ class Layout<C> {
 
 	constructor(fields: StructField<C>[], align: FieldAlignment) {
 		let offset = 0;
+		let maxElemSize = Float32Array.BYTES_PER_ELEMENT;
 		this.posFields = fields.map(field => {
 			const curOffset = offset;
 			const sizeBytes = fieldSizeBytes(field);
@@ -49,6 +50,7 @@ class Layout<C> {
 			}
 			else {
 				offset = alignStructField(field, offset);
+				maxElemSize = Math.max(maxElemSize, field.type.byteSize);
 			}
 
 			return {
@@ -58,7 +60,13 @@ class Layout<C> {
 			};
 		});
 
-		this.totalSizeBytes = offset;
+		if (align === FieldAlignment.Aligned) {
+			// align full item size on boundary of biggest element in field list, with min of float boundary
+			this.totalSizeBytes = alignUpMinumumAlignment(offset, maxElemSize);
+		}
+		else {
+			this.totalSizeBytes = offset;
+		}
 	}
 
 	sizeBytesForCount(structCount: number) {
