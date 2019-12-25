@@ -251,7 +251,9 @@ export type PositionedAttribute = PositionedStructField<VertexAttribute>;
 
 // ---- vertex layout builder
 
-export function makeVertexBufferLayout(attrList: VertexAttribute[]): StructLayout<VertexAttribute> {
+export type VertexBufferLayout = StructLayout<VertexAttribute>;
+
+export function makeVertexBufferLayout(attrList: VertexAttribute[]): VertexBufferLayout {
 	const fields = attrList.map(attr => {
 		const sf: StructField<VertexAttribute> = {
 			type: vertexFieldNumericType(attr.field)!,
