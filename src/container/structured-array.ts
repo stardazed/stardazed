@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { NumericType, alignUp, clearArrayBuffer, transferArrayBuffer, alignUpMinumumAlignment } from "stardazed/core";
+import { NumericType, clearArrayBuffer, transferArrayBuffer, alignUpMinumumAlignment } from "stardazed/core";
 
 // ----- Fields and Layout
 
@@ -76,42 +76,20 @@ export class StructLayout<C> {
 
 // ----- Storage
 
-const CAPACITY_UNIT = 32;
-const WEBASSEMBLY_PAGE_SIZE = 64 * 1024;
-
-export const enum StorageAlignment {
-	None = 0,
-	ItemMultipleOf32 = 1,
-	BlockMultipleOfWASMPage = 2,
-}
-
 export interface StorageDimensions {
 	capacity: number;
 	sizeBytes: number;
 }
 
-function alignCapacityUp(capacity: number) {
-	return alignUp(capacity, CAPACITY_UNIT);
-}
-
-function alignSizeBytesUpToWASMPage(sizeBytes: number) {
-	return alignUp(sizeBytes, WEBASSEMBLY_PAGE_SIZE);
-}
-
-function calcAlignedStorageSize(itemSizeBytes: number, minCapacity: number, flags: StorageAlignment): StorageDimensions {
-	const capacity = flags & StorageAlignment.ItemMultipleOf32 ? alignCapacityUp(minCapacity) : minCapacity;
-	const dataSizeBytes = itemSizeBytes * capacity;
-	const sizeBytes = flags & StorageAlignment.BlockMultipleOfWASMPage ? alignSizeBytesUpToWASMPage(dataSizeBytes) : dataSizeBytes;
-
+function calcStorageSize(itemSizeBytes: number, capacity: number): StorageDimensions {
 	return {
 		capacity,
-		sizeBytes
+		sizeBytes: itemSizeBytes * capacity
 	};
 }
 
 class Storage {
 	readonly itemSizeBytes: number;
-	readonly storageAlignment: StorageAlignment;
 	capacity: number;
 	owned: boolean;
 	data: Uint8Array;
@@ -123,8 +101,8 @@ class Storage {
 	 * @expects isPositiveNonZeroInteger(itemSizeBytes)
 	 * @expects isPositiveNonZeroInteger(minCapacity)
 	 */
-	constructor(itemSizeBytes: number, minCapacity: number, storageAlignment: StorageAlignment, bufferView?: Uint8Array) {
-		const { capacity, sizeBytes } = calcAlignedStorageSize(itemSizeBytes, minCapacity, storageAlignment);
+	constructor(itemSizeBytes: number, minCapacity: number, bufferView?: Uint8Array) {
+		const { capacity, sizeBytes } = calcStorageSize(itemSizeBytes, minCapacity);
 
 		this.owned = bufferView === undefined;
 		if (bufferView) {
@@ -138,7 +116,6 @@ class Storage {
 
 		this.capacity = capacity;
 		this.itemSizeBytes = itemSizeBytes;
-		this.storageAlignment = storageAlignment;
 		this.data = bufferView;
 	}
 }
@@ -158,7 +135,6 @@ export const enum StorageTopology {
 export interface StructuredArrayDesc<C> {
 	layout: StructLayout<C>;
 	topology: StorageTopology;
-	storageAlignment: StorageAlignment;
 	minCapacity: number;
 	bufferView?: Uint8Array;
 }
@@ -177,7 +153,7 @@ export class StructuredArray<C = unknown> {
 	constructor(desc: StructuredArrayDesc<C>) {
 		this.layout = desc.layout;
 		this.topology = desc.topology;
-		this.storage = new Storage(this.layout.totalSizeBytes, desc.minCapacity, desc.storageAlignment, desc.bufferView);
+		this.storage = new Storage(this.layout.totalSizeBytes, desc.minCapacity, desc.bufferView);
 	}
 
 	/**
@@ -189,7 +165,7 @@ export class StructuredArray<C = unknown> {
 	 */
 	resize(newMinCapacity: number) {
 		const currentSizeBytes = this.storage.data.byteLength;
-		const { capacity, sizeBytes: newSizeBytes } = calcAlignedStorageSize(this.layout.totalSizeBytes, newMinCapacity, this.storage.storageAlignment);
+		const { capacity, sizeBytes: newSizeBytes } = calcStorageSize(this.layout.totalSizeBytes, newMinCapacity);
 
 		if (newSizeBytes === currentSizeBytes) {
 			return;
@@ -203,7 +179,7 @@ export class StructuredArray<C = unknown> {
 			if (newSizeBytes < currentSizeBytes) {
 				// If the buffer was reduced in size, clear out the array between the final
 				// requested struct and end-of-buffer as that may contain initialized data.
-				const { sizeBytes: dataSizeBytes } = calcAlignedStorageSize(this.layout.totalSizeBytes, newMinCapacity, StorageAlignment.None);
+				const { sizeBytes: dataSizeBytes } = calcStorageSize(this.layout.totalSizeBytes, newMinCapacity);
 				clearArrayBuffer(newBuffer, dataSizeBytes, newSizeBytes);
 			}
 		}

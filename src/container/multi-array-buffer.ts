@@ -5,8 +5,8 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { clearArrayBuffer, roundUpPowerOf2 } from "stardazed/core";
-import { StructuredArray, StructField, FieldAlignment, StorageTopology, StorageAlignment, PositionedStructField, StructLayout } from "./structured-array";
+import { clearArrayBuffer, roundUpPowerOf2, alignUp } from "stardazed/core";
+import { StructuredArray, StructField, FieldAlignment, StorageTopology, PositionedStructField, StructLayout } from "./structured-array";
 
 export const enum InvalidatePointers {
 	No,
@@ -24,11 +24,11 @@ export class MultiArrayBuffer<UD = unknown> {
 	 * @expects fields.length > 0
 	 */
 	constructor(initialCapacity: number, fields: StructField<UD>[], align = FieldAlignment.Packed) {
+		initialCapacity = alignUp(initialCapacity, 32);
 		const layout = new StructLayout(fields, align);
 		this.backing_ = new StructuredArray({
 			layout,
 			topology: StorageTopology.StructOfArrays,
-			storageAlignment: StorageAlignment.ItemMultipleOf32,
 			minCapacity: initialCapacity
 		});
 	}
@@ -74,6 +74,7 @@ export class MultiArrayBuffer<UD = unknown> {
 	 * @expects isPositiveNonZeroInteger(newCount)
 	 */
 	resize(newCount: number): InvalidatePointers {
+		newCount = alignUp(newCount, 32);
 		let invalidation = InvalidatePointers.No;
 
 		if (newCount > this.capacity) {
