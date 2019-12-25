@@ -6,11 +6,11 @@ https://github.com/stardazed/stardazed
 */
 
 import { clearArrayBuffer } from "stardazed/core";
-import * as struct from "./structured-array";
+import { StructuredArray, StructField, StorageTopology, StorageAlignment, FieldAlignment } from "./structured-array";
 
 export class FixedMultiArray<UD = unknown> {
 	/** @internal */
-	private readonly backing_: struct.StructuredArray<UD>;
+	private readonly backing_: StructuredArray<UD>;
 	/** @internal */
 	private readonly basePointers_: TypedArray[];
 
@@ -18,11 +18,16 @@ export class FixedMultiArray<UD = unknown> {
 	 * @expects isPositiveNonZeroInteger(capacity)
 	 * @expects fields.length > 0
 	 */
-	constructor(capacity: number, fields: struct.Field<UD>[], alignmentFn: struct.AlignmentFn = struct.packFields) {
-		const layout = alignmentFn(fields);
-		this.backing_ = struct.createStructuredArray(layout, struct.Topology.StructOfArrays, capacity, struct.StorageAlignment.ItemMultipleOf32);
+	constructor(capacity: number, fields: StructField<UD>[], align = FieldAlignment.Packed) {
+		this.backing_ = new StructuredArray({
+			fields,
+			fieldAlignment: align,
+			topology: StorageTopology.StructOfArrays,
+			storageAlignment: StorageAlignment.ItemMultipleOf32,
+			minCapacity: capacity
+		});
 
-		this.basePointers_ = layout.posFields.map(posField => {
+		this.basePointers_ = this.backing_.layout.posFields.map(posField => {
 			const byteOffset = this.backing_.storage.capacity * posField.byteOffset;
 			return new (posField.type.arrayType)(this.backing_.storage.data.buffer, byteOffset, this.backing_.storage.capacity * posField.count);
 		});

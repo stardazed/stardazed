@@ -9,8 +9,7 @@ export { ChunkedQueue } from "./chunked-queue";
 export { NumericDeque } from "./numeric-deque";
 export { NumericQueue } from "./numeric-queue";
 
-import * as struct from "./structured-array";
-export { struct };
+export * from "./structured-array";
 
 export { FixedMultiArray } from "./fixed-multi-array";
 export { FixedStructArray } from "./fixed-struct-array";

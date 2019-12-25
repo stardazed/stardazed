@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { struct } from "stardazed/container";
+import { PositionedStructField, StructField } from "stardazed/container";
 import { Float, NumericType, SInt16, SInt32, SInt8, UInt16, UInt32, UInt8, alignUpMinumumAlignment } from "stardazed/core";
 
 /**
@@ -246,7 +246,7 @@ export function isVertexAttribute(va: any): va is VertexAttribute {
 		typeof va.field === "number" && typeof va.role === "number";
 }
 
-export type PositionedAttribute = struct.PositionedField<VertexAttribute>;
+export type PositionedAttribute = PositionedStructField<VertexAttribute>;
 
 export interface VertexBufferLayout {
 	// TODO: add instancing parameters
@@ -300,7 +300,7 @@ function alignVertexField(field: VertexField, offset: number) {
 
 export function makeLayoutStructFields(attrList: VertexAttribute[]) {
 	return attrList.map(attr => {
-		const sf: struct.Field<VertexAttribute> = {
+		const sf: StructField<VertexAttribute> = {
 			type: vertexFieldNumericType(attr.field)!,
 			count: vertexFieldElementCount(attr.field),
 			custom: { ...attr }
