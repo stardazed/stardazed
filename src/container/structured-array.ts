@@ -35,7 +35,7 @@ function alignStructField(field: StructField, offset: number) {
 	return alignUpMinumumAlignment(offset, sizeBytes);
 }
 
-class Layout<C> {
+export class StructLayout<C> {
 	readonly posFields: ReadonlyArray<PositionedStructField<C>>;
 	readonly totalSizeBytes: number;
 
@@ -156,8 +156,7 @@ export const enum StorageTopology {
 }
 
 export interface StructuredArrayDesc<C> {
-	fields: StructField<C>[];
-	fieldAlignment: FieldAlignment;
+	layout: StructLayout<C>;
 	topology: StorageTopology;
 	storageAlignment: StorageAlignment;
 	minCapacity: number;
@@ -167,8 +166,8 @@ export interface StructuredArrayDesc<C> {
 /**
  * Low-level fixed-size storage of structured arrays.
  */
-export class StructuredArray<C> {
-	readonly layout: Layout<C>;
+export class StructuredArray<C = unknown> {
+	readonly layout: StructLayout<C>;
 	readonly topology: StorageTopology;
 	readonly storage: Storage;
 
@@ -176,7 +175,7 @@ export class StructuredArray<C> {
 	 * @expects isPositiveNonZeroInteger(minCapacity)
 	 */
 	constructor(desc: StructuredArrayDesc<C>) {
-		this.layout = new Layout(desc.fields, desc.fieldAlignment);
+		this.layout = desc.layout;
 		this.topology = desc.topology;
 		this.storage = new Storage(this.layout.totalSizeBytes, desc.minCapacity, desc.storageAlignment, desc.bufferView);
 	}
