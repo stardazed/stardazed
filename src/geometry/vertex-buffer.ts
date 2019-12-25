@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { PositionedStructField, StructField, StructuredArray, StructLayout, StorageTopology, FieldAlignment } from "stardazed/container";
+import { PositionedStructField, StructField, StructuredArray, StructLayout, FieldTopology } from "stardazed/container";
 import { Float, NumericType, SInt16, SInt32, SInt8, UInt16, UInt32, UInt8 } from "stardazed/core";
 
 /**
@@ -262,7 +262,7 @@ export function makeVertexBufferLayout(attrList: VertexAttribute[]): VertexBuffe
 		};
 		return sf;
 	});
-	return new StructLayout(fields, FieldAlignment.Aligned);
+	return new StructLayout(fields, FieldTopology.AlignedStructs);
 }
 
 /**
@@ -278,8 +278,7 @@ export class VertexBuffer {
 	constructor(layout: StructLayout<VertexAttribute>, vertexCount: number, storage?: Uint8Array) {
 		this.backing_ = new StructuredArray<VertexAttribute>({
 			layout,
-			minCapacity: vertexCount,
-			topology: StorageTopology.ArrayOfStructs,
+			capacity: vertexCount,
 			bufferView: storage
 		});
 	}

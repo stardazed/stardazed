@@ -7,7 +7,7 @@ https://github.com/stardazed/stardazed
 
 import { NumericType, clearArrayBuffer, transferArrayBuffer, alignUpMinumumAlignment } from "stardazed/core";
 
-// ----- Fields and Layout
+// ----- Fields with optional extra metadata
 
 export type StructField<C = unknown> = {
 	type: NumericType;
@@ -25,9 +25,19 @@ export type PositionedStructField<C> = {
 	readonly [P in keyof StructField<C>]: StructField<C>[P];
 };
 
-export const enum FieldAlignment {
-	Aligned,
-	Packed
+
+// ----- Layout of fields and records
+
+/**
+ * Topology of a {@link StructuredArray}.
+ * Can be arrays of structs with interleaved fields or structs
+ * of arrays with fields laid out contiguously. Structs can be
+ * laid out memory-aligned or packed without padding.
+ */
+export const enum FieldTopology {
+	AlignedStructs,
+	PackedStructs,
+	Arrays
 }
 
 function alignStructField(field: StructField, offset: number) {
@@ -38,17 +48,20 @@ function alignStructField(field: StructField, offset: number) {
 export class StructLayout<C> {
 	readonly posFields: ReadonlyArray<PositionedStructField<C>>;
 	readonly totalSizeBytes: number;
+	readonly topology: FieldTopology;
 
-	constructor(fields: StructField<C>[], align: FieldAlignment) {
+	constructor(fields: StructField<C>[], topology: FieldTopology) {
 		let offset = 0;
 		let maxElemSize = Float32Array.BYTES_PER_ELEMENT;
 		this.posFields = fields.map(field => {
 			const curOffset = offset;
 			const sizeBytes = fieldSizeBytes(field);
-			if (align === FieldAlignment.Packed) {
+			if (topology !== FieldTopology.AlignedStructs) {
+				// packed structs or field arrays
 				offset += sizeBytes;
 			}
 			else {
+				// inter-field alignment
 				offset = alignStructField(field, offset);
 				maxElemSize = Math.max(maxElemSize, field.type.byteSize);
 			}
@@ -60,13 +73,15 @@ export class StructLayout<C> {
 			};
 		});
 
-		if (align === FieldAlignment.Aligned) {
+		if (topology === FieldTopology.AlignedStructs) {
 			// align full item size on boundary of biggest element in field list, with min of float boundary
 			this.totalSizeBytes = alignUpMinumumAlignment(offset, maxElemSize);
 		}
 		else {
+			// no inter-field/struct alignment
 			this.totalSizeBytes = offset;
 		}
+		this.topology = topology;
 	}
 
 	sizeBytesForCount(structCount: number) {
@@ -76,7 +91,7 @@ export class StructLayout<C> {
 
 // ----- Storage
 
-export interface StorageDimensions {
+interface StorageDimensions {
 	capacity: number;
 	sizeBytes: number;
 }
@@ -122,20 +137,9 @@ class Storage {
 
 // ----- StructuredArray
 
-/**
- * Topology of a {@link StructuredArray}.
- * Can be arrays of structs with interleaved fields or
- * structs of arrays with fields laid out contiguously.
- */
-export const enum StorageTopology {
-	StructOfArrays,
-	ArrayOfStructs
-}
-
 export interface StructuredArrayDesc<C> {
 	layout: StructLayout<C>;
-	topology: StorageTopology;
-	minCapacity: number;
+	capacity: number;
 	bufferView?: Uint8Array;
 }
 
@@ -144,7 +148,6 @@ export interface StructuredArrayDesc<C> {
  */
 export class StructuredArray<C = unknown> {
 	readonly layout: StructLayout<C>;
-	readonly topology: StorageTopology;
 	readonly storage: Storage;
 
 	/**
@@ -152,8 +155,7 @@ export class StructuredArray<C = unknown> {
 	 */
 	constructor(desc: StructuredArrayDesc<C>) {
 		this.layout = desc.layout;
-		this.topology = desc.topology;
-		this.storage = new Storage(this.layout.totalSizeBytes, desc.minCapacity, desc.bufferView);
+		this.storage = new Storage(this.layout.totalSizeBytes, desc.capacity, desc.bufferView);
 	}
 
 	/**
@@ -173,7 +175,7 @@ export class StructuredArray<C = unknown> {
 
 		let newBuffer: ArrayBufferLike;
 
-		if (this.topology === StorageTopology.ArrayOfStructs) {
+		if (this.layout.topology !== FieldTopology.Arrays) {
 			// for an array of structs, we simply reduce or enlarge the buffer
 			newBuffer = transferArrayBuffer(this.storage.data.buffer, newSizeBytes);
 			if (newSizeBytes < currentSizeBytes) {
@@ -193,6 +195,7 @@ export class StructuredArray<C = unknown> {
 
 			// because all arrays are a multiple of 32 elements long, we can use double views
 			// to copy over data reasonable quickly.
+			// FIXME: no longer the case, use tiered copy
 			const oldCapacity = this.storage.capacity;
 			const doublesPerArray = (this.layout.sizeBytesForCount(oldCapacity) / Float64Array.BYTES_PER_ELEMENT) | 0;
 
