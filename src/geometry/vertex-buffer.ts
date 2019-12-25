@@ -6,7 +6,7 @@ https://github.com/stardazed/stardazed
 */
 
 import { PositionedStructField, StructField, StructuredArray, StructLayout, StorageTopology, StorageAlignment, FieldAlignment } from "stardazed/container";
-import { Float, NumericType, SInt16, SInt32, SInt8, UInt16, UInt32, UInt8, alignUpMinumumAlignment } from "stardazed/core";
+import { Float, NumericType, SInt16, SInt32, SInt8, UInt16, UInt32, UInt8 } from "stardazed/core";
 
 /**
  * A single field in a vertex buffer with three properties:
@@ -283,6 +283,9 @@ export class VertexBuffer {
 		});
 	}
 
+	get layout() {
+		return this.backing_.layout;
+	}
 	get vertexCount() {
 		return this.backing_.storage.capacity;
 	}
