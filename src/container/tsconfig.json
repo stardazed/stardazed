@@ -10,16 +10,10 @@
 	"files": [
 		"../global-types.d.ts",
 
-		"chunked-queue.ts",
-		"numeric-queue.ts",
-		"numeric-deque.ts",
-
-		"structured-array.ts",
-		"fixed-struct-array.ts",
-		"fixed-multi-array.ts",
+		"common.ts",
+		"array-of-structs.ts",
+		"struct-of-arrays.ts",
 		"multi-array-buffer.ts",
-
-		"sorted-array.ts",
 
 		"index.ts"
 	],
