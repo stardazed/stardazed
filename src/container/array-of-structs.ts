@@ -1,5 +1,5 @@
 /*
-container/structured-array - multi-topology structured array
+container/array-of-structs - multi-topology structured array
 Part of Stardazed
 (c) 2015-Present by Arthur Langereis - @zenmumbler
 https://github.com/stardazed/stardazed
@@ -158,16 +158,24 @@ export class StructuredArray<C = unknown> {
 		this.storage = new Storage(this.layout.totalSizeBytes, desc.capacity, desc.bufferView);
 	}
 
+	get stride() {
+		// there is no meaningful answer when using StructOfArrays topology
+		if (this.layout.topology === FieldTopology.Arrays) {
+			return 0;
+		}
+		return this.layout.totalSizeBytes;
+	}
+
 	/**
-	 * Resize a structured array to accomodate a new minumum capacity.
+	 * Resize a structured array to accomodate a new capacity.
 	 * Handles any data layout changes necessary for the active topology.
 	 *
 	 * @expects this.storage.owned === true
-	 * @expects isPositiveNonZeroInteger(newMinCapacity)
+	 * @expects isPositiveNonZeroInteger(newCapacity)
 	 */
-	resize(newMinCapacity: number) {
+	resize(newCapacity: number) {
 		const currentSizeBytes = this.storage.data.byteLength;
-		const { capacity, sizeBytes: newSizeBytes } = calcStorageSize(this.layout.totalSizeBytes, newMinCapacity);
+		const { capacity, sizeBytes: newSizeBytes } = calcStorageSize(this.layout.totalSizeBytes, newCapacity);
 
 		if (newSizeBytes === currentSizeBytes) {
 			return;
@@ -181,7 +189,7 @@ export class StructuredArray<C = unknown> {
 			if (newSizeBytes < currentSizeBytes) {
 				// If the buffer was reduced in size, clear out the array between the final
 				// requested struct and end-of-buffer as that may contain initialized data.
-				const { sizeBytes: dataSizeBytes } = calcStorageSize(this.layout.totalSizeBytes, newMinCapacity);
+				const { sizeBytes: dataSizeBytes } = calcStorageSize(this.layout.totalSizeBytes, newCapacity);
 				clearArrayBuffer(newBuffer, dataSizeBytes, newSizeBytes);
 			}
 		}

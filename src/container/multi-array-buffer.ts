@@ -6,16 +6,17 @@ https://github.com/stardazed/stardazed
 */
 
 import { clearArrayBuffer, roundUpPowerOf2, alignUp } from "stardazed/core";
-import { StructuredArray, StructField, FieldTopology, PositionedStructField, StructLayout } from "./structured-array";
+import { StructField } from "./common";
+import { StructOfArrays } from "./struct-of-arrays";
 
 export const enum InvalidatePointers {
 	No,
 	Yes
 }
 
-export class MultiArrayBuffer<UD = unknown> {
+export class MultiArrayBuffer<C = unknown> {
 	/** @internal */
-	private readonly backing_: StructuredArray<UD>;
+	private readonly backing_: StructOfArrays<C>;
 	/** @internal */
 	private count_ = 0;
 
@@ -23,63 +24,37 @@ export class MultiArrayBuffer<UD = unknown> {
 	 * @expects isPositiveNonZeroInteger(initialCapacity)
 	 * @expects fields.length > 0
 	 */
-	constructor(initialCapacity: number, fields: StructField<UD>[]) {
-		initialCapacity = alignUp(initialCapacity, 32);
-		const layout = new StructLayout(fields, FieldTopology.Arrays);
-		this.backing_ = new StructuredArray({
-			layout,
-			capacity: initialCapacity
-		});
+	constructor(initialCapacity: number, fields: StructField<C>[]) {
+		this.backing_ = new StructOfArrays(fields, initialCapacity);
 	}
 
-	get fieldCount() { return this.backing_.layout.posFields.length; }
+	get fieldCount() { return this.backing_.fields.length; }
 
 	/**
 	 * @expects index >= 0 && index < this.fieldCount
 	 */
 	field(index: number) {
-		return this.backing_.layout.posFields[index];
+		return this.backing_.fields[index];
 	}
 
-	get capacity() { return this.backing_.storage.capacity; }
+	get capacity() { return this.backing_.capacity; }
 	get count() { return this.count_; }
-
-	/**
-	 * @expects itemCount > 0
-	 * @internal
-	 */
-	private fieldArrayView(f: PositionedStructField<UD>, buffer: ArrayBufferLike, itemCount: number) {
-		const byteOffset = f.byteOffset * itemCount;
-		return new (f.type.arrayType)(buffer, byteOffset, itemCount * f.count);
-	}
-
-	/**
-	 * @expects newCapacity > 0
-	 */
-	reserve(newCapacity: number): InvalidatePointers {
-		const oldCapacity = this.backing_.storage.capacity;
-		this.backing_.resize(newCapacity);
-
-		const invalidation = oldCapacity === this.capacity ? InvalidatePointers.No : InvalidatePointers.Yes;
-		return invalidation;
-	}
 
 	clear() {
 		this.count_ = 0;
-		clearArrayBuffer(this.backing_.storage.data.buffer);
+		// this.backing_.clear(); necessary?
 	}
 
 	/**
 	 * @expects isPositiveNonZeroInteger(newCount)
 	 */
 	resize(newCount: number): InvalidatePointers {
-		newCount = alignUp(newCount, 32);
 		let invalidation = InvalidatePointers.No;
 
 		if (newCount > this.capacity) {
 			// automatically expand up to next highest power of 2 size
 			// FIXME: why is this again?
-			invalidation = this.reserve(roundUpPowerOf2(newCount));
+			invalidation = this.reserve(newCount);
 		}
 		else if (newCount < this.count_) {
 			// Reducing the count will clear the now freed up elements so that when
