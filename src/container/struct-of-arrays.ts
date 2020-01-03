@@ -147,7 +147,7 @@ export class StructOfArrays<C = unknown> {
 		for (let ix = 0; ix < newFields.length; ++ix) {
 			const oldField = this.fields_[ix];
 			const newField = newFields[ix];
-			const elementsToCopy = Math.min(newCapacity, this.capacity_);
+			const elementsToCopy = Math.min(newCapacity, this.capacity_) * newField.count;
 
 			const oldView = fieldArrayRangeView(this.data_, oldField, 0, elementsToCopy);
 			const newView = fieldArrayRangeView(bufferView, newField, 0, elementsToCopy);
