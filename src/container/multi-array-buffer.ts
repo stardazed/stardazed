@@ -5,7 +5,6 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { clearArrayBuffer, roundUpPowerOf2, alignUp } from "stardazed/core";
 import { StructField } from "./common";
 import { StructOfArrays } from "./struct-of-arrays";
 
@@ -24,25 +23,15 @@ export class MultiArrayBuffer<C = unknown> {
 	 * @expects isPositiveNonZeroInteger(initialCapacity)
 	 * @expects fields.length > 0
 	 */
-	constructor(initialCapacity: number, fields: StructField<C>[]) {
+	constructor(fields: StructField<C>[], initialCapacity: number) {
 		this.backing_ = new StructOfArrays(fields, initialCapacity);
 	}
 
-	get fieldCount() { return this.backing_.fields.length; }
-
-	/**
-	 * @expects index >= 0 && index < this.fieldCount
-	 */
-	field(index: number) {
-		return this.backing_.fields[index];
-	}
-
-	get capacity() { return this.backing_.capacity; }
 	get count() { return this.count_; }
 
 	clear() {
 		this.count_ = 0;
-		// this.backing_.clear(); necessary?
+		this.backing_.data.fill(0);
 	}
 
 	/**
@@ -51,20 +40,16 @@ export class MultiArrayBuffer<C = unknown> {
 	resize(newCount: number): InvalidatePointers {
 		let invalidation = InvalidatePointers.No;
 
-		if (newCount > this.capacity) {
-			// automatically expand up to next highest power of 2 size
-			// FIXME: why is this again?
-			invalidation = this.reserve(newCount);
+		if (newCount > this.backing_.capacity) {
+			this.backing_.resize(newCount);
+			invalidation = InvalidatePointers.Yes;
 		}
 		else if (newCount < this.count_) {
 			// Reducing the count will clear the now freed up elements so that when
 			// a new allocation is made the element data is guaranteed to be zeroed.
-			const elementsToClear = this.count_ - newCount;
-
-			for (const field of this.backing_.layout.posFields) {
-				const array = this.fieldArrayView(field, this.backing_.storage.data.buffer, this.count_);
-				const zeroes = new (field.type.arrayType)(elementsToClear * field.count);
-				array.set(zeroes, newCount * field.count);
+			for (const field of this.backing_.fields) {
+				const fv = this.backing_.fieldView(field, newCount);
+				fv.fill(0);
 			}
 		}
 
@@ -75,18 +60,18 @@ export class MultiArrayBuffer<C = unknown> {
 	extend(): InvalidatePointers {
 		let invalidation = InvalidatePointers.No;
 
-		if (this.count_ === this.capacity) {
-			invalidation = this.reserve(Math.ceil(this.capacity * 1.5));
+		if (this.count_ === this.backing_.capacity) {
+			// grow factor of 1.5
+			this.backing_.resize(Math.ceil(this.count_ * 1.5));
+			invalidation = InvalidatePointers.Yes;
 		}
 
 		++this.count_;
 		return invalidation;
 	}
 
-	/**
-	 * @expects index >= 0 && index < this.fields_.length
-	 */
-	indexedFieldView(index: number) {
-		return this.fieldArrayView(this.backing_.layout.posFields[index], this.backing_.storage.data.buffer, this.capacity);
+	fieldView(ref: number | string) {
+		const field = this.backing_.field(ref);
+		return this.backing_.fieldView(field);
 	}
 }
