@@ -148,3 +148,19 @@ export class ArrayOfStructs<C = unknown> {
 		return stride * capacity;
 	}
 }
+
+
+export class AOSFieldView<C> {
+	private field_: Readonly<PositionedStructField<C>>;
+	private strideInElements_: number;
+	private rangeView_: TypedArray;
+
+	constructor(aos: ArrayOfStructs<C>, field: Readonly<PositionedStructField<C>>, fromRecord: number, toRecord: number) {
+		this.strideInElements_ = (aos.stride / field.type.byteSize) | 0;
+		const startOffset = field.byteOffset + (fromRecord * this.strideInElements_);
+		const recordCount = toRecord - fromRecord;
+		const elementCount = recordCount * this.strideInElements_;
+		this.rangeView_ = new (field.type.arrayType)(aos.data.buffer, startOffset, elementCount);
+		this.field_ = field;
+	}
+}

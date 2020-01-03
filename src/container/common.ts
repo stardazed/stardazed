@@ -20,11 +20,3 @@ export type PositionedStructField<C> = {
 	byteOffset: number;
 	sizeBytes: number;
 };
-
-export function totalSizeOfFields(fields: ReadonlyArray<StructField>) {
-	let size = 0;
-	for (const field of fields) {
-		size += field.type.byteSize * field.count;
-	}
-	return size;
-}
