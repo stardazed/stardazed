@@ -7,18 +7,18 @@ https://github.com/stardazed/stardazed
 
 import { NumericType } from "stardazed/core";
 
-export type StructField<C = unknown> = {
+export type StructField<C = unknown> = C & {
 	name: string;
 	type: NumericType;
 	count: number;
-} & C;
+};
 
 
 export type PositionedStructField<C> = {
+	readonly [P in keyof StructField<C>]: StructField<C>[P];
+} & {
 	byteOffset: number;
 	sizeBytes: number;
-} & {
-	readonly [P in keyof StructField<C>]: StructField<C>[P];
 };
 
 export function totalSizeOfFields(fields: ReadonlyArray<StructField>) {
