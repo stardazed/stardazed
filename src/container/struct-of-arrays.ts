@@ -5,8 +5,8 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { StructField, PositionedStructField } from "./common";
 import { alignUp } from "stardazed/core";
+import { StructField, PositionedStructField } from "./common";
 
 /**
  * The individual arrays of each field are padded to end on
@@ -24,10 +24,10 @@ function positionFields<C>(fields: ReadonlyArray<StructField<C>>, count: number)
 	const posFields: PositionedStructField<C>[] = [];
 
 	let byteOffset = 0;
-	for (const f of fields) {
-		const sizeBytes = alignUpFieldArray(f, count);
+	for (const field of fields) {
+		const sizeBytes = alignUpFieldArray(field, count);
 		posFields.push({
-			...f,
+			...field,
 			byteOffset,
 			sizeBytes
 		});
@@ -56,7 +56,7 @@ export class StructOfArrays<C = unknown> {
 	/**
 	 * Create a new struct of arrays storage.
 	 * @param fields an array of field specifications
-	 * @param newCapacity the size in number of elements to accomodate
+	 * @param newCapacity the size in number of records to accomodate
 	 * @param bufferView (optional) a buffer view to use as backing store, MUST be aligned on an 8-byte boundary
 	 *
 	 * @expects fields.length > 0
@@ -115,7 +115,7 @@ export class StructOfArrays<C = unknown> {
 
 	/**
 	 * Resize the container to the new capacity.
-	 * @param newCapacity the size in number of elements to adjust the container to
+	 * @param newCapacity the size in number of records to adjust the container to
 	 * @param bufferView (optional) a buffer view to use as backing store, MUST be aligned on an 8-byte boundary
 	 *
 	 * @expects isPositiveNonZeroInteger(newCapacity)
