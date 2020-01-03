@@ -1,221 +1,150 @@
 /*
-container/array-of-structs - multi-topology structured array
+container/array-of-structs - structured data laid out in contiguous records
 Part of Stardazed
 (c) 2015-Present by Arthur Langereis - @zenmumbler
 https://github.com/stardazed/stardazed
 */
 
-import { NumericType, clearArrayBuffer, transferArrayBuffer, alignUpMinumumAlignment } from "stardazed/core";
+import { alignUp } from "stardazed/core";
+import { StructField, PositionedStructField } from "./common";
 
-// ----- Fields with optional extra metadata
+function positionFields<C>(fields: ReadonlyArray<StructField<C>>) {
+	const posFields: PositionedStructField<C>[] = [];
 
-export type StructField<C = unknown> = {
-	type: NumericType;
-	count: number;
-} & C;
+	let byteOffset = 0;
+	let maxElemSize = 1;
+	for (const field of fields) {
+		// move the offset to align to this field's element size
+		byteOffset = alignUp(byteOffset, field.type.byteSize);
+		const sizeBytes = field.type.byteSize * field.count;
 
-function fieldSizeBytes(field: StructField) {
-	return field.type.byteSize * field.count;
-}
-
-export type PositionedStructField<C> = {
-	readonly byteOffset: number;
-	readonly sizeBytes: number;
-} & {
-	readonly [P in keyof StructField<C>]: StructField<C>[P];
-};
-
-
-// ----- Layout of fields and records
-
-/**
- * Topology of a {@link StructuredArray}.
- * Can be arrays of structs with interleaved fields or structs
- * of arrays with fields laid out contiguously. Structs can be
- * laid out memory-aligned or packed without padding.
- */
-export const enum FieldTopology {
-	AlignedStructs,
-	PackedStructs,
-	Arrays
-}
-
-function alignStructField(field: StructField, offset: number) {
-	const sizeBytes = fieldSizeBytes(field);
-	return alignUpMinumumAlignment(offset, sizeBytes);
-}
-
-export class StructLayout<C> {
-	readonly posFields: ReadonlyArray<PositionedStructField<C>>;
-	readonly totalSizeBytes: number;
-	readonly topology: FieldTopology;
-
-	constructor(fields: StructField<C>[], topology: FieldTopology) {
-		let offset = 0;
-		let maxElemSize = Float32Array.BYTES_PER_ELEMENT;
-		this.posFields = fields.map(field => {
-			const curOffset = offset;
-			const sizeBytes = fieldSizeBytes(field);
-			if (topology !== FieldTopology.AlignedStructs) {
-				// packed structs or field arrays
-				offset += sizeBytes;
-			}
-			else {
-				// inter-field alignment
-				offset = alignStructField(field, offset);
-				maxElemSize = Math.max(maxElemSize, field.type.byteSize);
-			}
-
-			return {
-				...field,
-				byteOffset: curOffset,
-				sizeBytes
-			};
+		posFields.push({
+			...field,
+			byteOffset,
+			sizeBytes
 		});
 
-		if (topology === FieldTopology.AlignedStructs) {
-			// align full item size on boundary of biggest element in field list, with min of float boundary
-			this.totalSizeBytes = alignUpMinumumAlignment(offset, maxElemSize);
-		}
-		else {
-			// no inter-field/struct alignment
-			this.totalSizeBytes = offset;
-		}
-		this.topology = topology;
+		byteOffset += sizeBytes;
+		maxElemSize = Math.max(maxElemSize, field.type.byteSize);
 	}
 
-	sizeBytesForCount(structCount: number) {
-		return this.totalSizeBytes * structCount;
-	}
-}
-
-// ----- Storage
-
-interface StorageDimensions {
-	capacity: number;
-	sizeBytes: number;
-}
-
-function calcStorageSize(itemSizeBytes: number, capacity: number): StorageDimensions {
-	return {
-		capacity,
-		sizeBytes: itemSizeBytes * capacity
-	};
-}
-
-class Storage {
-	readonly itemSizeBytes: number;
-	capacity: number;
-	owned: boolean;
-	data: Uint8Array;
-
-	/**
-	 * @param itemSizeBytes Size in bytes of each individual element in the storge
-	 * @param minCapacity The number of elements that _at least_ need to fit in the storage.
-	 * @param bufferView (optional) The buffer view to use for the storage
-	 * @expects isPositiveNonZeroInteger(itemSizeBytes)
-	 * @expects isPositiveNonZeroInteger(minCapacity)
-	 */
-	constructor(itemSizeBytes: number, minCapacity: number, bufferView?: Uint8Array) {
-		const { capacity, sizeBytes } = calcStorageSize(itemSizeBytes, minCapacity);
-
-		this.owned = bufferView === undefined;
-		if (bufferView) {
-			if (sizeBytes > bufferView.byteLength) {
-				throw new RangeError(`Provided buffer view is too small: ${bufferView.byteLength} < ${sizeBytes}`);
-			}
-		}
-		else {
-			bufferView = new Uint8Array(sizeBytes);
-		}
-
-		this.capacity = capacity;
-		this.itemSizeBytes = itemSizeBytes;
-		this.data = bufferView;
-	}
-}
-
-// ----- StructuredArray
-
-export interface StructuredArrayDesc<C> {
-	layout: StructLayout<C>;
-	capacity: number;
-	bufferView?: Uint8Array;
+	// inter-record alignment, 1, 2, 4 or 8 bytes depending on largest element
+	byteOffset = alignUp(byteOffset, maxElemSize);
+	return { posFields, recordSizeBytes: byteOffset };
 }
 
 /**
  * Low-level fixed-size storage of structured arrays.
  */
-export class StructuredArray<C = unknown> {
-	readonly layout: StructLayout<C>;
-	readonly storage: Storage;
+export class ArrayOfStructs<C = unknown> {
+	private fields_: ReadonlyArray<Readonly<PositionedStructField<C>>>;
+	private nameIndexMap_: Record<string, number>;
+	private capacity_: number;
+	private stride_: number;
+	private data_: Uint8Array;
 
 	/**
 	 * @expects isPositiveNonZeroInteger(minCapacity)
 	 */
-	constructor(desc: StructuredArrayDesc<C>) {
-		this.layout = desc.layout;
-		this.storage = new Storage(this.layout.totalSizeBytes, desc.capacity, desc.bufferView);
-	}
+	constructor(fields: StructField<C>[], capacity: number, bufferView?: Uint8Array) {
+		const { posFields, recordSizeBytes } = positionFields(fields);
+		const totalSizeBytes = recordSizeBytes * capacity;
 
-	get stride() {
-		// there is no meaningful answer when using StructOfArrays topology
-		if (this.layout.topology === FieldTopology.Arrays) {
-			return 0;
-		}
-		return this.layout.totalSizeBytes;
-	}
-
-	/**
-	 * Resize a structured array to accomodate a new capacity.
-	 * Handles any data layout changes necessary for the active topology.
-	 *
-	 * @expects this.storage.owned === true
-	 * @expects isPositiveNonZeroInteger(newCapacity)
-	 */
-	resize(newCapacity: number) {
-		const currentSizeBytes = this.storage.data.byteLength;
-		const { capacity, sizeBytes: newSizeBytes } = calcStorageSize(this.layout.totalSizeBytes, newCapacity);
-
-		if (newSizeBytes === currentSizeBytes) {
-			return;
-		}
-
-		let newBuffer: ArrayBufferLike;
-
-		if (this.layout.topology !== FieldTopology.Arrays) {
-			// for an array of structs, we simply reduce or enlarge the buffer
-			newBuffer = transferArrayBuffer(this.storage.data.buffer, newSizeBytes);
-			if (newSizeBytes < currentSizeBytes) {
-				// If the buffer was reduced in size, clear out the array between the final
-				// requested struct and end-of-buffer as that may contain initialized data.
-				const { sizeBytes: dataSizeBytes } = calcStorageSize(this.layout.totalSizeBytes, newCapacity);
-				clearArrayBuffer(newBuffer, dataSizeBytes, newSizeBytes);
+		if (bufferView) {
+			if (totalSizeBytes > bufferView.byteLength) {
+				throw new TypeError(`Provided buffer view is too small: ${bufferView.byteLength} < ${totalSizeBytes}`);
+			}
+			if ((bufferView.byteOffset & 7) !== 0) {
+				throw new TypeError(`Provided buffer view is not aligned on an 8 byte boundary`);
 			}
 		}
 		else {
-			// For struct of arrays data, a capacity change will change the length of
-			// each array individually so we need to re-layout the data in the new buffer.
-			// We iterate over the basePointers and copy count_ elements from the old
-			// data to each new array. With large arrays >100k elements this can take
-			// millisecond-order time, so avoid resizes when possible.
-			newBuffer = new ArrayBuffer(newSizeBytes);
+			bufferView = new Uint8Array(totalSizeBytes);
+		}
 
-			// because all arrays are a multiple of 32 elements long, we can use double views
-			// to copy over data reasonable quickly.
-			// FIXME: no longer the case, use tiered copy
-			const oldCapacity = this.storage.capacity;
-			const doublesPerArray = (this.layout.sizeBytesForCount(oldCapacity) / Float64Array.BYTES_PER_ELEMENT) | 0;
-
-			for (const field of this.layout.posFields) {
-				const oldView = new Float64Array(this.storage.data.buffer, field.byteOffset * oldCapacity, doublesPerArray);
-				const newView = new Float64Array(newBuffer, field.byteOffset * capacity, doublesPerArray);
-				// FIXME(perf): implement and use copyArrayBuffer as .set is (still) slow
-				newView.set(oldView);
+		// precalc a mapping of field name to index for fast by-name lookups
+		this.nameIndexMap_ = {};
+		for (let ix = 0; ix < posFields.length; ++ix) {
+			const name = posFields[ix].name;
+			// skip empty string name indexes
+			if (name) {
+				this.nameIndexMap_[name] = ix;
 			}
 		}
 
-		this.storage.capacity = capacity;
-		this.storage.data = new Uint8Array(newBuffer);
+		this.fields_ = posFields;
+		this.capacity_ = capacity;
+		this.stride_ = recordSizeBytes;
+		this.data_ = bufferView;
+	}
+
+	get fields() { return this.fields_; }
+	get capacity() { return this.capacity_; }
+	get stride() { return this.stride_;	}
+	get data() { return this.data_; }
+
+	/**
+	 * Get field information using a field's index or name.
+	 */
+	field(ref: number | string) {
+		if (typeof ref === "string") {
+			return this.fields_[this.nameIndexMap_[ref]];
+		}
+		return this.fields_[ref];
+	}
+
+	/**
+	 * Resize the container to the new capacity.
+	 * @param newCapacity the size in number of records to adjust the container to
+	 * @param bufferView (optional) a buffer view to use as backing store, MUST be aligned on an 8-byte boundary
+	 *
+	 * @expects isPositiveNonZeroInteger(newCapacity)
+	 */
+	resize(newCapacity: number, bufferView?: Uint8Array) {
+		if (newCapacity === this.capacity_) {
+			return;
+		}
+
+		const newSizeBytes = newCapacity * this.stride_;
+
+		if (bufferView) {
+			if (newSizeBytes > bufferView.byteLength) {
+				throw new TypeError(`Provided buffer view is too small: ${bufferView.byteLength} < ${newSizeBytes}`);
+			}
+			if ((bufferView.byteOffset & 7) !== 0) {
+				throw new TypeError(`Provided buffer view is not aligned on an 8 byte boundary`);
+			}
+		}
+		else {
+			bufferView = new Uint8Array(newSizeBytes);
+		}
+
+		// copy records to the new buffer, omitting extraneous ones if resizing down
+		const recordsToCopy = Math.min(newCapacity, this.capacity_);
+		const oldView = new Uint8Array(this.data_.buffer, this.data_.byteOffset, recordsToCopy * this.stride_);
+		const newView = new Uint8Array(bufferView.buffer, bufferView.byteOffset, recordsToCopy * this.stride_);
+		newView.set(oldView);
+
+		this.capacity_ = newCapacity;
+		this.data_ = bufferView;
+	}
+
+	/**
+	 * Calculate the size in bytes a buffer must be to store `capacity` items with the fields specified.
+	 * Use this when you are providing buffers as backing store manually.
+	 */
+	static sizeBytesRequired<C>(fields: StructField<C>[], capacity: number) {
+		let stride = 0;
+		let maxElemSize = 1;
+		for (const field of fields) {
+			// move the offset to align to this field's element size
+			stride = alignUp(stride, field.type.byteSize);
+			stride += field.type.byteSize * field.count;
+			maxElemSize = Math.max(maxElemSize, field.type.byteSize);
+		}
+
+		// inter-record alignment, 1, 2, 4 or 8 bytes depending on largest element
+		stride = alignUp(stride, maxElemSize);
+		return stride * capacity;
 	}
 }
