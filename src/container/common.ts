@@ -13,7 +13,6 @@ export type StructField<C = unknown> = C & {
 	count: number;
 };
 
-
 export type PositionedStructField<C> = {
 	readonly [P in keyof StructField<C>]: StructField<C>[P];
 } & {

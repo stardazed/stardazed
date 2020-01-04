@@ -5,6 +5,8 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
+/* eslint-disable no-fallthrough */
+
 import { alignUp } from "stardazed/core";
 import { StructField, PositionedStructField } from "./common";
 
@@ -149,9 +151,35 @@ export class ArrayOfStructs<C = unknown> {
 	}
 }
 
+export class AOSIterator implements IterableIterator<TypedArray> {
+	private data_: TypedArray;
+	private step_: number;
+	private width_: number;
+	private index_: number;
 
-export class AOSFieldView<C> {
-	private field_: Readonly<PositionedStructField<C>>;
+	constructor(data: TypedArray, step: number, width: number) {
+		this.data_ = data;
+		this.step_ = step;
+		this.width_ = width;
+		this.index_ = 0;
+	}
+
+	next() {
+		const offset = this.index_ * this.step_;
+		if (offset >= this.data_.length) {
+			return { done: true, value: this.data_ };
+		}
+		this.index_ += 1;
+		return { done: false, value: this.data_.subarray(offset, offset + this.width_) };
+	}
+
+	[Symbol.iterator]() {
+		return this;
+	}
+}
+
+export class AOSFieldView<C> implements Iterable<TypedArray> {
+	private fieldWidth_: number;
 	private strideInElements_: number;
 	private rangeView_: TypedArray;
 
@@ -161,6 +189,100 @@ export class AOSFieldView<C> {
 		const recordCount = toRecord - fromRecord;
 		const elementCount = recordCount * this.strideInElements_;
 		this.rangeView_ = new (field.type.arrayType)(aos.data.buffer, startOffset, elementCount);
-		this.field_ = field;
+		this.fieldWidth_ = field.count;
+	}
+
+	[Symbol.iterator]() {
+		return new AOSIterator(this.rangeView_, this.strideInElements_, this.fieldWidth_);
+	}
+
+	refItem(index: number) {
+		const offset = index * this.strideInElements_;
+		return this.rangeView_.subarray(offset, offset + this.fieldWidth_);
+	}
+
+	copyItem(index: number) {
+		let offset = (this.strideInElements_ * index);
+		const result: number[] = [];
+
+		switch (this.fieldWidth_) {
+			case 4:
+				result.push(this.rangeView_[offset]);
+				offset += 1;
+			case 3:
+				result.push(this.rangeView_[offset]);
+				offset += 1;
+			case 2:
+				result.push(this.rangeView_[offset]);
+				offset += 1;
+			case 1:
+				result.push(this.rangeView_[offset]);
+				break;
+			default:
+				throw new RangeError("copyItem not implemented yet for fields wider than 4 elements");
+		}
+
+		return result;
+	}
+
+	/**
+	 * Copy values from a source array into the attribute for consecutive records
+	 *
+	 * @param source an array of numeric values
+	 * @param valueCount the number of values to copy from source into attributes
+	 * @param atOffset (optional) the first index to start writing values into attributes
+	 * @expects (toOffset + valueCount) * this.strideInElements_ < this.rangeView_.length
+	 * @expects source.length >= valueCount * this.field_.count
+	 */
+	copyValuesFrom(source: NumArray, valueCount: number, atOffset = 0) {
+		const stride = this.strideInElements_;
+		const elementCount = this.fieldWidth_;
+		const dest = this.rangeView_;
+		let destIndex = atOffset;
+		let sourceIndex = 0;
+
+		if (elementCount === 4) {
+			for (let n = 0; n < valueCount; ++n) {
+				dest[destIndex] = source[sourceIndex];
+				dest[destIndex + 1] = source[sourceIndex + 1];
+				dest[destIndex + 2] = source[sourceIndex + 2];
+				dest[destIndex + 3] = source[sourceIndex + 3];
+				sourceIndex += 4;
+				destIndex += stride;
+			}
+		}
+		else if (elementCount === 3) {
+			for (let n = 0; n < valueCount; ++n) {
+				dest[destIndex] = source[sourceIndex];
+				dest[destIndex + 1] = source[sourceIndex + 1];
+				dest[destIndex + 2] = source[sourceIndex + 2];
+				sourceIndex += 3;
+				destIndex += stride;
+			}
+		}
+		else if (elementCount === 2) {
+			for (let n = 0; n < valueCount; ++n) {
+				dest[destIndex] = source[sourceIndex];
+				dest[destIndex + 1] = source[sourceIndex + 1];
+				sourceIndex += 2;
+				destIndex += stride;
+			}
+		}
+		else if (elementCount === 1) {
+			for (let n = 0; n < valueCount; ++n) {
+				dest[destIndex] = source[sourceIndex];
+				sourceIndex += 1;
+				destIndex += stride;
+			}
+		}
+		else {
+			for (let n = 0; n < valueCount; ++n) {
+				for (let e = 0; e < elementCount; ++e) {
+					dest[destIndex + e] = source[sourceIndex + e];
+				}
+				sourceIndex += elementCount;
+				destIndex += stride;
+			}
+		}
 	}
 }
