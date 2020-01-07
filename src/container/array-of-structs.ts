@@ -212,6 +212,31 @@ export class AOSFieldView<C> implements Iterable<TypedArray> {
 		return result;
 	}
 
+	setItem(index: number, value: NumArray) {
+		let offset = (this.strideInElements_ * index);
+		let srcOffset = 0;
+
+		switch (this.fieldWidth_) {
+			case 4:
+				this.rangeView_[offset] = value[srcOffset];
+				offset += 1; srcOffset += 1;
+				/* fallthrough */
+			case 3:
+				this.rangeView_[offset] = value[srcOffset];
+				offset += 1; srcOffset += 1;
+				/* fallthrough */
+			case 2:
+				this.rangeView_[offset] = value[srcOffset];
+				offset += 1; srcOffset += 1;
+				/* fallthrough */
+			case 1:
+				this.rangeView_[offset] = value[srcOffset];
+				break;
+			default:
+				throw new RangeError("setItem not implemented yet for fields wider than 4 elements");
+		}
+	}
+
 	/**
 	 * Copy values from a source array into the attribute for consecutive records
 	 *
