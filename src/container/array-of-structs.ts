@@ -151,37 +151,10 @@ export class ArrayOfStructs<C = unknown> {
 	}
 }
 
-export class AOSIterator implements IterableIterator<TypedArray> {
-	private data_: TypedArray;
-	private step_: number;
-	private width_: number;
-	private index_: number;
-
-	constructor(data: TypedArray, step: number, width: number) {
-		this.data_ = data;
-		this.step_ = step;
-		this.width_ = width;
-		this.index_ = 0;
-	}
-
-	next() {
-		const offset = this.index_ * this.step_;
-		if (offset >= this.data_.length) {
-			return { done: true, value: this.data_ };
-		}
-		this.index_ += 1;
-		return { done: false, value: this.data_.subarray(offset, offset + this.width_) };
-	}
-
-	[Symbol.iterator]() {
-		return this;
-	}
-}
-
 export class AOSFieldView<C> implements Iterable<TypedArray> {
-	private fieldWidth_: number;
-	private strideInElements_: number;
-	private rangeView_: TypedArray;
+	private readonly fieldWidth_: number;
+	private readonly strideInElements_: number;
+	private readonly rangeView_: TypedArray;
 
 	constructor(aos: ArrayOfStructs<C>, field: Readonly<PositionedStructField<C>>, fromRecord: number, toRecord: number) {
 		this.strideInElements_ = (aos.stride / field.type.byteSize) | 0;
@@ -192,8 +165,12 @@ export class AOSFieldView<C> implements Iterable<TypedArray> {
 		this.fieldWidth_ = field.count;
 	}
 
-	[Symbol.iterator]() {
-		return new AOSIterator(this.rangeView_, this.strideInElements_, this.fieldWidth_);
+	*[Symbol.iterator]() {
+		let offset = 0;
+		while (offset < this.rangeView_.length) {
+			yield this.rangeView_.subarray(offset, offset + this.fieldWidth_);
+			offset += this.strideInElements_;
+		}
 	}
 
 	refItem(index: number) {
