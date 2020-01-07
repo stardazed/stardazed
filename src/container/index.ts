@@ -9,10 +9,7 @@ export { ChunkedQueue } from "./chunked-queue";
 export { NumericDeque } from "./numeric-deque";
 export { NumericQueue } from "./numeric-queue";
 
-export * from "./structured-array";
-
-export { FixedMultiArray } from "./fixed-multi-array";
-export { FixedStructArray } from "./fixed-struct-array";
-export { InvalidatePointers, MultiArrayBuffer } from "./multi-array-buffer";
-
-export { SortedArray } from "./sorted-array";
+export * from "./common";
+export * from "./struct-of-arrays";
+export * from "./array-of-structs";
+export * from "./multi-array-buffer";
