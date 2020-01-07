@@ -171,3 +171,88 @@ export class StructOfArrays<C = unknown> {
 		return offset;
 	}
 }
+
+export class SOAFieldView<C> implements Iterable<TypedArray> {
+	private readonly fieldWidth_: number;
+	private readonly rangeView_: TypedArray;
+
+	constructor(soa: StructOfArrays<C>, field: PositionedStructField<C>, fromRecord?: number, toRecord?: number) {
+		fromRecord = fromRecord ?? 0;
+		toRecord = toRecord ?? soa.data.length;
+
+		this.fieldWidth_ = field.count;
+		const startOffset = field.byteOffset + (fromRecord * this.fieldWidth_);
+		const recordCount = toRecord - fromRecord;
+		const elementCount = recordCount * this.fieldWidth_;
+		this.rangeView_ = new (field.type.arrayType)(soa.data.buffer, startOffset, elementCount);
+	}
+
+	*[Symbol.iterator]() {
+		let offset = 0;
+		while (offset < this.rangeView_.length) {
+			yield this.rangeView_.subarray(offset, offset + this.fieldWidth_);
+			offset += this.fieldWidth_;
+		}
+	}
+
+	refItem(index: number) {
+		const offset = index * this.fieldWidth_;
+		return this.rangeView_.subarray(offset, offset + this.fieldWidth_);
+	}
+
+	copyItem(index: number) {
+		let offset = (this.fieldWidth_ * index);
+		const result: number[] = [];
+
+		switch (this.fieldWidth_) {
+			case 4:
+				result.push(this.rangeView_[offset]);
+				offset += 1;
+				/* fallthrough */
+			case 3:
+				result.push(this.rangeView_[offset]);
+				offset += 1;
+				/* fallthrough */
+			case 2:
+				result.push(this.rangeView_[offset]);
+				offset += 1;
+				/* fallthrough */
+			case 1:
+				result.push(this.rangeView_[offset]);
+				break;
+			default:
+				throw new RangeError("copyItem not implemented yet for fields wider than 4 elements");
+		}
+
+		return result;
+	}
+
+	setItem(index: number, value: NumArray) {
+		let offset = (this.fieldWidth_ * index);
+		let srcOffset = 0;
+
+		switch (this.fieldWidth_) {
+			case 4:
+				this.rangeView_[offset] = value[srcOffset];
+				offset += 1; srcOffset += 1;
+				/* fallthrough */
+			case 3:
+				this.rangeView_[offset] = value[srcOffset];
+				offset += 1; srcOffset += 1;
+				/* fallthrough */
+			case 2:
+				this.rangeView_[offset] = value[srcOffset];
+				offset += 1; srcOffset += 1;
+				/* fallthrough */
+			case 1:
+				this.rangeView_[offset] = value[srcOffset];
+				break;
+			default:
+				throw new RangeError("setItem not implemented yet for fields wider than 4 elements");
+		}
+	}
+
+	copyValuesFrom(source: NumArray, valueCount: number, atOffset = 0) {
+		// NYI
+	}
+}
