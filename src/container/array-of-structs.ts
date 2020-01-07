@@ -151,12 +151,19 @@ export class ArrayOfStructs<C = unknown> {
 	}
 }
 
+/**
+ * An iterable view of a single field inside an ArrayOfStructs container.
+ * Use this to easily fill, extract and iterate over a single field's data.
+ */
 export class AOSFieldView<C> implements Iterable<TypedArray> {
 	private readonly fieldWidth_: number;
 	private readonly strideInElements_: number;
 	private readonly rangeView_: TypedArray;
 
-	constructor(aos: ArrayOfStructs<C>, field: Readonly<PositionedStructField<C>>, fromRecord: number, toRecord: number) {
+	constructor(aos: ArrayOfStructs<C>, field: Readonly<PositionedStructField<C>>, fromRecord?: number, toRecord?: number) {
+		fromRecord = fromRecord ?? 0;
+		toRecord = toRecord ?? aos.data.length;
+
 		this.strideInElements_ = (aos.stride / field.type.byteSize) | 0;
 		const startOffset = field.byteOffset + (fromRecord * this.strideInElements_);
 		const recordCount = toRecord - fromRecord;
@@ -186,12 +193,15 @@ export class AOSFieldView<C> implements Iterable<TypedArray> {
 			case 4:
 				result.push(this.rangeView_[offset]);
 				offset += 1;
+				/* fallthrough */
 			case 3:
 				result.push(this.rangeView_[offset]);
 				offset += 1;
+				/* fallthrough */
 			case 2:
 				result.push(this.rangeView_[offset]);
 				offset += 1;
+				/* fallthrough */
 			case 1:
 				result.push(this.rangeView_[offset]);
 				break;
