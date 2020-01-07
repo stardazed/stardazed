@@ -19,3 +19,18 @@ export type PositionedStructField<C> = {
 	byteOffset: number;
 	sizeBytes: number;
 };
+
+export interface FieldView extends Iterable<TypedArray> {
+	refItem(index: number): TypedArray;
+	copyItem(index: number): number[];
+	setItem(index: number, value: NumArray): void;
+
+	/**
+	 * Copy values from a source array into the attribute for consecutive records
+	 *
+	 * @param source an array of numeric values
+	 * @param valueCount the number of values to copy from source into attributes
+	 * @param atOffset (optional) the first index to start writing values into attributes
+	 */
+	copyValuesFrom(source: NumArray, valueCount: number, atOffset?: number): void;
+}
