@@ -244,7 +244,7 @@ export class AOSFieldView<C> implements Iterable<TypedArray> {
 	 * @param valueCount the number of values to copy from source into attributes
 	 * @param atOffset (optional) the first index to start writing values into attributes
 	 * @expects (toOffset + valueCount) * this.strideInElements_ < this.rangeView_.length
-	 * @expects source.length >= valueCount * this.field_.count
+	 * @expects source.length >= valueCount * this.fieldWidth_
 	 */
 	copyValuesFrom(source: NumArray, valueCount: number, atOffset = 0) {
 		const stride = this.strideInElements_;

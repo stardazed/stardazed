@@ -252,7 +252,32 @@ export class SOAFieldView<C> implements Iterable<TypedArray> {
 		}
 	}
 
+	/**
+	 * Copy values from a source array into the attribute for consecutive records
+	 *
+	 * @param source an array of numeric values
+	 * @param valueCount the number of values to copy from source into attributes
+	 * @param atOffset (optional) the first index to start writing values into attributes
+	 * @expects (toOffset + valueCount) * this.fieldWidth_ < this.rangeView_.length
+	 * @expects source.length >= valueCount * this.fieldWidth_
+	 */
 	copyValuesFrom(source: NumArray, valueCount: number, atOffset = 0) {
-		// NYI
+		const valueOffset = atOffset * this.fieldWidth_;
+		const elementsToCopy = valueCount * this.fieldWidth_;
+
+		if (elementsToCopy === source.length) {
+			this.rangeView_.set(source, valueOffset);
+		}
+		else {
+			if (ArrayBuffer.isView(source)) {
+				const sourceSub = (source as TypedArray).subarray(0, elementsToCopy);
+				this.rangeView_.set(sourceSub, valueOffset);
+			}
+			else {
+				for (let k = 0; k < elementsToCopy; ++k) {
+					this.rangeView_[k + valueOffset] = source[k];
+				}
+			}
+		}
 	}
 }
