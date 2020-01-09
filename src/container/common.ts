@@ -21,8 +21,11 @@ export type PositionedStructField<C> = {
 };
 
 export interface FieldView extends Iterable<TypedArray> {
+	/** Get a mutable reference to a single field value */
 	refItem(index: number): TypedArray;
+	/** Get a copy of a single field value */
 	copyItem(index: number): number[];
+	/** Update the elements of a single field value */
 	setItem(index: number, value: NumArray): void;
 
 	/**

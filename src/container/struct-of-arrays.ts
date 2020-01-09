@@ -6,7 +6,7 @@ https://github.com/stardazed/stardazed
 */
 
 import { alignUp } from "stardazed/core";
-import { StructField, PositionedStructField } from "./common";
+import { StructField, PositionedStructField, FieldView } from "./common";
 
 /**
  * The individual arrays of each field are padded to end on
@@ -56,7 +56,7 @@ export class StructOfArrays<C = unknown> {
 	/**
 	 * Create a new struct of arrays storage.
 	 * @param fields an array of field specifications
-	 * @param newCapacity the size in number of records to accomodate
+	 * @param capacity the size in number of records to accomodate
 	 * @param bufferView (optional) a buffer view to use as backing store, MUST be aligned on an 8-byte boundary
 	 *
 	 * @expects fields.length > 0
@@ -107,10 +107,17 @@ export class StructOfArrays<C = unknown> {
 	}
 
 	/**
-	 * Get a typed buffer view covering all of or a range of an indexed or named field's values.
+	 * Get a typed buffer view covering all of or a range of a field's values.
 	 */
-	fieldView(field: PositionedStructField<C>, fromElement = 0, toElement = this.capacity_) {
-		return fieldArrayRangeView(this.data_, field, fromElement, toElement);
+	fieldArrayView(field: PositionedStructField<C>, fromRecord = 0, toRecord = this.capacity_) {
+		return fieldArrayRangeView(this.data_, field, fromRecord, toRecord);
+	}
+
+	/**
+	 * Get an iterable, mutable view on all of or a range of field's values.
+	 */
+	fieldView(field: PositionedStructField<C>, fromRecord = 0, toRecord = this.capacity_): FieldView {
+		return new SOAFieldView(this, field, fromRecord, toRecord);
 	}
 
 	/**
@@ -172,7 +179,7 @@ export class StructOfArrays<C = unknown> {
 	}
 }
 
-export class SOAFieldView<C> implements Iterable<TypedArray> {
+class SOAFieldView<C> implements FieldView {
 	private readonly fieldWidth_: number;
 	private readonly rangeView_: TypedArray;
 

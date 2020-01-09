@@ -8,7 +8,7 @@ https://github.com/stardazed/stardazed
 /* eslint-disable no-fallthrough */
 
 import { alignUp } from "stardazed/core";
-import { StructField, PositionedStructField } from "./common";
+import { StructField, PositionedStructField, FieldView } from "./common";
 
 function positionFields<C>(fields: ReadonlyArray<StructField<C>>) {
 	const posFields: PositionedStructField<C>[] = [];
@@ -96,6 +96,13 @@ export class ArrayOfStructs<C = unknown> {
 	}
 
 	/**
+	 * Get an iterable, mutable view on all of or a range of field's values.
+	 */
+	fieldView(field: PositionedStructField<C>, fromRecord = 0, toRecord = this.capacity_): FieldView {
+		return new AOSFieldView(this, field, fromRecord, toRecord);
+	}
+
+	/**
 	 * Resize the container to the new capacity.
 	 * @param newCapacity the size in number of records to adjust the container to
 	 * @param bufferView (optional) a buffer view to use as backing store, MUST be aligned on an 8-byte boundary
@@ -155,7 +162,7 @@ export class ArrayOfStructs<C = unknown> {
  * An iterable view of a single field inside an ArrayOfStructs container.
  * Use this to easily fill, extract and iterate over a single field's data.
  */
-export class AOSFieldView<C> implements Iterable<TypedArray> {
+class AOSFieldView<C> implements FieldView {
 	private readonly fieldWidth_: number;
 	private readonly strideInElements_: number;
 	private readonly rangeView_: TypedArray;
