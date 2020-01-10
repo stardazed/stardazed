@@ -48,8 +48,8 @@ export class MultiArrayBuffer<C = unknown> {
 			// Reducing the count will clear the now freed up elements so that when
 			// a new allocation is made the element data is guaranteed to be zeroed.
 			for (const field of this.backing_.fields) {
-				const fv = this.backing_.fieldView(field, newCount);
-				fv.fill(0);
+				const fav = this.backing_.fieldArrayView(field, newCount);
+				fav.fill(0);
 			}
 		}
 
