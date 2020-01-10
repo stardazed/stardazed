@@ -218,6 +218,33 @@ class AOSFieldView<C> implements FieldView {
 		let srcOffset = 0;
 
 		switch (this.fieldWidth_) {
+			case 16:
+				this.rangeView_[offset] = value[srcOffset];
+				this.rangeView_[offset + 1] = value[srcOffset + 1];
+				this.rangeView_[offset + 2] = value[srcOffset + 2];
+				this.rangeView_[offset + 3] = value[srcOffset + 3];
+				offset += 4; srcOffset += 4;
+				/* fallthrough */
+			case 12:
+				this.rangeView_[offset] = value[srcOffset];
+				this.rangeView_[offset + 1] = value[srcOffset + 1];
+				this.rangeView_[offset + 2] = value[srcOffset + 2];
+				offset += 3; srcOffset += 3;
+				/* fallthrough */
+			case 9:
+				this.rangeView_[offset] = value[srcOffset];
+				offset += 1; srcOffset += 1;
+				/* fallthrough */
+			case 8:
+				this.rangeView_[offset] = value[srcOffset];
+				this.rangeView_[offset + 1] = value[srcOffset + 1];
+				offset += 2; srcOffset += 2;
+				/* fallthrough */
+			case 6:
+				this.rangeView_[offset] = value[srcOffset];
+				this.rangeView_[offset + 1] = value[srcOffset + 1];
+				offset += 2; srcOffset += 2;
+				/* fallthrough */
 			case 4:
 				this.rangeView_[offset] = value[srcOffset];
 				offset += 1; srcOffset += 1;
@@ -234,7 +261,7 @@ class AOSFieldView<C> implements FieldView {
 				this.rangeView_[offset] = value[srcOffset];
 				break;
 			default:
-				throw new RangeError("setItem not implemented yet for fields wider than 4 elements");
+				throw new RangeError(`setItem not implemented yet for fields with ${this.fieldWidth_} elements`);
 		}
 	}
 
