@@ -74,4 +74,13 @@ export class VertexBuffer extends ArrayOfStructs<VertexFieldProps> {
 		super(desc.attrs, desc.valueCount, desc.storage);
 		this.divisor = desc.divisor ?? 0;
 	}
+
+	fieldByRole(role: VertexAttributeRole) {
+		for (const field of this.fields) {
+			if (field.role === role) {
+				return field;
+			}
+		}
+		return undefined;
+	}
 }
