@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { PositionedStructField, StructField, StructuredArray, StructLayout, FieldTopology } from "stardazed/container";
+import { PositionedStructField, StructField, ArrayOfStructs } from "stardazed/container";
 import { Float, NumericType, SInt16, SInt32, SInt8, UInt16, UInt32, UInt8 } from "stardazed/core";
 
 /**
@@ -234,11 +234,15 @@ export const enum VertexAttributeRole {
 }
 
 /**
- * A VertexAttribute is a Field with a certain Role inside a VertexBuffer
+ * A VertexAttribute is an optionally instanced Field with a Role inside a VertexBuffer
  */
 export interface VertexAttribute {
+	/** The data type and element count of this attribute */
 	field: VertexField;
+	/** The role of this attribute inside the buffer */
 	role: VertexAttributeRole;
+	/** Instancing value divisor, set to 0 for non-instanced behaviour */
+	divisor: number;
 }
 
 export function isVertexAttribute(va: any): va is VertexAttribute {
