@@ -263,7 +263,7 @@ export function makeVertexBufferLayout(attrList: VertexAttribute[]): VertexBuffe
 	const fields = attrList.map(attr => {
 		const sf: StructField<VertexAttribute> = {
 			type: vertexFieldNumericType(attr.field)!,
-			count: vertexFieldElementCount(attr.field),
+			width: vertexFieldElementCount(attr.field),
 			...attr
 		};
 		return sf;

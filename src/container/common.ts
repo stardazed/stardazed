@@ -10,7 +10,7 @@ import { NumericType } from "stardazed/core";
 export type StructField<C = unknown> = C & {
 	name?: string;
 	type: NumericType;
-	count: number;
+	width: number;
 };
 
 export type PositionedStructField<C> = {

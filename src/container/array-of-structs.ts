@@ -18,7 +18,7 @@ function positionFields<C>(fields: ReadonlyArray<StructField<C>>) {
 	for (const field of fields) {
 		// move the offset to align to this field's element size
 		byteOffset = alignUp(byteOffset, field.type.byteSize);
-		const sizeBytes = field.type.byteSize * field.count;
+		const sizeBytes = field.type.byteSize * field.width;
 
 		posFields.push({
 			...field,
@@ -141,7 +141,7 @@ export class ArrayOfStructs<C = unknown> {
 		for (const field of fields) {
 			// move the offset to align to this field's element size
 			stride = alignUp(stride, field.type.byteSize);
-			stride += field.type.byteSize * field.count;
+			stride += field.type.byteSize * field.width;
 			maxElemSize = Math.max(maxElemSize, field.type.byteSize);
 		}
 
@@ -169,7 +169,7 @@ class AOSFieldView<C> implements FieldView {
 		const recordCount = toRecord - fromRecord;
 		const elementCount = recordCount * this.strideInElements_;
 		this.rangeView_ = new (field.type.arrayType)(aos.data.buffer, startOffset, elementCount);
-		this.fieldWidth_ = field.count;
+		this.fieldWidth_ = field.width;
 	}
 
 	*[Symbol.iterator]() {

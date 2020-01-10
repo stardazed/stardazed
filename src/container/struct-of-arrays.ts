@@ -15,7 +15,7 @@ import { createNameIndexMap, StructField, PositionedStructField, FieldView } fro
  * can be iterated over correctly and quickly.
  */
 function alignUpFieldArray(field: StructField, count: number) {
-	const fieldSizeBytes = field.type.byteSize * field.count;
+	const fieldSizeBytes = field.type.byteSize * field.width;
 	const arraySizeBytes = fieldSizeBytes * count;
 	return alignUp(arraySizeBytes, 8);
 }
@@ -38,7 +38,7 @@ function positionFields<C>(fields: ReadonlyArray<StructField<C>>, count: number)
 }
 
 function fieldArrayRangeView<C>(view: Uint8Array, f: PositionedStructField<C>, fromElement: number, toElement: number) {
-	const startOffset = view.byteOffset + f.byteOffset + (fromElement * (f.type.byteSize * f.count));
+	const startOffset = view.byteOffset + f.byteOffset + (fromElement * (f.type.byteSize * f.width));
 	return new (f.type.arrayType)(view.buffer, startOffset, toElement - fromElement);
 }
 
@@ -147,7 +147,7 @@ export class StructOfArrays<C = unknown> {
 		for (let ix = 0; ix < newFields.length; ++ix) {
 			const oldField = this.fields_[ix];
 			const newField = newFields[ix];
-			const elementsToCopy = Math.min(newCapacity, this.capacity_) * newField.count;
+			const elementsToCopy = Math.min(newCapacity, this.capacity_) * newField.width;
 
 			const oldView = fieldArrayRangeView(this.data_, oldField, 0, elementsToCopy);
 			const newView = fieldArrayRangeView(bufferView, newField, 0, elementsToCopy);
@@ -180,7 +180,7 @@ class SOAFieldView<C> implements FieldView {
 		fromRecord = fromRecord ?? 0;
 		toRecord = toRecord ?? soa.data.length;
 
-		this.fieldWidth_ = field.count;
+		this.fieldWidth_ = field.width;
 		const startOffset = field.byteOffset + (fromRecord * this.fieldWidth_);
 		const recordCount = toRecord - fromRecord;
 		const elementCount = recordCount * this.fieldWidth_;
