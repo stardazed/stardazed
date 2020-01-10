@@ -38,7 +38,7 @@ interface VertexFieldProps {
 	normalized: boolean;
 	/** The role of this attribute inside the buffer */
 	role: VertexAttributeRole;
-};
+}
 
 /**
  * A VertexAttribute is a field inside a VertexBuffer
@@ -53,7 +53,7 @@ export type PositionedAttribute = PositionedStructField<VertexFieldProps>;
 /**
  * Properties used to create a VertexBuffer
  */
-export interface VertexBufferDesc {
+export interface VertexBufferDescriptor {
 	/** The vertex fields to be included in the buffer */
 	attrs: VertexAttribute[];
 	/** The number of values of each attribute required (usually the vertex count) */
@@ -72,7 +72,7 @@ export class VertexBuffer extends ArrayOfStructs<VertexFieldProps> {
 	 * Create a new VertexBuffer using a descriptor into new or provided storage
 	 * @param storage (optional) Manually provide a place to store the vertex data, usually for compound buffers
 	 */
-	constructor(desc: VertexBufferDesc, storage?: Uint8Array) {
+	constructor(desc: VertexBufferDescriptor, storage?: Uint8Array) {
 		// TODO: verify that each field can be represented in a vertexbuffer
 
 		super(desc.attrs, desc.valueCount, storage);
