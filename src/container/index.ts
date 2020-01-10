@@ -9,7 +9,7 @@ export { ChunkedQueue } from "./chunked-queue";
 export { NumericDeque } from "./numeric-deque";
 export { NumericQueue } from "./numeric-queue";
 
-export * from "./common";
+export { FieldView, StructField, PositionedStructField } from "./common";
 export * from "./struct-of-arrays";
 export * from "./array-of-structs";
 export * from "./multi-array-buffer";
