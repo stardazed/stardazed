@@ -71,7 +71,7 @@ export class MultiArrayBuffer<C = unknown> {
 	}
 
 	fieldView(ref: number | string) {
-		const field = this.backing_.field(ref);
-		return this.backing_.fieldView(field);
+		const field = typeof ref === "number" ? this.backing_.fieldByIndex(ref) : this.backing_.fieldByName(ref);
+		return this.backing_.fieldView(field!);
 	}
 }
