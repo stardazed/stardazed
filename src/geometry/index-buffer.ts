@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { UInt8, UInt16, UInt32, makeLookupTable } from "stardazed/core";
+import { NumType, makeLookupTable } from "stardazed/core";
 
 export const enum PrimitiveType {
 	None,
@@ -107,19 +107,19 @@ export function isValidIndexElementType(val: any): val is IndexElementType {
 
 const indexElementTypeSizeBytes = makeLookupTable(
 	[IndexElementType.None, NaN],
-	[IndexElementType.UInt8, UInt8.byteSize],
-	[IndexElementType.UInt16, UInt16.byteSize],
-	[IndexElementType.UInt32, UInt32.byteSize]
+	[IndexElementType.UInt8, NumType.UInt8.byteSize],
+	[IndexElementType.UInt16, NumType.UInt16.byteSize],
+	[IndexElementType.UInt32, NumType.UInt32.byteSize]
 );
 
 /**
  * @expects isPositiveInteger(vertexCount)
  */
 export function minimumIndexElementTypeForVertexCount(vertexCount: number): IndexElementType {
-	if (vertexCount <= UInt8.max) {
+	if (vertexCount <= NumType.UInt8.max) {
 		return IndexElementType.UInt8;
 	}
-	if (vertexCount <= UInt16.max) {
+	if (vertexCount <= NumType.UInt16.max) {
 		return IndexElementType.UInt16;
 	}
 

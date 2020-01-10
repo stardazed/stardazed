@@ -6,7 +6,9 @@ https://github.com/stardazed/stardazed
 */
 
 import { PositionedStructField, StructField, ArrayOfStructs } from "stardazed/container";
-import { Float, NumericType, SInt16, SInt32, SInt8, UInt16, UInt32, UInt8 } from "stardazed/core";
+import { NumType, NumericType } from "stardazed/core";
+
+const { Float, SInt16, SInt32, SInt8, UInt16, UInt32, UInt8 } = NumType;
 
 /**
  * A single field in a vertex buffer with three properties:
