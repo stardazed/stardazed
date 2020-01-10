@@ -77,6 +77,7 @@ export class ArrayOfStructs<C = unknown> {
 	get capacity() { return this.capacity_; }
 	get stride() { return this.stride_;	}
 	get data() { return this.data_; }
+	get sizeBytes() { return this.capacity_ * this.stride_; }
 
 	/**
 	 * Get field information using a field's index or name.

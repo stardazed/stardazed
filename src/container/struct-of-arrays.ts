@@ -52,6 +52,7 @@ export class StructOfArrays<C = unknown> {
 	private nameIndexMap_: Record<string, number>;
 	private capacity_: number;
 	private data_: Uint8Array;
+	private sizeBytes_: number;
 
 	/**
 	 * Create a new struct of arrays storage.
@@ -83,11 +84,13 @@ export class StructOfArrays<C = unknown> {
 		this.fields_ = posFields;
 		this.capacity_ = capacity;
 		this.data_ = bufferView;
+		this.sizeBytes_ = totalSizeBytes;
 	}
 
 	get fields() { return this.fields_; }
 	get capacity() { return this.capacity_; }
 	get data() { return this.data_; }
+	get sizeBytes() { return this.sizeBytes_; }
 
 	/**
 	 * Get field information using a field's index or name.
@@ -157,6 +160,7 @@ export class StructOfArrays<C = unknown> {
 		this.fields_ = newFields;
 		this.capacity_ = newCapacity;
 		this.data_ = bufferView;
+		this.sizeBytes_ = newSizeBytes;
 	}
 
 	/**
