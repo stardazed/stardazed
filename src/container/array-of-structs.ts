@@ -191,6 +191,33 @@ class AOSFieldView<C> implements FieldView {
 		const result: number[] = [];
 
 		switch (this.fieldWidth_) {
+			case 16:
+				result.push(this.rangeView_[offset]);
+				result.push(this.rangeView_[offset + 1]);
+				result.push(this.rangeView_[offset + 2]);
+				result.push(this.rangeView_[offset + 3]);
+				offset += 4;
+				/* fallthrough */
+			case 12:
+				result.push(this.rangeView_[offset]);
+				result.push(this.rangeView_[offset + 1]);
+				result.push(this.rangeView_[offset + 2]);
+				offset += 3;
+				/* fallthrough */
+			case 9:
+				result.push(this.rangeView_[offset]);
+				offset += 1;
+				/* fallthrough */
+			case 8:
+				result.push(this.rangeView_[offset]);
+				result.push(this.rangeView_[offset + 1]);
+				offset += 2;
+				/* fallthrough */
+			case 6:
+				result.push(this.rangeView_[offset]);
+				result.push(this.rangeView_[offset + 1]);
+				offset += 2;
+				/* fallthrough */
 			case 4:
 				result.push(this.rangeView_[offset]);
 				offset += 1;
@@ -207,7 +234,7 @@ class AOSFieldView<C> implements FieldView {
 				result.push(this.rangeView_[offset]);
 				break;
 			default:
-				throw new RangeError("copyItem not implemented yet for fields wider than 4 elements");
+				throw new RangeError(`copyItem not implemented yet for fields with ${this.fieldWidth_} elements`);
 		}
 
 		return result;
