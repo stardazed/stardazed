@@ -80,13 +80,18 @@ export class ArrayOfStructs<C = unknown> {
 	get sizeBytes() { return this.capacity_ * this.stride_; }
 
 	/**
-	 * Get field information using a field's index or name.
+	 * Get field metadata by index
+	 * @expects index >= 0 && index < this.fields_.length
 	 */
-	field(ref: number | string) {
-		if (typeof ref === "string") {
-			return this.fields_[this.nameIndexMap_[ref]];
-		}
-		return this.fields_[ref];
+	fieldByIndex(index: number) {
+		return this.fields_[index];
+	}
+
+	/**
+	 * Get field metadata by name or undefined if name was not found
+	 */
+	fieldByName(name: string): Readonly<PositionedStructField<C>> | undefined {
+		return this.fields_[this.nameIndexMap_[name]];
 	}
 
 	/**
