@@ -7,7 +7,7 @@ https://github.com/stardazed/stardazed
 
 import { alignUp } from "stardazed/core";
 import { bytesRequiredForIndexCount, createIndexBufferWithStorage, IndexBuffer, isIndexBuffer, minimumIndexElementTypeForVertexCount, PrimitiveType } from "./index-buffer";
-import { isVertexAttribute, makeVertexBufferLayout, VertexAttribute, VertexBuffer, VertexBufferLayout } from "./vertex-buffer";
+import { VertexAttribute, VertexBuffer, VertexBufferDesc } from "./vertex-buffer";
 
 export type GeometryLayout = ReadonlyArray<VertexBufferLayout>;
 
@@ -23,7 +23,6 @@ export interface PrimitiveGroup {
 }
 
 export interface Geometry {
-	layout: GeometryLayout;
 	vertexBuffers: VertexBuffer[];
 	indexBuffer?: IndexBuffer;
 	subMeshes: PrimitiveGroup[];
@@ -58,7 +57,7 @@ export const enum BufferAlignment {
 }
 
 export interface GeometryAllocOptions {
-	layout: GeometryLayout;
+	vertexDescs: VertexBufferDesc[];
 	vertexCount: number;
 	indexCount: number;
 }
