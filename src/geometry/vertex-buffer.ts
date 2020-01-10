@@ -60,8 +60,6 @@ export interface VertexBufferDesc {
 	valueCount: number;
 	/** (optional) The instancing divisor that will apply to ALL attributes in this buffer */
 	divisor?: number;
-	/** (optional) Manually provide a place to store the vertex data, usually for compound buffers */
-	storage?: Uint8Array;
 }
 
 /**
@@ -70,8 +68,14 @@ export interface VertexBufferDesc {
 export class VertexBuffer extends ArrayOfStructs<VertexFieldProps> {
 	readonly divisor: number;
 
-	constructor(desc: VertexBufferDesc) {
-		super(desc.attrs, desc.valueCount, desc.storage);
+	/**
+	 * Create a new VertexBuffer using a descriptor into new or provided storage
+	 * @param storage (optional) Manually provide a place to store the vertex data, usually for compound buffers
+	 */
+	constructor(desc: VertexBufferDesc, storage?: Uint8Array) {
+		// TODO: verify that each field can be represented in a vertexbuffer
+
+		super(desc.attrs, desc.valueCount, storage);
 		this.divisor = desc.divisor ?? 0;
 	}
 
