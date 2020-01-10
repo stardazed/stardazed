@@ -8,7 +8,7 @@ https://github.com/stardazed/stardazed
 /* eslint-disable no-fallthrough */
 
 import { alignUp } from "stardazed/core";
-import { StructField, PositionedStructField, FieldView } from "./common";
+import { createNameIndexMap, StructField, PositionedStructField, FieldView } from "./common";
 
 function positionFields<C>(fields: ReadonlyArray<StructField<C>>) {
 	const posFields: PositionedStructField<C>[] = [];
@@ -65,14 +65,7 @@ export class ArrayOfStructs<C = unknown> {
 		}
 
 		// precalc a mapping of field name to index for fast by-name lookups
-		this.nameIndexMap_ = {};
-		for (let ix = 0; ix < posFields.length; ++ix) {
-			const name = posFields[ix].name;
-			// skip empty string name indexes
-			if (name) {
-				this.nameIndexMap_[name] = ix;
-			}
-		}
+		this.nameIndexMap_ = createNameIndexMap(posFields);
 
 		this.fields_ = posFields;
 		this.capacity_ = capacity;

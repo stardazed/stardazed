@@ -8,7 +8,7 @@ https://github.com/stardazed/stardazed
 import { NumericType } from "stardazed/core";
 
 export type StructField<C = unknown> = C & {
-	name: string;
+	name?: string;
 	type: NumericType;
 	count: number;
 };
@@ -36,4 +36,16 @@ export interface FieldView extends Iterable<TypedArray> {
 	 * @param atOffset (optional) the first index to start writing values into attributes
 	 */
 	copyValuesFrom(source: NumArray, valueCount: number, atOffset?: number): void;
+}
+
+export function createNameIndexMap(fields: StructField<unknown>[]) {
+	const mapping: Record<string, number> = {};
+	for (let ix = 0; ix < fields.length; ++ix) {
+		const name = fields[ix].name;
+		// skip empty or undefined string name indexes
+		if (name) {
+			mapping[name] = ix;
+		}
+	}
+	return mapping;
 }

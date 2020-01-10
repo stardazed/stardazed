@@ -6,7 +6,7 @@ https://github.com/stardazed/stardazed
 */
 
 import { alignUp } from "stardazed/core";
-import { StructField, PositionedStructField, FieldView } from "./common";
+import { createNameIndexMap, StructField, PositionedStructField, FieldView } from "./common";
 
 /**
  * The individual arrays of each field are padded to end on
@@ -78,14 +78,7 @@ export class StructOfArrays<C = unknown> {
 		}
 
 		// precalc a mapping of field name to index for fast by-name lookups
-		this.nameIndexMap_ = {};
-		for (let ix = 0; ix < posFields.length; ++ix) {
-			const name = posFields[ix].name;
-			// skip empty string name indexes
-			if (name) {
-				this.nameIndexMap_[name] = ix;
-			}
-		}
+		this.nameIndexMap_ = createNameIndexMap(posFields);
 
 		this.fields_ = posFields;
 		this.capacity_ = capacity;
