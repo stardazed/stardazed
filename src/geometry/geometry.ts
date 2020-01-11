@@ -6,7 +6,7 @@ https://github.com/stardazed/stardazed
 */
 
 import { alignUp } from "stardazed/core";
-import { bytesRequiredForIndexCount, createIndexBufferWithStorage, IndexBuffer, minimumIndexElementTypeForVertexCount, PrimitiveType } from "./index-buffer";
+import { IndexBuffer, minimumIndexElementTypeForVertexCount } from "./index-buffer";
 import { VertexBuffer, VertexBufferDescriptor } from "./vertex-buffer";
 
 export const enum PrimitiveType {
@@ -91,7 +91,7 @@ export function bytesNeededForGeometry(desc: GeometryAllocDescriptor) {
 	}
 	if (desc.indexCount > 0) {
 		const elementType = minimumIndexElementTypeForVertexCount(desc.vertexDescs[0].valueCount);
-		totalBytes += bytesRequiredForIndexCount(elementType, desc.indexCount);
+		totalBytes += IndexBuffer.sizeBytesRequired(elementType, desc.indexCount);
 		totalBytes = alignUp(totalBytes, BufferAlignment.SubBuffer);
 	}
 	return totalBytes;
@@ -126,10 +126,10 @@ export function allocateGeometry(desc: GeometryAllocDescriptor): Geometry {
 	}
 	if (desc.indexCount) {
 		const elementType = minimumIndexElementTypeForVertexCount(vertexCount);
-		const indexSize = bytesRequiredForIndexCount(elementType, desc.indexCount);
+		const indexSize = IndexBuffer.sizeBytesRequired(elementType, desc.indexCount);
 		const subStorage = new Uint8Array(storage, byteOffset, indexSize);
 
-		geom.indexBuffer = createIndexBufferWithStorage(elementType, desc.indexCount, subStorage);
+		geom.indexBuffer = new IndexBuffer(elementType, desc.indexCount, subStorage);
 		byteOffset += indexSize;
 		byteOffset = alignUp(byteOffset, BufferAlignment.SubBuffer);
 	}
