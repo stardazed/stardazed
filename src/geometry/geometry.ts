@@ -9,6 +9,54 @@ import { alignUp } from "stardazed/core";
 import { bytesRequiredForIndexCount, createIndexBufferWithStorage, IndexBuffer, minimumIndexElementTypeForVertexCount, PrimitiveType } from "./index-buffer";
 import { VertexBuffer, VertexBufferDescriptor } from "./vertex-buffer";
 
+export const enum PrimitiveType {
+	Point = 1,
+	Line,
+	LineStrip,
+	Triangle,
+	TriangleStrip
+}
+
+export interface PrimitiveTraits {
+	readonly type: PrimitiveType;
+	elementOffsetForCount(count: number): number;
+	elementsForCount(count: number): number;
+	countForElements(elements: number): number;
+}
+
+export const Primitive: Readonly<Record<string, PrimitiveTraits>> = {
+	Point: {
+		type: PrimitiveType.Point,
+		elementOffsetForCount(count: number) { return count; },
+		elementsForCount(count: number) { return count; },
+		countForElements(elements: number) { return elements; }
+	},
+	Line: {
+		type: PrimitiveType.Line,
+		elementOffsetForCount(count: number) { return count * 2; },
+		elementsForCount(count: number) { return count * 2; },
+		countForElements(elements: number) { return (elements / 2) | 0; }
+	},
+	LineStrip: {
+		type: PrimitiveType.LineStrip,
+		elementOffsetForCount(count: number) { return count; },
+		elementsForCount(count: number) { return count > 0 ? count + 1 : 0; },
+		countForElements(elements: number) { return elements > 0 ? elements - 1 : 0; }
+	},
+	Triangle: {
+		type: PrimitiveType.Triangle,
+		elementOffsetForCount(count: number) { return count * 3; },
+		elementsForCount(count: number) { return count * 3; },
+		countForElements(elements: number) { return (elements / 3) | 0; }
+	},
+	TriangleStrip: {
+		type: PrimitiveType.TriangleStrip,
+		elementOffsetForCount(count: number) { return count; },
+		elementsForCount(count: number) { return count > 0 ? count + 2 : 0; },
+		countForElements(elements: number) { return elements > 1 ? elements - 2 : 0; }
+	},
+};
+
 export interface PrimitiveGroup {
 	/** How the elements in this group should be interpreted to form primitives */
 	type: PrimitiveType;
