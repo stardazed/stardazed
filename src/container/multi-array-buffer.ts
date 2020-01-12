@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { StructField } from "./common";
+import { StructField } from "./struct-common";
 import { StructOfArrays } from "./struct-of-arrays";
 
 export const enum InvalidatePointers {
