@@ -8,7 +8,7 @@ https://github.com/stardazed/stardazed
 /* eslint-disable no-fallthrough */
 
 import { alignUp } from "stardazed/core";
-import { createNameIndexMap, StructField, PositionedStructField, FieldView } from "./common";
+import { createNameIndexMap, StructField, PositionedStructField, FieldView } from "./struct-common";
 
 function positionFields<C>(fields: ReadonlyArray<StructField<C>>) {
 	const posFields: PositionedStructField<C>[] = [];
@@ -97,8 +97,13 @@ export class ArrayOfStructs<C = unknown> {
 	/**
 	 * Get an iterable, mutable view on all of or a range of field's values.
 	 */
-	fieldView(field: PositionedStructField<C>, fromRecord = 0, toRecord = this.capacity_): FieldView {
-		return new AOSFieldView(this, field, fromRecord, toRecord);
+	fieldView(field: PositionedStructField<C>, fromIndex = 0, toIndex = this.capacity_): FieldView {
+		const byteOffset = this.data_.byteOffset + field.byteOffset + fromIndex * this.stride_;
+		const strideInElements = this.stride_ / field.type.byteSize;
+		const fieldOffsetInElements = field.byteOffset / field.type.byteSize;
+		const elementsToCover = strideInElements * (toIndex - fromIndex - 1) + fieldOffsetInElements + field.width;
+		const rangeView = new field.type.arrayType(this.data_.buffer, byteOffset, elementsToCover);
+		return new AOSFieldView(rangeView, this.stride_, field);
 	}
 
 	/**
@@ -161,41 +166,40 @@ export class ArrayOfStructs<C = unknown> {
  * An iterable view of a single field inside an ArrayOfStructs container.
  * Use this to easily fill, extract and iterate over a single field's data.
  */
-class AOSFieldView<C> implements FieldView {
-	private readonly fieldWidth_: number;
+class AOSFieldView implements FieldView {
+	private readonly field_: Readonly<PositionedStructField<unknown>>;
 	private readonly strideInElements_: number;
 	private readonly rangeView_: TypedArray;
 
-	constructor(aos: ArrayOfStructs<C>, field: Readonly<PositionedStructField<C>>, fromRecord?: number, toRecord?: number) {
-		fromRecord = fromRecord ?? 0;
-		toRecord = toRecord ?? aos.data.length;
+	constructor(data: TypedArray, strideInElements: number, field: Readonly<PositionedStructField<unknown>>) {
+		this.rangeView_ = data;
+		this.strideInElements_ = strideInElements;
+		this.field_ = field;
+	}
 
-		this.strideInElements_ = (aos.stride / field.type.byteSize) | 0;
-		const startOffset = field.byteOffset + (fromRecord * this.strideInElements_);
-		const recordCount = toRecord - fromRecord;
-		const elementCount = recordCount * this.strideInElements_;
-		this.rangeView_ = new (field.type.arrayType)(aos.data.buffer, startOffset, elementCount);
-		this.fieldWidth_ = field.width;
+	get length() {
+		// the rangeView encapsulates potentially only part of the last record
+		return Math.ceil(this.rangeView_.length / this.strideInElements_);
 	}
 
 	*[Symbol.iterator]() {
 		let offset = 0;
 		while (offset < this.rangeView_.length) {
-			yield this.rangeView_.subarray(offset, offset + this.fieldWidth_);
+			yield this.rangeView_.subarray(offset, offset + this.field_.width);
 			offset += this.strideInElements_;
 		}
 	}
 
 	refItem(index: number) {
 		const offset = index * this.strideInElements_;
-		return this.rangeView_.subarray(offset, offset + this.fieldWidth_);
+		return this.rangeView_.subarray(offset, offset + this.field_.width);
 	}
 
 	copyItem(index: number) {
 		let offset = (this.strideInElements_ * index);
 		const result: number[] = [];
 
-		switch (this.fieldWidth_) {
+		switch (this.field_.width) {
 			case 16:
 				result.push(this.rangeView_[offset]);
 				result.push(this.rangeView_[offset + 1]);
@@ -239,7 +243,7 @@ class AOSFieldView<C> implements FieldView {
 				result.push(this.rangeView_[offset]);
 				break;
 			default:
-				throw new RangeError(`copyItem not implemented yet for fields with ${this.fieldWidth_} elements`);
+				throw new RangeError(`copyItem not implemented yet for fields with ${this.field_.width} elements`);
 		}
 
 		return result;
@@ -249,7 +253,7 @@ class AOSFieldView<C> implements FieldView {
 		let offset = (this.strideInElements_ * index);
 		let srcOffset = 0;
 
-		switch (this.fieldWidth_) {
+		switch (this.field_.width) {
 			case 16:
 				this.rangeView_[offset] = value[srcOffset];
 				this.rangeView_[offset + 1] = value[srcOffset + 1];
@@ -293,8 +297,19 @@ class AOSFieldView<C> implements FieldView {
 				this.rangeView_[offset] = value[srcOffset];
 				break;
 			default:
-				throw new RangeError(`setItem not implemented yet for fields with ${this.fieldWidth_} elements`);
+				throw new RangeError(`setItem not implemented yet for fields with ${this.field_.width} elements`);
 		}
+	}
+
+	/**
+	 * @expects value.length === this.fieldWidth_
+	 * @expects fromIndex === undefined || (fromIndex >= 0 && fromIndex < toIndex)
+	 * @expects toIndex === undefined || (toIndex * this.fieldWidth_ <= )
+	 */
+	fill(value: NumArray, fromIndex?: number, toIndex?: number) {
+		fromIndex = fromIndex ?? 0;
+		toIndex = toIndex ?? (this.rangeView_.length / this.strideInElements_) | 0;
+		this.copyValuesFrom(value, toIndex - fromIndex, fromIndex);
 	}
 
 	/**
@@ -304,14 +319,15 @@ class AOSFieldView<C> implements FieldView {
 	 * @param valueCount the number of values to copy from source into attributes
 	 * @param atOffset (optional) the first index to start writing values into attributes
 	 * @expects (toOffset + valueCount) * this.strideInElements_ < this.rangeView_.length
-	 * @expects source.length >= valueCount * this.fieldWidth_
+	 * @expects source.length === this.fieldWidth_ || source.length >= valueCount * this.fieldWidth_
 	 */
 	copyValuesFrom(source: NumArray, valueCount: number, atOffset = 0) {
 		const stride = this.strideInElements_;
-		const elementCount = this.fieldWidth_;
+		const elementCount = this.field_.width;
 		const dest = this.rangeView_;
 		let destIndex = atOffset;
 		let sourceIndex = 0;
+		const sourceIncrement = source.length === elementCount ? 0 : elementCount;
 
 		if (elementCount === 4) {
 			for (let n = 0; n < valueCount; ++n) {
@@ -319,7 +335,7 @@ class AOSFieldView<C> implements FieldView {
 				dest[destIndex + 1] = source[sourceIndex + 1];
 				dest[destIndex + 2] = source[sourceIndex + 2];
 				dest[destIndex + 3] = source[sourceIndex + 3];
-				sourceIndex += 4;
+				sourceIndex += sourceIncrement;
 				destIndex += stride;
 			}
 		}
@@ -328,7 +344,7 @@ class AOSFieldView<C> implements FieldView {
 				dest[destIndex] = source[sourceIndex];
 				dest[destIndex + 1] = source[sourceIndex + 1];
 				dest[destIndex + 2] = source[sourceIndex + 2];
-				sourceIndex += 3;
+				sourceIndex += sourceIncrement;
 				destIndex += stride;
 			}
 		}
@@ -336,14 +352,14 @@ class AOSFieldView<C> implements FieldView {
 			for (let n = 0; n < valueCount; ++n) {
 				dest[destIndex] = source[sourceIndex];
 				dest[destIndex + 1] = source[sourceIndex + 1];
-				sourceIndex += 2;
+				sourceIndex += sourceIncrement;
 				destIndex += stride;
 			}
 		}
 		else if (elementCount === 1) {
 			for (let n = 0; n < valueCount; ++n) {
 				dest[destIndex] = source[sourceIndex];
-				sourceIndex += 1;
+				sourceIndex += sourceIncrement;
 				destIndex += stride;
 			}
 		}
@@ -352,9 +368,18 @@ class AOSFieldView<C> implements FieldView {
 				for (let e = 0; e < elementCount; ++e) {
 					dest[destIndex + e] = source[sourceIndex + e];
 				}
-				sourceIndex += elementCount;
+				sourceIndex += sourceIncrement;
 				destIndex += stride;
 			}
 		}
+	}
+
+	subView(fromIndex: number, toIndex: number) {
+		const fieldOffsetInElements = this.field_.byteOffset / this.field_.type.byteSize;
+		const fromElement = fromIndex * this.strideInElements_ + fieldOffsetInElements;
+		const elementsToCover = this.strideInElements_ * (toIndex - fromIndex - 1) + this.field_.width;
+		const toElement = fromElement + elementsToCover;
+
+		return new AOSFieldView(this.rangeView_.subarray(fromElement, toElement), this.strideInElements_, this.field_);
 	}
 }
