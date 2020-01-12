@@ -51,15 +51,7 @@ export function clearArrayBuffer(data: ArrayBufferLike, fromOffset = 0, toOffset
 	const doublesByteSize = numDoubles * Float64Array.BYTES_PER_ELEMENT;
 	if (numDoubles > 0) {
 		const doubleView = new Float64Array(data, fromOffset, numDoubles);
-		if (doubleView.fill) {
-			doubleView.fill(0);
-		}
-		else {
-			// As of 2015-11, a loop-zero construct is faster than TypedArray create+set for large arrays in most browsers
-			for (let d = 0; d < numDoubles; ++d) {
-				doubleView[d] = 0;
-			}
-		}
+		doubleView.fill(0);
 	}
 
 	const remainingBytes = byteLength - doublesByteSize;
