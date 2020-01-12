@@ -14,7 +14,7 @@
 		"numeric-queue.ts",
 		"numeric-deque.ts",
 
-		"common.ts",
+		"struct-common.ts",
 		"array-of-structs.ts",
 		"struct-of-arrays.ts",
 		"multi-array-buffer.ts",

@@ -1,5 +1,5 @@
 /*
-container/common -
+container/struct-common - Shared types and methods for structured buffers
 Part of Stardazed
 (c) 2015-Present by Arthur Langereis - @zenmumbler
 https://github.com/stardazed/stardazed
@@ -16,26 +16,37 @@ export type StructField<C = unknown> = C & {
 export type PositionedStructField<C> = {
 	readonly [P in keyof StructField<C>]: StructField<C>[P];
 } & {
+	/** Aligned position of this field within a struct or buffer */
 	byteOffset: number;
+	/** Total number of bytes for all elements in this field or of all values in a buffer */
 	sizeBytes: number;
 };
 
 export interface FieldView extends Iterable<TypedArray> {
-	/** Get a mutable reference to a single field value */
+	/** The number of values covered by this view */
+	readonly length: number;
+
+	/** Get a mutable reference to a single value */
 	refItem(index: number): TypedArray;
-	/** Get a copy of a single field value */
+	/** Get a copy of a single value */
 	copyItem(index: number): number[];
-	/** Update the elements of a single field value */
+	/** Update the elements of a single value */
 	setItem(index: number, value: NumArray): void;
 
+	/** Copy the provided value into all or a range of values of this view */
+	fill(value: NumArray, fromIndex?: number, toIndex?: number): void;
+
 	/**
-	 * Copy values from a source array into the attribute for consecutive records
+	 * Copy values from a source array into consecutive values
 	 *
 	 * @param source an array of numeric values
 	 * @param valueCount the number of values to copy from source into attributes
 	 * @param atOffset (optional) the first index to start writing values into attributes
 	 */
 	copyValuesFrom(source: NumArray, valueCount: number, atOffset?: number): void;
+
+	/** Create a view on a sub-range of values of this view */
+	subView(fromIndex: number, toIndex: number): FieldView;
 }
 
 export function createNameIndexMap(fields: StructField<unknown>[]) {
