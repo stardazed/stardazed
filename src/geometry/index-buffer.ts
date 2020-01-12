@@ -43,7 +43,7 @@ export class IndexBuffer {
 				throw new TypeError(`Provided storage is too small: ${storage.byteLength} < ${totalSizeBytes}`);
 			}
 			if ((storage.byteOffset & 3) !== 0) {
-				throw new TypeError(`Provided buffer view is not aligned on an 4 byte boundary`);
+				throw new TypeError(`Provided storage is not aligned on an 4 byte boundary`);
 			}
 		}
 		else {
