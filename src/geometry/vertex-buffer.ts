@@ -30,7 +30,10 @@ export const enum VertexAttributeRole {
 
 	// skinned geometry
 	WeightedPos0, WeightedPos1, WeightedPos2, WeightedPos3,
-	JointIndexes
+	JointIndexes,
+
+	// special attributes for e.g. instancing
+	Transform
 }
 
 interface VertexFieldProps {
