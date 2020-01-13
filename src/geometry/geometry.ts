@@ -9,57 +9,66 @@ import { alignUp } from "stardazed/core";
 import { IndexBuffer, minimumIndexElementTypeForVertexCount } from "./index-buffer";
 import { VertexBuffer, VertexBufferDescriptor } from "./vertex-buffer";
 
-export const enum PrimitiveType {
-	Point = 0,
+/** A numerical "name" of a primitive type */
+export const enum PrimitiveName {
+	Point = 1,
 	Line,
 	LineStrip,
 	Triangle,
 	TriangleStrip
 }
 
-export interface PrimitiveTraits {
-	readonly type: PrimitiveType;
+/** Traits and calculations related to a primitive type */
+export interface PrimitiveType {
+	readonly name: PrimitiveName;
 	elementOffsetForCount(count: number): number;
 	elementsForCount(count: number): number;
 	countForElements(elements: number): number;
 }
 
 /**
- * Calculations for each primitive type as they relate to elements in a buffer.
+ * Traits of Point primitives
  */
-export const Primitive: ReadonlyArray<PrimitiveTraits> = [
-	{
-		type: PrimitiveType.Point,
-		elementOffsetForCount(count: number) { return count; },
-		elementsForCount(count: number) { return count; },
-		countForElements(elements: number) { return elements; }
-	},
-	{
-		type: PrimitiveType.Line,
-		elementOffsetForCount(count: number) { return count * 2; },
-		elementsForCount(count: number) { return count * 2; },
-		countForElements(elements: number) { return (elements / 2) | 0; }
-	},
-	{
-		type: PrimitiveType.LineStrip,
-		elementOffsetForCount(count: number) { return count; },
-		elementsForCount(count: number) { return count > 0 ? count + 1 : 0; },
-		countForElements(elements: number) { return elements > 0 ? elements - 1 : 0; }
-	},
-	{
-		type: PrimitiveType.Triangle,
-		elementOffsetForCount(count: number) { return count * 3; },
-		elementsForCount(count: number) { return count * 3; },
-		countForElements(elements: number) { return (elements / 3) | 0; }
-	},
-	{
-		type: PrimitiveType.TriangleStrip,
-		elementOffsetForCount(count: number) { return count; },
-		elementsForCount(count: number) { return count > 0 ? count + 2 : 0; },
-		countForElements(elements: number) { return elements > 1 ? elements - 2 : 0; }
-	}
-];
+export const PointPrimitive: PrimitiveType = {
+	name: PrimitiveName.Point,
+	elementOffsetForCount(count: number) { return count; },
+	elementsForCount(count: number) { return count; },
+	countForElements(elements: number) { return elements; }
+};
 
+/** Traits of Line primitives */
+export const LinePrimitive: PrimitiveType = {
+	name: PrimitiveName.Line,
+	elementOffsetForCount(count: number) { return count * 2; },
+	elementsForCount(count: number) { return count * 2; },
+	countForElements(elements: number) { return (elements / 2) | 0; }
+};
+
+/** Traits of LineStrip primitives */
+export const LineStripPrimitive: PrimitiveType = {
+	name: PrimitiveName.LineStrip,
+	elementOffsetForCount(count: number) { return count; },
+	elementsForCount(count: number) { return count > 0 ? count + 1 : 0; },
+	countForElements(elements: number) { return elements > 0 ? elements - 1 : 0; }
+};
+
+/** Traits of Triangle primitives */
+export const TrianglePrimitive: PrimitiveType = {
+	name: PrimitiveName.Triangle,
+	elementOffsetForCount(count: number) { return count * 3; },
+	elementsForCount(count: number) { return count * 3; },
+	countForElements(elements: number) { return (elements / 3) | 0; }
+};
+
+/** Traits of TriangleStrip primitives */
+export const TriangleStripPrimitive: PrimitiveType = {
+	name: PrimitiveName.TriangleStrip,
+	elementOffsetForCount(count: number) { return count; },
+	elementsForCount(count: number) { return count > 0 ? count + 2 : 0; },
+	countForElements(elements: number) { return elements > 1 ? elements - 2 : 0; }
+};
+
+/** Layout and properties of a group of primitives inside a geometry */
 export interface PrimitiveGroup {
 	/** How the elements in this group should be interpreted to form primitives */
 	type: PrimitiveType;
@@ -71,16 +80,18 @@ export interface PrimitiveGroup {
 	materialIx: number;
 }
 
+/** A Geometry is a grouping of one or more vertex buffers, an optional index buffer and one or more primitive groups */
 export interface Geometry {
 	vertexBuffers: VertexBuffer[];
 	indexBuffer?: IndexBuffer;
 	subMeshes: PrimitiveGroup[];
 }
 
-export const enum BufferAlignment {
+const enum BufferAlignment {
 	SubBuffer = 8
 }
 
+/** Properties of a new geometry to allocate */
 export interface GeometryAllocDescriptor {
 	vertexDescs: VertexBufferDescriptor[];
 	indexCount: number;
