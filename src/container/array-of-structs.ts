@@ -100,10 +100,10 @@ export class ArrayOfStructs<C = unknown> {
 	fieldView(field: PositionedStructField<C>, fromIndex = 0, toIndex = this.capacity_): FieldView {
 		const byteOffset = this.data_.byteOffset + field.byteOffset + fromIndex * this.stride_;
 		const strideInElements = this.stride_ / field.type.byteSize;
-		const fieldOffsetInElements = field.byteOffset / field.type.byteSize;
-		const elementsToCover = strideInElements * (toIndex - fromIndex - 1) + fieldOffsetInElements + field.width;
+		// const fieldOffsetInElements = field.byteOffset / field.type.byteSize;
+		const elementsToCover = strideInElements * (toIndex - fromIndex - 1) + field.width;
 		const rangeView = new field.type.arrayType(this.data_.buffer, byteOffset, elementsToCover);
-		return new AOSFieldView(rangeView, this.stride_, field);
+		return new AOSFieldView(rangeView, this.stride_ / field.type.byteSize, field);
 	}
 
 	/**
@@ -375,8 +375,7 @@ class AOSFieldView implements FieldView {
 	}
 
 	subView(fromIndex: number, toIndex: number) {
-		const fieldOffsetInElements = this.field_.byteOffset / this.field_.type.byteSize;
-		const fromElement = fromIndex * this.strideInElements_ + fieldOffsetInElements;
+		const fromElement = fromIndex * this.strideInElements_;
 		const elementsToCover = this.strideInElements_ * (toIndex - fromIndex - 1) + this.field_.width;
 		const toElement = fromElement + elementsToCover;
 
