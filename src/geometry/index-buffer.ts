@@ -5,20 +5,20 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { NumType, NumericType } from "stardazed/core";
+import { UInt8, UInt16, UInt32, NumericType } from "stardazed/core";
 
 /**
  * @expects isPositiveInteger(vertexCount)
  */
 export function minimumIndexElementTypeForVertexCount(vertexCount: number) {
-	if (vertexCount <= NumType.UInt8.max) {
-		return NumType.UInt8;
+	if (vertexCount <= UInt8.max) {
+		return UInt8;
 	}
-	if (vertexCount <= NumType.UInt16.max) {
-		return NumType.UInt16;
+	if (vertexCount <= UInt16.max) {
+		return UInt16;
 	}
 
-	return NumType.UInt32;
+	return UInt32;
 }
 
 /**
