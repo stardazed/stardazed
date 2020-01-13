@@ -110,14 +110,20 @@ export class StructOfArrays<C = unknown> {
 	/**
 	 * Get a typed buffer view covering all of or a range of a field's values.
 	 */
-	fieldArrayView(field: PositionedStructField<C>, fromIndex = 0, toIndex = this.capacity_) {
+	fieldArrayView(field: number | PositionedStructField<C>, fromIndex = 0, toIndex = this.capacity_) {
+		if (typeof field === "number") {
+			field = this.fields_[field];
+		}
 		return fieldArrayRangeView(this.data_, field, fromIndex, toIndex);
 	}
 
 	/**
 	 * Get an iterable, mutable view on all of or a range of field's values.
 	 */
-	fieldView(field: PositionedStructField<C>, fromIndex = 0, toIndex = this.capacity_): FieldView {
+	fieldView(field: number | PositionedStructField<C>, fromIndex = 0, toIndex = this.capacity_): FieldView {
+		if (typeof field === "number") {
+			field = this.fields_[field];
+		}
 		return new SOAFieldView(fieldArrayRangeView(this.data_, field, fromIndex, toIndex), field);
 	}
 

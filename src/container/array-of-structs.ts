@@ -97,7 +97,10 @@ export class ArrayOfStructs<C = unknown> {
 	/**
 	 * Get an iterable, mutable view on all of or a range of field's values.
 	 */
-	fieldView(field: PositionedStructField<C>, fromIndex = 0, toIndex = this.capacity_): FieldView {
+	fieldView(field: number | PositionedStructField<C>, fromIndex = 0, toIndex = this.capacity_): FieldView {
+		if (typeof field === "number") {
+			field = this.fields_[field];
+		}
 		const byteOffset = this.data_.byteOffset + field.byteOffset + fromIndex * this.stride_;
 		const strideInElements = this.stride_ / field.type.byteSize;
 		// const fieldOffsetInElements = field.byteOffset / field.type.byteSize;
