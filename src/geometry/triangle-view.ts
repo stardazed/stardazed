@@ -8,7 +8,7 @@ https://github.com/stardazed/stardazed
 import { IndexBuffer } from "./index-buffer";
 import { Geometry, TrianglePrimitive } from "./geometry";
 
-export interface TriangleProxy {
+export interface TriangleProxy extends Iterable<number> {
 	index(index: number): number;
 	readonly a: number;
 	readonly b: number;
@@ -28,6 +28,12 @@ class DirectTriangleProxy implements TriangleProxy {
 
 	constructor(baseElement: number) {
 		this.baseElement = baseElement;
+	}
+
+	*[Symbol.iterator]() {
+		yield this.baseElement;
+		yield this.baseElement + 1;
+		yield this.baseElement + 2;
 	}
 
 	index(index: number) {
@@ -93,6 +99,12 @@ class IndexedTriangleProxy implements TriangleProxy {
 	constructor(rangeView: TypedArray) {
 		this.rangeView_ = rangeView;
 		this.baseElement = 0;
+	}
+
+	*[Symbol.iterator]() {
+		yield this.rangeView_[this.baseElement];
+		yield this.rangeView_[this.baseElement + 1];
+		yield this.rangeView_[this.baseElement + 2];
 	}
 
 	index(index: number) { return this.rangeView_[this.baseElement + index]; }
