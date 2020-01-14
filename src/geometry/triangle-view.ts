@@ -5,7 +5,8 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { IndexBuffer, Geometry, TrianglePrimitive } from "stardazed/geometry";
+import { IndexBuffer } from "./index-buffer";
+import { Geometry, TrianglePrimitive } from "./geometry";
 
 export interface TriangleProxy {
 	index(index: number): number;
