@@ -84,7 +84,7 @@ export interface PrimitiveGroup {
 export interface Geometry {
 	vertexBuffers: VertexBuffer[];
 	indexBuffer?: IndexBuffer;
-	subMeshes: PrimitiveGroup[];
+	groups: PrimitiveGroup[];
 }
 
 const enum BufferAlignment {
@@ -119,7 +119,7 @@ export function allocateGeometry(desc: GeometryAllocDescriptor): Geometry {
 
 	const geom: Geometry = {
 		vertexBuffers: [],
-		subMeshes: [],
+		groups: [],
 	};
 	const storage = new ArrayBuffer(totalBytes);
 
