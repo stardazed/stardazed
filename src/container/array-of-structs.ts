@@ -106,7 +106,7 @@ export class ArrayOfStructs<C = unknown> {
 		// const fieldOffsetInElements = field.byteOffset / field.type.byteSize;
 		const elementsToCover = strideInElements * (toIndex - fromIndex - 1) + field.width;
 		const rangeView = new field.type.arrayType(this.data_.buffer, byteOffset, elementsToCover);
-		return new AOSFieldView(rangeView, this.stride_ / field.type.byteSize, field);
+		return new AOSFieldView(rangeView, fromIndex, this.stride_ / field.type.byteSize, field);
 	}
 
 	/**
@@ -173,11 +173,13 @@ class AOSFieldView implements FieldView {
 	private readonly field_: Readonly<PositionedStructField<unknown>>;
 	private readonly strideInElements_: number;
 	private readonly rangeView_: TypedArray;
+	readonly baseIndex: number;
 
-	constructor(data: TypedArray, strideInElements: number, field: Readonly<PositionedStructField<unknown>>) {
+	constructor(data: TypedArray, baseIndex: number, strideInElements: number, field: Readonly<PositionedStructField<unknown>>) {
 		this.rangeView_ = data;
 		this.strideInElements_ = strideInElements;
 		this.field_ = field;
+		this.baseIndex = baseIndex;
 	}
 
 	get length() {
@@ -382,6 +384,6 @@ class AOSFieldView implements FieldView {
 		const elementsToCover = this.strideInElements_ * (toIndex - fromIndex - 1) + this.field_.width;
 		const toElement = fromElement + elementsToCover;
 
-		return new AOSFieldView(this.rangeView_.subarray(fromElement, toElement), this.strideInElements_, this.field_);
+		return new AOSFieldView(this.rangeView_.subarray(fromElement, toElement), this.baseIndex + fromIndex, this.strideInElements_, this.field_);
 	}
 }

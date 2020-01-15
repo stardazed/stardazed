@@ -25,6 +25,8 @@ export type PositionedStructField<C> = {
 export interface FieldView extends Iterable<TypedArray> {
 	/** The number of values covered by this view */
 	readonly length: number;
+	/** The base index starting from the buffer's origin of this view */
+	readonly baseIndex: number;
 
 	/** Get a mutable reference to a single value */
 	refItem(index: number): TypedArray;

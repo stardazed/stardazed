@@ -124,7 +124,7 @@ export class StructOfArrays<C = unknown> {
 		if (typeof field === "number") {
 			field = this.fields_[field];
 		}
-		return new SOAFieldView(fieldArrayRangeView(this.data_, field, fromIndex, toIndex), field);
+		return new SOAFieldView(fieldArrayRangeView(this.data_, field, fromIndex, toIndex), fromIndex, field);
 	}
 
 	/**
@@ -190,10 +190,12 @@ export class StructOfArrays<C = unknown> {
 class SOAFieldView implements FieldView {
 	private readonly field_: PositionedStructField<unknown>;
 	private readonly rangeView_: TypedArray;
+	readonly baseIndex: number;
 
-	constructor(data: TypedArray, field: PositionedStructField<unknown>) {
+	constructor(data: TypedArray, baseIndex: number, field: PositionedStructField<unknown>) {
 		this.rangeView_ = data;
 		this.field_ = field;
+		this.baseIndex = baseIndex;
 	}
 
 	get length() {
@@ -378,6 +380,6 @@ class SOAFieldView implements FieldView {
 
 	subView(fromIndex: number, toIndex: number) {
 		const width = this.field_.width;
-		return new SOAFieldView(this.rangeView_.subarray(fromIndex * width, toIndex * width), this.field_);
+		return new SOAFieldView(this.rangeView_.subarray(fromIndex * width, toIndex * width), this.baseIndex + fromIndex, this.field_);
 	}
 }
