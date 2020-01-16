@@ -5,27 +5,33 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
+import { FieldView } from "stardazed/container";
+import { vec3, copyIndexedVec3, setIndexedVec3 } from "stardazed/vector";
+import { VertexBuffer, VertexAttributeRole } from "vertex-buffer";
+import { TriangleView, triangleViewForGeometry } from "triangle-view";
+import { Geometry } from "geometry";
+
 export function genVertexNormals(geom: Geometry) {
 	const triView = triangleViewForGeometry(geom);
-	geom.vertexBuffers.forEach((vertexBuffer, ix) => {
-		calcVertexNormals(geom.layout.layouts[ix], vertexBuffer, triView);
-	});
+	for (const vertexBuffer of geom.vertexBuffers) {
+		calcVertexNormals(vertexBuffer, triView);
+	}
 }
 
 export function genVertexTangents(geom: Geometry) {
 	const triView = triangleViewForGeometry(geom);
-	geom.vertexBuffers.forEach((vertexBuffer, ix) => {
-		calcVertexTangents(geom.layout.layouts[ix], vertexBuffer, triView);
-	});
+	for (const vertexBuffer of geom.vertexBuffers) {
+		calcVertexTangents(vertexBuffer, triView);
+	}
 }
 
-export function calcVertexNormals(layout: VertexBufferLayout, vertexBuffer: VertexBuffer, triView: TriangleView) {
-	const posAttr = layout.attrByRole(VertexAttributeRole.Position);
-	const normAttr = layout.attrByRole(VertexAttributeRole.Normal);
+export function calcVertexNormals(vertexBuffer: VertexBuffer, triView: TriangleView) {
+	const posAttr = vertexBuffer.fieldByRole(VertexAttributeRole.Position);
+	const normAttr = vertexBuffer.fieldByRole(VertexAttributeRole.Normal);
 
 	if (posAttr && normAttr) {
-		const posView = new VertexAttributeView(vertexBuffer, posAttr);
-		const normView = new VertexAttributeView(vertexBuffer, normAttr);
+		const posView = vertexBuffer.fieldView(posAttr);
+		const normView = vertexBuffer.fieldView(normAttr);
 
 		calcVertexNormalsViews(posView, normView, triView);
 	}
@@ -35,20 +41,17 @@ export function calcVertexNormals(layout: VertexBufferLayout, vertexBuffer: Vert
 /**
  * @expects posView.vertexCount <= normView.vertexCount
  */
-export function calcVertexNormalsViews(posView: VertexAttributeView, normView: VertexAttributeView, triView: TriangleView) {
-	const vertexCount = posView.vertexCount;
-	const baseVertex = normView.fromVertex;
+export function calcVertexNormalsViews(posView: FieldView, normView: FieldView, triView: TriangleView) {
+	const vertexCount = posView.length;
+	const baseVertex = normView.baseIndex;
 
-	// FIXME(perf): avoid creating thousands of vec refs
-	normView.forEach(norm => {
-		vec3.set(norm, 0, 0, 1);
-	});
+	normView.fill([0, 0, 1]);
 	const usages = new Float32Array(vertexCount);
 
 	const lineA = vec3.create(), lineB = vec3.create();
 	const faceNormal = vec3.create(), temp = vec3.create();
 
-	triView.forEach((face: TriangleProxy) => {
+	for (const face of triView) {
 		const posA = posView.copyItem(face.a - baseVertex);
 		const posB = posView.copyItem(face.b - baseVertex);
 		const posC = posView.copyItem(face.c - baseVertex);
@@ -73,25 +76,25 @@ export function calcVertexNormalsViews(posView: VertexAttributeView, normView: V
 
 			usages[fvi] += 1;
 		}
-	});
+	}
 
-	normView.forEach((norm) => {
+	for (const norm of normView) {
 		vec3.normalize(norm, norm);
-	});
+	}
 }
 
 
-export function calcVertexTangents(layout: VertexBufferLayout, vertexBuffer: VertexBuffer, triView: TriangleView, uvSet = VertexAttributeRole.UV0) {
-	const posAttr = layout.attrByRole(VertexAttributeRole.Position);
-	const normAttr = layout.attrByRole(VertexAttributeRole.Normal);
-	const uvAttr = layout.attrByRole(uvSet);
-	const tanAttr = layout.attrByRole(VertexAttributeRole.Tangent);
+export function calcVertexTangents(vertexBuffer: VertexBuffer, triView: TriangleView, uvSet = VertexAttributeRole.UV0) {
+	const posAttr = vertexBuffer.fieldByRole(VertexAttributeRole.Position);
+	const normAttr = vertexBuffer.fieldByRole(VertexAttributeRole.Normal);
+	const uvAttr = vertexBuffer.fieldByRole(uvSet);
+	const tanAttr = vertexBuffer.fieldByRole(VertexAttributeRole.Tangent);
 
 	if (posAttr && normAttr && uvAttr && tanAttr) {
-		const posView = new VertexAttributeView(vertexBuffer, posAttr);
-		const normView = new VertexAttributeView(vertexBuffer, normAttr);
-		const uvView = new VertexAttributeView(vertexBuffer, uvAttr);
-		const tanView = new VertexAttributeView(vertexBuffer, tanAttr);
+		const posView = vertexBuffer.fieldView(posAttr);
+		const normView = vertexBuffer.fieldView(normAttr);
+		const uvView = vertexBuffer.fieldView(uvAttr);
+		const tanView = vertexBuffer.fieldView(tanAttr);
 
 		calcVertexTangentsViews(posView, normView, uvView, tanView, triView);
 	}
@@ -104,21 +107,21 @@ export function calcVertexTangents(layout: VertexBufferLayout, vertexBuffer: Ver
  * @expects posView.vertexCount <= tanView.vertexCount
  */
 export function calcVertexTangentsViews(
-	posView: VertexAttributeView,
-	normView: VertexAttributeView,
-	uvView: VertexAttributeView,
-	tanView: VertexAttributeView,
+	posView: FieldView,
+	normView: FieldView,
+	uvView: FieldView,
+	tanView: FieldView,
 	triView: TriangleView
 ) {
 	// adaptation of http://www.terathon.com/code/tangent.html
 	// by Eric Lengyel
 
-	const vertexCount = posView.vertexCount;
+	const vertexCount = posView.length;
 	const tanBuf = new Float32Array(vertexCount * 3 * 2);
 	const tan1 = tanBuf.subarray(0, vertexCount);
 	const tan2 = tanBuf.subarray(vertexCount);
 
-	triView.forEach(face => {
+	for (const face of triView) {
 		const { a, b, c } = face;
 
 		const v1 = posView.copyItem(a),
@@ -173,7 +176,7 @@ export function calcVertexTangentsViews(
 		setIndexedVec3(tan2, a, vec3.add(tan2a, tan2a, tdir));
 		setIndexedVec3(tan2, b, vec3.add(tan2b, tan2b, tdir));
 		setIndexedVec3(tan2, c, vec3.add(tan2c, tan2c, tdir));
-	});
+	}
 
 	for (let ix = 0; ix < vertexCount; ++ix) {
 		const n = normView.copyItem(ix);
