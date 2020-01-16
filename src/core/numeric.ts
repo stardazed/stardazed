@@ -114,6 +114,20 @@ export const SInt32: NumericType = {
 };
 
 /**
+ * Traits of 16-bit floating point numbers.
+ */
+export const Half: NumericType = {
+	min: -65504.0,
+	max: 65504.0,
+	minSafeInt: -2048, // -2^11
+	maxSafeInt: 2048, // 2^11
+	signed: true,
+	integer: false,
+	byteSize: 2,
+	arrayType: Uint16Array // size match only
+};
+
+/**
  * Traits of 32-bit floating point numbers.
  */
 export const Float: NumericType = {
