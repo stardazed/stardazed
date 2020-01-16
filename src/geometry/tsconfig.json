@@ -15,7 +15,9 @@
 		"geometry.ts",
 
 		"triangle-view.ts",
+
 		"calc-derived.ts",
+		"builder.ts",
 
 		"index.ts"
 	],

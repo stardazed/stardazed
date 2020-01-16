@@ -5,6 +5,10 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
+import { Float, stableSort, copyElementRange, appendArrayInPlace } from "stardazed/core";
+import { VertexAttribute, VertexAttributeRole } from "vertex-buffer";
+import { allocateGeometry, TrianglePrimitive } from "geometry";
+
 export const enum VertexAttributeMapping {
 	Undefined,
 
@@ -120,7 +124,7 @@ export class GeometryBuilder {
 
 		// create the positions stream, which is needed for both simple and rigged models
 		const positionStream: VertexAttributeStream = {
-			attr: { role: VertexAttributeRole.Position, field: VertexField.Floatx3 },
+			attr: { role: VertexAttributeRole.Position, type: Float, width: 3 },
 			mapping: VertexAttributeMapping.Vertex,
 			includeInMesh: true,
 			values: positions,
@@ -149,12 +153,12 @@ export class GeometryBuilder {
 		// also check for ambigious or incorrect grouping
 		let groupers = 0;
 		for (const s of this.streams_) {
-			s.elementCount = vertexFieldElementCount(s.attr.field);
+			s.elementCount = s.attr.width;
 			if (s.controlsGrouping === true) {
 				if (s.elementCount !== 1) {
 					throw new Error("A grouping stream must use a single element field");
 				}
-				const groupNumType = vertexFieldNumericType(s.attr.field);
+				const groupNumType = s.attr.type;
 				if (! (groupNumType && groupNumType.integer)) {
 					throw new Error("A grouping stream must use an integer element");
 				}
@@ -332,18 +336,18 @@ export class GeometryBuilder {
 
 		// allocate as single buffer
 		const geom = allocateGeometry({
-			layout: makeStandardGeometryLayout(attrs),
-			vertexCount: this.vertexCount_,
+			vertexDescs: [
+				{ attrs, valueCount: this.vertexCount_ }
+			],
 			indexCount: this.triangleCount_ * 3
 		});
-		const layout = geom.layout.layouts[0];
+		const vb = geom.vertexBuffers[0];
 
 		// copy vertex streams
 		for (let six = 0; six < meshAttributeStreams.length; ++six) {
 			const streamData = this.vertexData_[six];
-			const attribute = layout.attrByIndex(six);
-			if (attribute) {
-				const view = new VertexAttributeView(geom.vertexBuffers[0], attribute);
+			const view = vb.fieldView(six);
+			if (view) {
 				view.copyValuesFrom(streamData, this.vertexCount_);
 			}
 			// FIXME else unexpected()
@@ -359,8 +363,8 @@ export class GeometryBuilder {
 				appendArrayInPlace(mergedIndexes, indexes);
 				const groupElementCount = indexes.length;
 
-				geom.subMeshes.push({
-					type: PrimitiveType.Triangle,
+				geom.groups.push({
+					type: TrianglePrimitive,
 					fromElement: nextElementIndex,
 					elementCount: groupElementCount,
 					materialIx: group
@@ -370,7 +374,7 @@ export class GeometryBuilder {
 			}
 		}
 
-		const indexView = indexBufferRangeView(geom.indexBuffer!, 0, mergedIndexes.length);
+		const indexView = geom.indexBuffer!.arrayView(0, mergedIndexes.length);
 		copyElementRange(indexView, 0, mergedIndexes, 0, mergedIndexes.length);
 		// geom.indexBuffer!.setIndexes(0, mergedIndexes.length, mergedIndexes);
 
