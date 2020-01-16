@@ -7,7 +7,7 @@ https://github.com/stardazed/stardazed
 
 import { alignUp } from "stardazed/core";
 import { IndexBuffer, minimumIndexElementTypeForVertexCount } from "./index-buffer";
-import { VertexBuffer, VertexBufferDescriptor } from "./vertex-buffer";
+import { VertexBuffer, VertexBufferDescriptor, VertexAttributeRole, PositionedAttribute } from "./vertex-buffer";
 
 /** A numerical "name" of a primitive type */
 export const enum PrimitiveName {
@@ -150,4 +150,14 @@ export function allocateGeometry(desc: GeometryAllocDescriptor): Geometry {
 	// assert(totalBytes === byteOffset, "Geometry: mismatch of precalculated and actual buffer sizes");
 
 	return geom;
+}
+
+export function findAttributeOfRoleInGeometry(geom: Geometry, role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | undefined {
+	for (const vertexBuffer of geom.vertexBuffers) {
+		const attr = vertexBuffer.fieldByRole(role);
+		if (attr) {
+			return { attr, vertexBuffer };
+		}
+	}
+	return undefined;
 }

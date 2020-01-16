@@ -15,27 +15,6 @@ export interface AttributeResult {
 	bufferIndex: number;
 }
 
-export function findAttributeOfRoleInLayout(gl: GeometryLayout, role: VertexAttributeRole): AttributeResult | undefined {
-	for (let ix = 0; ix < gl.layouts.length; ++ix) {
-		const layout = gl.layouts[ix];
-		const pa = layout.attrByRole(role);
-		if (pa) {
-			return { attr: pa, bufferIndex: ix };
-		}
-	}
-	return undefined;
-}
-
-export function findAttributeOfRoleInGeometry(geom: Geometry, role: VertexAttributeRole): { vertexBuffer: VertexBuffer; attr: PositionedAttribute; } | undefined {
-	const pa = findAttributeOfRoleInLayout(geom.layout, role);
-	const avb = pa ? geom.vertexBuffers[pa.bufferIndex] : undefined;
-
-	if (pa && avb) {
-		return { vertexBuffer: avb, attr: pa.attr };
-	}
-	return undefined;
-}
-
 export function scale(geom: Geometry, scale: Float3) {
 	const posAttr = findAttributeOfRoleInGeometry(geom, VertexAttributeRole.Position);
 	if (posAttr) {
