@@ -6,8 +6,8 @@ https://github.com/stardazed/stardazed
 */
 
 import { Float, stableSort, copyElementRange, appendArrayInPlace } from "stardazed/core";
-import { VertexAttribute, VertexAttributeRole } from "vertex-buffer";
-import { allocateGeometry, TrianglePrimitive } from "geometry";
+import { VertexAttribute, VertexAttributeRole } from "./vertex-buffer";
+import { allocateGeometry, TrianglePrimitive } from "./geometry";
 
 export const enum VertexAttributeMapping {
 	Undefined,

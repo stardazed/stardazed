@@ -7,9 +7,9 @@ https://github.com/stardazed/stardazed
 
 import { FieldView } from "stardazed/container";
 import { vec3, copyIndexedVec3, setIndexedVec3 } from "stardazed/vector";
-import { VertexBuffer, VertexAttributeRole } from "vertex-buffer";
-import { TriangleView, triangleViewForGeometry } from "triangle-view";
-import { Geometry } from "geometry";
+import { VertexBuffer, VertexAttributeRole } from "./vertex-buffer";
+import { TriangleView, triangleViewForGeometry } from "./triangle-view";
+import { Geometry } from "./geometry";
 
 export function genVertexNormals(geom: Geometry) {
 	const triView = triangleViewForGeometry(geom);
