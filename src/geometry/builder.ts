@@ -10,9 +10,7 @@ import { VertexAttribute, VertexAttributeRole } from "./vertex-buffer";
 import { allocateGeometry, TrianglePrimitive } from "./geometry";
 
 export const enum VertexAttributeMapping {
-	Undefined,
-
-	Vertex,
+	Vertex = 1,
 	PolygonVertex,
 	Polygon,
 	SingleValue
@@ -25,10 +23,8 @@ export interface VertexAttributeStream {
 	includeInMesh: boolean;
 	controlsGrouping?: boolean;
 
-	values?: TypedArray;
+	values: TypedArray;
 	indexes?: TypedArray;
-
-	elementCount?: number;
 }
 
 export interface VertexIndexMapping {
@@ -93,6 +89,12 @@ class VertexIndexMappingB implements VertexIndexMapping {
 	}
 }
 
+export interface GeometryBuilderOptions {
+	positions: Float32Array | Float64Array;
+	positionIndexes?: Uint32Array;
+	streams: VertexAttributeStream[];
+}
+
 export class GeometryBuilder {
 	private vertexData_: number[][];
 
@@ -109,16 +111,7 @@ export class GeometryBuilder {
 
 	private streams_: VertexAttributeStream[];
 
-	/**
-	 * Try to create a GeometryBuilder, will reject if the streams config is invalid.
-	 */
-	static create(positions: Float32Array | Float64Array, positionIndexes: Uint32Array | undefined, streams: VertexAttributeStream[]) {
-		return new Promise<GeometryBuilder>(resolve => {
-			resolve(new this(positions, positionIndexes, streams));
-		});
-	}
-
-	private constructor(positions: Float32Array | Float64Array, positionIndexes: Uint32Array | undefined, streams: VertexAttributeStream[]) {
+	constructor({ positions, positionIndexes, streams }: GeometryBuilderOptions) {
 		// create a local copy of the streams array so we can modify it
 		this.streams_ = streams.slice(0);
 
@@ -153,9 +146,8 @@ export class GeometryBuilder {
 		// also check for ambigious or incorrect grouping
 		let groupers = 0;
 		for (const s of this.streams_) {
-			s.elementCount = s.attr.width;
 			if (s.controlsGrouping === true) {
-				if (s.elementCount !== 1) {
+				if (s.attr.width !== 1) {
 					throw new Error("A grouping stream must use a single element field");
 				}
 				const groupNumType = s.attr.type;
@@ -182,7 +174,6 @@ export class GeometryBuilder {
 		this.streamCount_ = this.streams_.length;
 	}
 
-
 	private streamIndexesForPVI(polygonVertexIndex: number, vertexIndex: number, polygonIndex: number) {
 		const res: number[] = [];
 
@@ -197,7 +188,7 @@ export class GeometryBuilder {
 			else if (stream.mapping === VertexAttributeMapping.Polygon) {
 				index = polygonIndex;
 			}
-			else {
+			else { // SingleValue
 				index = 0;
 			}
 
@@ -231,10 +222,10 @@ export class GeometryBuilder {
 		else {
 			for (let streamIx = 0; streamIx < this.streamCount_; ++streamIx) {
 				const stream = this.streams_[streamIx];
-				const elemCount = stream.elementCount!;
+				const elemCount = stream.attr.width;
 				const array = this.vertexData_[streamIx];
 				const fieldIndex = streamIndexes[streamIx];
-				let values: NumArray = stream.values!; // TODO: is this guaranteed to exist in this loop?
+				let values: NumArray = stream.values;
 				let fieldOffset = elemCount * fieldIndex;
 
 				// This is slowest on all browsers (by a mile)
@@ -282,7 +273,6 @@ export class GeometryBuilder {
 		}
 	}
 
-
 	private addTriangle(polygonVertexIndexes: NumArray, vertexIndexes: NumArray) {
 		const indexesA = this.streamIndexesForPVI(polygonVertexIndexes[0], vertexIndexes[0], this.sourcePolygonIndex_);
 		const indexesB = this.streamIndexesForPVI(polygonVertexIndexes[1], vertexIndexes[1], this.sourcePolygonIndex_);
@@ -299,7 +289,6 @@ export class GeometryBuilder {
 		this.groupIndexesRef_.push(dstVIxA, dstVIxB, dstVIxC);
 		this.triangleCount_++;
 	}
-
 
 	addPolygon(polygonVertexIndexes: NumArray, vertexIndexes: NumArray) {
 		if (polygonVertexIndexes.length === 3) {
@@ -376,7 +365,6 @@ export class GeometryBuilder {
 
 		const indexView = geom.indexBuffer!.arrayView(0, mergedIndexes.length);
 		copyElementRange(indexView, 0, mergedIndexes, 0, mergedIndexes.length);
-		// geom.indexBuffer!.setIndexes(0, mergedIndexes.length, mergedIndexes);
 
 		return geom;
 	}
