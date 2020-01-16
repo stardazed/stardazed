@@ -9,3 +9,5 @@ export * from "./index-buffer";
 export * from "./vertex-buffer";
 export * from "./geometry";
 export * from "./triangle-view";
+export * from "./calc-derived";
+export * from "./builder";
