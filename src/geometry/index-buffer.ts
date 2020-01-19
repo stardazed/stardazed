@@ -27,7 +27,7 @@ export function minimumIndexElementTypeForVertexCount(vertexCount: number) {
  */
 export class IndexBuffer {
 	readonly elementType: NumericType;
-	readonly count: number;
+	readonly length: number;
 	readonly data: Uint8Array;
 
 	constructor(elementType: NumericType, indexCount: number, storage?: Uint8Array) {
@@ -35,7 +35,7 @@ export class IndexBuffer {
 			throw new TypeError("An element type for an IndexBuffer must be an unsigned integer");
 		}
 		this.elementType = elementType;
-		this.count = indexCount;
+		this.length = indexCount;
 
 		const totalSizeBytes = elementType.byteSize * indexCount;
 		if (storage) {
@@ -52,7 +52,7 @@ export class IndexBuffer {
 		this.data = storage;
 	}
 
-	get sizeBytes() { return this.elementType.byteSize * this.count; }
+	get byteLength() { return this.elementType.byteLength * this.length; }
 
 	/**
 	 * Access (a section of) the underlying array data of an IndexBuffer.
@@ -63,8 +63,8 @@ export class IndexBuffer {
 	 * @expects fromIndex < this.count
 	 * @expects fromIndex + toIndex <= this.count
 	 */
-	arrayView(fromIndex = 0, toIndex = this.count) {
-		const offsetBytes = this.data.byteOffset + this.elementType.byteSize * fromIndex;
+	arrayView(fromIndex = 0, toIndex = this.length) {
+		const offsetBytes = this.data.byteOffset + this.elementType.byteLength * fromIndex;
 		return new this.elementType.arrayType(this.data.buffer, offsetBytes, toIndex - fromIndex);
 	}
 

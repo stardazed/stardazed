@@ -40,7 +40,7 @@ export class MultiArrayBuffer<C = unknown> {
 	resize(newCount: number): InvalidatePointers {
 		let invalidation = InvalidatePointers.No;
 
-		if (newCount > this.backing_.capacity) {
+		if (newCount > this.backing_.length) {
 			this.backing_.resize(newCount);
 			invalidation = InvalidatePointers.Yes;
 		}
@@ -60,7 +60,7 @@ export class MultiArrayBuffer<C = unknown> {
 	extend(): InvalidatePointers {
 		let invalidation = InvalidatePointers.No;
 
-		if (this.count_ === this.backing_.capacity) {
+		if (this.count_ === this.backing_.length) {
 			// grow factor of 1.5
 			this.backing_.resize(Math.ceil(this.count_ * 1.5));
 			invalidation = InvalidatePointers.Yes;

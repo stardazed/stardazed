@@ -19,7 +19,7 @@ export type PositionedStructField<C> = {
 	/** Aligned position of this field within a struct or buffer */
 	byteOffset: number;
 	/** Total number of bytes for all elements in this field or of all values in a buffer */
-	sizeBytes: number;
+	byteLength: number;
 };
 
 export interface FieldView extends Iterable<TypedArray> {

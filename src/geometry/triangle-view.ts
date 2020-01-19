@@ -129,7 +129,7 @@ class IndexBufferTriangleView implements TriangleView {
 	 */
 	constructor(indexBuffer: IndexBuffer, fromTriangle?: number, toTriangle?: number) {
 		this.indexBuffer_ = indexBuffer;
-		const primitiveCount = TrianglePrimitive.countForElements(indexBuffer.count);
+		const primitiveCount = TrianglePrimitive.countForElements(indexBuffer.length);
 
 		this.fromTriangle_ = fromTriangle ?? 0;
 		this.toTriangle_ = toTriangle || primitiveCount;
