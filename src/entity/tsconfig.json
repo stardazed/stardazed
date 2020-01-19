@@ -1,0 +1,25 @@
+{
+	"extends": "../tsconfig-base.json",
+	"compilerOptions": {
+		"outDir": "../../__build/entity",
+		"baseUrl": ".",
+		"paths": {
+			"stardazed/*": ["../*"]
+		}
+	},
+	"files": [
+		"../global-types.d.ts",
+
+		"instance.ts",
+		"entity.ts",
+		"transform.ts",
+
+		"index.ts"
+	],
+	"references": [
+		{ "path": "../core" },
+		{ "path": "../vector" },
+		{ "path": "../container" },
+		{ "path": "../geometry" },
+	]
+}
