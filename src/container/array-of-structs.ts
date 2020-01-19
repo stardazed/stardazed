@@ -327,13 +327,13 @@ class AOSFieldView implements FieldView {
 	 */
 	copyValuesFrom(source: NumArray, valueCount: number, atOffset = 0) {
 		const stride = this.strideInElements_;
-		const elementCount = this.field_.width;
+		const elementWidth = this.field_.width;
 		const dest = this.rangeView_;
 		let destIndex = atOffset;
 		let sourceIndex = 0;
-		const sourceIncrement = source.length === elementCount ? 0 : elementCount;
+		const sourceIncrement = source.length === elementWidth ? 0 : elementWidth;
 
-		if (elementCount === 4) {
+		if (elementWidth === 4) {
 			for (let n = 0; n < valueCount; ++n) {
 				dest[destIndex] = source[sourceIndex];
 				dest[destIndex + 1] = source[sourceIndex + 1];
@@ -343,7 +343,7 @@ class AOSFieldView implements FieldView {
 				destIndex += stride;
 			}
 		}
-		else if (elementCount === 3) {
+		else if (elementWidth === 3) {
 			for (let n = 0; n < valueCount; ++n) {
 				dest[destIndex] = source[sourceIndex];
 				dest[destIndex + 1] = source[sourceIndex + 1];
@@ -352,7 +352,7 @@ class AOSFieldView implements FieldView {
 				destIndex += stride;
 			}
 		}
-		else if (elementCount === 2) {
+		else if (elementWidth === 2) {
 			for (let n = 0; n < valueCount; ++n) {
 				dest[destIndex] = source[sourceIndex];
 				dest[destIndex + 1] = source[sourceIndex + 1];
@@ -360,7 +360,7 @@ class AOSFieldView implements FieldView {
 				destIndex += stride;
 			}
 		}
-		else if (elementCount === 1) {
+		else if (elementWidth === 1) {
 			for (let n = 0; n < valueCount; ++n) {
 				dest[destIndex] = source[sourceIndex];
 				sourceIndex += sourceIncrement;
@@ -369,7 +369,7 @@ class AOSFieldView implements FieldView {
 		}
 		else {
 			for (let n = 0; n < valueCount; ++n) {
-				for (let e = 0; e < elementCount; ++e) {
+				for (let e = 0; e < elementWidth; ++e) {
 					dest[destIndex + e] = source[sourceIndex + e];
 				}
 				sourceIndex += sourceIncrement;

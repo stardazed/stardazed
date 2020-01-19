@@ -62,8 +62,8 @@ export function clearArrayBuffer(data: ArrayBufferLike, fromOffset = 0, toOffset
 }
 
 
-export function copyElementRange<T, A extends MutableArrayLike<T>>(dest: A, destOffset: number, src: ArrayLike<T>, srcOffset: number, srcCount: number) {
-	for (let ix = 0; ix < srcCount; ++ix) {
+export function copyElementRange<T, A extends MutableArrayLike<T>>(dest: A, destOffset: number, src: ArrayLike<T>, srcOffset: number, count: number) {
+	for (let ix = 0; ix < count; ++ix) {
 		dest[destOffset++] = src[srcOffset++];
 	}
 	return dest;

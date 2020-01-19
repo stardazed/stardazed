@@ -27,7 +27,7 @@ export class NumericQueue {
 	/** @internal */
 	private tailIndex_: number;
 	/** @internal */
-	private count_: number;
+	private length_: number;
 
 	/** @internal */
 	private newChunk() {
@@ -47,7 +47,7 @@ export class NumericQueue {
 
 		this.headChunk_ = this.tailChunk_ = firstChunk;
 		this.headIndex_ = this.tailIndex_ = 0;
-		this.count_ = 0;
+		this.length_ = 0;
 	}
 
 	push(n: number) {
@@ -60,11 +60,11 @@ export class NumericQueue {
 			this.tailIndex_ = 0;
 		}
 
-		++this.count_;
+		++this.length_;
 	}
 
 	/**
-	 * @expects this.count > 0
+	 * @expects this.length > 0
 	 */
 	shift() {
 		const value = this.headChunk_[this.headIndex_];
@@ -76,7 +76,7 @@ export class NumericQueue {
 			this.headIndex_ = 0;
 		}
 
-		--this.count_;
+		--this.length_;
 		return value;
 	}
 
@@ -86,14 +86,14 @@ export class NumericQueue {
 		this.chunks_.push(firstChunk);
 		this.headChunk_ = this.tailChunk_ = firstChunk;
 		this.headIndex_ = this.tailIndex_ = 0;
-		this.count_ = 0;
+		this.length_ = 0;
 	}
 
-	get count() { return this.count_; }
-	get empty() { return this.count_ === 0; }
+	get length() { return this.length_; }
+	get empty() { return this.length_ === 0; }
 
 	/**
-	 * @expects this.count > 0
+	 * @expects this.length > 0
 	 */
 	get front() {
 		return this.headChunk_[this.headIndex_];
