@@ -5,20 +5,22 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { UInt8, UInt16, UInt32, NumericType } from "stardazed/core";
+import { UInt16, UInt32, NumericType } from "stardazed/core";
+
+/** Numerical constants for the allowed size of index elements */
+export const enum IndexElementSize {
+	UInt16 = 2,
+	UInt32 = 4
+}
 
 /**
  * @expects isPositiveInteger(vertexCount)
  */
-export function minimumIndexElementTypeForVertexCount(vertexCount: number) {
-	if (vertexCount <= UInt8.max) {
-		return UInt8;
-	}
+export function minimumIndexElementSizeForVertexCount(vertexCount: number) {
 	if (vertexCount <= UInt16.max) {
-		return UInt16;
+		return IndexElementSize.UInt16;
 	}
-
-	return UInt32;
+	return IndexElementSize.UInt32;
 }
 
 /**
@@ -30,14 +32,14 @@ export class IndexBuffer {
 	readonly length: number;
 	readonly data: Uint8Array;
 
-	constructor(elementType: NumericType, indexCount: number, storage?: Uint8Array) {
-		if (!elementType.integer || elementType.signed) {
-			throw new TypeError("An element type for an IndexBuffer must be an unsigned integer");
+	constructor(elementSize: IndexElementSize, indexCount: number, storage?: Uint8Array) {
+		if (elementSize !== IndexElementSize.UInt16 && elementSize !== IndexElementSize.UInt32) {
+			throw new TypeError("Invalid index element type");
 		}
-		this.elementType = elementType;
+		this.elementType = elementSize === IndexElementSize.UInt16 ? UInt16 : UInt32;
 		this.length = indexCount;
 
-		const totalSizeBytes = elementType.byteSize * indexCount;
+		const totalSizeBytes = this.elementType.byteLength * indexCount;
 		if (storage) {
 			if (totalSizeBytes > storage.byteLength) {
 				throw new TypeError(`Provided storage is too small: ${storage.byteLength} < ${totalSizeBytes}`);
@@ -68,7 +70,7 @@ export class IndexBuffer {
 		return new this.elementType.arrayType(this.data.buffer, offsetBytes, toIndex - fromIndex);
 	}
 
-	static sizeBytesRequired(elementType: NumericType, indexCount: number) {
-		return elementType.byteSize * indexCount;
+	static sizeBytesRequired(elementSize: IndexElementSize, indexCount: number) {
+		return elementSize * indexCount;
 	}
 }
