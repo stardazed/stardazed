@@ -330,16 +330,13 @@ export class GeometryBuilder {
 			],
 			indexCount: this.triangleCount_ * 3
 		});
-		const vb = geom.vertexBuffers[0];
 
 		// copy vertex streams
+		const vb = geom.vertexBuffers[0];
 		for (let six = 0; six < meshAttributeStreams.length; ++six) {
 			const streamData = this.vertexData_[six];
 			const view = vb.fieldView(six);
-			if (view) {
-				view.copyValuesFrom(streamData, this.vertexCount_);
-			}
-			// FIXME else unexpected()
+			view.copyValuesFrom(streamData, this.vertexCount_);
 		}
 
 		// All triangles with the same material were merged, create full index buffer
