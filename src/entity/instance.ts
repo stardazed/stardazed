@@ -48,7 +48,12 @@ export class SingleInstanceRange<C> implements InstanceRange<C> {
 
 
 export class InstanceLinearRange<C> implements InstanceRange<C> {
-	constructor(private first_: Instance<C>, private last_: Instance<C>) {
+	private readonly first_: Instance<C>;
+	private readonly last_: Instance<C>;
+
+	constructor(first: Instance<C>, last: Instance<C>) {
+		this.first_ = first;
+		this.last_ = last;
 	}
 
 	includes(inst: Instance<C>): boolean {

@@ -167,11 +167,16 @@ export function generateGeometry(gens: MeshGenSource | MeshGenSource[], attrList
 //
 
 export class Quad implements MeshGenerator {
+	private readonly width_: number;
+	private readonly height_: number;
+
 	/**
-	 * @expects width_ > 0
-	 * @expects height_ > 0
+	 * @expects width > 0
+	 * @expects height > 0
 	 */
-	constructor(private width_ = 1, private height_ = 1) {
+	constructor(width = 1, height = 1) {
+		this.width_ = width;
+		this.height_ = height;
 	}
 
 	get vertexCount(): number {
