@@ -8,7 +8,7 @@ https://github.com/stardazed/stardazed
 import { Float, SInt32 } from "stardazed/core";
 import { MultiArrayBuffer, StructField, InvalidatePointers } from "stardazed/container";
 import { mat4, vec3, quat, copyIndexedVec3, copyIndexedVec4, refIndexedMat4, copyIndexedMat4 } from "stardazed/vector";
-import { Component, Instance, InstanceRange, InstanceArrayView, InstanceLinearRange } from "./instance";
+import { Component, Instance, InstanceRange, InstanceArrayView } from "./instance";
 
 export interface TransformDesc {
 	position: Float3;
@@ -122,29 +122,14 @@ export class TransformComponent implements Component<TransformComponent> {
 		return thisInstance;
 	}
 
-
-	destroy(_inst: TransformInstance) {
-		// TBI
-	}
-
-
 	destroyRange(range: TransformRange) {
-		const iter = range.makeIterator();
-		while (iter.next()) {
-			this.destroy(iter.current);
+		for (const _inst of range) {
+			// destroy data, likely zero
 		}
 	}
 
 
 	get count() { return this.instanceData_.count; }
-
-	valid(inst: TransformInstance) {
-		return inst as number <= this.count;
-	}
-
-	all(): TransformRange {
-		return new InstanceLinearRange<TransformComponent>(1, this.count);
-	}
 
 	// -- single instance getters
 	parent(inst: TransformInstance): TransformInstance { return this.parentBase_[inst as number]; }
