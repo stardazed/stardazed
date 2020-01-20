@@ -73,30 +73,13 @@ export class TransformComponent implements Component<TransformComponent> {
 		this.worldMatrixBase_ = this.instanceData_.arrayFieldView(8) as Float32Array;
 	}
 
-
-	create(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
-	create(linkedEntity: Entity, desc?: Transform, parent?: TransformInstance): TransformInstance;
-	create(linkedEntity: Entity, descOrParent?: Transform | TransformInstance, parent?: TransformInstance): TransformInstance {
+	create(descriptor?: TransformDesc, parent?: TransformInstance): TransformInstance {
 		if (this.instanceData_.extend() === InvalidatePointers.Yes) {
 			this.rebase();
 		}
 
-		let parentInstance = 0;
-		let descriptor: Transform | null = null;
-
-		if (descOrParent) {
-			if (typeof descOrParent === "number") {
-				parentInstance = descOrParent as number;
-			}
-			else {
-				descriptor = descOrParent as Transform;
-				parentInstance = parent as number; // can be 0
-			}
-		}
-		else if (typeof parent === "number") {
-			parentInstance = parent as number;
-		}
 		const thisInstance = this.instanceData_.count;
+		const parentInstance = parent as number || 0;
 
 		if (parentInstance) {
 			this.parentBase_[thisInstance] = parentInstance;
@@ -126,25 +109,15 @@ export class TransformComponent implements Component<TransformComponent> {
 			this.nextSiblingBase_[thisInstance] = 0;
 		}
 
+		const position = (descriptor && descriptor.position) || this.defaultPos_;
+		const rotation = (descriptor && descriptor.rotation) || this.defaultRot_;
+		const scale = (descriptor && descriptor.scale) || this.defaultScale_;
 
-		if (descriptor) {
-			// optional descriptor fields
-			const rotation = descriptor.rotation || this.defaultRot_;
-			const scale = descriptor.scale || this.defaultScale_;
+		this.positionBase_.set(position, thisInstance * vec3.ELEMENT_COUNT);
+		this.rotationBase_.set(rotation, thisInstance * quat.ELEMENT_COUNT);
+		this.scaleBase_.set(scale, thisInstance * vec3.ELEMENT_COUNT);
 
-			this.positionBase_.set(descriptor.position, thisInstance * vec3.ELEMENT_COUNT);
-			this.rotationBase_.set(rotation, thisInstance * quat.ELEMENT_COUNT);
-			this.scaleBase_.set(scale, thisInstance * vec3.ELEMENT_COUNT);
-
-			this.setLocalMatrix(thisInstance, rotation, descriptor.position, scale);
-		}
-		else {
-			this.positionBase_.set(this.defaultPos_, thisInstance * quat.ELEMENT_COUNT);
-			this.rotationBase_.set(this.defaultRot_, thisInstance * quat.ELEMENT_COUNT);
-			this.scaleBase_.set(this.defaultScale_, thisInstance * vec3.ELEMENT_COUNT);
-
-			this.setLocalMatrix(thisInstance, this.defaultRot_, this.defaultPos_, this.defaultScale_);
-		}
+		this.setLocalMatrix(thisInstance, rotation, position, scale);
 
 		return thisInstance;
 	}
