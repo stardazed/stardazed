@@ -42,23 +42,23 @@ export function smoothStep(edge0: number, edge1: number, n: number) {
 }
 
 /**
- * Generate a pseudo-random integer value between 0 and maximum inclusive.
- * @param maximum The highest integer to include in the range, inclusive
- * @expects maximum >= 0
+ * Generate a pseudo-random integer value between 0 and upTo exclusive.
+ * @param upTo One beyond the maximum number that will be generated
+ * @expects upTo >= 0
  */
-export function intRandom(maximum: number): number {
-	return (Math.random() * (maximum + 1)) | 0;
+export function intRandom(upTo: number): number {
+	return (Math.random() * upTo) | 0;
 }
 
 /**
- * Generate a pseudo-random integer value between mininum and maximum inclusive.
- * @param minimum The low end of the range, inclusive
- * @param maximum The high end of the range, inclusive
- * @expects maximum >= minimum
+ * Generate a pseudo-random integer value between from and upTo exclusive.
+ * @param from The low end of the range, inclusive
+ * @param upTo The high end of the range, exclusive
+ * @expects upTo >= from
  */
-export function intRandomRange(minimum: number, maximum: number): number {
-	const diff = (maximum - minimum) | 0;
-	return minimum + intRandom(diff);
+export function intRandomRange(from: number, upTo: number): number {
+	const diff = (upTo - from) | 0;
+	return from + intRandom(diff);
 }
 
 /**
