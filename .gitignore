@@ -8,6 +8,7 @@ node_modules/
 # package output dirs
 /container
 /core
+/entity
 /geometry
 /vector
 /global-types.d.ts

@@ -39,7 +39,7 @@ export function calcVertexNormals(vertexBuffer: VertexBuffer, triView: TriangleV
 }
 
 /**
- * @expects posView.vertexCount <= normView.vertexCount
+ * @expects posView.length <= normView.length
  */
 export function calcVertexNormalsViews(posView: FieldView, normView: FieldView, triView: TriangleView) {
 	const vertexCount = posView.length;

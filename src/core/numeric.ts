@@ -24,7 +24,7 @@ export interface NumericType {
 	readonly integer: boolean;
 
 	/** The number of bytes it takes to store a single instance of this type */
-	readonly byteSize: number;
+	readonly byteLength: number;
 	/** The typed array that is the exact or best fit to store numbers of this type */
 	readonly arrayType: TypedArrayConstructor;
 }
@@ -39,7 +39,7 @@ export const UInt8: NumericType = {
 	maxSafeInt: 255,
 	signed: false,
 	integer: true,
-	byteSize: 1,
+	byteLength: 1,
 	arrayType: Uint8Array
 };
 
@@ -53,7 +53,7 @@ export const SInt8: NumericType = {
 	maxSafeInt: 127,
 	signed: true,
 	integer: true,
-	byteSize: 1,
+	byteLength: 1,
 	arrayType: Int8Array
 };
 
@@ -67,7 +67,7 @@ export const UInt16: NumericType = {
 	maxSafeInt: 65535,
 	signed: false,
 	integer: true,
-	byteSize: 2,
+	byteLength: 2,
 	arrayType: Uint16Array
 };
 
@@ -81,7 +81,7 @@ export const SInt16: NumericType = {
 	maxSafeInt: 32767,
 	signed: true,
 	integer: true,
-	byteSize: 2,
+	byteLength: 2,
 	arrayType: Int16Array
 };
 
@@ -95,7 +95,7 @@ export const UInt32: NumericType = {
 	maxSafeInt: 4294967295,
 	signed: false,
 	integer: true,
-	byteSize: 4,
+	byteLength: 4,
 	arrayType: Uint32Array
 };
 
@@ -109,7 +109,7 @@ export const SInt32: NumericType = {
 	maxSafeInt: 2147483647,
 	signed: true,
 	integer: true,
-	byteSize: 4,
+	byteLength: 4,
 	arrayType: Int32Array
 };
 
@@ -123,7 +123,7 @@ export const Half: NumericType = {
 	maxSafeInt: 2048, // 2^11
 	signed: true,
 	integer: false,
-	byteSize: 2,
+	byteLength: 2,
 	arrayType: Uint16Array // size match only
 };
 
@@ -137,7 +137,7 @@ export const Float: NumericType = {
 	maxSafeInt: 16777216, // 2^24
 	signed: true,
 	integer: false,
-	byteSize: 4,
+	byteLength: 4,
 	arrayType: Float32Array
 };
 
@@ -151,6 +151,6 @@ export const Double: NumericType = {
 	maxSafeInt: Number.MAX_SAFE_INTEGER, // 2^53 - 1
 	signed: true,
 	integer: false,
-	byteSize: 8,
+	byteLength: 8,
 	arrayType: Float64Array
 };

@@ -31,7 +31,7 @@ export class NumericDeque {
 	/** @internal */
 	private tailIndex_: number;
 	/** @internal */
-	private count_: number;
+	private length_: number;
 
 	/** @internal */
 	private newChunk() {
@@ -55,7 +55,7 @@ export class NumericDeque {
 
 		this.headChunkIndex_ = this.tailChunkIndex_ = 0;
 		this.headIndex_ = this.tailIndex_ = 0;
-		this.count_ = 0;
+		this.length_ = 0;
 	}
 
 	push(n: number) {
@@ -70,7 +70,7 @@ export class NumericDeque {
 
 		this.tailChunk[this.tailIndex_] = n;
 		++this.tailIndex_;
-		++this.count_;
+		++this.length_;
 	}
 
 	unshift(n: number) {
@@ -88,11 +88,11 @@ export class NumericDeque {
 
 		--this.headIndex_;
 		this.headChunk[this.headIndex_] = n;
-		++this.count_;
+		++this.length_;
 	}
 
 	/**
-	 * @expects this.count > 0
+	 * @expects this.length > 0
 	 */
 	shift() {
 		const value = this.headChunk[this.headIndex_];
@@ -114,12 +114,12 @@ export class NumericDeque {
 			this.headIndex_ = 0;
 		}
 
-		--this.count_;
+		--this.length_;
 		return value;
 	}
 
 	/**
-	 * @expects this.count > 0
+	 * @expects this.length > 0
 	 */
 	pop() {
 		if (this.tailIndex_ === 0) {
@@ -136,7 +136,7 @@ export class NumericDeque {
 		}
 
 		--this.tailIndex_;
-		--this.count_;
+		--this.length_;
 
 		return this.tailChunk[this.tailIndex_];
 	}
@@ -146,21 +146,21 @@ export class NumericDeque {
 
 		this.headChunkIndex_ = this.tailChunkIndex_ = 0;
 		this.headIndex_ = this.tailIndex_ = 0;
-		this.count_ = 0;
+		this.length_ = 0;
 	}
 
-	get count() { return this.count_; }
-	get empty() { return this.count_ === 0; }
+	get length() { return this.length_; }
+	get empty() { return this.length_ === 0; }
 
 	/**
-	 * @expects this.count > 0
+	 * @expects this.length > 0
 	 */
 	get front() {
 		return this.headChunk[this.headIndex_];
 	}
 
 	/**
-	 * @expects this.count > 0
+	 * @expects this.length > 0
 	 */
 	get back() {
 		return (this.tailIndex_ > 0) ? this.tailChunk[this.tailIndex_ - 1] : this.chunks_[this.tailChunkIndex_ - 1][this.chunkCapacity_ - 1];
