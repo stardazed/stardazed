@@ -9,9 +9,8 @@ import { Float, SInt32 } from "stardazed/core";
 import { MultiArrayBuffer, StructField, InvalidatePointers } from "stardazed/container";
 import { mat4, vec3, quat, copyIndexedVec3, copyIndexedVec4, refIndexedMat4, copyIndexedMat4 } from "stardazed/vector";
 import { Component, Instance, InstanceRange, InstanceArrayView, InstanceLinearRange } from "./instance";
-import { Entity, EntityArrayView, entityIndex } from "./entity";
 
-export interface Transform {
+export interface TransformDesc {
 	position: Float3;
 	rotation?: Float4; // quat
 	scale?: Float3;
@@ -25,8 +24,6 @@ export type TransformArrayView = InstanceArrayView<TransformComponent>;
 
 export class TransformComponent implements Component<TransformComponent> {
 	private instanceData_: MultiArrayBuffer;
-
-	private entityBase_!: EntityArrayView;
 
 	private parentBase_!: TransformArrayView;
 	private firstChildBase_!: TransformArrayView;
@@ -45,8 +42,6 @@ export class TransformComponent implements Component<TransformComponent> {
 
 	constructor() {
 		const instanceFields: StructField[] = [
-			{ type: SInt32, width: 1 }, // entity
-
 			{ type: SInt32, width: 1 }, // parentInstance
 			{ type: SInt32, width: 1 }, // firstChild
 			{ type: SInt32, width: 1 }, // prevSibling
@@ -65,38 +60,29 @@ export class TransformComponent implements Component<TransformComponent> {
 	}
 
 	rebase() {
-		this.entityBase_ = this.instanceData_.arrayFieldView(0);
+		this.parentBase_ = this.instanceData_.arrayFieldView(0);
+		this.firstChildBase_ = this.instanceData_.arrayFieldView(1);
+		this.prevSiblingBase_ = this.instanceData_.arrayFieldView(2);
+		this.nextSiblingBase_ = this.instanceData_.arrayFieldView(3);
 
-		this.parentBase_ = this.instanceData_.arrayFieldView(1);
-		this.firstChildBase_ = this.instanceData_.arrayFieldView(2);
-		this.prevSiblingBase_ = this.instanceData_.arrayFieldView(3);
-		this.nextSiblingBase_ = this.instanceData_.arrayFieldView(4);
+		this.positionBase_ = this.instanceData_.arrayFieldView(4) as Float32Array;
+		this.rotationBase_ = this.instanceData_.arrayFieldView(5) as Float32Array;
+		this.scaleBase_ = this.instanceData_.arrayFieldView(6) as Float32Array;
 
-		this.positionBase_ = this.instanceData_.arrayFieldView(5) as Float32Array;
-		this.rotationBase_ = this.instanceData_.arrayFieldView(6) as Float32Array;
-		this.scaleBase_ = this.instanceData_.arrayFieldView(7) as Float32Array;
-
-		this.localMatrixBase_ = this.instanceData_.arrayFieldView(8) as Float32Array;
-		this.worldMatrixBase_ = this.instanceData_.arrayFieldView(9) as Float32Array;
+		this.localMatrixBase_ = this.instanceData_.arrayFieldView(7) as Float32Array;
+		this.worldMatrixBase_ = this.instanceData_.arrayFieldView(8) as Float32Array;
 	}
 
 
 	create(linkedEntity: Entity, parent?: TransformInstance): TransformInstance;
 	create(linkedEntity: Entity, desc?: Transform, parent?: TransformInstance): TransformInstance;
 	create(linkedEntity: Entity, descOrParent?: Transform | TransformInstance, parent?: TransformInstance): TransformInstance {
-		const entIndex = entityIndex(linkedEntity);
-
-		if (this.instanceData_.count < entIndex) {
-			if (this.instanceData_.resize(entIndex) === InvalidatePointers.Yes) {
-				this.rebase();
-			}
+		if (this.instanceData_.extend() === InvalidatePointers.Yes) {
+			this.rebase();
 		}
 
-		const thisInstance = entIndex;
 		let parentInstance = 0;
 		let descriptor: Transform | null = null;
-
-		this.entityBase_[thisInstance] = linkedEntity;
 
 		if (descOrParent) {
 			if (typeof descOrParent === "number") {
@@ -110,6 +96,7 @@ export class TransformComponent implements Component<TransformComponent> {
 		else if (typeof parent === "number") {
 			parentInstance = parent as number;
 		}
+		const thisInstance = this.instanceData_.count;
 
 		if (parentInstance) {
 			this.parentBase_[thisInstance] = parentInstance;
@@ -186,22 +173,7 @@ export class TransformComponent implements Component<TransformComponent> {
 		return new InstanceLinearRange<TransformComponent>(1, this.count);
 	}
 
-
-	// Entity -> TransformInstance mapping
-	forEntity(ent: Entity): TransformInstance {
-		const index = entityIndex(ent);
-		if (index > 0 && index <= this.instanceData_.count) {
-			return ent as Instance<any> as TransformInstance;
-		}
-
-		// assert(false, `No transform for entity ${index}`);
-		return 0;
-	}
-
-
 	// -- single instance getters
-	entity(inst: TransformInstance): Entity { return this.entityBase_[inst as number]; }
-
 	parent(inst: TransformInstance): TransformInstance { return this.parentBase_[inst as number]; }
 	firstChild(inst: TransformInstance): TransformInstance { return this.firstChildBase_[inst as number]; }
 	prevSibling(inst: TransformInstance): TransformInstance { return this.prevSiblingBase_[inst as number]; }
