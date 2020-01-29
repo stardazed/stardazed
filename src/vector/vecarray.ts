@@ -14,6 +14,13 @@ export function copyIndexedVec2(data: TypedArray, index: number): number[] {
 	return [data[offset], data[offset + 1]];
 }
 
+export function copyIndexedVec2Into<V extends MutNumArray>(into: V, data: TypedArray, index: number): V {
+	const offset = (index * 2) | 0;
+	into[0] = data[offset];
+	into[1] = data[offset + 1];
+	return into;
+}
+
 export function setIndexedVec2(data: TypedArray, index: number, v2: Float2) {
 	const offset = (index * 2) | 0;
 	data[offset]     = v2[0];
@@ -39,6 +46,14 @@ export function refIndexedVec3(data: TypedArray, index: number): TypedArray {
 export function copyIndexedVec3(data: TypedArray, index: number): number[] {
 	const offset = (index * 3) | 0;
 	return [data[offset], data[offset + 1], data[offset + 2]];
+}
+
+export function copyIndexedVec3Into<V extends MutNumArray>(into: V, data: TypedArray, index: number): V {
+	const offset = (index * 3) | 0;
+	into[0] = data[offset];
+	into[1] = data[offset + 1];
+	into[2] = data[offset + 2];
+	return into;
 }
 
 export function setIndexedVec3(data: TypedArray, index: number, v3: Float3) {
@@ -68,6 +83,15 @@ export function refIndexedVec4(data: TypedArray, index: number): TypedArray {
 export function copyIndexedVec4(data: TypedArray, index: number): number[] {
 	const offset = (index * 4) | 0;
 	return [data[offset], data[offset + 1], data[offset + 2], data[offset + 3]];
+}
+
+export function copyIndexedVec4Into<V extends MutNumArray>(into: V, data: TypedArray, index: number): V {
+	const offset = (index * 4) | 0;
+	into[0] = data[offset];
+	into[1] = data[offset + 1];
+	into[2] = data[offset + 2];
+	into[3] = data[offset + 3];
+	return into;
 }
 
 export function setIndexedVec4(data: TypedArray, index: number, v4: Float4) {
@@ -105,6 +129,14 @@ export function copyIndexedMat3(data: TypedArray, index: number): number[] {
 	];
 }
 
+export function copyIndexedMat3Into<V extends MutNumArray>(into: V, data: TypedArray, index: number): V {
+	const offset = (index * 9) | 0;
+	into[0] = data[offset];     into[1] = data[offset + 1]; into[2] = data[offset + 2];
+	into[3] = data[offset + 3]; into[4] = data[offset + 4]; into[5] = data[offset + 5];
+	into[6] = data[offset + 6]; into[7] = data[offset + 7]; into[8] = data[offset + 8];
+	return into;
+}
+
 export function setIndexedMat3(data: TypedArray, index: number, m3: Float3x3) {
 	const offset = (index * 9) | 0;
 	data[offset]     = m3[0]; data[offset + 1] = m3[1]; data[offset + 2] = m3[2];
@@ -127,6 +159,15 @@ export function copyIndexedMat4(data: TypedArray, index: number): number[] {
 		data[offset + 8],  data[offset + 9],  data[offset + 10], data[offset + 11],
 		data[offset + 12], data[offset + 13], data[offset + 14], data[offset + 15]
 	];
+}
+
+export function copyIndexedMat4Into<V extends MutNumArray>(into: V, data: TypedArray, index: number): V {
+	const offset = (index * 16) | 0;
+	into[0]  = data[offset];      into[1]  = data[offset + 1];  into[2]  = data[offset + 2];  into[3]  = data[offset + 3];
+	into[4]  = data[offset + 4];  into[5]  = data[offset + 5];  into[6]  = data[offset + 6];  into[7]  = data[offset + 7];
+	into[8]  = data[offset + 8];  into[9]  = data[offset + 9];  into[10] = data[offset + 10]; into[11] = data[offset + 11];
+	into[12] = data[offset + 12]; into[13] = data[offset + 13]; into[14] = data[offset + 14]; into[15] = data[offset + 15];
+	return into;
 }
 
 export function setIndexedMat4(data: TypedArray, index: number, m4: Float4x4) {
