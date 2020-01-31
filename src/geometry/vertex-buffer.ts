@@ -36,6 +36,11 @@ export const enum VertexAttributeRole {
 	Transform
 }
 
+export const enum StepMode {
+	Vertex,
+	Instance
+}
+
 interface VertexFieldProps {
 	/** The role of this attribute inside the buffer */
 	role: VertexAttributeRole;
@@ -61,15 +66,15 @@ export interface VertexBufferDescriptor {
 	attrs: VertexAttribute[];
 	/** The number of values of each attribute required (usually the vertex count) */
 	valueCount: number;
-	/** (optional) The instancing divisor that will apply to ALL attributes in this buffer */
-	divisor?: number;
+	/** (optional) The vertex step mode that will apply to ALL attributes in this buffer */
+	stepMode?: StepMode;
 }
 
 /**
  * A VertexBuffer is the client-side representation of vertex data and meta-data.
  */
 export class VertexBuffer extends ArrayOfStructs<VertexFieldProps> {
-	readonly divisor: number;
+	readonly stepMode: StepMode;
 
 	/**
 	 * Create a new VertexBuffer using a descriptor into new or provided storage
@@ -79,7 +84,7 @@ export class VertexBuffer extends ArrayOfStructs<VertexFieldProps> {
 		// TODO: verify that each field can be represented in a vertexbuffer
 
 		super(desc.attrs, desc.valueCount, storage);
-		this.divisor = desc.divisor ?? 0;
+		this.stepMode = desc.stepMode ?? StepMode.Vertex;
 	}
 
 	fieldByRole(role: VertexAttributeRole) {
