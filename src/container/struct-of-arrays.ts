@@ -384,3 +384,8 @@ class SOAFieldView implements FieldView {
 	}
 }
 
+
+/** Create a FieldView on any TypedArray with packed, consecutive values */
+export function fieldViewOnTypedArray(data: TypedArray, width: number): FieldView {
+	return new SOAFieldView(data, 0, width);
+}
