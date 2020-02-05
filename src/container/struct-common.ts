@@ -8,8 +8,11 @@ https://github.com/stardazed/stardazed
 import { NumericType } from "stardazed/core";
 
 export type StructField<C = unknown> = C & {
+	/** Optional name for this field */
 	name?: string;
+	/** The numeric type of each element in this field */
 	type: NumericType;
+	/** The number of elements that make up a single value of this field */
 	width: number;
 };
 
