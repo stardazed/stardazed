@@ -124,7 +124,7 @@ export class StructOfArrays<C = unknown> {
 		if (typeof field === "number") {
 			field = this.fields_[field];
 		}
-		return new SOAFieldView(fieldArrayRangeView(this.data_, field, fromIndex, toIndex), fromIndex, field);
+		return new SOAFieldView(fieldArrayRangeView(this.data_, field, fromIndex, toIndex), fromIndex, field.width);
 	}
 
 	/**
@@ -188,38 +188,38 @@ export class StructOfArrays<C = unknown> {
 }
 
 class SOAFieldView implements FieldView {
-	private readonly field_: PositionedStructField<unknown>;
+	private readonly fieldWidth_: number;
 	private readonly rangeView_: TypedArray;
 	readonly baseIndex: number;
 
-	constructor(data: TypedArray, baseIndex: number, field: PositionedStructField<unknown>) {
+	constructor(data: TypedArray, baseIndex: number, fieldWidth: number) {
 		this.rangeView_ = data;
-		this.field_ = field;
 		this.baseIndex = baseIndex;
+		this.fieldWidth_ = fieldWidth;
 	}
 
 	get length() {
-		return this.rangeView_.length / this.field_.width;
+		return this.rangeView_.length / this.fieldWidth_;
 	}
 
 	*[Symbol.iterator]() {
 		let offset = 0;
 		while (offset < this.rangeView_.length) {
-			yield this.rangeView_.subarray(offset, offset + this.field_.width);
-			offset += this.field_.width;
+			yield this.rangeView_.subarray(offset, offset + this.fieldWidth_);
+			offset += this.fieldWidth_;
 		}
 	}
 
 	refItem(index: number) {
-		const offset = index * this.field_.width;
-		return this.rangeView_.subarray(offset, offset + this.field_.width);
+		const offset = index * this.fieldWidth_;
+		return this.rangeView_.subarray(offset, offset + this.fieldWidth_);
 	}
 
 	copyItem(index: number) {
-		let offset = (this.field_.width * index);
+		let offset = (this.fieldWidth_ * index);
 		const result: number[] = [];
 
-		switch (this.field_.width) {
+		switch (this.fieldWidth_) {
 			case 16:
 				result.push(this.rangeView_[offset]);
 				result.push(this.rangeView_[offset + 1]);
@@ -263,17 +263,17 @@ class SOAFieldView implements FieldView {
 				result.push(this.rangeView_[offset]);
 				break;
 			default:
-				throw new RangeError(`copyItem not implemented yet for fields with ${this.field_.width} elements`);
+				throw new RangeError(`copyItem not implemented yet for fields with ${this.fieldWidth_} elements`);
 		}
 
 		return result;
 	}
 
 	setItem(index: number, value: NumArray) {
-		let offset = (this.field_.width * index);
+		let offset = (this.fieldWidth_ * index);
 		let srcOffset = 0;
 
-		switch (this.field_.width) {
+		switch (this.fieldWidth_) {
 			case 16:
 				this.rangeView_[offset] = value[srcOffset];
 				this.rangeView_[offset + 1] = value[srcOffset + 1];
@@ -317,16 +317,16 @@ class SOAFieldView implements FieldView {
 				this.rangeView_[offset] = value[srcOffset];
 				break;
 			default:
-				throw new RangeError(`setItem not implemented yet for fields with ${this.field_.width} elements`);
+				throw new RangeError(`setItem not implemented yet for fields with ${this.fieldWidth_} elements`);
 		}
 	}
 
 	fill(value: NumArray, fromIndex?: number, toIndex?: number) {
-		if (this.field_.width === 1) {
+		if (this.fieldWidth_ === 1) {
 			this.rangeView_.fill(value[0], fromIndex, toIndex);
 		}
 		else {
-			const width = this.field_.width;
+			const width = this.fieldWidth_;
 			fromIndex = fromIndex ?? 0;
 			toIndex = toIndex ?? this.rangeView_.length / width;
 			const fromElement = fromIndex * width;
@@ -359,8 +359,8 @@ class SOAFieldView implements FieldView {
 	 * @expects source.length >= valueCount * this.fieldWidth_
 	 */
 	copyValuesFrom(source: NumArray, valueCount: number, atOffset = 0) {
-		const valueOffset = atOffset * this.field_.width;
-		const elementsToCopy = valueCount * this.field_.width;
+		const valueOffset = atOffset * this.fieldWidth_;
+		const elementsToCopy = valueCount * this.fieldWidth_;
 
 		if (elementsToCopy === source.length) {
 			this.rangeView_.set(source, valueOffset);
@@ -379,7 +379,8 @@ class SOAFieldView implements FieldView {
 	}
 
 	subView(fromIndex: number, toIndex: number) {
-		const width = this.field_.width;
-		return new SOAFieldView(this.rangeView_.subarray(fromIndex * width, toIndex * width), this.baseIndex + fromIndex, this.field_);
+		const width = this.fieldWidth_;
+		return new SOAFieldView(this.rangeView_.subarray(fromIndex * width, toIndex * width), this.baseIndex + fromIndex, width);
 	}
 }
+
