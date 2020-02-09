@@ -8,6 +8,7 @@
 
 		"algorithm.ts",
 		"buffer.ts",
+		"easing.ts",
 		"math.ts",
 		"numeric.ts",
 		"sort.ts",
