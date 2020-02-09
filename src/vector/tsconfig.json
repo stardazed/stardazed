@@ -21,6 +21,8 @@
 		"mat4.ts",
 		"quat.ts",
 
+		"vector2.ts",
+
 		"vecarray.ts",
 
 		"index.ts"
