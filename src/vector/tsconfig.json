@@ -22,6 +22,7 @@
 		"quat.ts",
 
 		"vector2.ts",
+		"vector3.ts",
 
 		"vecarray.ts",
 

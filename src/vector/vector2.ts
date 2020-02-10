@@ -1,11 +1,11 @@
-/**
- * vector/vector2 - 2-element vector type
- * Part of Stardazed
- * (c) 2015-Present by Arthur Langereis - @zenmumbler
- * https://github.com/stardazed/stardazed
- */
+/*
+vector/vector2 - 2-element vector type
+Part of Stardazed
+(c) 2015-Present by Arthur Langereis - @zenmumbler
+https://github.com/stardazed/stardazed
+*/
 
-import { clamp01f, clampf, rad2deg, EasingFn } from "stardazed/core";
+import { clamp01f, clampf, rad2deg, EasingFn, mixf } from "stardazed/core";
 import { VEC_EPSILON } from "./common";
 
 export class Vec2 {
@@ -96,12 +96,6 @@ export class Vec2 {
 		return this;
 	}
 
-	divBy(other: Vec2) {
-		this.x = other.x / this.x;
-		this.y = other.y / this.y;
-		return this;
-	}
-
 	scale(factor: number) {
 		this.x *= factor;
 		this.y *= factor;
@@ -138,6 +132,29 @@ export class Vec2 {
 		return this;
 	}
 
+	clamp(min: number, max: number) {
+		this.x = clampf(this.x, min, max);
+		this.y = clampf(this.y, min, max);
+		return this;
+	}
+
+	clamp01() {
+		this.x = clamp01f(this.x);
+		this.y = clamp01f(this.y);
+		return this;
+	}
+
+	clampMagnitude(maxLength: number) {
+		const curMag = this.magnitude;
+		if (curMag <= maxLength) {
+			return this;
+		}
+		const scale = maxLength / curMag;
+		this.x *= scale;
+		this.y *= scale;
+		return this;
+	}
+
 	get magnitude() {
 		const { x, y } = this;
 		return Math.sqrt(x * x + y * y);
@@ -171,29 +188,6 @@ export class Vec2 {
 		return new Vec2(Math.sign(this.x), Math.sign(this.y));
 	}
 
-	clamp(min: number, max: number) {
-		this.x = clampf(this.x, min, max);
-		this.y = clampf(this.y, min, max);
-		return this;
-	}
-
-	clamp01() {
-		this.x = clamp01f(this.x);
-		this.y = clamp01f(this.y);
-		return this;
-	}
-
-	clampMagnitude(maxLength: number) {
-		const curMag = this.magnitude;
-		if (curMag <= maxLength) {
-			return this;
-		}
-		const scale = maxLength / curMag;
-		this.x *= scale;
-		this.y *= scale;
-		return this;
-	}
-
 	// static operations
 
 	static fromArray(arr: NumArray, offset = 0) {
@@ -210,6 +204,37 @@ export class Vec2 {
 			throw new RangeError("Could not get 2 values out of iterator");
 		}
 		return new Vec2(x.value, y.value);
+	}
+
+	static random(from = 0, to = 1) {
+		const range = to - from;
+		return new Vec2(
+			from + Math.random() * range,
+			from + Math.random() * range
+		);
+	}
+
+	static add(a: Vec2, b: Vec2) {
+		return a.clone().add(b);
+	}
+
+	static scaledAdd(a: Vec2, b: Vec2, factor: number) {
+		return new Vec2(
+			a.x + b.x * factor,
+			a.y + b.y * factor
+		);
+	}
+
+	static sub(a: Vec2, b: Vec2) {
+		return a.clone().sub(b);
+	}
+
+	static mul(a: Vec2, b: Vec2) {
+		return a.clone().mul(b);
+	}
+
+	static div(a: Vec2, b: Vec2) {
+		return a.clone().div(b);
 	}
 
 	static angle(a: Vec2, b: Vec2) {
@@ -236,6 +261,13 @@ export class Vec2 {
 
 	static max(a: Vec2, b: Vec2) {
 		return new Vec2(Math.max(a.x, b.x), Math.max(a.y, b.y));
+	}
+
+	static mix(a: Vec2, b: Vec2, ratio: number) {
+		return new Vec2(
+			mixf(a.x, b.x, ratio),
+			mixf(a.y, b.y, ratio)
+		);
 	}
 
 	static lerp(from: Vec2, to: Vec2, t: number) {
@@ -270,31 +302,10 @@ export class Vec2 {
 	static equals(a: Vec2, b: Vec2) {
 		const ax = a.x, ay = a.y;
 		const bx = b.x, by = b.y;
-		return (Math.abs(ax - bx) <= VEC_EPSILON * Math.max(1.0, Math.abs(ax), Math.abs(bx)) &&
-				Math.abs(ay - by) <= VEC_EPSILON * Math.max(1.0, Math.abs(ay), Math.abs(by)));
-	}
-
-	static add(a: Vec2, b: Vec2) {
-		return a.clone().add(b);
-	}
-
-	static scaledAdd(a: Vec2, b: Vec2, factor: number) {
-		return new Vec2(
-			a.x + b.x * factor,
-			a.y + b.y * factor
+		return (
+			Math.abs(ax - bx) <= VEC_EPSILON * Math.max(1.0, Math.abs(ax), Math.abs(bx)) &&
+			Math.abs(ay - by) <= VEC_EPSILON * Math.max(1.0, Math.abs(ay), Math.abs(by))
 		);
-	}
-
-	static sub(a: Vec2, b: Vec2) {
-		return a.clone().sub(b);
-	}
-
-	static mul(a: Vec2, b: Vec2) {
-		return a.clone().mul(b);
-	}
-
-	static div(a: Vec2, b: Vec2) {
-		return a.clone().div(b);
 	}
 
 	// shorthand static constructors
