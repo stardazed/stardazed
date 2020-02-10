@@ -110,10 +110,10 @@ export class Vec3 {
 		return this;
 	}
 
-	scale(by: Vec3) {
-		this.x *= by.x;
-		this.y *= by.y;
-		this.z *= by.z;
+	scale(factors: Vec3) {
+		this.x *= factors.x;
+		this.y *= factors.y;
+		this.z *= factors.z;
 		return this;
 	}
 
@@ -280,6 +280,14 @@ export class Vec3 {
 
 	static div(a: Vec3, factor: number) {
 		return a.clone().div(factor);
+	}
+
+	static scale(a: Vec3, b: Vec3) {
+		return new Vec3(
+			a.x * b.x,
+			a.y * b.y,
+			a.z * b.z,
+		);
 	}
 
 	static distance(a: Vec3, b: Vec3) {

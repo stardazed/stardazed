@@ -96,9 +96,9 @@ export class Vec2 {
 		return this;
 	}
 
-	scale(by: Vec2) {
-		this.x *= by.x;
-		this.y *= by.y;
+	scale(factors: Vec2) {
+		this.x *= factors.x;
+		this.y *= factors.y;
 		return this;
 	}
 
@@ -235,6 +235,13 @@ export class Vec2 {
 
 	static div(a: Vec2, factor: number) {
 		return a.clone().div(factor);
+	}
+
+	static scale(a: Vec2, b: Vec2) {
+		return new Vec2(
+			a.x * b.x,
+			a.y * b.y
+		);
 	}
 
 	static angle(a: Vec2, b: Vec2) {
