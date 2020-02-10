@@ -8,7 +8,7 @@ https://github.com/stardazed/stardazed
 import { clamp01f, clampf, rad2deg, EasingFn, mixf } from "stardazed/core";
 import { VEC_EPSILON } from "./common";
 
-export class Vec2 {
+export class Vector2 {
 	x: number;
 	y: number;
 
@@ -28,7 +28,7 @@ export class Vec2 {
 		if (hint === "number") {
 			return NaN;
 		}
-		return `Vec2 {x: ${this.x}, y: ${this.y}}`;
+		return `Vector2 {x: ${this.x}, y: ${this.y}}`;
 	}
 
 	get 0() { return this.x; }
@@ -57,34 +57,34 @@ export class Vec2 {
 	}
 
 	clone() {
-		return new Vec2(this.x, this.y);
+		return new Vector2(this.x, this.y);
 	}
 
-	set(to: Vec2) {
+	set(to: Vector2) {
 		this.x = to.x;
 		this.y = to.y;
 		return this;
 	}
 
-	add(other: Vec2) {
+	add(other: Vector2) {
 		this.x += other.x;
 		this.y += other.y;
 		return this;
 	}
 
-	mulAdd(other: Vec2, factor: number) {
+	mulAdd(other: Vector2, factor: number) {
 		this.x += other.x * factor;
 		this.y += other.y * factor;
 		return this;
 	}
 
-	sub(other: Vec2) {
+	sub(other: Vector2) {
 		this.x -= other.x;
 		this.y -= other.y;
 		return this;
 	}
 
-	subFrom(other: Vec2) {
+	subFrom(other: Vector2) {
 		this.x = other.x - this.x;
 		this.y = other.y - this.y;
 		return this;
@@ -102,7 +102,7 @@ export class Vec2 {
 		return this;
 	}
 
-	scale(factors: Vec2) {
+	scale(factors: Vector2) {
 		this.x *= factors.x;
 		this.y *= factors.y;
 		return this;
@@ -187,11 +187,11 @@ export class Vec2 {
 	}
 
 	get perpendicular() {
-		return new Vec2(-this.y, this.x);
+		return new Vector2(-this.y, this.x);
 	}
 
 	get signs() {
-		return new Vec2(Math.sign(this.x), Math.sign(this.y));
+		return new Vector2(Math.sign(this.x), Math.sign(this.y));
 	}
 
 	// static operations
@@ -200,7 +200,7 @@ export class Vec2 {
 		if (arr.length < offset + 2) {
 			throw new RangeError(`Cannot get 2 values starting at offset ${offset} (out of bounds)`);
 		}
-		new Vec2(arr[offset], arr[offset + 1]);
+		new Vector2(arr[offset], arr[offset + 1]);
 	}
 
 	static from(iter: Iterator<number>) {
@@ -209,110 +209,110 @@ export class Vec2 {
 		if (x.done || y.done) {
 			throw new RangeError("Could not get 2 values out of iterator");
 		}
-		return new Vec2(x.value, y.value);
+		return new Vector2(x.value, y.value);
 	}
 
 	static random(from = 0, to = 1) {
 		const range = to - from;
-		return new Vec2(
+		return new Vector2(
 			from + Math.random() * range,
 			from + Math.random() * range
 		);
 	}
 
-	static add(a: Vec2, b: Vec2) {
+	static add(a: Vector2, b: Vector2) {
 		return a.clone().add(b);
 	}
 
-	static mulAdd(a: Vec2, b: Vec2, factor: number) {
-		return new Vec2(
+	static mulAdd(a: Vector2, b: Vector2, factor: number) {
+		return new Vector2(
 			a.x + b.x * factor,
 			a.y + b.y * factor
 		);
 	}
 
-	static sub(a: Vec2, b: Vec2) {
+	static sub(a: Vector2, b: Vector2) {
 		return a.clone().sub(b);
 	}
 
-	static mul(a: Vec2, factor: number) {
+	static mul(a: Vector2, factor: number) {
 		return a.clone().mul(factor);
 	}
 
-	static div(a: Vec2, factor: number) {
+	static div(a: Vector2, factor: number) {
 		return a.clone().div(factor);
 	}
 
-	static scale(a: Vec2, b: Vec2) {
-		return new Vec2(
+	static scale(a: Vector2, b: Vector2) {
+		return new Vector2(
 			a.x * b.x,
 			a.y * b.y
 		);
 	}
 
-	static angle(a: Vec2, b: Vec2) {
-		return Math.abs(Vec2.signedAngle(a, b));
+	static angle(a: Vector2, b: Vector2) {
+		return Math.abs(Vector2.signedAngle(a, b));
 	}
 
-	static signedAngle(a: Vec2, b: Vec2) {
-		const cosAngle = Vec2.dot(a, b) / (a.magnitude * b.magnitude);
+	static signedAngle(a: Vector2, b: Vector2) {
+		const cosAngle = Vector2.dot(a, b) / (a.magnitude * b.magnitude);
 		const rad = Math.acos(cosAngle);
 		return rad2deg(rad);
 	}
 
-	static distance(a: Vec2, b: Vec2) {
-		return Vec2.sub(a, b).magnitude;
+	static distance(a: Vector2, b: Vector2) {
+		return Vector2.sub(a, b).magnitude;
 	}
 
-	static dot(a: Vec2, b: Vec2) {
+	static dot(a: Vector2, b: Vector2) {
 		return a.x * b.x + a.y * b.y;
 	}
 
-	static min(a: Vec2, b: Vec2) {
-		return new Vec2(Math.min(a.x, b.x), Math.min(a.y, b.y));
+	static min(a: Vector2, b: Vector2) {
+		return new Vector2(Math.min(a.x, b.x), Math.min(a.y, b.y));
 	}
 
-	static max(a: Vec2, b: Vec2) {
-		return new Vec2(Math.max(a.x, b.x), Math.max(a.y, b.y));
+	static max(a: Vector2, b: Vector2) {
+		return new Vector2(Math.max(a.x, b.x), Math.max(a.y, b.y));
 	}
 
-	static mix(a: Vec2, b: Vec2, ratio: number) {
-		return new Vec2(
+	static mix(a: Vector2, b: Vector2, ratio: number) {
+		return new Vector2(
 			mixf(a.x, b.x, ratio),
 			mixf(a.y, b.y, ratio)
 		);
 	}
 
-	static lerp(from: Vec2, to: Vec2, t: number) {
+	static lerp(from: Vector2, to: Vector2, t: number) {
 		t = clamp01f(t);
-		return Vec2.sub(to, from).mul(t).add(from);
+		return Vector2.sub(to, from).mul(t).add(from);
 	}
 
-	static lerpUnclamped(from: Vec2, to: Vec2, t: number) {
-		return Vec2.sub(to, from).mul(t).add(from);
+	static lerpUnclamped(from: Vector2, to: Vector2, t: number) {
+		return Vector2.sub(to, from).mul(t).add(from);
 	}
 
-	static interpolate(from: Vec2, to: Vec2, t: number, easing: EasingFn) {
+	static interpolate(from: Vector2, to: Vector2, t: number, easing: EasingFn) {
 		t = easing(clamp01f(t));
-		return Vec2.sub(to, from).mul(t).add(from);
+		return Vector2.sub(to, from).mul(t).add(from);
 	}
 
-	static moveTowards(current: Vec2, target: Vec2, maxDistanceDelta: number) {
-		const diff = Vec2.sub(target, current);
+	static moveTowards(current: Vector2, target: Vector2, maxDistanceDelta: number) {
+		const diff = Vector2.sub(target, current);
 		const distToMove = Math.min(maxDistanceDelta, diff.magnitude);
-		return Vec2.mulAdd(current, diff, distToMove);
+		return Vector2.mulAdd(current, diff, distToMove);
 	}
 
-	static reflect(a: Vec2, normal: Vec2) {
-		const out = normal.clone().mul(2.0 * Vec2.dot(a, normal));
+	static reflect(a: Vector2, normal: Vector2) {
+		const out = normal.clone().mul(2.0 * Vector2.dot(a, normal));
 		return out.subFrom(a);
 	}
 
-	static exactEquals(a: Vec2, b: Vec2) {
+	static exactEquals(a: Vector2, b: Vector2) {
 		return a.x === b.x && a.y === b.y;
 	}
 
-	static equals(a: Vec2, b: Vec2) {
+	static equals(a: Vector2, b: Vector2) {
 		const ax = a.x, ay = a.y;
 		const bx = b.x, by = b.y;
 		return (
@@ -324,34 +324,34 @@ export class Vec2 {
 	// shorthand static constructors
 
 	static get zero() {
-		return new Vec2(0, 0);
+		return new Vector2(0, 0);
 	}
 
 	static get one() {
-		return new Vec2(1, 1);
+		return new Vector2(1, 1);
 	}
 
 	static get left() {
-		return new Vec2(-1, 0);
+		return new Vector2(-1, 0);
 	}
 
 	static get right() {
-		return new Vec2(1, 0);
+		return new Vector2(1, 0);
 	}
 
 	static get up() {
-		return new Vec2(0, 1);
+		return new Vector2(0, 1);
 	}
 
 	static get down() {
-		return new Vec2(0, -1);
+		return new Vector2(0, -1);
 	}
 
 	static get negativeInfinity() {
-		return new Vec2(-Infinity, -Infinity);
+		return new Vector2(-Infinity, -Infinity);
 	}
 
 	static get positiveInfinity() {
-		return new Vec2(Infinity, Infinity);
+		return new Vector2(Infinity, Infinity);
 	}
 }

@@ -6,11 +6,11 @@ https://github.com/stardazed/stardazed
 */
 
 import { clampf, clamp01f, EasingFn, mixf } from "stardazed/core";
-import { VEC_EPSILON } from "common";
-import { Vec2 } from "vector2";
-import { Vec3 } from "vector3";
+import { VEC_EPSILON } from "./common";
+import { Vector2 } from "./vector2";
+import { Vector3 } from "./vector3";
 
-export class Vec4 {
+export class Vector4 {
 	x: number;
 	y: number;
 	z: number;
@@ -36,7 +36,7 @@ export class Vec4 {
 		if (hint === "number") {
 			return NaN;
 		}
-		return `Vec4 {x: ${this.x}, y: ${this.y}, z: ${this.z}, w: ${this.w}}`;
+		return `Vector4 {x: ${this.x}, y: ${this.y}, z: ${this.z}, w: ${this.w}}`;
 	}
 
 	get 0() { return this.x; }
@@ -73,10 +73,10 @@ export class Vec4 {
 	}
 
 	clone() {
-		return new Vec4(this.x, this.y, this.z, this.w);
+		return new Vector4(this.x, this.y, this.z, this.w);
 	}
 
-	set(to: Vec4) {
+	set(to: Vector4) {
 		this.x = to.x;
 		this.y = to.y;
 		this.z = to.z;
@@ -84,7 +84,7 @@ export class Vec4 {
 		return this;
 	}
 
-	add(other: Vec4) {
+	add(other: Vector4) {
 		this.x += other.x;
 		this.y += other.y;
 		this.z += other.z;
@@ -92,7 +92,7 @@ export class Vec4 {
 		return this;
 	}
 
-	mulAdd(other: Vec4, factor: number) {
+	mulAdd(other: Vector4, factor: number) {
 		this.x += other.x * factor;
 		this.y += other.y * factor;
 		this.z += other.z * factor;
@@ -100,7 +100,7 @@ export class Vec4 {
 		return this;
 	}
 
-	sub(other: Vec4) {
+	sub(other: Vector4) {
 		this.x -= other.x;
 		this.y -= other.y;
 		this.z -= other.z;
@@ -108,7 +108,7 @@ export class Vec4 {
 		return this;
 	}
 
-	subFrom(other: Vec4) {
+	subFrom(other: Vector4) {
 		this.x = other.x - this.x;
 		this.y = other.y - this.y;
 		this.z = other.z - this.z;
@@ -132,7 +132,7 @@ export class Vec4 {
 		return this;
 	}
 
-	scale(factors: Vec4) {
+	scale(factors: Vector4) {
 		this.x *= factors.x;
 		this.y *= factors.y;
 		this.z *= factors.z;
@@ -237,23 +237,23 @@ export class Vec4 {
 	}
 
 	get signs() {
-		return new Vec4(Math.sign(this.x), Math.sign(this.y), Math.sign(this.z), Math.sign(this.z));
+		return new Vector4(Math.sign(this.x), Math.sign(this.y), Math.sign(this.z), Math.sign(this.z));
 	}
 
 	// sub-vector access
 
 	get xy() {
-		return new Vec2(this.x, this.y);
+		return new Vector2(this.x, this.y);
 	}
-	set xy(xy: Vec2) {
+	set xy(xy: Vector2) {
 		this.x = xy.x;
 		this.y = xy.y;
 	}
 
 	get xyz() {
-		return new Vec3(this.x, this.y, this.z);
+		return new Vector3(this.x, this.y, this.z);
 	}
-	set xyz(xyz: Vec3) {
+	set xyz(xyz: Vector3) {
 		this.x = xyz.x;
 		this.y = xyz.y;
 		this.z = xyz.z;
@@ -261,19 +261,19 @@ export class Vec4 {
 
 	// static operations
 
-	static fromVec2(vec: Vec2, z = 0, w = 0) {
-		return new Vec4(vec.x, vec.y, z, w);
+	static fromVec2(vec: Vector2, z = 0, w = 0) {
+		return new Vector4(vec.x, vec.y, z, w);
 	}
 
-	static fromVec3(vec: Vec3, w = 0) {
-		return new Vec4(vec.x, vec.y, vec.z, w);
+	static fromVec3(vec: Vector3, w = 0) {
+		return new Vector4(vec.x, vec.y, vec.z, w);
 	}
 
 	static fromArray(arr: NumArray, offset = 0) {
 		if (arr.length < offset + 4) {
 			throw new RangeError(`Cannot get 4 values starting at offset ${offset} (out of bounds)`);
 		}
-		new Vec4(arr[offset], arr[offset + 1], arr[offset + 2], arr[offset + 3]);
+		new Vector4(arr[offset], arr[offset + 1], arr[offset + 2], arr[offset + 3]);
 	}
 
 	static from(iter: Iterator<number>) {
@@ -284,12 +284,12 @@ export class Vec4 {
 		if (x.done || y.done || z.done  || w.done) {
 			throw new RangeError("Could not get 4 values out of iterator");
 		}
-		return new Vec4(x.value, y.value, z.value, w.value);
+		return new Vector4(x.value, y.value, z.value, w.value);
 	}
 
 	static random(from = 0, to = 1) {
 		const range = to - from;
-		return new Vec4(
+		return new Vector4(
 			from + Math.random() * range,
 			from + Math.random() * range,
 			from + Math.random() * range,
@@ -297,12 +297,12 @@ export class Vec4 {
 		);
 	}
 
-	static add(a: Vec4, b: Vec4) {
+	static add(a: Vector4, b: Vector4) {
 		return a.clone().add(b);
 	}
 
-	static mulAdd(a: Vec4, b: Vec4, factor: number) {
-		return new Vec4(
+	static mulAdd(a: Vector4, b: Vector4, factor: number) {
+		return new Vector4(
 			a.x + b.x * factor,
 			a.y + b.y * factor,
 			a.z + b.z * factor,
@@ -310,20 +310,20 @@ export class Vec4 {
 		);
 	}
 
-	static sub(a: Vec4, b: Vec4) {
+	static sub(a: Vector4, b: Vector4) {
 		return a.clone().sub(b);
 	}
 
-	static mul(a: Vec4, factor: number) {
+	static mul(a: Vector4, factor: number) {
 		return a.clone().mul(factor);
 	}
 
-	static div(a: Vec4, factor: number) {
+	static div(a: Vector4, factor: number) {
 		return a.clone().div(factor);
 	}
 
-	static scale(a: Vec4, b: Vec4) {
-		return new Vec4(
+	static scale(a: Vector4, b: Vector4) {
+		return new Vector4(
 			a.x * b.x,
 			a.y * b.y,
 			a.z * b.z,
@@ -331,24 +331,24 @@ export class Vec4 {
 		);
 	}
 
-	static distance(a: Vec4, b: Vec4) {
-		return Vec4.sub(a, b).magnitude;
+	static distance(a: Vector4, b: Vector4) {
+		return Vector4.sub(a, b).magnitude;
 	}
 
-	static dot(a: Vec4, b: Vec4) {
+	static dot(a: Vector4, b: Vector4) {
 		return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 	}
 
-	static min(a: Vec4, b: Vec4) {
-		return new Vec4(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z), Math.min(a.w, b.w));
+	static min(a: Vector4, b: Vector4) {
+		return new Vector4(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z), Math.min(a.w, b.w));
 	}
 
-	static max(a: Vec4, b: Vec4) {
-		return new Vec4(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z), Math.max(a.w, b.w));
+	static max(a: Vector4, b: Vector4) {
+		return new Vector4(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z), Math.max(a.w, b.w));
 	}
 
-	static mix(a: Vec4, b: Vec4, ratio: number) {
-		return new Vec4(
+	static mix(a: Vector4, b: Vector4, ratio: number) {
+		return new Vector4(
 			mixf(a.x, b.x, ratio),
 			mixf(a.y, b.y, ratio),
 			mixf(a.z, b.z, ratio),
@@ -356,31 +356,31 @@ export class Vec4 {
 		);
 	}
 
-	static lerp(from: Vec4, to: Vec4, t: number) {
+	static lerp(from: Vector4, to: Vector4, t: number) {
 		t = clamp01f(t);
-		return Vec4.sub(to, from).mul(t).add(from);
+		return Vector4.sub(to, from).mul(t).add(from);
 	}
 
-	static lerpUnclamped(from: Vec4, to: Vec4, t: number) {
-		return Vec4.sub(to, from).mul(t).add(from);
+	static lerpUnclamped(from: Vector4, to: Vector4, t: number) {
+		return Vector4.sub(to, from).mul(t).add(from);
 	}
 
-	static interpolate(from: Vec4, to: Vec4, t: number, easing: EasingFn) {
+	static interpolate(from: Vector4, to: Vector4, t: number, easing: EasingFn) {
 		t = easing(clamp01f(t));
-		return Vec4.sub(to, from).mul(t).add(from);
+		return Vector4.sub(to, from).mul(t).add(from);
 	}
 
-	static moveTowards(current: Vec4, target: Vec4, maxDistanceDelta: number) {
-		const diff = Vec4.sub(target, current);
+	static moveTowards(current: Vector4, target: Vector4, maxDistanceDelta: number) {
+		const diff = Vector4.sub(target, current);
 		const distToMove = Math.min(maxDistanceDelta, diff.magnitude);
-		return Vec4.mulAdd(current, diff, distToMove);
+		return Vector4.mulAdd(current, diff, distToMove);
 	}
 
-	static exactEquals(a: Vec4, b: Vec4) {
+	static exactEquals(a: Vector4, b: Vector4) {
 		return a.x === b.x && a.y === b.y && a.z === b.z && a.w === b.w;
 	}
 
-	static equals(a: Vec4, b: Vec4) {
+	static equals(a: Vector4, b: Vector4) {
 		const ax = a.x, ay = a.y, az = a.z, aw = a.w;
 		const bx = b.x, by = b.y, bz = b.z, bw = b.w;
 		return (
@@ -394,18 +394,18 @@ export class Vec4 {
 	// shorthand static constructors
 
 	static get zero() {
-		return new Vec4(0, 0, 0, 0);
+		return new Vector4(0, 0, 0, 0);
 	}
 
 	static get one() {
-		return new Vec4(1, 1, 1, 1);
+		return new Vector4(1, 1, 1, 1);
 	}
 
 	static get negativeInfinity() {
-		return new Vec4(-Infinity, -Infinity, -Infinity, -Infinity);
+		return new Vector4(-Infinity, -Infinity, -Infinity, -Infinity);
 	}
 
 	static get positiveInfinity() {
-		return new Vec4(Infinity, Infinity, Infinity, Infinity);
+		return new Vector4(Infinity, Infinity, Infinity, Infinity);
 	}
 }

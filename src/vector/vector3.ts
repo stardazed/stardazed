@@ -7,9 +7,9 @@ https://github.com/stardazed/stardazed
 
 import { clampf, clamp01f, EasingFn, mixf } from "stardazed/core";
 import { VEC_EPSILON } from "common";
-import { Vec2 } from "vector2";
+import { Vector2 } from "vector2";
 
-export class Vec3 {
+export class Vector3 {
 	x: number;
 	y: number;
 	z: number;
@@ -32,7 +32,7 @@ export class Vec3 {
 		if (hint === "number") {
 			return NaN;
 		}
-		return `Vec3 {x: ${this.x}, y: ${this.y}, z: ${this.z}}`;
+		return `Vector3 {x: ${this.x}, y: ${this.y}, z: ${this.z}}`;
 	}
 
 	get 0() { return this.x; }
@@ -65,38 +65,38 @@ export class Vec3 {
 	}
 
 	clone() {
-		return new Vec3(this.x, this.y, this.z);
+		return new Vector3(this.x, this.y, this.z);
 	}
 
-	set(to: Vec3) {
+	set(to: Vector3) {
 		this.x = to.x;
 		this.y = to.y;
 		this.z = to.z;
 		return this;
 	}
 
-	add(other: Vec3) {
+	add(other: Vector3) {
 		this.x += other.x;
 		this.y += other.y;
 		this.z += other.z;
 		return this;
 	}
 
-	mulAdd(other: Vec3, factor: number) {
+	mulAdd(other: Vector3, factor: number) {
 		this.x += other.x * factor;
 		this.y += other.y * factor;
 		this.z += other.z * factor;
 		return this;
 	}
 
-	sub(other: Vec3) {
+	sub(other: Vector3) {
 		this.x -= other.x;
 		this.y -= other.y;
 		this.z -= other.z;
 		return this;
 	}
 
-	subFrom(other: Vec3) {
+	subFrom(other: Vector3) {
 		this.x = other.x - this.x;
 		this.y = other.y - this.y;
 		this.z = other.z - this.z;
@@ -117,7 +117,7 @@ export class Vec3 {
 		return this;
 	}
 
-	scale(factors: Vec3) {
+	scale(factors: Vector3) {
 		this.x *= factors.x;
 		this.y *= factors.y;
 		this.z *= factors.z;
@@ -212,38 +212,38 @@ export class Vec3 {
 	}
 
 	get signs() {
-		return new Vec3(Math.sign(this.x), Math.sign(this.y), Math.sign(this.z));
+		return new Vector3(Math.sign(this.x), Math.sign(this.y), Math.sign(this.z));
 	}
 
 	// sub-vector access
 
 	get xy() {
-		return new Vec2(this.x, this.y);
+		return new Vector2(this.x, this.y);
 	}
-	set xy(xy: Vec2) {
+	set xy(xy: Vector2) {
 		this.x = xy.x;
 		this.y = xy.y;
 	}
 
 	get xz() {
-		return new Vec2(this.x, this.z);
+		return new Vector2(this.x, this.z);
 	}
-	set xz(xz: Vec2) {
+	set xz(xz: Vector2) {
 		this.x = xz.x;
 		this.z = xz.y;
 	}
 
 	// static operations
 
-	static fromVec2(vec: Vec2, z = 0) {
-		return new Vec3(vec.x, vec.y, z);
+	static fromVec2(vec: Vector2, z = 0) {
+		return new Vector3(vec.x, vec.y, z);
 	}
 
 	static fromArray(arr: NumArray, offset = 0) {
 		if (arr.length < offset + 3) {
 			throw new RangeError(`Cannot get 3 values starting at offset ${offset} (out of bounds)`);
 		}
-		new Vec3(arr[offset], arr[offset + 1], arr[offset + 2]);
+		new Vector3(arr[offset], arr[offset + 1], arr[offset + 2]);
 	}
 
 	static from(iter: Iterator<number>) {
@@ -253,112 +253,112 @@ export class Vec3 {
 		if (x.done || y.done || z.done) {
 			throw new RangeError("Could not get 3 values out of iterator");
 		}
-		return new Vec3(x.value, y.value, z.value);
+		return new Vector3(x.value, y.value, z.value);
 	}
 
 	static random(from = 0, to = 1) {
 		const range = to - from;
-		return new Vec3(
+		return new Vector3(
 			from + Math.random() * range,
 			from + Math.random() * range,
 			from + Math.random() * range
 		);
 	}
 
-	static add(a: Vec3, b: Vec3) {
+	static add(a: Vector3, b: Vector3) {
 		return a.clone().add(b);
 	}
 
-	static mulAdd(a: Vec3, b: Vec3, factor: number) {
-		return new Vec3(
+	static mulAdd(a: Vector3, b: Vector3, factor: number) {
+		return new Vector3(
 			a.x + b.x * factor,
 			a.y + b.y * factor,
 			a.z + b.z * factor
 		);
 	}
 
-	static sub(a: Vec3, b: Vec3) {
+	static sub(a: Vector3, b: Vector3) {
 		return a.clone().sub(b);
 	}
 
-	static mul(a: Vec3, factor: number) {
+	static mul(a: Vector3, factor: number) {
 		return a.clone().mul(factor);
 	}
 
-	static div(a: Vec3, factor: number) {
+	static div(a: Vector3, factor: number) {
 		return a.clone().div(factor);
 	}
 
-	static scale(a: Vec3, b: Vec3) {
-		return new Vec3(
+	static scale(a: Vector3, b: Vector3) {
+		return new Vector3(
 			a.x * b.x,
 			a.y * b.y,
 			a.z * b.z,
 		);
 	}
 
-	static distance(a: Vec3, b: Vec3) {
-		return Vec3.sub(a, b).magnitude;
+	static distance(a: Vector3, b: Vector3) {
+		return Vector3.sub(a, b).magnitude;
 	}
 
-	static dot(a: Vec3, b: Vec3) {
+	static dot(a: Vector3, b: Vector3) {
 		return a.x * b.x + a.y * b.y + a.z * b.z;
 	}
 
-	static cross(a: Vec3, b: Vec3) {
-		return new Vec3(
+	static cross(a: Vector3, b: Vector3) {
+		return new Vector3(
 			a.y * b.z - a.z * b.y,
 			a.z * b.x - a.x * b.z,
 			a.x * b.y - a.y * b.x
 		);
 	}
 
-	static min(a: Vec3, b: Vec3) {
-		return new Vec3(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z));
+	static min(a: Vector3, b: Vector3) {
+		return new Vector3(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z));
 	}
 
-	static max(a: Vec3, b: Vec3) {
-		return new Vec3(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z));
+	static max(a: Vector3, b: Vector3) {
+		return new Vector3(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z));
 	}
 
-	static mix(a: Vec3, b: Vec3, ratio: number) {
-		return new Vec3(
+	static mix(a: Vector3, b: Vector3, ratio: number) {
+		return new Vector3(
 			mixf(a.x, b.x, ratio),
 			mixf(a.y, b.y, ratio),
 			mixf(a.z, b.z, ratio)
 		);
 	}
 
-	static lerp(from: Vec3, to: Vec3, t: number) {
+	static lerp(from: Vector3, to: Vector3, t: number) {
 		t = clamp01f(t);
-		return Vec3.sub(to, from).mul(t).add(from);
+		return Vector3.sub(to, from).mul(t).add(from);
 	}
 
-	static lerpUnclamped(from: Vec3, to: Vec3, t: number) {
-		return Vec3.sub(to, from).mul(t).add(from);
+	static lerpUnclamped(from: Vector3, to: Vector3, t: number) {
+		return Vector3.sub(to, from).mul(t).add(from);
 	}
 
-	static interpolate(from: Vec3, to: Vec3, t: number, easing: EasingFn) {
+	static interpolate(from: Vector3, to: Vector3, t: number, easing: EasingFn) {
 		t = easing(clamp01f(t));
-		return Vec3.sub(to, from).mul(t).add(from);
+		return Vector3.sub(to, from).mul(t).add(from);
 	}
 
-	static moveTowards(current: Vec3, target: Vec3, maxDistanceDelta: number) {
-		const diff = Vec3.sub(target, current);
+	static moveTowards(current: Vector3, target: Vector3, maxDistanceDelta: number) {
+		const diff = Vector3.sub(target, current);
 		const distToMove = Math.min(maxDistanceDelta, diff.magnitude);
-		return Vec3.mulAdd(current, diff, distToMove);
+		return Vector3.mulAdd(current, diff, distToMove);
 	}
 
-	static reflect(a: Vec3, normal: Vec3) {
-		const out = normal.clone().mul(2.0 * Vec3.dot(a, normal));
+	static reflect(a: Vector3, normal: Vector3) {
+		const out = normal.clone().mul(2.0 * Vector3.dot(a, normal));
 		return out.subFrom(a);
 	}
 
-	static exactEquals(a: Vec3, b: Vec3) {
+	static exactEquals(a: Vector3, b: Vector3) {
 		return a.x === b.x && a.y === b.y && a.z === b.z;
 	}
 
-	static equals(a: Vec3, b: Vec3) {
+	static equals(a: Vector3, b: Vector3) {
 		const ax = a.x, ay = a.y, az = a.z;
 		const bx = b.x, by = b.y, bz = b.z;
 		return (
@@ -371,42 +371,42 @@ export class Vec3 {
 	// shorthand static constructors
 
 	static get zero() {
-		return new Vec3(0, 0, 0);
+		return new Vector3(0, 0, 0);
 	}
 
 	static get one() {
-		return new Vec3(1, 1, 1);
+		return new Vector3(1, 1, 1);
 	}
 
 	static get left() {
-		return new Vec3(-1, 0, 0);
+		return new Vector3(-1, 0, 0);
 	}
 
 	static get right() {
-		return new Vec3(1, 0, 0);
+		return new Vector3(1, 0, 0);
 	}
 
 	static get up() {
-		return new Vec3(0, 1, 0);
+		return new Vector3(0, 1, 0);
 	}
 
 	static get down() {
-		return new Vec3(0, -1, 0);
+		return new Vector3(0, -1, 0);
 	}
 
 	static get forward() {
-		return new Vec3(0, 0, 1);
+		return new Vector3(0, 0, 1);
 	}
 
 	static get back() {
-		return new Vec3(0, 0, -1);
+		return new Vector3(0, 0, -1);
 	}
 
 	static get negativeInfinity() {
-		return new Vec3(-Infinity, -Infinity, -Infinity);
+		return new Vector3(-Infinity, -Infinity, -Infinity);
 	}
 
 	static get positiveInfinity() {
-		return new Vec3(Infinity, Infinity, Infinity);
+		return new Vector3(Infinity, Infinity, Infinity);
 	}
 }
