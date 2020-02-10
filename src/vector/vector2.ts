@@ -66,7 +66,7 @@ export class Vec2 {
 		return this;
 	}
 
-	scaledAdd(other: Vec2, factor: number) {
+	mulAdd(other: Vec2, factor: number) {
 		this.x += other.x * factor;
 		this.y += other.y * factor;
 		return this;
@@ -84,21 +84,21 @@ export class Vec2 {
 		return this;
 	}
 
-	mul(other: Vec2) {
-		this.x *= other.x;
-		this.y *= other.y;
-		return this;
-	}
-
-	div(other: Vec2) {
-		this.x /= other.x;
-		this.y /= other.y;
-		return this;
-	}
-
-	scale(factor: number) {
+	mul(factor: number) {
 		this.x *= factor;
 		this.y *= factor;
+		return this;
+	}
+
+	div(factor: number) {
+		this.x /= factor;
+		this.y /= factor;
+		return this;
+	}
+
+	scale(by: Vec2) {
+		this.x *= by.x;
+		this.y *= by.y;
 		return this;
 	}
 
@@ -218,7 +218,7 @@ export class Vec2 {
 		return a.clone().add(b);
 	}
 
-	static scaledAdd(a: Vec2, b: Vec2, factor: number) {
+	static mulAdd(a: Vec2, b: Vec2, factor: number) {
 		return new Vec2(
 			a.x + b.x * factor,
 			a.y + b.y * factor
@@ -229,12 +229,12 @@ export class Vec2 {
 		return a.clone().sub(b);
 	}
 
-	static mul(a: Vec2, b: Vec2) {
-		return a.clone().mul(b);
+	static mul(a: Vec2, factor: number) {
+		return a.clone().mul(factor);
 	}
 
-	static div(a: Vec2, b: Vec2) {
-		return a.clone().div(b);
+	static div(a: Vec2, factor: number) {
+		return a.clone().div(factor);
 	}
 
 	static angle(a: Vec2, b: Vec2) {
@@ -272,26 +272,26 @@ export class Vec2 {
 
 	static lerp(from: Vec2, to: Vec2, t: number) {
 		t = clamp01f(t);
-		return Vec2.sub(to, from).scale(t).add(from);
+		return Vec2.sub(to, from).mul(t).add(from);
 	}
 
 	static lerpUnclamped(from: Vec2, to: Vec2, t: number) {
-		return Vec2.sub(to, from).scale(t).add(from);
+		return Vec2.sub(to, from).mul(t).add(from);
 	}
 
 	static interpolate(from: Vec2, to: Vec2, t: number, easing: EasingFn) {
 		t = easing(clamp01f(t));
-		return Vec2.sub(to, from).scale(t).add(from);
+		return Vec2.sub(to, from).mul(t).add(from);
 	}
 
 	static moveTowards(current: Vec2, target: Vec2, maxDistanceDelta: number) {
 		const diff = Vec2.sub(target, current);
 		const distToMove = Math.min(maxDistanceDelta, diff.magnitude);
-		return Vec2.scaledAdd(current, diff, distToMove);
+		return Vec2.mulAdd(current, diff, distToMove);
 	}
 
 	static reflect(a: Vec2, normal: Vec2) {
-		const out = normal.clone().scale(2.0 * Vec2.dot(a, normal));
+		const out = normal.clone().mul(2.0 * Vec2.dot(a, normal));
 		return out.subFrom(a);
 	}
 

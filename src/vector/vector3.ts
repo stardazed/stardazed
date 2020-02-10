@@ -75,7 +75,7 @@ export class Vec3 {
 		return this;
 	}
 
-	scaledAdd(other: Vec3, factor: number) {
+	mulAdd(other: Vec3, factor: number) {
 		this.x += other.x * factor;
 		this.y += other.y * factor;
 		this.z += other.z * factor;
@@ -96,24 +96,24 @@ export class Vec3 {
 		return this;
 	}
 
-	mul(other: Vec3) {
-		this.x *= other.x;
-		this.y *= other.y;
-		this.z *= other.z;
-		return this;
-	}
-
-	div(other: Vec3) {
-		this.x /= other.x;
-		this.y /= other.y;
-		this.z /= other.z;
-		return this;
-	}
-
-	scale(factor: number) {
+	mul(factor: number) {
 		this.x *= factor;
 		this.y *= factor;
 		this.z *= factor;
+		return this;
+	}
+
+	div(factor: number) {
+		this.x /= factor;
+		this.y /= factor;
+		this.z /= factor;
+		return this;
+	}
+
+	scale(by: Vec3) {
+		this.x *= by.x;
+		this.y *= by.y;
+		this.z *= by.z;
 		return this;
 	}
 
@@ -128,6 +128,7 @@ export class Vec3 {
 		this.x = 1.0 / this.x;
 		this.y = 1.0 / this.y;
 		this.z = 1.0 / this.z;
+		return this;
 	}
 
 	ceil() {
@@ -257,7 +258,7 @@ export class Vec3 {
 		return a.clone().add(b);
 	}
 
-	static scaledAdd(a: Vec3, b: Vec3, factor: number) {
+	static mulAdd(a: Vec3, b: Vec3, factor: number) {
 		return new Vec3(
 			a.x + b.x * factor,
 			a.y + b.y * factor,
@@ -269,12 +270,12 @@ export class Vec3 {
 		return a.clone().sub(b);
 	}
 
-	static mul(a: Vec3, b: Vec3) {
-		return a.clone().mul(b);
+	static mul(a: Vec3, factor: number) {
+		return a.clone().mul(factor);
 	}
 
-	static div(a: Vec3, b: Vec3) {
-		return a.clone().div(b);
+	static div(a: Vec3, factor: number) {
+		return a.clone().div(factor);
 	}
 
 	static distance(a: Vec3, b: Vec3) {
@@ -311,26 +312,26 @@ export class Vec3 {
 
 	static lerp(from: Vec3, to: Vec3, t: number) {
 		t = clamp01f(t);
-		return Vec3.sub(to, from).scale(t).add(from);
+		return Vec3.sub(to, from).mul(t).add(from);
 	}
 
 	static lerpUnclamped(from: Vec3, to: Vec3, t: number) {
-		return Vec3.sub(to, from).scale(t).add(from);
+		return Vec3.sub(to, from).mul(t).add(from);
 	}
 
 	static interpolate(from: Vec3, to: Vec3, t: number, easing: EasingFn) {
 		t = easing(clamp01f(t));
-		return Vec3.sub(to, from).scale(t).add(from);
+		return Vec3.sub(to, from).mul(t).add(from);
 	}
 
 	static moveTowards(current: Vec3, target: Vec3, maxDistanceDelta: number) {
 		const diff = Vec3.sub(target, current);
 		const distToMove = Math.min(maxDistanceDelta, diff.magnitude);
-		return Vec3.scaledAdd(current, diff, distToMove);
+		return Vec3.mulAdd(current, diff, distToMove);
 	}
 
 	static reflect(a: Vec3, normal: Vec3) {
-		const out = normal.clone().scale(2.0 * Vec3.dot(a, normal));
+		const out = normal.clone().mul(2.0 * Vec3.dot(a, normal));
 		return out.subFrom(a);
 	}
 
@@ -355,7 +356,7 @@ export class Vec3 {
 	}
 
 	static get one() {
-		return new Vec3(0, 0, 0);
+		return new Vec3(1, 1, 1);
 	}
 
 	static get left() {
