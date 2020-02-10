@@ -68,18 +68,23 @@ export function hertz(hz: number) {
 	return 1 / hz;
 }
 
+export const enum AngleConvert {
+	DEG2RAD = 0.01745329252, // Math.PI / 180.0,
+	RAD2DEG = 57.2957795131  // 180.0 / Math.PI
+}
+
 /**
  * Convert an angle expressed in degrees to radians
  */
 export function deg2rad(deg: number): number {
-	return deg * Math.PI / 180.0;
+	return deg * AngleConvert.DEG2RAD;
 }
 
 /**
  * Convert an angle expressed in radians to degrees
  */
 export function rad2deg(rad: number): number {
-	return rad * 180.0 / Math.PI;
+	return rad * AngleConvert.RAD2DEG;
 }
 
 /**
