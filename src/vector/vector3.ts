@@ -50,7 +50,14 @@ export class Vec3 {
 		return ctor.of(this.x, this.y, this.z);
 	}
 
-	writeInArray(arr: MutNumArray, offset: number) {
+	readFromArray(arr: NumArray, offset: number) {
+		this.x = arr[offset];
+		this.y = arr[offset + 1];
+		this.z = arr[offset + 2];
+		return this;
+	}
+
+	writeToArray(arr: MutNumArray, offset: number) {
 		arr[offset] = this.x;
 		arr[offset + 1] = this.y;
 		arr[offset + 2] = this.z;

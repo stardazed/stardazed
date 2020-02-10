@@ -44,7 +44,13 @@ export class Vec2 {
 		return ctor.of(this.x, this.y);
 	}
 
-	writeInArray(arr: MutNumArray, offset: number) {
+	readFromArray(arr: NumArray, offset: number) {
+		this.x = arr[offset];
+		this.y = arr[offset + 1];
+		return this;
+	}
+
+	writeToArray(arr: MutNumArray, offset: number) {
 		arr[offset] = this.x;
 		arr[offset + 1] = this.y;
 		return this;
