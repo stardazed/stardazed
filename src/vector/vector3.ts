@@ -228,6 +228,10 @@ export class Vec3 {
 
 	// static operations
 
+	static fromVec2(vec: Vec2, z = 0) {
+		return new Vec3(vec.x, vec.y, z);
+	}
+
 	static fromArray(arr: NumArray, offset = 0) {
 		if (arr.length < offset + 3) {
 			throw new RangeError(`Cannot get 3 values starting at offset ${offset} (out of bounds)`);
