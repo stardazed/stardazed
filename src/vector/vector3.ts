@@ -6,8 +6,8 @@ https://github.com/stardazed/stardazed
 */
 
 import { clampf, clamp01f, EasingFn, mixf } from "stardazed/core";
-import { VEC_EPSILON } from "common";
-import { Vector2 } from "vector2";
+import { VEC_EPSILON } from "./common";
+import { Vector2 } from "./vector2";
 
 export class Vector3 {
 	x: number;
@@ -243,7 +243,7 @@ export class Vector3 {
 		if (arr.length < offset + 3) {
 			throw new RangeError(`Cannot get 3 values starting at offset ${offset} (out of bounds)`);
 		}
-		new Vector3(arr[offset], arr[offset + 1], arr[offset + 2]);
+		return new Vector3(arr[offset], arr[offset + 1], arr[offset + 2]);
 	}
 
 	static from(iter: Iterator<number>) {

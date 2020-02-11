@@ -273,7 +273,7 @@ export class Vector4 {
 		if (arr.length < offset + 4) {
 			throw new RangeError(`Cannot get 4 values starting at offset ${offset} (out of bounds)`);
 		}
-		new Vector4(arr[offset], arr[offset + 1], arr[offset + 2], arr[offset + 3]);
+		return new Vector4(arr[offset], arr[offset + 1], arr[offset + 2], arr[offset + 3]);
 	}
 
 	static from(iter: Iterator<number>) {
