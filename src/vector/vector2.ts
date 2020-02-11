@@ -60,94 +60,107 @@ export class Vector2 {
 		return new Vector2(this.x, this.y);
 	}
 
-	set(to: Vector2) {
-		this.x = to.x;
-		this.y = to.y;
+	set(x: number, y: number) {
+		this.x = x;
+		this.y = y;
+		return this;
+	}
+
+	copyFrom(src: Vector2) {
+		this.x = src.x;
+		this.y = src.y;
 		return this;
 	}
 
 	add(other: Vector2) {
-		this.x += other.x;
-		this.y += other.y;
-		return this;
+		return new Vector2(
+			this.x + other.x,
+			this.y + other.y
+		);
 	}
 
 	mulAdd(other: Vector2, factor: number) {
-		this.x += other.x * factor;
-		this.y += other.y * factor;
-		return this;
+		return new Vector2(
+			this.x + other.x * factor,
+			this.y + other.y * factor
+		);
 	}
 
 	sub(other: Vector2) {
-		this.x -= other.x;
-		this.y -= other.y;
-		return this;
-	}
-
-	subFrom(other: Vector2) {
-		this.x = other.x - this.x;
-		this.y = other.y - this.y;
-		return this;
+		return new Vector2(
+			this.x - other.x,
+			this.y - other.y
+		);
 	}
 
 	mul(factor: number) {
-		this.x *= factor;
-		this.y *= factor;
-		return this;
+		return new Vector2(
+			this.x * factor,
+			this.y * factor
+		);
 	}
 
 	div(factor: number) {
-		this.x /= factor;
-		this.y /= factor;
-		return this;
+		return new Vector2(
+			this.x / factor,
+			this.y / factor
+		);
 	}
 
 	scale(factors: Vector2) {
-		this.x *= factors.x;
-		this.y *= factors.y;
-		return this;
+		return new Vector2(
+			this.x * factors.x,
+			this.y * factors.y
+		);
 	}
 
 	negate() {
-		this.x = -this.x;
-		this.y = -this.y;
-		return this;
+		return new Vector2(
+			-this.x,
+			-this.y
+		);
 	}
 
 	inverse() {
-		this.x = 1.0 / this.x;
-		this.y = 1.0 / this.y;
-		return this;
+		return new Vector2(
+			1.0 / this.x,
+			1.0 / this.y
+		);
 	}
 
 	ceil() {
-		this.x = Math.ceil(this.x);
-		this.y = Math.ceil(this.y);
-		return this;
+		return new Vector2(
+			Math.ceil(this.x),
+			Math.ceil(this.y)
+		);
 	}
 
 	floor() {
-		this.x = Math.floor(this.x);
-		this.y = Math.floor(this.y);
-		return this;
+		return new Vector2(
+			Math.floor(this.x),
+			Math.floor(this.y)
+		);
 	}
 
 	round() {
-		this.x = Math.round(this.x);
-		this.y = Math.round(this.y);
-		return this;
+		return new Vector2(
+			Math.round(this.x),
+			Math.round(this.y)
+		);
 	}
 
 	clamp(min: number, max: number) {
-		this.x = clampf(this.x, min, max);
-		this.y = clampf(this.y, min, max);
-		return this;
+		return new Vector2(
+			clampf(this.x, min, max),
+			clampf(this.y, min, max)
+		);
 	}
 
 	clamp01() {
-		this.x = clamp01f(this.x);
-		this.y = clamp01f(this.y);
-		return this;
+		return new Vector2(
+			clamp01f(this.x),
+			clamp01f(this.y)
+		);
 	}
 
 	clampMagnitude(maxLength: number) {
@@ -156,9 +169,10 @@ export class Vector2 {
 			return this;
 		}
 		const scale = maxLength / curMag;
-		this.x *= scale;
-		this.y *= scale;
-		return this;
+		return new Vector2(
+			this.x * scale,
+			this.y * scale
+		);
 	}
 
 	get magnitude() {
@@ -171,7 +185,7 @@ export class Vector2 {
 		return x * x + y * y;
 	}
 
-	normalize() {
+	normalizeSelf() {
 		const { x, y } = this;
 		let len = x * x + y * y;
 		if (len > 0) {
@@ -183,7 +197,7 @@ export class Vector2 {
 	}
 
 	get normalized() {
-		return this.clone().normalize();
+		return this.clone().normalizeSelf();
 	}
 
 	get perpendicular() {
@@ -200,7 +214,7 @@ export class Vector2 {
 		if (arr.length < offset + 2) {
 			throw new RangeError(`Cannot get 2 values starting at offset ${offset} (out of bounds)`);
 		}
-		new Vector2(arr[offset], arr[offset + 1]);
+		return new Vector2(arr[offset], arr[offset + 1]);
 	}
 
 	static from(iter: Iterator<number>) {
@@ -220,36 +234,6 @@ export class Vector2 {
 		);
 	}
 
-	static add(a: Vector2, b: Vector2) {
-		return a.clone().add(b);
-	}
-
-	static mulAdd(a: Vector2, b: Vector2, factor: number) {
-		return new Vector2(
-			a.x + b.x * factor,
-			a.y + b.y * factor
-		);
-	}
-
-	static sub(a: Vector2, b: Vector2) {
-		return a.clone().sub(b);
-	}
-
-	static mul(a: Vector2, factor: number) {
-		return a.clone().mul(factor);
-	}
-
-	static div(a: Vector2, factor: number) {
-		return a.clone().div(factor);
-	}
-
-	static scale(a: Vector2, b: Vector2) {
-		return new Vector2(
-			a.x * b.x,
-			a.y * b.y
-		);
-	}
-
 	static angle(a: Vector2, b: Vector2) {
 		return Math.abs(Vector2.signedAngle(a, b));
 	}
@@ -261,7 +245,11 @@ export class Vector2 {
 	}
 
 	static distance(a: Vector2, b: Vector2) {
-		return Vector2.sub(a, b).magnitude;
+		return a.sub(b).magnitude;
+	}
+
+	static sqrDistance(a: Vector2, b: Vector2) {
+		return a.sub(b).sqrMagnitude;
 	}
 
 	static dot(a: Vector2, b: Vector2) {
@@ -269,11 +257,17 @@ export class Vector2 {
 	}
 
 	static min(a: Vector2, b: Vector2) {
-		return new Vector2(Math.min(a.x, b.x), Math.min(a.y, b.y));
+		return new Vector2(
+			Math.min(a.x, b.x),
+			Math.min(a.y, b.y)
+		);
 	}
 
 	static max(a: Vector2, b: Vector2) {
-		return new Vector2(Math.max(a.x, b.x), Math.max(a.y, b.y));
+		return new Vector2(
+			Math.max(a.x, b.x),
+			Math.max(a.y, b.y)
+		);
 	}
 
 	static mix(a: Vector2, b: Vector2, ratio: number) {
@@ -285,27 +279,27 @@ export class Vector2 {
 
 	static lerp(from: Vector2, to: Vector2, t: number) {
 		t = clamp01f(t);
-		return Vector2.sub(to, from).mul(t).add(from);
+		return from.mulAdd(to.sub(from), t);
 	}
 
 	static lerpUnclamped(from: Vector2, to: Vector2, t: number) {
-		return Vector2.sub(to, from).mul(t).add(from);
+		return from.mulAdd(to.sub(from), t);
 	}
 
 	static interpolate(from: Vector2, to: Vector2, t: number, easing: EasingFn) {
 		t = easing(clamp01f(t));
-		return Vector2.sub(to, from).mul(t).add(from);
+		return from.mulAdd(to.sub(from), t);
 	}
 
 	static moveTowards(current: Vector2, target: Vector2, maxDistanceDelta: number) {
-		const diff = Vector2.sub(target, current);
+		const diff = target.sub(current);
 		const distToMove = Math.min(maxDistanceDelta, diff.magnitude);
-		return Vector2.mulAdd(current, diff, distToMove);
+		return current.mulAdd(diff, distToMove);
 	}
 
 	static reflect(a: Vector2, normal: Vector2) {
 		const out = normal.clone().mul(2.0 * Vector2.dot(a, normal));
-		return out.subFrom(a);
+		return a.sub(out);
 	}
 
 	static exactEquals(a: Vector2, b: Vector2) {
