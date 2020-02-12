@@ -18,3 +18,8 @@ export { VecArrayIterationFunction, VecArrayIterationOptions } from "./common";
 export { mat2, mat2d, mat3, mat4 };
 export { quat, vec2, vec3, vec4 };
 export * from "./vecarray";
+
+export * from "./vector2";
+export * from "./vector3";
+export * from "./vector4";
+export * from "./quaternion";
