@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { clampf, clamp01f, EasingFn, mixf } from "stardazed/core";
+import { clamp01f, clampf, mixf, EasingFn } from "stardazed/core";
 import { VEC_EPSILON } from "./common";
 import { Vector2 } from "./vector2";
 import { Vector3 } from "./vector3";
@@ -76,124 +76,137 @@ export class Vector4 {
 		return new Vector4(this.x, this.y, this.z, this.w);
 	}
 
-	set(to: Vector4) {
-		this.x = to.x;
-		this.y = to.y;
-		this.z = to.z;
-		this.w = to.w;
+	set(x: number, y: number, z: number, w: number) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.w = w;
+		return this;
+	}
+
+	copyFrom(src: Vector4) {
+		this.x = src.x;
+		this.y = src.y;
+		this.z = src.z;
+		this.w = src.w;
 		return this;
 	}
 
 	add(other: Vector4) {
-		this.x += other.x;
-		this.y += other.y;
-		this.z += other.z;
-		this.w += other.w;
-		return this;
+		return new Vector4(
+			this.x + other.x,
+			this.y + other.y,
+			this.z + other.z,
+			this.w + other.w
+		);
 	}
 
 	mulAdd(other: Vector4, factor: number) {
-		this.x += other.x * factor;
-		this.y += other.y * factor;
-		this.z += other.z * factor;
-		this.w += other.w * factor;
-		return this;
+		return new Vector4(
+			this.x + other.x * factor,
+			this.y + other.y * factor,
+			this.z + other.z * factor,
+			this.w + other.w * factor
+		);
 	}
 
 	sub(other: Vector4) {
-		this.x -= other.x;
-		this.y -= other.y;
-		this.z -= other.z;
-		this.w -= other.w;
-		return this;
-	}
-
-	subFrom(other: Vector4) {
-		this.x = other.x - this.x;
-		this.y = other.y - this.y;
-		this.z = other.z - this.z;
-		this.w = other.w - this.w;
-		return this;
+		return new Vector4(
+			this.x - other.x,
+			this.y - other.y,
+			this.z - other.z,
+			this.w - other.w
+		);
 	}
 
 	mul(factor: number) {
-		this.x *= factor;
-		this.y *= factor;
-		this.z *= factor;
-		this.w *= factor;
-		return this;
+		return new Vector4(
+			this.x * factor,
+			this.y * factor,
+			this.z * factor,
+			this.w * factor
+		);
 	}
 
 	div(factor: number) {
-		this.x /= factor;
-		this.y /= factor;
-		this.z /= factor;
-		this.w /= factor;
-		return this;
+		return new Vector4(
+			this.x / factor,
+			this.y / factor,
+			this.z / factor,
+			this.w / factor
+		);
 	}
 
 	scale(factors: Vector4) {
-		this.x *= factors.x;
-		this.y *= factors.y;
-		this.z *= factors.z;
-		this.w *= factors.w;
-		return this;
+		return new Vector4(
+			this.x * factors.x,
+			this.y * factors.y,
+			this.z * factors.z,
+			this.w * factors.w
+		);
 	}
 
 	negate() {
-		this.x = -this.x;
-		this.y = -this.y;
-		this.z = -this.z;
-		this.w = -this.w;
-		return this;
+		return new Vector4(
+			-this.x,
+			-this.y,
+			-this.z,
+			-this.w
+		);
 	}
 
 	inverse() {
-		this.x = 1.0 / this.x;
-		this.y = 1.0 / this.y;
-		this.z = 1.0 / this.z;
-		this.w = 1.0 / this.w;
-		return this;
+		return new Vector4(
+			1 / this.x,
+			1 / this.y,
+			1 / this.z,
+			1 / this.w
+		);
 	}
 
 	ceil() {
-		this.x = Math.ceil(this.x);
-		this.y = Math.ceil(this.y);
-		this.z = Math.ceil(this.z);
-		this.w = Math.ceil(this.w);
-		return this;
+		return new Vector4(
+			Math.ceil(this.x),
+			Math.ceil(this.y),
+			Math.ceil(this.z),
+			Math.ceil(this.w)
+		);
 	}
 
 	floor() {
-		this.x = Math.floor(this.x);
-		this.y = Math.floor(this.y);
-		this.z = Math.floor(this.z);
-		this.w = Math.floor(this.w);
-		return this;
+		return new Vector4(
+			Math.floor(this.x),
+			Math.floor(this.y),
+			Math.floor(this.z),
+			Math.floor(this.w)
+		);
 	}
 
 	round() {
-		this.x = Math.round(this.x);
-		this.y = Math.round(this.y);
-		this.z = Math.round(this.z);
-		this.w = Math.round(this.w);
-		return this;
+		return new Vector4(
+			Math.round(this.x),
+			Math.round(this.y),
+			Math.round(this.z),
+			Math.round(this.w)
+		);
 	}
 
 	clamp(min: number, max: number) {
-		this.x = clampf(this.x, min, max);
-		this.y = clampf(this.y, min, max);
-		this.z = clampf(this.z, min, max);
-		this.w = clampf(this.w, min, max);
-		return this;
+		return new Vector4(
+			clampf(this.x, min, max),
+			clampf(this.y, min, max),
+			clampf(this.z, min, max),
+			clampf(this.w, min, max)
+		);
 	}
 
 	clamp01() {
-		this.x = clamp01f(this.x);
-		this.y = clamp01f(this.y);
-		this.z = clamp01f(this.z);
-		this.w = clamp01f(this.w);
-		return this;
+		return new Vector4(
+			clamp01f(this.x),
+			clamp01f(this.y),
+			clamp01f(this.z),
+			clamp01f(this.w)
+		);
 	}
 
 	clampMagnitude(maxLength: number) {
@@ -202,11 +215,33 @@ export class Vector4 {
 			return this;
 		}
 		const scale = maxLength / curMag;
-		this.x *= scale;
-		this.y *= scale;
-		this.z *= scale;
-		this.w *= scale;
-		return this;
+		return new Vector4(
+			this.x * scale,
+			this.y * scale,
+			this.z * scale,
+			this.w * scale
+		);
+	}
+
+	distance(to: Vector4) {
+		return to.sub(this).magnitude;
+	}
+
+	sqrDistance(to: Vector4) {
+		return to.sub(this).sqrMagnitude;
+	}
+
+	dot(v: Vector4) {
+		return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
+	}
+
+	mix(v: Vector4, ratio: number) {
+		return new Vector4(
+			mixf(this.x, v.x, ratio),
+			mixf(this.y, v.y, ratio),
+			mixf(this.z, v.z, ratio),
+			mixf(this.w, v.w, ratio)
+		);
 	}
 
 	get magnitude() {
@@ -219,11 +254,11 @@ export class Vector4 {
 		return x * x + y * y + z * z + w * w;
 	}
 
-	normalize() {
+	normalizeSelf() {
 		const { x, y, z, w } = this;
 		let len = x * x + y * y + z * z + w * w;
 		if (len > 0) {
-			len = 1.0 / Math.sqrt(len);
+			len = 1 / Math.sqrt(len);
 		}
 		this.x *= len;
 		this.y *= len;
@@ -233,11 +268,37 @@ export class Vector4 {
 	}
 
 	get normalized() {
-		return this.clone().normalize();
+		return this.clone().normalizeSelf();
 	}
 
 	get signs() {
-		return new Vector4(Math.sign(this.x), Math.sign(this.y), Math.sign(this.z), Math.sign(this.z));
+		return new Vector4(
+			Math.sign(this.x),
+			Math.sign(this.y),
+			Math.sign(this.z),
+			Math.sign(this.z)
+		);
+	}
+
+	moveTowards(target: Vector4, maxDistanceDelta: number) {
+		const diff = target.sub(this);
+		const distToMove = Math.min(maxDistanceDelta, diff.magnitude);
+		return this.mulAdd(diff, distToMove);
+	}
+
+	exactEquals(v: Vector4) {
+		return this.x === v.x && this.y === v.y && this.z === v.z && this.w === v.w;
+	}
+
+	equals(v: Vector4) {
+		const ax = this.x, ay = this.y, az = this.z, aw = this.w;
+		const bx = v.x, by = v.y, bz = v.z, bw = v.w;
+		return (
+			Math.abs(ax - bx) <= VEC_EPSILON * Math.max(1, Math.abs(ax), Math.abs(bx)) &&
+			Math.abs(ay - by) <= VEC_EPSILON * Math.max(1, Math.abs(ay), Math.abs(by)) &&
+			Math.abs(az - bz) <= VEC_EPSILON * Math.max(1, Math.abs(az), Math.abs(bz)) &&
+			Math.abs(aw - bw) <= VEC_EPSILON * Math.max(1, Math.abs(aw), Math.abs(bw))
+		);
 	}
 
 	// sub-vector access
@@ -260,6 +321,40 @@ export class Vector4 {
 	}
 
 	// static operations
+
+	static min(a: Vector4, b: Vector4) {
+		return new Vector4(
+			Math.min(a.x, b.x),
+			Math.min(a.y, b.y),
+			Math.min(a.z, b.z),
+			Math.min(a.w, b.w)
+		);
+	}
+
+	static max(a: Vector4, b: Vector4) {
+		return new Vector4(
+			Math.max(a.x, b.x),
+			Math.max(a.y, b.y),
+			Math.max(a.z, b.z),
+			Math.max(a.w, b.w)
+		);
+	}
+
+	static lerp(from: Vector4, to: Vector4, t: number) {
+		t = clamp01f(t);
+		return from.mulAdd(to.sub(from), t);
+	}
+
+	static lerpUnclamped(from: Vector4, to: Vector4, t: number) {
+		return from.mulAdd(to.sub(from), t);
+	}
+
+	static interpolate(from: Vector4, to: Vector4, t: number, easing: EasingFn) {
+		t = easing(clamp01f(t));
+		return from.mulAdd(to.sub(from), t);
+	}
+
+	// static constructors
 
 	static fromVec2(vec: Vector2, z = 0, w = 0) {
 		return new Vector4(vec.x, vec.y, z, w);
@@ -296,102 +391,6 @@ export class Vector4 {
 			from + Math.random() * range
 		);
 	}
-
-	static add(a: Vector4, b: Vector4) {
-		return a.clone().add(b);
-	}
-
-	static mulAdd(a: Vector4, b: Vector4, factor: number) {
-		return new Vector4(
-			a.x + b.x * factor,
-			a.y + b.y * factor,
-			a.z + b.z * factor,
-			a.w + b.w * factor
-		);
-	}
-
-	static sub(a: Vector4, b: Vector4) {
-		return a.clone().sub(b);
-	}
-
-	static mul(a: Vector4, factor: number) {
-		return a.clone().mul(factor);
-	}
-
-	static div(a: Vector4, factor: number) {
-		return a.clone().div(factor);
-	}
-
-	static scale(a: Vector4, b: Vector4) {
-		return new Vector4(
-			a.x * b.x,
-			a.y * b.y,
-			a.z * b.z,
-			a.w * b.w
-		);
-	}
-
-	static distance(a: Vector4, b: Vector4) {
-		return Vector4.sub(a, b).magnitude;
-	}
-
-	static dot(a: Vector4, b: Vector4) {
-		return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
-	}
-
-	static min(a: Vector4, b: Vector4) {
-		return new Vector4(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z), Math.min(a.w, b.w));
-	}
-
-	static max(a: Vector4, b: Vector4) {
-		return new Vector4(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z), Math.max(a.w, b.w));
-	}
-
-	static mix(a: Vector4, b: Vector4, ratio: number) {
-		return new Vector4(
-			mixf(a.x, b.x, ratio),
-			mixf(a.y, b.y, ratio),
-			mixf(a.z, b.z, ratio),
-			mixf(a.w, b.w, ratio)
-		);
-	}
-
-	static lerp(from: Vector4, to: Vector4, t: number) {
-		t = clamp01f(t);
-		return Vector4.sub(to, from).mul(t).add(from);
-	}
-
-	static lerpUnclamped(from: Vector4, to: Vector4, t: number) {
-		return Vector4.sub(to, from).mul(t).add(from);
-	}
-
-	static interpolate(from: Vector4, to: Vector4, t: number, easing: EasingFn) {
-		t = easing(clamp01f(t));
-		return Vector4.sub(to, from).mul(t).add(from);
-	}
-
-	static moveTowards(current: Vector4, target: Vector4, maxDistanceDelta: number) {
-		const diff = Vector4.sub(target, current);
-		const distToMove = Math.min(maxDistanceDelta, diff.magnitude);
-		return Vector4.mulAdd(current, diff, distToMove);
-	}
-
-	static exactEquals(a: Vector4, b: Vector4) {
-		return a.x === b.x && a.y === b.y && a.z === b.z && a.w === b.w;
-	}
-
-	static equals(a: Vector4, b: Vector4) {
-		const ax = a.x, ay = a.y, az = a.z, aw = a.w;
-		const bx = b.x, by = b.y, bz = b.z, bw = b.w;
-		return (
-			Math.abs(ax - bx) <= VEC_EPSILON * Math.max(1.0, Math.abs(ax), Math.abs(bx)) &&
-			Math.abs(ay - by) <= VEC_EPSILON * Math.max(1.0, Math.abs(ay), Math.abs(by)) &&
-			Math.abs(az - bz) <= VEC_EPSILON * Math.max(1.0, Math.abs(az), Math.abs(bz)) &&
-			Math.abs(aw - bw) <= VEC_EPSILON * Math.max(1.0, Math.abs(aw), Math.abs(bw))
-		);
-	}
-
-	// shorthand static constructors
 
 	static get zero() {
 		return new Vector4(0, 0, 0, 0);

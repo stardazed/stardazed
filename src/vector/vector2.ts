@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { clamp01f, clampf, rad2deg, EasingFn, mixf } from "stardazed/core";
+import { clamp01f, clampf, rad2deg, mixf, EasingFn } from "stardazed/core";
 import { VEC_EPSILON } from "./common";
 
 export class Vector2 {
@@ -123,8 +123,8 @@ export class Vector2 {
 
 	inverse() {
 		return new Vector2(
-			1.0 / this.x,
-			1.0 / this.y
+			1 / this.x,
+			1 / this.y
 		);
 	}
 
@@ -175,6 +175,25 @@ export class Vector2 {
 		);
 	}
 
+	distance(to: Vector2) {
+		return to.sub(this).magnitude;
+	}
+
+	sqrDistance(to: Vector2) {
+		return to.sub(this).sqrMagnitude;
+	}
+
+	dot(v: Vector2) {
+		return this.x * v.x + this.y * v.y;
+	}
+
+	mix(v: Vector2, ratio: number) {
+		return new Vector2(
+			mixf(this.x, v.x, ratio),
+			mixf(this.y, v.y, ratio)
+		);
+	}
+
 	get magnitude() {
 		const { x, y } = this;
 		return Math.sqrt(x * x + y * y);
@@ -189,7 +208,7 @@ export class Vector2 {
 		const { x, y } = this;
 		let len = x * x + y * y;
 		if (len > 0) {
-			len = 1.0 / Math.sqrt(len);
+			len = 1 / Math.sqrt(len);
 		}
 		this.x *= len;
 		this.y *= len;
@@ -205,10 +224,77 @@ export class Vector2 {
 	}
 
 	get signs() {
-		return new Vector2(Math.sign(this.x), Math.sign(this.y));
+		return new Vector2(
+			Math.sign(this.x),
+			Math.sign(this.y)
+		);
+	}
+
+	moveTowards(target: Vector2, maxDistanceDelta: number) {
+		const diff = target.sub(this);
+		const distToMove = Math.min(maxDistanceDelta, diff.magnitude);
+		return this.mulAdd(diff, distToMove);
+	}
+
+	reflect(normal: Vector2) {
+		const out = normal.clone().mul(2 * this.dot(normal));
+		return this.sub(out);
+	}
+
+	exactEquals(v: Vector2) {
+		return this.x === v.x && this.y === v.y;
+	}
+
+	equals(v: Vector2) {
+		const ax = this.x, ay = this.y;
+		const bx = v.x, by = v.y;
+		return (
+			Math.abs(ax - bx) <= VEC_EPSILON * Math.max(1, Math.abs(ax), Math.abs(bx)) &&
+			Math.abs(ay - by) <= VEC_EPSILON * Math.max(1, Math.abs(ay), Math.abs(by))
+		);
 	}
 
 	// static operations
+
+	static angle(a: Vector2, b: Vector2) {
+		return Math.abs(Vector2.signedAngle(a, b));
+	}
+
+	static signedAngle(a: Vector2, b: Vector2) {
+		const cosAngle = a.dot(b) / (a.magnitude * b.magnitude);
+		const rad = Math.acos(cosAngle);
+		return rad2deg(rad);
+	}
+
+	static min(a: Vector2, b: Vector2) {
+		return new Vector2(
+			Math.min(a.x, b.x),
+			Math.min(a.y, b.y)
+		);
+	}
+
+	static max(a: Vector2, b: Vector2) {
+		return new Vector2(
+			Math.max(a.x, b.x),
+			Math.max(a.y, b.y)
+		);
+	}
+
+	static lerp(from: Vector2, to: Vector2, t: number) {
+		t = clamp01f(t);
+		return from.mulAdd(to.sub(from), t);
+	}
+
+	static lerpUnclamped(from: Vector2, to: Vector2, t: number) {
+		return from.mulAdd(to.sub(from), t);
+	}
+
+	static interpolate(from: Vector2, to: Vector2, t: number, easing: EasingFn) {
+		t = easing(clamp01f(t));
+		return from.mulAdd(to.sub(from), t);
+	}
+
+	// static constructors
 
 	static fromArray(arr: NumArray, offset = 0) {
 		if (arr.length < offset + 2) {
@@ -233,89 +319,6 @@ export class Vector2 {
 			from + Math.random() * range
 		);
 	}
-
-	static angle(a: Vector2, b: Vector2) {
-		return Math.abs(Vector2.signedAngle(a, b));
-	}
-
-	static signedAngle(a: Vector2, b: Vector2) {
-		const cosAngle = Vector2.dot(a, b) / (a.magnitude * b.magnitude);
-		const rad = Math.acos(cosAngle);
-		return rad2deg(rad);
-	}
-
-	static distance(a: Vector2, b: Vector2) {
-		return a.sub(b).magnitude;
-	}
-
-	static sqrDistance(a: Vector2, b: Vector2) {
-		return a.sub(b).sqrMagnitude;
-	}
-
-	static dot(a: Vector2, b: Vector2) {
-		return a.x * b.x + a.y * b.y;
-	}
-
-	static min(a: Vector2, b: Vector2) {
-		return new Vector2(
-			Math.min(a.x, b.x),
-			Math.min(a.y, b.y)
-		);
-	}
-
-	static max(a: Vector2, b: Vector2) {
-		return new Vector2(
-			Math.max(a.x, b.x),
-			Math.max(a.y, b.y)
-		);
-	}
-
-	static mix(a: Vector2, b: Vector2, ratio: number) {
-		return new Vector2(
-			mixf(a.x, b.x, ratio),
-			mixf(a.y, b.y, ratio)
-		);
-	}
-
-	static lerp(from: Vector2, to: Vector2, t: number) {
-		t = clamp01f(t);
-		return from.mulAdd(to.sub(from), t);
-	}
-
-	static lerpUnclamped(from: Vector2, to: Vector2, t: number) {
-		return from.mulAdd(to.sub(from), t);
-	}
-
-	static interpolate(from: Vector2, to: Vector2, t: number, easing: EasingFn) {
-		t = easing(clamp01f(t));
-		return from.mulAdd(to.sub(from), t);
-	}
-
-	static moveTowards(current: Vector2, target: Vector2, maxDistanceDelta: number) {
-		const diff = target.sub(current);
-		const distToMove = Math.min(maxDistanceDelta, diff.magnitude);
-		return current.mulAdd(diff, distToMove);
-	}
-
-	static reflect(a: Vector2, normal: Vector2) {
-		const out = normal.clone().mul(2.0 * Vector2.dot(a, normal));
-		return a.sub(out);
-	}
-
-	static exactEquals(a: Vector2, b: Vector2) {
-		return a.x === b.x && a.y === b.y;
-	}
-
-	static equals(a: Vector2, b: Vector2) {
-		const ax = a.x, ay = a.y;
-		const bx = b.x, by = b.y;
-		return (
-			Math.abs(ax - bx) <= VEC_EPSILON * Math.max(1.0, Math.abs(ax), Math.abs(bx)) &&
-			Math.abs(ay - by) <= VEC_EPSILON * Math.max(1.0, Math.abs(ay), Math.abs(by))
-		);
-	}
-
-	// shorthand static constructors
 
 	static get zero() {
 		return new Vector2(0, 0);

@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { clampf, clamp01f, EasingFn, mixf } from "stardazed/core";
+import { clamp01f, clampf, mixf, EasingFn } from "stardazed/core";
 import { VEC_EPSILON } from "./common";
 import { Vector2 } from "./vector2";
 
@@ -68,109 +68,122 @@ export class Vector3 {
 		return new Vector3(this.x, this.y, this.z);
 	}
 
-	set(to: Vector3) {
-		this.x = to.x;
-		this.y = to.y;
-		this.z = to.z;
+	set(x: number, y: number, z: number) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		return this;
+	}
+
+	copyFrom(src: Vector3) {
+		this.x = src.x;
+		this.y = src.y;
+		this.z = src.z;
 		return this;
 	}
 
 	add(other: Vector3) {
-		this.x += other.x;
-		this.y += other.y;
-		this.z += other.z;
-		return this;
+		return new Vector3(
+			this.x + other.x,
+			this.y + other.y,
+			this.z + other.z
+		);
 	}
 
 	mulAdd(other: Vector3, factor: number) {
-		this.x += other.x * factor;
-		this.y += other.y * factor;
-		this.z += other.z * factor;
-		return this;
+		return new Vector3(
+			this.x + other.x * factor,
+			this.y + other.y * factor,
+			this.z + other.z * factor
+		);
 	}
 
 	sub(other: Vector3) {
-		this.x -= other.x;
-		this.y -= other.y;
-		this.z -= other.z;
-		return this;
-	}
-
-	subFrom(other: Vector3) {
-		this.x = other.x - this.x;
-		this.y = other.y - this.y;
-		this.z = other.z - this.z;
-		return this;
+		return new Vector3(
+			this.x - other.x,
+			this.y - other.y,
+			this.z - other.z
+		);
 	}
 
 	mul(factor: number) {
-		this.x *= factor;
-		this.y *= factor;
-		this.z *= factor;
-		return this;
+		return new Vector3(
+			this.x * factor,
+			this.y * factor,
+			this.z * factor
+		);
 	}
 
 	div(factor: number) {
-		this.x /= factor;
-		this.y /= factor;
-		this.z /= factor;
-		return this;
+		return new Vector3(
+			this.x / factor,
+			this.y / factor,
+			this.z / factor
+		);
 	}
 
 	scale(factors: Vector3) {
-		this.x *= factors.x;
-		this.y *= factors.y;
-		this.z *= factors.z;
-		return this;
+		return new Vector3(
+			this.x * factors.x,
+			this.y * factors.y,
+			this.z * factors.z
+		);
 	}
 
 	negate() {
-		this.x = -this.x;
-		this.y = -this.y;
-		this.z = -this.z;
-		return this;
+		return new Vector3(
+			-this.x,
+			-this.y,
+			-this.z
+		);
 	}
 
 	inverse() {
-		this.x = 1.0 / this.x;
-		this.y = 1.0 / this.y;
-		this.z = 1.0 / this.z;
-		return this;
+		return new Vector3(
+			1 / this.x,
+			1 / this.y,
+			1 / this.z
+		);
 	}
 
 	ceil() {
-		this.x = Math.ceil(this.x);
-		this.y = Math.ceil(this.y);
-		this.z = Math.ceil(this.z);
-		return this;
+		return new Vector3(
+			Math.ceil(this.x),
+			Math.ceil(this.y),
+			Math.ceil(this.z)
+		);
 	}
 
 	floor() {
-		this.x = Math.floor(this.x);
-		this.y = Math.floor(this.y);
-		this.z = Math.floor(this.z);
-		return this;
+		return new Vector3(
+			Math.floor(this.x),
+			Math.floor(this.y),
+			Math.floor(this.z)
+		);
 	}
 
 	round() {
-		this.x = Math.round(this.x);
-		this.y = Math.round(this.y);
-		this.z = Math.round(this.z);
-		return this;
+		return new Vector3(
+			Math.round(this.x),
+			Math.round(this.y),
+			Math.round(this.z)
+		);
 	}
 
 	clamp(min: number, max: number) {
-		this.x = clampf(this.x, min, max);
-		this.y = clampf(this.y, min, max);
-		this.z = clampf(this.z, min, max);
-		return this;
+		return new Vector3(
+			clampf(this.x, min, max),
+			clampf(this.y, min, max),
+			clampf(this.z, min, max)
+		);
 	}
 
 	clamp01() {
-		this.x = clamp01f(this.x);
-		this.y = clamp01f(this.y);
-		this.z = clamp01f(this.z);
-		return this;
+		return new Vector3(
+			clamp01f(this.x),
+			clamp01f(this.y),
+			clamp01f(this.z)
+		);
 	}
 
 	clampMagnitude(maxLength: number) {
@@ -179,10 +192,39 @@ export class Vector3 {
 			return this;
 		}
 		const scale = maxLength / curMag;
-		this.x *= scale;
-		this.y *= scale;
-		this.z *= scale;
-		return this;
+		return new Vector3(
+			this.x * scale,
+			this.y * scale,
+			this.z * scale
+		);
+	}
+
+	distance(to: Vector3) {
+		return to.sub(this).magnitude;
+	}
+
+	sqrDistance(to: Vector3) {
+		return to.sub(this).sqrMagnitude;
+	}
+
+	dot(v: Vector3) {
+		return this.x * v.x + this.y * v.y + this.z * v.z;
+	}
+
+	cross(v: Vector3) {
+		return new Vector3(
+			this.y * v.z - this.z * v.y,
+			this.z * v.x - this.x * v.z,
+			this.x * v.y - this.y * v.x
+		);
+	}
+
+	mix(v: Vector3, ratio: number) {
+		return new Vector3(
+			mixf(this.x, v.x, ratio),
+			mixf(this.y, v.y, ratio),
+			mixf(this.z, v.z, ratio)
+		);
 	}
 
 	get magnitude() {
@@ -195,11 +237,11 @@ export class Vector3 {
 		return x * x + y * y + z * z;
 	}
 
-	normalize() {
+	normalizeSelf() {
 		const { x, y , z } = this;
 		let len = x * x + y * y + z * z;
 		if (len > 0) {
-			len = 1.0 / Math.sqrt(len);
+			len = 1 / Math.sqrt(len);
 		}
 		this.x *= len;
 		this.y *= len;
@@ -208,11 +250,39 @@ export class Vector3 {
 	}
 
 	get normalized() {
-		return this.clone().normalize();
+		return this.clone().normalizeSelf();
 	}
 
 	get signs() {
-		return new Vector3(Math.sign(this.x), Math.sign(this.y), Math.sign(this.z));
+		return new Vector3(
+			Math.sign(this.x),
+			Math.sign(this.y),
+			Math.sign(this.z)
+		);
+	}
+
+	moveTowards(target: Vector3, maxDistanceDelta: number) {
+		const diff = target.sub(this);
+		const distToMove = Math.min(maxDistanceDelta, diff.magnitude);
+		return this.mulAdd(diff, distToMove);
+	}
+
+	reflect(normal: Vector3) {
+		return this.sub(normal.mul(2 * this.dot(normal)));
+	}
+
+	exactEquals(v: Vector3) {
+		return this.x === v.x && this.y === v.y && this.z === v.z;
+	}
+
+	equals(v: Vector3) {
+		const ax = this.x, ay = this.y, az = this.z;
+		const bx = v.x, by = v.y, bz = v.z;
+		return (
+			Math.abs(ax - bx) <= VEC_EPSILON * Math.max(1, Math.abs(ax), Math.abs(bx)) &&
+			Math.abs(ay - by) <= VEC_EPSILON * Math.max(1, Math.abs(ay), Math.abs(by)) &&
+			Math.abs(az - bz) <= VEC_EPSILON * Math.max(1, Math.abs(az), Math.abs(bz))
+		);
 	}
 
 	// sub-vector access
@@ -235,7 +305,39 @@ export class Vector3 {
 
 	// static operations
 
-	static fromVec2(vec: Vector2, z = 0) {
+	static min(a: Vector3, b: Vector3) {
+		return new Vector3(
+			Math.min(a.x, b.x),
+			Math.min(a.y, b.y),
+			Math.min(a.z, b.z)
+		);
+	}
+
+	static max(a: Vector3, b: Vector3) {
+		return new Vector3(
+			Math.max(a.x, b.x),
+			Math.max(a.y, b.y),
+			Math.max(a.z, b.z)
+		);
+	}
+
+	static lerp(from: Vector3, to: Vector3, t: number) {
+		t = clamp01f(t);
+		return from.mulAdd(to.sub(from), t);
+	}
+
+	static lerpUnclamped(from: Vector3, to: Vector3, t: number) {
+		return from.mulAdd(to.sub(from), t);
+	}
+
+	static interpolate(from: Vector3, to: Vector3, t: number, easing: EasingFn) {
+		t = easing(clamp01f(t));
+		return from.mulAdd(to.sub(from), t);
+	}
+
+	// static constructors
+
+	static fromVector2(vec: Vector2, z = 0) {
 		return new Vector3(vec.x, vec.y, z);
 	}
 
@@ -264,111 +366,6 @@ export class Vector3 {
 			from + Math.random() * range
 		);
 	}
-
-	static add(a: Vector3, b: Vector3) {
-		return a.clone().add(b);
-	}
-
-	static mulAdd(a: Vector3, b: Vector3, factor: number) {
-		return new Vector3(
-			a.x + b.x * factor,
-			a.y + b.y * factor,
-			a.z + b.z * factor
-		);
-	}
-
-	static sub(a: Vector3, b: Vector3) {
-		return a.clone().sub(b);
-	}
-
-	static mul(a: Vector3, factor: number) {
-		return a.clone().mul(factor);
-	}
-
-	static div(a: Vector3, factor: number) {
-		return a.clone().div(factor);
-	}
-
-	static scale(a: Vector3, b: Vector3) {
-		return new Vector3(
-			a.x * b.x,
-			a.y * b.y,
-			a.z * b.z,
-		);
-	}
-
-	static distance(a: Vector3, b: Vector3) {
-		return Vector3.sub(a, b).magnitude;
-	}
-
-	static dot(a: Vector3, b: Vector3) {
-		return a.x * b.x + a.y * b.y + a.z * b.z;
-	}
-
-	static cross(a: Vector3, b: Vector3) {
-		return new Vector3(
-			a.y * b.z - a.z * b.y,
-			a.z * b.x - a.x * b.z,
-			a.x * b.y - a.y * b.x
-		);
-	}
-
-	static min(a: Vector3, b: Vector3) {
-		return new Vector3(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z));
-	}
-
-	static max(a: Vector3, b: Vector3) {
-		return new Vector3(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z));
-	}
-
-	static mix(a: Vector3, b: Vector3, ratio: number) {
-		return new Vector3(
-			mixf(a.x, b.x, ratio),
-			mixf(a.y, b.y, ratio),
-			mixf(a.z, b.z, ratio)
-		);
-	}
-
-	static lerp(from: Vector3, to: Vector3, t: number) {
-		t = clamp01f(t);
-		return Vector3.sub(to, from).mul(t).add(from);
-	}
-
-	static lerpUnclamped(from: Vector3, to: Vector3, t: number) {
-		return Vector3.sub(to, from).mul(t).add(from);
-	}
-
-	static interpolate(from: Vector3, to: Vector3, t: number, easing: EasingFn) {
-		t = easing(clamp01f(t));
-		return Vector3.sub(to, from).mul(t).add(from);
-	}
-
-	static moveTowards(current: Vector3, target: Vector3, maxDistanceDelta: number) {
-		const diff = Vector3.sub(target, current);
-		const distToMove = Math.min(maxDistanceDelta, diff.magnitude);
-		return Vector3.mulAdd(current, diff, distToMove);
-	}
-
-	static reflect(a: Vector3, normal: Vector3) {
-		const out = normal.clone().mul(2.0 * Vector3.dot(a, normal));
-		return out.subFrom(a);
-	}
-
-	static exactEquals(a: Vector3, b: Vector3) {
-		return a.x === b.x && a.y === b.y && a.z === b.z;
-	}
-
-	static equals(a: Vector3, b: Vector3) {
-		const ax = a.x, ay = a.y, az = a.z;
-		const bx = b.x, by = b.y, bz = b.z;
-		return (
-			Math.abs(ax - bx) <= VEC_EPSILON * Math.max(1.0, Math.abs(ax), Math.abs(bx)) &&
-			Math.abs(ay - by) <= VEC_EPSILON * Math.max(1.0, Math.abs(ay), Math.abs(by)) &&
-			Math.abs(az - bz) <= VEC_EPSILON * Math.max(1.0, Math.abs(az), Math.abs(bz))
-		);
-	}
-
-	// shorthand static constructors
 
 	static get zero() {
 		return new Vector3(0, 0, 0);
