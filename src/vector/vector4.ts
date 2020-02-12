@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { clamp01f, clampf, mixf, EasingFn } from "stardazed/core";
+import { clamp01f, clampf, mixf, EasingFn, Easing } from "stardazed/core";
 import { VEC_EPSILON } from "./common";
 import { Vector2 } from "./vector2";
 import { Vector3 } from "./vector3";
@@ -48,6 +48,10 @@ export class Vector4 {
 	get 3() { return this.w; }
 	set 3(w) { this.w = w; }
 
+	clone() {
+		return new Vector4(this.x, this.y, this.z, this.w);
+	}
+
 	asArray() {
 		return [this.x, this.y, this.z, this.w];
 	}
@@ -56,7 +60,7 @@ export class Vector4 {
 		return ctor.of(this.x, this.y, this.z, this.w);
 	}
 
-	readFromArray(arr: NumArray, offset: number) {
+	setFromArray(arr: NumArray, offset: number) {
 		this.x = arr[offset];
 		this.y = arr[offset + 1];
 		this.z = arr[offset + 2];
@@ -72,11 +76,7 @@ export class Vector4 {
 		return this;
 	}
 
-	clone() {
-		return new Vector4(this.x, this.y, this.z, this.w);
-	}
-
-	set(x: number, y: number, z: number, w: number) {
+	setElements(x: number, y: number, z: number, w: number) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -84,7 +84,7 @@ export class Vector4 {
 		return this;
 	}
 
-	copyFrom(src: Vector4) {
+	setFromVector4(src: Vector4) {
 		this.x = src.x;
 		this.y = src.y;
 		this.z = src.z;
@@ -92,30 +92,30 @@ export class Vector4 {
 		return this;
 	}
 
-	add(other: Vector4) {
+	add(v: Vector4) {
 		return new Vector4(
-			this.x + other.x,
-			this.y + other.y,
-			this.z + other.z,
-			this.w + other.w
+			this.x + v.x,
+			this.y + v.y,
+			this.z + v.z,
+			this.w + v.w
 		);
 	}
 
-	mulAdd(other: Vector4, factor: number) {
+	mulAdd(v: Vector4, factor: number) {
 		return new Vector4(
-			this.x + other.x * factor,
-			this.y + other.y * factor,
-			this.z + other.z * factor,
-			this.w + other.w * factor
+			this.x + v.x * factor,
+			this.y + v.y * factor,
+			this.z + v.z * factor,
+			this.w + v.w * factor
 		);
 	}
 
-	sub(other: Vector4) {
+	sub(v: Vector4) {
 		return new Vector4(
-			this.x - other.x,
-			this.y - other.y,
-			this.z - other.z,
-			this.w - other.w
+			this.x - v.x,
+			this.y - v.y,
+			this.z - v.z,
+			this.w - v.w
 		);
 	}
 
@@ -244,17 +244,7 @@ export class Vector4 {
 		);
 	}
 
-	get magnitude() {
-		const { x, y, z, w } = this;
-		return Math.sqrt(x * x + y * y + z * z + w * w);
-	}
-
-	get sqrMagnitude() {
-		const { x, y, z, w } = this;
-		return x * x + y * y + z * z + w * w;
-	}
-
-	normalizeSelf() {
+	setNormalized() {
 		const { x, y, z, w } = this;
 		let len = x * x + y * y + z * z + w * w;
 		if (len > 0) {
@@ -267,8 +257,18 @@ export class Vector4 {
 		return this;
 	}
 
-	get normalized() {
-		return this.clone().normalizeSelf();
+	normalize() {
+		return this.clone().setNormalized();
+	}
+
+	get magnitude() {
+		const { x, y, z, w } = this;
+		return Math.sqrt(x * x + y * y + z * z + w * w);
+	}
+
+	get sqrMagnitude() {
+		const { x, y, z, w } = this;
+		return x * x + y * y + z * z + w * w;
 	}
 
 	get signs() {
@@ -340,8 +340,8 @@ export class Vector4 {
 		);
 	}
 
-	static lerp(from: Vector4, to: Vector4, t: number) {
-		t = clamp01f(t);
+	static lerp(from: Vector4, to: Vector4, t: number, easing: EasingFn = Easing.linear) {
+		t = easing(clamp01f(t));
 		return from.mulAdd(to.sub(from), t);
 	}
 
@@ -349,18 +349,13 @@ export class Vector4 {
 		return from.mulAdd(to.sub(from), t);
 	}
 
-	static interpolate(from: Vector4, to: Vector4, t: number, easing: EasingFn) {
-		t = easing(clamp01f(t));
-		return from.mulAdd(to.sub(from), t);
-	}
-
 	// static constructors
 
-	static fromVec2(vec: Vector2, z = 0, w = 0) {
+	static fromVector2(vec: Vector2, z = 0, w = 0) {
 		return new Vector4(vec.x, vec.y, z, w);
 	}
 
-	static fromVec3(vec: Vector3, w = 0) {
+	static fromVector3(vec: Vector3, w = 0) {
 		return new Vector4(vec.x, vec.y, vec.z, w);
 	}
 
@@ -382,13 +377,13 @@ export class Vector4 {
 		return new Vector4(x.value, y.value, z.value, w.value);
 	}
 
-	static random(from = 0, to = 1) {
-		const range = to - from;
+	static random(min = 0, max = 1) {
+		const range = max - min;
 		return new Vector4(
-			from + Math.random() * range,
-			from + Math.random() * range,
-			from + Math.random() * range,
-			from + Math.random() * range
+			min + Math.random() * range,
+			min + Math.random() * range,
+			min + Math.random() * range,
+			min + Math.random() * range
 		);
 	}
 

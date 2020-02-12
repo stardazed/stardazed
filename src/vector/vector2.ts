@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { clamp01f, clampf, rad2deg, mixf, EasingFn } from "stardazed/core";
+import { clamp01f, clampf, rad2deg, mixf, EasingFn, Easing } from "stardazed/core";
 import { VEC_EPSILON } from "./common";
 
 export class Vector2 {
@@ -36,6 +36,10 @@ export class Vector2 {
 	get 1() { return this.y; }
 	set 1(y) { this.y = y; }
 
+	clone() {
+		return new Vector2(this.x, this.y);
+	}
+
 	asArray() {
 		return [this.x, this.y];
 	}
@@ -44,7 +48,7 @@ export class Vector2 {
 		return ctor.of(this.x, this.y);
 	}
 
-	readFromArray(arr: NumArray, offset: number) {
+	setFromArray(arr: NumArray, offset: number) {
 		this.x = arr[offset];
 		this.y = arr[offset + 1];
 		return this;
@@ -56,40 +60,36 @@ export class Vector2 {
 		return this;
 	}
 
-	clone() {
-		return new Vector2(this.x, this.y);
-	}
-
-	set(x: number, y: number) {
+	setElements(x: number, y: number) {
 		this.x = x;
 		this.y = y;
 		return this;
 	}
 
-	copyFrom(src: Vector2) {
+	setFromVector2(src: Vector2) {
 		this.x = src.x;
 		this.y = src.y;
 		return this;
 	}
 
-	add(other: Vector2) {
+	add(v: Vector2) {
 		return new Vector2(
-			this.x + other.x,
-			this.y + other.y
+			this.x + v.x,
+			this.y + v.y
 		);
 	}
 
-	mulAdd(other: Vector2, factor: number) {
+	mulAdd(v: Vector2, factor: number) {
 		return new Vector2(
-			this.x + other.x * factor,
-			this.y + other.y * factor
+			this.x + v.x * factor,
+			this.y + v.y * factor
 		);
 	}
 
-	sub(other: Vector2) {
+	sub(v: Vector2) {
 		return new Vector2(
-			this.x - other.x,
-			this.y - other.y
+			this.x - v.x,
+			this.y - v.y
 		);
 	}
 
@@ -194,17 +194,7 @@ export class Vector2 {
 		);
 	}
 
-	get magnitude() {
-		const { x, y } = this;
-		return Math.sqrt(x * x + y * y);
-	}
-
-	get sqrMagnitude() {
-		const { x, y } = this;
-		return x * x + y * y;
-	}
-
-	normalizeSelf() {
+	setNormalized() {
 		const { x, y } = this;
 		let len = x * x + y * y;
 		if (len > 0) {
@@ -215,8 +205,18 @@ export class Vector2 {
 		return this;
 	}
 
-	get normalized() {
-		return this.clone().normalizeSelf();
+	normalize() {
+		return this.clone().setNormalized();
+	}
+
+	get magnitude() {
+		const { x, y } = this;
+		return Math.sqrt(x * x + y * y);
+	}
+
+	get sqrMagnitude() {
+		const { x, y } = this;
+		return x * x + y * y;
 	}
 
 	get perpendicular() {
@@ -280,17 +280,12 @@ export class Vector2 {
 		);
 	}
 
-	static lerp(from: Vector2, to: Vector2, t: number) {
-		t = clamp01f(t);
+	static lerp(from: Vector2, to: Vector2, t: number, easing: EasingFn = Easing.linear) {
+		t = easing(clamp01f(t));
 		return from.mulAdd(to.sub(from), t);
 	}
 
 	static lerpUnclamped(from: Vector2, to: Vector2, t: number) {
-		return from.mulAdd(to.sub(from), t);
-	}
-
-	static interpolate(from: Vector2, to: Vector2, t: number, easing: EasingFn) {
-		t = easing(clamp01f(t));
 		return from.mulAdd(to.sub(from), t);
 	}
 
@@ -312,11 +307,11 @@ export class Vector2 {
 		return new Vector2(x.value, y.value);
 	}
 
-	static random(from = 0, to = 1) {
-		const range = to - from;
+	static random(min = 0, max = 1) {
+		const range = max - min;
 		return new Vector2(
-			from + Math.random() * range,
-			from + Math.random() * range
+			min + Math.random() * range,
+			min + Math.random() * range
 		);
 	}
 

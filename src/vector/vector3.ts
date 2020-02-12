@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { clamp01f, clampf, mixf, EasingFn } from "stardazed/core";
+import { clamp01f, clampf, mixf, EasingFn, Easing } from "stardazed/core";
 import { VEC_EPSILON } from "./common";
 import { Vector2 } from "./vector2";
 
@@ -42,6 +42,10 @@ export class Vector3 {
 	get 2() { return this.z; }
 	set 2(z) { this.z = z; }
 
+	clone() {
+		return new Vector3(this.x, this.y, this.z);
+	}
+
 	asArray() {
 		return [this.x, this.y, this.z];
 	}
@@ -50,7 +54,7 @@ export class Vector3 {
 		return ctor.of(this.x, this.y, this.z);
 	}
 
-	readFromArray(arr: NumArray, offset: number) {
+	setFromArray(arr: NumArray, offset: number) {
 		this.x = arr[offset];
 		this.y = arr[offset + 1];
 		this.z = arr[offset + 2];
@@ -64,45 +68,41 @@ export class Vector3 {
 		return this;
 	}
 
-	clone() {
-		return new Vector3(this.x, this.y, this.z);
-	}
-
-	set(x: number, y: number, z: number) {
+	setElements(x: number, y: number, z: number) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 		return this;
 	}
 
-	copyFrom(src: Vector3) {
+	setFromVector3(src: Vector3) {
 		this.x = src.x;
 		this.y = src.y;
 		this.z = src.z;
 		return this;
 	}
 
-	add(other: Vector3) {
+	add(v: Vector3) {
 		return new Vector3(
-			this.x + other.x,
-			this.y + other.y,
-			this.z + other.z
+			this.x + v.x,
+			this.y + v.y,
+			this.z + v.z
 		);
 	}
 
-	mulAdd(other: Vector3, factor: number) {
+	mulAdd(v: Vector3, factor: number) {
 		return new Vector3(
-			this.x + other.x * factor,
-			this.y + other.y * factor,
-			this.z + other.z * factor
+			this.x + v.x * factor,
+			this.y + v.y * factor,
+			this.z + v.z * factor
 		);
 	}
 
-	sub(other: Vector3) {
+	sub(v: Vector3) {
 		return new Vector3(
-			this.x - other.x,
-			this.y - other.y,
-			this.z - other.z
+			this.x - v.x,
+			this.y - v.y,
+			this.z - v.z
 		);
 	}
 
@@ -227,18 +227,8 @@ export class Vector3 {
 		);
 	}
 
-	get magnitude() {
+	setNormalized() {
 		const { x, y, z } = this;
-		return Math.sqrt(x * x + y * y + z * z);
-	}
-
-	get sqrMagnitude() {
-		const { x, y, z } = this;
-		return x * x + y * y + z * z;
-	}
-
-	normalizeSelf() {
-		const { x, y , z } = this;
 		let len = x * x + y * y + z * z;
 		if (len > 0) {
 			len = 1 / Math.sqrt(len);
@@ -249,8 +239,18 @@ export class Vector3 {
 		return this;
 	}
 
-	get normalized() {
-		return this.clone().normalizeSelf();
+	normalize() {
+		return this.clone().setNormalized();
+	}
+
+	get magnitude() {
+		const { x, y, z } = this;
+		return Math.sqrt(x * x + y * y + z * z);
+	}
+
+	get sqrMagnitude() {
+		const { x, y, z } = this;
+		return x * x + y * y + z * z;
 	}
 
 	get signs() {
@@ -321,17 +321,12 @@ export class Vector3 {
 		);
 	}
 
-	static lerp(from: Vector3, to: Vector3, t: number) {
-		t = clamp01f(t);
+	static lerp(from: Vector3, to: Vector3, t: number, easing: EasingFn = Easing.linear) {
+		t = easing(clamp01f(t));
 		return from.mulAdd(to.sub(from), t);
 	}
 
 	static lerpUnclamped(from: Vector3, to: Vector3, t: number) {
-		return from.mulAdd(to.sub(from), t);
-	}
-
-	static interpolate(from: Vector3, to: Vector3, t: number, easing: EasingFn) {
-		t = easing(clamp01f(t));
 		return from.mulAdd(to.sub(from), t);
 	}
 
@@ -358,12 +353,12 @@ export class Vector3 {
 		return new Vector3(x.value, y.value, z.value);
 	}
 
-	static random(from = 0, to = 1) {
-		const range = to - from;
+	static random(min = 0, max = 1) {
+		const range = max - min;
 		return new Vector3(
-			from + Math.random() * range,
-			from + Math.random() * range,
-			from + Math.random() * range
+			min + Math.random() * range,
+			min + Math.random() * range,
+			min + Math.random() * range
 		);
 	}
 
