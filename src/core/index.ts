@@ -12,5 +12,5 @@ export * from "./math";
 export * from "./numeric";
 
 export type EasingFn = (t: number) => number;
-import * as easing from "./easing";
-export { easing };
+import * as Easing from "./easing";
+export { Easing };
