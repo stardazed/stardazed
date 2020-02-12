@@ -24,6 +24,7 @@
 		"vector2.ts",
 		"vector3.ts",
 		"vector4.ts",
+		"quaternion.ts",
 
 		"vecarray.ts",
 
