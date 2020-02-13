@@ -196,6 +196,32 @@ export class Quaternion {
 
 	// static operations
 
+	static applyToVector(q: Quaternion, v: Vector3): Vector3;
+	static applyToVector(q: Quaternion, v: Vector4): Vector4;
+	static applyToVector(q: Quaternion, v: Vector3 | Vector4) {
+		const { x, y, z } = v;
+		const { x: qx, y: qy, z: qz, w: qw } = q;
+
+		// calculate quat * vec
+		const ix = qw * x + qy * z - qz * y;
+		const iy = qw * y + qz * x - qx * z;
+		const iz = qw * z + qx * y - qy * x;
+		const iw = -qx * x - qy * y - qz * z;
+
+		// calculate result * inverse quat
+		v.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+		v.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+		v.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+		return v;
+	}
+
+	static transformVector(q: Quaternion, v: Vector3): Vector3;
+	static transformVector(q: Quaternion, v: Vector4): Vector4;
+	static transformVector(q: Quaternion, v: Vector3 | Vector4) {
+		// TS doesn't like the clone call result, so we force it
+		return Quaternion.applyToVector(q, v.clone() as any) as typeof v;
+	}
+
 	static slerp(from: Quaternion, to: Quaternion, t: number, easing: EasingFn = Easing.linear) {
 		t = easing(clamp01f(t));
 		return Quaternion.slerpUnclamped(from, to, t);
