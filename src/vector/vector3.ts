@@ -330,6 +330,20 @@ export class Vector3 {
 		return from.mulAdd(to.sub(from), t);
 	}
 
+	static orthoNormalize(normal: Vector3, tangent: Vector3) {
+		// normalizeInPlace(normal);
+		normal.setNormalized();
+		// auto proj = normal * dot(tangent, normal);
+		const proj = normal.mul(tangent.dot(normal));
+		// tangent -= proj;
+		tangent.x -= proj.x;
+		tangent.y -= proj.y;
+		tangent.z -= proj.z;
+		// normalizeInPlace(tangent);
+		tangent.setNormalized();
+	}
+
+
 	// static constructors
 
 	static fromVector2(vec: Vector2, z = 0) {
