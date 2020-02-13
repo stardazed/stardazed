@@ -172,7 +172,7 @@ export class Quaternion {
 		return this.x * q.x + this.y * q.y + this.z * q.z + this.w * q.w;
 	}
 
-	inverse() {
+	invert() {
 		const { x, y, z, w } = this;
 		const dot = x * x + y * y + z * z + w * w;
 		const invDot = dot ? 1 / dot : 0;
