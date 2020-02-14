@@ -90,12 +90,26 @@ export class Vector3 {
 		);
 	}
 
+	setAdding(v: Vector3) {
+		this.x += v.x;
+		this.y += v.y;
+		this.z += v.z;
+		return this;
+	}
+
 	mulAdd(v: Vector3, factor: number) {
 		return new Vector3(
 			this.x + v.x * factor,
 			this.y + v.y * factor,
 			this.z + v.z * factor
 		);
+	}
+
+	setMultiplyAdding(v: Vector3, factor: number) {
+		this.x += v.x * factor;
+		this.y += v.y * factor;
+		this.z += v.z * factor;
+		return this;
 	}
 
 	sub(v: Vector3) {
@@ -106,12 +120,26 @@ export class Vector3 {
 		);
 	}
 
+	setSubtracting(v: Vector3) {
+		this.x -= v.x;
+		this.y -= v.y;
+		this.z -= v.z;
+		return this;
+	}
+
 	mul(factor: number) {
 		return new Vector3(
 			this.x * factor,
 			this.y * factor,
 			this.z * factor
 		);
+	}
+
+	setMultiplying(factor: number) {
+		this.x *= factor;
+		this.y *= factor;
+		this.z *= factor;
+		return this;
 	}
 
 	div(factor: number) {
@@ -122,12 +150,26 @@ export class Vector3 {
 		);
 	}
 
+	setDividing(factor: number) {
+		this.x /= factor;
+		this.y /= factor;
+		this.z /= factor;
+		return this;
+	}
+
 	scale(factors: Vector3) {
 		return new Vector3(
 			this.x * factors.x,
 			this.y * factors.y,
 			this.z * factors.z
 		);
+	}
+
+	setScaling(factors: Vector3) {
+		this.x *= factors.x;
+		this.y *= factors.y;
+		this.z *= factors.z;
+		return this;
 	}
 
 	negate() {
@@ -138,12 +180,26 @@ export class Vector3 {
 		);
 	}
 
+	setNegated() {
+		this.x = -this.x;
+		this.x = -this.y;
+		this.x = -this.z;
+		return this;
+	}
+
 	inverse() {
 		return new Vector3(
 			1 / this.x,
 			1 / this.y,
 			1 / this.z
 		);
+	}
+
+	setInverted() {
+		this.x = 1 / this.x;
+		this.x = 1 / this.y;
+		this.x = 1 / this.z;
+		return this;
 	}
 
 	ceil() {
