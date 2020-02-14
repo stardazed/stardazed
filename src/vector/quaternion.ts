@@ -305,26 +305,6 @@ export class Quaternion {
 		return new Quaternion(x.value, y.value, z.value, w.value);
 	}
 
-	static lookRotation(forward: Vector3, up: Vector3) {
-		const localForward = forward.clone();
-		const localUp = up.clone();
-		Vector3.orthoNormalize(localForward, localUp);
-		const localRight = localUp.cross(localForward);
-
-		const w = Math.sqrt(1 + localRight.x + localUp.y + localForward.z) * 0.5;
-		if (Math.abs(w) < VEC_EPSILON) {
-			return Quaternion.fromAxisAngle(Vector3.up, 180);
-		}
-
-		const oneOver4w = 1 / (4 * w);
-		return new Quaternion(
-			(localUp.z - localForward.y) * oneOver4w,
-			(localForward.x - localRight.z) * oneOver4w,
-			(localRight.y - localUp.x) * oneOver4w,
-			w
-		);
-	}
-
 	static get identity() {
 		return new Quaternion(0, 0, 0, 1);
 	}
