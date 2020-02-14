@@ -81,6 +81,10 @@ export class Matrix {
 		return new Matrix().setFromArray(this.data_, 0);
 	}
 
+	get data() {
+		return this.data_;
+	}
+
 	asArray() {
 		return Array.from(this.data_);
 	}
@@ -200,6 +204,30 @@ export class Matrix {
 	// static operations
 
 	// static constructors
+
+	static fromArray(arr: NumArray, offset = 0) {
+		if (arr.length < offset + 16) {
+			throw new RangeError(`Cannot get 16 values starting at offset ${offset} (out of bounds)`);
+		}
+		return new Matrix(
+			arr[offset + 0], arr[offset + 1], arr[offset + 2], arr[offset + 3],
+			arr[offset + 4], arr[offset + 5], arr[offset + 6], arr[offset + 7],
+			arr[offset + 8], arr[offset + 9], arr[offset + 10], arr[offset + 11],
+			arr[offset + 12], arr[offset + 13], arr[offset + 14], arr[offset + 15]
+		);
+	}
+
+	static from(iter: Iterator<number>) {
+		const m = new Matrix();
+		for (let n = 0; n < 16; ++n) {
+			const v = iter.next();
+			if (v.done) {
+				throw new RangeError("Could not get 16 values out of iterator");
+			}
+			m.data_[n] = v.value;
+		}
+		return m;
+	}
 
 	static trs(pos: Vector3, q: Quaternion, s: Vector3) {
 		return new Matrix().setTRS(pos, q, s);
