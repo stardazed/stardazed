@@ -5,6 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
+import { AngleConvert } from "stardazed/core";
 import { Vector3 } from "./vector3";
 import { Vector4 } from "./vector4";
 import { Quaternion } from "./quaternion";
@@ -14,13 +15,30 @@ export class Matrix {
 
 	constructor();
 	constructor(col0: Vector4, col1: Vector4, col2: Vector4, col3: Vector4);
-	constructor(col0?: Vector4, col1?: Vector4, col2?: Vector4, col3?: Vector4) {
-		if (col0) {
+	constructor(m00: number, m01: number, m02: number, m03: number,
+		m10: number, m11: number, m12: number, m13: number,
+		m20: number, m21: number, m22: number, m23: number,
+		m30: number, m31: number, m32: number, m33: number);
+	constructor(m00?: Vector4 | number, m01?: Vector4 | number, m02?: Vector4 | number, m03?: Vector4 | number,
+		m10?: number, m11?: number, m12?: number, m13?: number,
+		m20?: number, m21?: number, m22?: number, m23?: number,
+		m30?: number, m31?: number, m32?: number, m33?: number
+	) {
+		if (arguments.length === 4) {
+			const col0 = m00! as Vector4, col1 = m01! as Vector4, col2 = m02! as Vector4, col3 = m03! as Vector4;
 			this.data_ = new Float32Array([
 				col0.x, col0.y, col0.z, col0.w,
 				col1!.x, col1!.y, col1!.z, col1!.w,
 				col2!.x, col2!.y, col2!.z, col2!.w,
 				col3!.x, col3!.y, col3!.z, col3!.w
+			]);
+		}
+		else if (arguments.length === 16) {
+			this.data_ = new Float32Array([
+				m00! as number, m01! as number, m02! as number, m03! as number,
+				m10!, m11!, m12!, m13!,
+				m20!, m21!, m22!, m23!,
+				m30!, m31!, m32!, m33!,
 			]);
 		}
 		else {
@@ -61,6 +79,14 @@ export class Matrix {
 
 	clone() {
 		return new Matrix().setFromArray(this.data_, 0);
+	}
+
+	asArray() {
+		return Array.from(this.data_);
+	}
+
+	asTypedArray(ctor: TypedArrayConstructor = Float32Array) {
+		return ctor.from(this.data_);
 	}
 
 	setFromArray(arr: NumArray, offset: number) {
@@ -132,6 +158,45 @@ export class Matrix {
 		return this;
 	}
 
+	mul(other: Matrix) {
+		const a = this.data_;
+		const b = other.data_;
+		const m = new Matrix();
+		const out = m.data_;
+
+		const a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+		a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
+		a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
+		a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
+
+		// Cache only the current line of the second matrix
+		let b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+		out[0] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+		out[1] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+		out[2] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+		out[3] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+		b0 = b[4]; b1 = b[5]; b2 = b[6]; b3 = b[7];
+		out[4] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+		out[5] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+		out[6] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+		out[7] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+		b0 = b[8]; b1 = b[9]; b2 = b[10]; b3 = b[11];
+		out[8] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+		out[9] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+		out[10] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+		out[11] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+		b0 = b[12]; b1 = b[13]; b2 = b[14]; b3 = b[15];
+		out[12] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+		out[13] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+		out[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+		out[15] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+		return m;
+	}
+
 	// static operations
 
 	// static constructors
@@ -144,8 +209,16 @@ export class Matrix {
 		return new Matrix().setTRS(from, Quaternion.lookRotation(to.sub(from), up), Vector3.up);
 	}
 
-	static perspective() {
+	static perspective(fovDegrees: number, aspect: number, zNear: number, zFar: number) {
+		const tanHalfFov = Math.tan((AngleConvert.DEG2RAD * fovDegrees) / 2);
 
+		const result = new Matrix();
+		result.data_[0] = 1 / (aspect * tanHalfFov);
+		result.data_[5] = 1 / tanHalfFov;
+		result.data_[10] = -(zFar + zNear) / (zFar - zNear);
+		result.data_[11] = -1;
+		result.data_[14] = -(2 * zFar * zNear) / (zFar - zNear);
+		return result;
 	}
 
 	static get identity() {
