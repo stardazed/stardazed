@@ -397,6 +397,10 @@ export class Vector4 {
 		);
 	}
 
+	static splat(n: number) {
+		return new Vector4(n, n, n, n);
+	}
+
 	static get zero() {
 		return new Vector4(0, 0, 0, 0);
 	}

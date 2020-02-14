@@ -385,6 +385,10 @@ export class Vector3 {
 		);
 	}
 
+	static splat(n: number) {
+		return new Vector3(n, n, n);
+	}
+
 	static get zero() {
 		return new Vector3(0, 0, 0);
 	}

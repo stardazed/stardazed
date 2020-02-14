@@ -323,6 +323,10 @@ export class Vector2 {
 		);
 	}
 
+	static splat(n: number) {
+		return new Vector2(n, n);
+	}
+
 	static get zero() {
 		return new Vector2(0, 0);
 	}
