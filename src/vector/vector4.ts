@@ -191,12 +191,22 @@ export class Vector4 {
 		);
 	}
 
-	clamp(min: number, max: number) {
+	clamp(min: number, max: number): Vector4;
+	clamp(min: Vector4, max: Vector4): Vector4;
+	clamp(min: number | Vector4, max: number | Vector4) {
+		if (typeof min === "number") {
+			return new Vector4(
+				clampf(this.x, min, max as number),
+				clampf(this.y, min, max as number),
+				clampf(this.z, min, max as number),
+				clampf(this.w, min, max as number)
+			);
+		}
 		return new Vector4(
-			clampf(this.x, min, max),
-			clampf(this.y, min, max),
-			clampf(this.z, min, max),
-			clampf(this.w, min, max)
+			clampf(this.x, min.x, (max as Vector4).x),
+			clampf(this.y, min.y, (max as Vector4).y),
+			clampf(this.z, min.z, (max as Vector4).z),
+			clampf(this.w, min.w, (max as Vector4).w)
 		);
 	}
 

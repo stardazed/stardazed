@@ -149,10 +149,18 @@ export class Vector2 {
 		);
 	}
 
-	clamp(min: number, max: number) {
+	clamp(min: number, max: number): Vector2;
+	clamp(min: Vector2, max: Vector2): Vector2;
+	clamp(min: number | Vector2, max: number | Vector2) {
+		if (typeof min === "number") {
+			return new Vector2(
+				clampf(this.x, min, max as number),
+				clampf(this.y, min, max as number)
+			);
+		}
 		return new Vector2(
-			clampf(this.x, min, max),
-			clampf(this.y, min, max)
+			clampf(this.x, min.x, (max as Vector2).x),
+			clampf(this.y, min.y, (max as Vector2).y)
 		);
 	}
 

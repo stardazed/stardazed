@@ -170,11 +170,20 @@ export class Vector3 {
 		);
 	}
 
-	clamp(min: number, max: number) {
+	clamp(min: number, max: number): Vector3;
+	clamp(min: Vector3, max: Vector3): Vector3;
+	clamp(min: number | Vector3, max: number | Vector3) {
+		if (typeof min === "number") {
+			return new Vector3(
+				clampf(this.x, min, max as number),
+				clampf(this.y, min, max as number),
+				clampf(this.z, min, max as number)
+			);
+		}
 		return new Vector3(
-			clampf(this.x, min, max),
-			clampf(this.y, min, max),
-			clampf(this.z, min, max)
+			clampf(this.x, min.x, (max as Vector3).x),
+			clampf(this.y, min.y, (max as Vector3).y),
+			clampf(this.z, min.z, (max as Vector3).z)
 		);
 	}
 
