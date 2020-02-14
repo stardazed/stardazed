@@ -182,8 +182,8 @@ export class Vector3 {
 
 	setNegated() {
 		this.x = -this.x;
-		this.x = -this.y;
-		this.x = -this.z;
+		this.y = -this.y;
+		this.z = -this.z;
 		return this;
 	}
 
@@ -197,8 +197,8 @@ export class Vector3 {
 
 	setInverted() {
 		this.x = 1 / this.x;
-		this.x = 1 / this.y;
-		this.x = 1 / this.z;
+		this.y = 1 / this.y;
+		this.z = 1 / this.z;
 		return this;
 	}
 
