@@ -190,12 +190,20 @@ class AOSFieldView implements FieldView {
 		return Math.ceil(this.rangeView_.length / this.strideInElements_);
 	}
 
+	get base() {
+		return this.rangeView_;
+	}
+
 	*[Symbol.iterator]() {
 		let offset = 0;
 		while (offset < this.rangeView_.length) {
 			yield this.rangeView_.subarray(offset, offset + this.field_.width);
 			offset += this.strideInElements_;
 		}
+	}
+
+	offsetOfItem(index: number) {
+		return index * this.strideInElements_;
 	}
 
 	refItem(index: number) {

@@ -30,9 +30,13 @@ export interface FieldView extends Iterable<TypedArray> {
 	readonly width: number;
 	/** The number of values covered by this view */
 	readonly length: number;
+	/** The base of the values covered by this view */
+	readonly base: TypedArray;
 	/** The base index starting from the buffer's origin of this view */
 	readonly baseIndex: number;
 
+	/** Get the offset in elements from this.base of a single value */
+	offsetOfItem(index: number): number;
 	/** Get a mutable reference to a single value */
 	refItem(index: number): TypedArray;
 	/** Get a copy of a single value */

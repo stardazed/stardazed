@@ -206,12 +206,20 @@ class SOAFieldView implements FieldView {
 		return this.rangeView_.length / this.fieldWidth_;
 	}
 
+	get base() {
+		return this.rangeView_;
+	}
+
 	*[Symbol.iterator]() {
 		let offset = 0;
 		while (offset < this.rangeView_.length) {
 			yield this.rangeView_.subarray(offset, offset + this.fieldWidth_);
 			offset += this.fieldWidth_;
 		}
+	}
+
+	offsetOfItem(index: number) {
+		return index * this.fieldWidth_;
 	}
 
 	refItem(index: number) {
