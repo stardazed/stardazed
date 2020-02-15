@@ -26,6 +26,8 @@ export type PositionedStructField<C> = {
 };
 
 export interface FieldView extends Iterable<TypedArray> {
+	/** The width of each value covered by this view */
+	readonly width: number;
 	/** The number of values covered by this view */
 	readonly length: number;
 	/** The base index starting from the buffer's origin of this view */

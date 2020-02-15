@@ -198,6 +198,10 @@ class SOAFieldView implements FieldView {
 		this.fieldWidth_ = fieldWidth;
 	}
 
+	get width() {
+		return this.fieldWidth_;
+	}
+
 	get length() {
 		return this.rangeView_.length / this.fieldWidth_;
 	}

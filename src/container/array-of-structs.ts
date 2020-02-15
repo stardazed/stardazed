@@ -181,6 +181,10 @@ class AOSFieldView implements FieldView {
 		this.baseIndex = baseIndex;
 	}
 
+	get width() {
+		return this.field_.width;
+	}
+
 	get length() {
 		// the rangeView encapsulates potentially only part of the last record
 		return Math.ceil(this.rangeView_.length / this.strideInElements_);
