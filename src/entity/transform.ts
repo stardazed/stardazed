@@ -7,13 +7,13 @@ https://github.com/stardazed/stardazed
 
 import { Float, SInt32 } from "stardazed/core";
 import { MultiArrayBuffer, StructField, InvalidatePointers } from "stardazed/container";
-import { mat4, vec3, quat, copyIndexedVec3, copyIndexedVec4, refIndexedMat4, copyIndexedMat4 } from "stardazed/vector";
+import { Vector3, Quaternion, Matrix } from "stardazed/vector";
 import { Component, Instance, InstanceRange, InstanceArrayView } from "./instance";
 
 export interface TransformDesc {
-	position: Float3;
-	rotation?: Float4; // quat
-	scale?: Float3;
+	position: Vector3;
+	rotation?: Quaternion;
+	scale?: Vector3;
 }
 
 export type TransformInstance = Instance<TransformComponent>;
@@ -36,9 +36,9 @@ export class TransformComponent implements Component<TransformComponent> {
 	private localMatrixBase_!: Float32Array;
 	private worldMatrixBase_!: Float32Array;
 
-	private readonly defaultPos_: Float3 = vec3.zero();
-	private readonly defaultRot_: Float4 = quat.create();
-	private readonly defaultScale_: Float3 = vec3.one();
+	private readonly defaultPos_ = Vector3.zero;
+	private readonly defaultRot_ = Quaternion.identity;
+	private readonly defaultScale_ = Vector3.one;
 
 	constructor() {
 		const instanceFields: StructField[] = [
@@ -113,11 +113,11 @@ export class TransformComponent implements Component<TransformComponent> {
 		const rotation = (descriptor && descriptor.rotation) || this.defaultRot_;
 		const scale = (descriptor && descriptor.scale) || this.defaultScale_;
 
-		this.positionBase_.set(position, thisInstance * vec3.ELEMENT_COUNT);
-		this.rotationBase_.set(rotation, thisInstance * quat.ELEMENT_COUNT);
-		this.scaleBase_.set(scale, thisInstance * vec3.ELEMENT_COUNT);
+		position.writeToArray(this.positionBase_, thisInstance * 3);
+		rotation.writeToArray(this.rotationBase_, thisInstance * 4);
+		scale.writeToArray(this.scaleBase_, thisInstance * 3);
 
-		this.setLocalMatrix(thisInstance, rotation, position, scale);
+		this.setLocalMatrix(thisInstance, position, rotation, scale);
 
 		return thisInstance;
 	}
@@ -137,58 +137,58 @@ export class TransformComponent implements Component<TransformComponent> {
 	prevSibling(inst: TransformInstance): TransformInstance { return this.prevSiblingBase_[inst as number]; }
 	nextSibling(inst: TransformInstance): TransformInstance { return this.nextSiblingBase_[inst as number]; }
 
-	localPosition(inst: TransformInstance) { return copyIndexedVec3(this.positionBase_, inst as number); }
-	localRotation(inst: TransformInstance) { return copyIndexedVec4(this.rotationBase_, inst as number); }
-	localScale(inst: TransformInstance) { return copyIndexedVec3(this.scaleBase_, inst as number); }
+	localPosition(inst: TransformInstance) { return Vector3.fromArray(this.positionBase_, inst as number * 3); }
+	localRotation(inst: TransformInstance) { return Quaternion.fromArray(this.rotationBase_, inst as number * 4); }
+	localScale(inst: TransformInstance) { return Vector3.fromArray(this.scaleBase_, inst as number * 3); }
 
-	worldPosition(inst: TransformInstance): number[] {
+	worldPosition(inst: TransformInstance) {
 		const matOffset = inst as number * 16;
-		return [this.worldMatrixBase_[matOffset + 12], this.worldMatrixBase_[matOffset + 13], this.worldMatrixBase_[matOffset + 14]];
+		return Vector3.fromArray(this.worldMatrixBase_, matOffset + 12);
 	}
 
-	localMatrix(inst: TransformInstance) { return refIndexedMat4(this.localMatrixBase_, inst as number); }
-	worldMatrix(inst: TransformInstance) { return refIndexedMat4(this.worldMatrixBase_, inst as number); }
+	localMatrixData(inst: TransformInstance) { return this.localMatrixBase_.subarray(inst as number * 16, (inst as number + 1) * 16); }
+	worldMatrixData(inst: TransformInstance) { return this.worldMatrixBase_.subarray(inst as number * 16, (inst as number + 1) * 16); }
 
-	copyLocalMatrix(inst: TransformInstance) { return copyIndexedMat4(this.localMatrixBase_, inst as number); }
-	copyWorldMatrix(inst: TransformInstance) { return copyIndexedMat4(this.worldMatrixBase_, inst as number); }
+	localMatrix(inst: TransformInstance) { return Matrix.fromArray(this.localMatrixBase_, inst as number * 16); }
+	worldMatrix(inst: TransformInstance) { return Matrix.fromArray(this.worldMatrixBase_, inst as number * 16); }
 
 
 	// update the world matrices of inst and all of its children
-	private applyParentTransform(parentMatrix: Float4x4, inst: TransformInstance) {
-		const localMat = this.localMatrix(inst);
-		const worldMat = this.worldMatrix(inst);
-		mat4.multiply(worldMat, parentMatrix, localMat);
+	private applyParentTransform(inst: TransformInstance, parentMatrix: Matrix) {
+		const worldMat = parentMatrix.mul(this.localMatrix(inst));
+		worldMat.writeToArray(this.worldMatrixBase_, inst as number * 16);
 
 		let child = this.firstChildBase_[inst as number] as number;
 		while (child !== 0) {
-			this.applyParentTransform(worldMat, child);
+			this.applyParentTransform(child, worldMat);
 			child = this.nextSiblingBase_[child] as number;
 		}
 	}
 
 
 	// two overloads: one with new matrix, one with transform components
-	setLocalMatrix(inst: TransformInstance, newLocalMatrix: Float4x4): void;
-	setLocalMatrix(inst: TransformInstance, newRotation: Float4, newPosition: Float3, newScale: Float3): void;
-	setLocalMatrix(inst: TransformInstance, localMatOrRot: NumArray, newPosition?: Float3, newScale?: Float3) {
-		const localMat = refIndexedMat4(this.localMatrixBase_, inst as number);
+	setLocalMatrix(inst: TransformInstance, newLocalMatrix: Matrix): void;
+	setLocalMatrix(inst: TransformInstance, newPosition: Vector3, newRotation: Quaternion, newScale: Vector3): void;
+	setLocalMatrix(inst: TransformInstance, localMatOrPos: Matrix | Vector3, newRotation?: Quaternion, newScale?: Vector3) {
+		let localMat: Matrix;
 		if (arguments.length === 4) {
-			mat4.fromRotationTranslationScale(localMat, localMatOrRot, newPosition!, newScale!);
+			localMat = Matrix.trs(localMatOrPos as Vector3, newRotation!, newScale!);
 		}
 		else {
-			localMat.set(localMatOrRot); // 4x4 mat
+			localMat = localMatOrPos as Matrix;
 		}
+		localMat.writeToArray(this.localMatrixBase_, inst as number * 16);
 
 		const parent = this.parentBase_[inst as number];
 		const firstChild = this.firstChildBase_[inst as number];
 
 		// -- optimization for root-level, childless entities (of which I have seen there are many, but this may/will change)
 		if (parent || firstChild) {
-			const parentWorldMat = (parent === 0) ? mat4.create() : this.worldMatrix(parent);
-			this.applyParentTransform(parentWorldMat, inst);
+			const parentWorldMat = this.worldMatrix(parent);
+			this.applyParentTransform(inst, parentWorldMat);
 		}
 		else {
-			mat4.copy(this.worldMatrix(inst), localMat);
+			localMat.writeToArray(this.worldMatrixBase_, inst as number * 16);
 		}
 	}
 
@@ -251,53 +251,53 @@ export class TransformComponent implements Component<TransformComponent> {
 	}
 
 
-	setPosition(inst: TransformInstance, newPosition: Float3) {
-		this.positionBase_.set(newPosition, inst as number * vec3.ELEMENT_COUNT);
-		this.setLocalMatrix(inst, this.localRotation(inst), newPosition, this.localScale(inst));
+	setPosition(inst: TransformInstance, newPosition: Vector3) {
+		newPosition.writeToArray(this.positionBase_, inst as number * 3);
+		this.setLocalMatrix(inst, newPosition, this.localRotation(inst), this.localScale(inst));
 	}
 
-	setRotation(inst: TransformInstance, newRotation: Float4) {
-		this.rotationBase_.set(newRotation, inst as number * quat.ELEMENT_COUNT);
-		this.setLocalMatrix(inst, newRotation, this.localPosition(inst), this.localScale(inst));
+	setRotation(inst: TransformInstance, newRotation: Quaternion) {
+		newRotation.writeToArray(this.rotationBase_, inst as number * 4);
+		this.setLocalMatrix(inst, this.localPosition(inst), newRotation, this.localScale(inst));
 	}
 
-	setPositionAndRotation(inst: TransformInstance, newPosition: Float3, newRotation: Float4) {
-		this.positionBase_.set(newPosition, inst as number * vec3.ELEMENT_COUNT);
-		this.rotationBase_.set(newRotation, inst as number * quat.ELEMENT_COUNT);
-		this.setLocalMatrix(inst, newRotation, newPosition, this.localScale(inst));
+	setPositionAndRotation(inst: TransformInstance, newPosition: Vector3, newRotation: Quaternion) {
+		newPosition.writeToArray(this.positionBase_, inst as number * 3);
+		newRotation.writeToArray(this.rotationBase_, inst as number * 4);
+		this.setLocalMatrix(inst, newPosition, newRotation, this.localScale(inst));
 	}
 
-	setScale(inst: TransformInstance, newScale: Float3) {
-		this.scaleBase_.set(newScale, inst as number * vec3.ELEMENT_COUNT);
-		this.setLocalMatrix(inst, this.localRotation(inst), this.localPosition(inst), newScale);
+	setScale(inst: TransformInstance, newScale: Vector3) {
+		newScale.writeToArray(this.scaleBase_, inst as number * 3);
+		this.setLocalMatrix(inst, this.localPosition(inst), this.localRotation(inst), newScale);
 	}
 
-	setPositionAndRotationAndScale(inst: TransformInstance, newPosition: Float3, newRotation: Float4, newScale: Float3) {
-		this.positionBase_.set(newPosition, inst as number * vec3.ELEMENT_COUNT);
-		this.rotationBase_.set(newRotation, inst as number * quat.ELEMENT_COUNT);
-		this.scaleBase_.set(newScale, inst as number * vec3.ELEMENT_COUNT);
-		this.setLocalMatrix(inst, newRotation, newPosition, newScale);
+	setPositionAndRotationAndScale(inst: TransformInstance, newPosition: Vector3, newRotation: Quaternion, newScale: Vector3) {
+		newPosition.writeToArray(this.positionBase_, inst as number * 3);
+		newRotation.writeToArray(this.rotationBase_, inst as number * 4);
+		newScale.writeToArray(this.scaleBase_, inst as number * 3);
+		this.setLocalMatrix(inst, newPosition, newRotation, newScale);
 	}
 
 
 	// -- relative transform helpers
 
-	translate(inst: TransformInstance, localDelta3: Float3) {
+	translate(inst: TransformInstance, localDelta3: Vector3) {
 		const pos = this.localPosition(inst);
-		this.setPosition(inst, [pos[0] + localDelta3[0], pos[1] + localDelta3[1], pos[2] + localDelta3[2]]);
+		this.setPosition(inst, pos.add(localDelta3));
 	}
 
-	rotate(inst: TransformInstance, localRot: Float4) {
-		this.setRotation(inst, quat.multiply([], this.localRotation(inst), localRot));
+	rotate(inst: TransformInstance, localRot: Quaternion) {
+		this.setRotation(inst, this.localRotation(inst).mul(localRot));
 	}
 
-	rotateRelWorld(inst: TransformInstance, worldRot: Float4) {
-		this.setRotation(inst, quat.multiply([], worldRot, this.localRotation(inst)));
+	rotateRelWorld(inst: TransformInstance, worldRot: Quaternion) {
+		this.setRotation(inst, worldRot.mul(this.localRotation(inst)));
 	}
 
-	rotateByAngles(inst: TransformInstance, localAng: Float3) {
+	rotateByDegrees(inst: TransformInstance, localAng: Vector3) {
 		const rot = this.localRotation(inst);
-		const q = quat.fromEuler(localAng[2], localAng[1], localAng[0]);
-		this.setRotation(inst, quat.multiply([], rot, q));
+		const q = Quaternion.euler(localAng.x, localAng.y, localAng.z);
+		this.setRotation(inst, rot.mul(q));
 	}
 }
