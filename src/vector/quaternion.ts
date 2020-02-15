@@ -305,6 +305,24 @@ export class Quaternion {
 		return new Quaternion(x.value, y.value, z.value, w.value);
 	}
 
+	static euler(x: number, y: number, z: number) {
+		const yaw = z * AngleConvert.DEG2RAD * 0.5;
+		const pitch = y * AngleConvert.DEG2RAD * 0.5;
+		const roll = x * AngleConvert.DEG2RAD * 0.5;
+
+		const siny = Math.sin(yaw), cosy = Math.cos(yaw);
+		const sinp = Math.sin(pitch), cosp = Math.cos(pitch);
+		const sinr = Math.sin(roll), cosr = Math.cos(roll);
+
+		// evaluated form of 3 Quat multiplications (of yaw, pitch and roll)
+		return new Quaternion(
+			sinr * cosp * cosy - cosr * sinp * siny,
+			cosr * sinp * cosy + sinr * cosp * siny,
+			cosr * cosp * siny - sinr * sinp * cosy,
+			cosr * cosp * cosy + sinr * sinp * siny
+		).setNormalized();
+	}
+
 	static get identity() {
 		return new Quaternion(0, 0, 0, 1);
 	}
