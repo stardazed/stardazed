@@ -6,7 +6,7 @@ https://github.com/stardazed/stardazed
 */
 
 import { FieldView } from "stardazed/container";
-import { vec3, copyIndexedVec3, setIndexedVec3 } from "stardazed/vector";
+import { Vector2, Vector3 } from "stardazed/vector";
 import { VertexBuffer, VertexAttributeRole } from "./vertex-buffer";
 import { TriangleView, triangleViewForGeometry } from "./triangle-view";
 import { Geometry } from "./geometry";
@@ -48,38 +48,46 @@ export function calcVertexNormalsViews(posView: FieldView, normView: FieldView, 
 	normView.fill([0, 0, 1]);
 	const usages = new Float32Array(vertexCount);
 
-	const lineA = vec3.create(), lineB = vec3.create();
-	const faceNormal = vec3.create(), temp = vec3.create();
+	const posA = new Vector3(), lineA = new Vector3(), lineB = new Vector3();
+	const normVec = new Vector3();
+	const posBase = posView.base;
+	const normBase = normView.base;
 
 	for (const face of triView) {
-		const posA = posView.copyItem(face.a - baseVertex);
-		const posB = posView.copyItem(face.b - baseVertex);
-		const posC = posView.copyItem(face.c - baseVertex);
+		posA.setFromArray(posBase, posView.offsetOfItem(face.a - baseVertex));
+		lineA.setFromArray(posBase, posView.offsetOfItem(face.b - baseVertex));
+		lineB.setFromArray(posBase, posView.offsetOfItem(face.c - baseVertex));
 
-		vec3.subtract(lineA, posB, posA);
-		vec3.subtract(lineB, posC, posB);
+		lineB.setSubtracting(lineA); // posC - posB
+		lineA.setSubtracting(posA); // posB - posA
 
-		if (vec3.length(lineA) < 0.00001 || vec3.length(lineB) < 0.00001) {
-			return;
+		if (lineA.magnitude < 0.00001 || lineB.magnitude < 0.00001) {
+			continue;
 		}
 
-		vec3.cross(faceNormal, lineA, lineB);
-		vec3.normalize(faceNormal, faceNormal);
+		// faceNormal = normalize(lineA x lineB)
+		lineA.setCross(lineB).setNormalized();
 
 		for (let fi = 0; fi < 3; ++fi) {
 			const fvi = face.index(fi) - baseVertex;
-			const norm = normView.refItem(fvi);
+			const normOffset = normView.offsetOfItem(fvi);
+			normVec.setFromArray(normBase, normOffset);
 
 			// normBegin[fvi] = (normBegin[fvi] * usages[fvi] + faceNormal) / (usages[fvi] + 1.0f);
-			vec3.scaleAndAdd(temp, faceNormal, norm, usages[fvi]);
-			vec3.scale(norm, temp, 1 / (usages[fvi] + 1));
+			lineA.setMultiplyAdding(normVec, usages[fvi])
+				.setMultiplying(1 / (usages[fvi] + 1))
+				.writeToArray(normBase, normOffset);
 
 			usages[fvi] += 1;
 		}
 	}
 
-	for (const norm of normView) {
-		vec3.normalize(norm, norm);
+	const normCount = normView.length;
+	for (let n = 0; n < normCount; ++n) {
+		const normOffset = normView.offsetOfItem(n);
+		normVec.setFromArray(normBase, normOffset)
+			.setNormalized()
+			.writeToArray(normBase, normOffset);
 	}
 }
 
@@ -121,79 +129,86 @@ export function calcVertexTangentsViews(
 	const tan1 = tanBuf.subarray(0, vertexCount);
 	const tan2 = tanBuf.subarray(vertexCount);
 
+	const v1 = new Vector3(), v2 = new Vector3(), v3 = new Vector3();
+	const w1 = new Vector2(), w2 = new Vector2(), w3 = new Vector2();
+	const sdir = new Vector3(), tdir = new Vector3();
+
+	const posBase = posView.base;
+	const uvBase = uvView.base;
+
 	for (const face of triView) {
 		const { a, b, c } = face;
 
-		const v1 = posView.copyItem(a),
-			v2 = posView.copyItem(b),
-			v3 = posView.copyItem(c);
+		v1.setFromArray(posBase, posView.offsetOfItem(a));
+		v2.setFromArray(posBase, posView.offsetOfItem(b));
+		v3.setFromArray(posBase, posView.offsetOfItem(c));
 
-		const w1 = uvView.copyItem(a),
-			w2 = uvView.copyItem(b),
-			w3 = uvView.copyItem(c);
+		w1.setFromArray(uvBase, uvView.offsetOfItem(a));
+		w2.setFromArray(uvBase, uvView.offsetOfItem(b));
+		w3.setFromArray(uvBase, uvView.offsetOfItem(c));
 
-		const x1 = v2[0] - v1[0];
-		const x2 = v3[0] - v1[0];
-		const y1 = v2[1] - v1[1];
-		const y2 = v3[1] - v1[1];
-		const z1 = v2[2] - v1[2];
-		const z2 = v3[2] - v1[2];
+		const x1 = v2.x - v1.x;
+		const x2 = v3.x - v1.x;
+		const y1 = v2.y - v1.y;
+		const y2 = v3.y - v1.y;
+		const z1 = v2.z - v1.z;
+		const z2 = v3.z - v1.z;
 
-		const s1 = w2[0] - w1[0];
-		const s2 = w3[0] - w1[0];
-		const t1 = w2[1] - w1[1];
-		const t2 = w3[1] - w1[1];
+		const s1 = w2.x - w1.x;
+		const s2 = w3.x - w1.x;
+		const t1 = w2.y - w1.y;
+		const t2 = w3.y - w1.y;
 
 		const rd = (s1 * t2 - s2 * t1);
 		const r = rd === 0 ? 0.0 : 1.0 / rd;
-		const sdir = [
+		sdir.setElements(
 			(t2 * x1 - t1 * x2) * r,
 			(t2 * y1 - t1 * y2) * r,
 			(t2 * z1 - t1 * z2) * r
-		];
-		const tdir = [
+		);
+		tdir.setElements(
 			(s1 * x2 - s2 * x1) * r,
 			(s1 * y2 - s2 * y1) * r,
 			(s1 * z2 - s2 * z1) * r
-		];
+		);
 
 		// tan1[a] += sdir;
 		// tan1[b] += sdir;
 		// tan1[c] += sdir;
-		const tan1a = copyIndexedVec3(tan1, a);
-		const tan1b = copyIndexedVec3(tan1, b);
-		const tan1c = copyIndexedVec3(tan1, c);
-		setIndexedVec3(tan1, a, vec3.add(tan1a, tan1a, sdir));
-		setIndexedVec3(tan1, b, vec3.add(tan1b, tan1b, sdir));
-		setIndexedVec3(tan1, c, vec3.add(tan1c, tan1c, sdir));
+		v1.setFromArray(tan1, a * 3).setAdding(sdir).writeToArray(tan1, a * 3);
+		v2.setFromArray(tan1, b * 3).setAdding(sdir).writeToArray(tan1, b * 3);
+		v3.setFromArray(tan1, c * 3).setAdding(sdir).writeToArray(tan1, c * 3);
 
 		// tan2[a] += tdir;
 		// tan2[b] += tdir;
 		// tan2[c] += tdir;
-		const tan2a = copyIndexedVec3(tan2, a);
-		const tan2b = copyIndexedVec3(tan2, b);
-		const tan2c = copyIndexedVec3(tan2, c);
-		setIndexedVec3(tan2, a, vec3.add(tan2a, tan2a, tdir));
-		setIndexedVec3(tan2, b, vec3.add(tan2b, tan2b, tdir));
-		setIndexedVec3(tan2, c, vec3.add(tan2c, tan2c, tdir));
+		v1.setFromArray(tan2, a * 3).setAdding(tdir).writeToArray(tan2, a * 3);
+		v2.setFromArray(tan2, b * 3).setAdding(tdir).writeToArray(tan2, b * 3);
+		v3.setFromArray(tan2, c * 3).setAdding(tdir).writeToArray(tan2, c * 3);
 	}
 
+	const normBase = normView.base;
+	const tanBase = tanView.base;
+	const n = v3;
+	const tangent = new Vector3();
 	for (let ix = 0; ix < vertexCount; ++ix) {
-		const n = normView.copyItem(ix);
-		const t = copyIndexedVec3(tan1, ix);
-		const t2 = copyIndexedVec3(tan2, ix);
+		const tanOffset = normView.offsetOfItem(ix);
+		n.setFromArray(normBase, tanOffset);
+		v1.setFromArray(tan1, ix * 3);
+		v2.setFromArray(tan2, ix * 3);
 
 		// Gram-Schmidt orthogonalize, specify standard normal in case n or t = 0
-		const tangent = vec3.normalize([0, 0, 1], vec3.sub([], t, vec3.scale([], n, vec3.dot(n, t))));
+		// normalize(v1 - n * (n . v1))
+		tangent.setFromVector3(v1).setMultiplyAdding(n, -(n.dot(v1))).setNormalized();
 
 		// Reverse tangent to conform to GL handedness if needed
-		if (vec3.dot(vec3.cross([], n, t), t2) < 0) {
-			vec3.scale(tangent, tangent, -1);
+		if (v2.dot(n.setCross(v1)) < 0) {
+			tangent.setNegated();
 		}
 
-		// if (isNaN(tangent[0]) || isNaN(tangent[1]) || isNaN(tangent[2])) {
+		// if (isNaN(tangent.x) || isNaN(tangent.y) || isNaN(tangent.z)) {
 		// 	throw new Error("Failure during tangent calculation");
 		// }
-		vec3.copy(tanView.refItem(ix), tangent);
+		tangent.writeToArray(tanBase, tanOffset);
 	}
 }
