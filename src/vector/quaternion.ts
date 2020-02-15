@@ -185,6 +185,15 @@ export class Quaternion {
 		);
 	}
 
+	conjugate() {
+		return new Quaternion(
+			-this.x,
+			-this.y,
+			-this.z,
+			this.w
+		);
+	}
+
 	exactEquals(v: Quaternion) {
 		return this.x === v.x && this.y === v.y && this.z === v.z && this.w === v.w;
 	}
@@ -220,6 +229,15 @@ export class Quaternion {
 	static transformVector(q: Quaternion, v: Vector3 | Vector4) {
 		// TS doesn't like the clone call result, so we force it
 		return Quaternion.applyToVector(q, v.clone() as any) as typeof v;
+	}
+
+	static rotateTowards(from: Quaternion, to: Quaternion, maxDegreesDelta: number) {
+		const diff = to.mul(from.conjugate());
+		const { axis, angle } = diff.axisAngle;
+		if (Math.abs(angle) > maxDegreesDelta) {
+			diff.setAxisAngle(axis, maxDegreesDelta * Math.sign(angle));
+		}
+		return diff.mul(from);
 	}
 
 	static slerp(from: Quaternion, to: Quaternion, t: number, easing: EasingFn = Easing.linear) {
