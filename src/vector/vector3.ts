@@ -284,6 +284,14 @@ export class Vector3 {
 		);
 	}
 
+	setCross(v: Vector3) {
+		const { x, y, z } = this;
+		this.x = y * v.z - z * v.y;
+		this.y = z * v.x - x * v.z;
+		this.z = x * v.y - y * v.x;
+		return this;
+	}
+
 	mix(v: Vector3, ratio: number) {
 		return new Vector3(
 			mixf(this.x, v.x, ratio),
