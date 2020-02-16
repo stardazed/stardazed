@@ -18,8 +18,6 @@ export interface TransformDesc {
 
 export type TransformInstance = Instance<TransformComponent>;
 export type TransformRange = InstanceRange<TransformComponent>;
-// export type TransformSet = InstanceSet<TransformComponent>;
-// export type TransformIterator = InstanceIterator<TransformComponent>;
 export type TransformArrayView = InstanceArrayView<TransformComponent>;
 
 export class TransformComponent implements Component<TransformComponent> {

@@ -7,3 +7,4 @@ https://github.com/stardazed/stardazed
 
 export * from "./instance";
 export * from "./entity";
+export * from "./transform";
