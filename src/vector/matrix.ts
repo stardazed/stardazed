@@ -214,6 +214,46 @@ export class Matrix {
 		);
 	}
 
+	get rotation() {
+		const m = this.data_;
+		const out = new Quaternion();
+		// Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
+		// article "Quaternion Calculus and Fast Animation".
+		const fTrace = m[0] + m[5] + m[10];
+		let fRoot;
+
+		if (fTrace > 0.0) {
+			// |w| > 1/2, may as well choose w > 1/2
+			fRoot = Math.sqrt(fTrace + 1.0);  // 2w
+			out.w = 0.5 * fRoot;
+			fRoot = 0.5 / fRoot;  // 1/(4w)
+			out.x = (m[6] - m[9]) * fRoot;
+			out.y = (m[8] - m[2]) * fRoot;
+			out.z = (m[1] - m[4]) * fRoot;
+		}
+		else {
+			// |w| <= 1/2
+			let i: 0 | 1 | 2 = 0;
+			if (m[5] > m[0]) {
+				i = 1;
+			}
+			if (m[10] > m[i * 4 + i]) {
+				i = 2;
+			}
+			const j = (i + 1) & 3;
+			const k = (i + 2) & 3;
+
+			fRoot = Math.sqrt(m[i * 4 + i] - m[j * 4 + j] - m[k * 4 + k] + 1.0);
+			out[i] = 0.5 * fRoot;
+			fRoot = 0.5 / fRoot;
+			out.w = (m[j * 4 + k] - m[k * 4 + j]) * fRoot;
+			out[j as 0 | 1 | 2] = (m[j * 4 + i] + m[i * 4 + j]) * fRoot;
+			out[k as 0 | 1 | 2] = (m[k * 4 + i] + m[i * 4 + k]) * fRoot;
+		}
+
+		return out;
+	}
+
 	// static operations
 
 	// static constructors
