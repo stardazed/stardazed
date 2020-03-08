@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { alignUp, isPowerOf2 } from "stardazed/core";
+import { alignUp, isPowerOf2, numericTraits } from "stardazed/core";
 import { createNameIndexMap, StructField, PositionedStructField, FieldView } from "./struct-common";
 
 /**
@@ -15,7 +15,7 @@ import { createNameIndexMap, StructField, PositionedStructField, FieldView } fro
  * can be iterated over correctly and quickly.
  */
 function alignUpFieldArray(field: StructField, count: number) {
-	const fieldSizeBytes = field.type.byteLength * field.width;
+	const fieldSizeBytes = numericTraits(field.type).byteLength * field.width;
 	const arraySizeBytes = fieldSizeBytes * count;
 	return alignUp(arraySizeBytes, 8);
 }
@@ -38,8 +38,9 @@ function positionFields<C>(fields: ReadonlyArray<StructField<C>>, count: number)
 }
 
 function fieldArrayRangeView<C>(view: Uint8Array, f: PositionedStructField<C>, fromIndex: number, toIndex: number) {
-	const startOffset = view.byteOffset + f.byteOffset + (fromIndex * (f.type.byteLength * f.width));
-	return new (f.type.arrayType)(view.buffer, startOffset, (toIndex - fromIndex) * f.width);
+	const traits = numericTraits(f.type);
+	const startOffset = view.byteOffset + f.byteOffset + (fromIndex * (traits.byteLength * f.width));
+	return new (traits.arrayType)(view.buffer, startOffset, (toIndex - fromIndex) * f.width);
 }
 
 

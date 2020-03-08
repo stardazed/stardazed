@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { UInt16, UInt32, NumericType } from "stardazed/core";
+import { UInt16, UInt32, NumericTypeTraits } from "stardazed/core";
 
 /** Numerical constants for the allowed size of index elements */
 export const enum IndexElementSize {
@@ -28,7 +28,7 @@ export function minimumIndexElementSizeForVertexCount(vertexCount: number) {
  * for a specified count of index elements.
  */
 export class IndexBuffer {
-	readonly elementType: NumericType;
+	readonly elementType: NumericTypeTraits;
 	readonly length: number;
 	readonly data: Uint8Array;
 

@@ -1,5 +1,5 @@
 /*
-core/numeric - numeric types and traits
+core/numeric - numeric type traits
 Part of Stardazed
 (c) 2015-Present by Arthur Langereis - @zenmumbler
 https://github.com/stardazed/stardazed
@@ -9,7 +9,7 @@ https://github.com/stardazed/stardazed
  * Interface describing a binary representation of a number including its
  * limits, storage requirements and associated TypedArray constructor.
  */
-export interface NumericType {
+export interface NumericTypeTraits {
 	/** The lowest value this type is capable of representing */
 	readonly min: number;
 	/** The highest value this type is capable of representing */
@@ -29,10 +29,8 @@ export interface NumericType {
 	readonly arrayType: TypedArrayConstructor;
 }
 
-/**
- * Traits of unsigned 8-bit integer numbers.
- */
-export const UInt8: NumericType = {
+/** Traits of unsigned 8-bit integer numbers. */
+export const UInt8: NumericTypeTraits = {
 	min: 0,
 	max: 255,
 	minSafeInt: 0,
@@ -43,10 +41,8 @@ export const UInt8: NumericType = {
 	arrayType: Uint8Array
 };
 
-/**
- * Traits of signed 8-bit integer numbers.
- */
-export const SInt8: NumericType = {
+/** Traits of signed 8-bit integer numbers. */
+export const SInt8: NumericTypeTraits = {
 	min: -128,
 	max: 127,
 	minSafeInt: -128,
@@ -57,10 +53,8 @@ export const SInt8: NumericType = {
 	arrayType: Int8Array
 };
 
-/**
- * Traits of unsigned 16-bit integer numbers.
- */
-export const UInt16: NumericType = {
+/** Traits of unsigned 16-bit integer numbers. */
+export const UInt16: NumericTypeTraits = {
 	min: 0,
 	max: 65535,
 	minSafeInt: 0,
@@ -71,10 +65,8 @@ export const UInt16: NumericType = {
 	arrayType: Uint16Array
 };
 
-/**
- * Traits of signed 16-bit integer numbers.
- */
-export const SInt16: NumericType = {
+/** Traits of signed 16-bit integer numbers. */
+export const SInt16: NumericTypeTraits = {
 	min: -32768,
 	max: 32767,
 	minSafeInt: -32768,
@@ -85,10 +77,8 @@ export const SInt16: NumericType = {
 	arrayType: Int16Array
 };
 
-/**
- * Traits of unsigned 32-bit integer numbers.
- */
-export const UInt32: NumericType = {
+/** Traits of unsigned 32-bit integer numbers. */
+export const UInt32: NumericTypeTraits = {
 	min: 0,
 	max: 4294967295,
 	minSafeInt: 0,
@@ -99,10 +89,8 @@ export const UInt32: NumericType = {
 	arrayType: Uint32Array
 };
 
-/**
- * Traits of signed 32-bit integer numbers.
- */
-export const SInt32: NumericType = {
+/** Traits of signed 32-bit integer numbers. */
+export const SInt32: NumericTypeTraits = {
 	min: -2147483648,
 	max: 2147483647,
 	minSafeInt: -2147483648,
@@ -113,10 +101,8 @@ export const SInt32: NumericType = {
 	arrayType: Int32Array
 };
 
-/**
- * Traits of 16-bit floating point numbers.
- */
-export const Half: NumericType = {
+/** Traits of 16-bit floating point numbers. */
+export const Half: NumericTypeTraits = {
 	min: -65504.0,
 	max: 65504.0,
 	minSafeInt: -2048, // -2^11
@@ -127,10 +113,8 @@ export const Half: NumericType = {
 	arrayType: Uint16Array // size match only
 };
 
-/**
- * Traits of 32-bit floating point numbers.
- */
-export const Float: NumericType = {
+/** Traits of 32-bit floating point numbers. */
+export const Float: NumericTypeTraits = {
 	min: -340282346638528859811704183484516925440.0,
 	max: 340282346638528859811704183484516925440.0,
 	minSafeInt: -16777216, // -2^24
@@ -141,10 +125,8 @@ export const Float: NumericType = {
 	arrayType: Float32Array
 };
 
-/**
- * Traits of 64-bit floating point numbers.
- */
-export const Double: NumericType = {
+/** Traits of 64-bit floating point numbers. */
+export const Double: NumericTypeTraits = {
 	min: Number.MIN_VALUE,
 	max: Number.MAX_VALUE,
 	minSafeInt: Number.MIN_SAFE_INTEGER, // -2^53 + 1
@@ -154,3 +136,30 @@ export const Double: NumericType = {
 	byteLength: 8,
 	arrayType: Float64Array
 };
+
+/** Standard names of numeric types */
+export type NumericTypeName = "uint8" | "sint8" | "uint16" | "sint16" | "uint32" | "sint32" | "half" | "float" | "double";
+
+/** Access numeric type traits by type name */
+const TypeNameTraitsMap: Readonly<Record<NumericTypeName, NumericTypeTraits>> = {
+	uint8: UInt8,
+	sint8: SInt8,
+	uint16: UInt16,
+	sint16: SInt16,
+	uint32: UInt32,
+	sint32: SInt32,
+	half: Half,
+	float: Float,
+	double: Double
+};
+
+/** Either a numeric type name type or a traits object */
+export type NumericTypeRef = NumericTypeName | NumericTypeTraits;
+
+/** Get numeric type traits from traits object or name reference */
+export function numericTraits(tn: NumericTypeName | NumericTypeTraits): NumericTypeTraits {
+	if (typeof tn === "string") {
+		return TypeNameTraitsMap[tn];
+	}
+	return tn;
+}

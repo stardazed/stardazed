@@ -7,7 +7,7 @@ https://github.com/stardazed/stardazed
 
 /* eslint-disable no-fallthrough */
 
-import { alignUp } from "stardazed/core";
+import { alignUp, numericTraits } from "stardazed/core";
 import { createNameIndexMap, StructField, PositionedStructField, FieldView } from "./struct-common";
 
 function positionFields<C>(fields: ReadonlyArray<StructField<C>>) {
@@ -17,8 +17,9 @@ function positionFields<C>(fields: ReadonlyArray<StructField<C>>) {
 	let maxElemSize = 1;
 	for (const field of fields) {
 		// move the offset to align to this field's element size
-		byteOffset = alignUp(byteOffset, field.type.byteLength);
-		const byteLength = field.type.byteLength * field.width;
+		const traits = numericTraits(field.type);
+		byteOffset = alignUp(byteOffset, traits.byteLength);
+		const byteLength = traits.byteLength * field.width;
 
 		posFields.push({
 			...field,
@@ -27,7 +28,7 @@ function positionFields<C>(fields: ReadonlyArray<StructField<C>>) {
 		});
 
 		byteOffset += byteLength;
-		maxElemSize = Math.max(maxElemSize, field.type.byteLength);
+		maxElemSize = Math.max(maxElemSize, traits.byteLength);
 	}
 
 	// inter-record alignment, 1, 2, 4 or 8 bytes depending on largest element
@@ -101,11 +102,12 @@ export class ArrayOfStructs<C = unknown> {
 		if (typeof field === "number") {
 			field = this.fields_[field];
 		}
+		const traits = numericTraits(field.type);
 		const byteOffset = this.data_.byteOffset + field.byteOffset + fromIndex * this.stride_;
-		const strideInElements = this.stride_ / field.type.byteLength;
+		const strideInElements = this.stride_ / traits.byteLength;
 		const elementsToCover = strideInElements * (toIndex - fromIndex - 1) + field.width;
-		const rangeView = new field.type.arrayType(this.data_.buffer, byteOffset, elementsToCover);
-		return new AOSFieldView(rangeView, fromIndex, this.stride_ / field.type.byteLength, field);
+		const rangeView = new traits.arrayType(this.data_.buffer, byteOffset, elementsToCover);
+		return new AOSFieldView(rangeView, fromIndex, this.stride_ / traits.byteLength, field);
 	}
 
 	/**
@@ -153,9 +155,10 @@ export class ArrayOfStructs<C = unknown> {
 		let maxElemSize = 1;
 		for (const field of fields) {
 			// move the offset to align to this field's element size
-			stride = alignUp(stride, field.type.byteLength);
-			stride += field.type.byteLength * field.width;
-			maxElemSize = Math.max(maxElemSize, field.type.byteLength);
+			const traits = numericTraits(field.type);
+			stride = alignUp(stride, traits.byteLength);
+			stride += traits.byteLength * field.width;
+			maxElemSize = Math.max(maxElemSize, traits.byteLength);
 		}
 
 		// inter-record alignment, 1, 2, 4 or 8 bytes depending on largest element

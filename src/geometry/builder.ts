@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { Float, stableSort, copyElementRange, appendArrayInPlace } from "stardazed/core";
+import { Float, stableSort, copyElementRange, appendArrayInPlace, numericTraits } from "stardazed/core";
 import { VertexAttribute, VertexAttributeRole } from "./vertex-buffer";
 import { allocateGeometry, TrianglePrimitive } from "./geometry";
 
@@ -150,7 +150,7 @@ export class GeometryBuilder {
 				if (s.attr.width !== 1) {
 					throw new Error("A grouping stream must use a single element field");
 				}
-				const groupNumType = s.attr.type;
+				const groupNumType = numericTraits(s.attr.type);
 				if (! (groupNumType && groupNumType.integer)) {
 					throw new Error("A grouping stream must use an integer element");
 				}
