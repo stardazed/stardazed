@@ -5,7 +5,6 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { Float, SInt32 } from "stardazed/core";
 import { MultiArrayBuffer, StructField, InvalidatePointers } from "stardazed/container";
 import { Vector3, Quaternion, Matrix } from "stardazed/vector";
 import { Component, Instance, InstanceRange, InstanceArrayView } from "./instance";
@@ -40,17 +39,17 @@ export class TransformComponent implements Component<TransformComponent> {
 
 	constructor() {
 		const instanceFields: StructField[] = [
-			{ type: SInt32, width: 1 }, // parentInstance
-			{ type: SInt32, width: 1 }, // firstChild
-			{ type: SInt32, width: 1 }, // prevSibling
-			{ type: SInt32, width: 1 }, // nextSibling
+			{ type: "sint32", width: 1 }, // parentInstance
+			{ type: "sint32", width: 1 }, // firstChild
+			{ type: "sint32", width: 1 }, // prevSibling
+			{ type: "sint32", width: 1 }, // nextSibling
 
-			{ type: Float, width: 3 },  // position
-			{ type: Float, width: 4 },  // rotation
-			{ type: Float, width: 3 },  // scale
+			{ type: "float", width: 3 },  // position
+			{ type: "float", width: 4 },  // rotation
+			{ type: "float", width: 3 },  // scale
 
-			{ type: Float, width: 16 }, // localMatrix
-			{ type: Float, width: 16 }  // worldMatrix
+			{ type: "float", width: 16 }, // localMatrix
+			{ type: "float", width: 16 }  // worldMatrix
 		];
 		this.instanceData_ = new MultiArrayBuffer(instanceFields, 2048); // 376 KiB
 
