@@ -12,22 +12,11 @@
 
 		"common.ts",
 
-		"vec2.ts",
-		"vec3.ts",
-		"vec4.ts",
-		"mat2.ts",
-		"mat2d.ts",
-		"mat3.ts",
-		"mat4.ts",
-		"quat.ts",
-
 		"vector2.ts",
 		"vector3.ts",
 		"vector4.ts",
 		"quaternion.ts",
 		"matrix.ts",
-
-		"vecarray.ts",
 
 		"index.ts"
 	],

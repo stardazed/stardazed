@@ -7,12 +7,3 @@
 
 /** @internal */
 export const VEC_EPSILON = 0.000001;
-
-// (strided) iteration of vecN types
-export interface VecArrayIterationOptions {
-	stride?: number;
-	offset?: number;
-	count?: number;
-}
-
-export type VecArrayIterationFunction = (out: MutNumArray, a: NumArray, ...args: any[]) => void;
