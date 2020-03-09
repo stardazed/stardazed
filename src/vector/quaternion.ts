@@ -84,7 +84,7 @@ export class Quaternion {
 		return this;
 	}
 
-	setFromQuaternion(src: Quaternion) {
+	setFromQuaternion(src: Quaternion | Vector4) {
 		this.x = src.x;
 		this.y = src.y;
 		this.z = src.z;
