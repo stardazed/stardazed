@@ -42,7 +42,7 @@ export const UInt8: NumericTypeTraits = {
 };
 
 /** Traits of signed 8-bit integer numbers. */
-export const SInt8: NumericTypeTraits = {
+export const Int8: NumericTypeTraits = {
 	min: -128,
 	max: 127,
 	minSafeInt: -128,
@@ -66,7 +66,7 @@ export const UInt16: NumericTypeTraits = {
 };
 
 /** Traits of signed 16-bit integer numbers. */
-export const SInt16: NumericTypeTraits = {
+export const Int16: NumericTypeTraits = {
 	min: -32768,
 	max: 32767,
 	minSafeInt: -32768,
@@ -90,7 +90,7 @@ export const UInt32: NumericTypeTraits = {
 };
 
 /** Traits of signed 32-bit integer numbers. */
-export const SInt32: NumericTypeTraits = {
+export const Int32: NumericTypeTraits = {
 	min: -2147483648,
 	max: 2147483647,
 	minSafeInt: -2147483648,
@@ -138,16 +138,16 @@ export const Double: NumericTypeTraits = {
 };
 
 /** Standard names of numeric types */
-export type NumericTypeName = "uint8" | "sint8" | "uint16" | "sint16" | "uint32" | "sint32" | "half" | "float" | "double";
+export type NumericTypeName = "uint8" | "int8" | "uint16" | "int16" | "uint32" | "int32" | "half" | "float" | "double";
 
 /** Access numeric type traits by type name */
 const TypeNameTraitsMap: Readonly<Record<NumericTypeName, NumericTypeTraits>> = {
 	uint8: UInt8,
-	sint8: SInt8,
+	int8: Int8,
 	uint16: UInt16,
-	sint16: SInt16,
+	int16: Int16,
 	uint32: UInt32,
-	sint32: SInt32,
+	int32: Int32,
 	half: Half,
 	float: Float,
 	double: Double

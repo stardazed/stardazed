@@ -39,10 +39,10 @@ export class TransformComponent implements Component<TransformComponent> {
 
 	constructor() {
 		const instanceFields: StructField[] = [
-			{ type: "sint32", width: 1 }, // parentInstance
-			{ type: "sint32", width: 1 }, // firstChild
-			{ type: "sint32", width: 1 }, // prevSibling
-			{ type: "sint32", width: 1 }, // nextSibling
+			{ type: "int32", width: 1 },  // parentInstance
+			{ type: "int32", width: 1 },  // firstChild
+			{ type: "int32", width: 1 },  // prevSibling
+			{ type: "int32", width: 1 },  // nextSibling
 
 			{ type: "float", width: 3 },  // position
 			{ type: "float", width: 4 },  // rotation
