@@ -2,8 +2,8 @@ devDependencies:
   '@typescript-eslint/eslint-plugin': 2.29.0_68aa0cf1893d5414e11aa7fe89753d25
   '@typescript-eslint/parser': 2.29.0_eslint@6.8.0+typescript@3.8.3
   eslint: 6.8.0
-  rollup: 2.7.1
-  rollup-plugin-dts: 1.4.0_rollup@2.7.1+typescript@3.8.3
+  rollup: 2.7.2
+  rollup-plugin-dts: 1.4.0_rollup@2.7.2+typescript@3.8.3
   tslib: 1.11.1
   typescript: 3.8.3
 lockfileVersion: 5.1
@@ -814,9 +814,9 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-mwqeW5XsA2qAejG46gYdENaxXjx9onRNCfn7L0duuP4hCuTIi/QO7PDK07KJfp1d+izWPrzEJDcSqBa0OZQriA==
-  /rollup-plugin-dts/1.4.0_rollup@2.7.1+typescript@3.8.3:
+  /rollup-plugin-dts/1.4.0_rollup@2.7.2+typescript@3.8.3:
     dependencies:
-      rollup: 2.7.1
+      rollup: 2.7.2
       typescript: 3.8.3
     dev: true
     optionalDependencies:
@@ -826,7 +826,7 @@ packages:
       typescript: ^3.8.3
     resolution:
       integrity: sha512-Yvag9u/uXgX+49qascRe4aFSrSMrY3rUAnbXrl6Y/08GL2cylosfCd5a1siOhHM6u1n4wyR9Nnc04cjceeedfw==
-  /rollup/2.7.1:
+  /rollup/2.7.2:
     dev: true
     engines:
       node: '>=10.0.0'
@@ -834,7 +834,7 @@ packages:
     optionalDependencies:
       fsevents: 2.1.3
     resolution:
-      integrity: sha512-c1FCjY8HK1nAq0bTZHaR72ZknpP7p0EjxbcVc6BcmtOosurK//P5jtwxX+f/4fgtbrjczqf0uvR+EdtxpriE8g==
+      integrity: sha512-SdtTZVMMVSPe7SNv4exUyPXARe5v/p3TeeG3LRA5WabLPJt4Usi3wVrvVlyAUTG40JJmqS6zbIHt2vWTss2prw==
   /run-async/2.4.0:
     dependencies:
       is-promise: 2.1.0
@@ -1063,7 +1063,7 @@ specifiers:
   '@typescript-eslint/eslint-plugin': ^2.29.0
   '@typescript-eslint/parser': ^2.29.0
   eslint: ^6.8.0
-  rollup: ^2.7.1
+  rollup: ^2.7.2
   rollup-plugin-dts: ^1.4.0
   tslib: ^1.11.1
   typescript: ^3.8.3
