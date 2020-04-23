@@ -16,9 +16,7 @@ export type StructField<C = unknown> = C & {
 	width: number;
 };
 
-export type PositionedStructField<C> = {
-	readonly [P in keyof StructField<C>]: StructField<C>[P];
-} & {
+export type PositionedStructField<C> = Readonly<StructField<C>> & {
 	/** Aligned position of this field within a struct or buffer */
 	byteOffset: number;
 	/** Total number of bytes for all elements in this field or of all values in a buffer */
