@@ -69,8 +69,8 @@ export function hertz(hz: number) {
 }
 
 export const enum AngleConvert {
-	DEG2RAD = 0.01745329252, // Math.PI / 180.0,
-	RAD2DEG = 57.2957795131  // 180.0 / Math.PI
+	DEG2RAD = 0.017453292519943295, // Math.PI / 180.0,
+	RAD2DEG = 57.29577951308232  // 180.0 / Math.PI
 }
 
 /**
