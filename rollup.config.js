@@ -39,5 +39,6 @@ export default [
 	"container",
 	"vector",
 	"geometry",
-	"entity"
+	"entity",
+	"render"
 ].flatMap(module);
