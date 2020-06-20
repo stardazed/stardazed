@@ -5,6 +5,7 @@
 		{ "path": "container" },
 		{ "path": "vector" },
 		{ "path": "geometry" },
-		{ "path": "entity" }
+		{ "path": "entity" },
+		{ "path": "render" },
 	]
 }
