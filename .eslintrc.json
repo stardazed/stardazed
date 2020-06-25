@@ -19,11 +19,36 @@
         "@typescript-eslint/array-type": ["error", { "default": "array", "readonly": "generic" }],
 
         "camelcase": "off",
-        "@typescript-eslint/camelcase": ["error", { "properties": "never", "allow": ["^[A-Za-z][a-zA-Za-z0-9]+_[A-Za-z0-9]+$"] }],
+        // "@typescript-eslint/camelcase": ["error", { "properties": "never", "allow": ["^[A-Za-z][a-zA-Za-z0-9]+_[A-Za-z0-9]+$"] }],
+        // "@typescript-eslint/class-name-casing": "error",
+        // "@typescript-eslint/interface-name-prefix": "error",
+        "@typescript-eslint/naming-convention": [
+            "error",
+            {
+                "selector": "default",
+                "format": ["camelCase"],
+                "leadingUnderscore": "allow",
+                "trailingUnderscore": "allow"
+            },
+            {
+                "selector": "variable",
+                "format": ["camelCase", "PascalCase"]
+            },
+            {
+                "selector": "typeLike",
+                "format": ["PascalCase"]
+            },
+            {
+                "selector": "enumMember",
+                "format": ["PascalCase"]
+            },
+            {
+                "selector": "property",
+                "format": ["custom", { "regex": "^_?[A-Za-z][a-zA-Za-z0-9]+_[A-Za-z0-9]+_?$" }]
+            }
+        ],
 
-        "@typescript-eslint/class-name-casing": "error",
         "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
-        "@typescript-eslint/interface-name-prefix": "error",
         "@typescript-eslint/no-inferrable-types": "error",
         "@typescript-eslint/no-misused-new": "error",
         "@typescript-eslint/no-this-alias": "error",
