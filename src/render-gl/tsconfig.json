@@ -1,7 +1,7 @@
 {
 	"extends": "../tsconfig-base.json",
 	"compilerOptions": {
-		"outDir": "../../__build/render",
+		"outDir": "../../__build/render-gl",
 		"baseUrl": ".",
 		"paths": {
 			"stardazed/*": ["../*"]
