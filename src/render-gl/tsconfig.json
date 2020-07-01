@@ -10,9 +10,13 @@
 	"files": [
 		"../global-types.d.ts",
 
+		"constants.ts",
+		"types.ts",
+		"state.ts",
 		"index.ts"
 	],
 	"references": [
-		{ "path": "../core" }
+		{ "path": "../core" },
+		{ "path": "../vector" },
 	]
 }
