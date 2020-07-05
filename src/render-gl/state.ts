@@ -161,6 +161,10 @@ export class GL1State {
 	private blendFnDstAlpha_: BlendFactor;
 	private blendConstColour_: Vector4;
 
+	private imageAlphaPremultiply_: boolean;
+	private imageApplyColourConversion_: boolean;
+	private imageFlipVertical_: boolean;
+
 	// private readonly maxAnisotropy_: number;
 	// private readonly maxTextureSlot_: number;
 	// private readonly textureSlots_: (WebGLTexture | null)[];
@@ -206,6 +210,10 @@ export class GL1State {
 		this.blendFnDstRGB_ = blendFactorForGL1BlendFunc[gl.getParameter(GLConst.BLEND_DST_RGB)];
 		this.blendFnDstAlpha_ = blendFactorForGL1BlendFunc[gl.getParameter(GLConst.BLEND_DST_ALPHA)];
 		this.blendConstColour_ = Vector4.fromArray(gl.getParameter(GLConst.BLEND_COLOR));
+
+		this.imageAlphaPremultiply_ = gl.getParameter(GLConst.UNPACK_PREMULTIPLY_ALPHA_WEBGL);
+		this.imageApplyColourConversion_ = gl.getParameter(GLConst.UNPACK_COLORSPACE_CONVERSION_WEBGL) === GLConst.BROWSER_DEFAULT_WEBGL;
+		this.imageFlipVertical_ = gl.getParameter(GLConst.UNPACK_FLIP_Y_WEBGL);
 
 		this.activeProgram_ = gl.getParameter(GLConst.CURRENT_PROGRAM);
 		this.framebuffer_ = gl.getParameter(GLConst.FRAMEBUFFER_BINDING);
@@ -378,6 +386,27 @@ export class GL1State {
 				this.blendEnabled_ = true;
 				this.gl.enable(GLConst.BLEND);
 			}
+		}
+	}
+
+	setImageLoadAlphaPremultiply(premultiply: boolean) {
+		if (premultiply !== this.imageAlphaPremultiply_) {
+			this.imageAlphaPremultiply_ = premultiply;
+			this.gl.pixelStorei(GLConst.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiply);
+		}
+	}
+
+	setImageLoadApplyColourConversion(apply: boolean) {
+		if (apply !== this.imageApplyColourConversion_) {
+			this.imageApplyColourConversion_ = apply;
+			this.gl.pixelStorei(GLConst.UNPACK_COLORSPACE_CONVERSION_WEBGL, apply ? GLConst.BROWSER_DEFAULT_WEBGL : GLConst.NONE);
+		}
+	}
+
+	setImageLoadFlipVertical(flipY: boolean) {
+		if (flipY !== this.imageFlipVertical_) {
+			this.imageFlipVertical_ = flipY;
+			this.gl.pixelStorei(GLConst.UNPACK_FLIP_Y_WEBGL, flipY);
 		}
 	}
 

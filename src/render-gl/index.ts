@@ -5,7 +5,6 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { GLConst } from "./constants";
 import { GL1State } from "./state";
 
 export class RenderContextWebGL {
@@ -72,10 +71,6 @@ export class RenderContextWebGL {
 			this.extDrawBuffers = gl.getExtension("WEBGL_draw_buffers")!;
 			this.extVAO = gl.getExtension("OES_vertex_array_object")!;
 			this.extInstancedArrays = gl.getExtension("ANGLE_instanced_arrays")!;
-
-			// set sensible defaults
-			gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, GLConst.NONE);
-			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, GLConst.ZERO);
 
 			this.gl = gl;
 			this.state = new GL1State(gl);
