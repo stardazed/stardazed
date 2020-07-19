@@ -6,6 +6,7 @@ https://github.com/stardazed/stardazed
 */
 
 export interface Instance<C> extends Number {
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	readonly __C?: C;
 }
 
