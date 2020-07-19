@@ -44,7 +44,8 @@
             },
             {
                 "selector": "property",
-                "format": ["custom", { "regex": "^_?[A-Za-z][a-zA-Za-z0-9]+_[A-Za-z0-9]+_?$" }]
+                "format": null,
+                "custom": { "regex": "^_?[A-Za-z][a-zA-Za-z0-9]+(_[A-Za-z0-9]+)*_?$", "match": true }
             }
         ],
 
