@@ -80,6 +80,9 @@ export class RenderContextWebGL {
 			if (err instanceof RangeError) {
 				throw err;
 			}
+			if (err && "message" in err && typeof err.message === "string") {
+				throw new RangeError(err.message);
+			}
 			throw new RangeError("Could not initialise WebGL1 context.");
 		}
 	}
