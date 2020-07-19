@@ -18,5 +18,6 @@
 	"references": [
 		{ "path": "../core" },
 		{ "path": "../vector" },
+		{ "path": "../geometry" }
 	]
 }
