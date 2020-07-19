@@ -32,7 +32,7 @@ export class RenderContextWebGL {
 
 			const gl = canvas.getContext("webgl", contextAttrs);
 			if (! gl) {
-				throw "WebGL1 is not supported or is disabled.";
+				throw new RangeError("WebGL1 is not supported or is disabled.");
 			}
 
 			// check for all required extensions, these are the commonly supported
@@ -42,7 +42,7 @@ export class RenderContextWebGL {
 				for (const name of names) {
 					const ext = gl.getExtension(name);
 					if (! ext) {
-						throw `WebGL1 does not support required extension: ${name}`;
+						throw new RangeError(`WebGL1 does not support required extension: ${name}`);
 					}
 				}
 			};
@@ -72,15 +72,13 @@ export class RenderContextWebGL {
 			this.extVAO = gl.getExtension("OES_vertex_array_object")!;
 			this.extInstancedArrays = gl.getExtension("ANGLE_instanced_arrays")!;
 
+			// manage state changes by proxy to avoid unneeded gl state updates
 			this.gl = gl;
 			this.state = new GL1State(gl);
 		}
 		catch (err) {
-			if (typeof err === "string") {
-				throw new RangeError(err);
-			}
-			else if ("message" in err) {
-				throw new RangeError(err.message);
+			if (err instanceof RangeError) {
+				throw err;
 			}
 			throw new RangeError("Could not initialise WebGL1 context.");
 		}

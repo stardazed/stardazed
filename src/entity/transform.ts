@@ -119,10 +119,7 @@ export class TransformComponent implements Component<TransformComponent> {
 		return thisInstance;
 	}
 
-	destroyRange(range: TransformRange) {
-		for (const _inst of range) {
-			// destroy data, likely zero
-		}
+	destroyRange(_range: TransformRange) {
 	}
 
 
