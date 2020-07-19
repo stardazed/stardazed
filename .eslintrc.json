@@ -32,7 +32,7 @@
             },
             {
                 "selector": "variable",
-                "format": ["camelCase", "PascalCase"]
+                "format": ["camelCase", "PascalCase", "UPPER_CASE"]
             },
             {
                 "selector": "typeLike",
@@ -40,12 +40,12 @@
             },
             {
                 "selector": "enumMember",
-                "format": ["PascalCase"]
+                "format": ["PascalCase", "UPPER_CASE"]
             },
             {
                 "selector": "property",
                 "format": null,
-                "custom": { "regex": "^_?[A-Za-z][a-zA-Za-z0-9]+(_[A-Za-z0-9]+)*_?$", "match": true }
+                "custom": { "regex": "^_?[A-Za-z][A-Za-z0-9_]*_?$", "match": true }
             }
         ],
 
