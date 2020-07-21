@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { UInt16, UInt32, NumericTypeTraits } from "stardazed/core";
+import { UInt16, UInt32, NumericTypeRef, numericTraits } from "stardazed/core";
 
 /** Numerical constants for the allowed size of index elements */
 export const enum IndexElementSize {
@@ -28,7 +28,7 @@ export function minimumIndexElementSizeForVertexCount(vertexCount: number) {
  * for a specified count of index elements.
  */
 export class IndexBuffer {
-	readonly elementType: NumericTypeTraits;
+	readonly elementType: NumericTypeRef;
 	readonly length: number;
 	readonly data: Uint8Array;
 
@@ -54,7 +54,7 @@ export class IndexBuffer {
 		this.data = storage;
 	}
 
-	get byteLength() { return this.elementType.byteLength * this.length; }
+	get byteLength() { return numericTraits(this.elementType).byteLength * this.length; }
 
 	/**
 	 * Access (a section of) the underlying array data of an IndexBuffer.
@@ -66,8 +66,9 @@ export class IndexBuffer {
 	 * @expects fromIndex + toIndex <= this.count
 	 */
 	arrayView(fromIndex = 0, toIndex = this.length) {
-		const offsetBytes = this.data.byteOffset + this.elementType.byteLength * fromIndex;
-		return new this.elementType.arrayType(this.data.buffer, offsetBytes, toIndex - fromIndex);
+		const numTraits = numericTraits(this.elementType);
+		const offsetBytes = this.data.byteOffset + numTraits.byteLength * fromIndex;
+		return new numTraits.arrayType(this.data.buffer, offsetBytes, toIndex - fromIndex);
 	}
 
 	static sizeBytesRequired(elementSize: IndexElementSize, indexCount: number) {
