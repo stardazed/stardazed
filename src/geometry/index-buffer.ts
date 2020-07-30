@@ -54,7 +54,9 @@ export class IndexBuffer {
 		this.data = storage;
 	}
 
-	get byteLength() { return numericTraits(this.elementType).byteLength * this.length; }
+	get byteLength() {
+		return numericTraits(this.elementType).byteLength * this.length;
+	}
 
 	/**
 	 * Access (a section of) the underlying array data of an IndexBuffer.
