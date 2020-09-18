@@ -1,13 +1,18 @@
 /*
-render-gl - webgl render functionality
+render-gl - webgl render backend
 Part of Stardazed
 (c) 2015-Present by Arthur Langereis - @zenmumbler
 https://github.com/stardazed/stardazed
 */
 
+import { Geometry } from "stardazed/geometry";
 import { GL1State } from "./state";
 
-export class RenderContextWebGL {
+export interface RenderDevice {
+	createBuffer(): void;
+}
+
+export class RenderDeviceWebGL {
 	readonly gl: WebGLRenderingContext;
 	readonly state: GL1State;
 
@@ -32,7 +37,7 @@ export class RenderContextWebGL {
 
 			const gl = canvas.getContext("webgl", contextAttrs);
 			if (! gl) {
-				throw new RangeError("WebGL1 is not supported or is disabled.");
+				throw new DOMException("WebGL1 is not supported or is disabled.", "NotSupportedError");
 			}
 
 			// check for all required extensions, these are the commonly supported
@@ -42,7 +47,7 @@ export class RenderContextWebGL {
 				for (const name of names) {
 					const ext = gl.getExtension(name);
 					if (! ext) {
-						throw new RangeError(`WebGL1 does not support required extension: ${name}`);
+						throw new DOMException(`WebGL1 does not support required extension: ${name}`, "NotSupportedError");
 					}
 				}
 			};
@@ -67,7 +72,7 @@ export class RenderContextWebGL {
 				"WEBGL_draw_buffers"
 			]);
 
-			// a few extensions expose additional APIs that must be accessed through the extension objects
+			// a few extensions expose additional APIs that must be accessed through their resp. extension objects
 			this.extDrawBuffers = gl.getExtension("WEBGL_draw_buffers")!;
 			this.extVAO = gl.getExtension("OES_vertex_array_object")!;
 			this.extInstancedArrays = gl.getExtension("ANGLE_instanced_arrays")!;
@@ -77,13 +82,10 @@ export class RenderContextWebGL {
 			this.state = new GL1State(gl);
 		}
 		catch (err) {
-			if (err instanceof RangeError) {
+			if (err instanceof Error) {
 				throw err;
 			}
-			if (err && "message" in err && typeof err.message === "string") {
-				throw new RangeError(err.message);
-			}
-			throw new RangeError("Could not initialise WebGL1 context.");
+			throw new DOMException("Could not initialise WebGL1 context.", "UnknownError");
 		}
 	}
 }
