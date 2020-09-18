@@ -1,5 +1,5 @@
 /*
-render-gl/state - WebGL1 state wrapper
+render-gl/state - WebGL 1/2 state wrapper
 Part of Stardazed
 (c) 2015-Present by Arthur Langereis - @zenmumbler
 https://github.com/stardazed/stardazed
@@ -10,7 +10,7 @@ import { Vector2, Vector4 } from "stardazed/vector";
 import { GLConst } from "./constants";
 import { ColourWriteMask, ColourBlending, Viewport, DepthTest, ScissorRect, BlendOperation, BlendFactor, FrontFaceWinding, FaceCulling, /* TextureMipFilter, TextureRepeatMode, TextureSizingFilter */ } from "./types";
 
-const depthTestForGL1DepthFunc: Record<number, DepthTest> = {
+const depthTestForGLDepthFunc: Record<number, DepthTest> = {
 	[GLConst.ALWAYS]: DepthTest.AllowAll,
 	[GLConst.NEVER]: DepthTest.DenyAll,
 	[GLConst.LESS]: DepthTest.Less,
@@ -21,7 +21,7 @@ const depthTestForGL1DepthFunc: Record<number, DepthTest> = {
 	[GLConst.GREATER]: DepthTest.Greater
 };
 
-const gl1DepthFuncForDepthTest: Record<DepthTest, number> = {
+const glDepthFuncForDepthTest: Record<DepthTest, number> = {
 	[DepthTest.Disabled]: GLConst.ALWAYS,
 	[DepthTest.AllowAll]: GLConst.ALWAYS,
 	[DepthTest.DenyAll]: GLConst.NEVER,
@@ -33,7 +33,7 @@ const gl1DepthFuncForDepthTest: Record<DepthTest, number> = {
 	[DepthTest.Greater]: GLConst.GREATER
 };
 
-const blendOpForGL1BlendEq: Record<number, BlendOperation> = {
+const blendOpForGLBlendEq: Record<number, BlendOperation> = {
 	[GLConst.FUNC_ADD]: BlendOperation.Add,
 	[GLConst.FUNC_SUBTRACT]: BlendOperation.Subtract,
 	[GLConst.FUNC_REVERSE_SUBTRACT]: BlendOperation.ReverseSubtract,
@@ -41,7 +41,7 @@ const blendOpForGL1BlendEq: Record<number, BlendOperation> = {
 	[GLConst.MAX_EXT]: BlendOperation.Max
 };
 
-const gl1BlendEqForBlendOp: Record<BlendOperation, number> = {
+const glBlendEqForBlendOp: Record<BlendOperation, number> = {
 	[BlendOperation.Add]: GLConst.FUNC_ADD,
 	[BlendOperation.Subtract]: GLConst.FUNC_SUBTRACT,
 	[BlendOperation.ReverseSubtract]: GLConst.FUNC_REVERSE_SUBTRACT,
@@ -49,7 +49,7 @@ const gl1BlendEqForBlendOp: Record<BlendOperation, number> = {
 	[BlendOperation.Max]: GLConst.MAX_EXT
 };
 
-const blendFactorForGL1BlendFunc: Record<number, BlendFactor> = {
+const blendFactorForGLBlendFunc: Record<number, BlendFactor> = {
 	[GLConst.ZERO]: BlendFactor.Zero,
 	[GLConst.ONE]: BlendFactor.One,
 	[GLConst.SRC_COLOR]: BlendFactor.SourceColour,
@@ -67,7 +67,7 @@ const blendFactorForGL1BlendFunc: Record<number, BlendFactor> = {
 	[GLConst.ONE_MINUS_CONSTANT_ALPHA]: BlendFactor.OneMinusConstantAlpha
 };
 
-const gl1BlendFuncForBlendFactor: Record<BlendFactor, number> = {
+const glBlendFuncForBlendFactor: Record<BlendFactor, number> = {
 	[BlendFactor.Zero]: GLConst.ZERO,
 	[BlendFactor.One]: GLConst.ONE,
 	[BlendFactor.SourceColour]: GLConst.SRC_COLOR,
@@ -200,15 +200,15 @@ export class GL1State {
 		this.colourWriteMask_ = gl.getParameter(GLConst.COLOR_WRITEMASK);
 		this.depthMask_ = gl.getParameter(GLConst.DEPTH_WRITEMASK);
 
-		this.depthTest_ = gl.isEnabled(GLConst.DEPTH_TEST) ? depthTestForGL1DepthFunc[gl.getParameter(GLConst.DEPTH_FUNC)] : DepthTest.Disabled;
+		this.depthTest_ = gl.isEnabled(GLConst.DEPTH_TEST) ? depthTestForGLDepthFunc[gl.getParameter(GLConst.DEPTH_FUNC)] : DepthTest.Disabled;
 
 		this.blendEnabled_ = gl.isEnabled(GLConst.BLEND);
-		this.blendOpRGB_ = blendOpForGL1BlendEq[gl.getParameter(GLConst.BLEND_EQUATION_RGB)];
-		this.blendOpAlpha_ = blendOpForGL1BlendEq[gl.getParameter(GLConst.BLEND_EQUATION_ALPHA)];
-		this.blendFnSrcRGB_ = blendFactorForGL1BlendFunc[gl.getParameter(GLConst.BLEND_SRC_RGB)];
-		this.blendFnSrcAlpha_ = blendFactorForGL1BlendFunc[gl.getParameter(GLConst.BLEND_SRC_ALPHA)];
-		this.blendFnDstRGB_ = blendFactorForGL1BlendFunc[gl.getParameter(GLConst.BLEND_DST_RGB)];
-		this.blendFnDstAlpha_ = blendFactorForGL1BlendFunc[gl.getParameter(GLConst.BLEND_DST_ALPHA)];
+		this.blendOpRGB_ = blendOpForGLBlendEq[gl.getParameter(GLConst.BLEND_EQUATION_RGB)];
+		this.blendOpAlpha_ = blendOpForGLBlendEq[gl.getParameter(GLConst.BLEND_EQUATION_ALPHA)];
+		this.blendFnSrcRGB_ = blendFactorForGLBlendFunc[gl.getParameter(GLConst.BLEND_SRC_RGB)];
+		this.blendFnSrcAlpha_ = blendFactorForGLBlendFunc[gl.getParameter(GLConst.BLEND_SRC_ALPHA)];
+		this.blendFnDstRGB_ = blendFactorForGLBlendFunc[gl.getParameter(GLConst.BLEND_DST_RGB)];
+		this.blendFnDstAlpha_ = blendFactorForGLBlendFunc[gl.getParameter(GLConst.BLEND_DST_ALPHA)];
 		this.blendConstColour_ = Vector4.fromArray(gl.getParameter(GLConst.BLEND_COLOR));
 
 		this.imageAlphaPremultiply_ = gl.getParameter(GLConst.UNPACK_PREMULTIPLY_ALPHA_WEBGL);
@@ -332,7 +332,7 @@ export class GL1State {
 				this.gl.disable(GLConst.DEPTH_TEST);
 			}
 			else {
-				this.gl.depthFunc(gl1DepthFuncForDepthTest[test]);
+				this.gl.depthFunc(glDepthFuncForDepthTest[test]);
 				if (wasDisabled) {
 					this.gl.enable(GLConst.DEPTH_TEST);
 				}
@@ -359,10 +359,10 @@ export class GL1State {
 				this.blendFnDstAlpha_ = blending.destAlphaFactor;
 
 				this.gl.blendFuncSeparate(
-					gl1BlendFuncForBlendFactor[blending.sourceRGBFactor],
-					gl1BlendFuncForBlendFactor[blending.destRGBFactor],
-					gl1BlendFuncForBlendFactor[blending.sourceAlphaFactor],
-					gl1BlendFuncForBlendFactor[blending.destAlphaFactor]
+					glBlendFuncForBlendFactor[blending.sourceRGBFactor],
+					glBlendFuncForBlendFactor[blending.destRGBFactor],
+					glBlendFuncForBlendFactor[blending.sourceAlphaFactor],
+					glBlendFuncForBlendFactor[blending.destAlphaFactor]
 				);
 			}
 
@@ -371,8 +371,8 @@ export class GL1State {
 				this.blendOpAlpha_ = blending.alphaBlendOp;
 
 				this.gl.blendEquationSeparate(
-					gl1BlendEqForBlendOp[blending.rgbBlendOp],
-					gl1BlendEqForBlendOp[blending.alphaBlendOp]
+					glBlendEqForBlendOp[blending.rgbBlendOp],
+					glBlendEqForBlendOp[blending.alphaBlendOp]
 				);
 			}
 
