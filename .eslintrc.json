@@ -68,6 +68,7 @@
         "@typescript-eslint/unified-signatures": "error",
 
         // eslint
+        "arrow-parens": ["error", "as-needed", { "requireForBlockBody": true }],
         "brace-style": ["error", "stroustrup", { "allowSingleLine": true }],
         "constructor-super": "error",
         "curly": ["error", "multi-line"],
@@ -90,7 +91,7 @@
         "no-sparse-arrays": "error",
         "no-template-curly-in-string": "error",
         "no-throw-literal": "error",
-        "no-trailing-spaces": "error",
+        "no-trailing-spaces": ["error", { "skipBlankLines": true }],
         "no-undef-init": "error",
         "no-unsafe-finally": "error",
         "no-unused-expressions": ["error", { "allowTernary": true }],
