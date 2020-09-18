@@ -17,6 +17,9 @@ export const enum IndexElementSize {
  * @expects isPositiveInteger(vertexCount)
  */
 export function minimumIndexElementSizeForVertexCount(vertexCount: number) {
+	// note the equal comparison here, as in WebGL2 the maximum vertex
+	// index is _always_ considered to be a vertex restart index and
+	// cannot be used as a valid vertex index
 	if (vertexCount <= UInt16.max) {
 		return IndexElementSize.UInt16;
 	}
