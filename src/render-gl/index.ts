@@ -5,7 +5,6 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { Geometry } from "stardazed/geometry";
 import { GL1State } from "./state";
 
 export interface RenderDevice {

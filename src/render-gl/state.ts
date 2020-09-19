@@ -8,7 +8,7 @@ https://github.com/stardazed/stardazed
 // import { clampf } from "stardazed/core";
 import { Vector2, Vector4 } from "stardazed/vector";
 import { GLConst } from "./constants";
-import { ColourWriteMask, ColourBlending, Viewport, DepthTest, ScissorRect, BlendOperation, BlendFactor, FrontFaceWinding, FaceCulling, /* TextureMipFilter, TextureRepeatMode, TextureSizingFilter */ } from "./types";
+import { ColourWriteMask, ColourBlending, Viewport, DepthTest, ScissorRect, BlendOperation, BlendFactor, FaceWinding, FaceCulling, /* TextureMipFilter, TextureRepeatMode, TextureSizingFilter */ } from "./types";
 
 const depthTestForGLDepthFunc: Record<number, DepthTest> = {
 	[GLConst.ALWAYS]: DepthTest.AllowAll,
@@ -136,7 +136,7 @@ function gl1TextureMinificationFilter(minFilter: TextureSizingFilter, mipFilter:
  */
 export class GL1State {
 	public readonly gl: WebGLRenderingContext;
-	private frontFace_: FrontFaceWinding;
+	private frontFace_: FaceWinding;
 	private cullFace_: FaceCulling;
 
 	private scissorEnabled_: boolean;
@@ -181,7 +181,7 @@ export class GL1State {
 		// this.textureSlots_ = container.fill([], null, this.maxTextureSlot_ + 1);
 
 		// initial pull of dynamic state
-		this.frontFace_ = (gl.getParameter(GLConst.FRONT_FACE) === GLConst.CW) ? FrontFaceWinding.Clockwise : FrontFaceWinding.CounterClockwise;
+		this.frontFace_ = (gl.getParameter(GLConst.FRONT_FACE) === GLConst.CW) ? FaceWinding.Clockwise : FaceWinding.CounterClockwise;
 
 		const glCullFaceEnabled = gl.isEnabled(GLConst.CULL_FACE);
 		const glCullFaceMode = gl.getParameter(GLConst.CULL_FACE_MODE);
@@ -223,12 +223,12 @@ export class GL1State {
 	// 	return this.maxTextureSlot_;
 	// }
 
-	setFrontFace(frontFace: FrontFaceWinding) {
+	setFrontFace(frontFace: FaceWinding) {
 		if (frontFace === this.frontFace_) {
 			return;
 		}
 		this.frontFace_ = frontFace;
-		this.gl.frontFace((frontFace === FrontFaceWinding.Clockwise) ? GLConst.CW : GLConst.CCW);
+		this.gl.frontFace((frontFace === FaceWinding.Clockwise) ? GLConst.CW : GLConst.CCW);
 	}
 
 	setFaceCulling(faceCulling: FaceCulling) {

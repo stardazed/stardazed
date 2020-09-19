@@ -13,7 +13,6 @@ export const enum FaceCulling {
 	Back
 }
 
-
 export const enum DepthTest {
 	Disabled,
 
@@ -28,7 +27,6 @@ export const enum DepthTest {
 	Greater
 }
 
-
 export const enum BlendOperation {
 	Add,
 	Subtract,
@@ -37,7 +35,6 @@ export const enum BlendOperation {
 	Min,
 	Max
 }
-
 
 export const enum BlendFactor {
 	Zero,
@@ -62,7 +59,6 @@ export const enum BlendFactor {
 	OneMinusConstantAlpha
 }
 
-
 export interface ColourBlending {
 	rgbBlendOp: BlendOperation;
 	alphaBlendOp: BlendOperation;
@@ -75,15 +71,6 @@ export interface ColourBlending {
 	constantColour: Vector4;
 }
 
-
-export interface ColourWriteMask {
-	red: boolean;
-	green: boolean;
-	blue: boolean;
-	alpha: boolean;
-}
-
-
 export function makeColourBlending(): ColourBlending {
 	return {
 		rgbBlendOp: BlendOperation.Add,
@@ -94,10 +81,16 @@ export function makeColourBlending(): ColourBlending {
 		destRGBFactor: BlendFactor.Zero,
 		destAlphaFactor: BlendFactor.Zero,
 
-		constantColour: Vector4.fromArray([0, 0, 0, 1])
+		constantColour: new Vector4(0, 0, 0, 1)
 	};
 }
 
+export interface ColourWriteMask {
+	red: boolean;
+	green: boolean;
+	blue: boolean;
+	alpha: boolean;
+}
 
 export function makeColourWriteMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): ColourWriteMask {
 	return {
@@ -105,8 +98,7 @@ export function makeColourWriteMask(red: boolean, green: boolean, blue: boolean,
 	};
 }
 
-
-export const enum FrontFaceWinding {
+export const enum FaceWinding {
 	Clockwise,
 	CounterClockwise
 }
