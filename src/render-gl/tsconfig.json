@@ -10,9 +10,9 @@
 	"files": [
 		"../global-types.d.ts",
 
-		"constants.ts",
 		"types.ts",
-		"state.ts",
+		"gl-constants.ts",
+		"gl-state.ts",
 		"index.ts"
 	],
 	"references": [

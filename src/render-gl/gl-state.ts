@@ -1,5 +1,5 @@
 /*
-render-gl/state - WebGL 1/2 state wrapper
+render/gl-state - WebGL 1/2 state wrapper
 Part of Stardazed
 (c) 2015-Present by Arthur Langereis - @zenmumbler
 https://github.com/stardazed/stardazed
@@ -7,7 +7,7 @@ https://github.com/stardazed/stardazed
 
 // import { clampf } from "stardazed/core";
 import { Vector2, Vector4 } from "stardazed/vector";
-import { GLConst } from "./constants";
+import { GLConst } from "./gl-constants";
 import { ColourWriteMask, ColourBlending, Viewport, DepthTest, ScissorRect, BlendOperation, BlendFactor, FaceWinding, FaceCulling, /* TextureMipFilter, TextureRepeatMode, TextureSizingFilter */ } from "./types";
 
 const depthTestForGLDepthFunc: Record<number, DepthTest> = {
@@ -134,7 +134,7 @@ function gl1TextureMinificationFilter(minFilter: TextureSizingFilter, mipFilter:
  * GPU state every time, even if nothing changed. Additionally, the WebGL
  * layer adds overhead as well and querying the GL is defined to be slow.
  */
-export class GL1State {
+export class GLState {
 	public readonly gl: WebGLRenderingContext;
 	private frontFace_: FaceWinding;
 	private cullFace_: FaceCulling;

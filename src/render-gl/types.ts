@@ -1,5 +1,5 @@
 /*
-render-gl/types - data structures and make functions for render state info
+render/types - data structures and make functions for render state info
 Part of Stardazed
 (c) 2015-Present by Arthur Langereis - @zenmumbler
 https://github.com/stardazed/stardazed

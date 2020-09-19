@@ -1,11 +1,11 @@
 /*
-render-gl - webgl render backend
+render - rendering interfaces and backends
 Part of Stardazed
 (c) 2015-Present by Arthur Langereis - @zenmumbler
 https://github.com/stardazed/stardazed
 */
 
-import { GL1State } from "./state";
+import { GLState } from "./gl-state";
 
 export interface RenderDevice {
 	createBuffer(): void;
@@ -13,7 +13,7 @@ export interface RenderDevice {
 
 export class RenderDeviceWebGL {
 	readonly gl: WebGLRenderingContext;
-	readonly state: GL1State;
+	readonly state: GLState;
 
 	readonly extDrawBuffers: WEBGL_draw_buffers;
 	readonly extVAO: OES_vertex_array_object;
@@ -78,7 +78,7 @@ export class RenderDeviceWebGL {
 
 			// manage state changes by proxy to avoid unneeded gl state updates
 			this.gl = gl;
-			this.state = new GL1State(gl);
+			this.state = new GLState(gl);
 		}
 		catch (err) {
 			if (err instanceof Error) {
