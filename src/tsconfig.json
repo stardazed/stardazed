@@ -6,6 +6,6 @@
 		{ "path": "vector" },
 		{ "path": "geometry" },
 		{ "path": "entity" },
-		{ "path": "render-gl" },
+		{ "path": "render" },
 	]
 }

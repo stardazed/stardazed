@@ -1,7 +1,7 @@
 {
 	"name": "stardazed",
 	"version": "0.5.0",
-	"description": "Solid 3D Web Game Engine",
+	"description": "3D Game Development Library for the Web",
 	"license": "MIT",
 	"private": true,
 	"homepage": "https://github.com/stardazed/stardazed",
@@ -15,7 +15,9 @@
 	"files": [
 		"container",
 		"core",
+		"entity",
 		"geometry",
+		"render",
 		"vector",
 		"global-types.d.ts",
 		"index.*"
@@ -27,10 +29,10 @@
 	"keywords": [
 		"game-engine",
 		"webgl",
+		"webgpu",
 		"3d"
 	],
 	"scripts": {
-		"clean": "rm -rf ./__build; rm -rf ./container; rm -rf ./core; rm -rf ./geometry; rm -rf ./vector; rm ./global-types.d.ts",
 		"compile": "tsc -b src/tsconfig.json",
 		"compile:watch": "tsc -b -w src/tsconfig.json",
 		"bundle": "rollup -c",
