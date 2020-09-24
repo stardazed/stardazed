@@ -5,7 +5,7 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-import { PositionedStructField, StructField, ArrayOfStructs } from "stardazed/container";
+import { PositionedStructField, StructField, ArrayOfStructs, StructOfArrays } from "stardazed/container";
 
 /**
  * The role of a vertex attribute indicates usage purpose
@@ -58,6 +58,8 @@ export type VertexAttribute = StructField<VertexFieldProps>;
  */
 export type PositionedAttribute = PositionedStructField<VertexFieldProps>;
 
+export type VertexBufferTopology = "linear" | "interleaved";
+
 /**
  * Properties used to create a VertexBuffer
  */
@@ -68,13 +70,17 @@ export interface VertexBufferDescriptor {
 	valueCount: number;
 	/** (optional) The vertex step mode that will apply to ALL attributes in this buffer */
 	stepMode?: StepMode;
+	/** (optional) The storage topology of vertex data, defaults to interleaved */
+	topology?: VertexBufferTopology;
 }
 
 /**
  * A VertexBuffer is the client-side representation of vertex data and meta-data.
  */
-export class VertexBuffer extends ArrayOfStructs<VertexFieldProps> {
+export class VertexBuffer {
 	readonly stepMode: StepMode;
+	readonly topology: VertexBufferTopology;
+	readonly backing: ArrayOfStructs<VertexFieldProps> | StructOfArrays<VertexFieldProps>;
 
 	/**
 	 * Create a new VertexBuffer using a descriptor into new or provided storage
@@ -83,16 +89,32 @@ export class VertexBuffer extends ArrayOfStructs<VertexFieldProps> {
 	constructor(desc: VertexBufferDescriptor, storage?: Uint8Array) {
 		// TODO: verify that each field can be represented in a vertexbuffer
 
-		super(desc.attrs, desc.valueCount, storage);
+		this.topology = desc.topology ?? "interleaved";
+		if (this.topology === "interleaved") {
+			this.backing = new ArrayOfStructs(desc.attrs, desc.valueCount, storage);
+		}
+		else {
+			this.backing = new StructOfArrays(desc.attrs, desc.valueCount, storage);
+		}
 		this.stepMode = desc.stepMode ?? StepMode.Vertex;
 	}
 
+	get fields() { return this.backing.fields; }
+	get length() { return this.backing.length; }
+	get stride() { return this.backing instanceof ArrayOfStructs ? this.backing.stride : 0; }
+	get data() { return this.backing.data; }
+	get byteLength() { return this.backing.byteLength; }
+
 	fieldByRole(role: VertexAttributeRole) {
-		for (const field of this.fields) {
+		for (const field of this.backing.fields) {
 			if (field.role === role) {
 				return field;
 			}
 		}
 		return undefined;
+	}
+
+	fieldView(field: number | PositionedStructField<VertexFieldProps>, fromIndex?: number, toIndex?: number) {
+		return this.backing.fieldView(field, fromIndex, toIndex);
 	}
 }
