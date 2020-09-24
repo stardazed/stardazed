@@ -22,7 +22,7 @@ function module(name) {
 				file: `${name}/index.d.ts`,
 				format: "esm",
 				paths,
-				banner: `/// <reference path="../global-types.d.ts" />`
+				banner: `/// <reference path="../global-types.d.ts" />` + (name === "render" ? `\n/// <reference path="../webgpu.d.ts" />` : "")
 			}],
 			plugins: [
 				dts()
@@ -33,6 +33,7 @@ function module(name) {
 }
 
 fs.copyFileSync("src/global-types.d.ts", "./global-types.d.ts");
+fs.copyFileSync("src/webgpu.d.ts", "./webgpu.d.ts");
 
 export default [
 	"core",

@@ -9,10 +9,12 @@
 	},
 	"files": [
 		"../global-types.d.ts",
+		"../webgpu.d.ts",
 
 		"types.ts",
 		"gl-constants.ts",
 		"gl-state.ts",
+		"gl-device.ts",
 		"index.ts"
 	],
 	"references": [

@@ -5,11 +5,12 @@ pnpm-debug.log
 __build
 node_modules/
 
-# package output dirs
+# package output dirs and copied global types
 /container
 /core
 /entity
 /geometry
-/render-gl
+/render
 /vector
 /global-types.d.ts
+/webgpu.d.ts

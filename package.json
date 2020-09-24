@@ -19,6 +19,7 @@
 		"geometry",
 		"render",
 		"vector",
+		"webgpu.d.ts",
 		"global-types.d.ts",
 		"index.*"
 	],
