@@ -663,7 +663,7 @@ export class Sphere implements MeshGenerator {
 				const z = Math.cos(tauSeg * seg) * segRad;
 				const texU = seg / this.segs_;
 
-				// for a sphere with origin at [0,0,0], the normalized position is the normal
+				// for a sphere with origin at [0,0,0], the normalised position is the normal
 				position(x, y, z);
 				const norm = vec3.normalize([], [x, y, z]);
 				normal(norm[0], norm[1], norm[2]);

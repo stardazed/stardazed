@@ -45,7 +45,7 @@ interface VertexFieldProps {
 	/** The role of this attribute inside the buffer */
 	role: VertexAttributeRole;
 	/** Only for integer fields, is the value treated as a normalised fraction? */
-	normalized?: boolean;
+	normalised?: boolean;
 }
 
 /**
