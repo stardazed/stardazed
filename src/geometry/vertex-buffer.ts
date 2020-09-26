@@ -117,4 +117,11 @@ export class VertexBuffer {
 	fieldView(field: number | PositionedStructField<VertexFieldProps>, fromIndex?: number, toIndex?: number) {
 		return this.backing.fieldView(field, fromIndex, toIndex);
 	}
+
+	static sizeBytesRequired(fields: VertexAttribute[], count: number, topology: VertexBufferTopology) {
+		if (topology === "interleaved") {
+			return ArrayOfStructs.sizeBytesRequired(fields, count);
+		}
+		return StructOfArrays.sizeBytesRequired(fields, count);
+	}
 }
