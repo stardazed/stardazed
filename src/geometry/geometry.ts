@@ -100,7 +100,7 @@ export interface GeometryAllocDescriptor {
 export function bytesNeededForGeometry(desc: GeometryAllocDescriptor) {
 	let totalBytes = 0;
 	for (const vbDesc of desc.vertexDescs) {
-		totalBytes += VertexBuffer.sizeBytesRequired(vbDesc.attrs, vbDesc.valueCount);
+		totalBytes += VertexBuffer.sizeBytesRequired(vbDesc.attrs, vbDesc.valueCount, vbDesc.topology);
 		totalBytes = alignUp(totalBytes, BufferAlignment.SubBuffer);
 	}
 	if (desc.indexCount > 0) {
@@ -126,7 +126,7 @@ export function allocateGeometry(desc: GeometryAllocDescriptor): Geometry {
 	let byteOffset = 0;
 	let vertexCount = 0;
 	for (const vbDesc of desc.vertexDescs) {
-		const subSize = VertexBuffer.sizeBytesRequired(vbDesc.attrs, vbDesc.valueCount);
+		const subSize = VertexBuffer.sizeBytesRequired(vbDesc.attrs, vbDesc.valueCount, vbDesc.topology);
 		const subStorage = new Uint8Array(storage, byteOffset, subSize);
 		const vb = new VertexBuffer(vbDesc, subStorage);
 		geom.vertexBuffers.push(vb);

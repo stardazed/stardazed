@@ -68,10 +68,10 @@ export interface VertexBufferDescriptor {
 	attrs: VertexAttribute[];
 	/** The number of values of each attribute required (usually the vertex count) */
 	valueCount: number;
+	/** The storage topology of vertex data, defaults to interleaved */
+	topology: VertexBufferTopology;
 	/** (optional) The vertex step mode that will apply to ALL attributes in this buffer */
 	stepMode?: StepMode;
-	/** (optional) The storage topology of vertex data, defaults to interleaved */
-	topology?: VertexBufferTopology;
 }
 
 /**
@@ -89,7 +89,7 @@ export class VertexBuffer {
 	constructor(desc: VertexBufferDescriptor, storage?: Uint8Array) {
 		// TODO: verify that each field can be represented in a vertexbuffer
 
-		this.topology = desc.topology ?? "interleaved";
+		this.topology = desc.topology;
 		if (this.topology === "interleaved") {
 			this.backing = new ArrayOfStructs(desc.attrs, desc.valueCount, storage);
 		}
