@@ -68,7 +68,7 @@ export interface VertexBufferDescriptor {
 	attrs: VertexAttribute[];
 	/** The number of values of each attribute required (usually the vertex count) */
 	valueCount: number;
-	/** The storage topology of vertex data, defaults to interleaved */
+	/** The storage topology of vertex data */
 	topology: VertexBufferTopology;
 	/** (optional) The vertex step mode that will apply to ALL attributes in this buffer */
 	stepMode?: StepMode;
