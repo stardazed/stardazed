@@ -36,7 +36,7 @@ export const enum VertexAttributeRole {
 	Transform
 }
 
-export const enum StepMode {
+export const enum VertexStepMode {
 	Vertex,
 	Instance
 }
@@ -71,14 +71,14 @@ export interface VertexBufferDescriptor {
 	/** The storage topology of vertex data */
 	topology: VertexBufferTopology;
 	/** (optional) The vertex step mode that will apply to ALL attributes in this buffer */
-	stepMode?: StepMode;
+	stepMode?: VertexStepMode;
 }
 
 /**
  * A VertexBuffer is the client-side representation of vertex data and meta-data.
  */
 export class VertexBuffer {
-	readonly stepMode: StepMode;
+	readonly stepMode: VertexStepMode;
 	readonly topology: VertexBufferTopology;
 	readonly backing: ArrayOfStructs<VertexFieldProps> | StructOfArrays<VertexFieldProps>;
 
@@ -96,7 +96,7 @@ export class VertexBuffer {
 		else {
 			this.backing = new StructOfArrays(desc.attrs, desc.valueCount, storage);
 		}
-		this.stepMode = desc.stepMode ?? StepMode.Vertex;
+		this.stepMode = desc.stepMode ?? VertexStepMode.Vertex;
 	}
 
 	get fields() { return this.backing.fields; }
