@@ -1,0 +1,20 @@
+{
+	"extends": "../tsconfig-base.json",
+	"compilerOptions": {
+		"outDir": "../../__build/asset",
+		"baseUrl": ".",
+		"paths": {
+			"stardazed/*": ["../*"]
+		}
+	},
+	"files": [
+		"../global-types.d.ts",
+
+		"gltf2.ts",
+		"index.ts"
+	],
+	"references": [
+		{ "path": "../core" },
+		{ "path": "../geometry" }
+	]
+}

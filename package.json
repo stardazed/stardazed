@@ -13,6 +13,7 @@
 	"module": "index.js",
 	"types": "index.d.ts",
 	"files": [
+		"asset",
 		"container",
 		"core",
 		"entity",

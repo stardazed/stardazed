@@ -41,5 +41,6 @@ export default [
 	"vector",
 	"geometry",
 	"entity",
-	"render"
+	"render",
+	"asset"
 ].flatMap(module);
