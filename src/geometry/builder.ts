@@ -6,7 +6,7 @@ https://github.com/stardazed/stardazed
 */
 
 import { Float, stableSort, copyElementRange, appendArrayInPlace, numericTraits } from "stardazed/core";
-import { VertexAttribute, VertexAttributeRole } from "./vertex-buffer";
+import { VertexAttribute, VertexAttributeRole, VertexBufferTopology } from "./vertex-buffer";
 import { allocateGeometry, TrianglePrimitive } from "./geometry";
 
 export const enum VertexAttributeMapping {
@@ -93,6 +93,7 @@ export interface GeometryBuilderOptions {
 	positions: Float32Array | Float64Array;
 	positionIndexes?: Uint32Array;
 	streams: VertexAttributeStream[];
+	outputTopology?: VertexBufferTopology;
 }
 
 export class GeometryBuilder {
@@ -110,8 +111,9 @@ export class GeometryBuilder {
 	private groupIndexesRef_: number[];
 
 	private streams_: VertexAttributeStream[];
+	private outputTopology_: VertexBufferTopology;
 
-	constructor({ positions, positionIndexes, streams }: GeometryBuilderOptions) {
+	constructor({ positions, positionIndexes, streams, outputTopology }: GeometryBuilderOptions) {
 		// create a local copy of the streams array so we can modify it
 		this.streams_ = streams.slice(0);
 
@@ -172,6 +174,7 @@ export class GeometryBuilder {
 		this.vertexMapping_ = new Map<string, number>();
 		this.indexMap_ = new VertexIndexMappingB();
 		this.streamCount_ = this.streams_.length;
+		this.outputTopology_ = outputTopology ?? "interleaved";
 	}
 
 	private streamIndexesForPVI(polygonVertexIndex: number, vertexIndex: number, polygonIndex: number) {
@@ -326,7 +329,7 @@ export class GeometryBuilder {
 		// allocate as single buffer
 		const geom = allocateGeometry({
 			vertexDescs: [
-				{ attrs, valueCount: this.vertexCount_ }
+				{ attrs, valueCount: this.vertexCount_, topology: this.outputTopology_ }
 			],
 			indexCount: this.triangleCount_ * 3
 		});
