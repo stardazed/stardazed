@@ -5,3 +5,4 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
+export * from "./gltf2";
