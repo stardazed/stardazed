@@ -36,4 +36,4 @@ License
 -------
 MIT
 
-© 2015-Present by Arthur Langereis ([@zenmumbler](https://twitter.com/zenmumbler))
+© 2015-Present by [@zenmumbler](https://twitter.com/zenmumbler)

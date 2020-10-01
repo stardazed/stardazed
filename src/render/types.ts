@@ -1,7 +1,7 @@
 /*
 render/types - data structures and make functions for render state info
 Part of Stardazed
-(c) 2015-Present by Arthur Langereis - @zenmumbler
+(c) 2015-Present by @zenmumbler
 https://github.com/stardazed/stardazed
 */
 

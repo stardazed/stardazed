@@ -1,7 +1,7 @@
 /*
 geometry/builder - construct Geometry from normalised sources
 Part of Stardazed
-(c) 2015-Present by Arthur Langereis - @zenmumbler
+(c) 2015-Present by @zenmumbler
 https://github.com/stardazed/stardazed
 */
 

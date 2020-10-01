@@ -6,7 +6,7 @@
 	"private": true,
 	"homepage": "https://github.com/stardazed/stardazed",
 	"author": {
-		"name": "Arthur Langereis",
+		"name": "zenmumbler",
 		"url": "https://twitter.com/zenmumbler"
 	},
 	"main": "index.js",

@@ -1,7 +1,7 @@
 /*
 core/buffer - working with large arrays and arraybuffers
 Part of Stardazed
-(c) 2015-Present by Arthur Langereis - @zenmumbler
+(c) 2015-Present by @zenmumbler
 https://github.com/stardazed/stardazed
 */
 
