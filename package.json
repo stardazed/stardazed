@@ -18,6 +18,7 @@
 		"core",
 		"entity",
 		"geometry",
+		"input",
 		"render",
 		"vector",
 		"webgpu.d.ts",
