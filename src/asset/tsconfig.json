@@ -10,6 +10,7 @@
 	"files": [
 		"../global-types.d.ts",
 
+		"path.ts",
 		"gltf2.ts",
 		"index.ts"
 	],
