@@ -1,5 +1,5 @@
 /*
-Global WebGPU types
+Global WebGPU types - Up-to-date with spec as of 2020-Oct-6 (rev 52694b0)
 Part of Stardazed
 (c) 2020-Present by @zenmumbler
 https://github.com/stardazed/stardazed
