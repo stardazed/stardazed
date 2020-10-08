@@ -10,6 +10,7 @@
 	"files": [
 		"../global-types.d.ts",
 
+		"keyboard.ts",
 		"index.ts"
 	],
 	"references": [
