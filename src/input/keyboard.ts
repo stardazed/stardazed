@@ -145,11 +145,14 @@ const EventCodeToKey: Record<string, Key> = {
 	Pause: Key.Pause // aka F15
 };
 
-/**
- * Maximum number of keys to track, must be able to represent
- * all Key values and be a power of 2.
- */
-const MAX_KEYS = 128;
+const enum Config {
+	/**
+	 * Maximum number of keys to track, must be able to represent
+	 * all Key values and be a power of 2.
+ 	 */
+	MAX_KEYS = 128
+}
+	
 
 export class Keyboard {
 	private keyData_: StructOfArrays;
@@ -161,7 +164,7 @@ export class Keyboard {
 		this.keyData_ = new StructOfArrays([
 			{ type: "uint8", width: 2 },  // down
 			{ type: "double", width: 1 }, // lastEvent
-		], MAX_KEYS);
+		], Config.MAX_KEYS);
 		this.downBase_ = this.keyData_.fieldArrayView(0) as Uint8Array;
 		this.lastEventBase_ = this.keyData_.fieldArrayView(2) as Float64Array;
 		this.frameToggle_ = 0;
@@ -197,7 +200,7 @@ export class Keyboard {
 	/** Return the standardised state of a sequence of keys. */
 	getKeyStates(keys: Key[]): ButtonState[] {
 		return keys.map((key) => {
-			const prev = this.downBase_[(this.frameToggle_ ^ MAX_KEYS) + key];
+			const prev = this.downBase_[(this.frameToggle_ ^ Config.MAX_KEYS) + key];
 			const cur = this.downBase_[this.frameToggle_ + key];
 			return {
 				down: cur === 1,
@@ -220,13 +223,13 @@ export class Keyboard {
 	/** Did this key transition from up to down? */
 	pressed(key: Key): boolean {
 		// cur down = 1 and old down = 0 is the only combination that yields 1 when subtracted
-		return this.downBase_[this.frameToggle_ + key] - this.downBase_[(this.frameToggle_ ^ MAX_KEYS) + key] === 1;
+		return this.downBase_[this.frameToggle_ + key] - this.downBase_[(this.frameToggle_ ^ Config.MAX_KEYS) + key] === 1;
 	}
 
 	/** Did this key transition from down to up? */
 	released(key: Key): boolean {
 		// reverse calculation from pressed
-		return this.downBase_[(this.frameToggle_ ^ MAX_KEYS) + key] - this.downBase_[this.frameToggle_ + key] === 1;
+		return this.downBase_[(this.frameToggle_ ^ Config.MAX_KEYS) + key] - this.downBase_[this.frameToggle_ + key] === 1;
 	}
 
 	/** Reset key tracking, any keys still physically held down must be released before they can be tracked again. */
@@ -236,6 +239,6 @@ export class Keyboard {
 
 	/** Call this after processing all inputs from this device to start tracking changes in the current frame. */
 	nextFrame() {
-		this.frameToggle_ ^= MAX_KEYS;
+		this.frameToggle_ ^= Config.MAX_KEYS;
 	}
 }
