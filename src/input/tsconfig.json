@@ -10,6 +10,7 @@
 	"files": [
 		"../global-types.d.ts",
 
+		"types.ts",
 		"keyboard.ts",
 		"index.ts"
 	],
