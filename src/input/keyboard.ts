@@ -6,6 +6,7 @@ https://github.com/stardazed/stardazed
 */
 
 import { StructOfArrays } from "stardazed/container";
+import { ButtonState } from "types";
 
 /**
  * An abstract key code that represents a key on a generic US QWERTY keyboard.
@@ -193,6 +194,17 @@ export class Keyboard {
 		}, true);
 	}
 
+	/** Return the standardised state of a sequence of keys. */
+	getKeyStates(keys: Key[]): ButtonState[] {
+		return keys.map((key) => {
+			const prev = this.downBase_[(this.frameToggle_ ^ MAX_KEYS) + key];
+			const cur = this.downBase_[this.frameToggle_ + key];
+			return {
+				down: cur === 1,
+				transitioned: cur !== prev,
+				value: cur
+			};
+		});
 	}
 
 	/** Is the key currently not held down, regardless of previous state? */
