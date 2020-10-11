@@ -12,6 +12,7 @@
 
 		"types.ts",
 		"keyboard.ts",
+		"gamepad.ts",
 		"index.ts"
 	],
 	"references": [
