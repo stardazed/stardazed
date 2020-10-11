@@ -5,4 +5,6 @@ Part of Stardazed
 https://github.com/stardazed/stardazed
 */
 
-export const temp = true;
+export * from "./types";
+export * from "./keyboard";
+export * from "./gamepad";
