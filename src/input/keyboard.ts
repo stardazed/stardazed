@@ -6,7 +6,7 @@ https://github.com/stardazed/stardazed
 */
 
 import { StructOfArrays } from "stardazed/container";
-import { ButtonState } from "types";
+import { ButtonState } from "./types";
 
 /**
  * An abstract key code that represents a key on a generic US QWERTY keyboard.
@@ -166,7 +166,7 @@ export class Keyboard {
 			{ type: "double", width: 1 }, // lastEvent
 		], Config.MAX_KEYS);
 		this.downBase_ = this.keyData_.fieldArrayView(0) as Uint8Array;
-		this.lastEventBase_ = this.keyData_.fieldArrayView(2) as Float64Array;
+		this.lastEventBase_ = this.keyData_.fieldArrayView(1) as Float64Array;
 		this.frameToggle_ = 0;
 
 		// The extra check in the key handlers for the timeStamp was added
@@ -235,6 +235,7 @@ export class Keyboard {
 	/** Reset key tracking, any keys still physically held down must be released before they can be tracked again. */
 	reset() {
 		this.keyData_.data.fill(0);
+		this.frameToggle_ = 0;
 	}
 
 	/** Call this after processing all inputs from this device to start tracking changes in the current frame. */
