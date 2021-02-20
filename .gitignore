@@ -11,6 +11,7 @@ node_modules/
 /core
 /entity
 /geometry
+/input
 /render
 /vector
 /global-types.d.ts
