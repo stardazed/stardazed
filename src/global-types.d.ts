@@ -10,7 +10,7 @@
 */
 type DeepReadonly<T> =
 	T extends any[] ? DeepReadonlyArray<T[number]> :
-	T extends Function ? T : // tslint:disable-line:ban-types
+	T extends Function ? T :
 	T extends object ? DeepReadonlyObject<T> :
 	T;
 
