@@ -1,7 +1,6 @@
 /**
  * core/easing - time easing functions
  * Part of Stardazed
- * (c) 2015-Present by @zenmumbler
  * https://github.com/stardazed/stardazed
  *
  * Minor modification of the file from https://github.com/sveltejs/svelte/blob/master/src/runtime/easing/index.ts
