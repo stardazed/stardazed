@@ -149,6 +149,13 @@ export class Vector2 {
 		);
 	}
 
+	apply(fn: (v: number) => number) {
+		return new Vector2(
+			fn(this.x),
+			fn(this.y)
+		);
+	}
+
 	clamp(min: number, max: number): Vector2;
 	clamp(min: Vector2, max: Vector2): Vector2;
 	clamp(min: number | Vector2, max: number | Vector2) {
