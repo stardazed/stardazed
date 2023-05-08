@@ -9,6 +9,7 @@
 		"name": "zenmumbler",
 		"url": "https://mastodon.gamedev.place/@zenmumbler"
 	},
+	"type": "module",
 	"main": "index.js",
 	"module": "index.js",
 	"types": "index.d.ts",
