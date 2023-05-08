@@ -7,7 +7,7 @@
 	"homepage": "https://github.com/stardazed/stardazed",
 	"author": {
 		"name": "zenmumbler",
-		"url": "https://twitter.com/zenmumbler"
+		"url": "https://mastodon.gamedev.place/@zenmumbler"
 	},
 	"main": "index.js",
 	"module": "index.js",

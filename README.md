@@ -36,4 +36,4 @@ License
 -------
 MIT
 
-© 2015-Present by [@zenmumbler](https://twitter.com/zenmumbler)
+© 2015-Present by [@zenmumbler](https://mastodon.gamedev.place/@zenmumbler)
