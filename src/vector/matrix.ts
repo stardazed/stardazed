@@ -15,28 +15,18 @@ export class Matrix {
 	private data_: Float32Array;
 
 	constructor();
-	constructor(col0: Vector4, col1: Vector4, col2: Vector4, col3: Vector4);
 	constructor(m00: number, m01: number, m02: number, m03: number,
 		m10: number, m11: number, m12: number, m13: number,
 		m20: number, m21: number, m22: number, m23: number,
 		m30: number, m31: number, m32: number, m33: number);
-	constructor(m00?: Vector4 | number, m01?: Vector4 | number, m02?: Vector4 | number, m03?: Vector4 | number,
+	constructor(m00?: number, m01?: number, m02?: number, m03?: number,
 		m10?: number, m11?: number, m12?: number, m13?: number,
 		m20?: number, m21?: number, m22?: number, m23?: number,
 		m30?: number, m31?: number, m32?: number, m33?: number
 	) {
-		if (arguments.length === 4) {
-			const col0 = m00! as Vector4, col1 = m01! as Vector4, col2 = m02! as Vector4, col3 = m03! as Vector4;
+		if (arguments.length === 16) {
 			this.data_ = new Float32Array([
-				col0.x, col0.y, col0.z, col0.w,
-				col1!.x, col1!.y, col1!.z, col1!.w,
-				col2!.x, col2!.y, col2!.z, col2!.w,
-				col3!.x, col3!.y, col3!.z, col3!.w
-			]);
-		}
-		else if (arguments.length === 16) {
-			this.data_ = new Float32Array([
-				m00! as number, m01! as number, m02! as number, m03! as number,
+				m00!, m01!, m02!, m03!,
 				m10!, m11!, m12!, m13!,
 				m20!, m21!, m22!, m23!,
 				m30!, m31!, m32!, m33!,
@@ -76,6 +66,16 @@ export class Matrix {
 
 	setElement(row: number, column: number, value: number) {
 		this.data_[row + column * 4] = value;
+	}
+
+	setElements(
+		_m00: number, _m01: number, _m02: number, _m03: number,
+		_m10: number, _m11: number, _m12: number, _m13: number,
+		_m20: number, _m21: number, _m22: number, _m23: number,
+		_m30: number, _m31: number, _m32: number, _m33: number
+	) {
+		this.data.set(arguments);
+		return this;
 	}
 
 	clone() {
@@ -315,6 +315,15 @@ export class Matrix {
 			m.data_[n] = v.value;
 		}
 		return m;
+	}
+
+	static fromColumns(col0: Vector4, col1: Vector4, col2: Vector4, col3: Vector4) {
+		return new Matrix(
+			col0.x, col0.y, col0.z, col0.w,
+			col1.x, col1.y, col1.z, col1.w,
+			col2.x, col2.y, col2.z, col2.w,
+			col3.x, col3.y, col3.z, col3.w
+		);
 	}
 
 	static trs(pos: Vector3, q: Quaternion, s: Vector3) {
