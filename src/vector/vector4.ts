@@ -191,6 +191,15 @@ export class Vector4 {
 		);
 	}
 
+	apply(fn: (v: number) => number) {
+		return new Vector4(
+			fn(this.x),
+			fn(this.y),
+			fn(this.z),
+			fn(this.w)
+		);
+	}
+
 	clamp(min: number, max: number): Vector4;
 	clamp(min: Vector4, max: Vector4): Vector4;
 	clamp(min: number | Vector4, max: number | Vector4) {

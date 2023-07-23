@@ -226,6 +226,14 @@ export class Vector3 {
 		);
 	}
 
+	apply(fn: (v: number) => number) {
+		return new Vector3(
+			fn(this.x),
+			fn(this.y),
+			fn(this.z),
+		);
+	}
+
 	clamp(min: number, max: number): Vector3;
 	clamp(min: Vector3, max: Vector3): Vector3;
 	clamp(min: number | Vector3, max: number | Vector3) {
