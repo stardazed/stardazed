@@ -1,9 +1,9 @@
 {
 	"$schema": "http://json.schemastore.org/tsconfig",
 	"compilerOptions": {
-		"module": "es2015",
-		"target": "es2018",
-		"moduleResolution": "node",
+		"module": "ESNext",
+		"target": "ESNext",
+		"moduleResolution": "bundler",
 
 		"composite": true,
 		"declaration": true,
